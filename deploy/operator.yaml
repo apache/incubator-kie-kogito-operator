@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: submarine-cloud-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: submarine-cloud-operator
+  template:
+    metadata:
+      labels:
+        name: submarine-cloud-operator
+    spec:
+      serviceAccountName: submarine-cloud-operator
+      containers:
+        - name: submarine-cloud-operator
+          # Replace this with the built image name
+          image: quay.io/kiegroup/submarine-cloud-operator:0.1
+          command:
+            - submarine-cloud-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "submarine-cloud-operator"
