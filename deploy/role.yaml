@@ -5,14 +5,13 @@ metadata:
 rules:
   - apiGroups:
       - ""
+      - app.kiegroup.org
+      - apps.openshift.io
+      - image.openshift.io
+      - build.openshift.io
+      - route.openshift.io
     resources:
-      - pods
-      - services
-      - endpoints
-      - persistentvolumeclaims
-      - events
-      - configmaps
-      - secrets
+      - "*"
     verbs:
       - "*"
   - apiGroups:
@@ -25,9 +24,6 @@ rules:
       - apps
     resources:
       - deployments
-      - daemonsets
-      - replicasets
-      - statefulsets
     verbs:
       - "*"
   - apiGroups:
@@ -45,9 +41,3 @@ rules:
       - deployments/finalizers
     verbs:
       - update
-  - apiGroups:
-      - app.kiegroup.org
-    resources:
-      - "*"
-    verbs:
-      - "*"
