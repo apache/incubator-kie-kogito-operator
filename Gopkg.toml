@@ -62,6 +62,14 @@ required = [
   # branch = "master" #osdk_branch_annotation
   version = "=v0.7.0" #osdk_version_annotation
 
+[[constraint]]
+  name = "github.com/gobuffalo/packr"
+  version = "=v2.2.0"
+
+[[constraint]]
+  name = "github.com/RHsyseng/operator-utils"
+  branch = "master"
+
 [prune]
   go-tests = true
   non-go = true
