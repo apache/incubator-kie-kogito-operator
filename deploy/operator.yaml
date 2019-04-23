@@ -4,6 +4,8 @@ metadata:
   name: submarine-cloud-operator
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       name: submarine-cloud-operator
@@ -15,7 +17,6 @@ spec:
       serviceAccountName: submarine-cloud-operator
       containers:
         - name: submarine-cloud-operator
-          # Replace this with the built image name
           image: quay.io/kiegroup/submarine-cloud-operator:0.1
           command:
             - submarine-cloud-operator
@@ -30,4 +31,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "submarine-cloud-operator"
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['name']
+            - name: DEBUG
+              value: "false"

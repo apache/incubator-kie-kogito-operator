@@ -10,8 +10,10 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	openshiftutil "github.com/RHsyseng/operator-utils/pkg/utils/openshift"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/apis"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller"
+	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -20,7 +22,6 @@ import (
 	"github.com/spf13/pflag"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
 
@@ -28,8 +29,8 @@ import (
 var (
 	metricsHost       = "0.0.0.0"
 	metricsPort int32 = 8383
+	log               = logs.GetLogger("cmd")
 )
-var log = logf.Log.WithName("cmd")
 
 func printVersion() {
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
@@ -47,16 +48,6 @@ func main() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 
 	pflag.Parse()
-
-	// Use a zap logr.Logger implementation. If none of the zap
-	// flags are configured (or if the zap flag set is not being
-	// used), this defaults to a production zap logger.
-	//
-	// The logger instantiated here can be changed to any logger
-	// implementing the logr.Logger interface. This logger will
-	// be propagated through the whole operator, generating
-	// uniform and structured logs.
-	logf.SetLogger(zap.Logger())
 
 	printVersion()
 
@@ -89,6 +80,17 @@ func main() {
 	})
 	if err != nil {
 		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Check for OpenShift cluster
+	isOpenShift, err := openshiftutil.IsOpenShift(mgr.GetConfig())
+	if err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	}
+	if !isOpenShift {
+		log.Error("OpenShift not detected, exiting")
 		os.Exit(1)
 	}
 

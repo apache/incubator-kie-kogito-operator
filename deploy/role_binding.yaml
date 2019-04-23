@@ -3,8 +3,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: submarine-cloud-operator
 subjects:
-- kind: ServiceAccount
-  name: submarine-cloud-operator
+  - kind: ServiceAccount
+    name: submarine-cloud-operator
 roleRef:
   kind: Role
   name: submarine-cloud-operator

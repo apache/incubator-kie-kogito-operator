@@ -1,7 +1,0 @@
-apiVersion: app.kiegroup.org/v1alpha1
-kind: SubApp
-metadata:
-  name: example-subapp
-spec:
-  # Add fields here
-  size: 3
