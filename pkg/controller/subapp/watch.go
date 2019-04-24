@@ -2,7 +2,12 @@ package subapp
 
 import (
 	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
+	oappsv1 "github.com/openshift/api/apps/v1"
+	buildv1 "github.com/openshift/api/build/v1"
+	oimagev1 "github.com/openshift/api/image/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -18,7 +23,11 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileSubApp{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileSubApp{
+		client: mgr.GetClient(),
+		scheme: mgr.GetScheme(),
+		cache:  mgr.GetCache(),
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -35,14 +44,23 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner SubApp
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	watchOwnedObjects := []runtime.Object{
+		&oappsv1.DeploymentConfig{},
+		&corev1.PersistentVolumeClaim{},
+		&corev1.Service{},
+		&routev1.Route{},
+		&buildv1.BuildConfig{},
+		&oimagev1.ImageStream{},
+	}
+	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &v1alpha1.SubApp{},
-	})
-	if err != nil {
-		return err
+	}
+	for _, watchObject := range watchOwnedObjects {
+		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

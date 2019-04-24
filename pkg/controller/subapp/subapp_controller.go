@@ -2,6 +2,7 @@ package subapp
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -29,6 +31,7 @@ type ReconcileSubApp struct {
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
 	scheme *runtime.Scheme
+	cache  cachev1.Cache
 }
 
 // Reconcile reads that state of the cluster for a SubApp object and makes changes based on the state read
@@ -57,20 +60,12 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 
 	// Define a new BuildConfig object
 	buildConfig := newBCForCR(instance)
-	bcUpdated, err := r.updateBuildConfigs(instance, buildConfig)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-	if bcUpdated && status.SetProvisioning(instance) {
-		return r.UpdateObj(instance)
-	}
-
 	// Set SubApp instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, buildConfig, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Check if this Pod already exists
+	// Check if this BC already exists
 	found := &buildv1.BuildConfig{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: buildConfig.Name, Namespace: buildConfig.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
@@ -80,14 +75,57 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 			return reconcile.Result{}, err
 		}
 
-		// Pod created successfully - don't requeue
+		// BC created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Pod already exists - don't requeue
-	log.Info("Skip reconcile: Pod already exists", "BuildConfig.Namespace", found.Namespace, "BuildConfig.Name", found.Name)
+	/*
+		bcUpdated, err := r.updateBuildConfigs(instance, buildConfig)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		if bcUpdated && status.SetProvisioning(instance) {
+			return r.UpdateObj(instance)
+		}
+	*/
+
+	// Fetch the cached SubApp instance
+	cachedInstance := &v1alpha1.SubApp{}
+	err = r.cache.Get(context.TODO(), request.NamespacedName, cachedInstance)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return and don't requeue
+			return reconcile.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		r.setFailedStatus(instance, v1alpha1.UnknownReason, err)
+		return reconcile.Result{}, err
+	}
+
+	// Update CR if needed
+	if r.hasSpecChanges(instance, cachedInstance) {
+		if status.SetProvisioning(instance) && instance.ResourceVersion == cachedInstance.ResourceVersion {
+			return r.UpdateObj(instance)
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+	if r.hasStatusChanges(instance, cachedInstance) {
+		if instance.ResourceVersion == cachedInstance.ResourceVersion {
+			return r.UpdateObj(instance)
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+	if status.SetDeployed(instance) {
+		if instance.ResourceVersion == cachedInstance.ResourceVersion {
+			return r.UpdateObj(instance)
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+
 	return reconcile.Result{}, nil
 }
 
@@ -97,8 +135,11 @@ func newBCForCR(cr *v1alpha1.SubApp) *buildv1.BuildConfig {
 	if cr.Spec.Name != "" {
 		name = cr.Spec.Name
 	}
-	builderName := strings.Join([]string{name, "builder"}, "-")
+	if len(cr.Spec.Build.From.Namespace) == 0 {
+		cr.Spec.Build.From.Namespace = "openshift"
+	}
 
+	builderName := strings.Join([]string{name, "builder"}, "-")
 	bc := buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      builderName,
@@ -109,19 +150,17 @@ func newBCForCR(cr *v1alpha1.SubApp) *buildv1.BuildConfig {
 		},
 	}
 
-	if len(cr.Spec.Build.From.Namespace) == 0 {
-		cr.Spec.Build.From.Namespace = "openshift"
+	bc.Spec.Source.Git = &buildv1.GitBuildSource{
+		URI: cr.Spec.Build.GitSource.URI,
+		Ref: cr.Spec.Build.GitSource.Reference,
 	}
-	bc.Spec.Source.Git.URI = cr.Spec.Build.GitSource.URI
-	if len(cr.Spec.Build.GitSource.Reference) == 0 {
-		cr.Spec.Build.GitSource.Reference = "master"
-	}
-	bc.Spec.Source.Git.Ref = cr.Spec.Build.GitSource.Reference
 	bc.Spec.Source.ContextDir = cr.Spec.Build.GitSource.ContextDir
 	bc.Spec.Output.To = &corev1.ObjectReference{Name: strings.Join([]string{name, "latest"}, ":"), Kind: "ImageStreamTag"}
 	bc.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
-	bc.Spec.Strategy.SourceStrategy.From = corev1.ObjectReference{Name: cr.Spec.Build.From.Name, Namespace: cr.Spec.Build.From.Namespace, Kind: "ImageStreamTag"}
-	bc.Spec.Strategy.SourceStrategy.Incremental = &cr.Spec.Build.Incremental
+	bc.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
+		Incremental: &cr.Spec.Build.Incremental,
+		From:        corev1.ObjectReference{Name: cr.Spec.Build.From.Name, Namespace: cr.Spec.Build.From.Namespace, Kind: "ImageStreamTag"},
+	}
 
 	return &bc
 }
@@ -145,6 +184,7 @@ func (r *ReconcileSubApp) updateBuildConfigs(instance *v1alpha1.SubApp, bc *buil
 	}
 	if len(bcUpdates) > 0 {
 		for _, uBc := range bcUpdates {
+			fmt.Println(uBc)
 			_, err := r.UpdateObj(&uBc)
 			if err != nil {
 				r.setFailedStatus(instance, v1alpha1.DeploymentFailedReason, err)
@@ -207,4 +247,18 @@ func (r *ReconcileSubApp) bcUpdateCheck(current, new buildv1.BuildConfig, bcUpda
 		bcUpdates = append(bcUpdates, bcnew)
 	}
 	return bcUpdates
+}
+
+func (r *ReconcileSubApp) hasSpecChanges(instance, cached *v1alpha1.SubApp) bool {
+	if !reflect.DeepEqual(instance.Spec, cached.Spec) {
+		return true
+	}
+	return false
+}
+
+func (r *ReconcileSubApp) hasStatusChanges(instance, cached *v1alpha1.SubApp) bool {
+	if !reflect.DeepEqual(instance.Status, cached.Status) {
+		return true
+	}
+	return false
 }
