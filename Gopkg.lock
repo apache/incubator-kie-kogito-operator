@@ -592,6 +592,8 @@
   digest = "1:3e8b0f8d2ed4b10f83a0719c1e8853bdb4bbce2ca365aba2843dc9487e4ab35c"
   name = "github.com/openshift/client-go"
   packages = [
+    "build/clientset/versioned/scheme",
+    "build/clientset/versioned/typed/build/v1",
     "image/clientset/versioned/scheme",
     "image/clientset/versioned/typed/image/v1",
   ]
@@ -1323,6 +1325,7 @@
     "github.com/openshift/api/build/v1",
     "github.com/openshift/api/image/v1",
     "github.com/openshift/api/route/v1",
+    "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1",
     "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1",
     "github.com/operator-framework/operator-sdk/pkg/k8sutil",
     "github.com/operator-framework/operator-sdk/pkg/leader",

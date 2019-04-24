@@ -3,9 +3,11 @@ package subapp
 import (
 	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
 	oappsv1 "github.com/openshift/api/apps/v1"
-	buildv1 "github.com/openshift/api/build/v1"
+	obuildv1 "github.com/openshift/api/build/v1"
 	oimagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
+	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -23,10 +25,23 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+	imageClient, err := imagev1.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		log.Errorf("Error getting image client: %v", err)
+		return &ReconcileSubApp{}
+	}
+	buildClient, err := buildv1.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		log.Errorf("Error getting build client: %v", err)
+		return &ReconcileSubApp{}
+	}
+
 	return &ReconcileSubApp{
-		client: mgr.GetClient(),
-		scheme: mgr.GetScheme(),
-		cache:  mgr.GetCache(),
+		client:      mgr.GetClient(),
+		scheme:      mgr.GetScheme(),
+		cache:       mgr.GetCache(),
+		imageClient: imageClient,
+		buildClient: buildClient,
 	}
 }
 
@@ -49,7 +64,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&corev1.PersistentVolumeClaim{},
 		&corev1.Service{},
 		&routev1.Route{},
-		&buildv1.BuildConfig{},
+		&obuildv1.BuildConfig{},
 		&oimagev1.ImageStream{},
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
