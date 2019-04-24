@@ -10,12 +10,14 @@ import (
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/shared"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/status"
-	buildv1 "github.com/openshift/api/build/v1"
+	obuildv1 "github.com/openshift/api/build/v1"
+	oimagev1 "github.com/openshift/api/image/v1"
+	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
+	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -29,9 +31,11 @@ var _ reconcile.Reconciler = &ReconcileSubApp{}
 type ReconcileSubApp struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
-	cache  cachev1.Cache
+	client      client.Client
+	scheme      *runtime.Scheme
+	cache       cachev1.Cache
+	imageClient *imagev1.ImageV1Client
+	buildClient *buildv1.BuildV1Client
 }
 
 // Reconcile reads that state of the cluster for a SubApp object and makes changes based on the state read
@@ -58,6 +62,11 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
+	// Set some CR defaults
+	if len(instance.Spec.Name) == 0 {
+		instance.Spec.Name = instance.Name
+	}
+
 	// Define a new BuildConfig object
 	buildConfig := newBCForCR(instance)
 	// Set SubApp instance as the owner and controller
@@ -65,13 +74,27 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
+	isNames := []string{strings.Join([]string{instance.Spec.Name, "latest"}, ":"), buildConfig.Spec.Output.To.Name}
+	for _, isName := range isNames {
+		if _, err := r.ensureImageStream(
+			isName,
+			instance,
+		); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
 	// Check if this BC already exists
-	found := &buildv1.BuildConfig{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: buildConfig.Name, Namespace: buildConfig.Namespace}, found)
+	_, err = r.buildClient.BuildConfigs(buildConfig.Namespace).Get(buildConfig.Name, metav1.GetOptions{})
 	if err != nil && errors.IsNotFound(err) {
-		log.Info("Creating a new BuildConfig", "BuildConfig.Namespace", buildConfig.Namespace, "BuildConfig.Name", buildConfig.Name)
-		err = r.client.Create(context.TODO(), buildConfig)
+		log.Info("Creating a new BuildConfig ", buildConfig.Name, " in namespace ", buildConfig.Namespace)
+		buildConfig, err = r.buildClient.BuildConfigs(buildConfig.Namespace).Create(buildConfig)
 		if err != nil {
+			return reconcile.Result{}, err
+		}
+
+		// Trigger first build of new BC
+		if err = r.triggerBuild(*buildConfig, instance); err != nil {
 			return reconcile.Result{}, err
 		}
 
@@ -130,34 +153,31 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 }
 
 // newBCForCR returns a BuildConfig with the same name/namespace as the cr
-func newBCForCR(cr *v1alpha1.SubApp) *buildv1.BuildConfig {
-	name := cr.Name
-	if cr.Spec.Name != "" {
-		name = cr.Spec.Name
-	}
+func newBCForCR(cr *v1alpha1.SubApp) *obuildv1.BuildConfig {
 	if len(cr.Spec.Build.From.Namespace) == 0 {
 		cr.Spec.Build.From.Namespace = "openshift"
 	}
 
-	builderName := strings.Join([]string{name, "builder"}, "-")
-	bc := buildv1.BuildConfig{
+	builderName := strings.Join([]string{cr.Spec.Name, "builder"}, "-")
+	bc := obuildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      builderName,
 			Namespace: cr.Namespace,
 			Labels: map[string]string{
-				"app": name,
+				"app": cr.Name,
 			},
 		},
 	}
+	bc.SetGroupVersionKind(obuildv1.SchemeGroupVersion.WithKind("BuildConfig"))
 
-	bc.Spec.Source.Git = &buildv1.GitBuildSource{
+	bc.Spec.Source.Git = &obuildv1.GitBuildSource{
 		URI: cr.Spec.Build.GitSource.URI,
 		Ref: cr.Spec.Build.GitSource.Reference,
 	}
 	bc.Spec.Source.ContextDir = cr.Spec.Build.GitSource.ContextDir
 	bc.Spec.Output.To = &corev1.ObjectReference{Name: strings.Join([]string{builderName, "latest"}, ":"), Kind: "ImageStreamTag"}
-	bc.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
-	bc.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
+	bc.Spec.Strategy.Type = obuildv1.SourceBuildStrategyType
+	bc.Spec.Strategy.SourceStrategy = &obuildv1.SourceBuildStrategy{
 		Incremental: &cr.Spec.Build.Incremental,
 		From:        corev1.ObjectReference{Name: cr.Spec.Build.From.Name, Namespace: cr.Spec.Build.From.Namespace, Kind: "ImageStreamTag"},
 	}
@@ -165,10 +185,10 @@ func newBCForCR(cr *v1alpha1.SubApp) *buildv1.BuildConfig {
 	return &bc
 }
 
-func (r *ReconcileSubApp) updateBuildConfigs(instance *v1alpha1.SubApp, bc *buildv1.BuildConfig) (bool, error) {
+func (r *ReconcileSubApp) updateBuildConfigs(instance *v1alpha1.SubApp, bc *obuildv1.BuildConfig) (bool, error) {
 	log := log.With("kind", instance.Kind, "name", instance.Name, "namespace", instance.Namespace)
 	listOps := &client.ListOptions{Namespace: instance.Namespace}
-	bcList := &buildv1.BuildConfigList{}
+	bcList := &obuildv1.BuildConfigList{}
 	err := r.client.List(context.TODO(), listOps, bcList)
 	if err != nil {
 		log.Warn("Failed to list bc's. ", err)
@@ -176,7 +196,7 @@ func (r *ReconcileSubApp) updateBuildConfigs(instance *v1alpha1.SubApp, bc *buil
 		return false, err
 	}
 
-	var bcUpdates []buildv1.BuildConfig
+	var bcUpdates []obuildv1.BuildConfig
 	for _, lbc := range bcList.Items {
 		if bc.Name == lbc.Name {
 			bcUpdates = r.bcUpdateCheck(*bc, lbc, bcUpdates, instance)
@@ -217,7 +237,7 @@ func (r *ReconcileSubApp) setFailedStatus(instance *v1alpha1.SubApp, reason v1al
 	}
 }
 
-func (r *ReconcileSubApp) bcUpdateCheck(current, new buildv1.BuildConfig, bcUpdates []buildv1.BuildConfig, cr *v1alpha1.SubApp) []buildv1.BuildConfig {
+func (r *ReconcileSubApp) bcUpdateCheck(current, new obuildv1.BuildConfig, bcUpdates []obuildv1.BuildConfig, cr *v1alpha1.SubApp) []obuildv1.BuildConfig {
 	log := log.With("kind", current.GetObjectKind().GroupVersionKind().Kind, "name", current.Name, "namespace", current.Namespace)
 	update := false
 
@@ -242,7 +262,7 @@ func (r *ReconcileSubApp) bcUpdateCheck(current, new buildv1.BuildConfig, bcUpda
 		}
 		bcnew.SetNamespace(current.Namespace)
 		bcnew.SetResourceVersion(current.ResourceVersion)
-		bcnew.SetGroupVersionKind(buildv1.SchemeGroupVersion.WithKind("BuildConfig"))
+		bcnew.SetGroupVersionKind(obuildv1.SchemeGroupVersion.WithKind("BuildConfig"))
 
 		bcUpdates = append(bcUpdates, bcnew)
 	}
@@ -261,4 +281,84 @@ func (r *ReconcileSubApp) hasStatusChanges(instance, cached *v1alpha1.SubApp) bo
 		return true
 	}
 	return false
+}
+
+// checkImageStreamTag checks for ImageStream
+func (r *ReconcileSubApp) checkImageStreamTag(name, namespace string) bool {
+	log := log.With("kind", "ImageStreamTag", "name", name, "namespace", namespace)
+	result := strings.Split(name, ":")
+	if len(result) == 1 {
+		result = append(result, "latest")
+	}
+	tagName := fmt.Sprintf("%s:%s", result[0], result[1])
+	_, err := r.imageClient.ImageStreamTags(namespace).Get(tagName, metav1.GetOptions{})
+	if err != nil {
+		log.Debug("Object does not exist")
+		return false
+	}
+	return true
+}
+
+func (r *ReconcileSubApp) ensureImageStream(name string, cr *v1alpha1.SubApp) (string, error) {
+	if r.checkImageStreamTag(name, cr.Namespace) {
+		return cr.Namespace, nil
+	}
+	err := r.createLocalImageTag(name, cr)
+	if err != nil {
+		log.Error(err)
+		return cr.Namespace, err
+	}
+	return cr.Namespace, nil
+}
+
+// createLocalImageTag creates local ImageStreamTag
+func (r *ReconcileSubApp) createLocalImageTag(tagRefName string, cr *v1alpha1.SubApp) error {
+	result := strings.Split(tagRefName, ":")
+	if len(result) == 1 {
+		result = append(result, "latest")
+	}
+
+	isnew := &oimagev1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s:%s", result[0], result[1]),
+			Namespace: cr.Namespace,
+		},
+		Tag: &oimagev1.TagReference{
+			Name: result[1],
+			ReferencePolicy: oimagev1.TagReferencePolicy{
+				Type: oimagev1.LocalTagReferencePolicy,
+			},
+			// From: cr.Spec.Build.From,
+		},
+	}
+	isnew.SetGroupVersionKind(oimagev1.SchemeGroupVersion.WithKind("ImageStreamTag"))
+
+	log := log.With("kind", isnew.GetObjectKind().GroupVersionKind().Kind, "name", isnew.Name, "namespace", isnew.Namespace)
+	log.Info("Creating")
+
+	_, err := r.imageClient.ImageStreamTags(isnew.Namespace).Create(isnew)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		log.Error("Issue creating object. ", err)
+		return err
+	}
+	return nil
+}
+
+// triggerBuild triggers a BuildConfig to start a new build
+func (r *ReconcileSubApp) triggerBuild(bc obuildv1.BuildConfig, cr *v1alpha1.SubApp) error {
+	buildConfig, err := r.buildClient.BuildConfigs(bc.Namespace).Get(bc.Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	buildRequest := obuildv1.BuildRequest{ObjectMeta: metav1.ObjectMeta{Name: buildConfig.Name}}
+	buildRequest.SetGroupVersionKind(obuildv1.SchemeGroupVersion.WithKind("BuildRequest"))
+	buildRequest.TriggeredBy = []obuildv1.BuildTriggerCause{{Message: fmt.Sprintf("Triggered by %s operator", cr.Kind)}}
+	build, err := r.buildClient.BuildConfigs(buildConfig.Namespace).Instantiate(buildConfig.Name, &buildRequest)
+	if err != nil {
+		fmt.Println(build)
+		return err
+	}
+
+	log.Info("Name of the triggered build is ", build.Name)
+	return nil
 }

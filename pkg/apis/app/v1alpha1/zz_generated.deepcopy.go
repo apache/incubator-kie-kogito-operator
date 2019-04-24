@@ -215,11 +215,6 @@ func (in *SubSet) DeepCopyInto(out *SubSet) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.Deployments != nil {
-		in, out := &in.Deployments, &out.Deployments
-		*out = new(int)
-		**out = **in
-	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
 		*out = make([]v1.EnvVar, len(*in))

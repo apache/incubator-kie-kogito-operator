@@ -21,12 +21,11 @@ type SubAppSpec struct {
 // SubSet ...
 // +k8s:openapi-gen=true
 type SubSet struct {
-	Name        string                      `json:"name,omitempty"`
-	Replicas    *int32                      `json:"replicas,omitempty"`
-	Deployments *int                        `json:"deployments,omitempty"` // Number of SubApp DeploymentConfigs (defaults to 1)
-	Env         []corev1.EnvVar             `json:"env,omitempty"`
-	Resources   corev1.ResourceRequirements `json:"resources"`
-	Build       *SubAppBuildObject          `json:"build,omitempty"` // S2I Build configuration
+	Name      string                      `json:"name,omitempty"`
+	Replicas  *int32                      `json:"replicas,omitempty"`
+	Env       []corev1.EnvVar             `json:"env,omitempty"`
+	Resources corev1.ResourceRequirements `json:"resources"`
+	Build     *SubAppBuildObject          `json:"build,omitempty"` // S2I Build configuration
 }
 
 // SubAppBuildObject Data to define how to build an application from source
