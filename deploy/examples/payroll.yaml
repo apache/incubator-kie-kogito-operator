@@ -1,19 +1,20 @@
 apiVersion: app.kiegroup.org/v1alpha1
 kind: SubApp
 metadata:
-  name: payroll-service
+  name: example-payroll
 spec:
+  name: payroll-service
+  runtime: springboot
   replicas: 2
   env:
     - name: DEBUG
       value: "true"
   build:
-    incremental: true
-    from:
-      kind: ImageStreamTag
-      name: kaas-quarkus-centos-s2i:1.0
-      namespace: builds
     gitSource:
       uri: https://github.com/mswiderski/onboarding-sample
-      reference: master
       contextDir: payroll
+      reference: master
+    incremental: true
+    buildEnv:
+      - name: CI
+        value: "true"
