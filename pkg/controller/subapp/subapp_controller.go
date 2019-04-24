@@ -155,7 +155,7 @@ func newBCForCR(cr *v1alpha1.SubApp) *buildv1.BuildConfig {
 		Ref: cr.Spec.Build.GitSource.Reference,
 	}
 	bc.Spec.Source.ContextDir = cr.Spec.Build.GitSource.ContextDir
-	bc.Spec.Output.To = &corev1.ObjectReference{Name: strings.Join([]string{name, "latest"}, ":"), Kind: "ImageStreamTag"}
+	bc.Spec.Output.To = &corev1.ObjectReference{Name: strings.Join([]string{builderName, "latest"}, ":"), Kind: "ImageStreamTag"}
 	bc.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	bc.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
 		Incremental: &cr.Spec.Build.Incremental,

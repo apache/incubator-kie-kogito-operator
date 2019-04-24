@@ -9,5 +9,4 @@ spec:
       name: kaas-quarkus-centos-s2i:1.0
     gitSource:
       uri: https://github.com/mswiderski/onboarding-sample
-      reference: master
       contextDir: hr

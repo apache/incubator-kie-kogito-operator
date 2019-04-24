@@ -5,6 +5,7 @@ metadata:
 rules:
   - apiGroups:
       - ""
+      - app.kiegroup.org
       - apps.openshift.io
       - image.openshift.io
       - build.openshift.io
@@ -40,9 +41,3 @@ rules:
       - deployments/finalizers
     verbs:
       - update
-  - apiGroups:
-      - app.kiegroup.org
-    resources:
-      - subapps
-    verbs:
-      - "*"
