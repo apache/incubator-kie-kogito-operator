@@ -21,6 +21,7 @@ type SubAppSpec struct {
 // SubSet ...
 // +k8s:openapi-gen=true
 type SubSet struct {
+	Runtime   RuntimeType                 `json:"runtime,omitempty"`
 	Name      string                      `json:"name,omitempty"`
 	Replicas  *int32                      `json:"replicas,omitempty"`
 	Env       []corev1.EnvVar             `json:"env,omitempty"`
@@ -31,10 +32,10 @@ type SubSet struct {
 // SubAppBuildObject Data to define how to build an application from source
 // +k8s:openapi-gen=true
 type SubAppBuildObject struct {
-	Incremental bool                    `json:"incremental,omitempty"`
-	GitSource   GitSource               `json:"gitSource,omitempty"`
-	Webhooks    []WebhookSecret         `json:"webhooks,omitempty"`
-	From        *corev1.ObjectReference `json:"from,omitempty"`
+	Incremental bool            `json:"incremental,omitempty"`
+	Env         []corev1.EnvVar `json:"env,omitempty"`
+	GitSource   GitSource       `json:"gitSource,omitempty"`
+	Webhooks    []WebhookSecret `json:"webhooks,omitempty"`
 }
 
 // GitSource Git coordinates to locate the source code to build
@@ -66,8 +67,26 @@ type WebhookSecret struct {
 // +k8s:openapi-gen=true
 type SubAppStatus struct {
 	Conditions  []Condition `json:"conditions"`
-	ConsoleHost string      `json:"consoleHost,omitempty"`
+	Route       string      `json:"route,omitempty"`
 	Deployments Deployments `json:"deployments"`
+}
+
+// RuntimeType - type of condition
+type RuntimeType string
+
+const (
+	// QuarkusRuntimeType - the subapp is deployed
+	QuarkusRuntimeType RuntimeType = "quarkus"
+	// SpringbootRuntimeType - the subapp is being provisioned
+	SpringbootRuntimeType RuntimeType = "springboot"
+)
+
+// Image - image details
+type Image struct {
+	ImageStreamName      string `json:"imageStreamName,omitempty"`
+	ImageStreamTag       string `json:"imageStreamTag,omitempty"`
+	ImageStreamNamespace string `json:"imageStreamNamespace,omitempty"`
+	BuilderImage         bool   `json:"builderImage,omitempty"`
 }
 
 // ConditionType - type of condition
