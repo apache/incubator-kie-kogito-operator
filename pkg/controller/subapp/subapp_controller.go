@@ -2,23 +2,31 @@ package subapp
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/constants"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/shared"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/status"
+	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
+	dockerv10 "github.com/openshift/api/image/docker10"
 	oimagev1 "github.com/openshift/api/image/v1"
+	oroutev1 "github.com/openshift/api/route/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -102,24 +110,89 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	// Create new DeploymentConfig object
-	/*
-		depConfig := oappsv1.DeploymentConfig{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      instance.Spec.Name,
-				Namespace: instance.Namespace,
-				Labels: map[string]string{
-					"app": instance.Name,
+	depConfig, err := r.newDCForCR(instance, buildConfigs["service"])
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	rResult, err := r.createObj(
+		&depConfig,
+		r.client.Get(context.TODO(), types.NamespacedName{Name: depConfig.Name, Namespace: depConfig.Namespace}, &oappsv1.DeploymentConfig{}),
+	)
+	if err != nil {
+		return rResult, err
+	}
+
+	dcUpdated, err := r.updateDeploymentConfigs(instance, depConfig)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	if dcUpdated && status.SetProvisioning(instance) {
+		return r.UpdateObj(instance)
+	}
+
+	// Expose DC with service and route
+	serviceRoute := ""
+	if len(depConfig.Spec.Template.Spec.Containers[0].Ports) != 0 {
+		servicePorts := []corev1.ServicePort{}
+		for _, port := range depConfig.Spec.Template.Spec.Containers[0].Ports {
+			servicePorts = append(servicePorts, corev1.ServicePort{
+				Name:       port.Name,
+				Protocol:   port.Protocol,
+				Port:       port.ContainerPort,
+				TargetPort: intstr.FromInt(int(port.ContainerPort)),
+			},
+			)
+		}
+		service := corev1.Service{
+			ObjectMeta: depConfig.ObjectMeta,
+			Spec: corev1.ServiceSpec{
+				Selector: depConfig.Spec.Selector,
+				Type:     corev1.ServiceTypeClusterIP,
+				Ports:    servicePorts,
+			},
+		}
+		service.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Service"))
+		err = controllerutil.SetControllerReference(instance, &service, r.scheme)
+		if err != nil {
+			log.Error(err)
+		}
+
+		service.ResourceVersion = ""
+		rResult, err := r.createObj(
+			&service,
+			r.client.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, &corev1.Service{}),
+		)
+		if err != nil {
+			return rResult, err
+		}
+
+		// Create route
+		rt := oroutev1.Route{
+			ObjectMeta: service.ObjectMeta,
+			Spec: oroutev1.RouteSpec{
+				Port: &oroutev1.RoutePort{
+					TargetPort: intstr.FromString("http"),
+				},
+				To: oroutev1.RouteTargetReference{
+					Kind: "Service",
+					Name: service.Name,
 				},
 			},
 		}
+		if serviceRoute = r.GetRouteHost(rt, instance); serviceRoute != "" {
+			instance.Status.Route = fmt.Sprintf("http://%s", serviceRoute)
+		}
+	}
 
-			bcUpdated, err := r.updateBuildConfigs(instance, buildConfig)
-			if err != nil {
-				return reconcile.Result{}, err
-			}
-			if bcUpdated && status.SetProvisioning(instance) {
-				return r.UpdateObj(instance)
-			}
+	/*
+
+		bcUpdated, err := r.updateBuildConfigs(instance, buildConfig)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		if bcUpdated && status.SetProvisioning(instance) {
+			return r.UpdateObj(instance)
+		}
 	*/
 
 	// Fetch the cached SubApp instance
@@ -241,6 +314,105 @@ func newBCsForCR(cr *v1alpha1.SubApp) map[string]obuildv1.BuildConfig {
 	buildConfigs["service"] = serviceBC
 
 	return buildConfigs
+}
+
+// newDCForCR returns a BuildConfig with the same name/namespace as the cr
+func (r *ReconcileSubApp) newDCForCR(cr *v1alpha1.SubApp, serviceBC obuildv1.BuildConfig) (oappsv1.DeploymentConfig, error) {
+	replicas := int32(1)
+	if cr.Spec.Replicas != nil {
+		replicas = *cr.Spec.Replicas
+	}
+	labels := map[string]string{
+		"app": cr.Name,
+	}
+	ports := []corev1.ContainerPort{}
+	bcNamespace := cr.Namespace
+	if serviceBC.Spec.Output.To.Namespace != "" {
+		bcNamespace = serviceBC.Spec.Output.To.Namespace
+	}
+
+	isTag, err := r.imageClient.ImageStreamTags(bcNamespace).Get(serviceBC.Spec.Output.To.Name, metav1.GetOptions{})
+	if err != nil {
+		log.Warn(cr.Spec.Name, " DeploymentConfig will start when ImageStream build completes.")
+	}
+	if len(isTag.Image.DockerImageMetadata.Raw) != 0 {
+		obj := &dockerv10.DockerImage{}
+		err = json.Unmarshal(isTag.Image.DockerImageMetadata.Raw, obj)
+		if err != nil {
+			log.Error(err)
+		}
+		for i, value := range obj.Config.Labels {
+			if strings.Contains(i, "org.kie/") {
+				result := strings.Split(i, "/")
+				labels[result[len(result)-1]] = value
+			}
+			if i == "io.openshift.expose-services" {
+				results := strings.Split(value, ",")
+				for _, item := range results {
+					portResults := strings.Split(item, ":")
+					port, err := strconv.Atoi(portResults[0])
+					if err != nil {
+						log.Error(err)
+					}
+					portName := portResults[1]
+					ports = append(ports, corev1.ContainerPort{Name: portName, ContainerPort: int32(port), Protocol: corev1.ProtocolTCP})
+				}
+			}
+		}
+	}
+
+	depConfig := oappsv1.DeploymentConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.Spec.Name,
+			Namespace: cr.Namespace,
+			Labels:    labels,
+		},
+		Spec: oappsv1.DeploymentConfigSpec{
+			Replicas: replicas,
+			Selector: labels,
+			Strategy: oappsv1.DeploymentStrategy{
+				Type: oappsv1.DeploymentStrategyTypeRolling,
+			},
+			Template: &corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:            cr.Spec.Name,
+							Env:             cr.Spec.Env,
+							Resources:       cr.Spec.Resources,
+							Image:           serviceBC.Spec.Output.To.Name,
+							ImagePullPolicy: corev1.PullAlways,
+						},
+					},
+				},
+			},
+			Triggers: oappsv1.DeploymentTriggerPolicies{
+				{Type: oappsv1.DeploymentTriggerOnConfigChange},
+				{
+					Type: oappsv1.DeploymentTriggerOnImageChange,
+					ImageChangeParams: &oappsv1.DeploymentTriggerImageChangeParams{
+						Automatic:      true,
+						ContainerNames: []string{cr.Spec.Name},
+						From:           *serviceBC.Spec.Output.To,
+					},
+				},
+			},
+		},
+	}
+	if len(ports) != 0 {
+		depConfig.Spec.Template.Spec.Containers[0].Ports = ports
+	}
+	depConfig.SetGroupVersionKind(oappsv1.SchemeGroupVersion.WithKind("DeploymentConfig"))
+	err = controllerutil.SetControllerReference(cr, &depConfig, r.scheme)
+	if err != nil {
+		log.Error(err)
+		return oappsv1.DeploymentConfig{}, err
+	}
+
+	return depConfig, nil
 }
 
 // updateBuildConfigs ...
@@ -388,7 +560,6 @@ func (r *ReconcileSubApp) createLocalImageTag(tagRefName string, cr *v1alpha1.Su
 			ReferencePolicy: oimagev1.TagReferencePolicy{
 				Type: oimagev1.LocalTagReferencePolicy,
 			},
-			// From: cr.Spec.Build.From,
 		},
 	}
 	isnew.SetGroupVersionKind(oimagev1.SchemeGroupVersion.WithKind("ImageStreamTag"))
@@ -420,4 +591,159 @@ func (r *ReconcileSubApp) triggerBuild(bc obuildv1.BuildConfig, cr *v1alpha1.Sub
 
 	log.Info("Name of the triggered build is ", build.Name)
 	return nil
+}
+
+// createObj creates an object based on the error passed in from a `client.Get`
+func (r *ReconcileSubApp) createObj(obj v1alpha1.OpenShiftObject, err error) (reconcile.Result, error) {
+	log := log.With("kind", obj.GetObjectKind().GroupVersionKind().Kind, "name", obj.GetName(), "namespace", obj.GetNamespace())
+
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new Object
+		log.Info("Creating")
+		err = r.client.Create(context.TODO(), obj)
+		if err != nil {
+			log.Warn("Failed to create object. ", err)
+			return reconcile.Result{}, err
+		}
+		// Object created successfully - return and requeue
+		return reconcile.Result{RequeueAfter: time.Duration(200) * time.Millisecond}, nil
+	} else if err != nil {
+		log.Error("Failed to get object. ", err)
+		return reconcile.Result{}, err
+	}
+	log.Debug("Skip reconcile - object already exists")
+	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileSubApp) updateDeploymentConfigs(instance *v1alpha1.SubApp, depConfig oappsv1.DeploymentConfig) (bool, error) {
+	log := log.With("kind", instance.Kind, "name", instance.Name, "namespace", instance.Namespace)
+	listOps := &client.ListOptions{Namespace: instance.Namespace}
+	dcList := &oappsv1.DeploymentConfigList{}
+	err := r.client.List(context.TODO(), listOps, dcList)
+	if err != nil {
+		log.Warn("Failed to list dc's. ", err)
+		r.setFailedStatus(instance, v1alpha1.UnknownReason, err)
+		return false, err
+	}
+	instance.Status.Deployments = getDeploymentsStatuses(dcList.Items, instance)
+
+	var dcUpdates []oappsv1.DeploymentConfig
+	for _, dc := range dcList.Items {
+		if dc.Name == depConfig.Name {
+			dcUpdates = r.dcUpdateCheck(dc, depConfig, dcUpdates, instance)
+		}
+	}
+	log.Debugf("There are %d updated DCs", len(dcUpdates))
+	if len(dcUpdates) > 0 {
+		for _, uDc := range dcUpdates {
+			_, err := r.UpdateObj(&uDc)
+			if err != nil {
+				r.setFailedStatus(instance, v1alpha1.DeploymentFailedReason, err)
+				return false, err
+			}
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+func (r *ReconcileSubApp) dcUpdateCheck(current, new oappsv1.DeploymentConfig, dcUpdates []oappsv1.DeploymentConfig, cr *v1alpha1.SubApp) []oappsv1.DeploymentConfig {
+	log := log.With("kind", new.GetObjectKind().GroupVersionKind().Kind, "name", current.Name, "namespace", current.Namespace)
+	update := false
+	if !reflect.DeepEqual(current.Spec.Template.Labels, new.Spec.Template.Labels) {
+		log.Debug("Changes detected in labels.", " OLD - ", current.Spec.Template.Labels, " NEW - ", new.Spec.Template.Labels)
+		update = true
+	}
+	if current.Spec.Replicas != new.Spec.Replicas {
+		log.Debug("Changes detected in replicas.", " OLD - ", current.Spec.Replicas, " NEW - ", new.Spec.Replicas)
+		update = true
+	}
+
+	cContainer := current.Spec.Template.Spec.Containers[0]
+	nContainer := new.Spec.Template.Spec.Containers[0]
+	if !shared.EnvVarCheck(cContainer.Env, nContainer.Env) {
+		log.Debug("Changes detected in 'Env' config.", " OLD - ", cContainer.Env, " NEW - ", nContainer.Env)
+		update = true
+	}
+	if !reflect.DeepEqual(cContainer.Resources, nContainer.Resources) {
+		log.Debug("Changes detected in 'Resource' config.", " OLD - ", cContainer.Resources, " NEW - ", nContainer.Resources)
+		update = true
+	}
+	if !reflect.DeepEqual(cContainer.Ports, nContainer.Ports) {
+		log.Debug("Changes detected in 'Ports' config.", " OLD - ", cContainer.Ports, " NEW - ", nContainer.Ports)
+		update = true
+	}
+	if update {
+		dcnew := new
+		err := controllerutil.SetControllerReference(cr, &dcnew, r.scheme)
+		if err != nil {
+			log.Error("Error setting controller reference for dc. ", err)
+		}
+		dcnew.SetNamespace(current.Namespace)
+		dcnew.SetResourceVersion(current.ResourceVersion)
+		dcnew.SetGroupVersionKind(oappsv1.SchemeGroupVersion.WithKind("DeploymentConfig"))
+
+		dcUpdates = append(dcUpdates, dcnew)
+	}
+	return dcUpdates
+}
+
+func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.SubApp) v1alpha1.Deployments {
+	var ready, starting, stopped []string
+	for _, dc := range dcs {
+		for _, ownerRef := range dc.GetOwnerReferences() {
+			if ownerRef.UID == cr.UID {
+				if dc.Spec.Replicas == 0 {
+					stopped = append(stopped, dc.Name)
+				} else if dc.Status.Replicas == 0 {
+					stopped = append(stopped, dc.Name)
+				} else if dc.Status.ReadyReplicas < dc.Status.Replicas {
+					starting = append(starting, dc.Name)
+				} else {
+					ready = append(ready, dc.Name)
+				}
+			}
+		}
+	}
+	log.Debugf("Found DCs with status stopped [%s], starting [%s], and ready [%s]", stopped, starting, ready)
+	return v1alpha1.Deployments{
+		Stopped:  stopped,
+		Starting: starting,
+		Ready:    ready,
+	}
+}
+
+// GetRouteHost returns the Hostname of the route provided
+func (r *ReconcileSubApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.SubApp) string {
+	route.SetGroupVersionKind(oroutev1.SchemeGroupVersion.WithKind("Route"))
+	log := log.With("kind", route.GetObjectKind().GroupVersionKind().Kind, "name", route.Name, "namespace", route.Namespace)
+	err := controllerutil.SetControllerReference(cr, &route, r.scheme)
+	if err != nil {
+		log.Error("Error setting controller reference. ", err)
+	}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: route.Name, Namespace: route.Namespace}, &oroutev1.Route{})
+	if err != nil && errors.IsNotFound(err) {
+		route.ResourceVersion = ""
+		_, err = r.createObj(
+			&route,
+			err,
+		)
+		if err != nil {
+			log.Error("Error creating Route. ", err)
+		}
+	}
+
+	found := &oroutev1.Route{}
+	for i := 1; i < 60; i++ {
+		time.Sleep(time.Duration(100) * time.Millisecond)
+		err = r.client.Get(context.TODO(), types.NamespacedName{Name: route.Name, Namespace: route.Namespace}, found)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		log.Error("Error getting Route. ", err)
+	}
+
+	return found.Spec.Host
 }

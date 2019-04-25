@@ -15,6 +15,6 @@ spec:
       contextDir: payroll
       reference: master
     incremental: true
-    buildEnv:
+    env:
       - name: CI
         value: "true"
