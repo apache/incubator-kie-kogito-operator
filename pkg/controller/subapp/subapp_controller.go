@@ -318,6 +318,7 @@ func newBCsForCR(cr *v1alpha1.SubApp) map[string]obuildv1.BuildConfig {
 
 // newDCForCR returns a BuildConfig with the same name/namespace as the cr
 func (r *ReconcileSubApp) newDCForCR(cr *v1alpha1.SubApp, serviceBC obuildv1.BuildConfig) (oappsv1.DeploymentConfig, error) {
+	var probe *corev1.Probe
 	replicas := int32(1)
 	if cr.Spec.Replicas != nil {
 		replicas = *cr.Spec.Replicas
@@ -356,6 +357,17 @@ func (r *ReconcileSubApp) newDCForCR(cr *v1alpha1.SubApp, serviceBC obuildv1.Bui
 					}
 					portName := portResults[1]
 					ports = append(ports, corev1.ContainerPort{Name: portName, ContainerPort: int32(port), Protocol: corev1.ProtocolTCP})
+					if portName == "http" {
+						probe = &corev1.Probe{
+							TimeoutSeconds:   int32(1),
+							PeriodSeconds:    int32(10),
+							SuccessThreshold: int32(1),
+							FailureThreshold: int32(3),
+						}
+						probe.Handler.TCPSocket = &corev1.TCPSocketAction{
+							Port: intstr.FromInt(port),
+						}
+					}
 				}
 			}
 		}
@@ -404,6 +416,10 @@ func (r *ReconcileSubApp) newDCForCR(cr *v1alpha1.SubApp, serviceBC obuildv1.Bui
 	}
 	if len(ports) != 0 {
 		depConfig.Spec.Template.Spec.Containers[0].Ports = ports
+		if probe != nil {
+			depConfig.Spec.Template.Spec.Containers[0].LivenessProbe = probe
+			depConfig.Spec.Template.Spec.Containers[0].ReadinessProbe = probe
+		}
 	}
 	depConfig.SetGroupVersionKind(oappsv1.SchemeGroupVersion.WithKind("DeploymentConfig"))
 	err = controllerutil.SetControllerReference(cr, &depConfig, r.scheme)
