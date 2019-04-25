@@ -78,35 +78,3 @@ Before submitting PR, please be sure to generate, vet, format, and test your cod
 ```bash
 make test
 ```
-
-## Notes
-
-https://github.com/kiegroup/submarine-cloud/tree/master/s2i
-
-```bash
-$ oc new-build openshift/kaas-quarkus-centos-s2i:1.0~https://github.com/mswiderski/onboarding-sample --context-dir=payroll --name=payroll-service-builder --to=payroll-service-builder:latest
-
-# incremental: true
-#$ oc start-build payroll-service-builder --incremental=true
-
-$ oc new-build --name payroll-service --source-image=payroll-service-builder:latest --source-image-path=/home/submarine/bin:. --image-stream=openshift/kaas-quarkus-centos:1.0
-
-$ oc new-app payroll-service:latest -l department=process,id=process,employeeValidation=process
-
-$ oc expose svc/payroll-service
-```
-
-```bash
-$ oc new-build openshift/kaas-quarkus-centos-s2i:1.0~https://github.com/mswiderski/onboarding-sample --context-dir=hr --name=hr-service-builder --to=hr-service-builder:latest
-
-# incremental: true
-#$ oc start-build hr-service-builder --incremental=true
-
-$ oc new-build --name hr-service --source-image=hr-service-builder:latest --source-image-path=/home/submarine/bin:. --image-stream=openshift/kaas-quarkus-centos:1.0
-
-$ oc new-app hr-service:latest -l department=process,id=process,employeeValidation=process
-
-$ oc expose svc/hr-service
-```
-
-One challenge being discussed is that the required OpenShift Labels (i.e. department=process,id=process,employeeValidation=process) need to be extracted from Docker image label. (Did ask why, but no specific answer. Maciej is open to alternative suggestions)
