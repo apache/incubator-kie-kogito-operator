@@ -7,6 +7,8 @@
 - go v1.11+
 - dep v0.5.x
 - operator-sdk v0.7.0
+- ocp 4.x
+- submarine s2i imagestreams installed
 
 ## Build
 
@@ -47,14 +49,16 @@ It will take a few minutes for the operator to become visible under the _Operato
 Use the OLM console to subscribe to the `Submarine` Operator Catalog Source within your namespace. Once subscribed, use the console to `Create SubApp` or create one manually as seen below.
 
 ```bash
-$ oc create -f deploy/crs/subapp_trial.yaml
-subapp.app.kiegroup.org/??? created
+## imagestreams should already be installed/available ... e.g.
+# $ oc create -f https://raw.githubusercontent.com/spolti/submarine-cloud/cekit/s2i/submarine-imagestream.yaml -n openshift
+$ oc create -f deploy/crs/app_v1alpha1_subapp_cr.yaml
+subapp.app.kiegroup.org/example-hr created
 ```
 
 ### Clean up a SubApp deployment
 
 ```bash
-oc delete subapp ???
+oc delete subapp example-hr
 ```
 
 ## Development
@@ -65,12 +69,6 @@ Change log level at runtime w/ the `DEBUG` environment variable. e.g. -
 make dep
 make clean
 DEBUG="true" operator-sdk up local --namespace=<namespace>
-```
-
-Also at runtime, change registry for ImageStreamTags -
-
-```bash
-INSECURE=true REGISTRY=<registry url> operator-sdk up local --namespace=<namespace>
 ```
 
 Before submitting PR, please be sure to generate, vet, format, and test your code. This all can be done with one command.
