@@ -1,18 +1,17 @@
 apiVersion: app.kiegroup.org/v1alpha1
 kind: SubApp
 metadata:
-  name: example-payroll
+  name: example-springboot
 spec:
-  name: payroll-service
+  name: jbpm
   runtime: springboot
-  replicas: 2
   env:
     - name: DEBUG
       value: "true"
   build:
     gitSource:
-      uri: https://github.com/mswiderski/onboarding-sample
-      contextDir: payroll
+      uri: https://github.com/kiegroup/submarine-examples
+      contextDir: jbpm-springboot-example
       reference: master
     incremental: true
     env:
