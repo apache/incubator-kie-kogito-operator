@@ -41,6 +41,10 @@ apiVersion: app.kiegroup.org/v1alpha1
 kind: SubApp
 metadata:
   name: trial
+spec:
+  build:
+    gitSource:
+      uri: https://github.com/kiegroup/submarine-examples
 `
 	var input map[string]interface{}
 	assert.NoError(t, yaml.Unmarshal([]byte(inputYaml), &input))

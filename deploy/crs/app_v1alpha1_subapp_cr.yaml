@@ -1,9 +1,9 @@
 apiVersion: app.kiegroup.org/v1alpha1
 kind: SubApp
 metadata:
-  name: example-hr
+  name: example-quarkus
 spec:
   build:
     gitSource:
-      uri: https://github.com/mswiderski/onboarding-sample
-      contextDir: hr
+      uri: https://github.com/kiegroup/submarine-examples
+      contextDir: jbpm-quarkus-example

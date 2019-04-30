@@ -15,12 +15,6 @@ type OpenShiftObject interface {
 // SubAppSpec defines the desired state of SubApp
 // +k8s:openapi-gen=true
 type SubAppSpec struct {
-	SubSet
-}
-
-// SubSet ...
-// +k8s:openapi-gen=true
-type SubSet struct {
 	Runtime   RuntimeType                 `json:"runtime,omitempty"`
 	Name      string                      `json:"name,omitempty"`
 	Replicas  *int32                      `json:"replicas,omitempty"`
