@@ -52,10 +52,7 @@
   branch = "master"
   digest = "1:71aa8bdd52833ef34ce166318292c9a99967a5b7b8070658f870ae49b4a9562f"
   name = "github.com/RHsyseng/operator-utils"
-  packages = [
-    "pkg/utils/openshift",
-    "pkg/validation",
-  ]
+  packages = ["pkg/validation"]
   pruneopts = "NT"
   revision = "3725530e9c7aeff1e1c5dee00574200940360370"
 
@@ -870,7 +867,6 @@
     "internal/triegen",
     "internal/ucd",
     "language",
-    "search",
     "secure/bidirule",
     "transform",
     "unicode/bidi",
@@ -1315,7 +1311,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/RHsyseng/operator-utils/pkg/utils/openshift",
     "github.com/RHsyseng/operator-utils/pkg/validation",
     "github.com/ghodss/yaml",
     "github.com/go-logr/logr",
