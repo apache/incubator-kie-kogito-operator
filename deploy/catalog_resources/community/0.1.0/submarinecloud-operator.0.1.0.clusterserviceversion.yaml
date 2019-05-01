@@ -62,30 +62,16 @@ spec:
         displayName: SubApp
         name: subapps.app.kiegroup.org
         resources:
-          - kind: Secret
-            version: v1
-          - kind: PersistentVolumeClaim
-            version: v1
-          - kind: ServiceAccount
-            version: v1
-          - kind: Role
-            version: authorization.openshift.io/v1
-          - kind: RoleBinding
-            version: authorization.openshift.io/v1
           - kind: Service
             version: v1
-          - kind: Pod
-            version: v1
+          - kind: Deployment
+            version: apps/v1
           - kind: Route
             version: route.openshift.io/v1
-          - kind: BuildConfig
-            version: build.openshift.io/v1
-          - kind: ImageStream
-            version: image.openshift.io/v1
         specDescriptors:
           - description: Runtime
             displayName: Runtime
-            path: spec.runtime
+            path: runtime
             x-descriptors:
               - "urn:alm:descriptor:com.tectonic.ui:label"
         statusDescriptors:
