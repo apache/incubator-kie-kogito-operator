@@ -37,6 +37,7 @@ operator-courier push deploy/catalog_resources/courier/0.1.0 kiegroup submarinec
 If pushing to another quay repository, replace _kiegroup_ with your username or other namespace. Also note that the push command does not overwrite an existing repository, and it needs to be deleted before a new version can be built and uploaded. Once the bundle has been uploaded, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
 
 ```bash
+## submarine imagestreams should already be installed/available ... e.g.
 oc apply -f https://raw.githubusercontent.com/kiegroup/submarine-cloud/master/s2i/submarine-imagestream.yaml -n openshift
 oc create -f deploy/catalog_resources/courier/kiecloud-operatorsource.yaml
 ```
@@ -50,16 +51,14 @@ It will take a few minutes for the operator to become visible under the _Operato
 Use the OLM console to subscribe to the `Submarine` Operator Catalog Source within your namespace. Once subscribed, use the console to `Create SubApp` or create one manually as seen below.
 
 ```bash
-## imagestreams should already be installed/available ... e.g.
-# $ oc create -f https://raw.githubusercontent.com/spolti/submarine-cloud/cekit/s2i/submarine-imagestream.yaml -n openshift
 $ oc create -f deploy/crs/app_v1alpha1_subapp_cr.yaml
-subapp.app.kiegroup.org/example-hr created
+subapp.app.kiegroup.org/example-quarkus created
 ```
 
 ### Clean up a SubApp deployment
 
 ```bash
-oc delete subapp example-hr
+oc delete subapp example-quarkus
 ```
 
 ## Development
