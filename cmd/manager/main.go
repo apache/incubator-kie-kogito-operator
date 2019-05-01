@@ -10,7 +10,6 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	openshiftutil "github.com/RHsyseng/operator-utils/pkg/utils/openshift"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/apis"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller"
 	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
@@ -83,16 +82,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Check for OpenShift cluster
-	isOpenShift, err := openshiftutil.IsOpenShift(mgr.GetConfig())
-	if err != nil {
-		log.Error(err.Error())
-		os.Exit(1)
-	}
-	if !isOpenShift {
-		log.Error("OpenShift not detected, exiting")
-		os.Exit(1)
-	}
+	/*
+		// Check for OpenShift cluster
+		isOpenShift, err := openshiftutil.IsOpenShift(mgr.GetConfig())
+		if err != nil {
+			log.Error(err.Error())
+			os.Exit(1)
+		}
+		if !isOpenShift {
+			log.Error("OpenShift not detected, exiting")
+			os.Exit(1)
+		}
+	*/
 
 	log.Info("Registering Components.")
 

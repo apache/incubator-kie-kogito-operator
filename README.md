@@ -37,6 +37,7 @@ operator-courier push deploy/catalog_resources/courier/0.1.0 kiegroup submarinec
 If pushing to another quay repository, replace _kiegroup_ with your username or other namespace. Also note that the push command does not overwrite an existing repository, and it needs to be deleted before a new version can be built and uploaded. Once the bundle has been uploaded, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
 
 ```bash
+oc apply -f https://raw.githubusercontent.com/kiegroup/submarine-cloud/master/s2i/submarine-imagestream.yaml -n openshift
 oc create -f deploy/catalog_resources/courier/kiecloud-operatorsource.yaml
 ```
 
