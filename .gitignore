@@ -2,7 +2,7 @@
 build/_output/
 build/_test/
 target/
-pkg/controller/subapp/defaults/packrd
+pkg/controller/kogitoapp/defaults/packrd
 *-packr.go
 *.tar.gz
 

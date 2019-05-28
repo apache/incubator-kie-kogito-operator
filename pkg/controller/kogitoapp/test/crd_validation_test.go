@@ -7,7 +7,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/validation"
 	"github.com/ghodss/yaml"
 	packr "github.com/gobuffalo/packr/v2"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,13 +38,13 @@ func TestExampleCustomResources(t *testing.T) {
 func TestTrialEnvMinimum(t *testing.T) {
 	var inputYaml = `
 apiVersion: app.kiegroup.org/v1alpha1
-kind: SubApp
+kind: KogitoApp
 metadata:
   name: trial
 spec:
   build:
     gitSource:
-      uri: https://github.com/kiegroup/submarine-examples
+      uri: https://github.com/kiegroup/kogito-examples
 `
 	var input map[string]interface{}
 	assert.NoError(t, yaml.Unmarshal([]byte(inputYaml), &input))
@@ -58,7 +58,7 @@ spec:
 
 func TestCompleteCRD(t *testing.T) {
 	schema := getSchema(t)
-	missingEntries := schema.GetMissingEntries(&v1alpha1.SubApp{})
+	missingEntries := schema.GetMissingEntries(&v1alpha1.KogitoApp{})
 	for _, missing := range missingEntries {
 		if strings.HasPrefix(missing.Path, "/status") {
 			//Not using subresources, so status is not expected to appear in CRD
@@ -87,7 +87,7 @@ func deleteNestedMapEntry(object map[string]interface{}, keys ...string) {
 
 func getSchema(t *testing.T) validation.Schema {
 	box := packr.New("deploy/crds", "../../../../deploy/crds")
-	crdFile := "subapp.crd.yaml"
+	crdFile := "kogitoapp.crd.yaml"
 	assert.True(t, box.Has(crdFile))
 	yamlString, err := box.FindString(crdFile)
 	assert.NoError(t, err, "Error reading CRD yaml %v", yamlString)

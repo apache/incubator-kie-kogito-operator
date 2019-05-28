@@ -10,9 +10,9 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"github.com/kiegroup/submarine-cloud-operator/pkg/apis"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -66,7 +66,7 @@ func main() {
 	ctx := context.TODO()
 
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "submarine-cloud-operator-lock")
+	err = leader.Become(ctx, "kogito-cloud-operator-lock")
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)

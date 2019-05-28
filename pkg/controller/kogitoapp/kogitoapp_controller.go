@@ -1,4 +1,4 @@
-package subapp
+package kogitoapp
 
 import (
 	"context"
@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/constants"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/shared"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/status"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/constants"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
@@ -33,11 +33,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var log = logs.GetLogger("controller_subapp")
-var _ reconcile.Reconciler = &ReconcileSubApp{}
+var log = logs.GetLogger("controller_kogitoapp")
+var _ reconcile.Reconciler = &ReconcileKogitoApp{}
 
-// ReconcileSubApp reconciles a SubApp object
-type ReconcileSubApp struct {
+// ReconcileKogitoApp reconciles a KogitoApp object
+type ReconcileKogitoApp struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client      client.Client
@@ -47,18 +47,18 @@ type ReconcileSubApp struct {
 	buildClient *buildv1.BuildV1Client
 }
 
-// Reconcile reads that state of the cluster for a SubApp object and makes changes based on the state read
-// and what is in the SubApp.Spec
+// Reconcile reads that state of the cluster for a KogitoApp object and makes changes based on the state read
+// and what is in the KogitoApp.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
 // a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	log.Info("Reconciling SubApp")
+func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	log.Info("Reconciling KogitoApp")
 
-	// Fetch the SubApp instance
-	instance := &v1alpha1.SubApp{}
+	// Fetch the KogitoApp instance
+	instance := &v1alpha1.KogitoApp{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -195,8 +195,8 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 	*/
 
-	// Fetch the cached SubApp instance
-	cachedInstance := &v1alpha1.SubApp{}
+	// Fetch the cached KogitoApp instance
+	cachedInstance := &v1alpha1.KogitoApp{}
 	err = r.cache.Get(context.TODO(), request.NamespacedName, cachedInstance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -234,7 +234,7 @@ func (r *ReconcileSubApp) Reconcile(request reconcile.Request) (reconcile.Result
 }
 
 // newBCForCR returns a BuildConfig with the same name/namespace as the cr
-func newBCsForCR(cr *v1alpha1.SubApp) map[string]obuildv1.BuildConfig {
+func newBCsForCR(cr *v1alpha1.KogitoApp) map[string]obuildv1.BuildConfig {
 	buildConfigs := map[string]obuildv1.BuildConfig{}
 	serviceBC := obuildv1.BuildConfig{}
 	images := constants.RuntimeImageDefaults[cr.Spec.Runtime]
@@ -300,7 +300,7 @@ func newBCsForCR(cr *v1alpha1.SubApp) map[string]obuildv1.BuildConfig {
 			Paths: []obuildv1.ImageSourcePath{
 				{
 					DestinationDir: ".",
-					SourcePath:     "/home/submarine/bin",
+					SourcePath:     "/home/kogito/bin",
 				},
 			},
 		},
@@ -317,7 +317,7 @@ func newBCsForCR(cr *v1alpha1.SubApp) map[string]obuildv1.BuildConfig {
 }
 
 // newDCForCR returns a BuildConfig with the same name/namespace as the cr
-func (r *ReconcileSubApp) newDCForCR(cr *v1alpha1.SubApp, serviceBC obuildv1.BuildConfig) (oappsv1.DeploymentConfig, error) {
+func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC obuildv1.BuildConfig) (oappsv1.DeploymentConfig, error) {
 	var probe *corev1.Probe
 	replicas := int32(1)
 	if cr.Spec.Replicas != nil {
@@ -432,7 +432,7 @@ func (r *ReconcileSubApp) newDCForCR(cr *v1alpha1.SubApp, serviceBC obuildv1.Bui
 }
 
 // updateBuildConfigs ...
-func (r *ReconcileSubApp) updateBuildConfigs(instance *v1alpha1.SubApp, bc *obuildv1.BuildConfig) (bool, error) {
+func (r *ReconcileKogitoApp) updateBuildConfigs(instance *v1alpha1.KogitoApp, bc *obuildv1.BuildConfig) (bool, error) {
 	log := log.With("kind", instance.Kind, "name", instance.Name, "namespace", instance.Namespace)
 	listOps := &client.ListOptions{Namespace: instance.Namespace}
 	bcList := &obuildv1.BuildConfigList{}
@@ -464,7 +464,7 @@ func (r *ReconcileSubApp) updateBuildConfigs(instance *v1alpha1.SubApp, bc *obui
 }
 
 // UpdateObj reconciles the given object
-func (r *ReconcileSubApp) UpdateObj(obj v1alpha1.OpenShiftObject) (reconcile.Result, error) {
+func (r *ReconcileKogitoApp) UpdateObj(obj v1alpha1.OpenShiftObject) (reconcile.Result, error) {
 	log := log.With("kind", obj.GetObjectKind().GroupVersionKind().Kind, "name", obj.GetName(), "namespace", obj.GetNamespace())
 	log.Info("Updating")
 	err := r.client.Update(context.TODO(), obj)
@@ -476,7 +476,7 @@ func (r *ReconcileSubApp) UpdateObj(obj v1alpha1.OpenShiftObject) (reconcile.Res
 	return reconcile.Result{Requeue: true}, nil
 }
 
-func (r *ReconcileSubApp) setFailedStatus(instance *v1alpha1.SubApp, reason v1alpha1.ReasonType, err error) {
+func (r *ReconcileKogitoApp) setFailedStatus(instance *v1alpha1.KogitoApp, reason v1alpha1.ReasonType, err error) {
 	status.SetFailed(instance, reason, err)
 	_, updateError := r.UpdateObj(instance)
 	if updateError != nil {
@@ -484,7 +484,7 @@ func (r *ReconcileSubApp) setFailedStatus(instance *v1alpha1.SubApp, reason v1al
 	}
 }
 
-func (r *ReconcileSubApp) bcUpdateCheck(current, new obuildv1.BuildConfig, bcUpdates []obuildv1.BuildConfig, cr *v1alpha1.SubApp) []obuildv1.BuildConfig {
+func (r *ReconcileKogitoApp) bcUpdateCheck(current, new obuildv1.BuildConfig, bcUpdates []obuildv1.BuildConfig, cr *v1alpha1.KogitoApp) []obuildv1.BuildConfig {
 	log := log.With("kind", current.GetObjectKind().GroupVersionKind().Kind, "name", current.Name, "namespace", current.Namespace)
 	update := false
 
@@ -516,14 +516,14 @@ func (r *ReconcileSubApp) bcUpdateCheck(current, new obuildv1.BuildConfig, bcUpd
 	return bcUpdates
 }
 
-func (r *ReconcileSubApp) hasSpecChanges(instance, cached *v1alpha1.SubApp) bool {
+func (r *ReconcileKogitoApp) hasSpecChanges(instance, cached *v1alpha1.KogitoApp) bool {
 	if !reflect.DeepEqual(instance.Spec, cached.Spec) {
 		return true
 	}
 	return false
 }
 
-func (r *ReconcileSubApp) hasStatusChanges(instance, cached *v1alpha1.SubApp) bool {
+func (r *ReconcileKogitoApp) hasStatusChanges(instance, cached *v1alpha1.KogitoApp) bool {
 	if !reflect.DeepEqual(instance.Status, cached.Status) {
 		return true
 	}
@@ -531,7 +531,7 @@ func (r *ReconcileSubApp) hasStatusChanges(instance, cached *v1alpha1.SubApp) bo
 }
 
 // checkImageStreamTag checks for ImageStream
-func (r *ReconcileSubApp) checkImageStreamTag(name, namespace string) bool {
+func (r *ReconcileKogitoApp) checkImageStreamTag(name, namespace string) bool {
 	log := log.With("kind", "ImageStreamTag", "name", name, "namespace", namespace)
 	result := strings.Split(name, ":")
 	if len(result) == 1 {
@@ -547,7 +547,7 @@ func (r *ReconcileSubApp) checkImageStreamTag(name, namespace string) bool {
 }
 
 // ensureImageStream ...
-func (r *ReconcileSubApp) ensureImageStream(name string, cr *v1alpha1.SubApp) (string, error) {
+func (r *ReconcileKogitoApp) ensureImageStream(name string, cr *v1alpha1.KogitoApp) (string, error) {
 	if r.checkImageStreamTag(name, cr.Namespace) {
 		return cr.Namespace, nil
 	}
@@ -560,7 +560,7 @@ func (r *ReconcileSubApp) ensureImageStream(name string, cr *v1alpha1.SubApp) (s
 }
 
 // createLocalImageTag creates local ImageStreamTag
-func (r *ReconcileSubApp) createLocalImageTag(tagRefName string, cr *v1alpha1.SubApp) error {
+func (r *ReconcileKogitoApp) createLocalImageTag(tagRefName string, cr *v1alpha1.KogitoApp) error {
 	result := strings.Split(tagRefName, ":")
 	if len(result) == 1 {
 		result = append(result, "latest")
@@ -592,7 +592,7 @@ func (r *ReconcileSubApp) createLocalImageTag(tagRefName string, cr *v1alpha1.Su
 }
 
 // triggerBuild triggers a BuildConfig to start a new build
-func (r *ReconcileSubApp) triggerBuild(bc obuildv1.BuildConfig, cr *v1alpha1.SubApp) error {
+func (r *ReconcileKogitoApp) triggerBuild(bc obuildv1.BuildConfig, cr *v1alpha1.KogitoApp) error {
 	buildConfig, err := r.buildClient.BuildConfigs(bc.Namespace).Get(bc.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -610,7 +610,7 @@ func (r *ReconcileSubApp) triggerBuild(bc obuildv1.BuildConfig, cr *v1alpha1.Sub
 }
 
 // createObj creates an object based on the error passed in from a `client.Get`
-func (r *ReconcileSubApp) createObj(obj v1alpha1.OpenShiftObject, err error) (reconcile.Result, error) {
+func (r *ReconcileKogitoApp) createObj(obj v1alpha1.OpenShiftObject, err error) (reconcile.Result, error) {
 	log := log.With("kind", obj.GetObjectKind().GroupVersionKind().Kind, "name", obj.GetName(), "namespace", obj.GetNamespace())
 
 	if err != nil && errors.IsNotFound(err) {
@@ -631,7 +631,7 @@ func (r *ReconcileSubApp) createObj(obj v1alpha1.OpenShiftObject, err error) (re
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileSubApp) updateDeploymentConfigs(instance *v1alpha1.SubApp, depConfig oappsv1.DeploymentConfig) (bool, error) {
+func (r *ReconcileKogitoApp) updateDeploymentConfigs(instance *v1alpha1.KogitoApp, depConfig oappsv1.DeploymentConfig) (bool, error) {
 	log := log.With("kind", instance.Kind, "name", instance.Name, "namespace", instance.Namespace)
 	listOps := &client.ListOptions{Namespace: instance.Namespace}
 	dcList := &oappsv1.DeploymentConfigList{}
@@ -663,7 +663,7 @@ func (r *ReconcileSubApp) updateDeploymentConfigs(instance *v1alpha1.SubApp, dep
 	return false, nil
 }
 
-func (r *ReconcileSubApp) dcUpdateCheck(current, new oappsv1.DeploymentConfig, dcUpdates []oappsv1.DeploymentConfig, cr *v1alpha1.SubApp) []oappsv1.DeploymentConfig {
+func (r *ReconcileKogitoApp) dcUpdateCheck(current, new oappsv1.DeploymentConfig, dcUpdates []oappsv1.DeploymentConfig, cr *v1alpha1.KogitoApp) []oappsv1.DeploymentConfig {
 	log := log.With("kind", new.GetObjectKind().GroupVersionKind().Kind, "name", current.Name, "namespace", current.Namespace)
 	update := false
 	if !reflect.DeepEqual(current.Spec.Template.Labels, new.Spec.Template.Labels) {
@@ -704,7 +704,7 @@ func (r *ReconcileSubApp) dcUpdateCheck(current, new oappsv1.DeploymentConfig, d
 	return dcUpdates
 }
 
-func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.SubApp) v1alpha1.Deployments {
+func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.KogitoApp) v1alpha1.Deployments {
 	var ready, starting, stopped []string
 	for _, dc := range dcs {
 		for _, ownerRef := range dc.GetOwnerReferences() {
@@ -730,7 +730,7 @@ func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.SubApp)
 }
 
 // GetRouteHost returns the Hostname of the route provided
-func (r *ReconcileSubApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.SubApp) string {
+func (r *ReconcileKogitoApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.KogitoApp) string {
 	route.SetGroupVersionKind(oroutev1.SchemeGroupVersion.WithKind("Route"))
 	log := log.With("kind", route.GetObjectKind().GroupVersionKind().Kind, "name", route.Name, "namespace", route.Namespace)
 	err := controllerutil.SetControllerReference(cr, &route, r.scheme)

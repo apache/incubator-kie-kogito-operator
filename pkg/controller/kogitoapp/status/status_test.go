@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,7 +12,7 @@ import (
 
 func TestSetDeployed(t *testing.T) {
 	now := metav1.Now()
-	cr := &v1alpha1.SubApp{}
+	cr := &v1alpha1.KogitoApp{}
 
 	assert.True(t, SetDeployed(cr))
 
@@ -23,7 +23,7 @@ func TestSetDeployed(t *testing.T) {
 }
 
 func TestSetDeployedSkipUpdate(t *testing.T) {
-	cr := &v1alpha1.SubApp{}
+	cr := &v1alpha1.KogitoApp{}
 	SetDeployed(cr)
 
 	assert.NotEmpty(t, cr.Status.Conditions)
@@ -36,7 +36,7 @@ func TestSetDeployedSkipUpdate(t *testing.T) {
 
 func TestSetProvisioning(t *testing.T) {
 	now := metav1.Now()
-	cr := &v1alpha1.SubApp{}
+	cr := &v1alpha1.KogitoApp{}
 	assert.True(t, SetProvisioning(cr))
 
 	assert.NotEmpty(t, cr.Status.Conditions)
@@ -46,7 +46,7 @@ func TestSetProvisioning(t *testing.T) {
 }
 
 func TestSetProvisioningSkipUpdate(t *testing.T) {
-	cr := &v1alpha1.SubApp{}
+	cr := &v1alpha1.KogitoApp{}
 	assert.True(t, SetProvisioning(cr))
 
 	assert.NotEmpty(t, cr.Status.Conditions)
@@ -59,7 +59,7 @@ func TestSetProvisioningSkipUpdate(t *testing.T) {
 
 func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	now := metav1.Now()
-	cr := &v1alpha1.SubApp{}
+	cr := &v1alpha1.KogitoApp{}
 
 	assert.True(t, SetProvisioning(cr))
 	assert.True(t, SetDeployed(cr))
@@ -77,7 +77,7 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 }
 
 func TestBuffer(t *testing.T) {
-	cr := &v1alpha1.SubApp{}
+	cr := &v1alpha1.KogitoApp{}
 	for i := 0; i < maxBuffer+2; i++ {
 		SetFailed(cr, v1alpha1.UnknownReason, fmt.Errorf("Error %d", i))
 	}

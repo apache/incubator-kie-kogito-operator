@@ -12,20 +12,20 @@ type OpenShiftObject interface {
 	runtime.Object
 }
 
-// SubAppSpec defines the desired state of SubApp
+// KogitoAppSpec defines the desired state of KogitoApp
 // +k8s:openapi-gen=true
-type SubAppSpec struct {
+type KogitoAppSpec struct {
 	Runtime   RuntimeType                 `json:"runtime,omitempty"`
 	Name      string                      `json:"name,omitempty"`
 	Replicas  *int32                      `json:"replicas,omitempty"`
 	Env       []corev1.EnvVar             `json:"env,omitempty"`
 	Resources corev1.ResourceRequirements `json:"resources"`
-	Build     *SubAppBuildObject          `json:"build,omitempty"` // S2I Build configuration
+	Build     *KogitoAppBuildObject       `json:"build,omitempty"` // S2I Build configuration
 }
 
-// SubAppBuildObject Data to define how to build an application from source
+// KogitoAppBuildObject Data to define how to build an application from source
 // +k8s:openapi-gen=true
-type SubAppBuildObject struct {
+type KogitoAppBuildObject struct {
 	Incremental bool            `json:"incremental,omitempty"`
 	Env         []corev1.EnvVar `json:"env,omitempty"`
 	GitSource   GitSource       `json:"gitSource,omitempty"`
@@ -57,9 +57,9 @@ type WebhookSecret struct {
 	Secret string      `json:"secret,omitempty"`
 }
 
-// SubAppStatus defines the observed state of SubApp
+// KogitoAppStatus defines the observed state of KogitoApp
 // +k8s:openapi-gen=true
-type SubAppStatus struct {
+type KogitoAppStatus struct {
 	Conditions  []Condition `json:"conditions"`
 	Route       string      `json:"route,omitempty"`
 	Deployments Deployments `json:"deployments"`
@@ -69,9 +69,9 @@ type SubAppStatus struct {
 type RuntimeType string
 
 const (
-	// QuarkusRuntimeType - the subapp is deployed
+	// QuarkusRuntimeType - the kogitoapp is deployed
 	QuarkusRuntimeType RuntimeType = "quarkus"
-	// SpringbootRuntimeType - the subapp is being provisioned
+	// SpringbootRuntimeType - the kogitoapp is being provisioned
 	SpringbootRuntimeType RuntimeType = "springboot"
 )
 
@@ -87,11 +87,11 @@ type Image struct {
 type ConditionType string
 
 const (
-	// DeployedConditionType - the subapp is deployed
+	// DeployedConditionType - the kogitoapp is deployed
 	DeployedConditionType ConditionType = "Deployed"
-	// ProvisioningConditionType - the subapp is being provisioned
+	// ProvisioningConditionType - the kogitoapp is being provisioned
 	ProvisioningConditionType ConditionType = "Provisioning"
-	// FailedConditionType - the subapp is in a failed state
+	// FailedConditionType - the kogitoapp is in a failed state
 	FailedConditionType ConditionType = "Failed"
 )
 
@@ -107,7 +107,7 @@ const (
 	UnknownReason ReasonType = "Unknown"
 )
 
-// Condition - The condition for the submarine-cloud-operator
+// Condition - The condition for the kogito-cloud-operator
 // +k8s:openapi-gen=true
 type Condition struct {
 	Type               ConditionType          `json:"type"`
@@ -132,25 +132,25 @@ type Deployments struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// SubApp is the Schema for the subapps API
+// KogitoApp is the Schema for the kogitoapps API
 // +k8s:openapi-gen=true
-type SubApp struct {
+type KogitoApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SubAppSpec   `json:"spec,omitempty"`
-	Status SubAppStatus `json:"status,omitempty"`
+	Spec   KogitoAppSpec   `json:"spec,omitempty"`
+	Status KogitoAppStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// SubAppList contains a list of SubApp
-type SubAppList struct {
+// KogitoAppList contains a list of KogitoApp
+type KogitoAppList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SubApp `json:"items"`
+	Items           []KogitoApp `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&SubApp{}, &SubAppList{})
+	SchemeBuilder.Register(&KogitoApp{}, &KogitoAppList{})
 }

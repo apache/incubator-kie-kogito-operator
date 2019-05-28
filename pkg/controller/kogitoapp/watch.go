@@ -1,7 +1,7 @@
-package subapp
+package kogitoapp
 
 import (
-	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
 	oimagev1 "github.com/openshift/api/image/v1"
@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// Add creates a new SubApp Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new KogitoApp Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
@@ -28,15 +28,15 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	imageClient, err := imagev1.NewForConfig(mgr.GetConfig())
 	if err != nil {
 		log.Errorf("Error getting image client: %v", err)
-		return &ReconcileSubApp{}
+		return &ReconcileKogitoApp{}
 	}
 	buildClient, err := buildv1.NewForConfig(mgr.GetConfig())
 	if err != nil {
 		log.Errorf("Error getting build client: %v", err)
-		return &ReconcileSubApp{}
+		return &ReconcileKogitoApp{}
 	}
 
-	return &ReconcileSubApp{
+	return &ReconcileKogitoApp{
 		client:      mgr.GetClient(),
 		scheme:      mgr.GetScheme(),
 		cache:       mgr.GetCache(),
@@ -48,13 +48,13 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("subapp-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("kogitoapp-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to primary resource SubApp
-	err = c.Watch(&source.Kind{Type: &v1alpha1.SubApp{}}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to primary resource KogitoApp
+	err = c.Watch(&source.Kind{Type: &v1alpha1.KogitoApp{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &v1alpha1.SubApp{},
+		OwnerType:    &v1alpha1.KogitoApp{},
 	}
 	for _, watchObject := range watchOwnedObjects {
 		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
