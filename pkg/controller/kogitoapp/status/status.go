@@ -1,18 +1,18 @@
 package status
 
 import (
-	"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var log = logs.GetLogger("subapp.controller")
+var log = logs.GetLogger("kogitoapp.controller")
 
 const maxBuffer = 30
 
 // SetProvisioning - Sets the condition type to Provisioning and status True if not yet set.
-func SetProvisioning(cr *v1alpha1.SubApp) bool {
+func SetProvisioning(cr *v1alpha1.KogitoApp) bool {
 	log := log.With("kind", cr.Kind, "name", cr.Name, "namespace", cr.Namespace)
 	size := len(cr.Status.Conditions)
 	if size > 0 && cr.Status.Conditions[size-1].Type == v1alpha1.ProvisioningConditionType {
@@ -30,7 +30,7 @@ func SetProvisioning(cr *v1alpha1.SubApp) bool {
 }
 
 // SetDeployed - Updates the condition with the DeployedCondition and True status
-func SetDeployed(cr *v1alpha1.SubApp) bool {
+func SetDeployed(cr *v1alpha1.KogitoApp) bool {
 	log := log.With("kind", cr.Kind, "name", cr.Name, "namespace", cr.Namespace)
 	size := len(cr.Status.Conditions)
 	if size > 0 && cr.Status.Conditions[size-1].Type == v1alpha1.DeployedConditionType {
@@ -48,7 +48,7 @@ func SetDeployed(cr *v1alpha1.SubApp) bool {
 }
 
 // SetFailed - Sets the failed condition with the error reason and message
-func SetFailed(cr *v1alpha1.SubApp, reason v1alpha1.ReasonType, err error) {
+func SetFailed(cr *v1alpha1.KogitoApp, reason v1alpha1.ReasonType, err error) {
 	log := log.With("kind", cr.Kind, "name", cr.Name, "namespace", cr.Namespace)
 	log.Debug("Status: set failed")
 	condition := v1alpha1.Condition{

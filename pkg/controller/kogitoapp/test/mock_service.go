@@ -3,7 +3,7 @@ package test
 import (
 	"context"
 
-	"github.com/kiegroup/submarine-cloud-operator/pkg/controller/subapp/logs"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientv1 "sigs.k8s.io/controller-runtime/pkg/client"

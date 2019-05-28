@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: submarine-cloud-operator
+  name: kogito-cloud-operator
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      name: submarine-cloud-operator
+      name: kogito-cloud-operator
   template:
     metadata:
       labels:
-        name: submarine-cloud-operator
+        name: kogito-cloud-operator
     spec:
-      serviceAccountName: submarine-cloud-operator
+      serviceAccountName: kogito-cloud-operator
       containers:
-        - name: submarine-cloud-operator
-          image: quay.io/kiegroup/submarine-cloud-operator:0.1
+        - name: kogito-cloud-operator
+          image: quay.io/kiegroup/kogito-cloud-operator:0.1
           command:
-            - submarine-cloud-operator
+            - kogito-cloud-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE

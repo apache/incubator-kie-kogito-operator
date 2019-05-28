@@ -1,11 +1,11 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: submarine-cloud-operator
+  name: kogito-cloud-operator
 subjects:
   - kind: ServiceAccount
-    name: submarine-cloud-operator
+    name: kogito-cloud-operator
 roleRef:
   kind: Role
-  name: submarine-cloud-operator
+  name: kogito-cloud-operator
   apiGroup: rbac.authorization.k8s.io

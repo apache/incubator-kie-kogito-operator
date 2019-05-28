@@ -13,17 +13,17 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1.SubApp":       schema_pkg_apis_app_v1alpha1_SubApp(ref),
-		"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1.SubAppSpec":   schema_pkg_apis_app_v1alpha1_SubAppSpec(ref),
-		"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1.SubAppStatus": schema_pkg_apis_app_v1alpha1_SubAppStatus(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoApp":       schema_pkg_apis_app_v1alpha1_KogitoApp(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppSpec":   schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppStatus": schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref),
 	}
 }
 
-func schema_pkg_apis_app_v1alpha1_SubApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_app_v1alpha1_KogitoApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "SubApp is the Schema for the subapps API",
+				Description: "KogitoApp is the Schema for the kogitoapps API",
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -46,27 +46,27 @@ func schema_pkg_apis_app_v1alpha1_SubApp(ref common.ReferenceCallback) common.Op
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1.SubAppSpec"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1.SubAppStatus"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1.SubAppSpec", "github.com/kiegroup/submarine-cloud-operator/pkg/apis/app/v1alpha1.SubAppStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppSpec", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
-func schema_pkg_apis_app_v1alpha1_SubAppSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "SubAppSpec defines the desired state of SubApp",
+				Description: "KogitoAppSpec defines the desired state of KogitoApp",
 				Properties:  map[string]spec.Schema{},
 			},
 		},
@@ -74,11 +74,11 @@ func schema_pkg_apis_app_v1alpha1_SubAppSpec(ref common.ReferenceCallback) commo
 	}
 }
 
-func schema_pkg_apis_app_v1alpha1_SubAppStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "SubAppStatus defines the observed state of SubApp",
+				Description: "KogitoAppStatus defines the observed state of KogitoApp",
 				Properties:  map[string]spec.Schema{},
 			},
 		},
