@@ -6,7 +6,7 @@ metadata:
   annotations:
     categories: "Integration & Delivery"
     certified: "false"
-    description: kogito Cloud Operator for deployment and management of quarkus services.
+    description: Kogito Cloud Operator for deployment and management of quarkus services.
     repository: https://github.com/kiegroup/kogito-cloud-operator
     containerImage: quay.io/kiegroup/kogito-cloud-operator:0.1
     createdAt: 2019-04-30T12:48:22Z
@@ -17,8 +17,8 @@ metadata:
   labels:
     operator-kogitocloud: "true"
 spec:
-  displayName: kogito Cloud
-  description: kogito Cloud Operator for deployment and management of quarkus services.
+  displayName: Kogito Cloud
+  description: Kogito Cloud Operator for deployment and management of quarkus services.
   keywords:
     - cloud
     - kogito
