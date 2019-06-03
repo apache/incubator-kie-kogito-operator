@@ -46,6 +46,15 @@ Remember to replace _registryNamespace_ with your quay namespace. The name, disp
 
 It will take a few minutes for the operator to become visible under the _OperatorHub_ section of the OpenShift console _Catalog_. It can be easily found by filtering the provider type to _Custom_.
 
+## Deploy to OpenShift 3.11 manually
+
+```bash
+## kogito imagestreams should already be installed/available ... e.g.
+oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
+oc new-project <project-name>
+./hack/3.11deploy.sh
+```
+
 ### Trigger a KogitoApp deployment
 
 Use the OLM console to subscribe to the `kogito` Operator Catalog Source within your namespace. Once subscribed, use the console to `Create KogitoApp` or create one manually as seen below.
