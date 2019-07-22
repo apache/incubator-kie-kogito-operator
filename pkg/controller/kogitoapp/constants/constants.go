@@ -4,7 +4,7 @@ import "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 
 const (
 	// ImageStreamTag default tag name for the ImageStreams
-	ImageStreamTag = "1.0"
+	ImageStreamTag = "0.2.0"
 	// ImageStreamNamespace default namespace for the ImageStreams
 	ImageStreamNamespace = "openshift"
 )
