@@ -14,11 +14,8 @@ jobs:
           command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
           environment: 
             DEP_RELEASE_TAG: v0.5.4
-      - run:
-          name: Install operator-sdk to run make
-          command: curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu
-          environment:
-            OPERATOR_SDK_VERSION: v0.7.0
-      - run: make dep
-      - run: make clean
-      - run: make test
+      - run: dep version
+      - run: dep ensure -v
+      - run: go fmt ./...
+      - run: go vet ./...
+      - run: go test ./...
