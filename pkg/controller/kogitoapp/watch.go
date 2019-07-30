@@ -66,6 +66,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&routev1.Route{},
 		&obuildv1.BuildConfig{},
 		&oimagev1.ImageStream{},
+		&corev1.ServiceAccount{},
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,

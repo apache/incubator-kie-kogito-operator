@@ -1,14 +1,14 @@
 # Kogito Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-cloud-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-cloud-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-cloud-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-cloud-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-cloud-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-cloud-operator)
 
 ## Requirements
 
-- go v1.11+
+- go v1.12+
 - dep v0.5.x
-- operator-sdk v0.7.0
+- operator-sdk v0.9.0
 - ocp 4.x
-- kogito s2i imagestreams installed
+- [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
 
 ## Build
 

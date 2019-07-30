@@ -22,6 +22,7 @@ import (
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -79,6 +80,28 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
+	// TODO: move fetch objects to somewhere else
+	// TODO: move object verification to somewhere else
+	// TODO: move the object factory to somewhere else
+	// Check if the SA already exists
+	sa := newSAforCR(instance)
+	log.Info("Creating the ServiceAccount ", sa.Name, " in namespace ", sa.Namespace)
+	rResult, err := r.createObj(&sa,
+		r.client.Get(context.TODO(), types.NamespacedName{Name: sa.Name, Namespace: sa.Namespace}, &corev1.ServiceAccount{}))
+	if err != nil {
+		return rResult, err
+	}
+
+	roleBindingList := newSARoleBinding(instance, sa)
+	for _, rb := range roleBindingList.Items {
+		log.Info("Creating the RoleBinding ", rb.Name, " in namespace ", rb.Namespace)
+		rResult, err := r.createObj(&rb,
+			r.client.Get(context.TODO(), types.NamespacedName{Name: rb.Name, Namespace: rb.Namespace}, &rbacv1.RoleBinding{}))
+		if err != nil {
+			return rResult, err
+		}
+	}
+
 	// Define new BuildConfig objects
 	buildConfigs := newBCsForCR(instance)
 	for imageType, buildConfig := range buildConfigs {
@@ -114,7 +137,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	rResult, err := r.createObj(
+	rResult, err = r.createObj(
 		&depConfig,
 		r.client.Get(context.TODO(), types.NamespacedName{Name: depConfig.Name, Namespace: depConfig.Namespace}, &oappsv1.DeploymentConfig{}),
 	)
@@ -253,7 +276,7 @@ func newBCsForCR(cr *v1alpha1.KogitoApp) map[string]obuildv1.BuildConfig {
 			}
 			builderBC.SetGroupVersionKind(obuildv1.SchemeGroupVersion.WithKind("BuildConfig"))
 			builderBC.Spec.Source.Git = &obuildv1.GitBuildSource{
-				URI: cr.Spec.Build.GitSource.URI,
+				URI: *cr.Spec.Build.GitSource.URI,
 				Ref: cr.Spec.Build.GitSource.Reference,
 			}
 			builderBC.Spec.Source.ContextDir = cr.Spec.Build.GitSource.ContextDir
@@ -261,7 +284,7 @@ func newBCsForCR(cr *v1alpha1.KogitoApp) map[string]obuildv1.BuildConfig {
 			builderBC.Spec.Strategy.Type = obuildv1.SourceBuildStrategyType
 			builderBC.Spec.Strategy.SourceStrategy = &obuildv1.SourceBuildStrategy{
 				Incremental: &cr.Spec.Build.Incremental,
-				Env:         cr.Spec.Build.Env,
+				Env:         shared.FromEnvToEnvVar(cr.Spec.Build.Env),
 				From: corev1.ObjectReference{
 					Name:      fmt.Sprintf("%s:%s", imageDefaults.ImageStreamName, imageDefaults.ImageStreamTag),
 					Namespace: imageDefaults.ImageStreamNamespace,
@@ -316,7 +339,7 @@ func newBCsForCR(cr *v1alpha1.KogitoApp) map[string]obuildv1.BuildConfig {
 	return buildConfigs
 }
 
-// newDCForCR returns a BuildConfig with the same name/namespace as the cr
+// newDCForCR returns a DeploymentConfig with the same name/namespace as the cr
 func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC obuildv1.BuildConfig) (oappsv1.DeploymentConfig, error) {
 	var probe *corev1.Probe
 	replicas := int32(1)
@@ -393,12 +416,13 @@ func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC obuild
 					Containers: []corev1.Container{
 						{
 							Name:            cr.Spec.Name,
-							Env:             cr.Spec.Env,
-							Resources:       cr.Spec.Resources,
+							Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
+							Resources:       *shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
 							Image:           serviceBC.Spec.Output.To.Name,
 							ImagePullPolicy: corev1.PullAlways,
 						},
 					},
+					ServiceAccountName: constants.ServiceAccountName,
 				},
 			},
 			Triggers: oappsv1.DeploymentTriggerPolicies{
@@ -429,6 +453,40 @@ func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC obuild
 	}
 
 	return depConfig, nil
+}
+
+// newSAforCR returns the ServiceAccount for the Deployment Config containers template
+func newSAforCR(cr *v1alpha1.KogitoApp) (sa corev1.ServiceAccount) {
+	sa = corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.ServiceAccountName,
+			Namespace: cr.Namespace,
+		},
+	}
+	return sa
+}
+
+func newSARoleBinding(cr *v1alpha1.KogitoApp, sa corev1.ServiceAccount) (roles rbacv1.RoleBindingList) {
+	roles = rbacv1.RoleBindingList{}
+	roles.Items = append(roles.Items, rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: sa.Namespace,
+			Name:      fmt.Sprintf("%s-%s", sa.Name, constants.ServiceAccountRole),
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind: "Role",
+			Name: sa.Name,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Namespace: sa.Namespace,
+				Name:      sa.Name,
+			},
+		},
+	})
+
+	return roles
 }
 
 // updateBuildConfigs ...

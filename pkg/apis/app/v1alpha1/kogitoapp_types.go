@@ -15,28 +15,70 @@ type OpenShiftObject interface {
 // KogitoAppSpec defines the desired state of KogitoApp
 // +k8s:openapi-gen=true
 type KogitoAppSpec struct {
-	Runtime   RuntimeType                 `json:"runtime,omitempty"`
-	Name      string                      `json:"name,omitempty"`
-	Replicas  *int32                      `json:"replicas,omitempty"`
-	Env       []corev1.EnvVar             `json:"env,omitempty"`
-	Resources corev1.ResourceRequirements `json:"resources"`
-	Build     *KogitoAppBuildObject       `json:"build,omitempty"` // S2I Build configuration
+	// The name of the runtime used, either quarkus or springboot, defaults to quarkus
+	Runtime  RuntimeType `json:"runtime,omitempty"`
+	Name     string      `json:"name,omitempty"`
+	Replicas *int32      `json:"replicas,omitempty"`
+	Env      []Env       `json:"env,omitempty"`
+	// The resources for the deployed pods, like memory and cpu
+	Resources Resources `json:"resources,omitempty"`
+	// S2I Build configuration
+	Build *KogitoAppBuildObject `json:"build"`
+}
+
+// Resources Data to define Resources needed for each deployed pod
+// +k8s:openapi-gen=true
+type Resources struct {
+	Limits   []ResourceMap `json:"limits,omitempty"`
+	Requests []ResourceMap `json:"requests,omitempty"`
+}
+
+// ResourceKind is the Resource Type accept for resources
+type ResourceKind string
+
+const (
+	// ResourceCPU is the CPU resource
+	ResourceCPU ResourceKind = "cpu"
+	// ResourceMemory is the Memory resource
+	ResourceMemory ResourceKind = "memory"
+)
+
+// ResourceMap Data to define a list of possible Resources
+// +k8s:openapi-gen=true
+type ResourceMap struct {
+	// Resource type like cpu and memory
+	Resource *ResourceKind `json:"resource"`
+	// Value of this resource in Kubernetes format
+	Value *string `json:"value"`
+}
+
+// Env Data to define environment variables in key/value pair fashion
+// +k8s:openapi-gen=true
+type Env struct {
+	// Name of an environment variable
+	Name string `json:"name,omitempty"`
+	// Value for that environment variable
+	Value string `json:"value,omitempty"`
 }
 
 // KogitoAppBuildObject Data to define how to build an application from source
 // +k8s:openapi-gen=true
 type KogitoAppBuildObject struct {
-	Incremental bool            `json:"incremental,omitempty"`
-	Env         []corev1.EnvVar `json:"env,omitempty"`
-	GitSource   GitSource       `json:"gitSource,omitempty"`
-	Webhooks    []WebhookSecret `json:"webhooks,omitempty"`
+	Incremental bool       `json:"incremental,omitempty"`
+	Env         []Env      `json:"env,omitempty"`
+	GitSource   *GitSource `json:"gitSource"`
+	// WebHook secrets for build configs
+	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
 }
 
 // GitSource Git coordinates to locate the source code to build
 // +k8s:openapi-gen=true
 type GitSource struct {
-	URI        string `json:"uri,omitempty"`
-	Reference  string `json:"reference,omitempty"`
+	// Git URI for the s2i source
+	URI *string `json:"uri"`
+	// Branch to use in the git repository
+	Reference string `json:"reference,omitempty"`
+	// Context/subdirectory where the code is located, relatively to repo root
 	ContextDir string `json:"contextDir,omitempty"`
 }
 
@@ -53,8 +95,10 @@ const (
 // WebhookSecret Secret to use for a given webhook
 // +k8s:openapi-gen=true
 type WebhookSecret struct {
-	Type   WebhookType `json:"type,omitempty"`
-	Secret string      `json:"secret,omitempty"`
+	// WebHook type, either GitHub or Generic
+	Type WebhookType `json:"type,omitempty"`
+	// Secret value for webhook
+	Secret string `json:"secret,omitempty"`
 }
 
 // KogitoAppStatus defines the observed state of KogitoApp
