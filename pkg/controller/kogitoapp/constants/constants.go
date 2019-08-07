@@ -9,10 +9,6 @@ const (
 	ImageStreamTag = "0.2.0"
 	// ImageStreamNamespace default namespace for the ImageStreams
 	ImageStreamNamespace = "openshift"
-	// ServiceAccountName default name for the SA running in the pods
-	ServiceAccountName = "kogito-service"
-	// ServiceAccountRole default role given to the SA running in the pods
-	ServiceAccountRole = "view"
 )
 
 // RuntimeImageDefaults ...

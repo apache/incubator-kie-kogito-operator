@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/constants"
+	defs "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/definitions"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
@@ -27,7 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -82,9 +80,8 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// TODO: move fetch objects to somewhere else
 	// TODO: move object verification to somewhere else
-	// TODO: move the object factory to somewhere else
 	// Check if the SA already exists
-	sa := newSAforCR(instance)
+	sa := defs.NewServiceAccount(instance)
 	log.Info("Creating the ServiceAccount ", sa.Name, " in namespace ", sa.Namespace)
 	rResult, err := r.createObj(&sa,
 		r.client.Get(context.TODO(), types.NamespacedName{Name: sa.Name, Namespace: sa.Namespace}, &corev1.ServiceAccount{}))
@@ -92,19 +89,21 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		return rResult, err
 	}
 
-	roleBindingList := newSARoleBinding(instance, sa)
-	for _, rb := range roleBindingList.Items {
-		log.Info("Creating the RoleBinding ", rb.Name, " in namespace ", rb.Namespace)
-		rResult, err := r.createObj(&rb,
-			r.client.Get(context.TODO(), types.NamespacedName{Name: rb.Name, Namespace: rb.Namespace}, &rbacv1.RoleBinding{}))
-		if err != nil {
-			return rResult, err
-		}
+	roleBinding := defs.NewRoleBinding(instance, &sa)
+	log.Info("Creating the RoleBinding ", roleBinding.Name, " in namespace ", roleBinding.Namespace)
+	rResult, err = r.createObj(&roleBinding,
+		r.client.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, &rbacv1.RoleBinding{}))
+	if err != nil {
+		return rResult, err
 	}
 
 	// Define new BuildConfig objects
-	buildConfigs := newBCsForCR(instance)
-	for imageType, buildConfig := range buildConfigs {
+	buildConfigs, err := defs.NewBuildConfig(instance)
+	if err != nil {
+		return rResult, err
+	}
+
+	for buildType, buildConfig := range buildConfigs.AsMap {
 		if _, err := r.ensureImageStream(
 			buildConfig.Name,
 			instance,
@@ -116,13 +115,13 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		_, err = r.buildClient.BuildConfigs(buildConfig.Namespace).Get(buildConfig.Name, metav1.GetOptions{})
 		if err != nil && errors.IsNotFound(err) {
 			log.Info("Creating a new BuildConfig ", buildConfig.Name, " in namespace ", buildConfig.Namespace)
-			bc, err := r.buildClient.BuildConfigs(buildConfig.Namespace).Create(&buildConfig)
+			bc, err := r.buildClient.BuildConfigs(buildConfig.Namespace).Create(buildConfig)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
 
 			// Trigger first build of new builder BC
-			if imageType == "builder" {
+			if buildType == defs.S2IBuildType {
 				if err = r.triggerBuild(*bc, instance); err != nil {
 					return reconcile.Result{}, err
 				}
@@ -133,7 +132,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Create new DeploymentConfig object
-	depConfig, err := r.newDCForCR(instance, buildConfigs["service"])
+	depConfig, err := r.newDCForCR(instance, buildConfigs.AsMap[defs.RunnerBuildType], &sa)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -154,35 +153,16 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Expose DC with service and route
-	serviceRoute := ""
-	if len(depConfig.Spec.Template.Spec.Containers[0].Ports) != 0 {
-		servicePorts := []corev1.ServicePort{}
-		for _, port := range depConfig.Spec.Template.Spec.Containers[0].Ports {
-			servicePorts = append(servicePorts, corev1.ServicePort{
-				Name:       port.Name,
-				Protocol:   port.Protocol,
-				Port:       port.ContainerPort,
-				TargetPort: intstr.FromInt(int(port.ContainerPort)),
-			},
-			)
-		}
-		service := corev1.Service{
-			ObjectMeta: depConfig.ObjectMeta,
-			Spec: corev1.ServiceSpec{
-				Selector: depConfig.Spec.Selector,
-				Type:     corev1.ServiceTypeClusterIP,
-				Ports:    servicePorts,
-			},
-		}
-		service.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Service"))
-		err = controllerutil.SetControllerReference(instance, &service, r.scheme)
+	service := defs.NewService(instance, &depConfig)
+	if service != nil {
+		err = controllerutil.SetControllerReference(instance, service, r.scheme)
 		if err != nil {
 			log.Error(err)
 		}
 
 		service.ResourceVersion = ""
-		rResult, err := r.createObj(
-			&service,
+		rResult, err = r.createObj(
+			service,
 			r.client.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, &corev1.Service{}),
 		)
 		if err != nil {
@@ -190,23 +170,14 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 
 		// Create route
-		rt := oroutev1.Route{
-			ObjectMeta: service.ObjectMeta,
-			Spec: oroutev1.RouteSpec{
-				Port: &oroutev1.RoutePort{
-					TargetPort: intstr.FromString("http"),
-				},
-				To: oroutev1.RouteTargetReference{
-					Kind: "Service",
-					Name: service.Name,
-				},
-			},
+		rt, err := defs.NewRoute(instance, service)
+		if err != nil {
+			return rResult, err
 		}
-		if serviceRoute = r.GetRouteHost(rt, instance); serviceRoute != "" {
+		if serviceRoute := r.GetRouteHost(*rt, instance); serviceRoute != "" {
 			instance.Status.Route = fmt.Sprintf("http://%s", serviceRoute)
 		}
 	}
-
 	/*
 
 		bcUpdated, err := r.updateBuildConfigs(instance, buildConfig)
@@ -256,100 +227,9 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-// newBCForCR returns a BuildConfig with the same name/namespace as the cr
-func newBCsForCR(cr *v1alpha1.KogitoApp) map[string]obuildv1.BuildConfig {
-	buildConfigs := map[string]obuildv1.BuildConfig{}
-	serviceBC := obuildv1.BuildConfig{}
-	images := constants.RuntimeImageDefaults[cr.Spec.Runtime]
-
-	for _, imageDefaults := range images {
-		if imageDefaults.BuilderImage {
-			builderName := strings.Join([]string{cr.Spec.Name, "builder"}, "-")
-			builderBC := obuildv1.BuildConfig{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      builderName,
-					Namespace: cr.Namespace,
-					Labels: map[string]string{
-						"app": cr.Name,
-					},
-				},
-			}
-			builderBC.SetGroupVersionKind(obuildv1.SchemeGroupVersion.WithKind("BuildConfig"))
-			builderBC.Spec.Source.Git = &obuildv1.GitBuildSource{
-				URI: *cr.Spec.Build.GitSource.URI,
-				Ref: cr.Spec.Build.GitSource.Reference,
-			}
-			builderBC.Spec.Source.ContextDir = cr.Spec.Build.GitSource.ContextDir
-			builderBC.Spec.Output.To = &corev1.ObjectReference{Name: strings.Join([]string{builderName, "latest"}, ":"), Kind: "ImageStreamTag"}
-			builderBC.Spec.Strategy.Type = obuildv1.SourceBuildStrategyType
-			builderBC.Spec.Strategy.SourceStrategy = &obuildv1.SourceBuildStrategy{
-				Incremental: &cr.Spec.Build.Incremental,
-				Env:         shared.FromEnvToEnvVar(cr.Spec.Build.Env),
-				From: corev1.ObjectReference{
-					Name:      fmt.Sprintf("%s:%s", imageDefaults.ImageStreamName, imageDefaults.ImageStreamTag),
-					Namespace: imageDefaults.ImageStreamNamespace,
-					Kind:      "ImageStreamTag",
-				},
-			}
-
-			buildConfigs["builder"] = builderBC
-		} else {
-			serviceBC = obuildv1.BuildConfig{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      cr.Spec.Name,
-					Namespace: cr.Namespace,
-					Labels: map[string]string{
-						"app": cr.Name,
-					},
-				},
-			}
-			serviceBC.SetGroupVersionKind(obuildv1.SchemeGroupVersion.WithKind("BuildConfig"))
-			serviceBC.Spec.Source.Type = obuildv1.BuildSourceImage
-			serviceBC.Spec.Output.To = &corev1.ObjectReference{Name: strings.Join([]string{cr.Spec.Name, "latest"}, ":"), Kind: "ImageStreamTag"}
-			serviceBC.Spec.Strategy.Type = obuildv1.SourceBuildStrategyType
-			serviceBC.Spec.Strategy.SourceStrategy = &obuildv1.SourceBuildStrategy{
-				From: corev1.ObjectReference{
-					Name:      fmt.Sprintf("%s:%s", imageDefaults.ImageStreamName, imageDefaults.ImageStreamTag),
-					Namespace: imageDefaults.ImageStreamNamespace,
-					Kind:      "ImageStreamTag",
-				},
-			}
-		}
-	}
-
-	serviceBC.Spec.Source.Images = []obuildv1.ImageSource{
-		{
-			From: *buildConfigs["builder"].Spec.Output.To,
-			Paths: []obuildv1.ImageSourcePath{
-				{
-					DestinationDir: ".",
-					SourcePath:     "/home/kogito/bin",
-				},
-			},
-		},
-	}
-	serviceBC.Spec.Triggers = []obuildv1.BuildTriggerPolicy{
-		{
-			Type:        obuildv1.ImageChangeBuildTriggerType,
-			ImageChange: &obuildv1.ImageChangeTrigger{From: buildConfigs["builder"].Spec.Output.To},
-		},
-	}
-	buildConfigs["service"] = serviceBC
-
-	return buildConfigs
-}
-
 // newDCForCR returns a DeploymentConfig with the same name/namespace as the cr
-func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC obuildv1.BuildConfig) (oappsv1.DeploymentConfig, error) {
-	var probe *corev1.Probe
-	replicas := int32(1)
-	if cr.Spec.Replicas != nil {
-		replicas = *cr.Spec.Replicas
-	}
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	ports := []corev1.ContainerPort{}
+func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC *obuildv1.BuildConfig, sa *corev1.ServiceAccount) (oappsv1.DeploymentConfig, error) {
+	dockerImage := &dockerv10.DockerImage{}
 	bcNamespace := cr.Namespace
 	if serviceBC.Spec.Output.To.Namespace != "" {
 		bcNamespace = serviceBC.Spec.Output.To.Namespace
@@ -360,133 +240,20 @@ func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC obuild
 		log.Warn(cr.Spec.Name, " DeploymentConfig will start when ImageStream build completes.")
 	}
 	if len(isTag.Image.DockerImageMetadata.Raw) != 0 {
-		obj := &dockerv10.DockerImage{}
-		err = json.Unmarshal(isTag.Image.DockerImageMetadata.Raw, obj)
+		err = json.Unmarshal(isTag.Image.DockerImageMetadata.Raw, dockerImage)
 		if err != nil {
 			log.Error(err)
 		}
-		for i, value := range obj.Config.Labels {
-			if strings.Contains(i, "org.kie/") {
-				result := strings.Split(i, "/")
-				labels[result[len(result)-1]] = value
-			}
-			if i == "io.openshift.expose-services" {
-				results := strings.Split(value, ",")
-				for _, item := range results {
-					portResults := strings.Split(item, ":")
-					port, err := strconv.Atoi(portResults[0])
-					if err != nil {
-						log.Error(err)
-					}
-					portName := portResults[1]
-					ports = append(ports, corev1.ContainerPort{Name: portName, ContainerPort: int32(port), Protocol: corev1.ProtocolTCP})
-					if portName == "http" {
-						probe = &corev1.Probe{
-							TimeoutSeconds:   int32(1),
-							PeriodSeconds:    int32(10),
-							SuccessThreshold: int32(1),
-							FailureThreshold: int32(3),
-						}
-						probe.Handler.TCPSocket = &corev1.TCPSocketAction{
-							Port: intstr.FromInt(port),
-						}
-					}
-				}
-			}
-		}
 	}
 
-	depConfig := oappsv1.DeploymentConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Spec.Name,
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Spec: oappsv1.DeploymentConfigSpec{
-			Replicas: replicas,
-			Selector: labels,
-			Strategy: oappsv1.DeploymentStrategy{
-				Type: oappsv1.DeploymentStrategyTypeRolling,
-			},
-			Template: &corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            cr.Spec.Name,
-							Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
-							Resources:       *shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
-							Image:           serviceBC.Spec.Output.To.Name,
-							ImagePullPolicy: corev1.PullAlways,
-						},
-					},
-					ServiceAccountName: constants.ServiceAccountName,
-				},
-			},
-			Triggers: oappsv1.DeploymentTriggerPolicies{
-				{Type: oappsv1.DeploymentTriggerOnConfigChange},
-				{
-					Type: oappsv1.DeploymentTriggerOnImageChange,
-					ImageChangeParams: &oappsv1.DeploymentTriggerImageChangeParams{
-						Automatic:      true,
-						ContainerNames: []string{cr.Spec.Name},
-						From:           *serviceBC.Spec.Output.To,
-					},
-				},
-			},
-		},
-	}
-	if len(ports) != 0 {
-		depConfig.Spec.Template.Spec.Containers[0].Ports = ports
-		if probe != nil {
-			depConfig.Spec.Template.Spec.Containers[0].LivenessProbe = probe
-			depConfig.Spec.Template.Spec.Containers[0].ReadinessProbe = probe
-		}
-	}
-	depConfig.SetGroupVersionKind(oappsv1.SchemeGroupVersion.WithKind("DeploymentConfig"))
-	err = controllerutil.SetControllerReference(cr, &depConfig, r.scheme)
+	depConfig, err := defs.NewDeploymentConfig(cr, serviceBC, sa, dockerImage)
+	err = controllerutil.SetControllerReference(cr, depConfig, r.scheme)
 	if err != nil {
 		log.Error(err)
 		return oappsv1.DeploymentConfig{}, err
 	}
 
-	return depConfig, nil
-}
-
-// newSAforCR returns the ServiceAccount for the Deployment Config containers template
-func newSAforCR(cr *v1alpha1.KogitoApp) (sa corev1.ServiceAccount) {
-	sa = corev1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      constants.ServiceAccountName,
-			Namespace: cr.Namespace,
-		},
-	}
-	return sa
-}
-
-func newSARoleBinding(cr *v1alpha1.KogitoApp, sa corev1.ServiceAccount) (roles rbacv1.RoleBindingList) {
-	roles = rbacv1.RoleBindingList{}
-	roles.Items = append(roles.Items, rbacv1.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: sa.Namespace,
-			Name:      fmt.Sprintf("%s-%s", sa.Name, constants.ServiceAccountRole),
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind: "Role",
-			Name: sa.Name,
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Namespace: sa.Namespace,
-				Name:      sa.Name,
-			},
-		},
-	})
-
-	return roles
+	return *depConfig, nil
 }
 
 // updateBuildConfigs ...
@@ -789,7 +556,6 @@ func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.KogitoA
 
 // GetRouteHost returns the Hostname of the route provided
 func (r *ReconcileKogitoApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.KogitoApp) string {
-	route.SetGroupVersionKind(oroutev1.SchemeGroupVersion.WithKind("Route"))
 	log := log.With("kind", route.GetObjectKind().GroupVersionKind().Kind, "name", route.Name, "namespace", route.Namespace)
 	err := controllerutil.SetControllerReference(cr, &route, r.scheme)
 	if err != nil {
