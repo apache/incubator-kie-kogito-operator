@@ -30,18 +30,20 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		log.Errorf("Error getting image client: %v", err)
 		return &ReconcileKogitoApp{}
 	}
+	imageClientInterface := imagev1.ImageV1Interface(imageClient)
 	buildClient, err := buildv1.NewForConfig(mgr.GetConfig())
 	if err != nil {
 		log.Errorf("Error getting build client: %v", err)
 		return &ReconcileKogitoApp{}
 	}
+	buildClientInterface := buildv1.BuildV1Interface(buildClient)
 
 	return &ReconcileKogitoApp{
 		client:      mgr.GetClient(),
 		scheme:      mgr.GetScheme(),
 		cache:       mgr.GetCache(),
-		imageClient: imageClient,
-		buildClient: buildClient,
+		imageClient: &imageClientInterface,
+		buildClient: &buildClientInterface,
 	}
 }
 

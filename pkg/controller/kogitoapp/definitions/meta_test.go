@@ -18,7 +18,7 @@ var kogitoApp = &v1alpha1.KogitoApp{
 func Test_addDefaultMeta_whenLabelsAreNotDefined(t *testing.T) {
 	objectMeta := &metav1.ObjectMeta{}
 	addDefaultMeta(objectMeta, kogitoApp)
-	assert.True(t, objectMeta.Labels[labelAppName] == "test")
+	assert.True(t, objectMeta.Labels[LabelKeyAppName] == "test")
 }
 
 func Test_addDefaultMeta_whenAlreadyHasLabels(t *testing.T) {
@@ -29,7 +29,7 @@ func Test_addDefaultMeta_whenAlreadyHasLabels(t *testing.T) {
 		},
 	}
 	addDefaultMeta(objectMeta, kogitoApp)
-	assert.True(t, objectMeta.Labels[labelAppName] == "test")
+	assert.True(t, objectMeta.Labels[LabelKeyAppName] == "test")
 	assert.True(t, objectMeta.Labels["operator"] == "kogito")
 }
 

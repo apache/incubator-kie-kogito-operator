@@ -2,17 +2,35 @@ package kogitoapp
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"testing"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/inventory"
+
+	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache/informertest"
+
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
 	resource "k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/types"
 
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/stretchr/testify/assert"
 
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/definitions"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	appsv1 "github.com/openshift/api/apps/v1"
+	buildv1 "github.com/openshift/api/build/v1"
+	dockerv10 "github.com/openshift/api/image/docker10"
+	imgv1 "github.com/openshift/api/image/v1"
+	routev1 "github.com/openshift/api/route/v1"
+	buildfake "github.com/openshift/client-go/build/clientset/versioned/fake"
+	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,16 +40,14 @@ import (
 var (
 	cpuResource    = v1alpha1.ResourceCPU
 	memoryResource = v1alpha1.ResourceMemory
-)
-
-func TestNewContainerWithResource(t *testing.T) {
-	cpuValue := "1"
-	cr := &v1alpha1.KogitoApp{
+	cpuValue       = "1"
+	cr             = v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-app",
+			Name:      "kogito-operator",
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
+			Name: "test-app",
 			Resources: v1alpha1.Resources{
 				Limits: []v1alpha1.ResourceMap{
 					{
@@ -42,6 +58,9 @@ func TestNewContainerWithResource(t *testing.T) {
 			},
 		},
 	}
+)
+
+func TestNewContainerWithResource(t *testing.T) {
 	container := corev1.Container{
 		Name:            cr.Spec.Name,
 		Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
@@ -55,46 +74,84 @@ func TestNewContainerWithResource(t *testing.T) {
 }
 
 func TestKogitoAppWithResource(t *testing.T) {
-	valueCPU := "1"
 	gitURL := "https://github.com/kiegroup/kogito-examples/"
-	kogitoBuild := v1alpha1.KogitoAppBuildObject{
+	kogitoapp := &cr
+	kogitoapp.Spec.Build = &v1alpha1.KogitoAppBuildObject{
 		GitSource: &v1alpha1.GitSource{
 			URI:        &gitURL,
 			ContextDir: "jbpm-quarkus-example",
 		},
 	}
-	kogitoapp := &v1alpha1.KogitoApp{
+	dockerImageRaw, err := json.Marshal(&dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{
+			Labels: map[string]string{
+				definitions.ImageLabelForExposeServices: "8080:http",
+			},
+		},
+	})
+	isTag := imgv1.ImageStreamTag{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-app",
+			Name:      fmt.Sprintf("%s:latest", kogitoapp.Spec.Name),
 			Namespace: "test",
 		},
-		Spec: v1alpha1.KogitoAppSpec{
-			Build: &kogitoBuild,
-			Resources: v1alpha1.Resources{
-				Limits: []v1alpha1.ResourceMap{
-					{
-						Resource: &cpuResource,
-						Value:    &valueCPU,
-					},
-				},
+		Image: imgv1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: dockerImageRaw,
 			},
 		},
 	}
 	objs := []runtime.Object{kogitoapp}
+	buildToTrigger, _ := definitions.NewBuildConfigS2I(kogitoapp)
 	// add to schemas to avoid: "failed to add object to fake client"
 	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, kogitoapp)
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoAppList{})
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion,
+		kogitoapp,
+		&v1alpha1.KogitoAppList{})
+	s.AddKnownTypes(appsv1.SchemeGroupVersion,
+		&appsv1.DeploymentConfig{},
+		&appsv1.DeploymentConfigList{})
+	s.AddKnownTypes(buildv1.SchemeGroupVersion, &buildv1.BuildConfig{})
+	s.AddKnownTypes(routev1.SchemeGroupVersion, &routev1.Route{})
 	// Create a fake client to mock API calls.
-	cl := fake.NewFakeClient(objs...)
+	cli := fake.NewFakeClient(objs...)
+	// OpenShift Image Client Fake with image tag defined and image built
+	imgcli := imgfake.NewSimpleClientset(&isTag).ImageV1()
+	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
+	buildcli := buildfake.NewSimpleClientset(&buildToTrigger).BuildV1()
 	// ********** sanity check
 	kogitoAppList := &v1alpha1.KogitoAppList{}
-	err := cl.List(context.TODO(), &client.ListOptions{Namespace: "test"}, kogitoAppList)
+	err = cli.List(context.TODO(), &client.ListOptions{Namespace: "test"}, kogitoAppList)
 	if err != nil {
 		t.Fatalf("Failed to list kogitoapp (%v)", err)
 	}
 	assert.True(t, len(kogitoAppList.Items) > 0)
 	assert.True(t, *kogitoAppList.Items[0].Spec.Resources.Limits[0].Resource == cpuResource)
-
-	// TODO: call reconcile object and mock image and build clients
+	cache := &cachev1.FakeInformers{}
+	// call reconcile object and mock image and build clients
+	r := &ReconcileKogitoApp{
+		buildClient: &buildcli,
+		client:      cli,
+		imageClient: &imgcli,
+		scheme:      s,
+		cache:       cache,
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      kogitoapp.Name,
+			Namespace: kogitoapp.Namespace,
+		},
+	}
+	res, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+	if !res.Requeue {
+		t.Error("reconcile did not requeue request as expected")
+	}
+	// Let's verify if the objects have been built
+	dc := &appsv1.DeploymentConfig{}
+	_, err = inventory.FetchResourceWithKey(r.client, types.NamespacedName{Name: kogitoapp.Spec.Name, Namespace: kogitoapp.Namespace}, dc)
+	assert.Nil(t, err)
+	assert.NotNil(t, dc)
+	assert.Len(t, dc.Spec.Template.Spec.Containers, 1)
 }

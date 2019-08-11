@@ -12,11 +12,13 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
+// Logger shared logger struct
 type Logger struct {
 	Logger        logr.Logger
 	SugaredLogger *zap.SugaredLogger
 }
 
+// GetLogger returns a custom named logger
 func GetLogger(name string) *zap.SugaredLogger {
 	// Set log level... override default w/ command-line variable if set.
 	debugBool := GetBoolEnv("DEBUG") // info, debug
@@ -84,6 +86,7 @@ func zapSugaredLoggerTo(destWriter io.Writer, development bool) *zap.SugaredLogg
 	return log.Sugar()
 }
 
+// GetBoolEnv gets a env variable as a boolean
 func GetBoolEnv(key string) bool {
 	val := GetEnv(key, "false")
 	ret, err := strconv.ParseBool(val)
@@ -93,6 +96,7 @@ func GetBoolEnv(key string) bool {
 	return ret
 }
 
+// GetEnv gets a env variable
 func GetEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {

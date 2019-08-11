@@ -2,28 +2,22 @@ package kogitoapp
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
+	inventory "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/inventory"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	defs "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/definitions"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
-	dockerv10 "github.com/openshift/api/image/docker10"
-	oimagev1 "github.com/openshift/api/image/v1"
 	oroutev1 "github.com/openshift/api/route/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -42,8 +36,8 @@ type ReconcileKogitoApp struct {
 	client      client.Client
 	scheme      *runtime.Scheme
 	cache       cachev1.Cache
-	imageClient *imagev1.ImageV1Client
-	buildClient *buildv1.BuildV1Client
+	imageClient *imagev1.ImageV1Interface
+	buildClient *buildv1.BuildV1Interface
 }
 
 // Reconcile reads that state of the cluster for a KogitoApp object and makes changes based on the state read
@@ -58,16 +52,10 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// Fetch the KogitoApp instance
 	instance := &v1alpha1.KogitoApp{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
+	if exists, err := inventory.FetchResourceWithKey(r.client, request.NamespacedName, instance); err != nil {
 		return reconcile.Result{}, err
+	} else if !exists {
+		return reconcile.Result{}, nil
 	}
 
 	// Set some CR defaults
@@ -78,106 +66,48 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
-	// TODO: move fetch objects to somewhere else
-	// TODO: move object verification to somewhere else
-	// Check if the SA already exists
-	sa := defs.NewServiceAccount(instance)
-	log.Info("Creating the ServiceAccount ", sa.Name, " in namespace ", sa.Namespace)
-	rResult, err := r.createObj(&sa,
-		r.client.Get(context.TODO(), types.NamespacedName{Name: sa.Name, Namespace: sa.Namespace}, &corev1.ServiceAccount{}))
-	if err != nil {
-		return rResult, err
-	}
-
-	roleBinding := defs.NewRoleBinding(instance, &sa)
-	log.Info("Creating the RoleBinding ", roleBinding.Name, " in namespace ", roleBinding.Namespace)
-	rResult, err = r.createObj(&roleBinding,
-		r.client.Get(context.TODO(), types.NamespacedName{Name: roleBinding.Name, Namespace: roleBinding.Namespace}, &rbacv1.RoleBinding{}))
-	if err != nil {
-		return rResult, err
-	}
-
-	// Define new BuildConfig objects
-	buildConfigs, err := defs.NewBuildConfig(instance)
-	if err != nil {
-		return rResult, err
-	}
-
-	for buildType, buildConfig := range buildConfigs.AsMap {
-		if _, err := r.ensureImageStream(
-			buildConfig.Name,
-			instance,
-		); err != nil {
-			return reconcile.Result{}, err
-		}
-
-		// Check if this BC already exists
-		_, err = r.buildClient.BuildConfigs(buildConfig.Namespace).Get(buildConfig.Name, metav1.GetOptions{})
-		if err != nil && errors.IsNotFound(err) {
-			log.Info("Creating a new BuildConfig ", buildConfig.Name, " in namespace ", buildConfig.Namespace)
-			bc, err := r.buildClient.BuildConfigs(buildConfig.Namespace).Create(buildConfig)
-			if err != nil {
-				return reconcile.Result{}, err
-			}
-
-			// Trigger first build of new builder BC
-			if buildType == defs.S2IBuildType {
-				if err = r.triggerBuild(*bc, instance); err != nil {
-					return reconcile.Result{}, err
-				}
-			}
-		} else if err != nil {
-			return reconcile.Result{}, err
-		}
-	}
-
-	// Create new DeploymentConfig object
-	depConfig, err := r.newDCForCR(instance, buildConfigs.AsMap[defs.RunnerBuildType], &sa)
+	// create resources in the cluster that not exists
+	kogitoInv, err := inventory.CreateResources(&inventory.BuilderContext{
+		Client:      r.client,
+		ImageClient: *r.imageClient,
+		KogitoApp:   instance,
+	})
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	rResult, err = r.createObj(
-		&depConfig,
-		r.client.Get(context.TODO(), types.NamespacedName{Name: depConfig.Name, Namespace: depConfig.Namespace}, &oappsv1.DeploymentConfig{}),
-	)
-	if err != nil {
-		return rResult, err
+
+	// ensure builds
+	if imageExists, err := r.ensureApplicationImageExists(kogitoInv, instance); err != nil {
+		return reconcile.Result{}, err
+	} else if !imageExists {
+		// let's wait for the build to finish
+		return reconcile.Result{RequeueAfter: time.Duration(30) * time.Second}, nil
 	}
 
-	dcUpdated, err := r.updateDeploymentConfigs(instance, depConfig)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-	if dcUpdated && status.SetProvisioning(instance) {
-		return r.UpdateObj(instance)
+	// checks for dc updates
+	if kogitoInv.DeploymentConfig != nil {
+		if err := controllerutil.SetControllerReference(instance, kogitoInv.DeploymentConfig, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
+		if dcUpdated, err := r.updateDeploymentConfigs(instance, *kogitoInv.DeploymentConfig); err != nil {
+			return reconcile.Result{}, err
+		} else if dcUpdated && status.SetProvisioning(instance) {
+			return r.UpdateObj(instance)
+		}
 	}
 
 	// Expose DC with service and route
-	service := defs.NewService(instance, &depConfig)
-	if service != nil {
-		err = controllerutil.SetControllerReference(instance, service, r.scheme)
+	if kogitoInv.Service != nil {
+		err = controllerutil.SetControllerReference(instance, kogitoInv.Service, r.scheme)
 		if err != nil {
 			log.Error(err)
 		}
-
-		service.ResourceVersion = ""
-		rResult, err = r.createObj(
-			service,
-			r.client.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, &corev1.Service{}),
-		)
-		if err != nil {
-			return rResult, err
-		}
-
-		// Create route
-		rt, err := defs.NewRoute(instance, service)
-		if err != nil {
-			return rResult, err
-		}
-		if serviceRoute := r.GetRouteHost(*rt, instance); serviceRoute != "" {
+		// TODO: this is really needed?
+		if serviceRoute := r.GetRouteHost(*kogitoInv.Route, instance); serviceRoute != "" {
 			instance.Status.Route = fmt.Sprintf("http://%s", serviceRoute)
 		}
 	}
+
 	/*
 
 		bcUpdated, err := r.updateBuildConfigs(instance, buildConfig)
@@ -227,43 +157,50 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-// newDCForCR returns a DeploymentConfig with the same name/namespace as the cr
-func (r *ReconcileKogitoApp) newDCForCR(cr *v1alpha1.KogitoApp, serviceBC *obuildv1.BuildConfig, sa *corev1.ServiceAccount) (oappsv1.DeploymentConfig, error) {
-	dockerImage := &dockerv10.DockerImage{}
-	bcNamespace := cr.Namespace
-	if serviceBC.Spec.Output.To.Namespace != "" {
-		bcNamespace = serviceBC.Spec.Output.To.Namespace
+func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *inventory.KogitoAppInventory, instance *v1alpha1.KogitoApp) (bool, error) {
+	buildServiceState, err := inventory.EnsureImageBuild(*r.buildClient, *r.imageClient, inv.BuildConfigService)
+	if err != nil {
+		return false, err
 	}
 
-	isTag, err := r.imageClient.ImageStreamTags(bcNamespace).Get(serviceBC.Spec.Output.To.Name, metav1.GetOptions{})
-	if err != nil {
-		log.Warn(cr.Spec.Name, " DeploymentConfig will start when ImageStream build completes.")
+	// we have the final image built, there's no need to proceed
+	if buildServiceState.ImageExists {
+		log.Debugf("Final application image exists there's no need to trigger any build")
+		return true, nil
 	}
-	if len(isTag.Image.DockerImageMetadata.Raw) != 0 {
-		err = json.Unmarshal(isTag.Image.DockerImageMetadata.Raw, dockerImage)
+
+	log.Infof("No image found for the application %s. Trying to trigger a new build.", instance.Spec.Name)
+
+	// verify s2i build and image
+	if state, err := inventory.EnsureImageBuild(*r.buildClient, *r.imageClient, inv.BuildConfigS2I); err != nil {
+		return false, err
+	} else if state.BuildRunning {
+		// build is running, nothing to do
+		return false, nil
+	} else if !state.ImageExists && !state.BuildRunning {
+		log.Infof("There's no image nor build for %s running, triggering build", inv.BuildConfigS2I.Name)
+		_, err := inventory.TriggerBuild(*r.buildClient, inv.BuildConfigS2I, instance)
 		if err != nil {
-			log.Error(err)
+			return false, err
 		}
+		return false, nil
 	}
 
-	depConfig, err := defs.NewDeploymentConfig(cr, serviceBC, sa, dockerImage)
-	err = controllerutil.SetControllerReference(cr, depConfig, r.scheme)
-	if err != nil {
-		log.Error(err)
-		return oappsv1.DeploymentConfig{}, err
+	// verify service build and image
+	if !buildServiceState.ImageExists {
+		log.Warnf("There's no image for %s.", inv.BuildConfigService.Name)
+		return false, nil
 	}
 
-	return *depConfig, nil
+	log.Debugf("There are images for both builds, nothing to do")
+	return true, nil
 }
 
 // updateBuildConfigs ...
 func (r *ReconcileKogitoApp) updateBuildConfigs(instance *v1alpha1.KogitoApp, bc *obuildv1.BuildConfig) (bool, error) {
-	log := log.With("kind", instance.Kind, "name", instance.Name, "namespace", instance.Namespace)
-	listOps := &client.ListOptions{Namespace: instance.Namespace}
 	bcList := &obuildv1.BuildConfigList{}
-	err := r.client.List(context.TODO(), listOps, bcList)
+	err := inventory.ListResourceWithNamespace(r.client, instance.Namespace, bcList)
 	if err != nil {
-		log.Warn("Failed to list bc's. ", err)
 		r.setFailedStatus(instance, v1alpha1.UnknownReason, err)
 		return false, err
 	}
@@ -355,114 +292,11 @@ func (r *ReconcileKogitoApp) hasStatusChanges(instance, cached *v1alpha1.KogitoA
 	return false
 }
 
-// checkImageStreamTag checks for ImageStream
-func (r *ReconcileKogitoApp) checkImageStreamTag(name, namespace string) bool {
-	log := log.With("kind", "ImageStreamTag", "name", name, "namespace", namespace)
-	result := strings.Split(name, ":")
-	if len(result) == 1 {
-		result = append(result, "latest")
-	}
-	tagName := fmt.Sprintf("%s:%s", result[0], result[1])
-	_, err := r.imageClient.ImageStreamTags(namespace).Get(tagName, metav1.GetOptions{})
-	if err != nil {
-		log.Debug("Object does not exist")
-		return false
-	}
-	return true
-}
-
-// ensureImageStream ...
-func (r *ReconcileKogitoApp) ensureImageStream(name string, cr *v1alpha1.KogitoApp) (string, error) {
-	if r.checkImageStreamTag(name, cr.Namespace) {
-		return cr.Namespace, nil
-	}
-	err := r.createLocalImageTag(name, cr)
-	if err != nil {
-		log.Error(err)
-		return cr.Namespace, err
-	}
-	return cr.Namespace, nil
-}
-
-// createLocalImageTag creates local ImageStreamTag
-func (r *ReconcileKogitoApp) createLocalImageTag(tagRefName string, cr *v1alpha1.KogitoApp) error {
-	result := strings.Split(tagRefName, ":")
-	if len(result) == 1 {
-		result = append(result, "latest")
-	}
-
-	isnew := &oimagev1.ImageStreamTag{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s:%s", result[0], result[1]),
-			Namespace: cr.Namespace,
-		},
-		Tag: &oimagev1.TagReference{
-			Name: result[1],
-			ReferencePolicy: oimagev1.TagReferencePolicy{
-				Type: oimagev1.LocalTagReferencePolicy,
-			},
-		},
-	}
-	isnew.SetGroupVersionKind(oimagev1.SchemeGroupVersion.WithKind("ImageStreamTag"))
-
-	log := log.With("kind", isnew.GetObjectKind().GroupVersionKind().Kind, "name", isnew.Name, "namespace", isnew.Namespace)
-	log.Info("Creating")
-
-	_, err := r.imageClient.ImageStreamTags(isnew.Namespace).Create(isnew)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		log.Error("Issue creating object. ", err)
-		return err
-	}
-	return nil
-}
-
-// triggerBuild triggers a BuildConfig to start a new build
-func (r *ReconcileKogitoApp) triggerBuild(bc obuildv1.BuildConfig, cr *v1alpha1.KogitoApp) error {
-	buildConfig, err := r.buildClient.BuildConfigs(bc.Namespace).Get(bc.Name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	buildRequest := obuildv1.BuildRequest{ObjectMeta: metav1.ObjectMeta{Name: buildConfig.Name}}
-	buildRequest.SetGroupVersionKind(obuildv1.SchemeGroupVersion.WithKind("BuildRequest"))
-	buildRequest.TriggeredBy = []obuildv1.BuildTriggerCause{{Message: fmt.Sprintf("Triggered by %s operator", cr.Kind)}}
-	build, err := r.buildClient.BuildConfigs(buildConfig.Namespace).Instantiate(buildConfig.Name, &buildRequest)
-	if err != nil {
-		return err
-	}
-
-	log.Info("Name of the triggered build is ", build.Name)
-	return nil
-}
-
-// createObj creates an object based on the error passed in from a `client.Get`
-func (r *ReconcileKogitoApp) createObj(obj v1alpha1.OpenShiftObject, err error) (reconcile.Result, error) {
-	log := log.With("kind", obj.GetObjectKind().GroupVersionKind().Kind, "name", obj.GetName(), "namespace", obj.GetNamespace())
-
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new Object
-		log.Info("Creating")
-		err = r.client.Create(context.TODO(), obj)
-		if err != nil {
-			log.Warn("Failed to create object. ", err)
-			return reconcile.Result{}, err
-		}
-		// Object created successfully - return and requeue
-		return reconcile.Result{RequeueAfter: time.Duration(200) * time.Millisecond}, nil
-	} else if err != nil {
-		log.Error("Failed to get object. ", err)
-		return reconcile.Result{}, err
-	}
-	log.Debug("Skip reconcile - object already exists")
-	return reconcile.Result{}, nil
-}
-
 func (r *ReconcileKogitoApp) updateDeploymentConfigs(instance *v1alpha1.KogitoApp, depConfig oappsv1.DeploymentConfig) (bool, error) {
 	log := log.With("kind", instance.Kind, "name", instance.Name, "namespace", instance.Namespace)
-	listOps := &client.ListOptions{Namespace: instance.Namespace}
 	dcList := &oappsv1.DeploymentConfigList{}
-	err := r.client.List(context.TODO(), listOps, dcList)
+	err := inventory.ListResourceWithNamespace(r.client, instance.Namespace, dcList)
 	if err != nil {
-		log.Warn("Failed to list dc's. ", err)
 		r.setFailedStatus(instance, v1alpha1.UnknownReason, err)
 		return false, err
 	}
@@ -561,29 +395,15 @@ func (r *ReconcileKogitoApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.Kog
 	if err != nil {
 		log.Error("Error setting controller reference. ", err)
 	}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: route.Name, Namespace: route.Namespace}, &oroutev1.Route{})
-	if err != nil && errors.IsNotFound(err) {
-		route.ResourceVersion = ""
-		_, err = r.createObj(
-			&route,
-			err,
-		)
-		if err != nil {
-			log.Error("Error creating Route. ", err)
-		}
-	}
 
-	found := &oroutev1.Route{}
 	for i := 1; i < 60; i++ {
 		time.Sleep(time.Duration(100) * time.Millisecond)
-		err = r.client.Get(context.TODO(), types.NamespacedName{Name: route.Name, Namespace: route.Namespace}, found)
-		if err == nil {
+		if exists, err := inventory.FetchResourceWithKey(r.client, types.NamespacedName{Name: route.Name, Namespace: route.Namespace}, &route); exists {
 			break
+		} else if err != nil {
+			log.Error("Error getting Route. ", err)
 		}
 	}
-	if err != nil {
-		log.Error("Error getting Route. ", err)
-	}
 
-	return found.Spec.Host
+	return route.Spec.Host
 }

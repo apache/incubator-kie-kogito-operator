@@ -40,9 +40,8 @@ test:
 
 .PHONY: lint
 lint:
-	# Temporarily disabled
-	# ./hack/go-lint.sh
-	# ./hack/yaml-lint.sh
+	./hack/go-lint.sh
+	#./hack/yaml-lint.sh
 
 .PHONY: build
 build:

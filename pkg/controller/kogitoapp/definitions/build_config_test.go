@@ -25,13 +25,16 @@ func Test_buildConfigResource_New(t *testing.T) {
 			},
 		},
 	}
-	b, err := NewBuildConfig(kogitoApp)
+	bcS2I, err := NewBuildConfigS2I(kogitoApp)
 	assert.Nil(t, err)
-	assert.NotNil(t, b.BuildRunner)
-	assert.NotNil(t, b.BuildS2I)
-	assert.Contains(t, b.BuildS2I.Spec.Output.To.Name, nameSuffix)
-	assert.NotContains(t, b.BuildRunner.Spec.Output.To.Name, nameSuffix)
-	assert.Len(t, b.BuildRunner.Spec.Triggers, 1)
-	assert.Len(t, b.BuildS2I.Spec.Triggers, 0)
-	assert.Equal(t, b.BuildRunner.Spec.Source.Images[0].From, *b.BuildS2I.Spec.Output.To)
+	assert.NotNil(t, bcS2I)
+	bcService, err := NewBuildConfigService(kogitoApp, &bcS2I)
+	assert.Nil(t, err)
+	assert.NotNil(t, bcService)
+
+	assert.Contains(t, bcS2I.Spec.Output.To.Name, nameSuffix)
+	assert.NotContains(t, bcService.Spec.Output.To.Name, nameSuffix)
+	assert.Len(t, bcService.Spec.Triggers, 1)
+	assert.Len(t, bcS2I.Spec.Triggers, 0)
+	assert.Equal(t, bcService.Spec.Source.Images[0].From, *bcS2I.Spec.Output.To)
 }

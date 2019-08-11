@@ -30,18 +30,19 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
 				// notice the semicolon
-				labelExposeServices:                  "8080:http",
+				ImageLabelForExposeServices:          "8080:http",
 				orgKieNamespaceLabelKey + "operator": "kogito",
 			},
 		},
 	}
-	bc, _ := NewBuildConfig(kogitoApp)
+	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
+	bcSvc, _ := NewBuildConfigService(kogitoApp, &bcS2I)
 	sa := NewServiceAccount(kogitoApp)
-	dc, _ := NewDeploymentConfig(kogitoApp, &bc.BuildRunner, &sa, nil)
+	dc, _ := NewDeploymentConfig(kogitoApp, &bcSvc, &sa, nil)
 	svc := NewService(kogitoApp, dc)
 	assert.Nil(t, svc)
 	// try again, now with ports
-	dc, _ = NewDeploymentConfig(kogitoApp, &bc.BuildRunner, &sa, dockerImage)
+	dc, _ = NewDeploymentConfig(kogitoApp, &bcSvc, &sa, dockerImage)
 	svc = NewService(kogitoApp, dc)
 	assert.NotNil(t, svc)
 	assert.Len(t, svc.Spec.Ports, 1)

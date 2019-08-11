@@ -21,12 +21,13 @@ func NewRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *ro
 				TargetPort: intstr.FromString(defaultExportedProtocol),
 			},
 			To: routev1.RouteTargetReference{
-				Kind: string(ServiceKind),
+				Kind: KindService.Name,
 				Name: service.Name,
 			},
 		},
 	}
 	addDefaultMeta(&route.ObjectMeta, kogitoApp)
-	setGroupVersionKind(&route.TypeMeta, RouteKind)
+	SetGroupVersionKind(&route.TypeMeta, KindRoute)
+	route.ResourceVersion = ""
 	return route, nil
 }
