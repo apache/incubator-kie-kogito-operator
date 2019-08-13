@@ -1,8 +1,11 @@
 package definitions
 
 import (
+	"fmt"
+
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	buildv1 "github.com/openshift/api/build/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -12,15 +15,17 @@ const (
 	ImageStreamTag = "0.2.0"
 	// ImageStreamNamespace default namespace for the ImageStreams
 	ImageStreamNamespace = "openshift"
-	// S2IBuildType source to image build type will take a source code and transform it into an executable service
-	S2IBuildType BuildType = "s2i"
-	// RunnerBuildType will create a image with a Kogito Service available
-	RunnerBuildType BuildType = "runner"
+	// BuildTypeS2I source to image build type will take a source code and transform it into an executable service
+	BuildTypeS2I BuildType = "s2i"
+	// BuildTypeService will create a image with a Kogito Service available
+	BuildTypeService BuildType = "service"
+	// LabelKeyBuildType is the label key to identify the build type
+	LabelKeyBuildType = "buildtype"
 )
 
 // BuildImageStreams are the image streams needed to perform the initial builds
 var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
-	S2IBuildType: {
+	BuildTypeS2I: {
 		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
 			ImageStreamName:      "kogito-quarkus-centos-s2i",
 			ImageStreamNamespace: ImageStreamNamespace,
@@ -32,7 +37,7 @@ var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
 			ImageStreamTag:       ImageStreamTag,
 		},
 	},
-	RunnerBuildType: {
+	BuildTypeService: {
 		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
 			ImageStreamName:      "kogito-quarkus-centos",
 			ImageStreamNamespace: ImageStreamNamespace,
@@ -46,32 +51,14 @@ var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
 	},
 }
 
-// BuildType which build can we perform? Supported are s2i and runner
+// BuildType which build can we perform? Supported are s2i and service
 type BuildType string
 
-// BuildConfigComposition is the composition of the build configuration for the Kogito App
-type BuildConfigComposition struct {
-	BuildS2I    buildv1.BuildConfig
-	BuildRunner buildv1.BuildConfig
-	AsMap       map[BuildType]*buildv1.BuildConfig
-}
-
-// NewBuildConfig creates the BuildConfig resource structure for the KogitoApp CRD
-func NewBuildConfig(kogitoApp *v1alpha1.KogitoApp) (buildConfig BuildConfigComposition, err error) {
-	buildConfig = BuildConfigComposition{}
-
-	if buildConfig.BuildS2I, err = newBCS2I(kogitoApp, BuildImageStreams[S2IBuildType][kogitoApp.Spec.Runtime]); err != nil {
-		return buildConfig, err
-	}
-	if buildConfig.BuildRunner, err = newBCRunner(kogitoApp, &buildConfig.BuildS2I, BuildImageStreams[RunnerBuildType][kogitoApp.Spec.Runtime]); err != nil {
-		return buildConfig, err
-	}
-
-	// transform the builds to a map to facilitate the redesign on controller side.
-	// we should remove it after having inventory package to handle the objects
-	buildConfig.AsMap = map[BuildType]*buildv1.BuildConfig{
-		S2IBuildType:    &buildConfig.BuildS2I,
-		RunnerBuildType: &buildConfig.BuildRunner,
-	}
-	return buildConfig, err
+// NewBuildRequest creates a new BuildRequest for the build
+func NewBuildRequest(kogitoApp *v1alpha1.KogitoApp, bc *buildv1.BuildConfig) buildv1.BuildRequest {
+	buildRequest := buildv1.BuildRequest{ObjectMeta: metav1.ObjectMeta{Name: bc.Name}}
+	buildRequest.TriggeredBy = []buildv1.BuildTriggerCause{{Message: fmt.Sprintf("Triggered by %s operator", kogitoApp.Name)}}
+	SetGroupVersionKind(&buildRequest.TypeMeta, KindBuildRequest)
+	addDefaultMeta(&buildRequest.ObjectMeta, kogitoApp)
+	return buildRequest
 }

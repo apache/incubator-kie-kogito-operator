@@ -21,11 +21,12 @@ const (
 	defaultReplicas         = int32(1)
 	labelNamespaceSep       = "/"
 	orgKieNamespaceLabelKey = "org.kie" + labelNamespaceSep
-	labelExposeServices     = "io.openshift.expose-services"
-	dockerLabelServicesSep  = ","
-	portSep                 = ":"
-	portFormatWrongMessage  = "Service %s on " + labelExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
-	defaultExportedProtocol = "http"
+	// ImageLabelForExposeServices is the label defined in images to identify ports that need to be exposed by the container
+	ImageLabelForExposeServices = "io.openshift.expose-services"
+	dockerLabelServicesSep      = ","
+	portSep                     = ":"
+	portFormatWrongMessage      = "Service %s on " + ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
+	defaultExportedProtocol     = "http"
 )
 
 var defaultProbe = &corev1.Probe{
@@ -80,7 +81,7 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 		},
 	}
 
-	setGroupVersionKind(&dc.TypeMeta, DeploymentConfigKind)
+	SetGroupVersionKind(&dc.TypeMeta, KindDeploymentConfig)
 	addDefaultMeta(&dc.ObjectMeta, kogitoApp)
 	addDefaultMeta(&dc.Spec.Template.ObjectMeta, kogitoApp)
 	addDefaultLabels(&dc.Spec.Selector, kogitoApp)
@@ -135,7 +136,7 @@ func discoverPortsAndProbesFromImage(dc *appsv1.DeploymentConfig, dockerImage *d
 	containerPorts := []corev1.ContainerPort{}
 	var nonSecureProbe *corev1.Probe
 	for key, value := range dockerImage.Config.Labels {
-		if key == labelExposeServices {
+		if key == ImageLabelForExposeServices {
 			services := strings.Split(value, dockerLabelServicesSep)
 			for _, service := range services {
 				ports := strings.Split(service, portSep)

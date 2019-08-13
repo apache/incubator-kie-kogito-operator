@@ -15,21 +15,26 @@ const (
 	nameSuffix = "-builder"
 )
 
-func newBCS2I(kogitoApp *v1alpha1.KogitoApp, image v1alpha1.Image) (buildConfig buildv1.BuildConfig, err error) {
+// NewBuildConfigS2I creates a new build configuration for source to image (s2i) builds
+func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.BuildConfig, err error) {
 	if kogitoApp.Spec.Build == nil || kogitoApp.Spec.Build.GitSource == nil {
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
+	image := BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime]
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s%s", kogitoApp.Spec.Name, nameSuffix),
 			Namespace: kogitoApp.Namespace,
+			Labels: map[string]string{
+				LabelKeyBuildType: string(BuildTypeS2I),
+			},
 		},
 	}
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", buildConfig.Name, tagLatest)}
 	setBCS2ISource(kogitoApp, &buildConfig)
 	setBCS2IStrategy(kogitoApp, &buildConfig, &image)
-	setGroupVersionKind(&buildConfig.TypeMeta, BuildConfigKind)
+	SetGroupVersionKind(&buildConfig.TypeMeta, KindBuildConfig)
 	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
 	return buildConfig, nil
 }

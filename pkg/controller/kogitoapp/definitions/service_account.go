@@ -19,7 +19,7 @@ func NewServiceAccount(kogitoApp *v1alpha1.KogitoApp) (serviceAccount corev1.Ser
 			Namespace: kogitoApp.Namespace,
 		},
 	}
-	setGroupVersionKind(&serviceAccount.TypeMeta, ServiceAccountKind)
+	SetGroupVersionKind(&serviceAccount.TypeMeta, KindServiceAccount)
 	addDefaultMeta(&serviceAccount.ObjectMeta, kogitoApp)
 	return serviceAccount
 }

@@ -9,6 +9,11 @@ import (
 
 // NewService creates a Service resource based on the DC Containers ports exposed. Returns nil if no ports is found on Deployment Config
 func NewService(kogitoApp *v1alpha1.KogitoApp, deploymentConfig *appsv1.DeploymentConfig) (service *corev1.Service) {
+	if deploymentConfig == nil {
+		// we can't create a service without a DC
+		return nil
+	}
+
 	ports := buildServicePorts(deploymentConfig)
 	if len(ports) == 0 {
 		return nil
@@ -23,9 +28,9 @@ func NewService(kogitoApp *v1alpha1.KogitoApp, deploymentConfig *appsv1.Deployme
 		},
 	}
 
-	setGroupVersionKind(&service.TypeMeta, ServiceKind)
+	SetGroupVersionKind(&service.TypeMeta, KindService)
 	addDefaultMeta(&service.ObjectMeta, kogitoApp)
-
+	service.ResourceVersion = ""
 	return service
 }
 

@@ -27,12 +27,13 @@ func NewRoleBinding(kogitoApp *v1alpha1.KogitoApp, serviceAccount *corev1.Servic
 		},
 		Subjects: []rbacv1.Subject{
 			{
-				Kind:      string(RoleBindingKind),
+				Kind:      KindServiceAccount.Name,
 				Namespace: serviceAccount.Namespace,
 				Name:      serviceAccount.Name,
 			},
 		},
 	}
+	SetGroupVersionKind(&roleBinding.TypeMeta, KindRoleBinding)
 	addDefaultMeta(&roleBinding.ObjectMeta, kogitoApp)
 	return roleBinding
 }

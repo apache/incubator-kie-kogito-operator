@@ -3,7 +3,12 @@ package definitions
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	appsv1 "github.com/openshift/api/apps/v1"
+	buildv1 "github.com/openshift/api/build/v1"
+	imgv1 "github.com/openshift/api/image/v1"
+	routev1 "github.com/openshift/api/route/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var defaultAnnotations = map[string]string{
@@ -12,25 +17,37 @@ var defaultAnnotations = map[string]string{
 }
 
 // DefinitionKind is a resource kind representation from a Kubernetes/Openshift cluster
-type DefinitionKind string
+type DefinitionKind struct {
+	// Name of the resource
+	Name string
+	// IsFromOpenShift identifies if this Resource only exists on OpenShift cluster
+	IsFromOpenShift bool
+	// Identifies the group version for the OpenShift APIs
+	GroupVersion schema.GroupVersion
+}
 
-const (
-	// ServiceKind for service
-	ServiceKind DefinitionKind = "Service"
-	// BuildConfigKind for a buildConfig
-	BuildConfigKind DefinitionKind = "BuildConfig"
-	// DeploymentConfigKind for a DeploymentConfig
-	DeploymentConfigKind DefinitionKind = "DeploymentConfig"
-	// RoleBindingKind for a RoleBinding
-	RoleBindingKind DefinitionKind = "RoleBinding"
-	// ServiceAccountKind for a ServiceAccount
-	ServiceAccountKind DefinitionKind = "ServiceAccount"
-	// RouteKind for a Route
-	RouteKind DefinitionKind = "Route"
+var (
+	// KindService for service
+	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
+	// KindBuildConfig for a buildConfig
+	KindBuildConfig = DefinitionKind{"BuildConfig", true, buildv1.GroupVersion}
+	// KindDeploymentConfig for a DeploymentConfig
+	KindDeploymentConfig = DefinitionKind{"DeploymentConfig", true, appsv1.GroupVersion}
+	// KindRoleBinding for a RoleBinding
+	KindRoleBinding = DefinitionKind{"RoleBinding", false, corev1.SchemeGroupVersion}
+	// KindServiceAccount for a ServiceAccount
+	KindServiceAccount = DefinitionKind{"ServiceAccount", false, corev1.SchemeGroupVersion}
+	// KindRoute for a Route
+	KindRoute = DefinitionKind{"Route", true, routev1.SchemeGroupVersion}
+	// KindImageStreamTag for a ImageStreamTag
+	KindImageStreamTag = DefinitionKind{"ImageStreamTag", true, imgv1.SchemeGroupVersion}
+	// KindBuildRequest for a BuildRequest
+	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.SchemeGroupVersion}
 )
 
 const (
-	labelAppName = "app"
+	// LabelKeyAppName is the default label added to all resources
+	LabelKeyAppName = "app"
 )
 
 // addDefaultMeta adds the default annotations and labels
@@ -45,7 +62,6 @@ func addDefaultMeta(objectMeta *metav1.ObjectMeta, kogitoApp *v1alpha1.KogitoApp
 		for key, value := range defaultAnnotations {
 			objectMeta.Annotations[key] = value
 		}
-		//objectMeta.Labels[labelAppName] = kogitoApp.Spec.Name
 		addDefaultLabels(&objectMeta.Labels, kogitoApp)
 	}
 }
@@ -55,9 +71,14 @@ func addDefaultLabels(m *map[string]string, kogitoApp *v1alpha1.KogitoApp) {
 	if *m == nil {
 		(*m) = map[string]string{}
 	}
-	(*m)[labelAppName] = kogitoApp.Spec.Name
+	(*m)[LabelKeyAppName] = kogitoApp.Spec.Name
 }
 
-func setGroupVersionKind(typeMeta *metav1.TypeMeta, kind DefinitionKind) {
-	typeMeta.SetGroupVersionKind(appsv1.SchemeGroupVersion.WithKind(string(kind)))
+// SetGroupVersionKind sets the group, version and kind for the resource
+func SetGroupVersionKind(typeMeta *metav1.TypeMeta, kind DefinitionKind) {
+	typeMeta.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   kind.GroupVersion.Group,
+		Version: kind.GroupVersion.Version,
+		Kind:    kind.Name,
+	})
 }
