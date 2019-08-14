@@ -20,12 +20,13 @@ Please follow the sections below to be able to start contributing to the Kogito 
 
 Start with having all the [requirements](README.md#requirements) set on your local machine and **make sure** you stick with the versions described. 
 
-The operator SDK has regular updates. We try to update our code to use the most recent updated SDK as soon as possible. Since they are not on a major version yet, incompatibilities might happen. The same for **dep**.
+The operator SDK has regular updates. We try to update our code to use the most recent updated SDK as soon as possible. Since they are not on a major version yet, incompatibilities might happen.
 
 If you don't have a preferred IDE, we recommend using VS Code with the following plugins:
 
 - [`vscode-go`](https://github.com/Microsoft/vscode-go) for Go lang tools support
-- [`better-toml`](https://github.com/bungcip/better-toml) to be able to read `dep` `*.toml` files.
+
+To use Go modules with VS Code, follow the ["Go modules support in VS Code"](https://github.com/Microsoft/vscode-go/wiki/Go-modules-support-in-Visual-Studio-Code) guide to configure the IDE properly.
 
 If you care to debug, follow the ["Debugging Go code using VS Code"](https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code) guide to be able to configure the IDE properly.
 

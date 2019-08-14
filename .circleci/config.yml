@@ -6,16 +6,13 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.12
+        environment: GO111MODULE=on
     working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
     steps:
       - checkout
-      - run:
-          name: Install dep
-          command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-          environment: 
-            DEP_RELEASE_TAG: v0.5.4
-      - run: dep version
-      - run: dep ensure -v
+      - run: go mod tidy
+      - run: go mod vendor
       - run: go fmt ./...
       - run: go vet ./...
-      - run: go test ./pkg/... ./cmd/... -count=1
+      - run: go test -mod=vendor ./pkg/... ./cmd/... -count=1
+

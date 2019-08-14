@@ -7,7 +7,6 @@ Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kieg
 ## Requirements
 
 - go v1.12+
-- [dep](https://github.com/golang/dep#installation) v0.5.x
 - [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.9.0
 - ocp 4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
 - [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
@@ -157,7 +156,7 @@ oc delete kogitoapp example-quarkus
 Change log level at runtime with the `DEBUG` environment variable. e.g. -
 
 ```bash
-make dep
+make mod
 make clean
 DEBUG="true" operator-sdk up local --namespace=<namespace>
 ```

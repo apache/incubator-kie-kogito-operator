@@ -91,6 +91,10 @@ func equivalentSchemaType(kind reflect.Kind) string {
 	switch kind {
 	case reflect.String:
 		return "string"
+	case reflect.Float32:
+		return "number"
+	case reflect.Float64:
+		return "number"
 	case reflect.Int:
 		return "integer"
 	case reflect.Int8:

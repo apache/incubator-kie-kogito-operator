@@ -14,20 +14,20 @@ endif
 .PHONY: all
 all: build
 
-.PHONY: dep
-dep:
-	./hack/go-dep.sh
+.PHONY: mod
+mod:
+	./hack/go-mod.sh
 
 .PHONY: format
 format:
 	./hack/go-fmt.sh
 
 .PHONY: go-generate
-go-generate: dep
+go-generate: mod
 	$(Q)go generate ./...
 
 .PHONY: sdk-generate
-sdk-generate: dep
+sdk-generate: mod
 	operator-sdk generate k8s
 
 .PHONY: vet
