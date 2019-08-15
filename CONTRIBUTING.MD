@@ -8,13 +8,13 @@ Any kind of contribution is welcome: code, design ideas, bug reporting, document
 
 If you understand that you can contribute with code, here's some advice that might help during your journey:
 
-1. Make yourself comfortable with Go language. If you're a new programmer, take a look at the [official docs](https://golang.org/doc/). For a more advanced/intermediate level, [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book might be a good starting point.
+1. Make yourself comfortable with the Go language. If you're a new programmer, take a look at the [official docs](https://golang.org/doc/). For a more advanced/intermediate level, [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book might be a good starting point.
 2. Become familiar with [the Operator SDK](https://github.com/operator-framework/operator-sdk). There's a [useful guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) that you can follow using [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/memcached-operator) as an example.
 3. Make sure to have all [requirements](README.md#requirements) set on your local machine.
 
 ## Contributors Guide
 
-Please follow the sections below to be able to start contributing with the Kogito Operator project.
+Please follow the sections below to be able to start contributing to the Kogito Operator project.
 
 ### Environment
 
@@ -31,7 +31,7 @@ If you care to debug, follow the ["Debugging Go code using VS Code"](https://git
 
 ### Testing
 
-We love tests and we make our best to always have a unit test to ensure that a certain feature was implemented correctly. 
+We love tests and we do our best to always have a unit test to ensure that a certain feature was implemented correctly. 
 
 The Operator SDK has a great documentation explaining how to perform [unit testing](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/unit-testing.md) to an operator. Take your time and have a good read of it to have an overall understanding.
 
@@ -53,7 +53,7 @@ Once you have your feature/bug fixed, open a [Pull Request (PR)](https://help.gi
 2. Your PR has the name of the JIRA in the title, e.g. `[KOGITO-XXX] - Awesome feature that solves it all`
 3. The PR solves only the problem described in the JIRA
 4. You have written unit tests for the particular fix/feature
-5. You ran `make test` before submitting the PR and everything is working accordingly 	x
+5. You ran `make test` before submitting the PR and everything is working accordingly
 6. You tested the feature on an actual OpenShift cluster
 
 After sending your PR, a maintainer will review your code and might ask for changes. That said, you might be asked to [squash your commit](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we merge.
