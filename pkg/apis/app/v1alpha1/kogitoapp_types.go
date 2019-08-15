@@ -24,6 +24,8 @@ type KogitoAppSpec struct {
 	Resources Resources `json:"resources,omitempty"`
 	// S2I Build configuration
 	Build *KogitoAppBuildObject `json:"build"`
+	// Service configuration
+	Service KogitoAppServiceObject `json:"service,omitempty"`
 }
 
 // Resources Data to define Resources needed for each deployed pod
@@ -69,6 +71,13 @@ type KogitoAppBuildObject struct {
 	GitSource   *GitSource `json:"gitSource"`
 	// WebHook secrets for build configs
 	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
+}
+
+// KogitoAppServiceObject Data to define the service of the kogito app
+// +k8s:openapi-gen=true
+type KogitoAppServiceObject struct {
+	// Labels for the application service
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // GitSource Git coordinates to locate the source code to build

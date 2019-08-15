@@ -30,6 +30,7 @@ func NewService(kogitoApp *v1alpha1.KogitoApp, deploymentConfig *appsv1.Deployme
 
 	SetGroupVersionKind(&service.TypeMeta, KindService)
 	addDefaultMeta(&service.ObjectMeta, kogitoApp)
+	addServiceLabels(&service.ObjectMeta, kogitoApp)
 	service.ResourceVersion = ""
 	return service
 }

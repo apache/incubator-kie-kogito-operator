@@ -11,17 +11,18 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition":            schema_pkg_apis_app_v1alpha1_Condition(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments":          schema_pkg_apis_app_v1alpha1_Deployments(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env":                  schema_pkg_apis_app_v1alpha1_Env(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource":            schema_pkg_apis_app_v1alpha1_GitSource(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoApp":            schema_pkg_apis_app_v1alpha1_KogitoApp(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject": schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppSpec":        schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppStatus":      schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap":          schema_pkg_apis_app_v1alpha1_ResourceMap(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources":            schema_pkg_apis_app_v1alpha1_Resources(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":        schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition":              schema_pkg_apis_app_v1alpha1_Condition(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments":            schema_pkg_apis_app_v1alpha1_Deployments(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env":                    schema_pkg_apis_app_v1alpha1_Env(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource":              schema_pkg_apis_app_v1alpha1_GitSource(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoApp":              schema_pkg_apis_app_v1alpha1_KogitoApp(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject":   schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject": schema_pkg_apis_app_v1alpha1_KogitoAppServiceObject(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppSpec":          schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppStatus":        schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap":            schema_pkg_apis_app_v1alpha1_ResourceMap(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources":              schema_pkg_apis_app_v1alpha1_Resources(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":          schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
 	}
 }
 
@@ -294,6 +295,33 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 	}
 }
 
+func schema_pkg_apis_app_v1alpha1_KogitoAppServiceObject(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoAppServiceObject Data to define the service of the kogito app",
+				Properties: map[string]spec.Schema{
+					"labels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Labels for the application service",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
 func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -343,12 +371,18 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject"),
 						},
 					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Service configuration",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject"),
+						},
+					},
 				},
 				Required: []string{"build"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"},
 	}
 }
 
