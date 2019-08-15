@@ -18,5 +18,4 @@ jobs:
       - run: dep ensure -v
       - run: go fmt ./...
       - run: go vet ./...
-      - run: go test ./pkg/... -count=1
-
+      - run: go test ./pkg/... ./cmd/... -count=1

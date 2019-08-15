@@ -3,8 +3,9 @@ package logs
 import (
 	"io"
 	"os"
-	"strconv"
 	"time"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	"github.com/go-logr/logr"
 	"go.uber.org/zap"
@@ -21,7 +22,7 @@ type Logger struct {
 // GetLogger returns a custom named logger
 func GetLogger(name string) *zap.SugaredLogger {
 	// Set log level... override default w/ command-line variable if set.
-	debugBool := GetBoolEnv("DEBUG") // info, debug
+	debugBool := util.GetBoolEnv("DEBUG") // info, debug
 
 	// The logger instantiated here can be changed to any logger
 	// implementing the logr.Logger interface. This logger will
@@ -84,23 +85,4 @@ func zapSugaredLoggerTo(destWriter io.Writer, development bool) *zap.SugaredLogg
 	log = log.WithOptions(opts...)
 
 	return log.Sugar()
-}
-
-// GetBoolEnv gets a env variable as a boolean
-func GetBoolEnv(key string) bool {
-	val := GetEnv(key, "false")
-	ret, err := strconv.ParseBool(val)
-	if err != nil {
-		return false
-	}
-	return ret
-}
-
-// GetEnv gets a env variable
-func GetEnv(key, fallback string) string {
-	value, exists := os.LookupEnv(key)
-	if !exists {
-		value = fallback
-	}
-	return value
 }

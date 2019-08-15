@@ -47,17 +47,9 @@ lint:
 build:
 	./hack/go-build.sh
 
-#.PHONY: rhel
-#rhel:
-#	LOCAL=true ./hack/go-build.sh rhel
-
-#.PHONY: rhel-scratch
-#rhel-scratch:
-#	./hack/go-build.sh rhel
-
-#.PHONY: rhel-release
-#rhel-release:
-#	./hack/go-build.sh rhel release
+.PHONY: build-cli
+build-cli:
+	./hack/go-build-cli.sh
 
 .PHONY: clean
 clean:

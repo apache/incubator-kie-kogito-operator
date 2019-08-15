@@ -168,6 +168,14 @@
   version = "v4.5.0"
 
 [[projects]]
+  digest = "1:1b91ae0dc69a41d4c2ed23ea5cffb721ea63f5037ca4b81e6d6771fbb8f45129"
+  name = "github.com/fsnotify/fsnotify"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
+  version = "v1.4.7"
+
+[[projects]]
   digest = "1:81466b4218bf6adddac2572a30ac733a9255919bc2f470b4827a317bd4ee1756"
   name = "github.com/ghodss/yaml"
   packages = ["."]
@@ -512,6 +520,25 @@
   version = "v0.5.1"
 
 [[projects]]
+  digest = "1:62ba88d64dabadbbad170cf6b0d3bfd1f50c36b1566583a28d99304eb08a9bd2"
+  name = "github.com/hashicorp/hcl"
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/printer",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token",
+  ]
+  pruneopts = "NT"
+  revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:b0b1cae9ff30d8c219dc64e5f8dcfbb3f5f3f10f9e67dec737ce0bc04bf31a54"
   name = "github.com/iancoleman/strcase"
@@ -568,6 +595,14 @@
   version = "v1.0.2"
 
 [[projects]]
+  digest = "1:fecb18d8d2d2b9964ea3ac289f05e86615e2f90842063d4871e9d87049b61ffa"
+  name = "github.com/magiconair/properties"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "de8848e004dd33dc07a2947b3d76f618a7fc7ef1"
+  version = "v1.8.1"
+
+[[projects]]
   branch = "master"
   digest = "1:782fb677791a7fe7b5b8e637bcf695efb13950ce09e3e8e3b1cf21c57649be7c"
   name = "github.com/mailru/easyjson"
@@ -610,6 +645,14 @@
   pruneopts = "NT"
   revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
   version = "v1.0.1"
+
+[[projects]]
+  digest = "1:f9f72e583aaacf1d1ac5d6121abd4afd3c690baa9e14e1d009df26bf831ba347"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "af06845cf3004701891bf4fdb884bfe4920b3727"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:a45ae66dea4c899d79fceb116accfa1892105c251f0dcd9a217ddc276b42ec68"
@@ -700,6 +743,14 @@
   pruneopts = "NT"
   revision = "adf5a7427709b9deb95d29d3fa8a2bf9cfd388f1"
   version = "v1.2"
+
+[[projects]]
+  digest = "1:5e2ce9b90fcb9747d5ead0fefec4221c898ee7e2f6516ad7590bd999c808b834"
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "728039f679cbcd4f6a54e080d2219a4c4928c546"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -805,6 +856,14 @@
   version = "v1.2.2"
 
 [[projects]]
+  digest = "1:c5e6b121ef3d2043505edaf4c80e5a008cec2513dc8804795eb0479d1555bcf7"
+  name = "github.com/spf13/cast"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "8c9545af88b134710ab1cd196795e7f2388358d7"
+  version = "v1.3.0"
+
+[[projects]]
   digest = "1:37a91e5093cb260946900c75198c293f3439187e43f48e1a3ae10b4aa55bd7ad"
   name = "github.com/spf13/cobra"
   packages = ["."]
@@ -813,12 +872,28 @@
   version = "v0.0.5"
 
 [[projects]]
+  digest = "1:3d72352adb74e79d6d5a43d6f51bfd2d0bd0c9b5f3c00cf5a4b1636d8d3b9d92"
+  name = "github.com/spf13/jwalterweatherman"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "94f6ae3ed3bceceafa716478c5fbf8d29ca601a1"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:9d8420bbf131d1618bde6530af37c3799340d3762cc47210c1d9532a4c3a2779"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = "NT"
   revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
   version = "v1.0.3"
+
+[[projects]]
+  digest = "1:8a2c8828a6fc03841448c29c80eeb6c6f2e2b22c2ddcb93d125bf7dac56c136b"
+  name = "github.com/spf13/viper"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "b5bf975e5823809fb22c7644d008757f78a4259e"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:8e8fc2cb42cfa0a18fda0c9c4034092faa7aac773da5efdde8828eb4b96c001d"
@@ -1448,6 +1523,8 @@
     "github.com/go-logr/logr",
     "github.com/go-openapi/spec",
     "github.com/gobuffalo/packr/v2",
+    "github.com/google/uuid",
+    "github.com/mitchellh/go-homedir",
     "github.com/openshift/api/apps/v1",
     "github.com/openshift/api/build/v1",
     "github.com/openshift/api/image/docker10",
@@ -1464,10 +1541,14 @@
     "github.com/operator-framework/operator-sdk/pkg/test",
     "github.com/operator-framework/operator-sdk/pkg/test/e2eutil",
     "github.com/operator-framework/operator-sdk/version",
+    "github.com/sirupsen/logrus",
+    "github.com/spf13/cobra",
     "github.com/spf13/pflag",
+    "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
     "go.uber.org/zap",
     "go.uber.org/zap/zapcore",
+    "gopkg.in/yaml.v2",
     "k8s.io/api/core/v1",
     "k8s.io/api/rbac/v1",
     "k8s.io/apimachinery/pkg/api/errors",
@@ -1479,6 +1560,8 @@
     "k8s.io/apimachinery/pkg/util/intstr",
     "k8s.io/client-go/kubernetes/scheme",
     "k8s.io/client-go/plugin/pkg/client/auth",
+    "k8s.io/client-go/rest",
+    "k8s.io/client-go/tools/clientcmd",
     "k8s.io/code-generator/cmd/client-gen",
     "k8s.io/code-generator/cmd/conversion-gen",
     "k8s.io/code-generator/cmd/deepcopy-gen",
