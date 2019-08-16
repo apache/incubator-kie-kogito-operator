@@ -48,6 +48,8 @@ var (
 const (
 	// LabelKeyAppName is the default label added to all resources
 	LabelKeyAppName = "app"
+	// LabelKeyServiceName is the default label added to the service
+	LabelKeyServiceName = "service"
 )
 
 // addDefaultMeta adds the default annotations and labels
@@ -72,6 +74,24 @@ func addDefaultLabels(m *map[string]string, kogitoApp *v1alpha1.KogitoApp) {
 		(*m) = map[string]string{}
 	}
 	(*m)[LabelKeyAppName] = kogitoApp.Spec.Name
+}
+
+// addServiceLabels adds the service labels
+func addServiceLabels(objectMeta *metav1.ObjectMeta, kogitoApp *v1alpha1.KogitoApp) {
+	if objectMeta != nil {
+		if objectMeta.Labels == nil {
+			objectMeta.Labels = map[string]string{}
+		}
+
+		if kogitoApp.Spec.Service.Labels == nil {
+			objectMeta.Labels[LabelKeyServiceName] = kogitoApp.Spec.Name
+		} else {
+			for key, value := range kogitoApp.Spec.Service.Labels {
+				objectMeta.Labels[key] = value
+			}
+		}
+
+	}
 }
 
 // SetGroupVersionKind sets the group, version and kind for the resource

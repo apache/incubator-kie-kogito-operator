@@ -125,6 +125,15 @@ spec:
               description: The name of the runtime used, either quarkus or springboot,
                 defaults to quarkus
               type: string
+            service:
+              description: Service configuration
+              properties:
+                labels:
+                  additionalProperties:
+                    type: string
+                  description: Labels for the application service
+                  type: object
+              type: object
           required:
           - build
           type: object
