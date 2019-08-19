@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/inventory"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/log"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/spf13/cobra"
 )
 
@@ -36,12 +35,12 @@ func newAppExec(cmd *cobra.Command, args []string) error {
 		newAppName = args[0]
 	}
 
-	ns, err := inventory.NamespaceC(kubeCli).Fetch(newAppName)
+	ns, err := kubernetes.NamespaceC(kubeCli).Fetch(newAppName)
 	if err != nil {
 		return err
 	}
 	if ns == nil {
-		ns, err := inventory.NamespaceC(kubeCli).Create(newAppName)
+		ns, err := kubernetes.NamespaceC(kubeCli).Create(newAppName)
 		if err != nil {
 			return err
 		}

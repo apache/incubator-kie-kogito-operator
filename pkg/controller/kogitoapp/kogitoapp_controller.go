@@ -6,44 +6,121 @@ import (
 	"reflect"
 	"time"
 
-	inventory "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/inventory"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/builder"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
+	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
+	oimagev1 "github.com/openshift/api/image/v1"
 	oroutev1 "github.com/openshift/api/route/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logs.GetLogger("controller_kogitoapp")
+var log = logger.GetLogger("controller_kogitoapp")
+
+// Add creates a new KogitoApp Controller and adds it to the Manager. The Manager will set fields on the Controller
+// and Start it when the Manager is Started.
+func Add(mgr manager.Manager) error {
+	return add(mgr, newReconciler(mgr))
+}
+
+// newReconciler returns a new reconcile.Reconciler
+func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+	imageClient, err := imagev1.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		panic(fmt.Sprintf("Error getting image client: %v", err))
+	}
+	buildClient, err := buildv1.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		panic(fmt.Sprintf("Error getting build client: %v", err))
+	}
+
+	client := &kogitocli.Client{
+		ControlCli: mgr.GetClient(),
+		BuildCli:   buildClient,
+		ImageCli:   imageClient,
+	}
+
+	return &ReconcileKogitoApp{
+		client: client,
+		scheme: mgr.GetScheme(),
+		cache:  mgr.GetCache(),
+	}
+}
+
+// add adds a new Controller to mgr with r as the reconcile.Reconciler
+func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	// Create a new controller
+	c, err := controller.New("kogitoapp-controller", mgr, controller.Options{Reconciler: r})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to primary resource KogitoApp
+	err = c.Watch(&source.Kind{Type: &v1alpha1.KogitoApp{}}, &handler.EnqueueRequestForObject{})
+	if err != nil {
+		return err
+	}
+
+	watchOwnedObjects := []runtime.Object{
+		&oappsv1.DeploymentConfig{},
+		&corev1.Service{},
+		&routev1.Route{},
+		&obuildv1.BuildConfig{},
+		&oimagev1.ImageStream{},
+		&corev1.ServiceAccount{},
+		&rbacv1.RoleBinding{},
+	}
+	ownerHandler := &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &v1alpha1.KogitoApp{},
+	}
+	for _, watchObject := range watchOwnedObjects {
+		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 var _ reconcile.Reconciler = &ReconcileKogitoApp{}
 
 // ReconcileKogitoApp reconciles a KogitoApp object
 type ReconcileKogitoApp struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client      client.Client
-	scheme      *runtime.Scheme
-	cache       cachev1.Cache
-	imageClient *imagev1.ImageV1Interface
-	buildClient *buildv1.BuildV1Interface
+	client *kogitocli.Client
+	scheme *runtime.Scheme
+	cache  cachev1.Cache
 }
 
 // Reconcile reads that state of the cluster for a KogitoApp object and makes changes based on the state read
 // and what is in the KogitoApp.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
@@ -52,7 +129,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// Fetch the KogitoApp instance
 	instance := &v1alpha1.KogitoApp{}
-	if exists, err := inventory.FetchResourceWithKey(r.client, request.NamespacedName, instance); err != nil {
+	if exists, err := kubernetes.ResourceC(r.client).FetchWithKey(request.NamespacedName, instance); err != nil {
 		return reconcile.Result{}, err
 	} else if !exists {
 		return reconcile.Result{}, nil
@@ -62,15 +139,14 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	if len(instance.Spec.Name) == 0 {
 		instance.Spec.Name = instance.Name
 	}
-	if instance.Spec.Runtime == "" || (instance.Spec.Runtime != v1alpha1.QuarkusRuntimeType && instance.Spec.Runtime != v1alpha1.SpringbootRuntimeType) {
+	if instance.Spec.Runtime != v1alpha1.SpringbootRuntimeType {
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
 	// create resources in the cluster that not exists
-	kogitoInv, err := inventory.CreateResources(&inventory.BuilderContext{
-		Client:      r.client,
-		ImageClient: *r.imageClient,
-		KogitoApp:   instance,
+	kogitoInv, err := builder.BuildOrFetchObjects(&builder.Context{
+		Client:    r.client,
+		KogitoApp: instance,
 	})
 	if err != nil {
 		return reconcile.Result{}, err
@@ -81,6 +157,9 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	} else if !imageExists {
 		// let's wait for the build to finish
+		if status.SetProvisioning(instance) {
+			return r.UpdateObj(instance)
+		}
 		return reconcile.Result{RequeueAfter: time.Duration(30) * time.Second}, nil
 	}
 
@@ -157,8 +236,11 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *inventory.KogitoAppInventory, instance *v1alpha1.KogitoApp) (bool, error) {
-	buildServiceState, err := inventory.EnsureImageBuild(*r.buildClient, *r.imageClient, inv.BuildConfigService)
+func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *builder.KogitoAppInventory, instance *v1alpha1.KogitoApp) (bool, error) {
+	buildServiceState, err :=
+		openshift.BuildConfigC(r.client).EnsureImageBuild(
+			inv.BuildConfigService,
+			getBCLabelsAsUniqueSelectors(inv.BuildConfigService))
 	if err != nil {
 		return false, err
 	}
@@ -172,14 +254,17 @@ func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *inventory.KogitoA
 	log.Infof("No image found for the application %s. Trying to trigger a new build.", instance.Spec.Name)
 
 	// verify s2i build and image
-	if state, err := inventory.EnsureImageBuild(*r.buildClient, *r.imageClient, inv.BuildConfigS2I); err != nil {
+	if state, err :=
+		openshift.BuildConfigC(r.client).EnsureImageBuild(
+			inv.BuildConfigS2I,
+			getBCLabelsAsUniqueSelectors(inv.BuildConfigS2I)); err != nil {
 		return false, err
 	} else if state.BuildRunning {
 		// build is running, nothing to do
 		return false, nil
 	} else if !state.ImageExists && !state.BuildRunning {
 		log.Infof("There's no image nor build for %s running, triggering build", inv.BuildConfigS2I.Name)
-		_, err := inventory.TriggerBuild(*r.buildClient, inv.BuildConfigS2I, instance)
+		_, err := openshift.BuildConfigC(r.client).TriggerBuild(inv.BuildConfigS2I, instance.Name)
 		if err != nil {
 			return false, err
 		}
@@ -199,7 +284,7 @@ func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *inventory.KogitoA
 // updateBuildConfigs ...
 func (r *ReconcileKogitoApp) updateBuildConfigs(instance *v1alpha1.KogitoApp, bc *obuildv1.BuildConfig) (bool, error) {
 	bcList := &obuildv1.BuildConfigList{}
-	err := inventory.ListResourceWithNamespace(r.client, instance.Namespace, bcList)
+	err := kubernetes.ResourceC(r.client).ListWithNamespace(instance.Namespace, bcList)
 	if err != nil {
 		r.setFailedStatus(instance, v1alpha1.UnknownReason, err)
 		return false, err
@@ -226,10 +311,10 @@ func (r *ReconcileKogitoApp) updateBuildConfigs(instance *v1alpha1.KogitoApp, bc
 }
 
 // UpdateObj reconciles the given object
-func (r *ReconcileKogitoApp) UpdateObj(obj v1alpha1.OpenShiftObject) (reconcile.Result, error) {
+func (r *ReconcileKogitoApp) UpdateObj(obj meta.ResourceObject) (reconcile.Result, error) {
 	log := log.With("kind", obj.GetObjectKind().GroupVersionKind().Kind, "name", obj.GetName(), "namespace", obj.GetNamespace())
 	log.Info("Updating")
-	err := r.client.Update(context.TODO(), obj)
+	err := r.client.ControlCli.Update(context.TODO(), obj)
 	if err != nil {
 		log.Warn("Failed to update object. ", err)
 		return reconcile.Result{}, err
@@ -295,7 +380,7 @@ func (r *ReconcileKogitoApp) hasStatusChanges(instance, cached *v1alpha1.KogitoA
 func (r *ReconcileKogitoApp) updateDeploymentConfigs(instance *v1alpha1.KogitoApp, depConfig oappsv1.DeploymentConfig) (bool, error) {
 	log := log.With("kind", instance.Kind, "name", instance.Name, "namespace", instance.Namespace)
 	dcList := &oappsv1.DeploymentConfigList{}
-	err := inventory.ListResourceWithNamespace(r.client, instance.Namespace, dcList)
+	err := kubernetes.ResourceC(r.client).ListWithNamespace(instance.Namespace, dcList)
 	if err != nil {
 		r.setFailedStatus(instance, v1alpha1.UnknownReason, err)
 		return false, err
@@ -363,6 +448,15 @@ func (r *ReconcileKogitoApp) dcUpdateCheck(current, new oappsv1.DeploymentConfig
 	return dcUpdates
 }
 
+func getBCLabelsAsUniqueSelectors(bc *obuildv1.BuildConfig) string {
+	return fmt.Sprintf("%s=%s,%s=%s",
+		builder.LabelKeyAppName,
+		bc.Labels[builder.LabelKeyAppName],
+		builder.LabelKeyBuildType,
+		bc.Labels[builder.LabelKeyBuildType],
+	)
+}
+
 func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.KogitoApp) v1alpha1.Deployments {
 	var ready, starting, stopped []string
 	for _, dc := range dcs {
@@ -398,7 +492,8 @@ func (r *ReconcileKogitoApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.Kog
 
 	for i := 1; i < 60; i++ {
 		time.Sleep(time.Duration(100) * time.Millisecond)
-		if exists, err := inventory.FetchResourceWithKey(r.client, types.NamespacedName{Name: route.Name, Namespace: route.Namespace}, &route); exists {
+		if exists, err :=
+			kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: route.Name, Namespace: route.Namespace}, &route); exists {
 			break
 		} else if err != nil {
 			log.Error("Error getting Route. ", err)

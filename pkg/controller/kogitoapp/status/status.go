@@ -2,12 +2,12 @@ package status
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var log = logs.GetLogger("kogitoapp.controller")
+var log = logger.GetLogger("kogitoapp.controller")
 
 const maxBuffer = 30
 

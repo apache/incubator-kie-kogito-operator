@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/inventory"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +22,8 @@ var (
 	}
 
 	// used by unit tests is the kube client for communication with Kubernetes API
-	kubeCli = &inventory.Client{}
+	kubeCli = &client.Client{}
+	log     = logger.GetLogger("kogito_cli")
 )
 
 func init() {
@@ -60,6 +63,11 @@ func registerCommands() {
 	for _, f := range cmdInitFncs {
 		f()
 	}
+}
+
+// changes the default log
+func setDefaultLog(name string, output io.Writer) {
+	log = logger.GetLoggerWithOut(name, output)
 }
 
 // Main starts the kogito cli

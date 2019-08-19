@@ -8,7 +8,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/log"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
