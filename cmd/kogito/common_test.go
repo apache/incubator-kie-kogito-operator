@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func runKogito() error {
@@ -15,7 +16,8 @@ func runKogito() error {
 }
 
 func setupFakeKubeCli(initObjs ...runtime.Object) {
-	kubeCli = &client.Client{ControlCli: fake.NewFakeClient(initObjs...)}
+	s := meta.GetRegisteredSchema()
+	kubeCli = &client.Client{ControlCli: fake.NewFakeClientWithScheme(s, initObjs...)}
 }
 
 func kogitoCliTestSetup(arg string) (*bytes.Buffer, *bytes.Buffer) {

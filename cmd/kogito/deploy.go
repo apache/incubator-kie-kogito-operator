@@ -4,7 +4,15 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+
 	"github.com/spf13/cobra"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type deployFlags struct {
@@ -20,17 +28,19 @@ type deployFlags struct {
 	buildenv         []string
 	reference        string
 	contextdir       string
+	source           string
 }
 
 const (
-	defaultDeployReplicas = 1
-	defaultDeployRuntime  = "quarkus"
+	defaultDeployReplicas             = 1
+	defaultDeployRuntime              = "quarkus"
+	kogitoOperatorInstallationInstruc = "https://github.com/kiegroup/kogito-cloud-operator/blob/master/README.md#installation"
 )
 
 var (
 	deployCmd                 *cobra.Command
 	deployCmdFlags            = deployFlags{}
-	deployRuntimeValidEntries = [...]string{"quarkus", "springboot"}
+	deployRuntimeValidEntries = []string{"quarkus", "springboot"}
 )
 
 var _ = RegisterCommandVar(func() {
@@ -55,6 +65,27 @@ var _ = RegisterCommandVar(func() {
 			if _, err := url.ParseRequestURI(args[1]); err != nil {
 				return fmt.Errorf("source is not a valid URL, received %s", args[1])
 			}
+			if err := util.ParseStringsForKeyPair(deployCmdFlags.buildenv); err != nil {
+				return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", deployCmdFlags.buildenv)
+			}
+			if err := util.ParseStringsForKeyPair(deployCmdFlags.env); err != nil {
+				return fmt.Errorf("environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", deployCmdFlags.env)
+			}
+			if err := util.ParseStringsForKeyPair(deployCmdFlags.limits); err != nil {
+				return fmt.Errorf("limits are in the wrong format. Valid are key pairs like 'cpu=1', received %s", deployCmdFlags.limits)
+			}
+			if err := util.ParseStringsForKeyPair(deployCmdFlags.requests); err != nil {
+				return fmt.Errorf("requests are in the wrong format. Valid are key pairs like 'cpu=1', received %s", deployCmdFlags.requests)
+			}
+			if err := util.ParseStringsForKeyPair(deployCmdFlags.serviceLabels); err != nil {
+				return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", deployCmdFlags.serviceLabels)
+			}
+			if deployCmdFlags.replicas <= 0 {
+				return fmt.Errorf("valid replicas are non-zero, positive numbers, received %v", deployCmdFlags.replicas)
+			}
+			if !util.Contains(deployCmdFlags.runtime, deployRuntimeValidEntries) {
+				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, deployCmdFlags.runtime)
+			}
 			return nil
 		},
 	}
@@ -76,6 +107,52 @@ var _ = RegisterCommandInit(func() {
 })
 
 func deployExec(cmd *cobra.Command, args []string) error {
+	log.Debugf("About to deploy a new kogito service application %s", deployCmdFlags)
+	deployCmdFlags.name = args[0]
+	deployCmdFlags.source = args[1]
+	if len(deployCmdFlags.namespace) == 0 {
+		if len(config.Namespace) == 0 {
+			return fmt.Errorf("Couldn't find any application in the current context. Use 'kogito app NAME' to set the Kogito Application where the service will be deployed or pass '--app NAME' flag to this one")
+		}
+		deployCmdFlags.namespace = config.Namespace
+	}
+
+	if ns, err := kubernetes.NamespaceC(kubeCli).Fetch(deployCmdFlags.namespace); err != nil {
+		return fmt.Errorf("Error while trying to fetch for the application context (namespace): %s", err)
+	} else if ns == nil {
+		return fmt.Errorf("Namespace %s not found. Try setting your application context using 'kogito app NAME'", deployCmdFlags.namespace)
+	}
+
+	log.Debugf("Using namespace %s", deployCmdFlags.namespace)
+
+	// check for the KogitoApp CRD
+	kogitocrd := &apiextensionsv1beta1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "kogitoapps.app.kiegroup.org",
+		},
+	}
+	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitocrd); err != nil {
+		return fmt.Errorf("Error while trying to look for the Kogito Operator: %s", err)
+	} else if !exists {
+		return fmt.Errorf("Couldn't find the Kogito Operator in your cluster, please follow the instructions in %s to install it", kogitoOperatorInstallationInstruc)
+	}
+
+	// check if a kogito service with this name already exists in this namespace
+	kogitoapp := &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      deployCmdFlags.name,
+			Namespace: deployCmdFlags.namespace,
+		},
+	}
+	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoapp); err != nil {
+		return fmt.Errorf("Error while trying to look for the KogitoApp: %s", err)
+	} else if exists {
+		return fmt.Errorf("Looks like a Kogito App with the name '%s' already exists in this context/namespace. Please try another name", deployCmdFlags.name)
+	}
+
+	// build the application
+
+	// create it!
 
 	return nil
 }

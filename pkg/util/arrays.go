@@ -7,6 +7,19 @@ import (
 
 const keyPairSeparator = "="
 
+// Contains checks if the s string are within the array
+func Contains(s string, array []string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, item := range array {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
 // FromStringsKeyPairToMap converts a string array in the key/pair format (key=value) to a map. Unconvertable strings will be skipped.
 func FromStringsKeyPairToMap(array []string) map[string]string {
 	if array == nil || len(array) == 0 {
@@ -16,6 +29,10 @@ func FromStringsKeyPairToMap(array []string) map[string]string {
 	for _, item := range array {
 		spplited := strings.SplitN(item, keyPairSeparator, 2)
 		if len(spplited) == 0 {
+			break
+		}
+
+		if len(spplited[0]) == 0 {
 			break
 		}
 
@@ -37,6 +54,9 @@ func ParseStringsForKeyPair(array []string) error {
 	for _, item := range array {
 		if !strings.Contains(item, keyPairSeparator) {
 			return fmt.Errorf("Item %s does not contain the key/pair separator '%s'", item, keyPairSeparator)
+		}
+		if strings.HasPrefix(item, keyPairSeparator) {
+			return fmt.Errorf("Item %s starts with key/pair separator '%s'", item, keyPairSeparator)
 		}
 	}
 	return nil
