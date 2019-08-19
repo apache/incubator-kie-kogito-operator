@@ -3,14 +3,7 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
 )
-
-// OpenShiftObject ...
-type OpenShiftObject interface {
-	metav1.Object
-	runtime.Object
-}
 
 // KogitoAppSpec defines the desired state of KogitoApp
 // +k8s:openapi-gen=true

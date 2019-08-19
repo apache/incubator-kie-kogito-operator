@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/inventory"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/log"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +39,7 @@ func appExec(cmd *cobra.Command, args []string) error {
 		appName = args[0]
 	}
 
-	if ns, err := inventory.NamespaceC(kubeCli).Fetch(appName); err != nil {
+	if ns, err := kubernetes.NamespaceC(kubeCli).Fetch(appName); err != nil {
 		return fmt.Errorf("Error while trying to look for the namespace. Are you logged in? %s", err)
 	} else if ns != nil {
 		config.Namespace = appName

@@ -12,7 +12,7 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/logs"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -28,7 +28,7 @@ import (
 var (
 	metricsHost       = "0.0.0.0"
 	metricsPort int32 = 8383
-	log               = logs.GetLogger("cmd")
+	log               = logger.GetLogger("cmd")
 )
 
 func printVersion() {

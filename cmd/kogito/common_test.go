@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/log"
-	"k8s.io/apimachinery/pkg/runtime"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/inventory"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func runKogito() error {
@@ -16,7 +15,7 @@ func runKogito() error {
 }
 
 func setupFakeKubeCli(initObjs ...runtime.Object) {
-	kubeCli = &inventory.Client{Cli: fake.NewFakeClient(initObjs...)}
+	kubeCli = &client.Client{ControlCli: fake.NewFakeClient(initObjs...)}
 }
 
 func kogitoCliTestSetup(arg string) (*bytes.Buffer, *bytes.Buffer) {
@@ -26,8 +25,7 @@ func kogitoCliTestSetup(arg string) (*bytes.Buffer, *bytes.Buffer) {
 	rootCmd.SetArgs(strings.Split(arg, " "))
 	rootCmd.SetOut(testOut)
 	rootCmd.SetErr(testErr)
-	// every output command shares the same logger
-	log.SetOutput(testOut)
+	setDefaultLog("kogito_cli_test", testOut)
 
 	return testOut, testErr
 }

@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/inventory"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache/informertest"
 
@@ -20,7 +21,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/definitions"
+	kogitoclient "github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/builder"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -85,7 +87,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 	dockerImageRaw, err := json.Marshal(&dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
-				definitions.ImageLabelForExposeServices: "8080:http",
+				openshift.ImageLabelForExposeServices: "8080:http",
 			},
 		},
 	})
@@ -101,7 +103,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 		},
 	}
 	objs := []runtime.Object{kogitoapp}
-	buildToTrigger, _ := definitions.NewBuildConfigS2I(kogitoapp)
+	buildToTrigger, _ := builder.NewBuildConfigS2I(kogitoapp)
 	// add to schemas to avoid: "failed to add object to fake client"
 	s := scheme.Scheme
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion,
@@ -129,11 +131,13 @@ func TestKogitoAppWithResource(t *testing.T) {
 	cache := &cachev1.FakeInformers{}
 	// call reconcile object and mock image and build clients
 	r := &ReconcileKogitoApp{
-		buildClient: &buildcli,
-		client:      cli,
-		imageClient: &imgcli,
-		scheme:      s,
-		cache:       cache,
+		client: &kogitoclient.Client{
+			BuildCli:   buildcli,
+			ControlCli: cli,
+			ImageCli:   imgcli,
+		},
+		scheme: s,
+		cache:  cache,
 	}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
@@ -150,7 +154,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 	}
 	// Let's verify if the objects have been built
 	dc := &appsv1.DeploymentConfig{}
-	_, err = inventory.FetchResourceWithKey(r.client, types.NamespacedName{Name: kogitoapp.Spec.Name, Namespace: kogitoapp.Namespace}, dc)
+	_, err = kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: kogitoapp.Spec.Name, Namespace: kogitoapp.Namespace}, dc)
 	assert.Nil(t, err)
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Template.Spec.Containers, 1)
