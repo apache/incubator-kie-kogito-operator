@@ -1,6 +1,8 @@
 package validation
 
 import (
+	"fmt"
+
 	"github.com/ghodss/yaml"
 	"github.com/go-openapi/spec"
 	"github.com/go-openapi/strfmt"
@@ -21,6 +23,20 @@ func New(crd []byte) (Schema, error) {
 	return &openAPIV3Schema{&object.Spec.Validation.OpenAPIV3Schema}, nil
 }
 
+func NewVersioned(crd []byte, version string) (Schema, error) {
+	object := &customResourceDefinition{}
+	err := yaml.Unmarshal(crd, object)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range object.Spec.Versions {
+		if v.Name == version {
+			return &openAPIV3Schema{&v.Schema.OpenAPIV3Schema}, nil
+		}
+	}
+	return &openAPIV3Schema{}, fmt.Errorf("no version %s detected in crd", version)
+}
+
 type openAPIV3Schema struct {
 	schema *spec.Schema
 }
@@ -38,7 +54,13 @@ type customResourceDefinition struct {
 }
 
 type customResourceDefinitionSpec struct {
+	Versions   []customResourceDefinitionVersion  `json:"versions,omitempty"`
 	Validation customResourceDefinitionValidation `json:"validation,omitempty"`
+}
+
+type customResourceDefinitionVersion struct {
+	Name   string                             `json:"Name,omitempty"`
+	Schema customResourceDefinitionValidation `json:"schema,omitempty"`
 }
 
 type customResourceDefinitionValidation struct {
