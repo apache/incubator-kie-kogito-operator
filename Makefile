@@ -51,6 +51,10 @@ build:
 build-cli:
 	./hack/go-build-cli.sh
 
+.PHONY: install-cli
+install-cli:
+	./hack/go-install-cli.sh
+
 .PHONY: clean
 clean:
 	rm -rf build/_output

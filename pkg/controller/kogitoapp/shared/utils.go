@@ -91,11 +91,11 @@ func FromResourcesToResourcesRequirements(resources v1alpha1.Resources) (resReq 
 	}
 
 	for _, limit := range resources.Limits {
-		resReq.Limits[corev1.ResourceName(*limit.Resource)] = resource.MustParse(string(*limit.Value))
+		resReq.Limits[corev1.ResourceName(limit.Resource)] = resource.MustParse(string(limit.Value))
 	}
 
 	for _, request := range resources.Requests {
-		resReq.Requests[corev1.ResourceName(*request.Resource)] = resource.MustParse(string(*request.Value))
+		resReq.Requests[corev1.ResourceName(request.Resource)] = resource.MustParse(string(request.Value))
 	}
 
 	return resReq

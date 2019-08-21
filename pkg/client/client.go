@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 
 	corev1 "k8s.io/api/core/v1"
@@ -17,7 +19,7 @@ import (
 
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-	"k8s.io/client-go/kubernetes/scheme"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
@@ -97,13 +99,12 @@ func (r *restScope) Name() apimeta.RESTScopeName {
 func newControllerCliOptions() controllercli.Options {
 	options := controllercli.Options{}
 
-	s := scheme.Scheme
-	s.AddKnownTypes(corev1.SchemeGroupVersion, &corev1.Namespace{})
-
 	mapper := apimeta.NewDefaultRESTMapper([]schema.GroupVersion{})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindNamespace.Name), &restScope{name: apimeta.RESTScopeNameRoot})
+	mapper.Add(apiextensionsv1beta1.SchemeGroupVersion.WithKind(meta.KindCRD.Name), &restScope{name: apimeta.RESTScopeNameRoot})
+	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoApp.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 
-	options.Scheme = s
+	options.Scheme = meta.GetRegisteredSchema()
 	options.Mapper = mapper
 	return options
 }

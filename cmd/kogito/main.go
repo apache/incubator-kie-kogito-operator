@@ -12,18 +12,20 @@ import (
 
 var (
 	// holder for all configuration changes accross command executions
-	config      = &configuration{}
-	cfgFile     string
-	varInitFncs []func()
-	cmdInitFncs []func()
-	// saveConfiguration is the default command post hook that persists all configuration set during the function execution
-	saveConfiguration = func(cmd *cobra.Command, args []string) {
+	config        = &configuration{}
+	log           = logger.GetLogger("kogito_cli")
+	cfgFile       string
+	varInitFncs   []func()
+	cmdInitFncs   []func()
+	commandOutput io.Writer
+	posRunF       = func(cmd *cobra.Command, args []string) {
 		config.save()
 	}
-
+	preRunF = func(cmd *cobra.Command, args []string) {
+		setDefaultLog("kogito_cli", commandOutput)
+	}
 	// used by unit tests is the kube client for communication with Kubernetes API
 	kubeCli = &client.Client{}
-	log     = logger.GetLogger("kogito_cli")
 )
 
 func init() {
@@ -67,7 +69,7 @@ func registerCommands() {
 
 // changes the default log
 func setDefaultLog(name string, output io.Writer) {
-	log = logger.GetLoggerWithOut(name, output)
+	log = logger.GetLoggerWithOptions(name, &logger.Opts{Output: output, Verbose: verbose, Console: true})
 }
 
 // Main starts the kogito cli

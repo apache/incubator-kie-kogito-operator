@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/mitchellh/go-homedir"
@@ -24,6 +26,8 @@ const (
 type configuration struct {
 	// Namespace is the projet/namespace context where the application will be deployed
 	Namespace string
+	// LastKogitoAppCreated is the last kogitoapp created by the CLI
+	LastKogitoAppCreated *v1alpha1.KogitoApp
 }
 
 func (c *configuration) initConfig(configFile string) {
@@ -61,7 +65,7 @@ func (c *configuration) initConfig(configFile string) {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		viper.Unmarshal(&config)
-		log.Info("Using config file:", viper.ConfigFileUsed())
+		log.Debug("Using config file:", viper.ConfigFileUsed())
 	}
 }
 
