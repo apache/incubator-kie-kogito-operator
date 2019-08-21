@@ -9,6 +9,7 @@ rules:
       - apps.openshift.io
       - image.openshift.io
       - build.openshift.io
+      - rbac.authorization.k8s.io
       - route.openshift.io
     resources:
       - "*"
