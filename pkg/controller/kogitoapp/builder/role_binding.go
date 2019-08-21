@@ -11,20 +11,40 @@ import (
 )
 
 const (
-	defaultRoleName = "view"
+	defaultRoleName = "service-view"
 	defaultRoleType = "Role"
 )
 
+// NewRole will create a namespaced custom role for the KogitoApp
+func NewRole(kogitoApp *v1alpha1.KogitoApp) (role rbacv1.Role) {
+	role = rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: kogitoApp.Namespace,
+			Name:      defaultRoleName,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"services"},
+				Verbs:     []string{"list", "get", "watch"},
+			},
+		},
+	}
+	meta.SetGroupVersionKind(&role.TypeMeta, meta.KindRoleBinding)
+	addDefaultMeta(&role.ObjectMeta, kogitoApp)
+	return role
+}
+
 // NewRoleBinding creates the RoleBinding definition for the KogitoApp that will be bound to the Kogito ServiceAccount
-func NewRoleBinding(kogitoApp *v1alpha1.KogitoApp, serviceAccount *corev1.ServiceAccount) (roleBinding rbacv1.RoleBinding) {
+func NewRoleBinding(kogitoApp *v1alpha1.KogitoApp, serviceAccount *corev1.ServiceAccount, role *rbacv1.Role) (roleBinding rbacv1.RoleBinding) {
 	roleBinding = rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: serviceAccount.Namespace,
+			Namespace: kogitoApp.Namespace,
 			Name:      fmt.Sprintf("%s-%s", ServiceAccountName, defaultRoleName),
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind: defaultRoleType,
-			Name: defaultRoleName,
+			Name: role.Name,
 		},
 		Subjects: []rbacv1.Subject{
 			{

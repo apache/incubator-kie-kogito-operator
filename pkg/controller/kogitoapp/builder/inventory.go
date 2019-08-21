@@ -16,6 +16,7 @@ type KogitoAppInventory struct {
 	ResourceInventoryStatus
 	ServiceAccount     *corev1.ServiceAccount
 	RoleBinding        *rbacv1.RoleBinding
+	Role               *rbacv1.Role
 	BuildConfigS2I     *buildv1.BuildConfig
 	BuildConfigService *buildv1.BuildConfig
 	DeploymentConfig   *appsv1.DeploymentConfig
@@ -32,6 +33,7 @@ type ResourceInventoryStatusKind struct {
 type ResourceInventoryStatus struct {
 	ServiceAccountStatus     ResourceInventoryStatusKind
 	RoleBindingStatus        ResourceInventoryStatusKind
+	RoleStatus               ResourceInventoryStatusKind
 	BuildConfigS2IStatus     ResourceInventoryStatusKind
 	BuildConfigServiceStatus ResourceInventoryStatusKind
 	DeploymentConfigStatus   ResourceInventoryStatusKind

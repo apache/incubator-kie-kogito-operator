@@ -7,6 +7,7 @@ import (
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +33,9 @@ var (
 	// KindDeploymentConfig for a DeploymentConfig
 	KindDeploymentConfig = DefinitionKind{"DeploymentConfig", true, appsv1.GroupVersion}
 	// KindRoleBinding for a RoleBinding
-	KindRoleBinding = DefinitionKind{"RoleBinding", false, corev1.SchemeGroupVersion}
+	KindRoleBinding = DefinitionKind{"RoleBinding", false, rbacv1.SchemeGroupVersion}
+	// KindRole for a Role
+	KindRole = DefinitionKind{"Role", false, rbacv1.SchemeGroupVersion}
 	// KindServiceAccount for a ServiceAccount
 	KindServiceAccount = DefinitionKind{"ServiceAccount", false, corev1.SchemeGroupVersion}
 	// KindRoute for a Route

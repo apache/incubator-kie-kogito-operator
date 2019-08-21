@@ -36,6 +36,7 @@ func BuildOrFetchObjects(context *Context) (inv *KogitoAppInventory, err error) 
 		Context:   context,
 	}
 	chain.AndBuild(serviceAccountBuilder).
+		AndBuild(roleBuilder).
 		AndBuild(roleBindingBuilder).
 		AndBuild(buildConfigS2IBuilder).
 		AndBuild(buildConfigServiceBuilder).
@@ -54,8 +55,16 @@ func serviceAccountBuilder(chain *builderChain) *builderChain {
 	return chain
 }
 
+func roleBuilder(chain *builderChain) *builderChain {
+	role := NewRole(chain.Context.KogitoApp)
+	chain.Inventory.RoleStatus.IsNew, chain.Error =
+		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&role)
+	chain.Inventory.Role = &role
+	return chain
+}
+
 func roleBindingBuilder(chain *builderChain) *builderChain {
-	rb := NewRoleBinding(chain.Context.KogitoApp, chain.Inventory.ServiceAccount)
+	rb := NewRoleBinding(chain.Context.KogitoApp, chain.Inventory.ServiceAccount, chain.Inventory.Role)
 	chain.Inventory.RoleBindingStatus.IsNew, chain.Error =
 		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&rb)
 	chain.Inventory.RoleBinding = &rb
