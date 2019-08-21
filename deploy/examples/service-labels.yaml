@@ -1,0 +1,13 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: example-quarkus
+spec:
+  build:
+    gitSource:
+      uri: https://github.com/kiegroup/kogito-examples
+      contextDir: jbpm-quarkus-example
+  service:
+    labels:
+      operator: abc-operator
+      app: abc-test
