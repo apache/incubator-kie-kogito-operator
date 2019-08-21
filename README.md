@@ -6,7 +6,7 @@ Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kieg
 
 ## Requirements
 
-- go v1.12+
+- go v1.12+ (**Note:** The v1.12.7 go tools installed via [dnf](https://developer.fedoraproject.org/tech/languages/go/go-installation.html) on Fedora don't work with operator-sdk v0.9.0. Install with the [archive](https://golang.org/doc/install#install) instead.)
 - [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.9.0
 - ocp 4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
 - [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
