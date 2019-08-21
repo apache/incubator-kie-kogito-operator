@@ -4,13 +4,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd *cobra.Command
+var (
+	rootCmd *cobra.Command
+	verbose bool
+)
 
 var _ = RegisterCommandVar(func() {
 	rootCmd = &cobra.Command{
-		Use:   "kogito",
-		Short: "Kogito CLI",
-		Long:  `The Kogito CLI application to deploy your Kogito Services into an OpenShift cluster`,
+		Use:    "kogito",
+		Short:  "Kogito CLI",
+		Long:   `Kogito CLI deploys your Kogito Services into an OpenShift cluster`,
+		PreRun: preRunF,
 		// Uncomment the following line if your bare application
 		// has an action associated with it:
 		//	Run: func(cmd *cobra.Command, args []string) { },
@@ -23,8 +27,5 @@ var _ = RegisterCommandInit(func() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kogito.json)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 })

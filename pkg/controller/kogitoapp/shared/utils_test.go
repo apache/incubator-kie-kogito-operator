@@ -105,31 +105,31 @@ func TestFromResourcesToResourcesRequirements(t *testing.T) {
 	a := v1alpha1.Resources{
 		Limits: []v1alpha1.ResourceMap{
 			{
-				Resource: &cpuResource,
-				Value:    &cpuValue,
+				Resource: cpuResource,
+				Value:    cpuValue,
 			},
 			{
-				Resource: &memoryResource,
-				Value:    &memValue,
+				Resource: memoryResource,
+				Value:    memValue,
 			},
 		},
 		Requests: []v1alpha1.ResourceMap{
 			{
-				Resource: &cpuResource,
-				Value:    &cpuValue,
+				Resource: cpuResource,
+				Value:    cpuValue,
 			},
 			{
-				Resource: &memoryResource,
-				Value:    &memValue,
+				Resource: memoryResource,
+				Value:    memValue,
 			},
 		},
 	}
 	b := FromResourcesToResourcesRequirements(a)
 
-	assert.True(t, *b.Limits.Cpu() == resource.MustParse(*a.Limits[0].Value))
-	assert.True(t, *b.Requests.Cpu() == resource.MustParse(*a.Requests[0].Value))
-	assert.True(t, *b.Limits.Memory() == resource.MustParse(*a.Limits[1].Value))
-	assert.True(t, *b.Requests.Memory() == resource.MustParse(*a.Requests[1].Value))
+	assert.True(t, *b.Limits.Cpu() == resource.MustParse(a.Limits[0].Value))
+	assert.True(t, *b.Requests.Cpu() == resource.MustParse(a.Requests[0].Value))
+	assert.True(t, *b.Limits.Memory() == resource.MustParse(a.Limits[1].Value))
+	assert.True(t, *b.Requests.Memory() == resource.MustParse(a.Requests[1].Value))
 }
 
 func TestFromEmptyResourcesToResourcesRequirements(t *testing.T) {
@@ -142,8 +142,8 @@ func TestFromResourcesToResourcesRequirementsOnlyLimit(t *testing.T) {
 	a := FromResourcesToResourcesRequirements(v1alpha1.Resources{
 		Limits: []v1alpha1.ResourceMap{
 			{
-				Resource: &cpuResource,
-				Value:    &value,
+				Resource: cpuResource,
+				Value:    value,
 			},
 		},
 	})

@@ -5,6 +5,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// KogitoAppCRDName is the name of the Kogito App CRD in the cluster
+const KogitoAppCRDName = "kogitoapps.app.kiegroup.org"
+
 // KogitoAppSpec defines the desired state of KogitoApp
 // +k8s:openapi-gen=true
 type KogitoAppSpec struct {
@@ -42,9 +45,9 @@ const (
 // +k8s:openapi-gen=true
 type ResourceMap struct {
 	// Resource type like cpu and memory
-	Resource *ResourceKind `json:"resource"`
+	Resource ResourceKind `json:"resource"`
 	// Value of this resource in Kubernetes format
-	Value *string `json:"value"`
+	Value string `json:"value"`
 }
 
 // Env Data to define environment variables in key/value pair fashion

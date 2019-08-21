@@ -88,7 +88,13 @@ This function will create a new `RoleBinding` that depends on the `ServiceAccoun
 make
 ```
 
-## Upload to a container registry
+## Installation
+
+Kogito Operator is not available in the OperatorHub [yet](https://issues.jboss.org/browse/KOGITO-67), hence have to be installed manually on [OpenShift 4.x](#deploy-to-openshift-4.x-using-olm) or [OpenShift 3.11](#deploy-to-openshift-311-manually).
+
+You can also [run the operator locally](#running-locally) if you have the [requirements](#requirements) configured in your local machine.
+
+### Upload to a container registry
 
 e.g.
 
@@ -96,7 +102,7 @@ e.g.
 docker push quay.io/kiegroup/kogito-cloud-operator:<version>
 ```
 
-## Deploy to OpenShift 4 using OLM
+### Deploy to OpenShift 4.x using OLM
 
 To install this operator on OpenShift 4 for end-to-end testing, make sure you have access to a quay.io account to create an application repository. Follow the [authentication](https://github.com/operator-framework/operator-courier/#authentication) instructions for Operator Courier to obtain an account token. This token is in the form of "basic XXXXXXXXX" and both words are required for the command.
 
@@ -120,14 +126,13 @@ Remember to replace _registryNamespace_ with your quay namespace. The name, disp
 
 It will take a few minutes for the operator to become visible under the _OperatorHub_ section of the OpenShift console _Catalog_. The Operator can be easily found by filtering the provider type to _Custom_.
 
-
 It's possible to verify the operator status by running:
 
 ```bash
 oc describe operatorsource.operators.coreos.com/kiecloud-operators -n openshift-marketplace
 ```
 
-## Deploy to OpenShift 3.11 manually
+### Deploy to OpenShift 3.11 manually
 
 ```bash
 ## kogito imagestreams should already be installed/available ... e.g.
@@ -151,7 +156,7 @@ kogitoapp.app.kiegroup.org/example-quarkus created
 oc delete kogitoapp example-quarkus
 ```
 
-## Running Locally 
+### Running Locally
 
 Change log level at runtime with the `DEBUG` environment variable. e.g. -
 
@@ -167,6 +172,60 @@ It's always worth noting that you should generate, vet, format, lint, and test y
 
 ```bash
 make test
+```
+
+## CLI
+
+A CLI tool is available to make it easy to deploy new Kogito Services from source instead of relying on CRs yaml files.
+
+### CLI Requirements
+
+1. [`oc` client](https://docs.okd.io/latest/cli_reference/get_started_cli.html) installed
+2. An authenticated OpenShift user with permissions to create resources in a given namespace
+3. [Go installed](https://golang.org/doc/install) and available in your `PATH`
+4. Kogito Operator [installed](#installation) in the cluster
+
+### Build CLI from source
+
+Build the CLI by running:
+
+```bash
+$ git clone https://github.com/kiegroup/kogito-cloud-operator
+$ cd kogito-cloud-operator
+$ make install-cli
+```
+
+The `kogito` CLI should be available in your path:
+
+```bash
+$ kogito
+Kogito CLI deploys your Kogito Services into an OpenShift cluster
+
+Usage:
+  kogito [command]
+
+Available Commands:
+  app         Sets the Kogito application where your Kogito Service will be deployed
+  deploy      Deploys a new Kogito Service into the application context
+  help        Help about any command
+  new-app     Creates a new Kogito Application for your Kogito Services
+
+Flags:
+      --config string   config file (default is $HOME/.kogito.json)
+  -h, --help            help for kogito
+  -v, --verbose         verbose output
+
+Use "kogito [command] --help" for more information about a command.
+```
+
+After [installing](#installation) the Kogito Operator, it's possible to deploy a new Kogito Service by using the CLI:
+
+```bash
+# creates a new namespace/kogito app in your cluster
+$ kogito new-app kogito-cli
+
+# deploys a new kogito service from source
+$ kogito deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example
 ```
 
 ## Contributing

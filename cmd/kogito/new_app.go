@@ -13,12 +13,13 @@ var newAppName string
 var _ = RegisterCommandVar(func() {
 	newAppCmd = &cobra.Command{
 		Use:   "new-app NAME",
-		Short: "Creates a new namespace for your Kogito Services",
+		Short: "Creates a new Kogito Application for your Kogito Services",
 		Long:  `new-app will create a namespace with the provided name where your Kogito Services will be deployed.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return newAppExec(cmd, args)
 		},
-		PostRun: saveConfiguration,
+		PreRun:  preRunF,
+		PostRun: posRunF,
 	}
 })
 

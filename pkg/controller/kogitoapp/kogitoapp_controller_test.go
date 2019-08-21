@@ -53,8 +53,8 @@ var (
 			Resources: v1alpha1.Resources{
 				Limits: []v1alpha1.ResourceMap{
 					{
-						Resource: &cpuResource,
-						Value:    &cpuValue,
+						Resource: cpuResource,
+						Value:    cpuValue,
 					},
 				},
 			},
@@ -127,7 +127,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 		t.Fatalf("Failed to list kogitoapp (%v)", err)
 	}
 	assert.True(t, len(kogitoAppList.Items) > 0)
-	assert.True(t, *kogitoAppList.Items[0].Spec.Resources.Limits[0].Resource == cpuResource)
+	assert.True(t, kogitoAppList.Items[0].Spec.Resources.Limits[0].Resource == cpuResource)
 	cache := &cachev1.FakeInformers{}
 	// call reconcile object and mock image and build clients
 	r := &ReconcileKogitoApp{

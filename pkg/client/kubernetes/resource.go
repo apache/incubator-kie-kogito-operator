@@ -16,9 +16,10 @@ import (
 
 // ResourceInterface has functions that interacts with any resource object in the Kubernetes cluster
 type ResourceInterface interface {
-	CreateIfNotExists(kubeObject meta.ResourceObject) (bool, error)
-	FetchWithKey(key types.NamespacedName, kubeObject meta.ResourceObject) (bool, error)
-	Fetch(kubeObject meta.ResourceObject) (bool, error)
+	Create(resource meta.ResourceObject) error
+	CreateIfNotExists(resource meta.ResourceObject) (bool, error)
+	FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (bool, error)
+	Fetch(resource meta.ResourceObject) (bool, error)
 	ListWithNamespace(namespace string, list runtime.Object) error
 }
 
@@ -58,16 +59,24 @@ func (r *resource) FetchWithKey(key types.NamespacedName, resource meta.Resource
 	return true, nil
 }
 
+// Create creates a new Kubernetes object in the cluster.
+// Note that no checks will be performed in the cluster. If you're not sure, use CreateIfNotExists.
+func (r *resource) Create(resource meta.ResourceObject) error {
+	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
+	log.Debug("Creating")
+	if err := r.client.ControlCli.Create(context.TODO(), resource); err != nil {
+		log.Warn("Failed to create object. ", err)
+		return err
+	}
+	return nil
+}
+
 // CreateIfNotExists will fetch for the object resource in the Kubernetes cluster, if not exists, will create it.
 func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error) {
 	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 
 	if exists, err := r.Fetch(resource); err == nil && !exists {
-		// Define a new Object
-		log.Info("Creating")
-		err = r.client.ControlCli.Create(context.TODO(), resource)
-		if err != nil {
-			log.Warn("Failed to create object. ", err)
+		if err := r.Create(resource); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -75,7 +84,6 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 		log.Warn("Failed to fecth object. ", err)
 		return false, err
 	}
-
 	log.Debug("Skip creating - object already exists")
 	return false, nil
 }
