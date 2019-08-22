@@ -85,60 +85,44 @@ This function will create a new `RoleBinding` that depends on the `ServiceAccoun
 ## Build
 
 ```bash
-make
+$ make
 ```
 
 ## Installation
 
-Kogito Operator is not available in the OperatorHub [yet](https://issues.jboss.org/browse/KOGITO-67), hence have to be installed manually on [OpenShift 4.x](#deploy-to-openshift-4.x-using-olm) or [OpenShift 3.11](#deploy-to-openshift-311-manually).
+Kogito Operator is not available in the OperatorHub [yet](https://issues.jboss.org/browse/KOGITO-67), hence have to be installed manually on [OpenShift 4.x](#deploy-to-openshift-4.x) or [OpenShift 3.11](#deploy-to-openshift-311-manually).
 
 You can also [run the operator locally](#running-locally) if you have the [requirements](#requirements) configured in your local machine.
 
-### Upload to a container registry
+### Deploy to OpenShift 4.x
 
-e.g.
+First make sure that the Kogito image stream is created in the cluster:
 
 ```bash
-docker push quay.io/kiegroup/kogito-cloud-operator:<version>
+$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
 ```
 
-### Deploy to OpenShift 4.x using OLM
-
-To install this operator on OpenShift 4 for end-to-end testing, make sure you have access to a quay.io account to create an application repository. Follow the [authentication](https://github.com/operator-framework/operator-courier/#authentication) instructions for Operator Courier to obtain an account token. This token is in the form of "basic XXXXXXXXX" and both words are required for the command.
-
-Push the operator bundle to your quay application repository as follows:
+Then create an entry in the OperatorHub catalog with:
 
 ```bash
-operator-courier push deploy/catalog_resources/courier/0.1.0 kiegroup kogitocloud-operator 0.1.0 "basic XXXXXXXXX"
+$ oc create -f deploy/catalog_resources/courier/kogitocloud-operatorsource.yaml
 ```
 
-If pushing to another quay repository, replace _kiegroup_ with your username or other namespace. Notice that the push command does not overwrite an existing repository, and the bundle needs to be deleted before a new version can be built and uploaded. Once the bundle has been uploaded, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
+It will take a few minutes for the operator to become visible under the _OperatorHub_ section of the OpenShift console _Catalog_. The Operator can be easily found by filtering by _Kogito_ name.
 
-Note that the OpenShift cluster needs access to the created application. Make sure that the application is **public** or you have configured the private repository credentials in the cluster. To make the application public, go to your quay.io account, and in the _Applications_ tab look for the `kogitocloud-operator` application. Under the settings section click on _make public_ button.
-
-```bash
-## kogito imagestreams should already be installed/available ... e.g.
-oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
-oc create -f deploy/catalog_resources/courier/kiecloud-operatorsource.yaml
-```
-
-Remember to replace _registryNamespace_ with your quay namespace. The name, display name and publisher of the operator are the only other attributes that may be modified.
-
-It will take a few minutes for the operator to become visible under the _OperatorHub_ section of the OpenShift console _Catalog_. The Operator can be easily found by filtering the provider type to _Custom_.
-
-It's possible to verify the operator status by running:
+Verify if the Operator status by running:
 
 ```bash
-oc describe operatorsource.operators.coreos.com/kiecloud-operators -n openshift-marketplace
+$ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n openshift-marketplace
 ```
 
 ### Deploy to OpenShift 3.11 manually
 
 ```bash
 ## kogito imagestreams should already be installed/available ... e.g.
-oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
-oc new-project <project-name>
-./hack/3.11deploy.sh
+$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
+$ oc new-project <project-name>
+$ ./hack/3.11deploy.sh
 ```
 
 ### Trigger a KogitoApp deployment
@@ -150,28 +134,27 @@ $ oc create -f deploy/crs/app_v1alpha1_kogitoapp_cr.yaml
 kogitoapp.app.kiegroup.org/example-quarkus created
 ```
 
+Or you can always use the [CLI](#cli) to deploy your services.
+
+To look at the Operator logs, first identify the pod where it's deployed:
+
+```bash
+$ oc get pods
+
+NAME                                     READY   STATUS      RESTARTS   AGE
+kogito-cloud-operator-6d7b6d4466-9ng8t   1/1     Running     0          26m
+```
+
+Use the pod name as the input of the following command:
+
+```bash
+$ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t 
+```
+
 ### Clean up a KogitoApp deployment
 
 ```bash
-oc delete kogitoapp example-quarkus
-```
-
-### Running Locally
-
-Change log level at runtime with the `DEBUG` environment variable. e.g. -
-
-```bash
-make mod
-make clean
-DEBUG="true" operator-sdk up local --namespace=<namespace>
-```
-
-Before submitting PR, please be sure to read the [contributors guide](CONTRIBUTING.MD##contributors-guide). 
-
-It's always worth noting that you should generate, vet, format, lint, and test your code. This all can be done with one command.
-
-```bash
-make test
+$ oc delete kogitoapp example-quarkus
 ```
 
 ## CLI
@@ -226,6 +209,56 @@ $ kogito new-app kogito-cli
 
 # deploys a new kogito service from source
 $ kogito deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example
+```
+
+## Development
+
+### Deploy to OpenShift 4.x for development purposes
+
+To install this operator on OpenShift 4 for end-to-end testing, make sure you have access to a quay.io account to create an application repository. Follow the [authentication](https://github.com/operator-framework/operator-courier/#authentication) instructions for Operator Courier to obtain an account token. This token is in the form of "basic XXXXXXXXX" and both words are required for the command.
+
+Push the operator bundle to your quay application repository as follows:
+
+```bash
+$ operator-courier push deploy/catalog_resources/courier/0.3.0 namespace kogitocloud-operator 0.3.0 "basic XXXXXXXXX"
+```
+
+If pushing to another quay repository, replace _namespace_ with your username or other namespace. Notice that the push command does not overwrite an existing repository, and the bundle needs to be deleted before a new version can be built and uploaded. Once the bundle has been uploaded, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
+
+Note that the OpenShift cluster needs access to the created application. Make sure that the application is **public** or you have configured the private repository credentials in the cluster. To make the application public, go to your quay.io account, and in the _Applications_ tab look for the `kogitocloud-operator` application. Under the settings section click on _make public_ button.
+
+```bash
+## kogito imagestreams should already be installed/available ... e.g.
+$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
+$ oc create -f deploy/catalog_resources/courier/kogitocloud-operatorsource.yaml
+```
+
+Remember to replace _registryNamespace_ in the `kogitocloud-operatorsource.yaml` with your quay namespace. The name, display name and publisher of the operator are the only other attributes that may be modified.
+
+It will take a few minutes for the operator to become visible under the _OperatorHub_ section of the OpenShift console _Catalog_. The Operator can be easily found by filtering the provider type to _Custom_.
+
+It's possible to verify the operator status by running:
+
+```bash
+$ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n openshift-marketplace
+```
+
+### Running Locally
+
+Change log level at runtime with the `DEBUG` environment variable. e.g. -
+
+```bash
+$ make mod
+$ make clean
+$ DEBUG="true" operator-sdk up local --namespace=<namespace>
+```
+
+Before submitting PR, please be sure to read the [contributors guide](CONTRIBUTING.MD##contributors-guide).
+
+It's always worth noting that you should generate, vet, format, lint, and test your code. This all can be done with one command.
+
+```bash
+$ make test
 ```
 
 ## Contributing

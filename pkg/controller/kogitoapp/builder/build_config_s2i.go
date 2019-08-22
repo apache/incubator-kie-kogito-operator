@@ -22,7 +22,9 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	if kogitoApp.Spec.Build == nil || kogitoApp.Spec.Build.GitSource == nil {
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
-	image := BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime]
+
+	image := verifyImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
+
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{

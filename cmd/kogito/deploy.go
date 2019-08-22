@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 
@@ -28,11 +29,15 @@ type deployFlags struct {
 	reference        string
 	contextdir       string
 	source           string
+	imageRuntime     string
+	imageS2I         string
 }
 
 const (
 	defaultDeployReplicas = 1
 	defaultDeployRuntime  = string(v1alpha1.QuarkusRuntimeType)
+	// see: https://github.com/docker/distribution/blob/master/reference/regexp.go
+	dockerTagRegx = `[\w][\w.-]{0,127}`
 )
 
 var (
@@ -86,6 +91,14 @@ var _ = RegisterCommandVar(func() {
 			if !util.Contains(deployCmdFlags.runtime, deployRuntimeValidEntries) {
 				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, deployCmdFlags.runtime)
 			}
+			re := regexp.MustCompile(dockerTagRegx)
+			if len(deployCmdFlags.imageRuntime) > 0 && !re.MatchString(deployCmdFlags.imageRuntime) {
+				return fmt.Errorf("invalid name for runtime image tag. Received %s", deployCmdFlags.imageRuntime)
+			}
+			if len(deployCmdFlags.imageS2I) > 0 && !re.MatchString(deployCmdFlags.imageS2I) {
+				return fmt.Errorf("invalid name for s2i image tag. Received %s", deployCmdFlags.imageRuntime)
+			}
+
 			return nil
 		},
 	}
@@ -104,6 +117,8 @@ var _ = RegisterCommandInit(func() {
 	deployCmd.Flags().StringSliceVarP(&deployCmdFlags.serviceLabels, "svc-labels", "s", nil, "Labels that should be applied to the internal endpoint of the Kogito Service. Used by the service discovery engine. Example: 'label=value'. Can be set more than once.")
 	deployCmd.Flags().BoolVar(&deployCmdFlags.incrementalBuild, "incremental-build", true, "Build should be incremental?")
 	deployCmd.Flags().StringSliceVarP(&deployCmdFlags.buildenv, "build-env", "u", nil, "Key/pair value environment variables that will be set during the build. For example 'MAVEN_URL=http://myinternalmaven.com'. Can be set more than once.")
+	deployCmd.Flags().StringVar(&deployCmdFlags.imageRuntime, "image-runtime", "", "Image tag (namespace/name:tag) for using during service runtime, e.g: openshift/kogito-quarkus-ubi8:latest")
+	deployCmd.Flags().StringVar(&deployCmdFlags.imageS2I, "image-s2i", "", "Image tag (namespace/name:tag) for using during the s2i build, e.g: openshift/kogito-quarkus-ubi8-s2i:latest")
 })
 
 func deployExec(cmd *cobra.Command, args []string) error {
@@ -152,7 +167,9 @@ func deployExec(cmd *cobra.Command, args []string) error {
 					ContextDir: deployCmdFlags.contextdir,
 					Reference:  deployCmdFlags.reference,
 				},
-				Env: fromStringArrayToControllerEnvs(deployCmdFlags.buildenv),
+				Env:          fromStringArrayToControllerEnvs(deployCmdFlags.buildenv),
+				ImageS2I:     fromStringToImage(deployCmdFlags.imageS2I),
+				ImageRuntime: fromStringToImage(deployCmdFlags.imageRuntime),
 			},
 			Env: fromStringArrayToControllerEnvs(deployCmdFlags.env),
 			Service: v1alpha1.KogitoAppServiceObject{

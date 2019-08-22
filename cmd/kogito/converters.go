@@ -1,9 +1,31 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 )
+
+// fromStringToImage will convert a plain string into a image
+func fromStringToImage(imagetag string) v1alpha1.Image {
+	image := v1alpha1.Image{}
+	if len(imagetag) > 0 {
+		if strings.Contains(imagetag, "/") {
+			splitName := strings.Split(imagetag, "/")
+			image.ImageStreamNamespace = splitName[0]
+			imagetag = splitName[1]
+		}
+		if strings.Contains(imagetag, ":") {
+			splitName := strings.Split(imagetag, ":")
+			image.ImageStreamName = splitName[0]
+			image.ImageStreamTag = splitName[1]
+			return image
+		}
+		image.ImageStreamName = imagetag
+	}
+	return image
+}
 
 // fromStringArrayToControllerEnvs converts a string array in the format of key=value pairs to the kogitoapp controller required type
 func fromStringArrayToControllerEnvs(strings []string) []v1alpha1.Env {

@@ -160,6 +160,8 @@ func (in *KogitoAppBuildObject) DeepCopyInto(out *KogitoAppBuildObject) {
 		*out = make([]WebhookSecret, len(*in))
 		copy(*out, *in)
 	}
+	out.ImageS2I = in.ImageS2I
+	out.ImageRuntime = in.ImageRuntime
 	return
 }
 
