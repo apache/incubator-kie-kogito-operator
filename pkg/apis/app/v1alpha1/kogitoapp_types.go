@@ -67,6 +67,10 @@ type KogitoAppBuildObject struct {
 	GitSource   *GitSource `json:"gitSource"`
 	// WebHook secrets for build configs
 	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
+	// ImageS2I is used by build configurations to build the image from source
+	ImageS2I Image `json:"imageS2I,omitempty"`
+	// ImageRuntime is used build configurations to build a final runtime image based on a s2i configuration
+	ImageRuntime Image `json:"imageRuntime,omitempty"`
 }
 
 // KogitoAppServiceObject Data to define the service of the kogito app
@@ -129,7 +133,6 @@ type Image struct {
 	ImageStreamName      string `json:"imageStreamName,omitempty"`
 	ImageStreamTag       string `json:"imageStreamTag,omitempty"`
 	ImageStreamNamespace string `json:"imageStreamNamespace,omitempty"`
-	BuilderImage         bool   `json:"builderImage,omitempty"`
 }
 
 // ConditionType - type of condition

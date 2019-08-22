@@ -30,7 +30,7 @@ func Test_DeployCmd_WhenThereAreAnOperator(t *testing.T) {
 }
 
 func Test_DeployCmd_CustomDeployment(t *testing.T) {
-	cli := fmt.Sprintf("deploy example-drools https://github.com/kiegroup/kogito-examples -v --context drools-quarkus-example --app kogito --limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi")
+	cli := fmt.Sprintf("deploy example-drools https://github.com/kiegroup/kogito-examples -v --context drools-quarkus-example --app kogito --image-s2i=myimage --image-runtime=myimage:0.2 --limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi")
 	config.LastKogitoAppCreated = nil
 	_, _, err := executeCli(cli,
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
@@ -41,4 +41,7 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, config.LastKogitoAppCreated.Spec.Runtime)
 	assert.Contains(t, config.LastKogitoAppCreated.Spec.Resources.Limits, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"})
 	assert.Contains(t, config.LastKogitoAppCreated.Spec.Resources.Requests, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "1Gi"})
+	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageS2I.ImageStreamName, "myimage")
+	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageRuntime.ImageStreamName, "myimage")
+	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageRuntime.ImageStreamTag, "0.2")
 }

@@ -22,7 +22,9 @@ func NewBuildConfigService(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 		err = errors.New("Impossible to create a runner build configuration without a s2i build definition")
 		return buildConfig, err
 	}
-	image := BuildImageStreams[BuildTypeService][kogitoApp.Spec.Runtime]
+
+	image := verifyImageBuild(kogitoApp.Spec.Build.ImageRuntime, BuildImageStreams[BuildTypeService][kogitoApp.Spec.Runtime])
+
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
