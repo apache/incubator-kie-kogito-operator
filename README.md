@@ -90,7 +90,7 @@ $ make
 
 ## Installation
 
-Kogito Operator is not available in the OperatorHub [yet](https://issues.jboss.org/browse/KOGITO-67), hence have to be installed manually on [OpenShift 4.x](#deploy-to-openshift-4.x) or [OpenShift 3.11](#deploy-to-openshift-311-manually).
+Kogito Operator is not available in the OperatorHub [yet](https://issues.jboss.org/browse/KOGITO-67), hence has to be installed manually on [OpenShift 4.x](#deploy-to-openshift-4x) or [OpenShift 3.11](#deploy-to-openshift-311-manually).
 
 You can also [run the operator locally](#running-locally) if you have the [requirements](#requirements) configured in your local machine.
 
@@ -110,7 +110,7 @@ $ oc create -f deploy/catalog_resources/courier/kogitocloud-operatorsource.yaml
 
 It will take a few minutes for the operator to become visible under the _OperatorHub_ section of the OpenShift console _Catalog_. The Operator can be easily found by filtering by _Kogito_ name.
 
-Verify if the Operator status by running:
+Verify operator availability by running:
 
 ```bash
 $ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n openshift-marketplace
@@ -134,9 +134,9 @@ $ oc create -f deploy/crs/app_v1alpha1_kogitoapp_cr.yaml
 kogitoapp.app.kiegroup.org/example-quarkus created
 ```
 
-Or you can always use the [CLI](#cli) to deploy your services.
+Or you can always use the [CLI](#kogito-cli) to deploy your services.
 
-To look at the Operator logs, first identify the pod where it's deployed:
+To look at the Operator logs, first identify where the Operator is deployed:
 
 ```bash
 $ oc get pods
@@ -157,7 +157,7 @@ $ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t
 $ oc delete kogitoapp example-quarkus
 ```
 
-## CLI
+## Kogito CLI
 
 A CLI tool is available to make it easy to deploy new Kogito Services from source instead of relying on CRs yaml files.
 
@@ -165,12 +165,28 @@ A CLI tool is available to make it easy to deploy new Kogito Services from sourc
 
 1. [`oc` client](https://docs.okd.io/latest/cli_reference/get_started_cli.html) installed
 2. An authenticated OpenShift user with permissions to create resources in a given namespace
-3. [Go installed](https://golang.org/doc/install) and available in your `PATH`
-4. Kogito Operator [installed](#installation) in the cluster
+3. Kogito Operator [installed](#installation) in the cluster
+
+### CLI Install
+
+#### For Linux
+
+1. [Download](https://github.com/kiegroup/kogito-cloud-operator/releases) the correct distribution for your machine
+
+2. Unpack the binary: `tar -xvf release.tar.gz`
+
+3. You should see an executable named `kogito`. Move the binary to a pre-existing directory in your `PATH`. For example: `# cp /path/to/kogito /usr/local/bin`
+
+#### For Windows
+
+Just download the [latest 64-bit Windows release](https://github.com/kiegroup/kogito-cloud-operator/releases). Extract the zip file through a file browser. Add the extracted directory to your PATH. You can now use `kogito` from the command line.
 
 ### Build CLI from source
 
-Build the CLI by running:
+| :warning: Building CLI from source requires that [go is installed](https://golang.org/doc/install) and available in your `PATH`. |
+| --- |
+
+Build and install the CLI by running:
 
 ```bash
 $ git clone https://github.com/kiegroup/kogito-cloud-operator
