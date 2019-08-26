@@ -45,6 +45,7 @@ var (
 func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	s := scheme.Scheme
 	s.AddKnownTypes(appsv1.SchemeGroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{})
+	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 
 	inv, err := BuildOrFetchObjects(&Context{
 		Client:    &client.Client{ControlCli: fake.NewFakeClient(), ImageCli: imgfake.NewSimpleClientset().ImageV1()},
@@ -64,6 +65,7 @@ func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	s := scheme.Scheme
 	s.AddKnownTypes(appsv1.SchemeGroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{}, &routev1.Route{})
+	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 	dockerImageRaw, err := json.Marshal(&dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{

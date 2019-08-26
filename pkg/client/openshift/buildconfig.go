@@ -51,10 +51,10 @@ func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector st
 	if img, err := ImageStreamC(b.client).FetchDockerImage(bcNamed); err != nil {
 		return state, err
 	} else if img == nil {
-		log.Infof("Image not found for build %s", bc.Name)
+		log.Debugf("Image not found for build %s", bc.Name)
 		state.ImageExists = false
 		if running, err := b.BuildIsRunning(bc, labelSelector); running {
-			log.Infof("Build %s is still running", bc.Name)
+			log.Debugf("Build %s is still running", bc.Name)
 			state.BuildRunning = true
 			return state, nil
 		} else if err != nil {

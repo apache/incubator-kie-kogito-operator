@@ -26,7 +26,6 @@ import (
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -91,8 +90,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&routev1.Route{},
 		&obuildv1.BuildConfig{},
 		&oimagev1.ImageStream{},
-		&corev1.ServiceAccount{},
-		&rbacv1.RoleBinding{},
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -143,16 +140,34 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
-	// create resources in the cluster that not exists
+	log.Infof("Checking if all resources for '%s' are created", instance.Spec.Name)
+	// create resources in the cluster that do not exist
 	kogitoInv, err := builder.BuildOrFetchObjects(&builder.Context{
 		Client:    r.client,
 		KogitoApp: instance,
+		PreCreate: func(object meta.ResourceObject) error {
+			if object != nil {
+				// resources shared across all kogitoApp within the namespace shouldn't have a unique owner
+				// we'll handle those manually with the cleanup logic:
+				// Opened https://issues.jboss.org/browse/KOGITO-191 to track this
+				if object.GetObjectKind().GroupVersionKind().Kind == meta.KindServiceAccount.Name ||
+					object.GetObjectKind().GroupVersionKind().Kind == meta.KindRole.Name ||
+					object.GetObjectKind().GroupVersionKind().Kind == meta.KindRoleBinding.Name {
+					return nil
+				}
+
+				log.Debugf("Setting controller reference pre create for '%s' kind '%s'", object.GetName(), object.GetObjectKind().GroupVersionKind().Kind)
+				return controllerutil.SetControllerReference(instance, object, r.scheme)
+			}
+			return nil
+		},
 	})
 	if err != nil {
 		return reconcile.Result{}, err
 	}
 
 	// ensure builds
+	log.Infof("Checking if build for '%s' is finished", instance.Spec.Name)
 	if imageExists, err := r.ensureApplicationImageExists(kogitoInv, instance); err != nil {
 		return reconcile.Result{}, err
 	} else if !imageExists {
@@ -160,14 +175,12 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		if status.SetProvisioning(instance) {
 			return r.UpdateObj(instance)
 		}
+		log.Infof("Build for '%s' still running", instance.Spec.Name)
 		return reconcile.Result{RequeueAfter: time.Duration(30) * time.Second}, nil
 	}
 
 	// checks for dc updates
 	if kogitoInv.DeploymentConfig != nil {
-		if err := controllerutil.SetControllerReference(instance, kogitoInv.DeploymentConfig, r.scheme); err != nil {
-			return reconcile.Result{}, err
-		}
 		if dcUpdated, err := r.updateDeploymentConfigs(instance, *kogitoInv.DeploymentConfig); err != nil {
 			return reconcile.Result{}, err
 		} else if dcUpdated && status.SetProvisioning(instance) {
@@ -175,13 +188,8 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 	}
 
-	// Expose DC with service and route
+	// Setting route to the status
 	if kogitoInv.Service != nil {
-		err = controllerutil.SetControllerReference(instance, kogitoInv.Service, r.scheme)
-		if err != nil {
-			log.Error(err)
-		}
-		// TODO: this is really needed?
 		if serviceRoute := r.GetRouteHost(*kogitoInv.Route, instance); serviceRoute != "" {
 			instance.Status.Route = fmt.Sprintf("http://%s", serviceRoute)
 		}
@@ -233,6 +241,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{Requeue: true}, nil
 	}
 
+	log.Infof("Reconcile for '%s' successfully finished", instance.Spec.Name)
 	return reconcile.Result{}, nil
 }
 
@@ -240,7 +249,7 @@ func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *builder.KogitoApp
 	buildServiceState, err :=
 		openshift.BuildConfigC(r.client).EnsureImageBuild(
 			inv.BuildConfigService,
-			getBCLabelsAsUniqueSelectors(inv.BuildConfigService))
+			r.getBCLabelsAsUniqueSelectors(inv.BuildConfigService))
 	if err != nil {
 		return false, err
 	}
@@ -251,19 +260,25 @@ func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *builder.KogitoApp
 		return true, nil
 	}
 
+	if buildServiceState.BuildRunning {
+		log.Infof("Image for '%s' is being pushed to the registry", instance.Spec.Name)
+		return false, nil
+	}
+
 	log.Infof("No image found for the application %s. Trying to trigger a new build.", instance.Spec.Name)
 
 	// verify s2i build and image
 	if state, err :=
 		openshift.BuildConfigC(r.client).EnsureImageBuild(
 			inv.BuildConfigS2I,
-			getBCLabelsAsUniqueSelectors(inv.BuildConfigS2I)); err != nil {
+			r.getBCLabelsAsUniqueSelectors(inv.BuildConfigS2I)); err != nil {
 		return false, err
 	} else if state.BuildRunning {
 		// build is running, nothing to do
+		log.Infof("Application '%s' build is still running. Won't trigger a new build.", instance.Spec.Name)
 		return false, nil
 	} else if !state.ImageExists && !state.BuildRunning {
-		log.Infof("There's no image nor build for %s running, triggering build", inv.BuildConfigS2I.Name)
+		log.Infof("There's no image nor build for '%s' running, triggering build", inv.BuildConfigS2I.Name)
 		_, err := openshift.BuildConfigC(r.client).TriggerBuild(inv.BuildConfigS2I, instance.Name)
 		if err != nil {
 			return false, err
@@ -273,12 +288,24 @@ func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *builder.KogitoApp
 
 	// verify service build and image
 	if !buildServiceState.ImageExists {
-		log.Warnf("There's no image for %s.", inv.BuildConfigService.Name)
+		log.Warnf("Image not found for %s. The image could being pushed to the registry. Check with 'oc get is/%s -n %s'",
+			inv.BuildConfigService.Name,
+			inv.BuildConfigService.Name,
+			instance.Namespace)
 		return false, nil
 	}
 
 	log.Debugf("There are images for both builds, nothing to do")
 	return true, nil
+}
+
+func (r *ReconcileKogitoApp) getBCLabelsAsUniqueSelectors(bc *obuildv1.BuildConfig) string {
+	return fmt.Sprintf("%s=%s,%s=%s",
+		builder.LabelKeyAppName,
+		bc.Labels[builder.LabelKeyAppName],
+		builder.LabelKeyBuildType,
+		bc.Labels[builder.LabelKeyBuildType],
+	)
 }
 
 // updateBuildConfigs ...
@@ -448,15 +475,6 @@ func (r *ReconcileKogitoApp) dcUpdateCheck(current, new oappsv1.DeploymentConfig
 	return dcUpdates
 }
 
-func getBCLabelsAsUniqueSelectors(bc *obuildv1.BuildConfig) string {
-	return fmt.Sprintf("%s=%s,%s=%s",
-		builder.LabelKeyAppName,
-		bc.Labels[builder.LabelKeyAppName],
-		builder.LabelKeyBuildType,
-		bc.Labels[builder.LabelKeyBuildType],
-	)
-}
-
 func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.KogitoApp) v1alpha1.Deployments {
 	var ready, starting, stopped []string
 	for _, dc := range dcs {
@@ -485,10 +503,6 @@ func getDeploymentsStatuses(dcs []oappsv1.DeploymentConfig, cr *v1alpha1.KogitoA
 // GetRouteHost returns the Hostname of the route provided
 func (r *ReconcileKogitoApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.KogitoApp) string {
 	log := log.With("kind", route.GetObjectKind().GroupVersionKind().Kind, "name", route.Name, "namespace", route.Namespace)
-	err := controllerutil.SetControllerReference(cr, &route, r.scheme)
-	if err != nil {
-		log.Error("Error setting controller reference. ", err)
-	}
 
 	for i := 1; i < 60; i++ {
 		time.Sleep(time.Duration(100) * time.Millisecond)

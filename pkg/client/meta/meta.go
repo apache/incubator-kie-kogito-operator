@@ -42,6 +42,8 @@ var (
 	KindRoute = DefinitionKind{"Route", true, routev1.SchemeGroupVersion}
 	// KindImageStreamTag for a ImageStreamTag
 	KindImageStreamTag = DefinitionKind{"ImageStreamTag", true, imgv1.SchemeGroupVersion}
+	// KindImageStream for a ImageStream
+	KindImageStream = DefinitionKind{"ImageStream", true, imgv1.SchemeGroupVersion}
 	// KindBuildRequest for a BuildRequest
 	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.SchemeGroupVersion}
 	// KindNamespace for a Namespace
