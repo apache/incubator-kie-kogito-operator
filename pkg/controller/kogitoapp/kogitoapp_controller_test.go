@@ -114,6 +114,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 		&appsv1.DeploymentConfigList{})
 	s.AddKnownTypes(buildv1.SchemeGroupVersion, &buildv1.BuildConfig{})
 	s.AddKnownTypes(routev1.SchemeGroupVersion, &routev1.Route{})
+	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 	// Create a fake client to mock API calls.
 	cli := fake.NewFakeClient(objs...)
 	// OpenShift Image Client Fake with image tag defined and image built
@@ -155,7 +156,19 @@ func TestKogitoAppWithResource(t *testing.T) {
 	// Let's verify if the objects have been built
 	dc := &appsv1.DeploymentConfig{}
 	_, err = kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: kogitoapp.Spec.Name, Namespace: kogitoapp.Namespace}, dc)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Template.Spec.Containers, 1)
+	assert.Len(t, dc.GetOwnerReferences(), 1)
+
+	sa := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      builder.ServiceAccountName,
+			Namespace: kogitoapp.Namespace,
+		},
+	}
+	_, err = kubernetes.ResourceC(r.client).Fetch(sa)
+	assert.NotNil(t, sa)
+	assert.NoError(t, err)
+	assert.Len(t, sa.GetOwnerReferences(), 0)
 }
