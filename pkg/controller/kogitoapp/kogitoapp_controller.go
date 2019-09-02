@@ -147,15 +147,6 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		KogitoApp: instance,
 		PreCreate: func(object meta.ResourceObject) error {
 			if object != nil {
-				// resources shared across all kogitoApp within the namespace shouldn't have a unique owner
-				// we'll handle those manually with the cleanup logic:
-				// Opened https://issues.jboss.org/browse/KOGITO-191 to track this
-				if object.GetObjectKind().GroupVersionKind().Kind == meta.KindServiceAccount.Name ||
-					object.GetObjectKind().GroupVersionKind().Kind == meta.KindRole.Name ||
-					object.GetObjectKind().GroupVersionKind().Kind == meta.KindRoleBinding.Name {
-					return nil
-				}
-
 				log.Debugf("Setting controller reference pre create for '%s' kind '%s'", object.GetName(), object.GetObjectKind().GroupVersionKind().Kind)
 				return controllerutil.SetControllerReference(instance, object, r.scheme)
 			}

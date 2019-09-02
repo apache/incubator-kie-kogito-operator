@@ -13,14 +13,14 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	resource "k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/types"
 
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/stretchr/testify/assert"
 
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitoclient "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/builder"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
@@ -160,15 +160,4 @@ func TestKogitoAppWithResource(t *testing.T) {
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Template.Spec.Containers, 1)
 	assert.Len(t, dc.GetOwnerReferences(), 1)
-
-	sa := &corev1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      builder.ServiceAccountName,
-			Namespace: kogitoapp.Namespace,
-		},
-	}
-	_, err = kubernetes.ResourceC(r.client).Fetch(sa)
-	assert.NotNil(t, sa)
-	assert.NoError(t, err)
-	assert.Len(t, sa.GetOwnerReferences(), 0)
 }

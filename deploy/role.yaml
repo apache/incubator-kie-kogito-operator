@@ -43,3 +43,21 @@ rules:
       - deployments/finalizers
     verbs:
       - update
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kogito-service-viewer
+  annotations:
+    org.kie.kogito/managed-by: Kogito Operator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - list
+      - get
+      - watch

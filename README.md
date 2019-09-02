@@ -56,31 +56,29 @@ The `builder` package defines the structure and dependencies of every resource a
 
 ![Kogito App Resources Composition](docs/img/kogitoapp_resource_composition.png?raw=true)
 
-The `builder` package ensures that each object is created accordingly. Take "for example" the `NewRoleBinding` function:
+The `builder` package ensures that each object is created accordingly. Take "for example" the `NewRoute` function:
 
 ```go
-func NewRoleBinding(kogitoApp *v1alpha1.KogitoApp, serviceAccount *corev1.ServiceAccount) (roleBinding rbacv1.RoleBinding) {
-	roleBinding = rbacv1.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			...
-		},
-		RoleRef: rbacv1.RoleRef{
-			...
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      KindServiceAccount.Name,
-				Namespace: serviceAccount.Namespace,
-				Name:      serviceAccount.Name,
+func NewRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *routev1.Route, err error) {
+	...
+	route = &routev1.Route{
+		ObjectMeta: service.ObjectMeta,
+		Spec: routev1.RouteSpec{
+			Port: &routev1.RoutePort{
+				...
+			},
+			To: routev1.RouteTargetReference{
+				Kind: meta.KindService.Name,
+				Name: service.Name,
 			},
 		},
-    }
-    ...
-	return roleBinding
+	}
+	...
+	return route, nil
 }
 ```
 
-This function will create a new `RoleBinding` that depends on the `ServiceAccount`, with the default role references, labels and annotations.
+This function will create a new `Route` that depends on the `Service`, with the service's references, labels and annotations.
 
 ## Build
 
@@ -236,7 +234,7 @@ To install this operator on OpenShift 4 for end-to-end testing, make sure you ha
 Push the operator bundle to your quay application repository as follows:
 
 ```bash
-$ operator-courier push deploy/catalog_resources/courier/0.3.0 namespace kogitocloud-operator 0.3.0 "basic XXXXXXXXX"
+$ operator-courier push deploy/catalog_resources/courier/0.4.0 namespace kogitocloud-operator 0.4.0 "basic XXXXXXXXX"
 ```
 
 If pushing to another quay repository, replace _namespace_ with your username or other namespace. Notice that the push command does not overwrite an existing repository, and the bundle needs to be deleted before a new version can be built and uploaded. Once the bundle has been uploaded, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
