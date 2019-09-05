@@ -12,7 +12,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -28,6 +28,7 @@ const (
 	portSep                 = ":"
 	portFormatWrongMessage  = "Service %s on " + openshift.ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
 	defaultExportedProtocol = "http"
+	serviceAccountName      = "kogito-service-viewer"
 )
 
 var defaultProbe = &corev1.Probe{
@@ -38,8 +39,8 @@ var defaultProbe = &corev1.Probe{
 }
 
 // NewDeploymentConfig creates a new DeploymentConfig resource for the KogitoApp based on the BuildConfig runner image
-func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildConfig, sa *corev1.ServiceAccount, dockerImage *dockerv10.DockerImage) (dc *appsv1.DeploymentConfig, err error) {
-	if err = checkDeploymentDependencies(runnerBC, sa); err != nil {
+func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildConfig, dockerImage *dockerv10.DockerImage) (dc *appsv1.DeploymentConfig, err error) {
+	if err = checkDeploymentDependencies(runnerBC); err != nil {
 		return dc, err
 	}
 
@@ -65,7 +66,7 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 							ImagePullPolicy: corev1.PullAlways,
 						},
 					},
-					ServiceAccountName: sa.Name,
+					ServiceAccountName: serviceAccountName,
 				},
 			},
 			Triggers: appsv1.DeploymentTriggerPolicies{
@@ -94,11 +95,9 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 }
 
 // checkDeploymentDependencies sanity check to create the DeploymentConfig properly
-func checkDeploymentDependencies(bc *buildv1.BuildConfig, sa *corev1.ServiceAccount) (err error) {
+func checkDeploymentDependencies(bc *buildv1.BuildConfig) (err error) {
 	if bc == nil {
 		return fmt.Errorf("Impossible to create the DeploymentConfig without a reference to a the service BuildConfig")
-	} else if sa == nil {
-		return fmt.Errorf("Impossible to create the DeploymentConfig without a reference to a the Kogito ServiceAccount")
 	}
 
 	return nil

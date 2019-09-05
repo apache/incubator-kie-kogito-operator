@@ -3,7 +3,7 @@ package builder
 import (
 	"testing"
 
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	dockerv10 "github.com/openshift/api/image/docker10"
 	"github.com/stretchr/testify/assert"
@@ -38,12 +38,11 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 	}
 	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
 	bcSvc, _ := NewBuildConfigService(kogitoApp, &bcS2I)
-	sa := NewServiceAccount(kogitoApp)
-	dc, _ := NewDeploymentConfig(kogitoApp, &bcSvc, &sa, nil)
+	dc, _ := NewDeploymentConfig(kogitoApp, &bcSvc, nil)
 	svc := NewService(kogitoApp, dc)
 	assert.Nil(t, svc)
 	// try again, now with ports
-	dc, _ = NewDeploymentConfig(kogitoApp, &bcSvc, &sa, dockerImage)
+	dc, _ = NewDeploymentConfig(kogitoApp, &bcSvc, dockerImage)
 	svc = NewService(kogitoApp, dc)
 	assert.NotNil(t, svc)
 	assert.Len(t, svc.Spec.Ports, 1)

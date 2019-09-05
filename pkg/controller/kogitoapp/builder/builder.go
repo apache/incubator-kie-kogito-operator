@@ -1,7 +1,7 @@
 package builder
 
 import (
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
@@ -41,10 +41,7 @@ func BuildOrFetchObjects(context *Context) (inv *KogitoAppInventory, err error) 
 		Inventory: &KogitoAppInventory{},
 		Context:   context,
 	}
-	chain.AndBuild(serviceAccountBuilder).
-		AndBuild(roleBuilder).
-		AndBuild(roleBindingBuilder).
-		AndBuild(buildConfigS2IBuilder).
+	chain.AndBuild(buildConfigS2IBuilder).
 		AndBuild(buildConfigServiceBuilder).
 		AndBuild(imageStreamBuilder).
 		AndBuild(deploymentConfigBuilder).
@@ -67,42 +64,6 @@ func callPreCreate(object meta.ResourceObject, chain *builderChain) error {
 		return chain.Context.PreCreate(object)
 	}
 	return nil
-}
-
-func serviceAccountBuilder(chain *builderChain) *builderChain {
-	sa := NewServiceAccount(chain.Context.KogitoApp)
-	if err := callPreCreate(&sa, chain); err != nil {
-		chain.Error = err
-		return chain
-	}
-	chain.Inventory.ServiceAccountStatus.IsNew, chain.Error =
-		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&sa)
-	chain.Inventory.ServiceAccount = &sa
-	return callPostCreate(chain.Inventory.ServiceAccountStatus.IsNew, &sa, chain)
-}
-
-func roleBuilder(chain *builderChain) *builderChain {
-	role := NewRole(chain.Context.KogitoApp)
-	if err := callPreCreate(&role, chain); err != nil {
-		chain.Error = err
-		return chain
-	}
-	chain.Inventory.RoleStatus.IsNew, chain.Error =
-		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&role)
-	chain.Inventory.Role = &role
-	return callPostCreate(chain.Inventory.RoleStatus.IsNew, &role, chain)
-}
-
-func roleBindingBuilder(chain *builderChain) *builderChain {
-	rb := NewRoleBinding(chain.Context.KogitoApp, chain.Inventory.ServiceAccount, chain.Inventory.Role)
-	if err := callPreCreate(&rb, chain); err != nil {
-		chain.Error = err
-		return chain
-	}
-	chain.Inventory.RoleBindingStatus.IsNew, chain.Error =
-		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&rb)
-	chain.Inventory.RoleBinding = &rb
-	return callPostCreate(chain.Inventory.RoleBindingStatus.IsNew, &rb, chain)
 }
 
 func buildConfigS2IBuilder(chain *builderChain) *builderChain {
@@ -183,7 +144,6 @@ func deploymentConfigBuilder(chain *builderChain) *builderChain {
 		dc, err := NewDeploymentConfig(
 			chain.Context.KogitoApp,
 			chain.Inventory.BuildConfigService,
-			chain.Inventory.ServiceAccount,
 			dockerImage,
 		)
 		if err != nil {
