@@ -225,6 +225,16 @@ $ kogito new-app kogito-cli
 $ kogito deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example
 ```
 
+If you are using OpenShift 3.11 as described in the [previous chapter](#deploy-to-openshift-311-manually), you shall use the existing namespace you created during the manual deployment, by using the following CLI commands:
+
+```bash
+# use the provisioned namespace in your OpenShift 3.11 cluster
+$ kogito app <project-name>
+
+# deploys a new kogito service from source
+$ kogito deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example
+```
+
 ## Development
 
 ### Deploy to OpenShift 4.x for development purposes
