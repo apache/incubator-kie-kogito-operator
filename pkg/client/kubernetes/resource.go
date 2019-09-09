@@ -21,6 +21,7 @@ type ResourceInterface interface {
 	FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (bool, error)
 	Fetch(resource meta.ResourceObject) (bool, error)
 	ListWithNamespace(namespace string, list runtime.Object) error
+	Delete(resource meta.ResourceObject) error
 }
 
 type resource struct {
@@ -93,6 +94,15 @@ func (r *resource) ListWithNamespace(ns string, list runtime.Object) error {
 	err := r.client.ControlCli.List(context.TODO(), &runtimecli.ListOptions{Namespace: ns}, list)
 	if err != nil {
 		log.Warn("Failed to list resource. ", err)
+		return err
+	}
+	return nil
+}
+
+func (r *resource) Delete(resource meta.ResourceObject) error {
+	err := r.client.ControlCli.Delete(context.TODO(), resource)
+	if err != nil {
+		log.Warnf("Failed to delete resource %s", resource.GetName())
 		return err
 	}
 	return nil
