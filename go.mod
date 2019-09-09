@@ -62,3 +62,6 @@ replace (
 	github.com/openshift/api => github.com/openshift/api v3.9.1-0.20190814194116-a94e914914f4+incompatible
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20190813201236-5a5508328169
 )
+
+// thrift moved to github
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
