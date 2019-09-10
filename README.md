@@ -341,17 +341,18 @@ Usage:
   kogito [command]
 
 Available Commands:
-  app         Sets the Kogito application where your Kogito Service will be deployed
-  deploy      Deploys a new Kogito Service into the application context
-  help        Help about any command
-  new-app     Creates a new Kogito Application for your Kogito Services
+  delete-project Deletes a Kogito Project - i.e., the Kubernetes/OpenShift namespace
+  delete-service Deletes a Kogito Runtime Service deployed in the namespace/project
+  deploy-service Deploys a new Kogito Runtime Service into the given Project
+  help           Help about any command
+  new-project    Creates a new Kogito Project for your Kogito Services
+  use-project    Sets the Kogito Project where your Kogito Service will be deployed
+  version        Prints the kogito CLI version
 
 Flags:
       --config string   config file (default is $HOME/.kogito.json)
   -h, --help            help for kogito
   -v, --verbose         verbose output
-
-Use "kogito [command] --help" for more information about a command.
 ```
 
 ### Deploy a Kogito Service from source with CLI
@@ -359,21 +360,27 @@ Use "kogito [command] --help" for more information about a command.
 After [installing](#installation) the Kogito Operator, it's possible to deploy a new Kogito Service by using the CLI:
 
 ```bash
-# creates a new namespace/kogito app in your cluster
-$ kogito new-app kogito-cli
+# creates a new namespace in your cluster
+$ kogito new-project kogito-cli
 
-# deploys a new kogito service from source
-$ kogito deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example
+# deploys a new Kogito Runtime Service from source
+$ kogito deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example
 ```
 
 If you are using OpenShift 3.11 as described in the [previous chapter](#deploy-to-openshift-311-manually), you shall use the existing namespace you created during the manual deployment, by using the following CLI commands:
 
 ```bash
 # use the provisioned namespace in your OpenShift 3.11 cluster
-$ kogito app <project-name>
+$ kogito use-project <project-name>
 
 # deploys a new kogito service from source
-$ kogito deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example
+$ kogito deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example
+```
+
+Can be shorten to:
+
+```bash
+$ kogito deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project <project-name>
 ```
 
 ## Development

@@ -15,7 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestAppCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
+func TestUseProjectCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
 	home, _ := homedir.Dir()
 	ns := uuid.New().String()
 	path := filepath.Join(home, defaultConfigPath, defaultConfigFinalName)
@@ -33,26 +33,26 @@ func TestAppCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
 	defer file.Close()
 	assert.NoError(t, err)
 
-	_, _, err = executeCli(strings.Join([]string{"app", ns}, " "))
+	_, _, err = executeCli(strings.Join([]string{"use-project", ns}, " "))
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), ns)
 }
 
-func TestAppCmd_WhenThereIsTheNamespace(t *testing.T) {
+func TestUseProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
 	ns := uuid.New().String()
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
-	o, _, err := executeCli(strings.Join([]string{"app", ns}, " "), nsObj)
+	o, _, err := executeCli(strings.Join([]string{"use-project", ns}, " "), nsObj)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, o)
 	assert.Contains(t, o, ns)
 }
 
-func TestAppCmd_WhenWhatIsTheNamespace(t *testing.T) {
+func TestUseProjectCmd_WhenWhatIsTheNamespace(t *testing.T) {
 	ns := uuid.New().String()
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	// set the namespace
-	executeCli(strings.Join([]string{"app", ns}, " "), nsObj)
-	o, _, err := executeCli("app")
+	executeCli(strings.Join([]string{"use-project", ns}, " "), nsObj)
+	o, _, err := executeCli("use-project", nsObj)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, o)
 	assert.Contains(t, o, ns)
