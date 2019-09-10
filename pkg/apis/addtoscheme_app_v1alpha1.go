@@ -6,15 +6,14 @@ import (
 	buildv1 "github.com/openshift/api/build/v1"
 	oimagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes,
-		v1alpha1.SchemeBuilder.AddToScheme,
-		oappsv1.Install,
+	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme, oappsv1.Install,
 		routev1.Install,
 		oimagev1.Install,
 		buildv1.Install,
-	)
+		appsv1.AddToScheme)
 }

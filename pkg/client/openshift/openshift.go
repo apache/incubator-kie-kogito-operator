@@ -26,3 +26,13 @@ func BuildConfig() BuildConfigInterface {
 func BuildConfigC(c *client.Client) BuildConfigInterface {
 	return newBuildConfig(c)
 }
+
+// Route will call Route OpenShift API
+func Route() RouteInterface {
+	return newRoute(&client.Client{})
+}
+
+// RouteC will call Route OpenShift API with the given client
+func RouteC(c *client.Client) RouteInterface {
+	return newRoute(c)
+}

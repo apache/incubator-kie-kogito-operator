@@ -1,0 +1,92 @@
+package resource
+
+import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	// defaultLabelKey is the default label key that should be added to all resources
+	defaultLabelKey = "app"
+	defaultReplicas = 1
+	defaultImage    = "quay.io/kiegroup/data-index-service:latest"
+	// defaultExposedPort is the default port exposed by the service.
+	// this port can also be found into the docker label openshift.exposed-svc.
+	// since we're aiming for cluster agnostic, the image API is out of question.
+	// TODO: found an agnostic API to fetch the ImageRaw from the docker image and read this value from there.
+	defaultExposedPort       = 8180
+	defaultProtobufMountPath = "/var/kogito/dataindex/protobufs/"
+	defaultProtobufMountName = "protobuf-mount"
+)
+
+var defaultEnvs = map[string]string{
+	"KOGITO_PROTOBUF_FOLDER": defaultProtobufMountPath,
+	"KOGITO_PROTOBUF_WATCH":  "true",
+}
+
+// Collection of Infinispan/Kafka Environment Variables that need to be set in the Data Index image
+const (
+	infinispanEnvKeyUsername   string = "INFINISPAN_USERNAME"
+	infinispanEnvKeyPassword   string = "INFINISPAN_PASSWORD"
+	infinispanEnvKeyUseAuth    string = "INFINISPAN_USEAUTH"
+	infinispanEnvKeyAuthRealm  string = "INFINISPAN_AUTHREALM"
+	infinispanEnvKeySasl       string = "INFINISPAN_SASLMECHANISM"
+	infinispanEnvKeyCredSecret string = "INFINISPAN_CREDENTIAL_SECRET"
+	interfaceEnvKeyServiceURI  string = "QUARKUS_INFINISPAN_CLIENT_SERVER_LIST"
+
+	kafkaEnvKeyServiceURI string = "MP_MESSAGING_INCOMING_KOGITO_PROCESSINSTANCES_EVENTS_BOOTSTRAP_SERVERS"
+)
+
+// managedEnvKeys are a collection of reserved keys
+var managedEnvKeys = []string{
+	"KOGITO_PROTOBUF_FOLDER",
+	"KOGITO_PROTOBUF_WATCH",
+}
+
+var managedKafkaKeys = []string{
+	kafkaEnvKeyServiceURI,
+}
+
+var managedInfinispanKeys = []string{
+	infinispanEnvKeyUsername,
+	infinispanEnvKeyPassword,
+	infinispanEnvKeyUseAuth,
+	infinispanEnvKeyAuthRealm,
+	infinispanEnvKeySasl,
+	infinispanEnvKeyCredSecret,
+	interfaceEnvKeyServiceURI,
+}
+
+var defaultAnnotations = map[string]string{
+	"org.kie.kogito/managed-by":   "Kogito Operator",
+	"org.kie.kogito/operator-crd": "KogitoDataIndex",
+}
+
+var defaultProbe = &corev1.Probe{
+	TimeoutSeconds:   int32(1),
+	PeriodSeconds:    int32(10),
+	SuccessThreshold: int32(1),
+	FailureThreshold: int32(3),
+}
+
+func addDefaultMetadata(objectMeta *metav1.ObjectMeta, instance *v1alpha1.KogitoDataIndex) {
+	if objectMeta != nil {
+		if objectMeta.Annotations == nil {
+			objectMeta.Annotations = map[string]string{}
+		}
+		if objectMeta.Labels == nil {
+			objectMeta.Labels = map[string]string{}
+		}
+		for key, value := range defaultAnnotations {
+			objectMeta.Annotations[key] = value
+		}
+		objectMeta.Labels[defaultLabelKey] = instance.Spec.Name
+	}
+}
+
+func init() {
+	managedEnvKeys = append(managedEnvKeys, managedInfinispanKeys...)
+	managedEnvKeys = append(managedEnvKeys, managedKafkaKeys...)
+}

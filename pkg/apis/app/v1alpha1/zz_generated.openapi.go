@@ -11,18 +11,22 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition":              schema_pkg_apis_app_v1alpha1_Condition(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments":            schema_pkg_apis_app_v1alpha1_Deployments(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env":                    schema_pkg_apis_app_v1alpha1_Env(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource":              schema_pkg_apis_app_v1alpha1_GitSource(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoApp":              schema_pkg_apis_app_v1alpha1_KogitoApp(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject":   schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject": schema_pkg_apis_app_v1alpha1_KogitoAppServiceObject(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppSpec":          schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppStatus":        schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap":            schema_pkg_apis_app_v1alpha1_ResourceMap(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources":              schema_pkg_apis_app_v1alpha1_Resources(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":          schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition":                      schema_pkg_apis_app_v1alpha1_Condition(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments":                    schema_pkg_apis_app_v1alpha1_Deployments(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env":                            schema_pkg_apis_app_v1alpha1_Env(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource":                      schema_pkg_apis_app_v1alpha1_GitSource(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties": schema_pkg_apis_app_v1alpha1_InfinispanConnectionProperties(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoApp":                      schema_pkg_apis_app_v1alpha1_KogitoApp(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject":           schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject":         schema_pkg_apis_app_v1alpha1_KogitoAppServiceObject(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppSpec":                  schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppStatus":                schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoDataIndex":                schema_pkg_apis_app_v1alpha1_KogitoDataIndex(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoDataIndexSpec":            schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoDataIndexStatus":          schema_pkg_apis_app_v1alpha1_KogitoDataIndexStatus(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap":                    schema_pkg_apis_app_v1alpha1_ResourceMap(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources":                      schema_pkg_apis_app_v1alpha1_Resources(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":                  schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
 	}
 }
 
@@ -198,6 +202,53 @@ func schema_pkg_apis_app_v1alpha1_GitSource(ref common.ReferenceCallback) common
 			},
 		},
 		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_app_v1alpha1_InfinispanConnectionProperties(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "InfinispanConnectionProperties is the confuguration needed for authenticating on Infinispan cluster. More information can be found at https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description",
+				Properties: map[string]spec.Schema{
+					"credentials": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.SecretCredentialsType"),
+						},
+					},
+					"useAuth": {
+						SchemaProps: spec.SchemaProps{
+							Description: "UseAuth will be set to true if the credentials are set. Will set the property infinispan.client.hotrod.use_auth",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"authRealm": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Name of the Infinispan authentication realm. Will set the property infinispan.client.hotrod.auth_realm",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"saslMechanism": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SaslMechanism defined for the authentication. Will set the property infinispan.client.hotrod.sasl_mechanism",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"serviceURI": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ServiceURI is the service URI to connect to the Infinispan cluster, e.g. myinifisan-cluster:11222",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.SecretCredentialsType"},
 	}
 }
 
@@ -433,6 +484,200 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref common.ReferenceCallback) 
 		},
 		Dependencies: []string{
 			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments"},
+	}
+}
+
+func schema_pkg_apis_app_v1alpha1_KogitoDataIndex(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoDataIndex is the Schema for the kogitodataindices API",
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoDataIndexSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoDataIndexStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoDataIndexSpec", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoDataIndexStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoDataIndexSpec defines the desired state of KogitoDataIndex",
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Name is the name of the Data Index Service",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Replicas is the number of pod replicas that the Data Index Service will spin",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"env": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Env is a collection of additional environment variables to add to the Data Index container",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image to use for this service",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"memoryLimit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MemoryLimit is the limit of Memory which will be available for the container",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"memoryRequest": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MemoryRequest is the request of Memory which will be available for the container",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"cpuLimit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CPULimit is the limit of CPU which will be available for the container",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"cpuRequest": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CPURequest is the request of CPU which will be available for the container",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"infinispan": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Infinispan has the data used by the Kogito Data Index to connect to the Infinispan cluster",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties"),
+						},
+					},
+					"kafka": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kafka has the data used by the Kogito Data Index to connecto to a Kafka cluster",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
+						},
+					},
+				},
+				Required: []string{"name"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"},
+	}
+}
+
+func schema_pkg_apis_app_v1alpha1_KogitoDataIndexStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoDataIndexStatus defines the observed state of KogitoDataIndex",
+				Properties: map[string]spec.Schema{
+					"deploymentStatus": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Status of the Data Index Service Deployment created and managed by it",
+							Ref:         ref("k8s.io/api/apps/v1.StatefulSetStatus"),
+						},
+					},
+					"serviceStatus": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Status of the Database Service created and managed by it",
+							Ref:         ref("k8s.io/api/core/v1.ServiceStatus"),
+						},
+					},
+					"conditions": {
+						SchemaProps: spec.SchemaProps{
+							Description: "OK when all resources are created successfully",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.DataIndexCondition"),
+									},
+								},
+							},
+						},
+					},
+					"dependenciesStatus": {
+						SchemaProps: spec.SchemaProps{
+							Description: "All dependencies OK means that everything was found within the namespace",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"route": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Route is where the service is exposed",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"deploymentStatus", "serviceStatus", "conditions", "dependenciesStatus"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.DataIndexCondition", "k8s.io/api/apps/v1.StatefulSetStatus", "k8s.io/api/core/v1.ServiceStatus"},
 	}
 }
 

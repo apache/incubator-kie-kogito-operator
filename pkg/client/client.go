@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 
@@ -20,6 +21,7 @@ import (
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/client-go/discovery"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,6 +35,26 @@ type Client struct {
 	ControlCli controllercli.Client
 	BuildCli   buildv1.BuildV1Interface
 	ImageCli   imagev1.ImageV1Interface
+	Discovery  discovery.DiscoveryInterface
+}
+
+// IsOpenshift detects if the application is running on OpenShift or not
+func (c *Client) IsOpenshift() bool {
+	if c.Discovery != nil {
+		groups, err := c.Discovery.ServerGroups()
+		if err != nil {
+			log.Warnf("Impossible to get server groups using discovery API: %s", err)
+			return false
+		}
+		for _, group := range groups.Groups {
+			if strings.Contains(group.Name, "openshift.io") {
+				return true
+			}
+		}
+		return false
+	}
+	log.Warnf("Tried to discover the platform, but no discovery API is available")
+	return false
 }
 
 // MustEnsureClient will try to read the kube.yaml file from the host and connect to the cluster, if the Client or the Core Client is null.

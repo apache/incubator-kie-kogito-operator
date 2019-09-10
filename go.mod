@@ -10,6 +10,7 @@ require (
 	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/gobuffalo/packr/v2 v2.5.2
 	github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d // indirect
+	github.com/google/go-cmp v0.2.0
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/json-iterator/go v1.1.7 // indirect

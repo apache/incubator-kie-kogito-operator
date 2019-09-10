@@ -1,24 +1,19 @@
 package builder
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 // Context is the context for building KogitoApp resources
 type Context struct {
+	resource.FactoryContext
 	//KogitoApp is the cached instance of the created CR
 	KogitoApp *v1alpha1.KogitoApp
-	// Client will be used to communicate with the cluster
-	Client *client.Client
-	// PostCreate is a function that will be called after building the object in the cluster
-	PostCreate func(object meta.ResourceObject) error
-	// PreCreate is a function called before the object persistence in the cluster
-	PreCreate func(object meta.ResourceObject) error
 }
 
 type builderChain struct {

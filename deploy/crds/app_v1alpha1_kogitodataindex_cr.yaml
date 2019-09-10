@@ -1,0 +1,40 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoDataIndex
+metadata:
+  name: kogito-data-index
+spec:
+  # If not informed, these default values will be set for you
+  name: "kogito-data-index"
+  # environment variables to set in the runtime container. Example: JAVAOPTS: "-Dquarkus.log.level=DEBUG"
+  env: {}
+  # number of pods to be deployed
+  replicas: 1
+  # image to use for this deploy
+  image: "quay.io/kieroup/kogito-data-index:latest"
+  # Limits and requests for the Data Index pod
+  memoryLimit: ""
+  memoryRequest: ""
+  cpuLimit: ""
+  cpuRequest: ""
+  # details about the kafka connection
+  kafka:
+    # the service name and port for the kafka cluster. Example: my-kafka-cluster:9092
+    serviceURI: my-cluster-kafka-bootstrap:9092
+  # details about the connected infinispan
+  infinispan:
+    # name of the auth realm. "default" is the realm name for 
+    #authRealm: ""
+    # default to PLAIN
+    #saslMechanism: ""
+    # the service name and port of the infinispan cluster. Example: my-infinispan:11222
+    serviceURI: infinispan-server:11222
+    # will automatically set to true if the credentials are set
+    #useAuth: false
+    # auth credentials
+    #credentials:
+      # the secret used to store the Infinispan credentials
+      #secretName: ""
+      # username key defined in the secret to read from
+      #usernameKey: ""
+      # password key defined in the secret
+      #passwordKey: ""
