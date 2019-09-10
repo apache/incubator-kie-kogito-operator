@@ -6,13 +6,13 @@ The actual architecture has two [controllers](https://godoc.org/github.com/kuber
 
 One of the most important responsibilities of the controller is the [Reconcile Loop](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md#reconcile-loop). Inside this "loop" the controller will ensure that it has every resource (Kubernetes and OpenShift objects) created and updated accordingly.
 
-We aim to avoid having a huge monolith inside the reconcile loop that does it all. With that in mind, we separated the responsibility of making the Kubernetes and OpenShift API calls to a package that we call [`client`](../pkg/client). Kubernetes/OpenShift resources that the controller need is defined and created inside the [`builder`](../pkg/controller/kogitoapp/builder) package. `Builder` communicates with the `client` package to bind or create the objects in the cluster. The `Controller` also make calls to `client` to perform certain taks during the `reconcile` loop.
+We aim to avoid having a huge monolith inside the reconcile loop that does it all. With that in mind, we separated the responsibility of making the Kubernetes and OpenShift API calls to a package that we call [`client`](../pkg/client). Kubernetes/OpenShift resources, which the controller needs, are defined and created inside the [`resource`](../pkg/controller/kogitoapp/resource) package. `resource` communicates with the `client` package to bind or create the objects in the cluster. The `controller` also make calls to `client` to perform certain tasks during the `reconcile` loop.
 
 Take a look at the following diagram to have a general idea of what we're talking about:
 
 ![Kogito Operator Packages Structure](img/packages_structure.png?raw=true)
 
-`Controller` will orchestrate all operations through `client` and `builder` calls by using its domain model (`Type`). `Controller` also will delegate to `Builder` the resources bind and creation.
+`Controller` will orchestrate all operations through `Client` and `Resource` calls by using its domain model (`Type`). `Controller` also will delegate to `Resource` the resources bind and creation.
 
 ## Client
 
@@ -37,13 +37,13 @@ It will fetch a particular named resource (e.g. a `ServiceAccount`), and if does
 
 We try to do our best to have a code easy to read even for those who are not familiar with the Go language.
 
-## Builder
+## Resource
 
-The `builder` package defines the structure and dependencies of every resource according to the controller requirements. The following diagram illustrates the relationship between the OpenShift resources for deploying a new Kogito Application through the `KogitoApp` controller:
+The `resource` package defines the structure and dependencies of every resource according to the controller requirements. The following diagram illustrates the relationship between the OpenShift resources for deploying a new Kogito Application through the `KogitoApp` controller:
 
 ![Kogito App Resources Composition](img/kogitoapp_resource_composition.png?raw=true)
 
-The `builder` package ensures that each object is created accordingly. Take "for example" the `NewRoute` function:
+The `resource` package ensures that each object is created accordingly. Take "for example" the `NewRoute` function:
 
 ```go
 func NewRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *routev1.Route, err error) {

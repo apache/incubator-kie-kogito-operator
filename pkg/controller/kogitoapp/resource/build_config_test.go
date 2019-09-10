@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
 	v1 "k8s.io/api/core/v1"
@@ -48,11 +48,11 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 		},
 	}
 	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
-	bcService, _ := NewBuildConfigService(kogitoApp, &bcS2I)
+	bcRuntime, _ := NewBuildConfigRuntime(kogitoApp, &bcS2I)
 
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "false"})
 	assert.NotContains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "true"})
-	assert.Contains(t, bcService.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType].ImageStreamName)
+	assert.Contains(t, bcRuntime.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType].ImageStreamName)
 	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
 }
@@ -86,11 +86,11 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 	bcS2I, err := NewBuildConfigS2I(kogitoApp)
 	assert.Nil(t, err)
 	assert.NotNil(t, bcS2I)
-	bcService, err := NewBuildConfigService(kogitoApp, &bcS2I)
+	bcRuntime, err := NewBuildConfigRuntime(kogitoApp, &bcS2I)
 	assert.Nil(t, err)
-	assert.NotNil(t, bcService)
+	assert.NotNil(t, bcRuntime)
 
-	assert.Equal(t, "my-image:"+ImageStreamTag, bcService.Spec.Strategy.SourceStrategy.From.Name)
+	assert.Equal(t, "my-image:"+ImageStreamTag, bcRuntime.Spec.Strategy.SourceStrategy.From.Name)
 	assert.Equal(t, "kogito-quarkus-ubi8-s2i:latest", bcS2I.Spec.Strategy.SourceStrategy.From.Name)
 }
 
@@ -117,16 +117,51 @@ func Test_buildConfigResource_New(t *testing.T) {
 	bcS2I, err := NewBuildConfigS2I(kogitoApp)
 	assert.Nil(t, err)
 	assert.NotNil(t, bcS2I)
-	bcService, err := NewBuildConfigService(kogitoApp, &bcS2I)
+	bcRuntime, err := NewBuildConfigRuntime(kogitoApp, &bcS2I)
 	assert.Nil(t, err)
-	assert.NotNil(t, bcService)
+	assert.NotNil(t, bcRuntime)
 
 	assert.Contains(t, bcS2I.Spec.Output.To.Name, BuildS2INameSuffix)
-	assert.NotContains(t, bcService.Spec.Output.To.Name, BuildS2INameSuffix)
-	assert.Len(t, bcService.Spec.Triggers, 1)
+	assert.NotContains(t, bcRuntime.Spec.Output.To.Name, BuildS2INameSuffix)
+	assert.Len(t, bcRuntime.Spec.Triggers, 1)
 	assert.Len(t, bcS2I.Spec.Triggers, 0)
-	assert.Equal(t, bcService.Spec.Source.Images[0].From, *bcS2I.Spec.Output.To)
+	assert.Equal(t, bcRuntime.Spec.Source.Images[0].From, *bcS2I.Spec.Output.To)
 	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: bcS2I.Spec.Resources.Limits.Memory().ToDec().AsDec().UnscaledBig().String()})
+}
+
+func Test_parseImage(t *testing.T) {
+	type args struct {
+		image *v1alpha1.Image
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  string
+		want1 string
+	}{
+		{"testParseImage",
+			args{
+				image: &v1alpha1.Image{
+					ImageStreamName:      "testImage",
+					ImageStreamTag:       "vTest",
+					ImageStreamNamespace: "testNamespace",
+				},
+			},
+			"testImage:vTest",
+			"testNamespace",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := parseImage(tt.args.image)
+			if got != tt.want {
+				t.Errorf("parseImage() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("parseImage() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
 }

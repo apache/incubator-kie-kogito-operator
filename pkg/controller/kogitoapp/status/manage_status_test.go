@@ -28,7 +28,7 @@ func TestSetDeployed(t *testing.T) {
 	now := metav1.Now()
 	cr := &v1alpha1.KogitoApp{}
 
-	assert.True(t, SetDeployed(cr))
+	assert.True(t, setDeployed(cr))
 
 	assert.NotEmpty(t, cr.Status.Conditions)
 	assert.Equal(t, v1alpha1.DeployedConditionType, cr.Status.Conditions[0].Type)
@@ -38,12 +38,12 @@ func TestSetDeployed(t *testing.T) {
 
 func TestSetDeployedSkipUpdate(t *testing.T) {
 	cr := &v1alpha1.KogitoApp{}
-	SetDeployed(cr)
+	setDeployed(cr)
 
 	assert.NotEmpty(t, cr.Status.Conditions)
 	condition := cr.Status.Conditions[0]
 
-	assert.False(t, SetDeployed(cr))
+	assert.False(t, setDeployed(cr))
 	assert.Equal(t, 1, len(cr.Status.Conditions))
 	assert.Equal(t, condition, cr.Status.Conditions[0])
 }
@@ -51,7 +51,7 @@ func TestSetDeployedSkipUpdate(t *testing.T) {
 func TestSetProvisioning(t *testing.T) {
 	now := metav1.Now()
 	cr := &v1alpha1.KogitoApp{}
-	assert.True(t, SetProvisioning(cr))
+	assert.True(t, setProvisioning(cr))
 
 	assert.NotEmpty(t, cr.Status.Conditions)
 	assert.Equal(t, v1alpha1.ProvisioningConditionType, cr.Status.Conditions[0].Type)
@@ -61,12 +61,12 @@ func TestSetProvisioning(t *testing.T) {
 
 func TestSetProvisioningSkipUpdate(t *testing.T) {
 	cr := &v1alpha1.KogitoApp{}
-	assert.True(t, SetProvisioning(cr))
+	assert.True(t, setProvisioning(cr))
 
 	assert.NotEmpty(t, cr.Status.Conditions)
 	condition := cr.Status.Conditions[0]
 
-	assert.False(t, SetProvisioning(cr))
+	assert.False(t, setProvisioning(cr))
 	assert.Equal(t, 1, len(cr.Status.Conditions))
 	assert.Equal(t, condition, cr.Status.Conditions[0])
 }
@@ -75,8 +75,8 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	now := metav1.Now()
 	cr := &v1alpha1.KogitoApp{}
 
-	assert.True(t, SetProvisioning(cr))
-	assert.True(t, SetDeployed(cr))
+	assert.True(t, setProvisioning(cr))
+	assert.True(t, setDeployed(cr))
 
 	assert.NotEmpty(t, cr.Status.Conditions)
 	condition := cr.Status.Conditions[0]
@@ -93,7 +93,7 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 func TestBuffer(t *testing.T) {
 	cr := &v1alpha1.KogitoApp{}
 	for i := 0; i < maxBuffer+2; i++ {
-		SetFailed(cr, v1alpha1.UnknownReason, fmt.Errorf("Error %d", i))
+		setFailed(cr, v1alpha1.UnknownReason, fmt.Errorf("Error %d", i))
 	}
 	size := len(cr.Status.Conditions)
 	assert.Equal(t, maxBuffer, size)

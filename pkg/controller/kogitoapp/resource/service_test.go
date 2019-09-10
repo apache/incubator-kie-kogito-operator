@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
 	"testing"
@@ -50,12 +50,12 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 		},
 	}
 	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
-	bcSvc, _ := NewBuildConfigService(kogitoApp, &bcS2I)
-	dc, _ := NewDeploymentConfig(kogitoApp, &bcSvc, nil)
+	bcRuntime, _ := NewBuildConfigRuntime(kogitoApp, &bcS2I)
+	dc, _ := NewDeploymentConfig(kogitoApp, &bcRuntime, nil)
 	svc := NewService(kogitoApp, dc)
 	assert.Nil(t, svc)
 	// try again, now with ports
-	dc, _ = NewDeploymentConfig(kogitoApp, &bcSvc, dockerImage)
+	dc, _ = NewDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
 	svc = NewService(kogitoApp, dc)
 	assert.NotNil(t, svc)
 	assert.Len(t, svc.Spec.Ports, 1)

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
 	"testing"
@@ -51,8 +51,8 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 		},
 	}
 	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
-	bcSvc, _ := NewBuildConfigService(kogitoApp, &bcS2I)
-	dc, err := NewDeploymentConfig(kogitoApp, &bcSvc, dockerImage)
+	bcRuntime, _ := NewBuildConfigRuntime(kogitoApp, &bcS2I)
+	dc, err := NewDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
 	assert.Nil(t, err)
 	assert.NotNil(t, dc)
 	// we should have only one port. the 8181 is invalid.
@@ -79,13 +79,13 @@ func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
 		},
 	}
 	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
-	bcSvc, _ := NewBuildConfigService(kogitoApp, &bcS2I)
-	dc, err := NewDeploymentConfig(kogitoApp, &bcSvc, &dockerv10.DockerImage{})
+	bcRuntime, _ := NewBuildConfigRuntime(kogitoApp, &bcS2I)
+	dc, err := NewDeploymentConfig(kogitoApp, &bcRuntime, &dockerv10.DockerImage{})
 	assert.Nil(t, err)
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Selector, 1)
 	assert.Len(t, dc.Spec.Template.Spec.Containers, 1)
-	assert.Equal(t, bcSvc.Spec.Output.To.Name, dc.Spec.Template.Spec.Containers[0].Image)
+	assert.Equal(t, bcRuntime.Spec.Output.To.Name, dc.Spec.Template.Spec.Containers[0].Image)
 	assert.Equal(t, "test", dc.Labels[LabelKeyAppName])
 	assert.Equal(t, "test", dc.Spec.Selector[LabelKeyAppName])
 	assert.Equal(t, "test", dc.Spec.Template.Labels[LabelKeyAppName])

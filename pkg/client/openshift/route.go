@@ -15,8 +15,6 @@
 package openshift
 
 import (
-	"time"
-
 	routev1 "github.com/openshift/api/route/v1"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -27,7 +25,7 @@ import (
 
 // RouteInterface exposes common operations for Route API
 type RouteInterface interface {
-	GetHostFromRoute(routeKey types.NamespacedName) (string, error)
+	GetHostFromRoute(routeKey types.NamespacedName) (bool, string, error)
 }
 
 func newRoute(c *client.Client) RouteInterface {
@@ -41,19 +39,16 @@ type route struct {
 	client *client.Client
 }
 
-func (r *route) GetHostFromRoute(routeKey types.NamespacedName) (string, error) {
+func (r *route) GetHostFromRoute(routeKey types.NamespacedName) (bool, string, error) {
 	route := &routev1.Route{}
 
-	for i := 1; i < 60; i++ {
-		time.Sleep(time.Duration(100) * time.Millisecond)
-		if exists, err :=
-			kubernetes.ResourceC(r.client).FetchWithKey(routeKey, route); exists {
-			break
-		} else if err != nil {
-			log.Error("Error getting Route. ", err)
-			return "", err
-		}
+	if exists, err :=
+		kubernetes.ResourceC(r.client).FetchWithKey(routeKey, route); exists {
+		return true, route.Spec.Host, nil
+	} else if err != nil {
+		log.Error("Error getting Route. ", err)
+		return false, "", err
 	}
 
-	return route.Spec.Host, nil
+	return false, route.Spec.Host, nil
 }

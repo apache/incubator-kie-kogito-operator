@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
@@ -24,26 +24,26 @@ import (
 
 var log = logger.GetLogger("builder_kogitoapp")
 
-// KogitoAppInventory has a reference for every resource needed to deploy the KogitoApp
-type KogitoAppInventory struct {
-	ResourceInventoryStatus
+// KogitoAppResources has a reference for every resource needed to deploy the KogitoApp
+type KogitoAppResources struct {
+	KogitoAppResourcesStatus
 	BuildConfigS2I     *buildv1.BuildConfig
-	BuildConfigService *buildv1.BuildConfig
+	BuildConfigRuntime *buildv1.BuildConfig
 	DeploymentConfig   *appsv1.DeploymentConfig
 	Route              *routev1.Route
 	Service            *corev1.Service
 }
 
-// ResourceInventoryStatusKind defines the kind of the resource status in the cluster
-type ResourceInventoryStatusKind struct {
+// KogitoAppResourceStatusKind defines the kind of the resource status in the cluster
+type KogitoAppResourceStatusKind struct {
 	IsNew bool
 }
 
-// ResourceInventoryStatus defines the resource status in the cluster
-type ResourceInventoryStatus struct {
-	BuildConfigS2IStatus     ResourceInventoryStatusKind
-	BuildConfigServiceStatus ResourceInventoryStatusKind
-	DeploymentConfigStatus   ResourceInventoryStatusKind
-	RouteStatus              ResourceInventoryStatusKind
-	ServiceStatus            ResourceInventoryStatusKind
+// KogitoAppResourcesStatus defines the resource status in the cluster
+type KogitoAppResourcesStatus struct {
+	BuildConfigS2IStatus     KogitoAppResourceStatusKind
+	BuildConfigRuntimeStatus KogitoAppResourceStatusKind
+	DeploymentConfigStatus   KogitoAppResourceStatusKind
+	RouteStatus              KogitoAppResourceStatusKind
+	ServiceStatus            KogitoAppResourceStatusKind
 }

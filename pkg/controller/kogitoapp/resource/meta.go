@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -62,13 +62,16 @@ func addServiceLabels(objectMeta *metav1.ObjectMeta, kogitoApp *v1alpha1.KogitoA
 			objectMeta.Labels = map[string]string{}
 		}
 
-		if kogitoApp.Spec.Service.Labels == nil {
-			objectMeta.Labels[LabelKeyServiceName] = kogitoApp.Name
-		} else {
-			for key, value := range kogitoApp.Spec.Service.Labels {
-				objectMeta.Labels[key] = value
-			}
-		}
+		addServiceLabelsToMap(objectMeta.Labels, kogitoApp)
+	}
+}
 
+func addServiceLabelsToMap(labelsMap map[string]string, kogitoApp *v1alpha1.KogitoApp) {
+	if kogitoApp.Spec.Service.Labels == nil {
+		labelsMap[LabelKeyServiceName] = kogitoApp.Name
+	} else {
+		for key, value := range kogitoApp.Spec.Service.Labels {
+			labelsMap[key] = value
+		}
 	}
 }

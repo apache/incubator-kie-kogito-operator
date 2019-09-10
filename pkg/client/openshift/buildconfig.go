@@ -66,19 +66,22 @@ func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector st
 		return state, err
 	} else if img == nil {
 		log.Debugf("Image not found for build %s", bc.Name)
-		state.ImageExists = false
-		if running, err := b.BuildIsRunning(bc, labelSelector); running {
-			log.Debugf("Build %s is still running", bc.Name)
-			state.BuildRunning = true
-			return state, nil
-		} else if err != nil {
-			return state, err
-		}
+	} else {
+		state.ImageExists = true
+	}
+
+	if running, err := b.BuildIsRunning(bc, labelSelector); running {
+		log.Debugf("Build %s is still running", bc.Name)
+		state.BuildRunning = true
+	} else if err != nil {
+		return state, err
+	}
+
+	if !state.ImageExists && !state.BuildRunning {
 		// TODO: ensure that we don't have errors in the builds and inform this to the user
 		log.Debugf("There's no image and no build running or pending for %s.", bc.Name)
-		return state, nil
 	}
-	state.ImageExists = true
+
 	return state, nil
 }
 

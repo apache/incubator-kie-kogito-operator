@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
+	"fmt"
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
@@ -92,4 +93,8 @@ func ensureImageBuild(image v1alpha1.Image, defaultImage v1alpha1.Image) v1alpha
 	}
 
 	return defaultImage
+}
+
+func parseImage(image *v1alpha1.Image) (string, string) {
+	return fmt.Sprintf("%s:%s", image.ImageStreamName, image.ImageStreamTag), image.ImageStreamNamespace
 }

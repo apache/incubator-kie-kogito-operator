@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
 	"encoding/json"
@@ -32,6 +32,7 @@ import (
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	buildfake "github.com/openshift/client-go/build/clientset/versioned/fake"
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -61,21 +62,25 @@ func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	s.AddKnownTypes(appsv1.SchemeGroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{})
 	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 
-	inv, err := BuildOrFetchObjects(&Context{
+	resources, err := BuildOrFetchObjects(&Context{
 		FactoryContext: resource.FactoryContext{
-			Client: &client.Client{ControlCli: fake.NewFakeClient(), ImageCli: imgfake.NewSimpleClientset().ImageV1()},
+			Client: &client.Client{
+				ControlCli: fake.NewFakeClient(),
+				BuildCli:   buildfake.NewSimpleClientset().BuildV1(),
+				ImageCli:   imgfake.NewSimpleClientset().ImageV1(),
+			},
 		},
 		KogitoApp: kogitoApp,
 	})
 
 	assert.Nil(t, err)
-	assert.NotNil(t, inv)
-	assert.Nil(t, inv.DeploymentConfig)
-	assert.False(t, inv.DeploymentConfigStatus.IsNew)
-	assert.NotNil(t, inv.BuildConfigS2I)
-	assert.NotNil(t, inv.BuildConfigService)
-	assert.True(t, inv.BuildConfigS2IStatus.IsNew)
-	assert.True(t, inv.BuildConfigServiceStatus.IsNew)
+	assert.NotNil(t, resources)
+	assert.Nil(t, resources.DeploymentConfig)
+	assert.False(t, resources.DeploymentConfigStatus.IsNew)
+	assert.NotNil(t, resources.BuildConfigS2I)
+	assert.NotNil(t, resources.BuildConfigRuntime)
+	assert.True(t, resources.BuildConfigS2IStatus.IsNew)
+	assert.True(t, resources.BuildConfigRuntimeStatus.IsNew)
 }
 
 func TestBuildResources_CreateAllSuccess(t *testing.T) {
@@ -101,31 +106,35 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 		},
 	}
 
-	inv, err := BuildOrFetchObjects(&Context{
+	resources, err := BuildOrFetchObjects(&Context{
 		FactoryContext: resource.FactoryContext{
-			Client: &client.Client{ControlCli: fake.NewFakeClient(), ImageCli: imgfake.NewSimpleClientset(&isTag).ImageV1()},
+			Client: &client.Client{
+				ControlCli: fake.NewFakeClient(),
+				BuildCli:   buildfake.NewSimpleClientset().BuildV1(),
+				ImageCli:   imgfake.NewSimpleClientset(&isTag).ImageV1(),
+			},
 		},
 		KogitoApp: kogitoApp,
 	})
 
 	assert.Nil(t, err)
-	assert.NotNil(t, inv)
+	assert.NotNil(t, resources)
 
-	assert.NotNil(t, inv.BuildConfigS2I)
-	assert.True(t, inv.BuildConfigS2IStatus.IsNew)
+	assert.NotNil(t, resources.BuildConfigS2I)
+	assert.True(t, resources.BuildConfigS2IStatus.IsNew)
 
-	assert.NotNil(t, inv.BuildConfigService)
-	assert.True(t, inv.BuildConfigServiceStatus.IsNew)
+	assert.NotNil(t, resources.BuildConfigRuntime)
+	assert.True(t, resources.BuildConfigRuntimeStatus.IsNew)
 
-	assert.NotNil(t, inv.DeploymentConfig)
-	assert.True(t, inv.DeploymentConfigStatus.IsNew)
+	assert.NotNil(t, resources.DeploymentConfig)
+	assert.True(t, resources.DeploymentConfigStatus.IsNew)
 
-	assert.NotNil(t, inv.Service)
-	assert.True(t, inv.ServiceStatus.IsNew)
+	assert.NotNil(t, resources.Service)
+	assert.True(t, resources.ServiceStatus.IsNew)
 
-	assert.NotNil(t, inv.Route)
-	assert.True(t, inv.RouteStatus.IsNew)
+	assert.NotNil(t, resources.Route)
+	assert.True(t, resources.RouteStatus.IsNew)
 
-	assert.Len(t, inv.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports, 1)
-	assert.Equal(t, inv.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, int32(8080))
+	assert.Len(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports, 1)
+	assert.Equal(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, int32(8080))
 }
