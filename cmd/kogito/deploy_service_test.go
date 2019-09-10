@@ -12,14 +12,14 @@ import (
 )
 
 func Test_DeployCmd_WhenThereAreNoOperator(t *testing.T) {
-	cli := fmt.Sprintf("deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example --app kogito")
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project kogito")
 	lines, _, err := executeCli(cli, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Couldn't find the Kogito Operator")
 }
 
 func Test_DeployCmd_WhenThereAreAnOperator(t *testing.T) {
-	cli := fmt.Sprintf("deploy example-drools https://github.com/kiegroup/kogito-examples --context drools-quarkus-example --app kogito")
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project kogito")
 	lines, _, err := executeCli(cli,
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}},
@@ -30,7 +30,7 @@ func Test_DeployCmd_WhenThereAreAnOperator(t *testing.T) {
 }
 
 func Test_DeployCmd_CustomDeployment(t *testing.T) {
-	cli := fmt.Sprintf("deploy example-drools https://github.com/kiegroup/kogito-examples -v --context drools-quarkus-example --app kogito --image-s2i=myimage --image-runtime=myimage:0.2 --limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi")
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project kogito --image-s2i=myimage --image-runtime=myimage:0.2 --limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi")
 	config.LastKogitoAppCreated = nil
 	_, _, err := executeCli(cli,
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
