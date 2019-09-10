@@ -124,11 +124,9 @@ var _ = RegisterCommandInit(func() {
 func deployExec(cmd *cobra.Command, args []string) error {
 	deployCmdFlags.name = args[0]
 	deployCmdFlags.source = args[1]
-	if len(deployCmdFlags.namespace) == 0 {
-		if len(config.Namespace) == 0 {
-			return fmt.Errorf("Couldn't find any application in the current context. Use 'kogito app NAME' to set the Kogito Application where the service will be deployed or pass '--app NAME' flag to this one")
-		}
-		deployCmdFlags.namespace = config.Namespace
+	var err error
+	if deployCmdFlags.namespace, err = checkProjecLocally(deployCmdFlags.namespace); err != nil {
+		return err
 	}
 	log.Debugf("About to deploy a new kogito service application: %s, runtime %s source %s on namespace %s",
 		deployCmdFlags.name,
@@ -137,7 +135,7 @@ func deployExec(cmd *cobra.Command, args []string) error {
 		deployCmdFlags.namespace,
 	)
 
-	if err := checkNamespaceExists(deployCmdFlags.namespace); err != nil {
+	if err := checkProjectExists(deployCmdFlags.namespace); err != nil {
 		return err
 	}
 	log.Debugf("Using namespace %s", deployCmdFlags.namespace)
