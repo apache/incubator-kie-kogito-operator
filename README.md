@@ -11,75 +11,6 @@ Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kieg
 - ocp 4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
 - [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
 
-## Architecture
-
-The actual architecture has only one [controller](https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg#hdr-Controller) that's responsible for deploying the application from source. It's on the [roadmap](https://github.com/kiegroup/kogito-runtimes/wiki/Roadmap) to have two more controllers to handle SSO and Persistence. The following image illustrates the general idea:
-
-![Kogito Operator General Architecture](docs/img/general_archictecture.png?raw=true)
-
-One of the most important responsibilities of the controller is the [Reconcile Loop](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md#reconcile-loop). Inside this "loop" the controller will ensure that it has every resource (Kubernetes and OpenShift objects) created and updated accordingly.
-
-We aim to avoid having a huge monolith inside the reconcile loop that does it all. With that in mind, we separated the responsibility of making the Kubernetes and OpenShift API calls to a package that we call [`client`](pkg/client). Kubernetes/OpenShift resources that the controller need is defined and created inside the [`builder`](pkg/controller/kogitoapp/builder) package. `Builder` communicates with the `client` package to bind or create the objects in the cluster. The `Controller` also make calls to `client` to perform certain taks during the `reconcile` loop.
-
-Take a look at the following diagram to have a general idea of what we're talking about:
-
-![Kogito Operator Packages Structure](docs/img/packages_structure.png?raw=true)
-
-`Controller` will orchestrate all operations through `client` and `builder` calls by using its domain model (`Type`). `Controller` also will delegate to `Builder` the resources bind and creation.
-
-### Client
-
-In this package we handle all Kubernetes/OpenShift API calls, transforming those operations into meaningful functions that can be used across all controller operations. Take for example the `CreateIfNotExists` function:
-
-```go
-func CreateIfNotExists(resource meta.ResourceObject) (bool, error) {
-	if exists, err := Fetch(resource); err == nil && !exists {
-		err = cli.Create(context.TODO(), resource)
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	} else if err != nil {
-		return false, err
-	}
-	return false, nil
-}
-```
-
-It will fetch a particular named resource (e.g. a `ServiceAccount`), and if does not exist, the function will create a new one using the API.
-
-We try to do our best to have a code easy to read even for those who are not familiar with the Go language.
-
-### Builder
-
-The `builder` package defines the structure and dependencies of every resource according to the controller requirements. The following diagram illustrates the relationship between the OpenShift resources for deploying a new Kogito Application through the `KogitoApp` controller:
-
-![Kogito App Resources Composition](docs/img/kogitoapp_resource_composition.png?raw=true)
-
-The `builder` package ensures that each object is created accordingly. Take "for example" the `NewRoute` function:
-
-```go
-func NewRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *routev1.Route, err error) {
-	...
-	route = &routev1.Route{
-		ObjectMeta: service.ObjectMeta,
-		Spec: routev1.RouteSpec{
-			Port: &routev1.RoutePort{
-				...
-			},
-			To: routev1.RouteTargetReference{
-				Kind: meta.KindService.Name,
-				Name: service.Name,
-			},
-		},
-	}
-	...
-	return route, nil
-}
-```
-
-This function will create a new `Route` that depends on the `Service`, with the service's references, labels and annotations.
-
 ## Build
 
 ```bash
@@ -146,13 +77,221 @@ kogito-cloud-operator-6d7b6d4466-9ng8t   1/1     Running     0          26m
 Use the pod name as the input of the following command:
 
 ```bash
-$ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t 
+$ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t
 ```
 
 ### Clean up a KogitoApp deployment
 
 ```bash
 $ oc delete kogitoapp example-quarkus
+```
+
+### Deploy Data Index Service
+
+The Kogito Operator is able to deploy the [Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) as a [Custom Resource](deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml) (`KogitoDataIndex`). Since Data Index Service depends on Kafka and Infinispan, it's necessary to manually deploy an Apache Kafka Cluster and an Infinispan Server (10.x) in the same namespace.
+
+| :information_source: It's planned for future releases that the Kogito Operator will deploy an Infinispan and a Kafka cluster when deploying the Data Index Service. |
+| --- |
+
+#### Deploy Infinispan
+
+To deploy an Infinispan Server, you can leverage from `oc new-app [docker image]` command as follows:
+
+```bash
+$ oc new-app jboss/infinispan-server:10.0.0.Beta3
+```
+
+Expect a similar output like this one:
+
+```bash
+--> Found Docker image caaa296 (5 months old) from Docker Hub for "jboss/infinispan-server:10.0.0.Beta3"
+
+    Infinispan Server 
+    ----------------- 
+    Provides a scalable in-memory distributed database designed for fast access to large volumes of data.
+
+    Tags: datagrid, java, jboss
+
+    * An image stream tag will be created as "infinispan-server:10.0.0.Beta3" that will track this image
+    * This image will be deployed in deployment config "infinispan-server"
+    * Ports 11211/tcp, 11222/tcp, 57600/tcp, 7600/tcp, 8080/tcp, 8181/tcp, 8888/tcp, 9990/tcp will be load balanced by service "infinispan-server"
+      * Other containers can access this service through the hostname "infinispan-server"
+
+--> Creating resources ...
+    imagestream.image.openshift.io "infinispan-server" created
+    deploymentconfig.apps.openshift.io "infinispan-server" created
+    service "infinispan-server" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose svc/infinispan-server' 
+    Run 'oc status' to view your app.
+```
+
+OpenShift will create everything you need for your this Infinispan Server to work in the namespace. Make sure that the pod is running:
+
+```bash
+$ oc get pods -l app=infinispan-server
+```
+
+Take a look at the logs by running:
+
+```bash
+# take the pod name from the command you ran before
+$ oc logs -f <pod name>
+```
+
+The Infinispan server should be accessed within the namespace by port 11222:
+
+```bash
+$ oc get svc -l app=infinispan-server
+
+NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                      AGE
+infinispan-server   ClusterIP   172.30.193.214   <none>        7600/TCP,8080/TCP,8181/TCP,8888/TCP,9990/TCP,11211/TCP,11222/TCP,57600/TCP   4m19s
+```
+
+#### Deploy Strimzi
+
+Deploying [Strimzi](https://strimzi.io/) is much easier since it's an Operator and should be available in the [OperatorHub](https://operatorhub.io/operator/strimzi-kafka-operator). On OpenShift Web Console, go to the left menu, Catalog, OperatorHub and search for `Strimzi`.
+
+Follow the on screen instructions to install the Strimzi Operator. At the end, you should see the Strimzi Operator on the Installed Operators tab:
+
+![Strimzi Installed](docs/img/strimzi_installed.png?raw=true)
+
+Next, you need to create a Kafka cluster and a Kafka Topic for the Data Index Service to connect. Click on the name of the Strimzi Operator, then on `Kafka` tab and `Create Kafka`. Accept the default options to create a 3 node Kafka cluster. If it's a development environment, consider setting the Zookeeper and Kafka replicas to 1 to save resources.
+
+After a few minutes you should see the pods running and the service available:
+
+```bash
+$ oc get svc -l strimzi.io/cluster=my-cluster
+
+NAME                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+my-cluster-kafka-bootstrap    ClusterIP   172.30.228.90    <none>        9091/TCP,9092/TCP,9093/TCP   9d
+my-cluster-kafka-brokers      ClusterIP   None             <none>        9091/TCP,9092/TCP,9093/TCP   9d
+my-cluster-zookeeper-client   ClusterIP   172.30.241.146   <none>        2181/TCP                     9d
+my-cluster-zookeeper-nodes    ClusterIP   None             <none>        2181/TCP,2888/TCP,3888/TCP   9d
+```
+
+The service you're interested in is `my-cluster-kafka-bootstrap:9092`. We will use it to deploy the Data Index Service later.
+
+Having the cluster up and running, the next step is creating a `Kafka Topic` required by the Data Index Service.
+
+In the OpenShift Web Console, go to the Installed Operators, Strimzi Operator, Kafka Topic tab. From there, create a new `Kafka Topic` and name it as `kogito-processinstances-events` like in the example below:
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: kogito-processinstances-events
+  labels:
+    strimzi.io/cluster: my-cluster
+  namespace: kogito
+spec:
+  partitions: 10
+  replicas: 3
+  config:
+    retention.ms: 604800000
+    segment.bytes: 1073741824
+```
+
+To check if everything was created successfully run the following command:
+
+```bash
+$ oc describe kafkatopic/kogito-processinstances-events
+
+Name:         kogito-processinstances-events
+Namespace:    kogito
+Labels:       strimzi.io/cluster=my-cluster
+Annotations:  <none>
+API Version:  kafka.strimzi.io/v1beta1
+Kind:         KafkaTopic
+Metadata:
+  Creation Timestamp:  2019-08-28T18:09:41Z
+  Generation:          2
+  Resource Version:    5673235
+  Self Link:           /apis/kafka.strimzi.io/v1beta1/namespaces/kogito/kafkatopics/kogito-processinstances-events
+  UID:                 0194989e-c9bf-11e9-8160-0615e4bfa428
+Spec:
+  Config:
+    message.format.version:  2.3-IV1
+    retention.ms:            604800000
+    segment.bytes:           1073741824
+  Partitions:                10
+  Replicas:                  1
+  Topic Name:                kogito-processinstances-events
+Events:                      <none>
+```
+
+Now that you have the required infrastrucuture, it's safe to deploy the Kogito Data Index Service.
+
+#### Deploy Data Index
+
+Having [installed](#installation) the Kogito Operator, create a new `Kogito Data Index` resource using the services URIs from Infinispan and Kafka:
+
+```bash
+$ oc get svc -l app=infinispan-server
+
+NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                      AGE
+infinispan-server   ClusterIP   172.30.193.214   <none>        7600/TCP,8080/TCP,8181/TCP,8888/TCP,9990/TCP,11211/TCP,11222/TCP,57600/TCP   4m19s
+```
+
+In this example, the Infinispan Server service is `infinispan-server:11222`.
+
+Then grab the Kafka cluster URI:
+
+```bash
+$ oc get svc -l strimzi.io/cluster=my-cluster | grep bootstrap
+
+my-cluster-kafka-bootstrap    ClusterIP   172.30.228.90    <none>        9091/TCP,9092/TCP,9093/TCP   9d
+```
+
+In this case the Kafka Cluster service is `my-cluster-kafka-bootstrap:9092`.
+
+Use this information to create the Kogito Data Index resource. If you're running on OCP 4.x, you might use the OperatorHub user interface. In the left menu go to Installed Operators, Kogito Operator, Kogito Data Index tab. From there, click on "Create Kogito Data Index" and create a new resource like in the example below using the Infinispan and Kafka services:
+
+```yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoDataIndex
+metadata:
+  name: kogito-data-index
+spec:
+  # If not informed, these default values will be set for you
+  name: "kogito-data-index"
+  # environment variables to set in the runtime container. Example: JAVAOPTS: "-Dquarkus.log.level=DEBUG"
+  env: {}
+  # number of pods to be deployed
+  replicas: 1
+  # image to use for this deploy
+  image: "quay.io/kiegroup/kogito-data-index:latest"
+  # Limits and requests for the Data Index pod
+  memoryLimit: ""
+  memoryRequest: ""
+  cpuLimit: ""
+  cpuRequest: ""
+  # details about the kafka connection
+  kafka:
+    # the service name and port for the kafka cluster. Example: my-kafka-cluster:9092
+    serviceURI: my-cluster-kafka-bootstrap:9092
+  # details about the connected infinispan
+  infinispan:
+    # the service name and port of the infinispan cluster. Example: my-infinispan:11222
+    serviceURI: infinispan-server:11222
+```
+
+Otherwise you can use this example as a reference and create this custom resource from the command line:
+
+```bash
+$ git clone https://github.com/kiegroup/kogito-cloud-operator.git
+$ cd kogito-cloud-operator
+$ oc create -f deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml
+```
+
+You should be able to access the GraphQL interface via the route created for you:
+
+```bash
+$ oc get routes -l app=kogito-data-index
+
+NAME                HOST/PORT                                                                      PATH   SERVICES            PORT   TERMINATION   WILDCARD
+kogito-data-index   kogito-data-index-kogito.apps.mycluster.example.com                                   kogito-data-index   8180                 None
 ```
 
 ## Kogito CLI
@@ -215,6 +354,8 @@ Flags:
 Use "kogito [command] --help" for more information about a command.
 ```
 
+### Deploy a Kogito Service from source with CLI
+
 After [installing](#installation) the Kogito Operator, it's possible to deploy a new Kogito Service by using the CLI:
 
 ```bash
@@ -236,6 +377,8 @@ $ kogito deploy example-drools https://github.com/kiegroup/kogito-examples --con
 ```
 
 ## Development
+
+While fixing issues or adding new features to the Kogito Operator, please consider taking a look at [Contributions](CONTRIBUTING.MD) and [Architecture](ARCHITECTURE.MD) documentation.
 
 ### Deploy to OpenShift 4.x for development purposes
 

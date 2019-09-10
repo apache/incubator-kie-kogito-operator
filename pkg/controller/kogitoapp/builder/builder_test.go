@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 
@@ -48,7 +49,9 @@ func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 
 	inv, err := BuildOrFetchObjects(&Context{
-		Client:    &client.Client{ControlCli: fake.NewFakeClient(), ImageCli: imgfake.NewSimpleClientset().ImageV1()},
+		FactoryContext: resource.FactoryContext{
+			Client: &client.Client{ControlCli: fake.NewFakeClient(), ImageCli: imgfake.NewSimpleClientset().ImageV1()},
+		},
 		KogitoApp: kogitoApp,
 	})
 
@@ -86,7 +89,9 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	}
 
 	inv, err := BuildOrFetchObjects(&Context{
-		Client:    &client.Client{ControlCli: fake.NewFakeClient(), ImageCli: imgfake.NewSimpleClientset(&isTag).ImageV1()},
+		FactoryContext: resource.FactoryContext{
+			Client: &client.Client{ControlCli: fake.NewFakeClient(), ImageCli: imgfake.NewSimpleClientset(&isTag).ImageV1()},
+		},
 		KogitoApp: kogitoApp,
 	})
 

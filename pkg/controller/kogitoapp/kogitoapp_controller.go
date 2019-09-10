@@ -8,6 +8,8 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/builder"
 
@@ -15,7 +17,6 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	oappsv1 "github.com/openshift/api/apps/v1"
@@ -143,14 +144,16 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	log.Infof("Checking if all resources for '%s' are created", instance.Spec.Name)
 	// create resources in the cluster that do not exist
 	kogitoInv, err := builder.BuildOrFetchObjects(&builder.Context{
-		Client:    r.client,
 		KogitoApp: instance,
-		PreCreate: func(object meta.ResourceObject) error {
-			if object != nil {
-				log.Debugf("Setting controller reference pre create for '%s' kind '%s'", object.GetName(), object.GetObjectKind().GroupVersionKind().Kind)
-				return controllerutil.SetControllerReference(instance, object, r.scheme)
-			}
-			return nil
+		FactoryContext: resource.FactoryContext{
+			Client: r.client,
+			PreCreate: func(object meta.ResourceObject) error {
+				if object != nil {
+					log.Debugf("Setting controller reference pre create for '%s' kind '%s'", object.GetName(), object.GetObjectKind().GroupVersionKind().Kind)
+					return controllerutil.SetControllerReference(instance, object, r.scheme)
+				}
+				return nil
+			},
 		},
 	})
 	if err != nil {
@@ -357,7 +360,7 @@ func (r *ReconcileKogitoApp) bcUpdateCheck(current, new obuildv1.BuildConfig, bc
 		log.Debug("Changes detected in 'Source' config.", " OLD - ", current.Spec.Source, " NEW - ", new.Spec.Source)
 		update = true
 	}
-	if !shared.EnvVarCheck(current.Spec.Strategy.SourceStrategy.Env, new.Spec.Strategy.SourceStrategy.Env) {
+	if !util.EnvVarCheck(current.Spec.Strategy.SourceStrategy.Env, new.Spec.Strategy.SourceStrategy.Env) {
 		log.Debug("Changes detected in 'Env' config.", " OLD - ", current.Spec.Strategy.SourceStrategy.Env, " NEW - ", new.Spec.Strategy.SourceStrategy.Env)
 		update = true
 	}
@@ -439,7 +442,7 @@ func (r *ReconcileKogitoApp) dcUpdateCheck(current, new oappsv1.DeploymentConfig
 
 	cContainer := current.Spec.Template.Spec.Containers[0]
 	nContainer := new.Spec.Template.Spec.Containers[0]
-	if !shared.EnvVarCheck(cContainer.Env, nContainer.Env) {
+	if !util.EnvVarCheck(cContainer.Env, nContainer.Env) {
 		log.Debug("Changes detected in 'Env' config.", " OLD - ", cContainer.Env, " NEW - ", nContainer.Env)
 		update = true
 	}

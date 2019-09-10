@@ -22,6 +22,8 @@ type ResourceInterface interface {
 	Fetch(resource meta.ResourceObject) (bool, error)
 	ListWithNamespace(namespace string, list runtime.Object) error
 	Delete(resource meta.ResourceObject) error
+	UpdateStatus(resource meta.ResourceObject) error
+	Update(resource meta.ResourceObject) error
 }
 
 type resource struct {
@@ -36,6 +38,28 @@ func newResource(c *client.Client) *resource {
 	return &resource{
 		client: c,
 	}
+}
+
+// UpdateStatus update the given object status
+func (r *resource) UpdateStatus(resource meta.ResourceObject) error {
+	log.Debugf("About to update status for object %s on namespace %s", resource.GetName(), resource.GetNamespace())
+	if err := r.client.ControlCli.Status().Update(context.TODO(), resource); err != nil {
+		return err
+	}
+
+	log.Debugf("Object %s status updated. Creation Timestamp: %s", resource.GetName(), resource.GetCreationTimestamp())
+	return nil
+}
+
+// Update the given object
+func (r *resource) Update(resource meta.ResourceObject) error {
+	log.Debugf("About to update object %s on namespace %s", resource.GetName(), resource.GetNamespace())
+	if err := r.client.ControlCli.Update(context.TODO(), resource); err != nil {
+		return err
+	}
+
+	log.Debugf("Object %s updated. Creation Timestamp: %s", resource.GetName(), resource.GetCreationTimestamp())
+	return nil
 }
 
 // Fetch fetches and binds a resource with given name and namespace from the Kubernetes cluster. If not exists, returns false.

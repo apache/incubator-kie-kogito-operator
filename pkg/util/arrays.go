@@ -20,6 +20,18 @@ func Contains(s string, array []string) bool {
 	return false
 }
 
+// AppendStringMap will append to dest the source map
+func AppendStringMap(dest map[string]string, source map[string]string) map[string]string {
+	if dest == nil {
+		dest = map[string]string{}
+	}
+
+	for key, value := range source {
+		dest[key] = value
+	}
+	return dest
+}
+
 // FromStringsKeyPairToMap converts a string array in the key/pair format (key=value) to a map. Unconvertable strings will be skipped.
 func FromStringsKeyPairToMap(array []string) map[string]string {
 	if array == nil || len(array) == 0 {
