@@ -51,3 +51,15 @@ func fromStringArrayToControllerResourceMap(strings []string) []v1alpha1.Resourc
 	}
 	return res
 }
+
+// extractResource will read a string array in the format memory=512M, cpu=1 and will return the value for a given kind
+func extractResource(kind v1alpha1.ResourceKind, resources []string) string {
+	for _, res := range resources {
+		resKV := strings.Split(res, "=")
+		if string(kind) == resKV[0] {
+			return resKV[1]
+		}
+	}
+
+	return ""
+}

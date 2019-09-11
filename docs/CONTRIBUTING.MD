@@ -10,7 +10,7 @@ If you understand that you can contribute with code, here's some advice that mig
 
 1. Make yourself comfortable with the Go language. If you're a new programmer, take a look at the [official docs](https://golang.org/doc/). For a more advanced/intermediate level, [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book might be a good starting point.
 2. Become familiar with [the Operator SDK](https://github.com/operator-framework/operator-sdk). There's a [useful guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) that you can follow using [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/memcached-operator) as an example.
-3. Make sure to have all [requirements](README.md#requirements) set on your local machine.
+3. Make sure to have all [requirements](../README.md#requirements) set on your local machine.
 
 ## Contributors Guide
 
@@ -18,7 +18,7 @@ Please follow the sections below to be able to start contributing to the Kogito 
 
 ### Environment
 
-Start with having all the [requirements](README.md#requirements) set on your local machine and **make sure** you stick with the versions described. 
+Start with having all the [requirements](../README.md#requirements) set on your local machine and **make sure** you stick with the versions described. 
 
 The operator SDK has regular updates. We try to update our code to use the most recent updated SDK as soon as possible. Since they are not on a major version yet, incompatibilities might happen.
 
@@ -36,7 +36,7 @@ We love tests and we do our best to always have a unit test to ensure that a cer
 
 The Operator SDK has a great documentation explaining how to perform [unit testing](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/unit-testing.md) to an operator. Take your time and have a good read of it to have an overall understanding.
 
-In general, we follow the recommendations listed in that article to write unit tests. There's a small issue that might take you off guard when mocking up specific OpenShift APIs like `BuildConfig` and `DeploymentConfig` that are not listed there. Take a look at [`kogitoapp_controller_test.go`](pkg/controller/kogitoapp/kogitoapp_controller_test.go) file as a reference of how to set up your test cases and create fake API calls.
+In general, we follow the recommendations listed in that article to write unit tests. There's a small issue that might take you off guard when mocking up specific OpenShift APIs like `BuildConfig` and `DeploymentConfig` that are not listed there. Take a look at [`kogitoapp_controller_test.go`](../pkg/controller/kogitoapp/kogitoapp_controller_test.go) file as a reference of how to set up your test cases and create fake API calls.
 
 [End-to-end (e2e)](https://github.com/operator-framework/operator-sdk/blob/master/doc/test-framework/writing-e2e-tests.md) tests is a topic that we are pursuing and it's on our [backlog](https://issues.jboss.org/browse/KOGITO-130) to have it solved soon. 
 

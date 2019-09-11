@@ -15,7 +15,7 @@ func Test_DeployCmd_WhenThereAreNoOperator(t *testing.T) {
 	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project kogito")
 	lines, _, err := executeCli(cli, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
 	assert.Error(t, err)
-	assert.Contains(t, lines, "Couldn't find the Kogito Operator")
+	assert.Contains(t, lines, "Couldn't find the Kogito CRD")
 }
 
 func Test_DeployCmd_WhenThereAreAnOperator(t *testing.T) {

@@ -46,7 +46,7 @@ var _ = RegisterCommandInit(func() {
 func deleteServiceExec(cmd *cobra.Command, args []string) error {
 	deleteServiceCmdFlags.name = args[0]
 	var err error
-	if deleteServiceCmdFlags.project, err = checkProjecLocally(deleteServiceCmdFlags.project); err != nil {
+	if deleteServiceCmdFlags.project, err = checkProjectLocally(deleteServiceCmdFlags.project); err != nil {
 		return err
 	}
 	if err := checkProjectExists(deleteServiceCmdFlags.project); err != nil {

@@ -127,7 +127,7 @@ Expect a similar output like this one:
     Run 'oc status' to view your app.
 ```
 
-OpenShift will create everything you need for your this Infinispan Server to work in the namespace. Make sure that the pod is running:
+OpenShift will create everything you need for Infinispan Server to work in the namespace. Make sure that the pod is running:
 
 ```bash
 $ oc get pods -l app=infinispan-server
@@ -159,7 +159,7 @@ Follow the on screen instructions to install the Strimzi Operator. At the end, y
 
 Next, you need to create a Kafka cluster and a Kafka Topic for the Data Index Service to connect. Click on the name of the Strimzi Operator, then on `Kafka` tab and `Create Kafka`. Accept the default options to create a 3 node Kafka cluster. If it's a development environment, consider setting the Zookeeper and Kafka replicas to 1 to save resources.
 
-After a few minutes you should see the pods running and the service available:
+After a few minutes you should see the pods running and the services available:
 
 ```bash
 $ oc get svc -l strimzi.io/cluster=my-cluster
@@ -246,7 +246,19 @@ my-cluster-kafka-bootstrap    ClusterIP   172.30.228.90    <none>        9091/TC
 
 In this case the Kafka Cluster service is `my-cluster-kafka-bootstrap:9092`.
 
-Use this information to create the Kogito Data Index resource. If you're running on OCP 4.x, you might use the OperatorHub user interface. In the left menu go to Installed Operators, Kogito Operator, Kogito Data Index tab. From there, click on "Create Kogito Data Index" and create a new resource like in the example below using the Infinispan and Kafka services:
+Use this information to create the Kogito Data Index resource. 
+
+##### Deploy Data Index with Kogito CLI
+
+If you have installed the [Kogito CLI](#kogito-cli), you can simply run:
+
+```bash
+$ kogito deploy-data-index -p my-project --infinispan-url infinispan-server:11222 --kafka-url my-cluster-kafka-bootstrap:9092
+```
+
+##### Deploy Data Index with Operator Catalog (OLM)
+
+If you're running on OCP 4.x, you might use the OperatorHub user interface. In the left menu go to Installed Operators, Kogito Operator, Kogito Data Index tab. From there, click on "Create Kogito Data Index" and create a new resource like in the example below using the Infinispan and Kafka services:
 
 ```yaml
 apiVersion: app.kiegroup.org/v1alpha1
@@ -277,12 +289,18 @@ spec:
     serviceURI: infinispan-server:11222
 ```
 
-Otherwise you can use this example as a reference and create this custom resource from the command line:
+##### Deploy Data Index with oc client
+
+You can use the CR file showed above as a reference and create the custom resource from the command line:
 
 ```bash
+# clone this repo
 $ git clone https://github.com/kiegroup/kogito-cloud-operator.git
 $ cd kogito-cloud-operator
-$ oc create -f deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml
+# make your changes
+$ vi deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml
+# deploy to the cluster
+$ oc create -f deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml -n my-project
 ```
 
 You should be able to access the GraphQL interface via the route created for you:
@@ -341,18 +359,21 @@ Usage:
   kogito [command]
 
 Available Commands:
-  delete-project Deletes a Kogito Project - i.e., the Kubernetes/OpenShift namespace
-  delete-service Deletes a Kogito Runtime Service deployed in the namespace/project
-  deploy-service Deploys a new Kogito Runtime Service into the given Project
-  help           Help about any command
-  new-project    Creates a new Kogito Project for your Kogito Services
-  use-project    Sets the Kogito Project where your Kogito Service will be deployed
-  version        Prints the kogito CLI version
+  delete-project    Deletes a Kogito Project - i.e., the Kubernetes/OpenShift namespace
+  delete-service    Deletes a Kogito Runtime Service deployed in the namespace/project
+  deploy-data-index Deploys the Kogito Data Index Service in the given Project
+  deploy-service    Deploys a new Kogito Runtime Service into the given Project
+  help              Help about any command
+  new-project       Creates a new Kogito Project for your Kogito Services
+  use-project       Sets the Kogito Project where your Kogito Service will be deployed
+  version           Prints the kogito CLI version
 
 Flags:
       --config string   config file (default is $HOME/.kogito.json)
   -h, --help            help for kogito
   -v, --verbose         verbose output
+
+Use "kogito [command] --help" for more information about a command.
 ```
 
 ### Deploy a Kogito Service from source with CLI
@@ -377,7 +398,7 @@ $ kogito use-project <project-name>
 $ kogito deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example
 ```
 
-Can be shorten to:
+This can be shorten to:
 
 ```bash
 $ kogito deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project <project-name>
@@ -385,7 +406,7 @@ $ kogito deploy-service example-drools https://github.com/kiegroup/kogito-exampl
 
 ## Development
 
-While fixing issues or adding new features to the Kogito Operator, please consider taking a look at [Contributions](CONTRIBUTING.MD) and [Architecture](ARCHITECTURE.MD) documentation.
+While fixing issues or adding new features to the Kogito Operator, please consider taking a look at [Contributions](docs/CONTRIBUTING.MD) and [Architecture](docs/ARCHITECTURE.MD) documentation.
 
 ### Deploy to OpenShift 4.x for development purposes
 
@@ -427,7 +448,7 @@ $ make clean
 $ DEBUG="true" operator-sdk up local --namespace=<namespace>
 ```
 
-Before submitting PR, please be sure to read the [contributors guide](CONTRIBUTING.MD##contributors-guide).
+Before submitting PR, please be sure to read the [contributors guide](docs/CONTRIBUTING.MD).
 
 It's always worth noting that you should generate, vet, format, lint, and test your code. This all can be done with one command.
 
@@ -437,4 +458,4 @@ $ make test
 
 ## Contributing
 
-Please take a look at the [Contributing to Kogito Operator](CONTRIBUTING.MD) guide.
+Please take a look at the [Contributing to Kogito Operator](docs/CONTRIBUTING.MD) guide.

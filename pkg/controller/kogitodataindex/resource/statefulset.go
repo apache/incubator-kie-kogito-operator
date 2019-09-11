@@ -27,7 +27,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 		instance.Spec.Replicas = defaultReplicas
 	}
 	if len(instance.Spec.Image) == 0 {
-		instance.Spec.Image = defaultImage
+		instance.Spec.Image = DefaultImage
 	}
 
 	statefulset := &appsv1.StatefulSet{

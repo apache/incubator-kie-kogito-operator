@@ -50,6 +50,10 @@ var (
 	KindCRD = DefinitionKind{"CustomResourceDefinition", false, apiextensionsv1beta1.SchemeGroupVersion}
 	// KindKogitoApp for a KogitoApp controller
 	KindKogitoApp = DefinitionKind{"KogitoApp", false, v1alpha1.SchemeGroupVersion}
+	// KindKogitoDataIndex for a KindKogitoDataIndex controller
+	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
+	// KindKogitoDataIndexList for a KindKogitoDataIndexList controller
+	KindKogitoDataIndexList = DefinitionKind{"KogitoDataIndexList", false, v1alpha1.SchemeGroupVersion}
 	// KindConfigMap for a ConfigMap
 	KindConfigMap = DefinitionKind{"ConfigMap", false, corev1.SchemeGroupVersion}
 	// KindDeployment for a Deployment
@@ -72,7 +76,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s := scheme.Scheme
 	s.AddKnownTypes(corev1.SchemeGroupVersion, &corev1.Namespace{})
 	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &apiextensionsv1beta1.CustomResourceDefinition{})
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{})
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{}, &v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{})
 
 	return s
 }

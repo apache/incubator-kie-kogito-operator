@@ -125,6 +125,19 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindNamespace.Name), &restScope{name: apimeta.RESTScopeNameRoot})
 	mapper.Add(apiextensionsv1beta1.SchemeGroupVersion.WithKind(meta.KindCRD.Name), &restScope{name: apimeta.RESTScopeNameRoot})
 	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoApp.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	// the kube client is having problems with plural: kogitodataindexs :(
+	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
+		schema.GroupVersionResource{
+			Group:    meta.KindKogitoDataIndex.GroupVersion.Group,
+			Version:  meta.KindKogitoDataIndex.GroupVersion.Version,
+			Resource: "kogitodataindices",
+		},
+		schema.GroupVersionResource{
+			Group:    meta.KindKogitoDataIndex.GroupVersion.Group,
+			Version:  meta.KindKogitoDataIndex.GroupVersion.Version,
+			Resource: "kogitodataindex",
+		},
+		&restScope{name: apimeta.RESTScopeNameNamespace})
 
 	options.Scheme = meta.GetRegisteredSchema()
 	options.Mapper = mapper

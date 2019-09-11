@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"net/url"
-	"regexp"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"net/url"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 
@@ -16,33 +14,28 @@ import (
 )
 
 type deployFlags struct {
+	deployCommonFlags
 	name             string
-	namespace        string
 	runtime          string
-	replicas         int32
-	env              []string
-	limits           []string
-	requests         []string
 	serviceLabels    []string
 	incrementalBuild bool
 	buildenv         []string
 	reference        string
 	contextdir       string
 	source           string
-	imageRuntime     string
 	imageS2I         string
+	imageRuntime     string
 }
 
 const (
-	defaultDeployReplicas = 1
-	defaultDeployRuntime  = string(v1alpha1.QuarkusRuntimeType)
-	// see: https://github.com/docker/distribution/blob/master/reference/regexp.go
-	dockerTagRegx = `[\w][\w.-]{0,127}`
+	defaultDeployRuntime = string(v1alpha1.QuarkusRuntimeType)
 )
 
 var (
-	deployCmd                 *cobra.Command
-	deployCmdFlags            = deployFlags{}
+	deployCmd      *cobra.Command
+	deployCmdFlags = deployFlags{
+		deployCommonFlags: deployCommonFlags{},
+	}
 	deployRuntimeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
 )
 
@@ -73,32 +66,21 @@ var _ = RegisterCommandVar(func() {
 			if err := util.ParseStringsForKeyPair(deployCmdFlags.buildenv); err != nil {
 				return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", deployCmdFlags.buildenv)
 			}
-			if err := util.ParseStringsForKeyPair(deployCmdFlags.env); err != nil {
-				return fmt.Errorf("environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", deployCmdFlags.env)
-			}
-			if err := util.ParseStringsForKeyPair(deployCmdFlags.limits); err != nil {
-				return fmt.Errorf("limits are in the wrong format. Valid are key pairs like 'cpu=1', received %s", deployCmdFlags.limits)
-			}
-			if err := util.ParseStringsForKeyPair(deployCmdFlags.requests); err != nil {
-				return fmt.Errorf("requests are in the wrong format. Valid are key pairs like 'cpu=1', received %s", deployCmdFlags.requests)
-			}
 			if err := util.ParseStringsForKeyPair(deployCmdFlags.serviceLabels); err != nil {
 				return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", deployCmdFlags.serviceLabels)
-			}
-			if deployCmdFlags.replicas <= 0 {
-				return fmt.Errorf("valid replicas are non-zero, positive numbers, received %v", deployCmdFlags.replicas)
 			}
 			if !util.Contains(deployCmdFlags.runtime, deployRuntimeValidEntries) {
 				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, deployCmdFlags.runtime)
 			}
-			re := regexp.MustCompile(dockerTagRegx)
-			if len(deployCmdFlags.imageRuntime) > 0 && !re.MatchString(deployCmdFlags.imageRuntime) {
-				return fmt.Errorf("invalid name for runtime image tag. Received %s", deployCmdFlags.imageRuntime)
+			if err := commonCheckImageTag(deployCmdFlags.imageRuntime); err != nil {
+				return err
 			}
-			if len(deployCmdFlags.imageS2I) > 0 && !re.MatchString(deployCmdFlags.imageS2I) {
-				return fmt.Errorf("invalid name for s2i image tag. Received %s", deployCmdFlags.imageRuntime)
+			if err := commonCheckImageTag(deployCmdFlags.imageS2I); err != nil {
+				return err
 			}
-
+			if err := commonCheckDeployArgs(&deployCmdFlags.deployCommonFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -106,53 +88,43 @@ var _ = RegisterCommandVar(func() {
 
 var _ = RegisterCommandInit(func() {
 	rootCmd.AddCommand(deployCmd)
-	deployCmd.Flags().StringVar(&deployCmdFlags.namespace, "project", "", "Project where the Kogito Service will be deployed.")
+	commonAddDeployFlags(deployCmd, &deployCmdFlags.deployCommonFlags)
 	deployCmd.Flags().StringVarP(&deployCmdFlags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	deployCmd.Flags().StringVarP(&deployCmdFlags.reference, "branch", "b", "", "Git branch to use in the git repository")
 	deployCmd.Flags().StringVarP(&deployCmdFlags.contextdir, "context-dir", "c", "", "Context/subdirectory where the code is located, relatively to repository root")
-	deployCmd.Flags().Int32Var(&deployCmdFlags.replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
-	deployCmd.Flags().StringSliceVarP(&deployCmdFlags.env, "env", "e", nil, "Key/pair value environment variables that will be set to the Kogito Service. For example 'MY_VAR=my_value'. Can be set more than once.")
-	deployCmd.Flags().StringSliceVar(&deployCmdFlags.limits, "limits", nil, "Resource limits for the Kogito Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
-	deployCmd.Flags().StringSliceVar(&deployCmdFlags.requests, "requests", nil, "Resource requests for the Kogito Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	deployCmd.Flags().StringSliceVar(&deployCmdFlags.serviceLabels, "svc-labels", nil, "Labels that should be applied to the internal endpoint of the Kogito Service. Used by the service discovery engine. Example: 'label=value'. Can be set more than once.")
 	deployCmd.Flags().BoolVar(&deployCmdFlags.incrementalBuild, "incremental-build", true, "Build should be incremental?")
 	deployCmd.Flags().StringSliceVar(&deployCmdFlags.buildenv, "build-env", nil, "Key/pair value environment variables that will be set during the build. For example 'MAVEN_URL=http://myinternalmaven.com'. Can be set more than once.")
-	deployCmd.Flags().StringVar(&deployCmdFlags.imageRuntime, "image-runtime", "", "Image tag (namespace/name:tag) for using during service runtime, e.g: openshift/kogito-quarkus-ubi8:latest")
 	deployCmd.Flags().StringVar(&deployCmdFlags.imageS2I, "image-s2i", "", "Image tag (namespace/name:tag) for using during the s2i build, e.g: openshift/kogito-quarkus-ubi8-s2i:latest")
+	deployCmd.Flags().StringVar(&deployCmdFlags.imageRuntime, "image-runtime", "", "Image tag (namespace/name:tag) for using during service runtime, e.g: openshift/kogito-quarkus-ubi8:latest")
 })
 
 func deployExec(cmd *cobra.Command, args []string) error {
 	deployCmdFlags.name = args[0]
 	deployCmdFlags.source = args[1]
 	var err error
-	if deployCmdFlags.namespace, err = checkProjecLocally(deployCmdFlags.namespace); err != nil {
+	if deployCmdFlags.project, err = ensureProject(deployCmdFlags.project); err != nil {
 		return err
 	}
+	if err := checkKogitoAppCRDExists(); err != nil {
+		return err
+	}
+	if err := checkKogitoAppNotExists(deployCmdFlags.name, deployCmdFlags.project); err != nil {
+		return err
+	}
+
 	log.Debugf("About to deploy a new kogito service: %s, runtime %s source %s on namespace %s",
 		deployCmdFlags.name,
 		deployCmdFlags.runtime,
 		deployCmdFlags.source,
-		deployCmdFlags.namespace,
+		deployCmdFlags.project,
 	)
-
-	if err := checkProjectExists(deployCmdFlags.namespace); err != nil {
-		return err
-	}
-	log.Debugf("Using namespace %s", deployCmdFlags.namespace)
-
-	if err := checkKogitoAppCRDExists(); err != nil {
-		return err
-	}
-
-	if err := checkKogitoAppNotExists(deployCmdFlags.name, deployCmdFlags.namespace); err != nil {
-		return err
-	}
 
 	// build the application
 	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      deployCmdFlags.name,
-			Namespace: deployCmdFlags.namespace,
+			Namespace: deployCmdFlags.project,
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Name:     deployCmdFlags.name,
@@ -190,8 +162,8 @@ func deployExec(cmd *cobra.Command, args []string) error {
 	config.LastKogitoAppCreated = kogitoApp
 	log.Infof("KogitoApp '%s' successfully created on namespace '%s'", kogitoApp.Name, kogitoApp.Namespace)
 	// TODO: we should provide this info with a -f flag
-	log.Infof("You can see the deployment status by using 'oc describe %s %s -n %s'", "kogitoapp", deployCmdFlags.name, deployCmdFlags.namespace)
-	log.Infof("Your Kogito Runtime Service should be deploying. To see its logs, run 'oc logs -f bc/%s-builder -n %s'", deployCmdFlags.name, deployCmdFlags.namespace)
+	log.Infof("You can see the deployment status by using 'oc describe %s %s -n %s'", "kogitoapp", deployCmdFlags.name, deployCmdFlags.project)
+	log.Infof("Your Kogito Runtime Service should be deploying. To see its logs, run 'oc logs -f bc/%s-builder -n %s'", deployCmdFlags.name, deployCmdFlags.project)
 
 	return nil
 }

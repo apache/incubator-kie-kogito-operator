@@ -10,9 +10,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	kogitoOperatorInstallationInstruc = "https://github.com/kiegroup/kogito-cloud-operator/blob/master/README.md#installation"
-)
+// ensureProject will check if the given project is a valid string in the context and if exists in the cluster
+func ensureProject(project string) (string, error) {
+	if project, err := checkProjectLocally(project); err != nil {
+		return project, err
+	}
+	if err := checkProjectExists(project); err != nil {
+		return project, err
+	}
+	log.Debugf("Using namespace %s", project)
+	return project, nil
+}
 
 func checkProjectExists(namespace string) error {
 	log.Debugf("Checking if namespace '%s' exists", namespace)
@@ -25,20 +33,31 @@ func checkProjectExists(namespace string) error {
 	return nil
 }
 
+func checkKogitoCRDExists(crd *apiextensionsv1beta1.CustomResourceDefinition) error {
+	log.Debugf("Checking if Kogito %s CRD is installed", crd.Name)
+	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(crd); err != nil {
+		return fmt.Errorf("Error while trying to look for the Kogito CRD: %s", err)
+	} else if !exists {
+		return fmt.Errorf("Couldn't find the Kogito CRD %s in your cluster, please follow the instructions in https://github.com/kiegroup/kogito-cloud-operator#installation to install it", crd.Name)
+	}
+	log.Debugf("Kogito CRD %s installed", crd.Name)
+	return nil
+}
+
+func checkKogitoDataIndexCRDExists() error {
+	return checkKogitoCRDExists(&apiextensionsv1beta1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: v1alpha1.KogitoDataIndexCRDName,
+		},
+	})
+}
+
 func checkKogitoAppCRDExists() error {
-	log.Debug("Checking if Kogito Operator CRD is installed")
-	kogitocrd := &apiextensionsv1beta1.CustomResourceDefinition{
+	return checkKogitoCRDExists(&apiextensionsv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: v1alpha1.KogitoAppCRDName,
 		},
-	}
-	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitocrd); err != nil {
-		return fmt.Errorf("Error while trying to look for the Kogito Operator: %s", err)
-	} else if !exists {
-		return fmt.Errorf("Couldn't find the Kogito Operator in your cluster, please follow the instructions in %s to install it", kogitoOperatorInstallationInstruc)
-	}
-	log.Debug("Kogito Operator CRD installed")
-	return nil
+	})
 }
 
 // checkKogitoAppNotExists returns an error if the kogitoapp exists
@@ -56,6 +75,17 @@ func checkKogitoAppNotExists(name string, namespace string) error {
 		return fmt.Errorf("Looks like a Kogito App with the name '%s' already exists in this context/namespace. Please try another name", name)
 	}
 	log.Debugf("No custom resource with name '%s' was found in the namespace '%s'", name, namespace)
+	return nil
+}
+
+func checkKogitoDataIndexNotExists(namespace string) error {
+	dataIndexList := v1alpha1.KogitoDataIndexList{}
+	if err := kubernetes.ResourceC(kubeCli).ListWithNamespace(namespace, &dataIndexList); err != nil {
+		return fmt.Errorf("Error while trying to look for the KogitoDataIndex: %s", err)
+	}
+	if len(dataIndexList.Items) > 0 {
+		return fmt.Errorf("The namespace %s already has a Kogito Data Index service. No more than one data index service is allowed per namespace", namespace)
+	}
 	return nil
 }
 
