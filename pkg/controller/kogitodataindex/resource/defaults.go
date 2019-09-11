@@ -8,10 +8,11 @@ import (
 )
 
 const (
+	// DefaultImage is the default image name for the Kogito Data Index Service
+	DefaultImage = "quay.io/kiegroup/data-index-service:latest"
 	// defaultLabelKey is the default label key that should be added to all resources
 	defaultLabelKey = "app"
 	defaultReplicas = 1
-	defaultImage    = "quay.io/kiegroup/data-index-service:latest"
 	// defaultExposedPort is the default port exposed by the service.
 	// this port can also be found into the docker label openshift.exposed-svc.
 	// since we're aiming for cluster agnostic, the image API is out of question.

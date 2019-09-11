@@ -6,6 +6,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// KogitoDataIndexCRDName is the name of the Kogito Data Index CRD in the cluster
+const KogitoDataIndexCRDName = "kogitodataindices.app.kiegroup.org"
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -95,10 +98,10 @@ type InfinispanConnectionProperties struct {
 type InfinispanSaslMechanismType string
 
 const (
-	// Basic is the PLAIN type
-	Basic InfinispanSaslMechanismType = "PLAIN"
-	// DigestMD5 is the DIGEST-MD5 type
-	DigestMD5 InfinispanSaslMechanismType = "DIGEST-MD5"
+	// SASLPlain is the PLAIN type
+	SASLPlain InfinispanSaslMechanismType = "PLAIN"
+	// SASLDigestMD5 is the DIGEST-MD5 type
+	SASLDigestMD5 InfinispanSaslMechanismType = "DIGEST-MD5"
 )
 
 // SecretCredentialsType is the data structure for specifyng credentials within a Secret
