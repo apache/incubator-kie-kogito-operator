@@ -60,7 +60,7 @@ var _ = RegisterCommandVar(func() {
 				return fmt.Errorf("infinispan-password wasn't provided, please set both infinispan-user and infinispan-password")
 			}
 			if len(deployDataIndexCmdFlags.infinispanUser) == 0 && len(deployDataIndexCmdFlags.infinispanPassword) > 0 {
-				return fmt.Errorf("infinispan-password wasn't provided, please set both infinispan-user and infinispan-password")
+				return fmt.Errorf("infinispan-user wasn't provided, please set both infinispan-user and infinispan-password")
 			}
 			if len(deployDataIndexCmdFlags.infinispanUser) > 0 &&
 				len(deployDataIndexCmdFlags.infinispanPassword) > 0 &&
