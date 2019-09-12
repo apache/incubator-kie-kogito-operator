@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -44,4 +45,31 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageS2I.ImageStreamName, "myimage")
 	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageRuntime.ImageStreamName, "myimage")
 	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageRuntime.ImageStreamTag, "0.2")
+}
+
+func Test_DeployCmd_CustomImage(t *testing.T) {
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --native=false --context-dir drools-quarkus-example --project kogito --image-s2i=openshift/myimage --image-runtime=openshift/myimage:0.2")
+	_, _, err := executeCli(cli,
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}},
+	)
+	assert.NoError(t, err)
+
+	instance := v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-drools",
+			Namespace: "kogito",
+		},
+	}
+
+	exists, err := kubernetes.ResourceC(kubeCli).Fetch(&instance)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+
+	assert.Equal(t, "openshift", instance.Spec.Build.ImageS2I.ImageStreamNamespace)
+	assert.Equal(t, "myimage", instance.Spec.Build.ImageS2I.ImageStreamName)
+
+	assert.Equal(t, "openshift", instance.Spec.Build.ImageRuntime.ImageStreamNamespace)
+	assert.Equal(t, "myimage", instance.Spec.Build.ImageRuntime.ImageStreamName)
+	assert.Equal(t, "0.2", instance.Spec.Build.ImageRuntime.ImageStreamTag)
 }

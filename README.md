@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-cloud-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-cloud-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-cloud-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-cloud-operator)
 
-Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and every piece of infrastructure that the services might need like SSO ([Keycloak](https://github.com/integr8ly/keycloak-operator)) and Persistence ([Infinispan](https://github.com/infinispan/infinispan-operator)).
+Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and every piece of infrastructure that the services might need, such as SSO ([Keycloak](https://github.com/integr8ly/keycloak-operator)) and Persistence ([Infinispan](https://github.com/infinispan/infinispan-operator)).
 
 ## Requirements
 
@@ -54,7 +54,7 @@ $ oc new-project <project-name>
 $ ./hack/3.11deploy.sh
 ```
 
-### Trigger a KogitoApp deployment
+### Trigger a Kogito Runtime Service deployment
 
 Use the OLM console to subscribe to the `kogito` Operator Catalog Source within your namespace. Once subscribed, use the console to `Create KogitoApp` or create one manually as seen below.
 
@@ -63,9 +63,31 @@ $ oc create -f deploy/crs/app_v1alpha1_kogitoapp_cr.yaml
 kogitoapp.app.kiegroup.org/example-quarkus created
 ```
 
-Or you can always use the [CLI](#kogito-cli) to deploy your services.
+Alternatively, you can use the [CLI](#kogito-cli) to deploy your services: 
 
-To look at the Operator logs, first identify where the Operator is deployed:
+```bash
+$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example
+```
+
+#### Native X JVM Builds
+
+By default, the Kogito Services will be built with traditional `java` compilers to speed up the time and save resources. This means that the final generated artifact will be a [uber jar](https://stackoverflow.com/questions/11947037/what-is-an-uber-jar) with the chosen runtime (default to Quarkus).
+
+Kogito Services when implemented with [Quarkus](https://quarkus.io/guides/kogito-guide) can be built to native binary. This means low ([really low](https://www.graalvm.org/docs/examples/java-performance-examples/)) footprint on runtime, but will demand a lot of resources during build time. Read more about AOT compilation [here](https://www.graalvm.org/docs/reference-manual/aot-compilation/).
+
+In our tests, native builds takes approximately 10 minutes and the build pod can consume up to 3.5GB of RAM and 1.5 CPU cores. Make sure that you have this resources available when running native builds.
+
+To deploy a service using native builds, run the `deploy-service` command with `--native` flag:
+
+```bash
+$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example --native
+```
+
+#### Troubleshoting 
+
+If you don't see any builds running nor any resources created in the namespace, try to take a look at the Kogito Operator log.
+
+To look at the operator logs, first identify where the operator is deployed:
 
 ```bash
 $ oc get pods
@@ -80,10 +102,10 @@ Use the pod name as the input of the following command:
 $ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t
 ```
 
-### Clean up a KogitoApp deployment
+### Clean up a Kogito Service deployment
 
 ```bash
-$ oc delete kogitoapp example-quarkus
+$ kogito delete-service example-quarkus
 ```
 
 ### Deploy Data Index Service

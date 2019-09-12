@@ -6,29 +6,6 @@ import (
 	resource "k8s.io/apimachinery/pkg/api/resource"
 )
 
-// GetEnvVar returns the position of the EnvVar found by name
-func GetEnvVar(envName string, env []corev1.EnvVar) int {
-	for pos, v := range env {
-		if v.Name == envName {
-			return pos
-		}
-	}
-	return -1
-}
-
-// EnvOverride replaces or appends the provided EnvVar to the collection
-func EnvOverride(dst, src []corev1.EnvVar) []corev1.EnvVar {
-	for _, cre := range src {
-		pos := GetEnvVar(cre.Name, dst)
-		if pos != -1 {
-			dst[pos] = cre
-		} else {
-			dst = append(dst, cre)
-		}
-	}
-	return dst
-}
-
 // FromEnvToEnvVar Function to convert an array of Env parameters to Kube Core EnvVar
 func FromEnvToEnvVar(envs []v1alpha1.Env) (envVars []corev1.EnvVar) {
 	if &envs == nil {

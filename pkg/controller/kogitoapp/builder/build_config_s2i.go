@@ -3,10 +3,11 @@ package builder
 import (
 	"errors"
 	"fmt"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	"strconv"
 
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,7 +15,8 @@ import (
 )
 
 const (
-	nameSuffix = "-builder"
+	nameSuffix           = "-builder"
+	nativeBuildEnvVarKey = "NATIVE"
 )
 
 // NewBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -23,7 +25,7 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
 
-	image := verifyImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
+	image := ensureImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
 
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
@@ -52,6 +54,11 @@ func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildCon
 }
 
 func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, image *v1alpha1.Image) {
+	envs := shared.FromEnvToEnvVar(kogitoApp.Spec.Build.Env)
+	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
+		envs = util.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
+	}
+
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
 		From: corev1.ObjectReference{
@@ -59,7 +66,7 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 			Namespace: image.ImageStreamNamespace,
 			Kind:      kindImageStreamTag,
 		},
-		Env:         shared.FromEnvToEnvVar(kogitoApp.Spec.Build.Env),
+		Env:         envs,
 		Incremental: &kogitoApp.Spec.Build.Incremental,
 	}
 }

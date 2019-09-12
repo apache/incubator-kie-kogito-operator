@@ -10,11 +10,11 @@ import (
 const (
 	defaultDeployReplicas = 1
 	// see: https://github.com/docker/distribution/blob/master/reference/regexp.go
-	dockerTagRegx = `[\w][\w.-]{0,127}`
+	dockerTagRegx = `(?P<namespace>.+/)?(?P<image>[^:]+)(?P<tag>:.+)?`
 )
 
 var (
-	dockerTagRegxCompiled = regexp.MustCompile(dockerTagRegx)
+	dockerTagRegxCompiled = *regexp.MustCompile(dockerTagRegx)
 )
 
 type deployCommonFlags struct {
@@ -51,7 +51,7 @@ func commonCheckDeployArgs(flags *deployCommonFlags) error {
 
 func commonCheckImageTag(image string) error {
 	if len(image) > 0 && !dockerTagRegxCompiled.MatchString(image) {
-		return fmt.Errorf("invalid name for image tag. Received %s", image)
+		return fmt.Errorf("invalid name for image tag. Valid format is namespace/image-name:tag. Received %s", image)
 	}
 	return nil
 }
