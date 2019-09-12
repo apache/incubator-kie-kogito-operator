@@ -33,7 +33,6 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name: "test",
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: &v1alpha1.GitSource{
 					URI:        &uri,
@@ -71,7 +70,6 @@ func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name: "test",
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: &v1alpha1.GitSource{
 					URI:        &uri,

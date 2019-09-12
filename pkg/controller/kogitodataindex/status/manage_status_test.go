@@ -34,7 +34,6 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Name:     "my-data-index",
 			Replicas: 1,
 		},
 	}

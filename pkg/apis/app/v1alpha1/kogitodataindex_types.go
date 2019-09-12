@@ -33,10 +33,6 @@ type KogitoDataIndexSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// +kubebuilder:validation:MinLength=5
-	// Name is the name of the Data Index Service
-	Name string `json:"name"`
-
 	// Replicas is the number of pod replicas that the Data Index Service will spin
 	// +kubebuilder:validation:Maximum=100
 	// +kubebuilder:validation:Minimum=0

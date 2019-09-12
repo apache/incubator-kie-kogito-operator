@@ -147,15 +147,11 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, nil
 	}
 
-	// Set some CR defaults
-	if len(instance.Spec.Name) == 0 {
-		instance.Spec.Name = instance.Name
-	}
 	if instance.Spec.Runtime != v1alpha1.SpringbootRuntimeType {
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
-	log.Infof("Checking if all resources for '%s' are created", instance.Spec.Name)
+	log.Infof("Checking if all resources for '%s' are created", instance.Name)
 	// create resources in the cluster that do not exist
 	kogitoInv, err := builder.BuildOrFetchObjects(&builder.Context{
 		KogitoApp: instance,
@@ -175,7 +171,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// ensure builds
-	log.Infof("Checking if build for '%s' is finished", instance.Spec.Name)
+	log.Infof("Checking if build for '%s' is finished", instance.Name)
 	if imageExists, err := r.ensureApplicationImageExists(kogitoInv, instance); err != nil {
 		return reconcile.Result{}, err
 	} else if !imageExists {
@@ -183,7 +179,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		if status.SetProvisioning(instance) {
 			return r.UpdateObj(instance)
 		}
-		log.Infof("Build for '%s' still running", instance.Spec.Name)
+		log.Infof("Build for '%s' still running", instance.Name)
 		return reconcile.Result{RequeueAfter: time.Duration(30) * time.Second}, nil
 	}
 
@@ -249,7 +245,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{Requeue: true}, nil
 	}
 
-	log.Infof("Reconcile for '%s' successfully finished", instance.Spec.Name)
+	log.Infof("Reconcile for '%s' successfully finished", instance.Name)
 	return reconcile.Result{}, nil
 }
 
@@ -269,11 +265,11 @@ func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *builder.KogitoApp
 	}
 
 	if buildServiceState.BuildRunning {
-		log.Infof("Image for '%s' is being pushed to the registry", instance.Spec.Name)
+		log.Infof("Image for '%s' is being pushed to the registry", instance.Name)
 		return false, nil
 	}
 
-	log.Infof("No image found for the application %s. Trying to trigger a new build.", instance.Spec.Name)
+	log.Infof("No image found for the application %s. Trying to trigger a new build.", instance.Name)
 
 	// verify s2i build and image
 	if state, err :=
@@ -283,7 +279,7 @@ func (r *ReconcileKogitoApp) ensureApplicationImageExists(inv *builder.KogitoApp
 		return false, err
 	} else if state.BuildRunning {
 		// build is running, nothing to do
-		log.Infof("Application '%s' build is still running. Won't trigger a new build.", instance.Spec.Name)
+		log.Infof("Application '%s' build is still running. Won't trigger a new build.", instance.Name)
 		return false, nil
 	} else if !state.ImageExists && !state.BuildRunning {
 		log.Infof("There's no image nor build for '%s' running, triggering build", inv.BuildConfigS2I.Name)

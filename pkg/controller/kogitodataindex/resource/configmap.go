@@ -27,7 +27,7 @@ import (
 func newProtobufConfigMap(instance *v1alpha1.KogitoDataIndex) *corev1.ConfigMap {
 	cm := corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-protobufs", instance.Spec.Name),
+			Name:      fmt.Sprintf("%s-protobufs", instance.Name),
 			Namespace: instance.Namespace,
 		},
 		// those values will be populated later by the user with proto files

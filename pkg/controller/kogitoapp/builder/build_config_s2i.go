@@ -44,7 +44,7 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s%s", kogitoApp.Spec.Name, nameSuffix),
+			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, nameSuffix),
 			Namespace: kogitoApp.Namespace,
 			Labels: map[string]string{
 				LabelKeyBuildType: string(BuildTypeS2I),

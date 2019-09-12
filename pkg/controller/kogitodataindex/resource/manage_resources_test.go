@@ -35,7 +35,6 @@ func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Name:     "my-data-index",
 			Replicas: 1,
 		},
 	}
@@ -62,7 +61,6 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Name:     "my-data-index",
 			Replicas: 1,
 			Infinispan: v1alpha1.InfinispanConnectionProperties{
 				Credentials: v1alpha1.SecretCredentialsType{
@@ -107,7 +105,6 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Name:     "my-data-index",
 			Replicas: 1,
 			Env: map[string]string{
 				"key1":                   "value1",

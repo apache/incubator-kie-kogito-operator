@@ -33,9 +33,7 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 			Name:      "my-data-index",
 			Namespace: "test",
 		},
-		Spec: v1alpha1.KogitoDataIndexSpec{
-			Name: "my-data-index",
-		},
+		Spec: v1alpha1.KogitoDataIndexSpec{},
 	}
 	client, s := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
 	r := &ReconcileKogitoDataIndex{

@@ -143,7 +143,6 @@ func deployExec(cmd *cobra.Command, args []string) error {
 			Namespace: deployCmdFlags.project,
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name:     deployCmdFlags.name,
 			Replicas: &deployCmdFlags.replicas,
 			Runtime:  v1alpha1.RuntimeType(deployCmdFlags.runtime),
 			Build: &v1alpha1.KogitoAppBuildObject{

@@ -43,11 +43,10 @@ var (
 	uri       = "https://github.com/kiegroup/kogito-examples"
 	kogitoApp = &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kogito-operator",
+			Name:      "test-app",
 			Namespace: "testns",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name: "test-app",
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: &v1alpha1.GitSource{
 					URI: &uri,
