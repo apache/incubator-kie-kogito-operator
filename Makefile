@@ -58,3 +58,7 @@ install-cli:
 .PHONY: clean
 clean:
 	rm -rf build/_output
+
+.PHONY: addheaders
+addheaders:
+	./hack/addheaders.sh
