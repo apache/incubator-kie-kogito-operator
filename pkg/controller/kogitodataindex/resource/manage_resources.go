@@ -133,7 +133,7 @@ func ensureKafka(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.Statefu
 		return false
 	}
 
-	currentURI := util.GetEnvVar(kafkaEnvKeyServiceURI, statefulset.Spec.Template.Spec.Containers[0])
+	currentURI := util.GetEnvVarFromContainer(kafkaEnvKeyServiceURI, statefulset.Spec.Template.Spec.Containers[0])
 	if instance.Spec.Kafka.ServiceURI != currentURI {
 		log.Debugf("Found differences in the Kafka ServiceURI (%s). Updating to '%s'.", currentURI, instance.Spec.Kafka.ServiceURI)
 		util.SetEnvVar(kafkaEnvKeyServiceURI, instance.Spec.Kafka.ServiceURI, &statefulset.Spec.Template.Spec.Containers[0])

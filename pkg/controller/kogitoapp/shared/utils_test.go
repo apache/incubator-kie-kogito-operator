@@ -3,63 +3,16 @@ package shared
 import (
 	"testing"
 
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
-	resource "k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 var (
 	cpuResource    = v1alpha1.ResourceCPU
 	memoryResource = v1alpha1.ResourceMemory
 )
-
-func TestEnvOverride(t *testing.T) {
-	src := []corev1.EnvVar{
-		{
-			Name:  "test1",
-			Value: "value1",
-		},
-		{
-			Name:  "test2",
-			Value: "value2",
-		},
-	}
-	dst := []corev1.EnvVar{
-		{
-			Name:  "test1",
-			Value: "valueX",
-		},
-		{
-			Name:  "test3",
-			Value: "value3",
-		},
-	}
-	result := EnvOverride(src, dst)
-	assert.Equal(t, 3, len(result))
-	assert.Equal(t, result[0], dst[0])
-	assert.Equal(t, result[1], src[1])
-	assert.Equal(t, result[2], dst[1])
-}
-
-func TestGetEnvVar(t *testing.T) {
-	vars := []corev1.EnvVar{
-		{
-			Name:  "test1",
-			Value: "value1",
-		},
-		{
-			Name:  "test2",
-			Value: "value2",
-		},
-	}
-	pos := GetEnvVar("test1", vars)
-	assert.Equal(t, 0, pos)
-
-	pos = GetEnvVar("other", vars)
-	assert.Equal(t, -1, pos)
-}
 
 func TestFromEnvToEnvVar(t *testing.T) {
 	a := []v1alpha1.Env{

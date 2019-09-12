@@ -7,22 +7,22 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 )
 
-// fromStringToImage will convert a plain string into a image
+// fromStringToImage will convert a plain string into a image. See: https://regex101.com/r/jl7MPD/2
 func fromStringToImage(imagetag string) v1alpha1.Image {
 	image := v1alpha1.Image{}
 	if len(imagetag) > 0 {
-		if strings.Contains(imagetag, "/") {
-			splitName := strings.Split(imagetag, "/")
-			image.ImageStreamNamespace = splitName[0]
-			imagetag = splitName[1]
-		}
-		if strings.Contains(imagetag, ":") {
-			splitName := strings.Split(imagetag, ":")
-			image.ImageStreamName = splitName[0]
-			image.ImageStreamTag = splitName[1]
+		if strings.HasPrefix(imagetag, ":") {
+			image.ImageStreamTag = strings.Split(imagetag, ":")[1]
 			return image
 		}
-		image.ImageStreamName = imagetag
+
+		imageMatch := dockerTagRegxCompiled.FindStringSubmatch(imagetag)
+		if len(imageMatch[1]) > 0 {
+			imageNamespace := strings.Split(imageMatch[1], "/")
+			image.ImageStreamNamespace = imageNamespace[len(imageNamespace)-2]
+		}
+		image.ImageStreamName = imageMatch[2]
+		image.ImageStreamTag = strings.ReplaceAll(imageMatch[3], ":", "")
 	}
 	return image
 }

@@ -25,6 +25,7 @@ type deployFlags struct {
 	source           string
 	imageS2I         string
 	imageRuntime     string
+	native           bool
 }
 
 const (
@@ -94,6 +95,7 @@ var _ = RegisterCommandInit(func() {
 	deployCmd.Flags().StringVarP(&deployCmdFlags.contextdir, "context-dir", "c", "", "Context/subdirectory where the code is located, relatively to repository root")
 	deployCmd.Flags().StringSliceVar(&deployCmdFlags.serviceLabels, "svc-labels", nil, "Labels that should be applied to the internal endpoint of the Kogito Service. Used by the service discovery engine. Example: 'label=value'. Can be set more than once.")
 	deployCmd.Flags().BoolVar(&deployCmdFlags.incrementalBuild, "incremental-build", true, "Build should be incremental?")
+	deployCmd.Flags().BoolVar(&deployCmdFlags.native, "native", false, "Use native builds? Be aware that native builds takes more time and consume much more resources from the cluster. Defaults to false")
 	deployCmd.Flags().StringSliceVar(&deployCmdFlags.buildenv, "build-env", nil, "Key/pair value environment variables that will be set during the build. For example 'MAVEN_URL=http://myinternalmaven.com'. Can be set more than once.")
 	deployCmd.Flags().StringVar(&deployCmdFlags.imageS2I, "image-s2i", "", "Image tag (namespace/name:tag) for using during the s2i build, e.g: openshift/kogito-quarkus-ubi8-s2i:latest")
 	deployCmd.Flags().StringVar(&deployCmdFlags.imageRuntime, "image-runtime", "", "Image tag (namespace/name:tag) for using during service runtime, e.g: openshift/kogito-quarkus-ubi8:latest")
@@ -140,6 +142,7 @@ func deployExec(cmd *cobra.Command, args []string) error {
 				Env:          fromStringArrayToControllerEnvs(deployCmdFlags.buildenv),
 				ImageS2I:     fromStringToImage(deployCmdFlags.imageS2I),
 				ImageRuntime: fromStringToImage(deployCmdFlags.imageRuntime),
+				Native:       deployCmdFlags.native,
 			},
 			Env: fromStringArrayToControllerEnvs(deployCmdFlags.env),
 			Service: v1alpha1.KogitoAppServiceObject{

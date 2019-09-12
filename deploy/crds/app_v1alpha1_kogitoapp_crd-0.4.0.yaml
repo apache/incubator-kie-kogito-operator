@@ -80,6 +80,11 @@ spec:
                   type: object
                 incremental:
                   type: boolean
+                native:
+                  description: 'Native indicates if the Kogito Service built should
+                    be compiled to run on native mode when Runtime is quarkus. See:
+                    https://www.graalvm.org/docs/reference-manual/aot-compilation/'
+                  type: boolean
                 webhooks:
                   description: WebHook secrets for build configs
                   items:
@@ -89,6 +94,9 @@ spec:
                         type: string
                       type:
                         description: WebHook type, either GitHub or Generic
+                        enum:
+                        - GitHub
+                        - Generic
                         type: string
                     type: object
                   type: array
@@ -107,9 +115,12 @@ spec:
                 type: object
               type: array
             name:
+              minLength: 3
               type: string
             replicas:
               format: int32
+              maximum: 100
+              minimum: 0
               type: integer
             resources:
               description: The resources for the deployed pods, like memory and cpu
@@ -119,6 +130,9 @@ spec:
                     properties:
                       resource:
                         description: Resource type like cpu and memory
+                        enum:
+                        - cpu
+                        - memory
                         type: string
                       value:
                         description: Value of this resource in Kubernetes format
@@ -133,6 +147,9 @@ spec:
                     properties:
                       resource:
                         description: Resource type like cpu and memory
+                        enum:
+                        - cpu
+                        - memory
                         type: string
                       value:
                         description: Value of this resource in Kubernetes format
@@ -146,6 +163,9 @@ spec:
             runtime:
               description: The name of the runtime used, either quarkus or springboot,
                 defaults to quarkus
+              enum:
+              - quarkus
+              - springboot
               type: string
             service:
               description: Service configuration

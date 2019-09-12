@@ -17,6 +17,7 @@ func Test_fromStringToImage(t *testing.T) {
 		want v1alpha1.Image
 	}{
 		{"empty", args{""}, v1alpha1.Image{}},
+		{"with registry name", args{"quay.io/openshift/myimage:1.0"}, v1alpha1.Image{ImageStreamName: "myimage", ImageStreamTag: "1.0", ImageStreamNamespace: "openshift"}},
 		{"full name", args{"openshift/myimage:1.0"}, v1alpha1.Image{ImageStreamName: "myimage", ImageStreamTag: "1.0", ImageStreamNamespace: "openshift"}},
 		{"namespace empty", args{"myimage:1.0"}, v1alpha1.Image{ImageStreamName: "myimage", ImageStreamTag: "1.0", ImageStreamNamespace: ""}},
 		{"tag empty", args{"myimage"}, v1alpha1.Image{ImageStreamName: "myimage", ImageStreamTag: "", ImageStreamNamespace: ""}},

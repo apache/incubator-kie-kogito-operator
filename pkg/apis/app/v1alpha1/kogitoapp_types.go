@@ -12,10 +12,14 @@ const KogitoAppCRDName = "kogitoapps.app.kiegroup.org"
 // +k8s:openapi-gen=true
 type KogitoAppSpec struct {
 	// The name of the runtime used, either quarkus or springboot, defaults to quarkus
-	Runtime  RuntimeType `json:"runtime,omitempty"`
-	Name     string      `json:"name,omitempty"`
-	Replicas *int32      `json:"replicas,omitempty"`
-	Env      []Env       `json:"env,omitempty"`
+	// +kubebuilder:validation:Enum=quarkus,springboot
+	Runtime RuntimeType `json:"runtime,omitempty"`
+	// +kubebuilder:validation:MinLength=3
+	Name string `json:"name,omitempty"`
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=100
+	Replicas *int32 `json:"replicas,omitempty"`
+	Env      []Env  `json:"env,omitempty"`
 	// The resources for the deployed pods, like memory and cpu
 	Resources Resources `json:"resources,omitempty"`
 	// S2I Build configuration
@@ -45,6 +49,7 @@ const (
 // +k8s:openapi-gen=true
 type ResourceMap struct {
 	// Resource type like cpu and memory
+	// +kubebuilder:validation:Enum=cpu,memory
 	Resource ResourceKind `json:"resource"`
 	// Value of this resource in Kubernetes format
 	Value string `json:"value"`
@@ -71,6 +76,8 @@ type KogitoAppBuildObject struct {
 	ImageS2I Image `json:"imageS2I,omitempty"`
 	// ImageRuntime is used build configurations to build a final runtime image based on a s2i configuration
 	ImageRuntime Image `json:"imageRuntime,omitempty"`
+	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is quarkus. See: https://www.graalvm.org/docs/reference-manual/aot-compilation/
+	Native bool `json:"native,omitempty"`
 }
 
 // KogitoAppServiceObject Data to define the service of the kogito app
@@ -105,6 +112,7 @@ const (
 // +k8s:openapi-gen=true
 type WebhookSecret struct {
 	// WebHook type, either GitHub or Generic
+	// +kubebuilder:validation:Enum=GitHub,Generic
 	Type WebhookType `json:"type,omitempty"`
 	// Secret value for webhook
 	Secret string `json:"secret,omitempty"`

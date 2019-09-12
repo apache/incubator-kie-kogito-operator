@@ -23,7 +23,12 @@ func NewBuildConfigService(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 		return buildConfig, err
 	}
 
-	image := verifyImageBuild(kogitoApp.Spec.Build.ImageRuntime, BuildImageStreams[BuildTypeService][kogitoApp.Spec.Runtime])
+	buildType := BuildTypeRuntime
+	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoApp.Spec.Build.Native {
+		buildType = BuildTypeRuntimeJvm
+	}
+
+	image := ensureImageBuild(kogitoApp.Spec.Build.ImageRuntime, BuildImageStreams[buildType][kogitoApp.Spec.Runtime])
 
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
@@ -31,7 +36,7 @@ func NewBuildConfigService(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 			Name:      kogitoApp.Spec.Name,
 			Namespace: kogitoApp.Namespace,
 			Labels: map[string]string{
-				LabelKeyBuildType: string(BuildTypeService),
+				LabelKeyBuildType: string(buildType),
 			},
 		},
 	}

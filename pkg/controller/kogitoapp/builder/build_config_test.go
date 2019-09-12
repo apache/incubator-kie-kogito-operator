@@ -1,12 +1,42 @@
 package builder
 
 import (
+	v1 "k8s.io/api/core/v1"
 	"testing"
 
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func Test_BuidConfig_NonNativeBuild(t *testing.T) {
+	uri := "https://github.com/kiegroup/kogito-examples"
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Name:    "test",
+			Build: &v1alpha1.KogitoAppBuildObject{
+				GitSource: &v1alpha1.GitSource{
+					URI:        &uri,
+					ContextDir: "jbpm-quarkus-example",
+				},
+				Native: false,
+				// we'll try to trick the build
+				Env: []v1alpha1.Env{{Name: nativeBuildEnvVarKey, Value: "true"}},
+			},
+		},
+	}
+	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
+	bcService, _ := NewBuildConfigService(kogitoApp, &bcS2I)
+
+	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "false"})
+	assert.NotContains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "true"})
+	assert.Contains(t, bcService.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType].ImageStreamName)
+}
 
 func Test_BuildConfig_WithCustomImage(t *testing.T) {
 	uri := "https://github.com/kiegroup/kogito-examples"
@@ -31,6 +61,7 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 					ImageStreamName:      "my-image",
 					ImageStreamNamespace: "openshift",
 				},
+				Native: true,
 			},
 		},
 	}
@@ -59,6 +90,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 					URI:        &uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
+				Native: true,
 			},
 		},
 	}

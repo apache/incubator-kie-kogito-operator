@@ -4,19 +4,27 @@ import (
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
+// BuildType which build can we perform? Supported are s2i and service
+type BuildType string
+
+const (
+	// BuildTypeS2I source to image build type will take a source code and transform it into an executable service
+	BuildTypeS2I BuildType = "s2i"
+	// BuildTypeRuntime will create a image with a Kogito Service available
+	BuildTypeRuntime BuildType = "runtime"
+	// BuildTypeRuntimeJvm will create a image with JRE installed to run the Kogito Service
+	BuildTypeRuntimeJvm BuildType = "runtime-jvm"
+	// LabelKeyBuildType is the label key to identify the build type
+	LabelKeyBuildType = "buildtype"
+)
+
 const (
 	kindImageStreamTag = "ImageStreamTag"
 	tagLatest          = "latest"
-	// ImageStreamTag default tag name for the ImageStreams
-	ImageStreamTag = "0.3.0"
+	// ImageStreamTag default tag version for the ImageStreams
+	ImageStreamTag = "0.4.0"
 	// ImageStreamNamespace default namespace for the ImageStreams
 	ImageStreamNamespace = "openshift"
-	// BuildTypeS2I source to image build type will take a source code and transform it into an executable service
-	BuildTypeS2I BuildType = "s2i"
-	// BuildTypeService will create a image with a Kogito Service available
-	BuildTypeService BuildType = "service"
-	// LabelKeyBuildType is the label key to identify the build type
-	LabelKeyBuildType = "buildtype"
 )
 
 // BuildImageStreams are the image streams needed to perform the initial builds
@@ -33,7 +41,7 @@ var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
 			ImageStreamTag:       ImageStreamTag,
 		},
 	},
-	BuildTypeService: {
+	BuildTypeRuntime: {
 		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
 			ImageStreamName:      "kogito-quarkus-ubi8",
 			ImageStreamNamespace: ImageStreamNamespace,
@@ -45,13 +53,17 @@ var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
 			ImageStreamTag:       ImageStreamTag,
 		},
 	},
+	BuildTypeRuntimeJvm: {
+		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
+			ImageStreamName:      "kogito-quarkus-jvm-ubi8",
+			ImageStreamNamespace: ImageStreamNamespace,
+			ImageStreamTag:       ImageStreamTag,
+		},
+	},
 }
 
-// BuildType which build can we perform? Supported are s2i and service
-type BuildType string
-
-// verifyImageBuild will check the build image paramenters for emptyness and fill then with default values
-func verifyImageBuild(image v1alpha1.Image, defaultImage v1alpha1.Image) v1alpha1.Image {
+// ensureImageBuild will check the build image parameters for emptiness and fill then with default values
+func ensureImageBuild(image v1alpha1.Image, defaultImage v1alpha1.Image) v1alpha1.Image {
 	if &image != nil {
 		if len(image.ImageStreamTag) == 0 {
 			image.ImageStreamTag = defaultImage.ImageStreamTag
