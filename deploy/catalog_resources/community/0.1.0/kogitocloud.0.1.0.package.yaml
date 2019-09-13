@@ -1,5 +1,0 @@
-#! package-manifest: deploy/catalog_resources/community/0.1.0/kogitocloud-operator.0.1.0.clusterserviceversion.yaml
-packageName: kogitocloud-operator
-channels:
-  - name: alpha
-    currentCSV: kogitocloud-operator.0.1.0

@@ -6,7 +6,7 @@ require (
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
-	github.com/go-openapi/spec v0.19.2 // indirect
+	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/gobuffalo/packr/v2 v2.5.2
 	github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d // indirect
@@ -37,7 +37,7 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/gengo v0.0.0-20190813173942-955ffa8fcfc9 // indirect
 	k8s.io/klog v0.4.0 // indirect
-	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf // indirect
+	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 	sigs.k8s.io/controller-runtime v0.1.12
 	sigs.k8s.io/controller-tools v0.1.10
 )

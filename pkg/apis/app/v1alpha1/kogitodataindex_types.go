@@ -37,10 +37,10 @@ type KogitoDataIndexSpec struct {
 	// Name is the name of the Data Index Service
 	Name string `json:"name"`
 
+	// Replicas is the number of pod replicas that the Data Index Service will spin
 	// +kubebuilder:validation:Maximum=100
 	// +kubebuilder:validation:Minimum=0
 	// +optional
-	// Replicas is the number of pod replicas that the Data Index Service will spin
 	Replicas int32 `json:"replicas,omitempty"`
 
 	// +optional
