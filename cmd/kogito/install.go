@@ -15,28 +15,21 @@
 package main
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/version"
 	"github.com/spf13/cobra"
 )
 
-var versionCmd *cobra.Command
+var (
+	installCmd *cobra.Command
+)
 
 var _ = RegisterCommandVar(func() {
-	versionCmd = &cobra.Command{
-		Use:   "version",
-		Short: "Prints the kogito CLI version",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return versionExec(cmd, args)
-		},
+	installCmd = &cobra.Command{
+		Use:    "install",
+		Short:  "Install all sorts of infrastructure components to your Kogito project",
 		PreRun: preRunF,
 	}
 })
 
 var _ = RegisterCommandInit(func() {
-	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(installCmd)
 })
-
-func versionExec(cmd *cobra.Command, args []string) error {
-	log.Infof("Kogito CLI version: %s", version.Version)
-	return nil
-}
