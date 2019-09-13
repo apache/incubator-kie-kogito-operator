@@ -15,6 +15,7 @@
 package status
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"time"
@@ -58,6 +59,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 				types.NamespacedName{Name: resources.Route.Name, Namespace: resources.Route.Namespace}); err != nil {
 			return err
 		}
+		status.Route = fmt.Sprintf("http://%s", status.Route)
 	} else {
 		log.Debugf("Route is nil, impossible to get host to set in the status", resources.Route)
 	}

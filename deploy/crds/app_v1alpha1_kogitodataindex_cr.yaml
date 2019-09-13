@@ -10,7 +10,7 @@ spec:
   # number of pods to be deployed
   replicas: 1
   # image to use for this deploy
-  image: "quay.io/kieroup/kogito-data-index:latest"
+  image: "quay.io/kiegroup/kogito-data-index:latest"
   # Limits and requests for the Data Index pod
   memoryLimit: ""
   memoryRequest: ""

@@ -34,7 +34,7 @@ $ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i
 Then create an entry in the OperatorHub catalog with:
 
 ```bash
-$ oc create -f deploy/catalog_resources/courier/kogitocloud-operatorsource.yaml
+$ oc create -f deploy/olm-catalog/kogito-cloud-operator/kogitocloud-operatorsource.yaml
 ```
 
 It will take a few minutes for the operator to become visible under the _OperatorHub_ section of the OpenShift console _Catalog_. The Operator can be easily found by filtering by _Kogito_ name.
@@ -437,7 +437,7 @@ To install this operator on OpenShift 4 for end-to-end testing, make sure you ha
 Push the operator bundle to your quay application repository as follows:
 
 ```bash
-$ operator-courier push deploy/catalog_resources/courier/0.4.0 namespace kogitocloud-operator 0.4.0 "basic XXXXXXXXX"
+$ operator-courier push deploy/olm-catalog/kogito-cloud-operator/ namespace kogitocloud-operator 0.4.0 "basic XXXXXXXXX"
 ```
 
 If pushing to another quay repository, replace _namespace_ with your username or other namespace. Notice that the push command does not overwrite an existing repository, and the bundle needs to be deleted before a new version can be built and uploaded. Once the bundle has been uploaded, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
@@ -447,7 +447,7 @@ Note that the OpenShift cluster needs access to the created application. Make su
 ```bash
 ## kogito imagestreams should already be installed/available ... e.g.
 $ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
-$ oc create -f deploy/catalog_resources/courier/kogitocloud-operatorsource.yaml
+$ oc create -f deploy/olm-catalog/kogito-cloud-operator/kogitocloud-operatorsource.yaml
 ```
 
 Remember to replace _registryNamespace_ in the `kogitocloud-operatorsource.yaml` with your quay namespace. The name, display name and publisher of the operator are the only other attributes that may be modified.
