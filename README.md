@@ -245,7 +245,7 @@ Events:                      <none>
 
 Now that you have the required infrastrucuture, it's safe to deploy the Kogito Data Index Service.
 
-#### Deploy Data Index
+#### Install Data Index
 
 Having [installed](#installation) the Kogito Operator, create a new `Kogito Data Index` resource using the services URIs from Infinispan and Kafka:
 
@@ -270,15 +270,15 @@ In this case the Kafka Cluster service is `my-cluster-kafka-bootstrap:9092`.
 
 Use this information to create the Kogito Data Index resource. 
 
-##### Deploy Data Index with Kogito CLI
+##### Install Data Index with Kogito CLI
 
 If you have installed the [Kogito CLI](#kogito-cli), you can simply run:
 
 ```bash
-$ kogito deploy-data-index -p my-project --infinispan-url infinispan-server:11222 --kafka-url my-cluster-kafka-bootstrap:9092
+$ kogito install data-index -p my-project --infinispan-url infinispan-server:11222 --kafka-url my-cluster-kafka-bootstrap:9092
 ```
 
-##### Deploy Data Index with Operator Catalog (OLM)
+##### Install Data Index with Operator Catalog (OLM)
 
 If you're running on OCP 4.x, you might use the OperatorHub user interface. In the left menu go to Installed Operators, Kogito Operator, Kogito Data Index tab. From there, click on "Create Kogito Data Index" and create a new resource like in the example below using the Infinispan and Kafka services:
 
@@ -311,7 +311,7 @@ spec:
     serviceURI: infinispan-server:11222
 ```
 
-##### Deploy Data Index with oc client
+##### Install Data Index with oc client
 
 You can use the CR file showed above as a reference and create the custom resource from the command line:
 
@@ -381,19 +381,19 @@ Usage:
   kogito [command]
 
 Available Commands:
-  delete-project    Deletes a Kogito Project - i.e., the Kubernetes/OpenShift namespace
-  delete-service    Deletes a Kogito Runtime Service deployed in the namespace/project
-  deploy-data-index Deploys the Kogito Data Index Service in the given Project
-  deploy-service    Deploys a new Kogito Runtime Service into the given Project
-  help              Help about any command
-  new-project       Creates a new Kogito Project for your Kogito Services
-  use-project       Sets the Kogito Project where your Kogito Service will be deployed
-  version           Prints the kogito CLI version
+  delete-project Deletes a Kogito Project - i.e., the Kubernetes/OpenShift namespace
+  delete-service Deletes a Kogito Runtime Service deployed in the namespace/project
+  deploy-service Deploys a new Kogito Runtime Service into the given Project
+  help           Help about any command
+  install        Install all sort of infrastructure components to your Kogito project
+  new-project    Creates a new Kogito Project for your Kogito Services
+  use-project    Sets the Kogito Project where your Kogito Service will be deployed
 
 Flags:
       --config string   config file (default is $HOME/.kogito.json)
   -h, --help            help for kogito
   -v, --verbose         verbose output
+      --version         display version
 
 Use "kogito [command] --help" for more information about a command.
 ```

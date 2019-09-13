@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/version"
 	"github.com/spf13/cobra"
 )
 
@@ -42,4 +43,7 @@ var _ = RegisterCommandInit(func() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kogito.json)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().Bool("version", false, "display version")
+	rootCmd.Version = version.Version
+	rootCmd.SetVersionTemplate("{{with .Name}}{{printf \"%s \" .}}{{end}}{{printf \"%s\" .Version}}\n")
 })
