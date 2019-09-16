@@ -149,7 +149,6 @@ func installDataIndexExec(cmd *cobra.Command, args []string) error {
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: defaultDataIndexName, Namespace: installDataIndexCmdFlags.project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Name:          defaultDataIndexName,
 			Replicas:      installDataIndexCmdFlags.replicas,
 			Env:           util.FromStringsKeyPairToMap(installDataIndexCmdFlags.env),
 			Image:         installDataIndexCmdFlags.image,
@@ -167,7 +166,7 @@ func installDataIndexExec(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Infof("Kogito Data Index Service successfully installed in the Project %s.", installDataIndexCmdFlags.project)
-	log.Infof("Check the Service status by running 'oc describe kogitodataindex/%s -n %s'", kogitoDataIndex.Spec.Name, installDataIndexCmdFlags.project)
+	log.Infof("Check the Service status by running 'oc describe kogitodataindex/%s -n %s'", kogitoDataIndex.Name, installDataIndexCmdFlags.project)
 
 	return nil
 }

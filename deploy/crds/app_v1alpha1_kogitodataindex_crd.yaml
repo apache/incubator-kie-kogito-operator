@@ -103,10 +103,6 @@ spec:
               description: MemoryRequest is the request of Memory which will be available
                 for the container
               type: string
-            name:
-              description: Name is the name of the Data Index Service
-              minLength: 5
-              type: string
             replicas:
               description: Replicas is the number of pod replicas that the Data Index
                 Service will spin
@@ -114,8 +110,6 @@ spec:
               maximum: 100
               minimum: 0
               type: integer
-          required:
-          - name
           type: object
         status:
           properties:

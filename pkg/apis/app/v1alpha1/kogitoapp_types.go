@@ -28,8 +28,6 @@ type KogitoAppSpec struct {
 	// The name of the runtime used, either quarkus or springboot, defaults to quarkus
 	// +kubebuilder:validation:Enum=quarkus,springboot
 	Runtime RuntimeType `json:"runtime,omitempty"`
-	// +kubebuilder:validation:MinLength=3
-	Name string `json:"name,omitempty"`
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=100
 	Replicas *int32 `json:"replicas,omitempty"`

@@ -47,14 +47,14 @@ func NewBuildConfigService(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      kogitoApp.Spec.Name,
+			Name:      kogitoApp.Name,
 			Namespace: kogitoApp.Namespace,
 			Labels: map[string]string{
 				LabelKeyBuildType: string(buildType),
 			},
 		},
 	}
-	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", kogitoApp.Spec.Name, tagLatest)}
+	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", kogitoApp.Name, tagLatest)}
 	setBCServiceSource(kogitoApp, &buildConfig, fromBuild)
 	setBCServiceStrategy(kogitoApp, &buildConfig, &image)
 	setBCServiceTriggers(&buildConfig, fromBuild)

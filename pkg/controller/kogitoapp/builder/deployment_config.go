@@ -60,7 +60,7 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 
 	dc = &appsv1.DeploymentConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      kogitoApp.Spec.Name,
+			Name:      kogitoApp.Name,
 			Namespace: kogitoApp.Namespace,
 		},
 		Spec: appsv1.DeploymentConfigSpec{
@@ -71,7 +71,7 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name: kogitoApp.Spec.Name,
+							Name: kogitoApp.Name,
 							// this conversion will be removed in future versions
 							Env: shared.FromEnvToEnvVar(kogitoApp.Spec.Env),
 							// this conversion will be removed in future versions
@@ -89,7 +89,7 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 					Type: appsv1.DeploymentTriggerOnImageChange,
 					ImageChangeParams: &appsv1.DeploymentTriggerImageChangeParams{
 						Automatic:      true,
-						ContainerNames: []string{kogitoApp.Spec.Name},
+						ContainerNames: []string{kogitoApp.Name},
 						From:           *runnerBC.Spec.Output.To,
 					},
 				},

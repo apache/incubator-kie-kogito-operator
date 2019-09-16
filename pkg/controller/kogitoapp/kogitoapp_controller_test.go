@@ -59,11 +59,10 @@ var (
 	cpuValue       = "1"
 	cr             = v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kogito-operator",
+			Name:      "test-app",
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name: "test-app",
 			Resources: v1alpha1.Resources{
 				Limits: []v1alpha1.ResourceMap{
 					{
@@ -78,7 +77,7 @@ var (
 
 func TestNewContainerWithResource(t *testing.T) {
 	container := corev1.Container{
-		Name:            cr.Spec.Name,
+		Name:            cr.Name,
 		Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
 		Resources:       *shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
 		ImagePullPolicy: corev1.PullAlways,
@@ -107,7 +106,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 	})
 	isTag := imgv1.ImageStreamTag{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s:latest", kogitoapp.Spec.Name),
+			Name:      fmt.Sprintf("%s:latest", kogitoapp.Name),
 			Namespace: "test",
 		},
 		Image: imgv1.Image{
@@ -169,7 +168,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 	}
 	// Let's verify if the objects have been built
 	dc := &appsv1.DeploymentConfig{}
-	_, err = kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: kogitoapp.Spec.Name, Namespace: kogitoapp.Namespace}, dc)
+	_, err = kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: kogitoapp.Name, Namespace: kogitoapp.Namespace}, dc)
 	assert.NoError(t, err)
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Template.Spec.Containers, 1)

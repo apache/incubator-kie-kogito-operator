@@ -97,7 +97,7 @@ func addDefaultMetadata(objectMeta *metav1.ObjectMeta, instance *v1alpha1.Kogito
 		for key, value := range defaultAnnotations {
 			objectMeta.Annotations[key] = value
 		}
-		objectMeta.Labels[defaultLabelKey] = instance.Spec.Name
+		objectMeta.Labels[defaultLabelKey] = instance.Name
 	}
 }
 

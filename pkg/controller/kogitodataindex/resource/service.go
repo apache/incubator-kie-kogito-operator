@@ -34,7 +34,7 @@ func newService(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.Stateful
 	}
 	svc := corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Spec.Name,
+			Name:      instance.Name,
 			Namespace: instance.Namespace,
 		},
 		Spec: corev1.ServiceSpec{

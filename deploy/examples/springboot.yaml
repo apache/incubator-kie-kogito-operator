@@ -3,7 +3,6 @@ kind: KogitoApp
 metadata:
   name: example-springboot
 spec:
-  name: jbpm
   runtime: springboot
   env:
     - name: DEBUG

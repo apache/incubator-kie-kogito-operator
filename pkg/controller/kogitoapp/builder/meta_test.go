@@ -17,15 +17,16 @@ package builder
 import (
 	"testing"
 
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var metaKogitoApp = &v1alpha1.KogitoApp{
-	Spec: v1alpha1.KogitoAppSpec{
+	ObjectMeta: metav1.ObjectMeta{
 		Name: "test",
 	},
+	Spec: v1alpha1.KogitoAppSpec{},
 }
 
 func Test_addDefaultMeta_whenLabelsAreNotDefined(t *testing.T) {
@@ -61,8 +62,10 @@ func Test_addServiceLabels_whenLabelsAreNotProvided(t *testing.T) {
 	objectMeta := &metav1.ObjectMeta{}
 
 	kogitoApp = &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name:    "test",
 			Service: v1alpha1.KogitoAppServiceObject{},
 		},
 	}
@@ -78,6 +81,16 @@ func Test_addServiceLabels_whenAlreadyHasLabels(t *testing.T) {
 			"operator": "kogito",
 		},
 	}
+
+	kogitoApp = &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			Service: v1alpha1.KogitoAppServiceObject{},
+		},
+	}
+
 	addServiceLabels(objectMeta, kogitoApp)
 	assert.True(t, objectMeta.Labels[LabelKeyServiceName] == "test")
 	assert.True(t, objectMeta.Labels["operator"] == "kogito")
@@ -93,7 +106,6 @@ func Test_addServiceLabels_whenLabelsAreProvided(t *testing.T) {
 
 	kogitoApp = &v1alpha1.KogitoApp{
 		Spec: v1alpha1.KogitoAppSpec{
-			Name: "test",
 			Service: v1alpha1.KogitoAppServiceObject{
 				Labels: map[string]string{
 					"service":  "test456",

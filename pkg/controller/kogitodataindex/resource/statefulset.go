@@ -46,7 +46,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 
 	statefulset := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Spec.Name,
+			Name:      instance.Name,
 			Namespace: instance.Namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
@@ -71,7 +71,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 					},
 					Containers: []corev1.Container{
 						{
-							Name:            instance.Spec.Name,
+							Name:            instance.Name,
 							Image:           instance.Spec.Image,
 							Env:             util.FromMapToEnvVar(envs),
 							Resources:       extractResources(instance),

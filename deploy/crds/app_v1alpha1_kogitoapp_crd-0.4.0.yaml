@@ -114,9 +114,6 @@ spec:
                     type: string
                 type: object
               type: array
-            name:
-              minLength: 3
-              type: string
             replicas:
               format: int32
               maximum: 100

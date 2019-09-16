@@ -32,7 +32,6 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name: "test",
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: &v1alpha1.GitSource{
 					URI:        &uri,

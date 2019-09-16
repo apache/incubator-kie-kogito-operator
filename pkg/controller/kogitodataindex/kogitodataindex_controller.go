@@ -142,7 +142,7 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconci
 	}
 
 	// Create our inventory
-	reqLogger.Infof("Ensure Kogito Data Index '%s' resources are created", instance.Spec.Name)
+	reqLogger.Infof("Ensure Kogito Data Index '%s' resources are created", instance.Name)
 	resources, err := resource.CreateOrFetchResources(instance, commonres.FactoryContext{
 		Client: r.client,
 		PreCreate: func(object meta.ResourceObject) error {
@@ -157,13 +157,13 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconci
 	}
 
 	if !resources.StatefulSetStatus.New {
-		reqLogger.Infof("Handling changes in Kogito Data Index '%s'", instance.Spec.Name)
+		reqLogger.Infof("Handling changes in Kogito Data Index '%s'", instance.Name)
 		if err = resource.ManageResources(instance, &resources, r.client); err != nil {
 			return reconcile.Result{}, err
 		}
 	}
 
-	reqLogger.Infof("Handling Status updates on '%s'", instance.Spec.Name)
+	reqLogger.Infof("Handling Status updates on '%s'", instance.Name)
 	if err = status.ManageStatus(instance, &resources, r.client); err != nil {
 		return reconcile.Result{}, err
 	}

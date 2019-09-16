@@ -32,7 +32,6 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
-			Name:    "test",
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: &v1alpha1.GitSource{
 					URI:        &uri,
@@ -61,7 +60,6 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
-			Name:    "test",
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: &v1alpha1.GitSource{
 					URI:        &uri,
@@ -98,7 +96,6 @@ func Test_buildConfigResource_New(t *testing.T) {
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Name: "test",
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: &v1alpha1.GitSource{
 					URI:        &uri,

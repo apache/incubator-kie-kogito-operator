@@ -289,7 +289,6 @@ metadata:
   name: kogito-data-index
 spec:
   # If not informed, these default values will be set for you
-  name: "kogito-data-index"
   # environment variables to set in the runtime container. Example: JAVAOPTS: "-Dquarkus.log.level=DEBUG"
   env: {}
   # number of pods to be deployed
