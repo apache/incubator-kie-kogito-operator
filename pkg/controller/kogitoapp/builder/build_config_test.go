@@ -112,8 +112,8 @@ func Test_buildConfigResource_New(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, bcService)
 
-	assert.Contains(t, bcS2I.Spec.Output.To.Name, nameSuffix)
-	assert.NotContains(t, bcService.Spec.Output.To.Name, nameSuffix)
+	assert.Contains(t, bcS2I.Spec.Output.To.Name, BuildS2INameSuffix)
+	assert.NotContains(t, bcService.Spec.Output.To.Name, BuildS2INameSuffix)
 	assert.Len(t, bcService.Spec.Triggers, 1)
 	assert.Len(t, bcS2I.Spec.Triggers, 0)
 	assert.Equal(t, bcService.Spec.Source.Images[0].From, *bcS2I.Spec.Output.To)

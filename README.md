@@ -7,7 +7,7 @@ Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kieg
 ## Requirements
 
 - go v1.12+
-- [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.9.0
+- [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.10.0
 - ocp 4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
 - [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
 
@@ -458,6 +458,18 @@ It's possible to verify the operator status by running:
 ```bash
 $ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n openshift-marketplace
 ```
+
+#### Running End to End tests
+
+If you have an OpenShift cluster and admin privileges, you can run e2e tests with the following command:
+
+```bash
+$ make run-e2e namespace=<namespace> tag=<tag>
+```
+
+Where `namespace` is a given temporary namespace where the test will run. You don't need to create the namespace, since it will be created and deleted after running the tests.
+
+The next parameter, `tag`, is the image tag for the Kogito image builds, for example: `0.4.0-rc1`. Useful for situations where [Kogito Cloud images](https://github.com/kiegroup/kogito-cloud/tree/master/s2i) haven't released yet and are under a temporary tag.
 
 ### Running Locally
 
