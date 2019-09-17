@@ -57,7 +57,7 @@ replace (
 	sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.1.11-0.20190411181648-9d55346c2bde
 )
 
-replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.9.0
+replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.10.0
 
 replace (
 	github.com/openshift/api => github.com/openshift/api v3.9.1-0.20190814194116-a94e914914f4+incompatible

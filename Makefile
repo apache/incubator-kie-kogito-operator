@@ -62,3 +62,7 @@ clean:
 .PHONY: addheaders
 addheaders:
 	./hack/addheaders.sh
+
+.PHONY: run-e2e
+run-e2e:
+	./hack/run-e2e.sh $(namespace) $(tag)

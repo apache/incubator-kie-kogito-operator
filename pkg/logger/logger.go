@@ -115,7 +115,8 @@ func zapSugaredLoggerTo(options *Opts) *zap.SugaredLogger {
 	if options.Console {
 		encCfg := zap.NewDevelopmentEncoderConfig()
 		encCfg.LevelKey = ""
-		encCfg.TimeKey = ""
+		encCfg.TimeKey = "time"
+		encCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 		encCfg.NameKey = ""
 		encCfg.CallerKey = ""
 		enc = zapcore.NewConsoleEncoder(encCfg)
@@ -133,6 +134,8 @@ func zapSugaredLoggerTo(options *Opts) *zap.SugaredLogger {
 			opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
 		} else {
 			encCfg := zap.NewProductionEncoderConfig()
+			encCfg.TimeKey = "T"
+			encCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 			enc = zapcore.NewJSONEncoder(encCfg)
 			lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
 			opts = append(opts, zap.WrapCore(func(core zapcore.Core) zapcore.Core {

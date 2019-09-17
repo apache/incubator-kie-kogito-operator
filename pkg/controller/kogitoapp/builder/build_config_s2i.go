@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	nameSuffix           = "-builder"
+	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogio Service Runtime
+	BuildS2INameSuffix   = "-builder"
 	nativeBuildEnvVarKey = "NATIVE"
 )
 
@@ -44,7 +45,7 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, nameSuffix),
+			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, BuildS2INameSuffix),
 			Namespace: kogitoApp.Namespace,
 			Labels: map[string]string{
 				LabelKeyBuildType: string(BuildTypeS2I),
