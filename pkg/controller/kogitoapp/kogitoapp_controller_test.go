@@ -20,24 +20,27 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache/informertest"
-
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/apimachinery/pkg/types"
-
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitoclient "github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/builder"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
@@ -45,12 +48,6 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	buildfake "github.com/openshift/client-go/build/clientset/versioned/fake"
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var (
@@ -79,7 +76,7 @@ func TestNewContainerWithResource(t *testing.T) {
 	container := corev1.Container{
 		Name:            cr.Name,
 		Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
-		Resources:       *shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
+		Resources:       shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
 		ImagePullPolicy: corev1.PullAlways,
 	}
 	assert.NotNil(t, container)
@@ -173,4 +170,12 @@ func TestKogitoAppWithResource(t *testing.T) {
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Template.Spec.Containers, 1)
 	assert.Len(t, dc.GetOwnerReferences(), 1)
+
+	bcS2I := &buildv1.BuildConfig{}
+	_, err = kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: kogitoapp.Name + builder.BuildS2INameSuffix, Namespace: kogitoapp.Namespace}, bcS2I)
+	assert.NoError(t, err)
+	assert.NotNil(t, bcS2I)
+
+	assert.Equal(t, resource.MustParse(builder.DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
+	assert.Equal(t, resource.MustParse(builder.DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
 }

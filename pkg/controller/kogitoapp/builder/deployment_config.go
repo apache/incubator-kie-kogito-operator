@@ -75,7 +75,7 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 							// this conversion will be removed in future versions
 							Env: shared.FromEnvToEnvVar(kogitoApp.Spec.Env),
 							// this conversion will be removed in future versions
-							Resources:       *shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Resources),
+							Resources:       shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Resources),
 							Image:           runnerBC.Spec.Output.To.Name,
 							ImagePullPolicy: corev1.PullAlways,
 						},

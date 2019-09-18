@@ -17,6 +17,7 @@ package kogitoapp
 import (
 	"context"
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"reflect"
 	"time"
 
@@ -150,6 +151,8 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	if instance.Spec.Runtime != v1alpha1.SpringbootRuntimeType {
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
+
+	r.setDefaultBuildLimits(instance)
 
 	log.Infof("Checking if all resources for '%s' are created", instance.Name)
 	// create resources in the cluster that do not exist
@@ -519,4 +522,32 @@ func (r *ReconcileKogitoApp) GetRouteHost(route oroutev1.Route, cr *v1alpha1.Kog
 	}
 
 	return route.Spec.Host
+}
+
+func (r *ReconcileKogitoApp) setDefaultBuildLimits(instance *v1alpha1.KogitoApp) {
+	if &instance.Spec.Build.Resources == nil {
+		instance.Spec.Build.Resources = v1alpha1.Resources{}
+	}
+	if len(instance.Spec.Build.Resources.Limits) == 0 {
+		if instance.Spec.Build.Native {
+			instance.Spec.Build.Resources.Limits = builder.DefaultBuildS2INativeLimits
+		} else {
+			instance.Spec.Build.Resources.Limits = builder.DefaultBuildS2IJVMLimits
+		}
+	} else {
+		if !shared.ContainsResource(v1alpha1.ResourceCPU, instance.Spec.Build.Resources.Limits) {
+			if instance.Spec.Build.Native {
+				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, builder.DefaultBuildS2INativeCPULimit)
+			} else {
+				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, builder.DefaultBuildS2IJVMCPULimit)
+			}
+		}
+		if !shared.ContainsResource(v1alpha1.ResourceMemory, instance.Spec.Build.Resources.Limits) {
+			if instance.Spec.Build.Native {
+				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, builder.DefaultBuildS2INativeMemoryLimit)
+			} else {
+				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, builder.DefaultBuildS2IJVMMemoryLimit)
+			}
+		}
+	}
 }

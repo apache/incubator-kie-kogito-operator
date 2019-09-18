@@ -16,9 +16,10 @@ package builder
 
 import (
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"testing"
 
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -33,13 +34,16 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
+				// we'll try to trick the build
+				Env: []v1alpha1.Env{{Name: nativeBuildEnvVarKey, Value: "true"}},
 				GitSource: &v1alpha1.GitSource{
 					URI:        &uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
 				Native: false,
-				// we'll try to trick the build
-				Env: []v1alpha1.Env{{Name: nativeBuildEnvVarKey, Value: "true"}},
+				Resources: v1alpha1.Resources{
+					Limits: DefaultBuildS2IJVMLimits,
+				},
 			},
 		},
 	}
@@ -49,6 +53,8 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "false"})
 	assert.NotContains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "true"})
 	assert.Contains(t, bcService.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType].ImageStreamName)
+	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
+	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
 }
 
 func Test_BuildConfig_WithCustomImage(t *testing.T) {
@@ -102,6 +108,9 @@ func Test_buildConfigResource_New(t *testing.T) {
 					ContextDir: "jbpm-quarkus-example",
 				},
 				Native: true,
+				Resources: v1alpha1.Resources{
+					Limits: DefaultBuildS2INativeLimits,
+				},
 			},
 		},
 	}
@@ -117,4 +126,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 	assert.Len(t, bcService.Spec.Triggers, 1)
 	assert.Len(t, bcS2I.Spec.Triggers, 0)
 	assert.Equal(t, bcService.Spec.Source.Images[0].From, *bcS2I.Spec.Output.To)
+	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
+	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
+	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: bcS2I.Spec.Resources.Limits.Memory().ToDec().AsDec().UnscaledBig().String()})
 }

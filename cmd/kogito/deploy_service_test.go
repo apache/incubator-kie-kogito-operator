@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"strings"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -45,7 +46,15 @@ func Test_DeployCmd_WhenThereAreAnOperator(t *testing.T) {
 }
 
 func Test_DeployCmd_CustomDeployment(t *testing.T) {
-	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project kogito --image-s2i=myimage --image-runtime=myimage:0.2 --limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi")
+	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples 
+								-v --context-dir drools-quarkus-example --project kogito 
+								--image-s2i=myimage --image-runtime=myimage:0.2 
+								--limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi
+								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi`)
+	// clean up all the mess we did ^
+	cli = strings.Join(strings.Fields(cli), " ")
+
+	// start the test
 	config.LastKogitoAppCreated = nil
 	_, _, err := executeCli(cli,
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
@@ -56,6 +65,8 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, config.LastKogitoAppCreated.Spec.Runtime)
 	assert.Contains(t, config.LastKogitoAppCreated.Spec.Resources.Limits, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"})
 	assert.Contains(t, config.LastKogitoAppCreated.Spec.Resources.Requests, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "1Gi"})
+	assert.Contains(t, config.LastKogitoAppCreated.Spec.Build.Resources.Limits, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"})
+	assert.Contains(t, config.LastKogitoAppCreated.Spec.Build.Resources.Requests, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "2Gi"})
 	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageS2I.ImageStreamName, "myimage")
 	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageRuntime.ImageStreamName, "myimage")
 	assert.Equal(t, config.LastKogitoAppCreated.Spec.Build.ImageRuntime.ImageStreamTag, "0.2")

@@ -37,14 +37,14 @@ func FromEnvToEnvVar(envs []v1alpha1.Env) (envVars []corev1.EnvVar) {
 }
 
 // FromResourcesToResourcesRequirements Convert the exposed data structure Resources to Kube Core ResourceRequirements
-func FromResourcesToResourcesRequirements(resources v1alpha1.Resources) (resReq *corev1.ResourceRequirements) {
+func FromResourcesToResourcesRequirements(resources v1alpha1.Resources) (resReq corev1.ResourceRequirements) {
 	if &resources == nil {
-		return nil
+		return corev1.ResourceRequirements{}
 	}
 	if len(resources.Limits) == 0 && len(resources.Requests) == 0 {
-		return &corev1.ResourceRequirements{}
+		return corev1.ResourceRequirements{}
 	}
-	resReq = &corev1.ResourceRequirements{}
+	resReq = corev1.ResourceRequirements{}
 	// only build what is need to not conflict with DeepCopy later
 	if len(resources.Limits) > 0 {
 		resReq.Limits = corev1.ResourceList{}
@@ -62,4 +62,14 @@ func FromResourcesToResourcesRequirements(resources v1alpha1.Resources) (resReq 
 	}
 
 	return resReq
+}
+
+// ContainsResource checks whether or not the resource is presented in resources
+func ContainsResource(resource v1alpha1.ResourceKind, resources []v1alpha1.ResourceMap) bool {
+	for _, res := range resources {
+		if res.Resource == resource {
+			return true
+		}
+	}
+	return false
 }

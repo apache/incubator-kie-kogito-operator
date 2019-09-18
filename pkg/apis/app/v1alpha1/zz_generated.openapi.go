@@ -370,12 +370,18 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"resources": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resources for build pods. Default limits are 1GB RAM/0.5 cpu on jvm and 4GB RAM/1 cpu for native builds.",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
+						},
+					},
 				},
 				Required: []string{"gitSource"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret"},
 	}
 }
 

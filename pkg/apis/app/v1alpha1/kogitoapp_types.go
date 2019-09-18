@@ -90,6 +90,8 @@ type KogitoAppBuildObject struct {
 	ImageRuntime Image `json:"imageRuntime,omitempty"`
 	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is quarkus. See: https://www.graalvm.org/docs/reference-manual/aot-compilation/
 	Native bool `json:"native,omitempty"`
+	// Resources for build pods. Default limits are 1GB RAM/0.5 cpu on jvm and 4GB RAM/1 cpu for native builds.
+	Resources Resources `json:"resources,omitempty"`
 }
 
 // KogitoAppServiceObject Data to define the service of the kogito app
