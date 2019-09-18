@@ -85,6 +85,45 @@ spec:
                     be compiled to run on native mode when Runtime is quarkus. See:
                     https://www.graalvm.org/docs/reference-manual/aot-compilation/'
                   type: boolean
+                resources:
+                  description: Resources for build pods. Default limits are 1GB RAM/0.5
+                    cpu on jvm and 4GB RAM/1 cpu for native builds.
+                  properties:
+                    limits:
+                      items:
+                        properties:
+                          resource:
+                            description: Resource type like cpu and memory
+                            enum:
+                            - cpu
+                            - memory
+                            type: string
+                          value:
+                            description: Value of this resource in Kubernetes format
+                            type: string
+                        required:
+                        - resource
+                        - value
+                        type: object
+                      type: array
+                    requests:
+                      items:
+                        properties:
+                          resource:
+                            description: Resource type like cpu and memory
+                            enum:
+                            - cpu
+                            - memory
+                            type: string
+                          value:
+                            description: Value of this resource in Kubernetes format
+                            type: string
+                        required:
+                        - resource
+                        - value
+                        type: object
+                      type: array
+                  type: object
                 webhooks:
                   description: WebHook secrets for build configs
                   items:

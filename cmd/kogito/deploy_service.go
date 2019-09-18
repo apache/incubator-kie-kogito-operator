@@ -40,6 +40,8 @@ type deployFlags struct {
 	imageS2I         string
 	imageRuntime     string
 	native           bool
+	buildLimits      []string
+	buildRequests    []string
 }
 
 const (
@@ -84,6 +86,12 @@ var _ = RegisterCommandVar(func() {
 			if err := util.ParseStringsForKeyPair(deployCmdFlags.serviceLabels); err != nil {
 				return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", deployCmdFlags.serviceLabels)
 			}
+			if err := util.ParseStringsForKeyPair(deployCmdFlags.buildLimits); err != nil {
+				return fmt.Errorf("build-limits are in the wrong format. Valid are key pairs like 'cpu=1', received %s", deployCmdFlags.buildLimits)
+			}
+			if err := util.ParseStringsForKeyPair(deployCmdFlags.buildRequests); err != nil {
+				return fmt.Errorf("build-requests are in the wrong format. Valid are key pairs like 'cpu=1', received %s", deployCmdFlags.buildRequests)
+			}
 			if !util.Contains(deployCmdFlags.runtime, deployRuntimeValidEntries) {
 				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, deployCmdFlags.runtime)
 			}
@@ -111,6 +119,8 @@ var _ = RegisterCommandInit(func() {
 	deployCmd.Flags().BoolVar(&deployCmdFlags.incrementalBuild, "incremental-build", true, "Build should be incremental?")
 	deployCmd.Flags().BoolVar(&deployCmdFlags.native, "native", false, "Use native builds? Be aware that native builds takes more time and consume much more resources from the cluster. Defaults to false")
 	deployCmd.Flags().StringSliceVar(&deployCmdFlags.buildenv, "build-env", nil, "Key/pair value environment variables that will be set during the build. For example 'MAVEN_URL=http://myinternalmaven.com'. Can be set more than once.")
+	deployCmd.Flags().StringSliceVar(&deployCmdFlags.buildLimits, "build-limits", nil, "Resource limits for the s2i build pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
+	deployCmd.Flags().StringSliceVar(&deployCmdFlags.buildRequests, "build-requests", nil, "Resource requests for the s2i build pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	deployCmd.Flags().StringVar(&deployCmdFlags.imageS2I, "image-s2i", "", "Image tag (namespace/name:tag) for using during the s2i build, e.g: openshift/kogito-quarkus-ubi8-s2i:latest")
 	deployCmd.Flags().StringVar(&deployCmdFlags.imageRuntime, "image-runtime", "", "Image tag (namespace/name:tag) for using during service runtime, e.g: openshift/kogito-quarkus-ubi8:latest")
 })
@@ -147,15 +157,19 @@ func deployExec(cmd *cobra.Command, args []string) error {
 			Runtime:  v1alpha1.RuntimeType(deployCmdFlags.runtime),
 			Build: &v1alpha1.KogitoAppBuildObject{
 				Incremental: deployCmdFlags.incrementalBuild,
+				Env:         fromStringArrayToControllerEnvs(deployCmdFlags.buildenv),
 				GitSource: &v1alpha1.GitSource{
 					URI:        &deployCmdFlags.source,
 					ContextDir: deployCmdFlags.contextdir,
 					Reference:  deployCmdFlags.reference,
 				},
-				Env:          fromStringArrayToControllerEnvs(deployCmdFlags.buildenv),
 				ImageS2I:     fromStringToImage(deployCmdFlags.imageS2I),
 				ImageRuntime: fromStringToImage(deployCmdFlags.imageRuntime),
 				Native:       deployCmdFlags.native,
+				Resources: v1alpha1.Resources{
+					Limits:   fromStringArrayToControllerResourceMap(deployCmdFlags.buildLimits),
+					Requests: fromStringArrayToControllerResourceMap(deployCmdFlags.buildRequests),
+				},
 			},
 			Env: fromStringArrayToControllerEnvs(deployCmdFlags.env),
 			Service: v1alpha1.KogitoAppServiceObject{

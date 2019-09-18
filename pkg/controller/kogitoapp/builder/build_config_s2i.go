@@ -17,9 +17,10 @@ package builder
 import (
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-	"strconv"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
@@ -30,8 +31,25 @@ import (
 
 const (
 	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogio Service Runtime
-	BuildS2INameSuffix   = "-builder"
-	nativeBuildEnvVarKey = "NATIVE"
+	BuildS2INameSuffix           = "-builder"
+	nativeBuildEnvVarKey         = "NATIVE"
+	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
+	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
+)
+
+var (
+	// DefaultBuildS2IJVMCPULimit is the default CPU limit for JVM s2i builds
+	DefaultBuildS2IJVMCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "500m"}
+	// DefaultBuildS2IJVMMemoryLimit is the default Memory limit for JVM s2i builds
+	DefaultBuildS2IJVMMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "1Gi"}
+	// DefaultBuildS2IJVMLimits is the default resource limits for JVM s2i builds
+	DefaultBuildS2IJVMLimits = []v1alpha1.ResourceMap{DefaultBuildS2IJVMCPULimit, DefaultBuildS2IJVMMemoryLimit}
+	// DefaultBuildS2INativeCPULimit is the default CPU limit for Native s2i builds
+	DefaultBuildS2INativeCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1000m"}
+	// DefaultBuildS2INativeMemoryLimit is the default Memory limit for Native s2i builds
+	DefaultBuildS2INativeMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "4Gi"}
+	// DefaultBuildS2INativeLimits is the default resource limits for Native s2i builds
+	DefaultBuildS2INativeLimits = []v1alpha1.ResourceMap{DefaultBuildS2INativeCPULimit, DefaultBuildS2INativeMemoryLimit}
 )
 
 // NewBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -42,7 +60,6 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 
 	image := ensureImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
 
-	// headers and base information
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, BuildS2INameSuffix),
@@ -52,11 +69,14 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 			},
 		},
 	}
+
+	buildConfig.Spec.Resources = shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Build.Resources)
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", buildConfig.Name, tagLatest)}
 	setBCS2ISource(kogitoApp, &buildConfig)
 	setBCS2IStrategy(kogitoApp, &buildConfig, &image)
 	meta.SetGroupVersionKind(&buildConfig.TypeMeta, meta.KindBuildConfig)
 	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
+
 	return buildConfig, nil
 }
 
@@ -73,6 +93,9 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 		envs = util.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
 	}
+	limitCPU, limitMemory := getBCS2ILimitsAsIntString(buildConfig)
+	envs = util.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitCPUEnvVarKey, Value: limitCPU})
+	envs = util.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: limitMemory})
 
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
@@ -84,4 +107,31 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 		Env:         envs,
 		Incremental: &kogitoApp.Spec.Build.Incremental,
 	}
+}
+
+func getBCS2ILimitsAsIntString(buildConfig *buildv1.BuildConfig) (limitCPU, limitMemory string) {
+	limitCPU = ""
+	limitMemory = ""
+	if &buildConfig.Spec.Resources == nil || buildConfig.Spec.Resources.Limits == nil {
+		return "", ""
+	}
+
+	limitCPUInt, possible := buildConfig.Spec.Resources.Limits.Cpu().AsInt64()
+	if !possible {
+		limitCPUInt = buildConfig.Spec.Resources.Limits.Cpu().ToDec().AsDec().UnscaledBig().Int64()
+	}
+	limitMemoryInt, possible := buildConfig.Spec.Resources.Limits.Memory().AsInt64()
+	if !possible {
+		limitMemoryInt = buildConfig.Spec.Resources.Limits.Memory().ToDec().AsDec().UnscaledBig().Int64()
+	}
+
+	if limitCPUInt > 0 {
+		limitCPU = strconv.FormatInt(limitCPUInt, 10)
+	}
+
+	if limitMemoryInt > 0 {
+		limitMemory = strconv.FormatInt(limitMemoryInt, 10)
+	}
+
+	return limitCPU, limitMemory
 }

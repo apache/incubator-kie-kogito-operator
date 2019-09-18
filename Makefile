@@ -65,4 +65,4 @@ addheaders:
 
 .PHONY: run-e2e
 run-e2e:
-	./hack/run-e2e.sh $(namespace) $(tag)
+	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror)

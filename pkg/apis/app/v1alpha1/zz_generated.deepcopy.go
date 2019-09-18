@@ -226,6 +226,7 @@ func (in *KogitoAppBuildObject) DeepCopyInto(out *KogitoAppBuildObject) {
 	}
 	out.ImageS2I = in.ImageS2I
 	out.ImageRuntime = in.ImageRuntime
+	in.Resources.DeepCopyInto(&out.Resources)
 	return
 }
 
