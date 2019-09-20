@@ -115,8 +115,7 @@ func zapSugaredLoggerTo(options *Opts) *zap.SugaredLogger {
 	if options.Console {
 		encCfg := zap.NewDevelopmentEncoderConfig()
 		encCfg.LevelKey = ""
-		encCfg.TimeKey = "time"
-		encCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+		encCfg.TimeKey = ""
 		encCfg.NameKey = ""
 		encCfg.CallerKey = ""
 		enc = zapcore.NewConsoleEncoder(encCfg)
