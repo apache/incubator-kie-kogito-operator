@@ -81,5 +81,5 @@ image/build/master:
 .PHONY: image/push/master
 image/push/master:
 	@echo Pushing operator 
-	@docker login --username $(DOCKER_USER) --password $(DOCKER_PASS) quay.io
+	@docker login --username $(QUAY_USER) --password $(QUAY_PASS) quay.io
 	docker push quay.io/sbuvaneshkumar/kogito-cloud-operator
