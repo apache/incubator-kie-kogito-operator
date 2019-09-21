@@ -1,3 +1,4 @@
+APP_FILE=./cmd/manager/main.go
 # kernel-style V=1 build verbosity
 ifeq ("$(origin V)", "command line")
        BUILD_VERBOSE = $(V)
@@ -66,3 +67,19 @@ addheaders:
 .PHONY: run-e2e
 run-e2e:
 	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror)
+
+.PHONY: code/build/linux
+code/build/linux:
+	env GOOS=linux GOARCH=amd64 go build $(APP_FILE)
+
+.PHONY: image/build/master
+image/build/master:
+	@echo Building operator
+	@docker login --username $(REGISTRY_USER) --password $(REGISTRY_PASS) https://registry.redhat.io
+	operator-sdk build quay.io/sbuvaneshkumar/kogito-cloud-operator
+
+.PHONY: image/push/master
+image/push/master:
+	@echo Pushing operator 
+	@docker login --username $(DOCKER_USER) --password $(DOCKER_PASS) quay.io
+	docker push quay.io/sbuvaneshkumar/kogito-cloud-operator
