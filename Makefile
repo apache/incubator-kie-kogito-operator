@@ -102,7 +102,7 @@ image/push/master:
 .PHONY: image/push/release
 image/push/release:
 	@echo Pushing operator with tag $(IMAGE_RELEASE_TAG) to $(IMAGE_REGISTRY)
-	@docker login --username $(QUAY_USERNAME) --password $(QUAY_PASSWORD) quay.io
+	@docker login --username $(QUAY_USER) --password $(QUAY_PASS) quay.io
 	docker push $(IMAGE_RELEASE_TAG)
 	@echo Pushing operator with tag $(IMAGE_LATEST_TAG) to $(IMAGE_REGISTRY)
 	docker push $(IMAGE_LATEST_TAG)
