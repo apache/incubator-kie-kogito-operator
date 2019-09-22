@@ -1,4 +1,12 @@
 APP_FILE=./cmd/manager/main.go
+IMAGE_REGISTRY=quay.io
+REGISTRY_ORG=sbuvaneshkumar
+REGISTRY_REPO=kogito-cloud-operator
+IMAGE_LATEST_TAG=$(IMAGE_REGISTRY)/$(REGISTRY_ORG)/$(REGISTRY_REPO):latest
+IMAGE_MASTER_TAG=$(IMAGE_REGISTRY)/$(REGISTRY_ORG)/$(REGISTRY_REPO):master
+IMAGE_RELEASE_TAG=$(IMAGE_REGISTRY)/$(REGISTRY_ORG)/$(REGISTRY_REPO):$(CIRCLE_TAG)
+# set CIRCLE_TAG (git release tag) in circleci env
+
 # kernel-style V=1 build verbosity
 ifeq ("$(origin V)", "command line")
        BUILD_VERBOSE = $(V)
@@ -74,12 +82,27 @@ code/build/linux:
 
 .PHONY: image/build/master
 image/build/master:
-	@echo Building operator
+	@echo Building operator with the tag: $(IMAGE_MASTER_TAG)
 	@docker login --username $(REGISTRY_USER) --password $(REGISTRY_PASS) https://registry.redhat.io
-	operator-sdk build quay.io/sbuvaneshkumar/kogito-cloud-operator
+	operator-sdk build $(IMAGE_MASTER_TAG)
+
+.PHONY: image/build/release
+image/build/release:
+	@echo Building operator with the tag: $(IMAGE_RELEASE_TAG)
+	@docker login --username $(REGISTRY_USER) --password $(REGISTRY_PASS) https://registry.redhat.io
+	operator-sdk build $(IMAGE_RELEASE_TAG)
+	operator-sdk build $(IMAGE_LATEST_TAG)
 
 .PHONY: image/push/master
 image/push/master:
-	@echo Pushing operator 
+	@echo Pushing operator with tag $(IMAGE_MASTER_TAG) to $(IMAGE_REGISTRY)
 	@docker login --username $(QUAY_USER) --password $(QUAY_PASS) quay.io
-	docker push quay.io/sbuvaneshkumar/kogito-cloud-operator
+	docker push $(IMAGE_MASTER_TAG)
+
+.PHONY: image/push/release
+image/push/release:
+	@echo Pushing operator with tag $(IMAGE_RELEASE_TAG) to $(IMAGE_REGISTRY)
+	@docker login --username $(QUAY_USERNAME) --password $(QUAY_PASSWORD) quay.io
+	docker push $(IMAGE_RELEASE_TAG)
+	@echo Pushing operator with tag $(IMAGE_LATEST_TAG) to $(IMAGE_REGISTRY)
+	docker push $(IMAGE_LATEST_TAG)

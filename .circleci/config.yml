@@ -1,4 +1,3 @@
-# TODO: version management
 # Golang CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-go/ for more details
@@ -16,7 +15,7 @@ jobs:
       - run: go fmt ./...
       - run: go vet ./...
       - run: go test -mod=vendor ./pkg/... ./cmd/... -count=1
-  image_build_push:
+  image_push_master:
     working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
     docker:
       - image: circleci/golang:1.12
@@ -32,10 +31,46 @@ jobs:
           command: curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v0.10.0/operator-sdk-v0.10.0-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/
       - run: make code/build/linux
       - run: make image/build/master
-      - run: make image/push/master 
+      - run: make image/push/master
+  image_release:
+    working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
+    docker:
+      - image: circleci/golang:1.12
+        environment: GO111MODULE=on
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install dep
+          command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      - run:
+          name: Install operator-sdk to build image
+          command: curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v0.10.0/operator-sdk-v0.10.0-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/
+      - run: make image/build/release
+      - run: make image/push/release
 workflows:
   version: 2
   build:
     jobs:
-      - build
-      - image_build_push
+      - build:
+          filters:
+            tags:
+              only: /.*/
+# Run build for any changes in any branch
+      - image_push_master:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+# Build image only if there is a change in master branch
+      - image_release:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /\d{1,2}\.\d{1,2}\.\d{1,2}/
+            branches:
+              ignore: /.*/
+# Build image with release tag only if git tag detected
