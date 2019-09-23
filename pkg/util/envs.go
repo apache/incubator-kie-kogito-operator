@@ -15,6 +15,7 @@
 package util
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"os"
 	"strconv"
 )
@@ -44,4 +45,15 @@ func GetHomeDir() string {
 		return h
 	}
 	return os.Getenv("USERPROFILE") // windows
+}
+
+// EnvToMap converts an array of Env to a map
+func EnvToMap(env []v1alpha1.Env) map[string]string {
+	envMap := map[string]string{}
+
+	for _, e := range env {
+		envMap[e.Name] = e.Value
+	}
+
+	return envMap
 }

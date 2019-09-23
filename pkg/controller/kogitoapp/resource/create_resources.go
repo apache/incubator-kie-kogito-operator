@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
@@ -32,7 +32,7 @@ type Context struct {
 
 type builderChain struct {
 	Context   *Context
-	Inventory *KogitoAppInventory
+	Resources *KogitoAppResources
 	Error     error
 }
 
@@ -44,19 +44,19 @@ func (c *builderChain) AndBuild(f func(*builderChain) *builderChain) *builderCha
 	return c
 }
 
-// BuildOrFetchObjects will fetch for every resource in KogitoAppInventory and will create it in the cluster if not exists
-func BuildOrFetchObjects(context *Context) (inv *KogitoAppInventory, err error) {
+// BuildOrFetchObjects will fetch for every resource in KogitoAppResources and will create it in the cluster if not exists
+func BuildOrFetchObjects(context *Context) (resources *KogitoAppResources, err error) {
 	chain := &builderChain{
-		Inventory: &KogitoAppInventory{},
+		Resources: &KogitoAppResources{},
 		Context:   context,
 	}
 	chain.AndBuild(buildConfigS2IBuilder).
-		AndBuild(buildConfigServiceBuilder).
+		AndBuild(buildConfigRuntimeBuilder).
 		AndBuild(imageStreamBuilder).
 		AndBuild(deploymentConfigBuilder).
 		AndBuild(serviceBuilder).
 		AndBuild(routeBuilder)
-	return chain.Inventory, chain.Error
+	return chain.Resources, chain.Error
 }
 
 func callPostCreate(isNew bool, object meta.ResourceObject, chain *builderChain) *builderChain {
@@ -85,16 +85,16 @@ func buildConfigS2IBuilder(chain *builderChain) *builderChain {
 		chain.Error = err
 		return chain
 	}
-	chain.Inventory.BuildConfigS2IStatus.IsNew, chain.Error =
+	chain.Resources.BuildConfigS2IStatus.IsNew, chain.Error =
 		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&bc)
-	chain.Inventory.BuildConfigS2I = &bc
-	return callPostCreate(chain.Inventory.BuildConfigS2IStatus.IsNew, &bc, chain)
+	chain.Resources.BuildConfigS2I = &bc
+	return callPostCreate(chain.Resources.BuildConfigS2IStatus.IsNew, &bc, chain)
 }
 
-func buildConfigServiceBuilder(chain *builderChain) *builderChain {
-	bc, err := NewBuildConfigService(
+func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
+	bc, err := NewBuildConfigRuntime(
 		chain.Context.KogitoApp,
-		chain.Inventory.BuildConfigS2I,
+		chain.Resources.BuildConfigS2I,
 	)
 	if err != nil {
 		chain.Error = err
@@ -104,16 +104,16 @@ func buildConfigServiceBuilder(chain *builderChain) *builderChain {
 		chain.Error = err
 		return chain
 	}
-	chain.Inventory.BuildConfigServiceStatus.IsNew, chain.Error =
+	chain.Resources.BuildConfigRuntimeStatus.IsNew, chain.Error =
 		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&bc)
-	chain.Inventory.BuildConfigService = &bc
-	return callPostCreate(chain.Inventory.BuildConfigServiceStatus.IsNew, &bc, chain)
+	chain.Resources.BuildConfigRuntime = &bc
+	return callPostCreate(chain.Resources.BuildConfigRuntimeStatus.IsNew, &bc, chain)
 }
 
 func imageStreamBuilder(chain *builderChain) *builderChain {
 	created := false
 
-	is := NewImageStreamTag(chain.Context.KogitoApp, chain.Inventory.BuildConfigS2I.Name)
+	is := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigS2I.Name)
 	if err := callPreCreate(is, chain); err != nil {
 		chain.Error = err
 		return chain
@@ -127,7 +127,7 @@ func imageStreamBuilder(chain *builderChain) *builderChain {
 		return chain
 	}
 
-	is = NewImageStreamTag(chain.Context.KogitoApp, chain.Inventory.BuildConfigService.Name)
+	is = NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
 	if err := callPreCreate(is, chain); err != nil {
 		chain.Error = err
 		return chain
@@ -142,17 +142,17 @@ func imageStreamBuilder(chain *builderChain) *builderChain {
 
 func deploymentConfigBuilder(chain *builderChain) *builderChain {
 	bcNamespacedName := types.NamespacedName{
-		Namespace: chain.Inventory.BuildConfigService.Namespace,
-		Name:      chain.Inventory.BuildConfigService.Name,
+		Namespace: chain.Resources.BuildConfigRuntime.Namespace,
+		Name:      chain.Resources.BuildConfigRuntime.Name,
 	}
-	chain.Inventory.DeploymentConfig = nil
+	chain.Resources.DeploymentConfig = nil
 
 	if dockerImage, err := openshift.ImageStreamC(chain.Context.Client).FetchDockerImage(bcNamespacedName); err != nil {
 		chain.Error = err
 	} else if dockerImage != nil {
 		dc, err := NewDeploymentConfig(
 			chain.Context.KogitoApp,
-			chain.Inventory.BuildConfigService,
+			chain.Resources.BuildConfigRuntime,
 			dockerImage,
 		)
 		if err != nil {
@@ -163,10 +163,10 @@ func deploymentConfigBuilder(chain *builderChain) *builderChain {
 			chain.Error = err
 			return chain
 		}
-		chain.Inventory.DeploymentConfigStatus.IsNew, chain.Error =
+		chain.Resources.DeploymentConfigStatus.IsNew, chain.Error =
 			kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(dc)
-		chain.Inventory.DeploymentConfig = dc
-		chain = callPostCreate(chain.Inventory.DeploymentConfigStatus.IsNew, dc, chain)
+		chain.Resources.DeploymentConfig = dc
+		chain = callPostCreate(chain.Resources.DeploymentConfigStatus.IsNew, dc, chain)
 	} else {
 		log.Warnf("Couldn't find an image with name '%s' in the namespace '%s'. The DeploymentConfig will be created once the build is done.", bcNamespacedName.Name, bcNamespacedName.Namespace)
 	}
@@ -175,17 +175,17 @@ func deploymentConfigBuilder(chain *builderChain) *builderChain {
 
 func serviceBuilder(chain *builderChain) *builderChain {
 	// Service depends on the DC
-	if chain.Inventory.DeploymentConfig != nil {
-		svc := NewService(chain.Context.KogitoApp, chain.Inventory.DeploymentConfig)
+	if chain.Resources.DeploymentConfig != nil {
+		svc := NewService(chain.Context.KogitoApp, chain.Resources.DeploymentConfig)
 		if svc != nil {
 			if err := callPreCreate(svc, chain); err != nil {
 				chain.Error = err
 				return chain
 			}
-			chain.Inventory.ServiceStatus.IsNew, chain.Error =
+			chain.Resources.ServiceStatus.IsNew, chain.Error =
 				kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(svc)
-			chain.Inventory.Service = svc
-			chain = callPostCreate(chain.Inventory.ServiceStatus.IsNew, svc, chain)
+			chain.Resources.Service = svc
+			chain = callPostCreate(chain.Resources.ServiceStatus.IsNew, svc, chain)
 		}
 	}
 	return chain
@@ -193,8 +193,8 @@ func serviceBuilder(chain *builderChain) *builderChain {
 
 func routeBuilder(chain *builderChain) *builderChain {
 	// we only create a router if we already have a service
-	if chain.Inventory.Service != nil {
-		route, err := NewRoute(chain.Context.KogitoApp, chain.Inventory.Service)
+	if chain.Resources.Service != nil {
+		route, err := NewRoute(chain.Context.KogitoApp, chain.Resources.Service)
 		if err != nil {
 			chain.Error = err
 			return chain
@@ -203,10 +203,10 @@ func routeBuilder(chain *builderChain) *builderChain {
 			chain.Error = err
 			return chain
 		}
-		chain.Inventory.RouteStatus.IsNew, chain.Error =
+		chain.Resources.RouteStatus.IsNew, chain.Error =
 			kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(route)
-		chain.Inventory.Route = route
-		chain = callPostCreate(chain.Inventory.RouteStatus.IsNew, route, chain)
+		chain.Resources.Route = route
+		chain = callPostCreate(chain.Resources.RouteStatus.IsNew, route, chain)
 	}
 	return chain
 }

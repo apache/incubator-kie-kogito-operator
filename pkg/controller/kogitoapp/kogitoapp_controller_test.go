@@ -38,7 +38,7 @@ import (
 	kogitoclient "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/builder"
+	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -113,7 +113,6 @@ func TestKogitoAppWithResource(t *testing.T) {
 		},
 	}
 	objs := []runtime.Object{kogitoapp}
-	buildToTrigger, _ := builder.NewBuildConfigS2I(kogitoapp)
 	// add to schemas to avoid: "failed to add object to fake client"
 	s := scheme.Scheme
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion,
@@ -130,7 +129,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 	// OpenShift Image Client Fake with image tag defined and image built
 	imgcli := imgfake.NewSimpleClientset(&isTag).ImageV1()
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
-	buildcli := buildfake.NewSimpleClientset(&buildToTrigger).BuildV1()
+	buildcli := buildfake.NewSimpleClientset().BuildV1()
 	// ********** sanity check
 	kogitoAppList := &v1alpha1.KogitoAppList{}
 	err = cli.List(context.TODO(), &client.ListOptions{Namespace: "test"}, kogitoAppList)
@@ -172,10 +171,10 @@ func TestKogitoAppWithResource(t *testing.T) {
 	assert.Len(t, dc.GetOwnerReferences(), 1)
 
 	bcS2I := &buildv1.BuildConfig{}
-	_, err = kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: kogitoapp.Name + builder.BuildS2INameSuffix, Namespace: kogitoapp.Namespace}, bcS2I)
+	_, err = kubernetes.ResourceC(r.client).FetchWithKey(types.NamespacedName{Name: kogitoapp.Name + kogitores.BuildS2INameSuffix, Namespace: kogitoapp.Namespace}, bcS2I)
 	assert.NoError(t, err)
 	assert.NotNil(t, bcS2I)
 
-	assert.Equal(t, resource.MustParse(builder.DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
-	assert.Equal(t, resource.MustParse(builder.DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
+	assert.Equal(t, resource.MustParse(kogitores.DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
+	assert.Equal(t, resource.MustParse(kogitores.DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
 }

@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package builder is responsible to encapsulate the creation of each controller required resource in the cluster
-package builder
+// Package resource is responsible to encapsulate the creation and management of each controller required resource in the cluster
+package resource

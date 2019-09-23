@@ -175,6 +175,14 @@ type ReasonType string
 const (
 	// DeploymentFailedReason - Unable to deploy the application
 	DeploymentFailedReason ReasonType = "DeploymentFailed"
+	// BuildS2IFailedReason - Unable to build with the s2i image
+	BuildS2IFailedReason ReasonType = "BuildS2IFailedReason"
+	// BuildRuntimeFailedReason - Unable to build the runtime image
+	BuildRuntimeFailedReason ReasonType = "BuildRuntimeFailedReason"
+	// ServiceFailedReason - Unable to deploy the service
+	ServiceFailedReason ReasonType = "ServiceFailedReason"
+	// RouteFailedReason - Unable to deploy the route
+	RouteFailedReason ReasonType = "RouteFailedReason"
 	// ConfigurationErrorReason - An invalid configuration caused an error
 	ConfigurationErrorReason ReasonType = "ConfigurationError"
 	// UnknownReason - Unable to determine the error

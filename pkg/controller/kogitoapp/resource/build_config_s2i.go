@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package builder
+package resource
 
 import (
 	"errors"
@@ -58,7 +58,7 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
 
-	image := ensureImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
+	image := resolveS2IImage(kogitoApp)
 
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
@@ -80,6 +80,10 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	return buildConfig, nil
 }
 
+func resolveS2IImage(kogitoApp *v1alpha1.KogitoApp) v1alpha1.Image {
+	return ensureImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
+}
+
 func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig) {
 	buildConfig.Spec.Source.ContextDir = kogitoApp.Spec.Build.GitSource.ContextDir
 	buildConfig.Spec.Source.Git = &buildv1.GitBuildSource{
@@ -97,11 +101,13 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	envs = util.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitCPUEnvVarKey, Value: limitCPU})
 	envs = util.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: limitMemory})
 
+	imageName, imageNamespace := parseImage(image)
+
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
 		From: corev1.ObjectReference{
-			Name:      fmt.Sprintf("%s:%s", image.ImageStreamName, image.ImageStreamTag),
-			Namespace: image.ImageStreamNamespace,
+			Name:      imageName,
+			Namespace: imageNamespace,
 			Kind:      kindImageStreamTag,
 		},
 		Env:         envs,

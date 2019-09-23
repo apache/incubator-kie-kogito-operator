@@ -34,9 +34,10 @@ import (
 
 var log = logger.GetLogger("status_kogitodataindex")
 
-// ManageStatus will garantee the status changes
+// ManageStatus will guarantee the status changes
 func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.KogitoDataIndexResources, client *client.Client) error {
 	var err error
+	var exists bool
 	status := v1alpha1.KogitoDataIndexStatus{}
 	currentCondition := v1alpha1.DataIndexCondition{}
 
@@ -54,12 +55,13 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 
 	if resources.Route != nil {
 		log.Debugf("Trying to get the host for the route %s", resources.Route.Name)
-		if status.Route, err =
+		if exists, status.Route, err =
 			openshift.RouteC(client).GetHostFromRoute(
 				types.NamespacedName{Name: resources.Route.Name, Namespace: resources.Route.Namespace}); err != nil {
 			return err
+		} else if exists {
+			status.Route = fmt.Sprintf("http://%s", status.Route)
 		}
-		status.Route = fmt.Sprintf("http://%s", status.Route)
 	} else {
 		log.Debugf("Route is nil, impossible to get host to set in the status", resources.Route)
 	}
