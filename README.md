@@ -195,7 +195,7 @@ my-cluster-zookeeper-nodes    ClusterIP   None             <none>        2181/TC
 
 The service you're interested in is `my-cluster-kafka-bootstrap:9092`. We will use it to deploy the Data Index Service later.
 
-Having the cluster up and running, the next step is creating a `Kafka Topic` required by the Data Index Service.
+Having the cluster up and running, the next step is creating the `Kafka Topic`s required by the Data Index Service: `kogito-processinstances-events` and `kogito-usertaskinstances-events`.
 
 In the OpenShift Web Console, go to the Installed Operators, Strimzi Operator, Kafka Topic tab. From there, create a new `Kafka Topic` and name it as `kogito-processinstances-events` like in the example below:
 
@@ -214,6 +214,7 @@ spec:
     retention.ms: 604800000
     segment.bytes: 1073741824
 ```
+And then do the same for the `kogito-usertaskinstances-events` topic.
 
 To check if everything was created successfully run the following command:
 
