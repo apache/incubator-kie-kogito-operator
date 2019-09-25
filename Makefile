@@ -109,4 +109,4 @@ image/push/release:
 
 .PHONY: app/push/release
 app/push/release:
-	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ sbuvaneshkumar kogitocloud-operator $(CIRCLE_TAG) $(curl -sH "Content-Type: application/json" -XPOST https://quay.io/cnr/api/v1/users/login -d '{"user": {"username": "'"${QUAY_USER}"'","password": "'"${QUAY_PASS}"'"}}' | jq -r '.token')
+	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ sbuvaneshkumar kogitocloud-operator $(CIRCLE_TAG) $(TOKEN)
