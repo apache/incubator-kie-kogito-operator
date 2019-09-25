@@ -51,7 +51,7 @@ jobs:
       - setup_remote_docker
       - run:
           name: Install operator-courier
-          command: pip3 install --user operator-courier
+          command: sudo pip3 install operator-courier
       - run: make app/push/release
 workflows:
   version: 2
