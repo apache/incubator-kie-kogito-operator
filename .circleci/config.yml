@@ -43,7 +43,7 @@ jobs:
       - run: make image/build/release
       - run: make image/push/release
   app_release:
-    working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
+    working_directory: ~/go/src/github.com/kiegroup/kogito-cloud-operator
     docker:
       - image: circleci/python:3.6.1
     steps:
