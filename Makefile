@@ -109,4 +109,4 @@ image/push/release:
 
 .PHONY: app/push/release
 app/push/release:
-	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ sbuvaneshkumar kogitocloud-operator $(CIRCLE_TAG) "$(TOKEN)"
+	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ sbuvaneshkumar kogitocloud-operator $(CIRCLE_TAG) "basic $(TOKEN)"
