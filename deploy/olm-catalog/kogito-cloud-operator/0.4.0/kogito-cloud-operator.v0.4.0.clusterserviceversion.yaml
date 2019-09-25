@@ -228,6 +228,10 @@ spec:
   links:
   - name: Product Page
     url: https://kogito.kie.org/
+  - name: Documentation
+    url: https://github.com/kiegroup/kogito-cloud-operator/blob/master/README.md
+  - name: Source
+    url: https://github.com/kiegroup/kogito-cloud-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat, Inc.
