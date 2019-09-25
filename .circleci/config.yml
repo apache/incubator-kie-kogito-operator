@@ -42,6 +42,17 @@ jobs:
           command: curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v0.10.0/operator-sdk-v0.10.0-x86_64-linux-gnu && chmod +x operator-sdk && sudo mv operator-sdk /usr/local/bin/
       - run: make image/build/release
       - run: make image/push/release
+  app_release:
+    working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
+    docker:
+      - image: circleci/python:3.6.1
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install operator-courier
+          command: pip3 install operator-courier
+      - run: make app/push/release
 workflows:
   version: 2
   build:
@@ -68,3 +79,6 @@ workflows:
             branches:
               ignore: /.*/
 # Build image with release tag only if git tag detected
+      - app_release:
+          requires:
+            - build

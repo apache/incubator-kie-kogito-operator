@@ -1,6 +1,6 @@
 APP_FILE=./cmd/manager/main.go
 IMAGE_REGISTRY=quay.io
-REGISTRY_ORG=kiegroup
+REGISTRY_ORG=sbuvaneshkumar
 REGISTRY_REPO=kogito-cloud-operator
 IMAGE_LATEST_TAG=$(IMAGE_REGISTRY)/$(REGISTRY_ORG)/$(REGISTRY_REPO):latest
 IMAGE_MASTER_TAG=$(IMAGE_REGISTRY)/$(REGISTRY_ORG)/$(REGISTRY_REPO):master
@@ -106,3 +106,7 @@ image/push/release:
 	docker push $(IMAGE_RELEASE_TAG)
 	@echo Pushing operator with tag $(IMAGE_LATEST_TAG) to $(IMAGE_REGISTRY)
 	docker push $(IMAGE_LATEST_TAG)
+
+.PHONY: app/push/release
+app/push/release:
+	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ sbuvaneshkumar kogitocloud-operator $(CIRCLE_TAG) $(curl -sH "Content-Type: application/json" -XPOST https://quay.io/cnr/api/v1/users/login -d '{"user": {"username": "'"${QUAY_USER}"'","password": "'"${QUAY_PASS}"'"}}' | jq -r '.token')
