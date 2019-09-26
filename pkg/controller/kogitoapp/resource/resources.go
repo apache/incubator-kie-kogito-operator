@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
+	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -29,6 +30,8 @@ type KogitoAppResources struct {
 	KogitoAppResourcesStatus
 	BuildConfigS2I     *buildv1.BuildConfig
 	BuildConfigRuntime *buildv1.BuildConfig
+	ImageStreamS2I     *imgv1.ImageStream
+	ImageStreamRuntime *imgv1.ImageStream
 	DeploymentConfig   *appsv1.DeploymentConfig
 	Route              *routev1.Route
 	Service            *corev1.Service

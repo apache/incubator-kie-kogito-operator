@@ -217,6 +217,44 @@ spec:
           type: object
         status:
           properties:
+            builds:
+              properties:
+                cancelled:
+                  description: Builds have been stopped from executing
+                  items:
+                    type: string
+                  type: array
+                complete:
+                  description: Builds have been successful
+                  items:
+                    type: string
+                  type: array
+                error:
+                  description: Builds have been prevented from executing by error
+                  items:
+                    type: string
+                  type: array
+                failed:
+                  description: Builds have executed and failed
+                  items:
+                    type: string
+                  type: array
+                new:
+                  description: Builds are being newly created
+                  items:
+                    type: string
+                  type: array
+                pending:
+                  description: Builds are about to start running
+                  items:
+                    type: string
+                  type: array
+                running:
+                  description: Builds are running
+                  items:
+                    type: string
+                  type: array
+              type: object
             conditions:
               items:
                 properties:
@@ -265,6 +303,7 @@ spec:
           required:
           - conditions
           - deployments
+          - builds
           type: object
   version: v1alpha1
   versions:

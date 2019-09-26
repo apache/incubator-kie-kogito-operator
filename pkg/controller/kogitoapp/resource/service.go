@@ -39,7 +39,7 @@ func NewService(kogitoApp *v1alpha1.KogitoApp, deploymentConfig *appsv1.Deployme
 	}
 
 	service = &corev1.Service{
-		ObjectMeta: deploymentConfig.ObjectMeta,
+		ObjectMeta: *deploymentConfig.ObjectMeta.DeepCopy(),
 		Spec: corev1.ServiceSpec{
 			Selector: deploymentConfig.Spec.Selector,
 			Type:     corev1.ServiceTypeClusterIP,

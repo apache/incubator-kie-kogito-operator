@@ -40,9 +40,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-var (
-	uri       = "https://github.com/kiegroup/kogito-examples"
-	kogitoApp = &v1alpha1.KogitoApp{
+func createKogitoApp() *v1alpha1.KogitoApp {
+	uri := "https://github.com/kiegroup/kogito-examples"
+	return &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "testns",
@@ -55,14 +55,16 @@ var (
 			},
 		},
 	}
-)
+}
 
 func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
-	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.SchemeGroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{})
-	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
+	kogitoApp := createKogitoApp()
 
-	resources, err := BuildOrFetchObjects(&Context{
+	s := scheme.Scheme
+	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{})
+	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
+
+	resources, err := GetRequestedResources(&Context{
 		FactoryContext: resource.FactoryContext{
 			Client: &client.Client{
 				ControlCli: fake.NewFakeClient(),
@@ -76,17 +78,18 @@ func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, resources)
 	assert.Nil(t, resources.DeploymentConfig)
-	assert.False(t, resources.DeploymentConfigStatus.IsNew)
 	assert.NotNil(t, resources.BuildConfigS2I)
 	assert.NotNil(t, resources.BuildConfigRuntime)
-	assert.True(t, resources.BuildConfigS2IStatus.IsNew)
-	assert.True(t, resources.BuildConfigRuntimeStatus.IsNew)
+	assert.NotNil(t, resources.ImageStreamS2I)
+	assert.NotNil(t, resources.ImageStreamRuntime)
 }
 
 func TestBuildResources_CreateAllSuccess(t *testing.T) {
+	kogitoApp := createKogitoApp()
+
 	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.SchemeGroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{}, &routev1.Route{})
-	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
+	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{}, &routev1.Route{})
+	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 	dockerImageRaw, err := json.Marshal(&dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
@@ -106,7 +109,9 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 		},
 	}
 
-	resources, err := BuildOrFetchObjects(&Context{
+	log.Errorf("kogitoapp", kogitoApp.GetName())
+
+	resources, err := GetRequestedResources(&Context{
 		FactoryContext: resource.FactoryContext{
 			Client: &client.Client{
 				ControlCli: fake.NewFakeClient(),
@@ -121,19 +126,18 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	assert.NotNil(t, resources)
 
 	assert.NotNil(t, resources.BuildConfigS2I)
-	assert.True(t, resources.BuildConfigS2IStatus.IsNew)
 
 	assert.NotNil(t, resources.BuildConfigRuntime)
-	assert.True(t, resources.BuildConfigRuntimeStatus.IsNew)
+
+	assert.NotNil(t, resources.ImageStreamS2I)
+
+	assert.NotNil(t, resources.ImageStreamRuntime)
 
 	assert.NotNil(t, resources.DeploymentConfig)
-	assert.True(t, resources.DeploymentConfigStatus.IsNew)
 
 	assert.NotNil(t, resources.Service)
-	assert.True(t, resources.ServiceStatus.IsNew)
 
 	assert.NotNil(t, resources.Route)
-	assert.True(t, resources.RouteStatus.IsNew)
 
 	assert.Len(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports, 1)
 	assert.Equal(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, int32(8080))

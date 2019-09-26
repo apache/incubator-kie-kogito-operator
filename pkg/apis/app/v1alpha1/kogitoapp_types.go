@@ -138,6 +138,7 @@ type KogitoAppStatus struct {
 	Conditions  []Condition `json:"conditions"`
 	Route       string      `json:"route,omitempty"`
 	Deployments Deployments `json:"deployments"`
+	Builds      Builds      `json:"builds"`
 }
 
 // RuntimeType - type of condition
@@ -173,18 +174,22 @@ const (
 type ReasonType string
 
 const (
-	// DeploymentFailedReason - Unable to deploy the application
-	DeploymentFailedReason ReasonType = "DeploymentFailed"
+	// ParseCRRequestFailedReason - Unable to resolve the CR request
+	ParseCRRequestFailedReason ReasonType = "ParseCRRequestFailed"
+	// RetrieveDeployedResourceFailedReason - Unable to retrieve the deployed resources
+	RetrieveDeployedResourceFailedReason ReasonType = "RetrieveDeployedResourceFailed"
+	// CreateResourceFailedReason - Unable to create the requested resources
+	CreateResourceFailedReason ReasonType = "CreateResourceFailed"
+	// RemoveResourceFailedReason - Unable to remove the requested resources
+	RemoveResourceFailedReason ReasonType = "RemoveResourceFailed"
+	// UpdateResourceFailedReason - Unable to update the requested resources
+	UpdateResourceFailedReason ReasonType = "UpdateResourceFailed"
+	// TriggerBuildFailedReason - Unable to trigger the builds
+	TriggerBuildFailedReason ReasonType = "TriggerBuildFailed"
 	// BuildS2IFailedReason - Unable to build with the s2i image
 	BuildS2IFailedReason ReasonType = "BuildS2IFailedReason"
 	// BuildRuntimeFailedReason - Unable to build the runtime image
 	BuildRuntimeFailedReason ReasonType = "BuildRuntimeFailedReason"
-	// ServiceFailedReason - Unable to deploy the service
-	ServiceFailedReason ReasonType = "ServiceFailedReason"
-	// RouteFailedReason - Unable to deploy the route
-	RouteFailedReason ReasonType = "RouteFailedReason"
-	// ConfigurationErrorReason - An invalid configuration caused an error
-	ConfigurationErrorReason ReasonType = "ConfigurationError"
 	// UnknownReason - Unable to determine the error
 	UnknownReason ReasonType = "Unknown"
 )
@@ -210,6 +215,25 @@ type Deployments struct {
 	Stopped []string `json:"stopped,omitempty"`
 	// Deployments failed
 	Failed []string `json:"failed,omitempty"`
+}
+
+// Builds ...
+// +k8s:openapi-gen=true
+type Builds struct {
+	// Builds are being newly created
+	New []string `json:"new,omitempty"`
+	// Builds are about to start running
+	Pending []string `json:"pending,omitempty"`
+	// Builds are running
+	Running []string `json:"running,omitempty"`
+	// Builds have been successful
+	Complete []string `json:"complete,omitempty"`
+	// Builds have executed and failed
+	Failed []string `json:"failed,omitempty"`
+	// Builds have been prevented from executing by error
+	Error []string `json:"error,omitempty"`
+	// Builds have been stopped from executing
+	Cancelled []string `json:"cancelled,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

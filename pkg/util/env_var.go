@@ -19,7 +19,7 @@ import (
 	"reflect"
 )
 
-// EnvVarToMap converta an array of Env to a map
+// EnvVarToMap converts an array of Env to a map
 func EnvVarToMap(env []corev1.EnvVar) map[string]string {
 	envMap := make(map[string]string, len(env))
 

@@ -24,6 +24,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	appsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -32,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
+	"time"
 )
 
 var log = logger.GetLogger("kogitoapp.controller")
@@ -97,22 +99,27 @@ func addCondition(conditions []v1alpha1.Condition, condition v1alpha1.Condition)
 	return append(conditions, condition)[first:size]
 }
 
+// UpdateResourcesResult contains the results of the update of the resources
+type UpdateResourcesResult struct {
+	Updated     bool
+	ErrorReason v1alpha1.ReasonType
+	Err         error
+}
+
 // UpdateStatusResult contains the results of the update of the status
 type UpdateStatusResult struct {
 	Updated      bool
-	RequeueAfter bool
+	RequeueAfter time.Duration
 	Err          error
 }
 
-func createResult(updated bool, forceUpdate bool, requeueAfter bool, err error, result *UpdateStatusResult) {
+func createResult(updated bool, requeueAfter time.Duration, err error, result *UpdateStatusResult) {
 	if updated {
 		result.Updated = true
-	} else if forceUpdate {
-		result.Updated = false
 	}
 
-	if requeueAfter {
-		result.RequeueAfter = true
+	if requeueAfter > 0 && result.RequeueAfter <= 0 {
+		result.RequeueAfter = requeueAfter
 	}
 
 	if result.Err == nil && err != nil {
@@ -122,27 +129,27 @@ func createResult(updated bool, forceUpdate bool, requeueAfter bool, err error, 
 
 // ManageStatus will guarantee the status changes
 func ManageStatus(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client,
-	resourcesUpdateResult *resource.UpdateResourcesResult, cache cachev1.Cache, namespacedName types.NamespacedName) *UpdateStatusResult {
-	result := &UpdateStatusResult{false, false, nil}
+	resourcesUpdateResult *UpdateResourcesResult, cache cachev1.Cache, namespacedName types.NamespacedName) *UpdateStatusResult {
+	result := &UpdateStatusResult{false, 0, nil}
 
 	{
 		requeueAfter, updated, err := statusUpdateForImageBuild(instance, resources, client)
-		createResult(updated, false, requeueAfter, err, result)
+		createResult(updated, requeueAfter, err, result)
 	}
 
 	{
 		updated, err := statusUpdateForDeployment(instance, resources, client)
-		createResult(updated, false, false, err, result)
+		createResult(updated, 0, err, result)
 	}
 
 	{
 		requeueAfter, updated, err := statusUpdateForRoute(instance, resources, client)
-		createResult(updated, false, requeueAfter, err, result)
+		createResult(updated, requeueAfter, err, result)
 	}
 
 	{
 		updated, err := statusUpdateForResources(instance, resourcesUpdateResult)
-		createResult(updated, false, false, err, result)
+		createResult(updated, 0, err, result)
 	}
 
 	// Fetch the cached KogitoApp instance
@@ -159,24 +166,24 @@ func ManageStatus(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppRes
 				log.Infof("Failed to read the cached instance")
 				// Error reading the object - requeue the request.
 				setFailed(instance, v1alpha1.UnknownReason, err)
-				createResult(true, false, false, nil, result)
+				createResult(true, 0, nil, result)
 			}
 		} else {
 			updated := statusUpdateForKogitoApp(instance, cachedInstance)
-			createResult(updated, false, false, nil, result)
+			createResult(updated, 0, nil, result)
 		}
 	}
 
 	if result.Updated {
 		// UpdateObj reconciles the given object
 		updated, err := updateObj(instance, client)
-		createResult(updated, true, false, err, result)
-	} else if !result.RequeueAfter && result.Err == nil {
+		createResult(updated, 0, err, result)
+	} else if result.RequeueAfter <= 0 && result.Err == nil {
 		if setDeployed(instance) {
 			log.Infof("'%s' successfully deployed", instance.Name)
 			if instance.ResourceVersion == cachedInstance.ResourceVersion {
 				updated, err := updateObj(instance, client)
-				createResult(updated, true, false, err, result)
+				createResult(updated, 0, err, result)
 			}
 		}
 	}
@@ -196,7 +203,7 @@ func updateObj(obj meta.ResourceObject, client *client.Client) (bool, error) {
 	return true, nil
 }
 
-func statusUpdateForResources(instance *v1alpha1.KogitoApp, result *resource.UpdateResourcesResult) (bool, error) {
+func statusUpdateForResources(instance *v1alpha1.KogitoApp, result *UpdateResourcesResult) (bool, error) {
 	if result != nil {
 		if result.Err != nil {
 			setFailed(instance, result.ErrorReason, result.Err)
@@ -254,55 +261,75 @@ func statusUpdateForDeployment(instance *v1alpha1.KogitoApp, resources *resource
 	return false, nil
 }
 
-func statusUpdateForRoute(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (requeue bool, updated bool, err error) {
+func statusUpdateForRoute(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (requeue time.Duration, updated bool, err error) {
 	// Setting route to the status
 	if resources.Route != nil {
 		log.Debugf("Trying to get the host for the route %s", resources.Route.Name)
 		if exists, route, err := openshift.RouteC(client).GetHostFromRoute(types.NamespacedName{Name: resources.Route.Name, Namespace: resources.Route.Namespace}); err != nil {
-			return false, false, err
+			return 0, false, err
 		} else if exists {
 			fmtRoute := fmt.Sprintf("http://%s", route)
 			if fmtRoute != instance.Status.Route {
 				log.Infof("Updating route status")
 				instance.Status.Route = fmtRoute
-				return false, true, nil
+				return 0, true, nil
 			}
 
-			return false, false, nil
+			return 0, false, nil
 		}
 
 		log.Infof("Failed to get the host of the route %s", resources.Route.Name)
-		return true, false, nil
+		return time.Duration(500) * time.Millisecond, false, nil
 	}
 
 	log.Debugf("Route is nil, impossible to get host to set in the status", resources.Route)
-	return false, false, nil
+	return 0, false, nil
 }
 
-func statusUpdateForImageBuild(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (requeue bool, updated bool, err error) {
+func statusUpdateForImageBuild(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (requeue time.Duration, updated bool, err error) {
 	// ensure builds
 	log.Infof("Checking if build for '%s' is finished", instance.Name)
-	if imageExists, building, err := ensureApplicationImageExists(instance, resources, client); err != nil {
-		return false, false, err
-	} else if !imageExists || building {
-		// let's wait for the build to finish
-		if setProvisioning(instance) {
-			return false, true, nil
-		}
-		log.Infof("Build for '%s' still running", instance.Name)
-		return true, false, nil
+	var imageExists, building, runtimeFailed, s2iFailed bool
+	if imageExists, building, updated, runtimeFailed, s2iFailed, err = ensureApplicationImageExists(instance, resources, client); err != nil {
+		return 0, false, err
 	}
 
-	return false, false, nil
+	if building {
+		// let's wait for the build to finish
+		if setProvisioning(instance) {
+			updated = true
+		}
+
+		requeue = time.Duration(50) * time.Second
+	}
+
+	if runtimeFailed {
+		setFailed(instance, v1alpha1.BuildRuntimeFailedReason, fmt.Errorf("runtime image build failed"))
+		updated = true
+	}
+
+	if s2iFailed {
+		setFailed(instance, v1alpha1.BuildS2IFailedReason, fmt.Errorf("s2i image build failed"))
+		updated = true
+	}
+
+	if !imageExists {
+		log.Infof("Build for '%s' still running", instance.Name)
+		requeue = time.Duration(50) * time.Second
+	}
+
+	return requeue, updated, nil
 }
 
-func ensureApplicationImageExists(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (exists bool, running bool, err error) {
+func ensureApplicationImageExists(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (
+	exists bool, running bool, updated bool, runtimeFailed bool, s2iFailed bool, err error) {
+
 	runtimeState, err :=
 		openshift.BuildConfigC(client).EnsureImageBuild(
 			resources.BuildConfigRuntime,
 			getBCLabelsAsUniqueSelectors(resources.BuildConfigRuntime))
 	if err != nil {
-		return false, false, err
+		return false, false, false, false, false, err
 	}
 
 	// verify service build and image
@@ -315,7 +342,14 @@ func ensureApplicationImageExists(instance *v1alpha1.KogitoApp, resources *resou
 			instance.Namespace)
 	}
 
-	if runtimeState.BuildRunning {
+	var runtimeUpdated, runtimeRunning, runtimeError bool
+	if runtimeState.Builds == nil {
+		runtimeRunning = true
+	} else {
+		runtimeUpdated, runtimeRunning, runtimeError = checkBuildsStatus(runtimeState.Builds, &instance.Status.Builds)
+	}
+
+	if runtimeRunning {
 		log.Infof("Image for '%s' is being pushed to the registry", instance.Name)
 	}
 
@@ -325,20 +359,60 @@ func ensureApplicationImageExists(instance *v1alpha1.KogitoApp, resources *resou
 			resources.BuildConfigS2I,
 			getBCLabelsAsUniqueSelectors(resources.BuildConfigS2I))
 	if err != nil {
-		return false, runtimeState.BuildRunning, err
-	} else if s2iState.BuildRunning {
+		return false, runtimeRunning, runtimeUpdated, runtimeError, false, err
+	}
+
+	var s2iUpdated, s2iRunning, s2iError bool
+	if s2iState.Builds == nil {
+		s2iRunning = true
+	} else {
+		s2iUpdated, s2iRunning, s2iError = checkBuildsStatus(s2iState.Builds, &instance.Status.Builds)
+	}
+
+	if s2iRunning {
 		// build is running, nothing to do
 		log.Infof("Application '%s' build is still running. Won't trigger a new build.", instance.Name)
-	} else if !s2iState.ImageExists && !s2iState.BuildRunning {
+	} else if !s2iState.ImageExists && !s2iRunning {
 		log.Warnf("There's no image nor build for '%s' running", resources.BuildConfigS2I.Name)
 	}
 
-	if runtimeState.ImageExists && !runtimeState.BuildRunning && s2iState.ImageExists && !s2iState.BuildRunning {
+	if runtimeState.ImageExists && !runtimeRunning && s2iState.ImageExists && !s2iRunning {
 		log.Debugf("There are images for both builds, nothing to do")
-		return true, false, nil
 	}
 
-	return runtimeState.ImageExists && s2iState.ImageExists, runtimeState.BuildRunning || s2iState.BuildRunning, nil
+	if runtimeUpdated || s2iUpdated {
+		instance.Status.Builds.New = append(runtimeState.Builds.New, s2iState.Builds.New...)
+		instance.Status.Builds.Pending = append(runtimeState.Builds.Pending, s2iState.Builds.Pending...)
+		instance.Status.Builds.Running = append(runtimeState.Builds.Running, s2iState.Builds.Running...)
+		instance.Status.Builds.Error = append(runtimeState.Builds.Error, s2iState.Builds.Error...)
+		instance.Status.Builds.Failed = append(runtimeState.Builds.Failed, s2iState.Builds.Failed...)
+		instance.Status.Builds.Cancelled = append(runtimeState.Builds.Cancelled, s2iState.Builds.Cancelled...)
+		instance.Status.Builds.Complete = append(runtimeState.Builds.Complete, s2iState.Builds.Complete...)
+	}
+
+	return runtimeState.ImageExists && s2iState.ImageExists, runtimeRunning || s2iRunning, runtimeUpdated || s2iUpdated, runtimeError, s2iError, nil
+}
+
+func checkBuildsStatus(state *v1alpha1.Builds, lastState *v1alpha1.Builds) (updated bool, running bool, newFailed bool) {
+	if len(state.New) > 0 || len(state.Pending) > 0 || len(state.Running) > 0 {
+		running = true
+	}
+
+	if !util.ContainsAll(lastState.New, state.New) ||
+		!util.ContainsAll(lastState.Pending, state.Pending) ||
+		!util.ContainsAll(lastState.Running, state.Running) ||
+		!util.ContainsAll(lastState.Complete, state.Complete) {
+		updated = true
+	}
+
+	if !util.ContainsAll(lastState.Failed, state.Failed) ||
+		!util.ContainsAll(lastState.Error, state.Error) ||
+		!util.ContainsAll(lastState.Cancelled, state.Cancelled) {
+		updated = true
+		newFailed = true
+	}
+
+	return updated, running, newFailed
 }
 
 func getBCLabelsAsUniqueSelectors(bc *obuildv1.BuildConfig) string {

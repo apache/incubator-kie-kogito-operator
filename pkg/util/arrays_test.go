@@ -44,3 +44,82 @@ func TestFromStringsKeyPairToMap(t *testing.T) {
 		})
 	}
 }
+
+func TestArrayToSet(t *testing.T) {
+	type args struct {
+		array []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[string]bool
+	}{
+		{
+			"Different elements",
+			args{
+				[]string{"1", "2", "3", "4", "5"},
+			},
+			map[string]bool{
+				"1": true,
+				"2": true,
+				"3": true,
+				"4": true,
+				"5": true,
+			},
+		},
+		{
+			"Same elements",
+			args{
+				[]string{"1", "2", "3", "2", "1"},
+			},
+			map[string]bool{
+				"1": true,
+				"2": true,
+				"3": true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ArrayToSet(tt.args.array); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ArrayToSet() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestContainsAll(t *testing.T) {
+	type args struct {
+		array1 []string
+		array2 []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			"Contains",
+			args{
+				[]string{"1", "2", "3", "4", "5"},
+				[]string{"1", "2", "3", "3", "2", "1"},
+			},
+			true,
+		},
+		{
+			"NotContains",
+			args{
+				[]string{"1", "2", "3", "4", "5"},
+				[]string{"1", "2", "3", "3", "2", "7"},
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ContainsAll(tt.args.array1, tt.args.array2); got != tt.want {
+				t.Errorf("ContainsAll() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
