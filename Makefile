@@ -1,5 +1,6 @@
 APP_FILE=./cmd/manager/main.go
 IMAGE_REGISTRY=quay.io
+APPLICATION_NAMESPACE=sbuvaneshkumar
 REGISTRY_ORG=sbuvaneshkumar
 REGISTRY_REPO=kogito-cloud-operator
 IMAGE_LATEST_TAG=$(IMAGE_REGISTRY)/$(REGISTRY_ORG)/$(REGISTRY_REPO):latest
@@ -109,4 +110,4 @@ image/push/release:
 
 .PHONY: app/push/release
 app/push/release:
-	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ sbuvaneshkumar kogitocloud-operator $(CIRCLE_TAG) "basic $(TOKEN)"
+	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ $(APPLICATION_NAMESPACE) kogitocloud-operator $(CIRCLE_TAG) "basic $(TOKEN)"
