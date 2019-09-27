@@ -42,7 +42,8 @@ const (
 	portSep                 = ":"
 	portFormatWrongMessage  = "Service %s on " + openshift.ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
 	defaultExportedProtocol = "http"
-	serviceAccountName      = "kogito-service-viewer"
+	// ServiceAccountName is the name of service account used by Kogito Services Runtimes
+	ServiceAccountName = "kogito-service-viewer"
 )
 
 var defaultProbe = &corev1.Probe{
@@ -80,7 +81,7 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 							ImagePullPolicy: corev1.PullAlways,
 						},
 					},
-					ServiceAccountName: serviceAccountName,
+					ServiceAccountName: ServiceAccountName,
 				},
 			},
 			Triggers: appsv1.DeploymentTriggerPolicies{

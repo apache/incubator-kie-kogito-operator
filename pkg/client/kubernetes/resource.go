@@ -104,7 +104,7 @@ func (r *resource) Create(resource meta.ResourceObject) error {
 	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 	log.Debug("Creating")
 	if err := r.client.ControlCli.Create(context.TODO(), resource); err != nil {
-		log.Warn("Failed to create object. ", err)
+		log.Debug("Failed to create object. ", err)
 		return err
 	}
 	return nil
@@ -120,7 +120,7 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 		}
 		return true, nil
 	} else if err != nil {
-		log.Warn("Failed to fecth object. ", err)
+		log.Debug("Failed to fecth object. ", err)
 		return false, err
 	}
 	log.Debug("Skip creating - object already exists")
@@ -131,7 +131,7 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 func (r *resource) ListWithNamespace(ns string, list runtime.Object) error {
 	err := r.client.ControlCli.List(context.TODO(), &runtimecli.ListOptions{Namespace: ns}, list)
 	if err != nil {
-		log.Warn("Failed to list resource. ", err)
+		log.Debug("Failed to list resource. ", err)
 		return err
 	}
 	return nil
@@ -140,7 +140,7 @@ func (r *resource) ListWithNamespace(ns string, list runtime.Object) error {
 func (r *resource) Delete(resource meta.ResourceObject) error {
 	err := r.client.ControlCli.Delete(context.TODO(), resource)
 	if err != nil {
-		log.Warnf("Failed to delete resource %s", resource.GetName())
+		log.Debugf("Failed to delete resource %s", resource.GetName())
 		return err
 	}
 	return nil

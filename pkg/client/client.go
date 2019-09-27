@@ -19,26 +19,24 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-
+	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-
-	"k8s.io/apimachinery/pkg/runtime/schema"
-
+	rbac "k8s.io/api/rbac/v1"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
+	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	"k8s.io/client-go/discovery"
-	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = logger.GetLogger("client_api")
@@ -137,8 +135,13 @@ func newControllerCliOptions() controllercli.Options {
 
 	mapper := apimeta.NewDefaultRESTMapper([]schema.GroupVersion{})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindNamespace.Name), &restScope{name: apimeta.RESTScopeNameRoot})
+	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindServiceAccount.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(apiextensionsv1beta1.SchemeGroupVersion.WithKind(meta.KindCRD.Name), &restScope{name: apimeta.RESTScopeNameRoot})
 	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoApp.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(coreappsv1.SchemeGroupVersion.WithKind(meta.KindDeployment.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRole.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRoleBinding.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
 		schema.GroupVersionResource{
