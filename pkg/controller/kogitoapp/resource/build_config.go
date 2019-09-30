@@ -17,6 +17,7 @@ package resource
 import (
 	"fmt"
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/version"
 )
 
 // BuildType which build can we perform? Supported are s2i and service
@@ -36,10 +37,13 @@ const (
 const (
 	kindImageStreamTag = "ImageStreamTag"
 	tagLatest          = "latest"
-	// ImageStreamTag default tag version for the ImageStreams
-	ImageStreamTag = "0.4.0"
 	// ImageStreamNamespace default namespace for the ImageStreams
 	ImageStreamNamespace = "openshift"
+)
+
+var (
+	// ImageStreamTag default tag version for the ImageStreams
+	ImageStreamTag = version.Version
 )
 
 // BuildImageStreams are the image streams needed to perform the initial builds
