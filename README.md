@@ -437,7 +437,7 @@ To install this operator on OpenShift 4 for end-to-end testing, make sure you ha
 Push the operator bundle to your quay application repository as follows:
 
 ```bash
-$ operator-courier push deploy/olm-catalog/kogito-cloud-operator/ namespace kogitocloud-operator 0.4.0 "basic XXXXXXXXX"
+$ operator-courier push deploy/olm-catalog/kogito-cloud-operator/ namespace kogitocloud-operator 0.5.0 "basic XXXXXXXXX"
 ```
 
 If pushing to another quay repository, replace _namespace_ with your username or other namespace. Notice that the push command does not overwrite an existing repository, and the bundle needs to be deleted before a new version can be built and uploaded. Once the bundle has been uploaded, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
@@ -471,7 +471,7 @@ $ make run-e2e namespace=<namespace> tag=<tag> native=<true|false> maven_mirror=
 Where:
 
 1. `namespace` (required) is a given temporary namespace where the test will run. You don't need to create the namespace, since it will be created and deleted after running the tests
-2. `tag` (optional, default is current release) is the image tag for the Kogito image builds, for example: `0.4.0-rc1`. Useful on situations where [Kogito Cloud images](https://github.com/kiegroup/kogito-cloud/tree/master/s2i) haven't released yet and are under a temporary tag
+2. `tag` (optional, default is current release) is the image tag for the Kogito image builds, for example: `0.5.0-rc1`. Useful on situations where [Kogito Cloud images](https://github.com/kiegroup/kogito-cloud/tree/master/s2i) haven't released yet and are under a temporary tag
 3. `native` (optional, default is `false`) indicates if the e2e test should use native or jvm builds. See [Native X JVM Builds](#native-x-jvm-builds)
 4. `maven_mirror` (optional, default is blank) the Maven mirror URL. Useful when you need to speed up the build time by referring to a closer maven repository
 
