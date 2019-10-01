@@ -15,6 +15,7 @@
 package resource
 
 import (
+	"fmt"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"testing"
@@ -91,7 +92,7 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 	assert.NotNil(t, bcRuntime)
 
 	assert.Equal(t, "my-image:"+ImageStreamTag, bcRuntime.Spec.Strategy.SourceStrategy.From.Name)
-	assert.Equal(t, "kogito-quarkus-ubi8-s2i:latest", bcS2I.Spec.Strategy.SourceStrategy.From.Name)
+	assert.Equal(t, fmt.Sprintf("%s:%s", KogitoQuarkusUbi8s2iImage, "latest"), bcS2I.Spec.Strategy.SourceStrategy.From.Name)
 }
 
 func Test_buildConfigResource_New(t *testing.T) {

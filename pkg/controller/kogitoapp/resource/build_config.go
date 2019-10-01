@@ -16,8 +16,7 @@ package resource
 
 import (
 	"fmt"
-	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/version"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
 // BuildType which build can we perform? Supported are s2i and service
@@ -41,42 +40,32 @@ const (
 	ImageStreamNamespace = "openshift"
 )
 
-var (
-	// ImageStreamTag default tag version for the ImageStreams
-	ImageStreamTag = version.Version
-)
-
 // BuildImageStreams are the image streams needed to perform the initial builds
 var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
 	BuildTypeS2I: {
 		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
-			ImageStreamName:      "kogito-quarkus-ubi8-s2i",
-			ImageStreamNamespace: ImageStreamNamespace,
-			ImageStreamTag:       ImageStreamTag,
+			ImageStreamName: KogitoQuarkusUbi8s2iImage,
+			ImageStreamTag:  ImageStreamTag,
 		},
 		v1alpha1.SpringbootRuntimeType: v1alpha1.Image{
-			ImageStreamName:      "kogito-springboot-ubi8-s2i",
-			ImageStreamNamespace: ImageStreamNamespace,
-			ImageStreamTag:       ImageStreamTag,
+			ImageStreamName: KogitoSpringbootUbi8s2iImage,
+			ImageStreamTag:  ImageStreamTag,
 		},
 	},
 	BuildTypeRuntime: {
 		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
-			ImageStreamName:      "kogito-quarkus-ubi8",
-			ImageStreamNamespace: ImageStreamNamespace,
-			ImageStreamTag:       ImageStreamTag,
+			ImageStreamName: KogitoQuarkusUbi8Image,
+			ImageStreamTag:  ImageStreamTag,
 		},
 		v1alpha1.SpringbootRuntimeType: v1alpha1.Image{
-			ImageStreamName:      "kogito-springboot-ubi8",
-			ImageStreamNamespace: ImageStreamNamespace,
-			ImageStreamTag:       ImageStreamTag,
+			ImageStreamName: KogitoSpringbootUbi8Image,
+			ImageStreamTag:  ImageStreamTag,
 		},
 	},
 	BuildTypeRuntimeJvm: {
 		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
-			ImageStreamName:      "kogito-quarkus-jvm-ubi8",
-			ImageStreamNamespace: ImageStreamNamespace,
-			ImageStreamTag:       ImageStreamTag,
+			ImageStreamName: KogitoQuarkusJVMUbi8Image,
+			ImageStreamTag:  ImageStreamTag,
 		},
 	},
 }
@@ -95,7 +84,6 @@ func ensureImageBuild(image v1alpha1.Image, defaultImage v1alpha1.Image) v1alpha
 		}
 		return image
 	}
-
 	return defaultImage
 }
 

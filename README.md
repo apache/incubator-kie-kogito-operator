@@ -11,7 +11,7 @@ Table of Contents
       * [Requirements](#requirements)
       * [Installation](#installation)
          * [Deploy to OpenShift 4.x](#deploy-to-openshift-4x)
-            * [Prerequisites](#prerequisites)
+            * [Optional Step](#Optional Step)
             * [Via OperatorHub automatically](#via-operatorhub-automatically)
             * [Via OperatorHub manually](#via-operatorhub-manually)
             * [Via local Operator](#via-local-operator)
@@ -62,13 +62,16 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 Kogito operator is a namespaced operator, which means that you will need to install it into the namespace you want your kogito application to run in.
 
-#### Prerequisites
+#### Optional Step
 
-First import the Kogito image stream using the `oc client`:
+You can import the Kogito image stream using the `oc client` manually with the following command:
 
 ```bash
 $ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
 ```
+
+But, this step is not mandatory anymore, when kogito is going to install a new app, it will create the required imagestreams
+before.
 
 #### Via OperatorHub automatically
 
