@@ -499,6 +499,83 @@ It's always worth noting that you should generate, vet, format, lint, and test y
 $ make test
 ```
 
+## Prometheus Integration
+
+By default, if your Kogito Runtime Service has the [`monitoring-prometheus-addon`](https://github.com/kiegroup/kogito-runtimes/wiki/Configuration#enabling-metrics) dependency, the Kogito Operator will add annotations to the pod and service of the deployed application, for example:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    org.kie.kogito/managed-by: Kogito Operator
+    org.kie.kogito/operator-crd: KogitoApp
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8080"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+  labels:
+    app: onboarding-service
+    onboarding: process
+  name: onboarding-service
+  namespace: kogito
+  ownerReferences:
+  - apiVersion: app.kiegroup.org/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: KogitoApp
+    name: onboarding-service
+spec:
+  clusterIP: 172.30.173.165
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: onboarding-service
+    onboarding: process
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+``` 
+
+But those annotations [won't work for the Prometheus Operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheusioscrape). If you're deploying on OpenShift 4.x, chances are that you're using the Prometheus Operator. 
+
+In a scenario where the Prometheus is deployed and managed by the Prometheus Operator, you should create a new [`ServiceMonitor`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/servicemonitor.crd.yaml) resource to expose the Kogito Service to Prometheus to scrape:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    team: kogito
+  name: onboarding-service
+  namespace: openshift-monitoring
+spec:
+  endpoints:
+  - path: /metrics
+    port: http
+  namespaceSelector:
+    matchNames:
+    # the namespace where the service is deployed
+    - kogito
+  selector:
+    matchLabels:
+      app: onboarding-service
+```
+
+Then you can see the endpoint being scraped by Prometheus in the _Target_ web console:
+
+![](docs/img/prometheus_target.png)
+
+The metrics exposed by the Kogito Service can be seen on the _Graph_, for example:
+
+![](docs/img/prometheus_graph.png)
+
+For more information about the Prometheus Operator, check the [Getting Started guide](https://github.com/coreos/prometheus-operator/blob/master/Documentation/user-guides/getting-started.md). 
+
 ## Contributing
 
 Please take a look at the [Contributing to Kogito Operator](docs/CONTRIBUTING.MD) guide.

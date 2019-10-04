@@ -16,21 +16,28 @@ package resource
 
 import (
 	"errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
+	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	buildfake "github.com/openshift/client-go/build/clientset/versioned/fake"
-	"go.uber.org/zap"
+	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"testing"
+
+	"go.uber.org/zap"
 )
 
 func TestManageResources(t *testing.T) {
@@ -277,6 +284,7 @@ func TestManageResources(t *testing.T) {
 			},
 		),
 		BuildCli: buildfake.NewSimpleClientset().BuildV1(),
+		ImageCli: imgfake.NewSimpleClientset().ImageV1(),
 	}
 
 	type args struct {
@@ -1146,6 +1154,7 @@ func Test_ensureBuildConfigS2I(t *testing.T) {
 func Test_ensureDeploymentConfig(t *testing.T) {
 	s := scheme.Scheme
 	s.AddKnownTypes(appsv1.SchemeGroupVersion, &appsv1.DeploymentConfig{})
+	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 
 	replicas := int32(1)
 	kogitoApp := &v1alpha1.KogitoApp{
@@ -1245,6 +1254,7 @@ func Test_ensureDeploymentConfig(t *testing.T) {
 							},
 						},
 					),
+					ImageCli: imgfake.NewSimpleClientset().ImageV1(),
 				},
 			},
 			false,
@@ -1280,6 +1290,7 @@ func Test_ensureDeploymentConfig(t *testing.T) {
 							},
 						},
 					),
+					ImageCli: imgfake.NewSimpleClientset().ImageV1(),
 				},
 			},
 			true,
@@ -1318,6 +1329,7 @@ func Test_ensureDeploymentConfig(t *testing.T) {
 							},
 						},
 					),
+					ImageCli: imgfake.NewSimpleClientset().ImageV1(),
 				},
 			},
 			true,
@@ -1362,6 +1374,91 @@ func Test_ensureDeploymentConfig(t *testing.T) {
 							},
 						},
 					),
+					ImageCli: imgfake.NewSimpleClientset().ImageV1(),
+				},
+			},
+			true,
+			false,
+		},
+		{
+			"Update_ImageLabels",
+			args{
+				kogitoApp,
+				&appsv1.DeploymentConfig{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-dc",
+					},
+				},
+				&client.Client{
+					ControlCli: fake.NewFakeClient(
+						&appsv1.DeploymentConfig{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "test-dc",
+							},
+							Spec: appsv1.DeploymentConfigSpec{
+								Replicas: replicas,
+								Template: &corev1.PodTemplateSpec{
+									Spec: corev1.PodSpec{
+										Containers: []corev1.Container{
+											{
+												Env:       envs,
+												Resources: resources,
+											},
+										},
+									},
+								},
+							},
+						},
+					),
+					ImageCli: imgfake.NewSimpleClientset(&imgv1.ImageStreamTag{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "test-dc:latest",
+						},
+						Image: imgv1.Image{
+							DockerImageMetadata: runtime.RawExtension{
+								Raw: []byte(`
+									{
+									   "Config":{
+										  "Labels":{
+											 "architecture":"x86_64",
+											 "authoritative-source-url":"registry.access.redhat.com",
+											 "com.redhat.component":"jboss-openjdk18-rhel7-container",
+											 "com.redhat.license_terms":"https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI",
+											 "description":"Runtime image for Kogito based on Quarkus JVM image",
+											 "distribution-scope":"public",
+											 "io.cekit.version":"3.5.0",
+											 "io.k8s.description":"Runtime image for Kogito based on Quarkus JVM image",
+											 "io.k8s.display-name":"onboarding-service",
+											 "io.openshift.expose-services":"8080:http",
+											 "io.openshift.s2i.assemble-input-files":"/home/kogito/bin",
+											 "io.openshift.s2i.build.image":"quay.io/kiegroup/kogito-quarkus-ubi8-s2i:0.4.0",
+											 "io.openshift.s2i.build.source-location":".",
+											 "io.openshift.s2i.destination":"/tmp",
+											 "io.openshift.s2i.scripts-url":"image:///usr/local/s2i",
+											 "io.openshift.tags":"builder,runtime,kogito,quarkus,jvm",
+											 "maintainer":"kogito <kogito@kiegroup.com>",
+											 "name":"ubi8-minimal",
+											 "org.jboss.product":"openjdk",
+											 "org.jboss.product.openjdk.version":"1.8.0",
+											 "org.jboss.product.version":"1.8.0",
+											 "org.kie/onboarding":"process",
+											 "prometheus.io/path":"/metrics",
+											 "prometheus.io/port":"8080",
+											 "prometheus.io/scheme":"http",
+											 "prometheus.io/scrape":"true",
+											 "release":"159",
+											 "summary":"Runtime image for Kogito based on Quarkus JVM image",
+											 "url":"https://access.redhat.com/containers/#/registry.access.redhat.com/ubi8-minimal/images/8.0-159",
+											 "vcs-ref":"e4add3c63b371d610c87a43359fd7e0ffe1da51a",
+											 "vcs-type":"git",
+											 "vendor":"Red Hat, Inc.",
+											 "version":"8.0"
+											  }
+										   }
+										}`),
+							},
+						},
+					}).ImageV1(),
 				},
 			},
 			true,
@@ -1606,6 +1703,7 @@ func Test_ensureService(t *testing.T) {
 	type args struct {
 		instance *v1alpha1.KogitoApp
 		service  *corev1.Service
+		dc       *appsv1.DeploymentConfig
 		client   *client.Client
 	}
 
@@ -1636,6 +1734,7 @@ func Test_ensureService(t *testing.T) {
 						Name: "test-service",
 					},
 				},
+				&appsv1.DeploymentConfig{},
 				&client.Client{
 					ControlCli: fake.NewFakeClient(
 						&corev1.Service{
@@ -1675,6 +1774,7 @@ func Test_ensureService(t *testing.T) {
 						Name: "test-service",
 					},
 				},
+				&appsv1.DeploymentConfig{},
 				&client.Client{
 					ControlCli: fake.NewFakeClient(
 						&corev1.Service{
@@ -1714,6 +1814,7 @@ func Test_ensureService(t *testing.T) {
 						Name: "test-service",
 					},
 				},
+				&appsv1.DeploymentConfig{},
 				&client.Client{
 					ControlCli: fake.NewFakeClient(
 						&corev1.Service{
@@ -1745,6 +1846,7 @@ func Test_ensureService(t *testing.T) {
 						Name: "test-service",
 					},
 				},
+				&appsv1.DeploymentConfig{},
 				&client.Client{
 					ControlCli: fake.NewFakeClient(
 						&corev1.Service{
@@ -1775,6 +1877,7 @@ func Test_ensureService(t *testing.T) {
 						Name: "test-service",
 					},
 				},
+				&appsv1.DeploymentConfig{},
 				&client.Client{
 					ControlCli: fake.NewFakeClient(
 						&corev1.Service{
@@ -1791,10 +1894,56 @@ func Test_ensureService(t *testing.T) {
 			true,
 			false,
 		},
+		{
+			"TestEnsureService_PrometheusAnnotationUpdate",
+			args{
+				&v1alpha1.KogitoApp{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test1",
+					},
+					Spec: v1alpha1.KogitoAppSpec{
+						Service: v1alpha1.KogitoAppServiceObject{
+							Labels: map[string]string{
+								"test2": "test2",
+								"test3": "test3",
+							},
+						},
+					},
+				},
+				&corev1.Service{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-service",
+					},
+				},
+				&appsv1.DeploymentConfig{
+					Spec: appsv1.DeploymentConfigSpec{
+						Template: &corev1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{prometheusLabelKeyPrefix + "/scrape": "true"}},
+						},
+					},
+				},
+				&client.Client{
+					ControlCli: fake.NewFakeClient(
+						&corev1.Service{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "test-service",
+								Labels: map[string]string{
+									LabelKeyAppName: "test1",
+									"test2":         "test2",
+									"test3":         "test3",
+								},
+							},
+						},
+					),
+				},
+			},
+			true,
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ensureService(tt.args.instance, tt.args.service, tt.args.client)
+			got, err := ensureService(tt.args.instance, tt.args.service, tt.args.dc, tt.args.client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ensureService() error = %v, wantErr %v", err, tt.wantErr)
 				return

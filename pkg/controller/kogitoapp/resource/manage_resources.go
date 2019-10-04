@@ -26,6 +26,7 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"strconv"
 )
@@ -68,7 +69,7 @@ func ManageResources(instance *v1alpha1.KogitoApp, resources *KogitoAppResources
 	}
 
 	{
-		updated, err := ensureService(instance, resources.Service, client)
+		updated, err := ensureService(instance, resources.Service, resources.DeploymentConfig, client)
 		createResult(updated, err, v1alpha1.ServiceFailedReason, result)
 	}
 
@@ -109,6 +110,20 @@ func ensureDeploymentConfig(instance *v1alpha1.KogitoApp, depConfig *appsv1.Depl
 			update = true
 		}
 
+		dockerImage, err := openshift.ImageStreamC(client).FetchDockerImage(types.NamespacedName{Namespace: instance.Namespace, Name: depConfig.Name})
+		if err != nil {
+			return false, err
+		}
+
+		if dockerImage != nil {
+			log.Debugf("Merging docker image metadata with deploymentConfig and it's children")
+			if mergeImageMetadataWithDeploymentConfig(depConfig, dockerImage) {
+				update = true
+			}
+		} else {
+			log.Debugf("No docker image found for %s in namespace %s, skipping metadata update", depConfig.Name, depConfig.Namespace)
+		}
+
 		if update {
 			log.Info("Updating DeploymentConfig")
 
@@ -123,7 +138,7 @@ func ensureDeploymentConfig(instance *v1alpha1.KogitoApp, depConfig *appsv1.Depl
 	return false, nil
 }
 
-func ensureService(instance *v1alpha1.KogitoApp, service *corev1.Service, client *client.Client) (bool, error) {
+func ensureService(instance *v1alpha1.KogitoApp, service *corev1.Service, dc *appsv1.DeploymentConfig, client *client.Client) (bool, error) {
 	if service != nil {
 		log := log.With("kind", service.GetObjectKind().GroupVersionKind().Kind, "name", service.Name, "namespace", service.Namespace)
 
@@ -131,15 +146,26 @@ func ensureService(instance *v1alpha1.KogitoApp, service *corev1.Service, client
 			return false, err
 		}
 
-		if update := ensureServiceLabels(instance, service.Labels, log); update {
-			log.Info("Updating Service")
+		update := false
+		if dc != nil {
+			log.Debugf("Looking for merging prometheus annotations from dc to service")
+			if importPrometheusAnnotations(dc, service) {
+				update = true
+			}
+		}
 
+		if ensureServiceLabels(instance, service.Labels, log) {
+			update = true
+		}
+
+		if update {
+			log.Info("Updating Service")
 			if err := kubernetes.ResourceC(client).Update(service); err != nil {
 				return update, err
 			}
-
 			return update, nil
 		}
+
 	}
 
 	return false, nil
