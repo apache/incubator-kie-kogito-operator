@@ -54,24 +54,3 @@ func addDefaultLabels(m *map[string]string, kogitoApp *v1alpha1.KogitoApp) {
 	}
 	(*m)[LabelKeyAppName] = kogitoApp.Name
 }
-
-// addServiceLabels adds the service labels
-func addServiceLabels(objectMeta *metav1.ObjectMeta, kogitoApp *v1alpha1.KogitoApp) {
-	if objectMeta != nil {
-		if objectMeta.Labels == nil {
-			objectMeta.Labels = map[string]string{}
-		}
-
-		addServiceLabelsToMap(objectMeta.Labels, kogitoApp)
-	}
-}
-
-func addServiceLabelsToMap(labelsMap map[string]string, kogitoApp *v1alpha1.KogitoApp) {
-	if kogitoApp.Spec.Service.Labels == nil {
-		labelsMap[LabelKeyServiceName] = kogitoApp.Name
-	} else {
-		for key, value := range kogitoApp.Spec.Service.Labels {
-			labelsMap[key] = value
-		}
-	}
-}

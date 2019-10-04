@@ -47,6 +47,10 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 				// notice the semicolon
 				openshift.ImageLabelForExposeServices: "8080:http,8181;https",
 				orgKieNamespaceLabelKey + "operator":  "kogito",
+				prometheusLabelKeyPrefix + "/path":    "/metrics",
+				prometheusLabelKeyPrefix + "/port":    "8080",
+				prometheusLabelKeyPrefix + "/scheme":  "http",
+				prometheusLabelKeyPrefix + "/scrape":  "true",
 			},
 		},
 	}
@@ -60,6 +64,11 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 	assert.Equal(t, int32(8080), dc.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort)
 	// this one where added by the docker image :)
 	assert.Equal(t, "kogito", dc.Labels["operator"])
+	// prometheus labels
+	assert.Equal(t, "/metrics", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/path"])
+	assert.Equal(t, "8080", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/port"])
+	assert.Equal(t, "http", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/scheme"])
+	assert.Equal(t, "true", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/scrape"])
 }
 
 func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {

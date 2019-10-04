@@ -118,7 +118,7 @@ func imageStreamBuilder(chain *builderChain) *builderChain {
 		chain.Error = err
 		return chain
 	}
-	created, chain.Error = kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(is) //openshift.ImageStreamC(chain.Context.Client).CreateTagIfNotExists(is)
+	created, chain.Error = kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(is)
 	if chain.Error != nil {
 		return chain
 	}

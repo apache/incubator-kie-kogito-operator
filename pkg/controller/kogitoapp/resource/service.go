@@ -17,8 +17,12 @@ package resource
 import (
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"strings"
+
 	appsv1 "github.com/openshift/api/apps/v1"
+
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -46,6 +50,7 @@ func NewService(kogitoApp *v1alpha1.KogitoApp, deploymentConfig *appsv1.Deployme
 	meta.SetGroupVersionKind(&service.TypeMeta, meta.KindService)
 	addDefaultMeta(&service.ObjectMeta, kogitoApp)
 	addServiceLabels(&service.ObjectMeta, kogitoApp)
+	importPrometheusAnnotations(deploymentConfig, service)
 	service.ResourceVersion = ""
 	return service
 }
@@ -70,4 +75,47 @@ func buildServicePorts(deploymentConfig *appsv1.DeploymentConfig) (ports []corev
 		)
 	}
 	return ports
+}
+
+// importPrometheusAnnotations will import any annotations on the deploymentConfig template spec to the given service
+// returns true if any modification has been made to the service
+func importPrometheusAnnotations(deploymentConfig *appsv1.DeploymentConfig, service *corev1.Service) bool {
+	if &deploymentConfig.Spec == nil || deploymentConfig.Spec.Template == nil || deploymentConfig.Spec.Template.Annotations == nil {
+		return false
+	}
+	if service.Annotations == nil {
+		service.Annotations = map[string]string{}
+	}
+
+	present := true
+	for key, value := range deploymentConfig.Spec.Template.Annotations {
+		if strings.Contains(key, prometheusLabelKeyPrefix) {
+			if present {
+				_, present = service.Annotations[key]
+			}
+			service.Annotations[key] = value
+		}
+	}
+	return !present
+}
+
+// addServiceLabels adds the service labels
+func addServiceLabels(objectMeta *metav1.ObjectMeta, kogitoApp *v1alpha1.KogitoApp) {
+	if objectMeta != nil {
+		if objectMeta.Labels == nil {
+			objectMeta.Labels = map[string]string{}
+		}
+
+		addServiceLabelsToMap(objectMeta.Labels, kogitoApp)
+	}
+}
+
+func addServiceLabelsToMap(labelsMap map[string]string, kogitoApp *v1alpha1.KogitoApp) {
+	if kogitoApp.Spec.Service.Labels == nil {
+		labelsMap[LabelKeyServiceName] = kogitoApp.Name
+	} else {
+		for key, value := range kogitoApp.Spec.Service.Labels {
+			labelsMap[key] = value
+		}
+	}
 }

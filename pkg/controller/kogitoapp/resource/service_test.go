@@ -43,9 +43,9 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 	dockerImage := &dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
-				// notice the semicolon
 				openshift.ImageLabelForExposeServices: "8080:http",
 				orgKieNamespaceLabelKey + "operator":  "kogito",
+				prometheusLabelKeyPrefix + "/scrape":  "true",
 			},
 		},
 	}
@@ -60,4 +60,67 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 	assert.NotNil(t, svc)
 	assert.Len(t, svc.Spec.Ports, 1)
 	assert.Equal(t, int32(8080), svc.Spec.Ports[0].Port)
+	assert.Contains(t, svc.Annotations, prometheusLabelKeyPrefix+"/scrape")
+}
+
+func Test_addServiceLabels_whenLabelsAreNotProvided(t *testing.T) {
+	objectMeta := &metav1.ObjectMeta{}
+
+	kogitoApp = &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			Service: v1alpha1.KogitoAppServiceObject{},
+		},
+	}
+
+	addServiceLabels(objectMeta, kogitoApp)
+	assert.True(t, objectMeta.Labels[LabelKeyServiceName] == "test")
+}
+
+func Test_addServiceLabels_whenAlreadyHasLabels(t *testing.T) {
+	objectMeta := &metav1.ObjectMeta{
+		Labels: map[string]string{
+			"service":  "test123",
+			"operator": "kogito",
+		},
+	}
+
+	kogitoApp = &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test",
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			Service: v1alpha1.KogitoAppServiceObject{},
+		},
+	}
+
+	addServiceLabels(objectMeta, kogitoApp)
+	assert.True(t, objectMeta.Labels[LabelKeyServiceName] == "test")
+	assert.True(t, objectMeta.Labels["operator"] == "kogito")
+}
+
+func Test_addServiceLabels_whenLabelsAreProvided(t *testing.T) {
+	objectMeta := &metav1.ObjectMeta{
+		Labels: map[string]string{
+			"service":  "test123",
+			"operator": "kogito123",
+		},
+	}
+
+	kogitoApp = &v1alpha1.KogitoApp{
+		Spec: v1alpha1.KogitoAppSpec{
+			Service: v1alpha1.KogitoAppServiceObject{
+				Labels: map[string]string{
+					"service":  "test456",
+					"operator": "kogito456",
+				},
+			},
+		},
+	}
+
+	addServiceLabels(objectMeta, kogitoApp)
+	assert.True(t, objectMeta.Labels["service"] == "test456")
+	assert.True(t, objectMeta.Labels["operator"] == "kogito456")
 }
