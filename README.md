@@ -4,34 +4,74 @@
 
 Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and every piece of infrastructure that the services might need, such as SSO ([Keycloak](https://github.com/integr8ly/keycloak-operator)) and Persistence ([Infinispan](https://github.com/infinispan/infinispan-operator)).
 
+Table of Contents
+=================
+
+   * [Kogito Operator](#kogito-operator)
+      * [Requirements](#requirements)
+      * [Installation](#installation)
+         * [Deploy to OpenShift 4.x Manually](#deploy-to-openshift-4x-manually)
+         * [Deploy to OpenShift 3.11](#deploy-to-openshift-311)
+         * [Trigger a Kogito Runtime Service deployment](#trigger-a-kogito-runtime-service-deployment)
+            * [Native X JVM Builds](#native-x-jvm-builds)
+            * [Troubleshoting](#troubleshoting)
+         * [Clean up a Kogito Service deployment](#clean-up-a-kogito-service-deployment)
+         * [Deploy Data Index Service](#deploy-data-index-service)
+            * [Deploy Infinispan](#deploy-infinispan)
+            * [Deploy Strimzi](#deploy-strimzi)
+            * [Install Data Index](#install-data-index)
+               * [Install Data Index with Kogito CLI](#install-data-index-with-kogito-cli)
+               * [Install Data Index with Operator Catalog (OLM)](#install-data-index-with-operator-catalog-olm)
+               * [Install Data Index with oc client](#install-data-index-with-oc-client)
+      * [Kogito CLI](#kogito-cli)
+         * [CLI Requirements](#cli-requirements)
+         * [CLI Install](#cli-install)
+            * [For Linux](#for-linux)
+            * [For Windows](#for-windows)
+         * [Build CLI from source](#build-cli-from-source)
+         * [Deploy a Kogito Service from source with CLI](#deploy-a-kogito-service-from-source-with-cli)
+      * [Development](#development)
+         * [Build](#build)
+         * [Deploy to OpenShift 4.x for development purposes](#deploy-to-openshift-4x-for-development-purposes)
+            * [Running End to End tests](#running-end-to-end-tests)
+         * [Running Locally](#running-locally)
+      * [Prometheus Integration](#prometheus-integration)
+      * [Contributing](#contributing)
+
+<!-- generated with: https://github.com/ekalinin/github-markdown-toc -->
+
 ## Requirements
 
 - go v1.12+
 - [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.10.0
-- ocp 4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
+- ocp 3.11/4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
 - [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
-
-## Build
-
-```bash
-$ make
-```
 
 ## Installation
 
-Kogito Operator is not available in the OperatorHub [yet](https://issues.jboss.org/browse/KOGITO-67), hence has to be installed manually on [OpenShift 4.x](#deploy-to-openshift-4x) or [OpenShift 3.11](#deploy-to-openshift-311-manually).
-
-You can also [run the operator locally](#running-locally) if you have the [requirements](#requirements) configured in your local machine.
-
-### Deploy to OpenShift 4.x
-
-First make sure that the Kogito image stream is created in the cluster:
+First import the Kogito image stream using the `oc client`:
 
 ```bash
 $ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
 ```
 
-Then create an entry in the OperatorHub catalog with:
+The installation on OpenShift 4.x is pretty straightforward since Kogito Operator is available in the OperatorHub as a community operator. 
+
+Just follow the OpenShift Web Console instructions in the _Catalog_, _OperatorHub_ section in the left menu to install it in any namespace in the cluster. 
+
+![Kogito Operator in the Catalog](docs/img/catalog-kogito-operator.png?raw=true)
+
+You can also [run the operator locally](#running-locally) if you have the [requirements](#requirements) configured in your local machine.
+
+### Deploy to OpenShift 4.x Manually
+
+Make sure that the Kogito image stream is created in the cluster:
+
+```bash
+$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
+```
+
+Then create an entry in the OperatorHub catalog:
 
 ```bash
 $ oc create -f deploy/olm-catalog/kogito-cloud-operator/kogitocloud-operatorsource.yaml
@@ -45,7 +85,9 @@ Verify operator availability by running:
 $ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n openshift-marketplace
 ```
 
-### Deploy to OpenShift 3.11 manually
+### Deploy to OpenShift 3.11
+
+Installation on OpenShift 3.11 has to be done manually since the OperatorHub catalog is not available by default:
 
 ```bash
 ## kogito imagestreams should already be installed/available ... e.g.
@@ -429,6 +471,14 @@ $ kogito deploy-service example-drools https://github.com/kiegroup/kogito-exampl
 ## Development
 
 While fixing issues or adding new features to the Kogito Operator, please consider taking a look at [Contributions](docs/CONTRIBUTING.MD) and [Architecture](docs/ARCHITECTURE.MD) documentation.
+
+### Build
+
+We have a script ready for you. The output of this command is a ready to use Kogito Operator image to be deployed in any namespace.
+
+```bash
+$ make
+```
 
 ### Deploy to OpenShift 4.x for development purposes
 
