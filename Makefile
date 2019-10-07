@@ -64,5 +64,9 @@ addheaders:
 	./hack/addheaders.sh
 
 .PHONY: run-e2e
+namespace = ""
+tag = ""
+native = "false"
+maven_mirror = ""
 run-e2e:
 	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror)
