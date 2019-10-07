@@ -14,7 +14,5 @@ jobs:
       - run: go mod vendor
       - run: go fmt ./...
       - run: go vet ./...
-      # let's disable the cmd tests for now, should take a look at it on KOGITO-341
-      # not working on CircleCI
-      #- run: CGO_ENABLED=0 go test -mod=vendor ./cmd/... -count=1
+      - run: CGO_ENABLED=0 go test -mod=vendor ./cmd/... -count=1
       - run: CGO_ENABLED=0 go test -mod=vendor ./pkg/... -count=1

@@ -209,7 +209,6 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 	if err := kubernetes.ResourceC(i.Client).Create(kogitoApp); err != nil {
 		return fmt.Errorf("Error while creating a new KogitoApp in the context: %v", err)
 	}
-	config.LastKogitoAppCreated = *kogitoApp
 	config.Namespace = kogitoApp.Namespace
 	config.Save()
 
