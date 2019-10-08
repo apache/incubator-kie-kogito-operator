@@ -20,8 +20,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
 	"gopkg.in/yaml.v2"
 
 	"github.com/mitchellh/go-homedir"
@@ -43,8 +41,6 @@ const (
 type Configuration struct {
 	// Namespace is the projet/namespace context where the application will be deployed
 	Namespace string
-	// LastKogitoAppCreated is the last kogitoapp created by the CLI
-	LastKogitoAppCreated v1alpha1.KogitoApp
 }
 
 // ReadConfig will read the configuration from disk
@@ -69,12 +65,14 @@ func ReadConfig() Configuration {
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 				if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
-					log.Error("Error creating path for config file")
+					panic(fmt.Errorf("Error creating path for config file: %s ", err))
 				} else {
-					viper.WriteConfigAs(filepath.Join(fullPath, DefaultConfigFinalName))
+					if err := viper.WriteConfigAs(filepath.Join(fullPath, DefaultConfigFinalName)); err != nil {
+						panic(fmt.Errorf("Error while trying to write config file: %s ", err))
+					}
 				}
 			} else {
-				log.Error("Error reading file")
+				panic(fmt.Errorf("Error reading file: %s ", err))
 			}
 		}
 	}
@@ -84,7 +82,9 @@ func ReadConfig() Configuration {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		config := Configuration{}
-		viper.Unmarshal(&config)
+		if err := viper.Unmarshal(&config); err != nil {
+			panic(fmt.Errorf("Error while unmarshalling the config file: %s ", err))
+		}
 		log.Debug("Using config file:", viper.ConfigFileUsed())
 		return config
 	}
@@ -95,10 +95,11 @@ func ReadConfig() Configuration {
 func (c *Configuration) Save() {
 	// TODO: keep an eye on viper to come up with a solution like viper.Marshal(&c)
 	if b, err := yaml.Marshal(&c); err != nil {
-		log := GetDefaultLogger()
-		log.Error("Error while marshalling config objects")
+		panic(fmt.Errorf("Error while marshalling config objects: %s ", err))
 	} else {
-		viper.ReadConfig(bytes.NewBuffer(b))
+		if err := viper.ReadConfig(bytes.NewBuffer(b)); err != nil {
+			panic(fmt.Errorf("Error while reading config file: %s ", err))
+		}
 		viper.WriteConfig()
 	}
 }
