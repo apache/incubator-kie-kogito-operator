@@ -30,6 +30,7 @@ const (
 	prometheusLabelKeyPrefix = "prometheus.io"
 	labelNamespaceSep        = "/"
 	orgKieNamespaceLabelKey  = "org.kie" + labelNamespaceSep
+	orgKiePersistenceKey     = "persistence"
 	dockerLabelServicesSep   = ","
 	portSep                  = ":"
 	defaultExportedProtocol  = "http"
@@ -70,20 +71,23 @@ func mergeImageMetadataWithDeploymentConfig(dc *appsv1.DeploymentConfig, dockerI
 		if strings.Contains(key, orgKieNamespaceLabelKey) {
 			splitedKey := strings.Split(key, labelNamespaceSep)
 			// we're only interested on keys like org.kie/something
-			if len(splitedKey) == 2 {
-				importedKey := splitedKey[len(splitedKey)-1]
+			if len(splitedKey) > 1 {
+				// persistence labels should be treated somewhere else
+				if splitedKey[1] != orgKiePersistenceKey {
+					importedKey := strings.Join(splitedKey[1:], labelNamespaceSep)
 
-				if !added {
-					_, lblPresent := dc.Labels[importedKey]
-					_, selectorPresent := dc.Spec.Selector[importedKey]
-					_, podLblPresent := dc.Spec.Template.Labels[importedKey]
+					if !added {
+						_, lblPresent := dc.Labels[importedKey]
+						_, selectorPresent := dc.Spec.Selector[importedKey]
+						_, podLblPresent := dc.Spec.Template.Labels[importedKey]
 
-					added = !(lblPresent && selectorPresent && podLblPresent)
+						added = !(lblPresent && selectorPresent && podLblPresent)
+					}
+
+					dc.Labels[importedKey] = value
+					dc.Spec.Selector[importedKey] = value
+					dc.Spec.Template.Labels[importedKey] = value
 				}
-
-				dc.Labels[importedKey] = value
-				dc.Spec.Selector[importedKey] = value
-				dc.Spec.Template.Labels[importedKey] = value
 			}
 		} else if strings.Contains(key, prometheusLabelKeyPrefix) {
 			if !added {
