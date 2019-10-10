@@ -24,6 +24,34 @@ import (
 	"testing"
 )
 
+func Test_addMetadataFromDockerImage_MultiLabel(t *testing.T) {
+	dockerImage := &dockerv10.DockerImage{Config: &dockerv10.DockerConfig{
+		Labels: map[string]string{
+			orgKieNamespaceLabelKey + "layer1":        "value",
+			orgKieNamespaceLabelKey + "layer1/layer2": "value",
+		},
+	}}
+	dcWithOutLabels := &appsv1.DeploymentConfig{
+		ObjectMeta: v1.ObjectMeta{
+			Labels: map[string]string{},
+		},
+		Spec: appsv1.DeploymentConfigSpec{
+			Template: &v12.PodTemplateSpec{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{},
+				},
+			},
+			Selector: map[string]string{},
+		},
+	}
+
+	added := mergeImageMetadataWithDeploymentConfig(dcWithOutLabels, dockerImage)
+	assert.True(t, added)
+	assert.Contains(t, dcWithOutLabels.Labels, "layer1/layer2")
+	assert.Contains(t, dcWithOutLabels.Labels, "layer1")
+	assert.Len(t, dcWithOutLabels.Labels, 2)
+}
+
 func Test_addMetadataFromDockerImage(t *testing.T) {
 	dockerImage := &dockerv10.DockerImage{Config: &dockerv10.DockerConfig{
 		Labels: map[string]string{
