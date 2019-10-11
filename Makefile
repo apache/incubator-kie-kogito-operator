@@ -36,7 +36,7 @@ vet:
 
 .PHONY: test
 test:
-	./hack/go-test.sh
+	./hack/go-test.sh $(coverage)
 
 .PHONY: lint
 lint:
