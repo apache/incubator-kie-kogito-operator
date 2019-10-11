@@ -17,12 +17,11 @@ package context
 import (
 	"bytes"
 	"fmt"
+	"github.com/mitchellh/go-homedir"
+	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
 
-	"gopkg.in/yaml.v2"
-
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -43,9 +42,8 @@ type Configuration struct {
 	Namespace string
 }
 
-// ReadConfig will read the configuration from disk
-func ReadConfig() Configuration {
-	log := GetDefaultLogger()
+// InitConfig will initialize the configuration file properly
+func InitConfig() {
 	if rootCmd.ConfigFile() != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(rootCmd.ConfigFile())
@@ -78,6 +76,11 @@ func ReadConfig() Configuration {
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
+}
+
+// ReadConfig will read the configuration from disk
+func ReadConfig() Configuration {
+	log := GetDefaultLogger()
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
