@@ -7,11 +7,7 @@ Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kieg
 Table of Contents
 =================
 
-Table of Contents
-=================
-
    * [Kogito Operator](#kogito-operator)
-   * [Table of Contents](#table-of-contents)
       * [Requirements](#requirements)
       * [Installation](#installation)
          * [Deploy to OpenShift 4.x Manually](#deploy-to-openshift-4x-manually)
