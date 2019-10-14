@@ -48,8 +48,10 @@ build:
 	./hack/go-build.sh
 
 .PHONY: build-cli
+release = false
+version = ""
 build-cli:
-	./hack/go-build-cli.sh
+	./hack/go-build-cli.sh $(release) $(version)
 
 .PHONY: install-cli
 install-cli:
