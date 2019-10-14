@@ -7,22 +7,26 @@ Kogito Operator was designed to deploy [Kogito Runtimes](https://github.com/kieg
 Table of Contents
 =================
 
+Table of Contents
+=================
+
    * [Kogito Operator](#kogito-operator)
+   * [Table of Contents](#table-of-contents)
       * [Requirements](#requirements)
       * [Installation](#installation)
          * [Deploy to OpenShift 4.x Manually](#deploy-to-openshift-4x-manually)
          * [Deploy to OpenShift 3.11](#deploy-to-openshift-311)
-         * [Trigger a Kogito Runtime Service deployment](#trigger-a-kogito-runtime-service-deployment)
-            * [Native X JVM Builds](#native-x-jvm-builds)
-            * [Troubleshoting](#troubleshoting)
+      * [Trigger a Kogito Runtime Service deployment](#trigger-a-kogito-runtime-service-deployment)
+         * [Native X JVM Builds](#native-x-jvm-builds)
+         * [Troubleshoting](#troubleshoting)
          * [Clean up a Kogito Service deployment](#clean-up-a-kogito-service-deployment)
-         * [Deploy Data Index Service](#deploy-data-index-service)
-            * [Deploy Infinispan](#deploy-infinispan)
-            * [Deploy Strimzi](#deploy-strimzi)
-            * [Install Data Index](#install-data-index)
-               * [Install Data Index with Kogito CLI](#install-data-index-with-kogito-cli)
-               * [Install Data Index with Operator Catalog (OLM)](#install-data-index-with-operator-catalog-olm)
-               * [Install Data Index with oc client](#install-data-index-with-oc-client)
+      * [Deploy Data Index Service](#deploy-data-index-service)
+         * [Deploy Infinispan](#deploy-infinispan)
+         * [Deploy Strimzi](#deploy-strimzi)
+         * [Install Data Index](#install-data-index)
+            * [Install Data Index with Kogito CLI](#install-data-index-with-kogito-cli)
+            * [Install Data Index with Operator Catalog (OLM)](#install-data-index-with-operator-catalog-olm)
+            * [Install Data Index with oc client](#install-data-index-with-oc-client)
       * [Kogito CLI](#kogito-cli)
          * [CLI Requirements](#cli-requirements)
          * [CLI Install](#cli-install)
@@ -37,6 +41,7 @@ Table of Contents
          * [Running Locally](#running-locally)
       * [Prometheus Integration](#prometheus-integration)
       * [Contributing](#contributing)
+
 
 <!-- generated with: https://github.com/ekalinin/github-markdown-toc -->
 
@@ -96,7 +101,7 @@ $ oc new-project <project-name>
 $ ./hack/3.11deploy.sh
 ```
 
-### Trigger a Kogito Runtime Service deployment
+## Trigger a Kogito Runtime Service deployment
 
 Use the OLM console to subscribe to the `kogito` Operator Catalog Source within your namespace. Once subscribed, use the console to `Create KogitoApp` or create one manually as seen below.
 
@@ -111,7 +116,7 @@ Alternatively, you can use the [CLI](#kogito-cli) to deploy your services:
 $ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example
 ```
 
-#### Native X JVM Builds
+### Native X JVM Builds
 
 By default, the Kogito Services will be built with traditional `java` compilers to speed up the time and save resources. This means that the final generated artifact will be a [uber jar](https://stackoverflow.com/questions/11947037/what-is-an-uber-jar) with the chosen runtime (default to Quarkus).
 
@@ -125,7 +130,7 @@ To deploy a service using native builds, run the `deploy-service` command with `
 $ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example --native
 ```
 
-#### Troubleshoting 
+### Troubleshoting 
 
 If you don't see any builds running nor any resources created in the namespace, try to take a look at the Kogito Operator log.
 
@@ -150,14 +155,14 @@ $ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t
 $ kogito delete-service example-quarkus
 ```
 
-### Deploy Data Index Service
+## Deploy Data Index Service
 
 The Kogito Operator is able to deploy the [Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) as a [Custom Resource](deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml) (`KogitoDataIndex`). Since Data Index Service depends on Kafka and Infinispan, it's necessary to manually deploy an Apache Kafka Cluster and an Infinispan Server (10.x) in the same namespace.
 
 | :information_source: It's planned for future releases that the Kogito Operator will deploy an Infinispan and a Kafka cluster when deploying the Data Index Service. |
 | --- |
 
-#### Deploy Infinispan
+### Deploy Infinispan
 
 To deploy an Infinispan Server, you can leverage from `oc new-app [docker image]` command as follows:
 
@@ -213,7 +218,7 @@ NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          
 infinispan-server   ClusterIP   172.30.193.214   <none>        7600/TCP,8080/TCP,8181/TCP,8888/TCP,9990/TCP,11211/TCP,11222/TCP,57600/TCP   4m19s
 ```
 
-#### Deploy Strimzi
+### Deploy Strimzi
 
 Deploying [Strimzi](https://strimzi.io/) is much easier since it's an Operator and should be available in the [OperatorHub](https://operatorhub.io/operator/strimzi-kafka-operator). On OpenShift Web Console, go to the left menu, Catalog, OperatorHub and search for `Strimzi`.
 
@@ -288,7 +293,7 @@ Events:                      <none>
 
 Now that you have the required infrastrucuture, it's safe to deploy the Kogito Data Index Service.
 
-#### Install Data Index
+### Install Data Index
 
 Having [installed](#installation) the Kogito Operator, create a new `Kogito Data Index` resource using the services URIs from Infinispan and Kafka:
 
@@ -313,7 +318,7 @@ In this case the Kafka Cluster service is `my-cluster-kafka-bootstrap:9092`.
 
 Use this information to create the Kogito Data Index resource. 
 
-##### Install Data Index with Kogito CLI
+#### Install Data Index with Kogito CLI
 
 If you have installed the [Kogito CLI](#kogito-cli), you can simply run:
 
@@ -321,7 +326,7 @@ If you have installed the [Kogito CLI](#kogito-cli), you can simply run:
 $ kogito install data-index -p my-project --infinispan-url infinispan-server:11222 --kafka-url my-cluster-kafka-bootstrap:9092
 ```
 
-##### Install Data Index with Operator Catalog (OLM)
+#### Install Data Index with Operator Catalog (OLM)
 
 If you're running on OCP 4.x, you might use the OperatorHub user interface. In the left menu go to Installed Operators, Kogito Operator, Kogito Data Index tab. From there, click on "Create Kogito Data Index" and create a new resource like in the example below using the Infinispan and Kafka services:
 
@@ -353,7 +358,7 @@ spec:
     serviceURI: infinispan-server:11222
 ```
 
-##### Install Data Index with oc client
+#### Install Data Index with oc client
 
 You can use the CR file showed above as a reference and create the custom resource from the command line:
 

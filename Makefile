@@ -70,3 +70,8 @@ native = "false"
 maven_mirror = ""
 run-e2e:
 	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror)
+
+.PHONY: prepare-olm
+version = ""
+prepare-olm:
+	./hack/pr-operatorhub.sh $(version)
