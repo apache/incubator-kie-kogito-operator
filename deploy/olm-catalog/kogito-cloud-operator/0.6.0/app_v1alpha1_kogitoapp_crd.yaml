@@ -54,7 +54,7 @@ spec:
                       description: Git URI for the s2i source
                       type: string
                   required:
-                    - uri
+                  - uri
                   type: object
                 imageRuntime:
                   description: ImageRuntime is used build configurations to build
@@ -95,15 +95,15 @@ spec:
                           resource:
                             description: Resource type like cpu and memory
                             enum:
-                              - cpu
-                              - memory
+                            - cpu
+                            - memory
                             type: string
                           value:
                             description: Value of this resource in Kubernetes format
                             type: string
                         required:
-                          - resource
-                          - value
+                        - resource
+                        - value
                         type: object
                       type: array
                     requests:
@@ -112,15 +112,15 @@ spec:
                           resource:
                             description: Resource type like cpu and memory
                             enum:
-                              - cpu
-                              - memory
+                            - cpu
+                            - memory
                             type: string
                           value:
                             description: Value of this resource in Kubernetes format
                             type: string
                         required:
-                          - resource
-                          - value
+                        - resource
+                        - value
                         type: object
                       type: array
                   type: object
@@ -134,13 +134,13 @@ spec:
                       type:
                         description: WebHook type, either GitHub or Generic
                         enum:
-                          - GitHub
-                          - Generic
+                        - GitHub
+                        - Generic
                         type: string
                     type: object
                   type: array
               required:
-                - gitSource
+              - gitSource
               type: object
             env:
               items:
@@ -167,15 +167,15 @@ spec:
                       resource:
                         description: Resource type like cpu and memory
                         enum:
-                          - cpu
-                          - memory
+                        - cpu
+                        - memory
                         type: string
                       value:
                         description: Value of this resource in Kubernetes format
                         type: string
                     required:
-                      - resource
-                      - value
+                    - resource
+                    - value
                     type: object
                   type: array
                 requests:
@@ -184,15 +184,15 @@ spec:
                       resource:
                         description: Resource type like cpu and memory
                         enum:
-                          - cpu
-                          - memory
+                        - cpu
+                        - memory
                         type: string
                       value:
                         description: Value of this resource in Kubernetes format
                         type: string
                     required:
-                      - resource
-                      - value
+                    - resource
+                    - value
                     type: object
                   type: array
               type: object
@@ -200,8 +200,8 @@ spec:
               description: The name of the runtime used, either quarkus or springboot,
                 defaults to quarkus
               enum:
-                - quarkus
-                - springboot
+              - quarkus
+              - springboot
               type: string
             service:
               description: Service configuration
@@ -213,10 +213,48 @@ spec:
                   type: object
               type: object
           required:
-            - build
+          - build
           type: object
         status:
           properties:
+            builds:
+              properties:
+                cancelled:
+                  description: Builds have been stopped from executing
+                  items:
+                    type: string
+                  type: array
+                complete:
+                  description: Builds have been successful
+                  items:
+                    type: string
+                  type: array
+                error:
+                  description: Builds have been prevented from executing by error
+                  items:
+                    type: string
+                  type: array
+                failed:
+                  description: Builds have executed and failed
+                  items:
+                    type: string
+                  type: array
+                new:
+                  description: Builds are being newly created
+                  items:
+                    type: string
+                  type: array
+                pending:
+                  description: Builds are about to start running
+                  items:
+                    type: string
+                  type: array
+                running:
+                  description: Builds are running
+                  items:
+                    type: string
+                  type: array
+              type: object
             conditions:
               items:
                 properties:
@@ -232,8 +270,8 @@ spec:
                   type:
                     type: string
                 required:
-                  - type
-                  - status
+                - type
+                - status
                 type: object
               type: array
             deployments:
@@ -263,11 +301,12 @@ spec:
             route:
               type: string
           required:
-            - conditions
-            - deployments
+          - conditions
+          - deployments
+          - builds
           type: object
   version: v1alpha1
   versions:
-    - name: v1alpha1
-      served: true
-      storage: true
+  - name: v1alpha1
+    served: true
+    storage: true
