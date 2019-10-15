@@ -613,7 +613,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref common.ReferenceCallback) 
 					},
 					"builds": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./pkg/apis/app/v1alpha1.Builds"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Builds"),
 						},
 					},
 				},

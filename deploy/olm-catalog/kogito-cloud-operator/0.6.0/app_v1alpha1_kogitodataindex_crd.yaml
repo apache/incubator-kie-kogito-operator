@@ -74,8 +74,8 @@ spec:
                   description: SaslMechanism defined for the authentication. Will
                     set the property infinispan.client.hotrod.sasl_mechanism
                   enum:
-                    - PLAIN
-                    - DIGEST-MD5
+                  - PLAIN
+                  - DIGEST-MD5
                   type: string
                 serviceURI:
                   description: ServiceURI is the service URI to connect to the Infinispan
@@ -125,7 +125,7 @@ spec:
                   message:
                     type: string
                 required:
-                  - condition
+                - condition
                 type: object
               type: array
             dependenciesStatus:
@@ -145,13 +145,13 @@ spec:
               description: Status of the Database Service created and managed by it
               type: object
           required:
-            - deploymentStatus
-            - serviceStatus
-            - conditions
-            - dependenciesStatus
+          - deploymentStatus
+          - serviceStatus
+          - conditions
+          - dependenciesStatus
           type: object
   version: v1alpha1
   versions:
-    - name: v1alpha1
-      served: true
-      storage: true
+  - name: v1alpha1
+    served: true
+    storage: true

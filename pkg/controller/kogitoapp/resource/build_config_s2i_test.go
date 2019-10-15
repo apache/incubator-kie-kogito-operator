@@ -78,13 +78,13 @@ func TestNewBuildConfigS2I(t *testing.T) {
 	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: v12.ObjectMeta{Name: "test"},
 		Spec: v1alpha1.KogitoAppSpec{
-			Runtime:  v1alpha1.QuarkusRuntimeType,
+			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
 				Incremental: true,
-				GitSource:   &v1alpha1.GitSource{
+				GitSource: &v1alpha1.GitSource{
 					URI: &uri,
 				},
-				Native:      true,
+				Native: true,
 				Resources: v1alpha1.Resources{
 					Limits: []v1alpha1.ResourceMap{
 						{
@@ -110,7 +110,7 @@ func TestNewBuildConfigS2I(t *testing.T) {
 			},
 		},
 	}
-	
+
 	bc, err := NewBuildConfigS2I(kogitoApp)
 	assert.NoError(t, err)
 	assert.Contains(t, bc.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{
