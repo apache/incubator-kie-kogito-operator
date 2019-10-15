@@ -15,8 +15,11 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
 	buildv1 "github.com/openshift/api/build/v1"
@@ -37,13 +40,25 @@ func Test_getBCS2ILimitsAsIntString(t *testing.T) {
 				CommonSpec: buildv1.CommonSpec{
 					Resources: v1.ResourceRequirements{
 						Limits: map[v1.ResourceName]resource.Quantity{
-							v1.ResourceCPU:    resource.MustParse("1"),
+							v1.ResourceCPU:    resource.MustParse("1000m"),
 							v1.ResourceMemory: resource.MustParse("512Mi"),
 						},
 					},
 				},
 			},
 		}}, "1", "536870912"},
+		{"With Limits half cpu", args{buildConfig: &buildv1.BuildConfig{
+			Spec: buildv1.BuildConfigSpec{
+				CommonSpec: buildv1.CommonSpec{
+					Resources: v1.ResourceRequirements{
+						Limits: map[v1.ResourceName]resource.Quantity{
+							v1.ResourceCPU:    resource.MustParse("500m"),
+							v1.ResourceMemory: resource.MustParse("512Mi"),
+						},
+					},
+				},
+			},
+		}}, "500m", "536870912"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -56,4 +71,50 @@ func Test_getBCS2ILimitsAsIntString(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewBuildConfigS2I(t *testing.T) {
+	uri := "http://example.git"
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime:  v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				Incremental: true,
+				GitSource:   &v1alpha1.GitSource{
+					URI: &uri,
+				},
+				Native:      true,
+				Resources: v1alpha1.Resources{
+					Limits: []v1alpha1.ResourceMap{
+						{
+							Resource: v1alpha1.ResourceCPU,
+							Value:    "500m",
+						},
+						{
+							Resource: v1alpha1.ResourceMemory,
+							Value:    "128Mi",
+						},
+					},
+					Requests: []v1alpha1.ResourceMap{
+						{
+							Resource: v1alpha1.ResourceCPU,
+							Value:    "250m",
+						},
+						{
+							Resource: v1alpha1.ResourceMemory,
+							Value:    "64Mi",
+						},
+					},
+				},
+			},
+		},
+	}
+	
+	bc, err := NewBuildConfigS2I(kogitoApp)
+	assert.NoError(t, err)
+	assert.Contains(t, bc.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{
+		Name:  buildS2IlimitCPUEnvVarKey,
+		Value: "500m",
+	})
 }

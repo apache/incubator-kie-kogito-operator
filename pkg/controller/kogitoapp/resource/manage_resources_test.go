@@ -213,7 +213,7 @@ func TestManageResources(t *testing.T) {
 								Env: []corev1.EnvVar{
 									{Name: "test1", Value: "test1"},
 									{Name: nativeBuildEnvVarKey, Value: "true"},
-									{Name: buildS2IlimitCPUEnvVarKey, Value: "500"},
+									{Name: buildS2IlimitCPUEnvVarKey, Value: "500m"},
 									{Name: buildS2IlimitMemoryEnvVarKey, Value: "134217728"},
 								},
 								Incremental: &incremental,
@@ -699,7 +699,7 @@ func Test_ensureBuildConfigS2I(t *testing.T) {
 	var envs = []corev1.EnvVar{
 		{Name: "test1", Value: "test1"},
 		{Name: nativeBuildEnvVarKey, Value: "true"},
-		{Name: buildS2IlimitCPUEnvVarKey, Value: "500"},
+		{Name: buildS2IlimitCPUEnvVarKey, Value: "500m"},
 		{Name: buildS2IlimitMemoryEnvVarKey, Value: "134217728"},
 	}
 	resources := corev1.ResourceRequirements{
