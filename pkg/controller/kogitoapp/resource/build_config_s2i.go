@@ -45,7 +45,7 @@ var (
 	// DefaultBuildS2IJVMLimits is the default resource limits for JVM s2i builds
 	DefaultBuildS2IJVMLimits = []v1alpha1.ResourceMap{DefaultBuildS2IJVMCPULimit, DefaultBuildS2IJVMMemoryLimit}
 	// DefaultBuildS2INativeCPULimit is the default CPU limit for Native s2i builds
-	DefaultBuildS2INativeCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1000m"}
+	DefaultBuildS2INativeCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"}
 	// DefaultBuildS2INativeMemoryLimit is the default Memory limit for Native s2i builds
 	DefaultBuildS2INativeMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "4Gi"}
 	// DefaultBuildS2INativeLimits is the default resource limits for Native s2i builds
@@ -122,22 +122,15 @@ func getBCS2ILimitsAsIntString(buildConfig *buildv1.BuildConfig) (limitCPU, limi
 		return "", ""
 	}
 
-	limitCPUInt, possible := buildConfig.Spec.Resources.Limits.Cpu().AsInt64()
-	if !possible {
-		limitCPUInt = buildConfig.Spec.Resources.Limits.Cpu().ToDec().AsDec().UnscaledBig().Int64()
-	}
 	limitMemoryInt, possible := buildConfig.Spec.Resources.Limits.Memory().AsInt64()
 	if !possible {
 		limitMemoryInt = buildConfig.Spec.Resources.Limits.Memory().ToDec().AsDec().UnscaledBig().Int64()
-	}
-
-	if limitCPUInt > 0 {
-		limitCPU = strconv.FormatInt(limitCPUInt, 10)
 	}
 
 	if limitMemoryInt > 0 {
 		limitMemory = strconv.FormatInt(limitMemoryInt, 10)
 	}
 
+	limitCPU = buildConfig.Spec.Resources.Limits.Cpu().String()
 	return limitCPU, limitMemory
 }
