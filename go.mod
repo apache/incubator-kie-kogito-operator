@@ -3,7 +3,7 @@ module github.com/kiegroup/kogito-cloud-operator
 require (
 	cloud.google.com/go v0.46.3 // indirect
 	github.com/NYTimes/gziphandler v1.0.1 // indirect
-	github.com/RHsyseng/operator-utils v0.0.0-20190807020041-5344a0f594b8
+	github.com/RHsyseng/operator-utils v0.0.0-20190906175225-942a3f9c85a9
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0

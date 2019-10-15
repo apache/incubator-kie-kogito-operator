@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
@@ -70,6 +71,7 @@ func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 		},
 	}
 
+	buildConfig.Spec.Triggers = []buildv1.BuildTriggerPolicy{}
 	buildConfig.Spec.Resources = shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Build.Resources)
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", buildConfig.Name, tagLatest)}
 	setBCS2ISource(kogitoApp, &buildConfig)
@@ -85,7 +87,9 @@ func resolveS2IImage(kogitoApp *v1alpha1.KogitoApp) v1alpha1.Image {
 }
 
 func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig) {
-	buildConfig.Spec.Source.ContextDir = kogitoApp.Spec.Build.GitSource.ContextDir
+	buildConfig.Spec.Source.Type = buildv1.BuildSourceGit
+	// Remove the trailing slash, as it will be removed by openshift
+	buildConfig.Spec.Source.ContextDir = strings.TrimSuffix(kogitoApp.Spec.Build.GitSource.ContextDir, "/")
 	buildConfig.Spec.Source.Git = &buildv1.GitBuildSource{
 		URI: *kogitoApp.Spec.Build.GitSource.URI,
 		Ref: kogitoApp.Spec.Build.GitSource.Reference,

@@ -64,7 +64,7 @@ func TestUseProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
 	assert.Contains(t, o, ns)
 }
 
-func TestUseProjectCmd_WhenWhatIsTheNamespace(t *testing.T) {
+func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
 	config := context.ReadConfig()
 	config.Namespace = ""
 	config.Save()
@@ -75,7 +75,17 @@ func TestUseProjectCmd_WhenWhatIsTheNamespace(t *testing.T) {
 	o1, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, o1, ns)
+	config = context.ReadConfig()
+	assert.Equal(t, ns, config.Namespace)
+}
 
+func TestUseProjectCmd_WhenWhatIsTheNamespace_UseConfigNamespace(t *testing.T) {
+	config := context.ReadConfig()
+	// set the project
+	config.Namespace = "config-project"
+	config.Save()
+	ns := "config-project"
+	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	test.SetupCliTest("use-project", context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
 	o2, _, err := test.ExecuteCli()
 	assert.NoError(t, err)

@@ -15,7 +15,12 @@ github.com/BurntSushi/toml
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/RHsyseng/operator-utils v0.0.0-20190807020041-5344a0f594b8
+# github.com/RHsyseng/operator-utils v0.0.0-20190906175225-942a3f9c85a9
+github.com/RHsyseng/operator-utils/pkg/resource
+github.com/RHsyseng/operator-utils/pkg/resource/compare
+github.com/RHsyseng/operator-utils/pkg/resource/write
+github.com/RHsyseng/operator-utils/pkg/resource/read
+github.com/RHsyseng/operator-utils/pkg/resource/write/hooks
 github.com/RHsyseng/operator-utils/pkg/validation
 # github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30
 github.com/appscode/jsonpatch

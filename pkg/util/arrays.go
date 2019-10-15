@@ -87,3 +87,27 @@ func ParseStringsForKeyPair(array []string) error {
 	}
 	return nil
 }
+
+// ArrayToSet converts an array of string to a set
+func ArrayToSet(array []string) map[string]bool {
+	set := make(map[string]bool, len(array))
+
+	for _, e := range array {
+		set[e] = true
+	}
+
+	return set
+}
+
+// ContainsAll checks if all the elements of the second are in the first array
+func ContainsAll(array1 []string, array2 []string) bool {
+	set1 := ArrayToSet(array1)
+
+	for _, e := range array2 {
+		if !set1[e] {
+			return false
+		}
+	}
+
+	return true
+}

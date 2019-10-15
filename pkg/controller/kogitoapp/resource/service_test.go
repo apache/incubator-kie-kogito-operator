@@ -66,7 +66,7 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 func Test_addServiceLabels_whenLabelsAreNotProvided(t *testing.T) {
 	objectMeta := &metav1.ObjectMeta{}
 
-	kogitoApp = &v1alpha1.KogitoApp{
+	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test",
 		},
@@ -87,7 +87,7 @@ func Test_addServiceLabels_whenAlreadyHasLabels(t *testing.T) {
 		},
 	}
 
-	kogitoApp = &v1alpha1.KogitoApp{
+	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test",
 		},
@@ -109,7 +109,7 @@ func Test_addServiceLabels_whenLabelsAreProvided(t *testing.T) {
 		},
 	}
 
-	kogitoApp = &v1alpha1.KogitoApp{
+	kogitoApp := &v1alpha1.KogitoApp{
 		Spec: v1alpha1.KogitoAppSpec{
 			Service: v1alpha1.KogitoAppServiceObject{
 				Labels: map[string]string{

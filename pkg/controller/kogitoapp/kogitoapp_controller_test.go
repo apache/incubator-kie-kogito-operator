@@ -121,9 +121,9 @@ func TestKogitoAppWithResource(t *testing.T) {
 	s.AddKnownTypes(appsv1.SchemeGroupVersion,
 		&appsv1.DeploymentConfig{},
 		&appsv1.DeploymentConfigList{})
-	s.AddKnownTypes(buildv1.SchemeGroupVersion, &buildv1.BuildConfig{})
-	s.AddKnownTypes(routev1.SchemeGroupVersion, &routev1.Route{})
-	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
+	s.AddKnownTypes(buildv1.SchemeGroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
+	s.AddKnownTypes(routev1.SchemeGroupVersion, &routev1.Route{}, &routev1.RouteList{})
+	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
 	// Create a fake client to mock API calls.
 	cli := fake.NewFakeClient(objs...)
 	// OpenShift Image Client Fake with image tag defined and image built

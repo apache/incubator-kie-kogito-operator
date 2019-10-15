@@ -30,7 +30,7 @@ func NewRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *ro
 		return route, fmt.Errorf("Impossible to create a Route without a service on Kogito app %s", kogitoApp.Name)
 	}
 	route = &routev1.Route{
-		ObjectMeta: service.ObjectMeta,
+		ObjectMeta: *service.ObjectMeta.DeepCopy(),
 		Spec: routev1.RouteSpec{
 			Port: &routev1.RoutePort{
 				TargetPort: intstr.FromString(defaultExportedProtocol),

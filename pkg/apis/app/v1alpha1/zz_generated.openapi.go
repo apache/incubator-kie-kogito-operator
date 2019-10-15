@@ -25,6 +25,7 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Builds":                         schema_pkg_apis_app_v1alpha1_Builds(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition":                      schema_pkg_apis_app_v1alpha1_Condition(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments":                    schema_pkg_apis_app_v1alpha1_Deployments(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env":                            schema_pkg_apis_app_v1alpha1_Env(ref),
@@ -41,6 +42,117 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap":                    schema_pkg_apis_app_v1alpha1_ResourceMap(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources":                      schema_pkg_apis_app_v1alpha1_Resources(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":                  schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
+	}
+}
+
+func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Builds ...",
+				Properties: map[string]spec.Schema{
+					"new": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds are being newly created",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"pending": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds are about to start running",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"running": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds are running",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"complete": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have been successful",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"failed": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have executed and failed",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have been prevented from executing by error",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"cancelled": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have been stopped from executing",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
 	}
 }
 
@@ -499,12 +611,17 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref common.ReferenceCallback) 
 							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments"),
 						},
 					},
+					"builds": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("./pkg/apis/app/v1alpha1.Builds"),
+						},
+					},
 				},
-				Required: []string{"conditions", "deployments"},
+				Required: []string{"conditions", "deployments", "builds"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Builds", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments"},
 	}
 }
 

@@ -16,7 +16,6 @@ package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
@@ -44,8 +43,8 @@ func (c *builderChain) AndBuild(f func(*builderChain) *builderChain) *builderCha
 	return c
 }
 
-// BuildOrFetchObjects will fetch for every resource in KogitoAppResources and will create it in the cluster if not exists
-func BuildOrFetchObjects(context *Context) (resources *KogitoAppResources, err error) {
+// GetRequestedResources will fetch for all the kubernetes resources requested by the KogitoApp
+func GetRequestedResources(context *Context) (*KogitoAppResources, error) {
 	chain := &builderChain{
 		Resources: &KogitoAppResources{},
 		Context:   context,
@@ -57,15 +56,6 @@ func BuildOrFetchObjects(context *Context) (resources *KogitoAppResources, err e
 		AndBuild(serviceBuilder).
 		AndBuild(routeBuilder)
 	return chain.Resources, chain.Error
-}
-
-func callPostCreate(isNew bool, object meta.ResourceObject, chain *builderChain) *builderChain {
-	if isNew && chain.Context.PostCreate != nil {
-		if chain.Error == nil {
-			chain.Error = chain.Context.PostCreate(object)
-		}
-	}
-	return chain
 }
 
 func callPreCreate(object meta.ResourceObject, chain *builderChain) error {
@@ -81,14 +71,15 @@ func buildConfigS2IBuilder(chain *builderChain) *builderChain {
 		chain.Error = err
 		return chain
 	}
+
 	if err := callPreCreate(&bc, chain); err != nil {
 		chain.Error = err
 		return chain
 	}
-	chain.Resources.BuildConfigS2IStatus.IsNew, chain.Error =
-		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&bc)
+
 	chain.Resources.BuildConfigS2I = &bc
-	return callPostCreate(chain.Resources.BuildConfigS2IStatus.IsNew, &bc, chain)
+
+	return chain
 }
 
 func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
@@ -100,44 +91,35 @@ func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
 		chain.Error = err
 		return chain
 	}
+
 	if err := callPreCreate(&bc, chain); err != nil {
 		chain.Error = err
 		return chain
 	}
-	chain.Resources.BuildConfigRuntimeStatus.IsNew, chain.Error =
-		kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(&bc)
+
 	chain.Resources.BuildConfigRuntime = &bc
-	return callPostCreate(chain.Resources.BuildConfigRuntimeStatus.IsNew, &bc, chain)
+
+	return chain
 }
 
 func imageStreamBuilder(chain *builderChain) *builderChain {
-	created := false
-
-	is := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigS2I.Name)
-	if err := callPreCreate(is, chain); err != nil {
+	isS2I := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigS2I.Name)
+	if err := callPreCreate(isS2I, chain); err != nil {
 		chain.Error = err
 		return chain
 	}
-	created, chain.Error = kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(is)
-	if chain.Error != nil {
-		return chain
-	}
-	chain = callPostCreate(created, is, chain)
-	if chain.Error != nil {
-		return chain
-	}
 
-	is = NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
-	if err := callPreCreate(is, chain); err != nil {
+	chain.Resources.ImageStreamS2I = isS2I
+
+	isRuntime := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
+	if err := callPreCreate(isRuntime, chain); err != nil {
 		chain.Error = err
 		return chain
 	}
-	created, chain.Error = kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(is)
-	if chain.Error != nil {
-		return chain
-	}
 
-	return callPostCreate(created, is, chain)
+	chain.Resources.ImageStreamRuntime = isRuntime
+
+	return chain
 }
 
 func deploymentConfigBuilder(chain *builderChain) *builderChain {
@@ -163,10 +145,8 @@ func deploymentConfigBuilder(chain *builderChain) *builderChain {
 			chain.Error = err
 			return chain
 		}
-		chain.Resources.DeploymentConfigStatus.IsNew, chain.Error =
-			kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(dc)
+
 		chain.Resources.DeploymentConfig = dc
-		chain = callPostCreate(chain.Resources.DeploymentConfigStatus.IsNew, dc, chain)
 	} else {
 		log.Warnf("Couldn't find an image with name '%s' in the namespace '%s'. The DeploymentConfig will be created once the build is done.", bcNamespacedName.Name, bcNamespacedName.Namespace)
 	}
@@ -182,10 +162,8 @@ func serviceBuilder(chain *builderChain) *builderChain {
 				chain.Error = err
 				return chain
 			}
-			chain.Resources.ServiceStatus.IsNew, chain.Error =
-				kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(svc)
+
 			chain.Resources.Service = svc
-			chain = callPostCreate(chain.Resources.ServiceStatus.IsNew, svc, chain)
 		}
 	}
 	return chain
@@ -203,10 +181,8 @@ func routeBuilder(chain *builderChain) *builderChain {
 			chain.Error = err
 			return chain
 		}
-		chain.Resources.RouteStatus.IsNew, chain.Error =
-			kubernetes.ResourceC(chain.Context.Client).CreateIfNotExists(route)
+
 		chain.Resources.Route = route
-		chain = callPostCreate(chain.Resources.RouteStatus.IsNew, route, chain)
 	}
 	return chain
 }
