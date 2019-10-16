@@ -145,9 +145,8 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	i.flags.source = args[1]
-	config := context.ReadConfig()
 	var err error
-	if i.flags.Project, err = shared.EnsureProject(i.Client, config, i.flags.Project); err != nil {
+	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
 
@@ -209,8 +208,6 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 	if err := kubernetes.ResourceC(i.Client).Create(kogitoApp); err != nil {
 		return fmt.Errorf("Error while creating a new KogitoApp in the context: %v", err)
 	}
-	config.Namespace = kogitoApp.Namespace
-	config.Save()
 
 	log.Infof("KogitoApp '%s' successfully created on namespace '%s'", kogitoApp.Name, kogitoApp.Namespace)
 	// TODO: we should provide this info with a -f flag

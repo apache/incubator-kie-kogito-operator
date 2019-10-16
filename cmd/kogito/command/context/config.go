@@ -103,6 +103,8 @@ func (c *Configuration) Save() {
 		if err := viper.ReadConfig(bytes.NewBuffer(b)); err != nil {
 			panic(fmt.Errorf("Error while reading config file: %s ", err))
 		}
-		viper.WriteConfig()
+		if err := viper.WriteConfig(); err != nil {
+			panic(fmt.Errorf("Error while writing to config file: %s ", err))
+		}
 	}
 }

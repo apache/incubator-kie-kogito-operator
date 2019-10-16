@@ -65,10 +65,11 @@ func TestUseProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
 }
 
 func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
+	context.InitConfig()
 	config := context.ReadConfig()
 	config.Namespace = ""
 	config.Save()
-	ns := "config-project"
+	ns := t.Name()
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	// set the project
 	test.SetupCliTest(strings.Join([]string{"use-project", ns}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
@@ -80,11 +81,12 @@ func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
 }
 
 func TestUseProjectCmd_WhenWhatIsTheNamespace_UseConfigNamespace(t *testing.T) {
-	config := context.ReadConfig()
+	ns := t.Name()
+	context.InitConfig()
 	// set the project
-	config.Namespace = "config-project"
+	config := context.ReadConfig()
+	config.Namespace = ns
 	config.Save()
-	ns := "config-project"
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	test.SetupCliTest("use-project", context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
 	o2, _, err := test.ExecuteCli()

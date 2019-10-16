@@ -30,10 +30,11 @@ import (
 )
 
 func Test_DeployCmd_OperatorAutoInstal(t *testing.T) {
-	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project kogito")
+	ns := t.Name()
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
 
 	lines, _, err := test.ExecuteCli()
@@ -43,16 +44,17 @@ func Test_DeployCmd_OperatorAutoInstal(t *testing.T) {
 }
 
 func Test_DeployCmd_CustomDeployment(t *testing.T) {
+	ns := t.Name()
 	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples 
-								-v --context-dir drools-quarkus-example --project kogito 
+								-v --context-dir drools-quarkus-example --project %s 
 								--image-s2i=myimage --image-runtime=myimage:0.2 
 								--limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi
-								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi`)
+								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi`, ns)
 	// clean up all the mess we did ^
 	cli = strings.Join(strings.Fields(cli), " ")
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
 	// start the test
 	_, _, err := test.ExecuteCli()
@@ -62,7 +64,7 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-drools",
-			Namespace: "kogito",
+			Namespace: ns,
 		},
 	}
 
@@ -83,10 +85,11 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 }
 
 func Test_DeployCmd_CustomImage(t *testing.T) {
-	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --native=false --context-dir drools-quarkus-example --project kogito --image-s2i=openshift/myimage --image-runtime=openshift/myimage:0.2")
+	ns := t.Name()
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --native=false --context-dir drools-quarkus-example --project %s --image-s2i=openshift/myimage --image-runtime=openshift/myimage:0.2", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
 	_, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
@@ -94,7 +97,7 @@ func Test_DeployCmd_CustomImage(t *testing.T) {
 	instance := v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-drools",
-			Namespace: "kogito",
+			Namespace: ns,
 		},
 	}
 

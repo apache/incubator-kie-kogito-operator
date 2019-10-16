@@ -29,27 +29,33 @@ import (
 //context.CommandFactory{BuildCommands:BuildCommands},
 
 func TestNewProject_WhenNewProjectDoesNotExist(t *testing.T) {
-	cli := fmt.Sprintf("new-project --project test")
+	ns := t.Name()
+	cli := fmt.Sprintf("new-project --project %s", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "created")
+	assert.Contains(t, lines, ns)
 }
 
 func TestNewProject_WhenNewProjectExist(t *testing.T) {
-	cli := fmt.Sprintf("new-project --project test")
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test"}})
+	ns := t.Name()
+	cli := fmt.Sprintf("new-project --project %s", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "exists")
+	assert.Contains(t, lines, ns)
 }
 
 func TestNewProject_WhenTheresNoNamedFlag(t *testing.T) {
-	cli := fmt.Sprintf("new-project test1")
+	ns := t.Name()
+	cli := fmt.Sprintf("new-project %s", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "created")
+	assert.Contains(t, lines, ns)
 }
 
 func TestNewProject_WhenTheresNoName(t *testing.T) {
