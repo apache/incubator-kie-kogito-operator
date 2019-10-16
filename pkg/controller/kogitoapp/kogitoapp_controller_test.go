@@ -132,7 +132,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 	buildcli := buildfake.NewSimpleClientset().BuildV1()
 	// ********** sanity check
 	kogitoAppList := &v1alpha1.KogitoAppList{}
-	err = cli.List(context.TODO(), &client.ListOptions{Namespace: "test"}, kogitoAppList)
+	err = cli.List(context.TODO(), kogitoAppList, client.InNamespace("test"))
 	if err != nil {
 		t.Fatalf("Failed to list kogitoapp (%v)", err)
 	}

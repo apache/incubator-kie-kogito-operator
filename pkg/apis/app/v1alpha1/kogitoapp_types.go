@@ -26,12 +26,14 @@ const KogitoAppCRDName = "kogitoapps.app.kiegroup.org"
 // +k8s:openapi-gen=true
 type KogitoAppSpec struct {
 	// The name of the runtime used, either quarkus or springboot, defaults to quarkus
-	// +kubebuilder:validation:Enum=quarkus,springboot
+	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime RuntimeType `json:"runtime,omitempty"`
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=100
 	Replicas *int32 `json:"replicas,omitempty"`
-	Env      []Env  `json:"env,omitempty"`
+	// +listType=map
+	// +listMapKey=name
+	Env []Env `json:"env,omitempty"`
 	// The resources for the deployed pods, like memory and cpu
 	Resources Resources `json:"resources,omitempty"`
 	// S2I Build configuration
@@ -43,7 +45,11 @@ type KogitoAppSpec struct {
 // Resources Data to define Resources needed for each deployed pod
 // +k8s:openapi-gen=true
 type Resources struct {
-	Limits   []ResourceMap `json:"limits,omitempty"`
+	// +listType=map
+	// +listMapKey=resource
+	Limits []ResourceMap `json:"limits,omitempty"`
+	// +listType=map
+	// +listMapKey=resource
 	Requests []ResourceMap `json:"requests,omitempty"`
 }
 
@@ -61,7 +67,7 @@ const (
 // +k8s:openapi-gen=true
 type ResourceMap struct {
 	// Resource type like cpu and memory
-	// +kubebuilder:validation:Enum=cpu,memory
+	// +kubebuilder:validation:Enum=cpu;memory
 	Resource ResourceKind `json:"resource"`
 	// Value of this resource in Kubernetes format
 	Value string `json:"value"`
@@ -79,10 +85,14 @@ type Env struct {
 // KogitoAppBuildObject Data to define how to build an application from source
 // +k8s:openapi-gen=true
 type KogitoAppBuildObject struct {
-	Incremental bool       `json:"incremental,omitempty"`
-	Env         []Env      `json:"env,omitempty"`
-	GitSource   *GitSource `json:"gitSource"`
+	Incremental bool `json:"incremental,omitempty"`
+	// +listType=map
+	// +listMapKey=name
+	Env       []Env      `json:"env,omitempty"`
+	GitSource *GitSource `json:"gitSource"`
 	// WebHook secrets for build configs
+	// +listType=map
+	// +listMapKey=type
 	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
 	// ImageS2I is used by build configurations to build the image from source
 	ImageS2I Image `json:"imageS2I,omitempty"`
@@ -126,7 +136,7 @@ const (
 // +k8s:openapi-gen=true
 type WebhookSecret struct {
 	// WebHook type, either GitHub or Generic
-	// +kubebuilder:validation:Enum=GitHub,Generic
+	// +kubebuilder:validation:Enum=GitHub;Generic
 	Type WebhookType `json:"type,omitempty"`
 	// Secret value for webhook
 	Secret string `json:"secret,omitempty"`
@@ -135,6 +145,7 @@ type WebhookSecret struct {
 // KogitoAppStatus defines the observed state of KogitoApp
 // +k8s:openapi-gen=true
 type KogitoAppStatus struct {
+	// +listType=atomic
 	Conditions  []Condition `json:"conditions"`
 	Route       string      `json:"route,omitempty"`
 	Deployments Deployments `json:"deployments"`
@@ -208,12 +219,16 @@ type Condition struct {
 // +k8s:openapi-gen=true
 type Deployments struct {
 	// Deployments are ready to serve requests
+	// +listType=set
 	Ready []string `json:"ready,omitempty"`
 	// Deployments are starting, may or may not succeed
+	// +listType=set
 	Starting []string `json:"starting,omitempty"`
 	// Deployments are not starting, unclear what next step will be
+	// +listType=set
 	Stopped []string `json:"stopped,omitempty"`
 	// Deployments failed
+	// +listType=set
 	Failed []string `json:"failed,omitempty"`
 }
 
@@ -221,18 +236,25 @@ type Deployments struct {
 // +k8s:openapi-gen=true
 type Builds struct {
 	// Builds are being newly created
+	// +listType=set
 	New []string `json:"new,omitempty"`
 	// Builds are about to start running
+	// +listType=set
 	Pending []string `json:"pending,omitempty"`
 	// Builds are running
+	// +listType=set
 	Running []string `json:"running,omitempty"`
 	// Builds have been successful
+	// +listType=set
 	Complete []string `json:"complete,omitempty"`
 	// Builds have executed and failed
+	// +listType=set
 	Failed []string `json:"failed,omitempty"`
 	// Builds have been prevented from executing by error
+	// +listType=set
 	Error []string `json:"error,omitempty"`
 	// Builds have been stopped from executing
+	// +listType=set
 	Cancelled []string `json:"cancelled,omitempty"`
 }
 
@@ -240,6 +262,7 @@ type Builds struct {
 
 // KogitoApp is the Schema for the kogitoapps API
 // +k8s:openapi-gen=true
+// +kubebuilder:resource:path=kogitoapps,scope=Namespaced
 type KogitoApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -254,7 +277,8 @@ type KogitoApp struct {
 type KogitoAppList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KogitoApp `json:"items"`
+	// +listType=atomic
+	Items []KogitoApp `json:"items"`
 }
 
 func init() {

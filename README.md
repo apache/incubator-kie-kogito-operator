@@ -50,7 +50,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 ## Requirements
 
 - go v1.12+
-- [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.10.0
+- [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.11.0
 - ocp 3.11/4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
 - [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
 
@@ -118,7 +118,7 @@ $ ./hack/3.11deploy.sh
 Use the OLM console to subscribe to the `kogito` Operator Catalog Source within your namespace. Once subscribed, use the console to `Create KogitoApp` or create one manually as seen below.
 
 ```bash
-$ oc create -f deploy/crs/app_v1alpha1_kogitoapp_cr.yaml
+$ oc create -f deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml
 kogitoapp.app.kiegroup.org/example-quarkus created
 ```
 
@@ -169,7 +169,7 @@ $ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examp
 
 ## Deploy Data Index Service
 
-The Kogito Operator is able to deploy the [Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) as a [Custom Resource](deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml) (`KogitoDataIndex`). Since Data Index Service depends on Kafka and Infinispan, it's necessary to manually deploy an Apache Kafka Cluster (we use here [Strimzi](https://strimzi.io/)) and an Infinispan Server (10.x) in the same namespace.
+The Kogito Operator is able to deploy the [Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) as a [Custom Resource](deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml) (`KogitoDataIndex`). Since Data Index Service depends on Kafka and Infinispan, it's necessary to manually deploy an Apache Kafka Cluster (we use here [Strimzi](https://strimzi.io/)) and an Infinispan Server (10.x) in the same namespace.
 
 | :information_source: It's planned for future releases that the Kogito Operator will deploy an Infinispan and a Kafka cluster when deploying the Data Index Service. |
 | --- |
@@ -381,9 +381,9 @@ You can use the CR file showed above as a reference and create the custom resour
 $ git clone https://github.com/kiegroup/kogito-cloud-operator.git
 $ cd kogito-cloud-operator
 # make your changes
-$ vi deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml
+$ vi deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml
 # deploy to the cluster
-$ oc create -f deploy/crds/app_v1alpha1_kogitodataindex_cr.yaml -n my-project
+$ oc create -f deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml -n my-project
 ```
 
 You should be able to access the GraphQL interface via the route created for you:

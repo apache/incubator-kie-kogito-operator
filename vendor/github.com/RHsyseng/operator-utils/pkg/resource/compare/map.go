@@ -3,7 +3,7 @@ package compare
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"reflect"
-	logs "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logs "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var logger = logs.Log.WithName("comparator")

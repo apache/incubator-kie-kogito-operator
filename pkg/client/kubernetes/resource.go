@@ -129,7 +129,7 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 
 // ListWithNamespace fetches and binds a list resource from the Kubernetes cluster with the defined namespace.
 func (r *resource) ListWithNamespace(ns string, list runtime.Object) error {
-	err := r.client.ControlCli.List(context.TODO(), &runtimecli.ListOptions{Namespace: ns}, list)
+	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(ns))
 	if err != nil {
 		log.Debug("Failed to list resource. ", err)
 		return err

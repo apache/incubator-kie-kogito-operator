@@ -108,8 +108,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 	}
 
 	list, err := b.client.BuildCli.Builds(bc.Namespace).List(metav1.ListOptions{
-		LabelSelector:        labelSelector,
-		IncludeUninitialized: false,
+		LabelSelector: labelSelector,
 	})
 	if err != nil {
 		return nil, err
