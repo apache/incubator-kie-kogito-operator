@@ -28,8 +28,9 @@ import (
 )
 
 func Test_InstallOperator(t *testing.T) {
-	cli := fmt.Sprintf("install operator -p kogito")
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
@@ -37,12 +38,13 @@ func Test_InstallOperator(t *testing.T) {
 }
 
 func Test_InstallOperatorNoNamespace(t *testing.T) {
-	cli := fmt.Sprintf("install operator -p kogito")
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	test.ExecuteCli()
 
 	cli = fmt.Sprintf("install operator")
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Operator successfully deployed")

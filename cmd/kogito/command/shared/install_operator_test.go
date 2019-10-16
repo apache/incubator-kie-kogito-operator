@@ -30,16 +30,17 @@ import (
 )
 
 func Test_InstallOperatorWithYaml(t *testing.T) {
+	ns := t.Name()
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
 	image := "docker.io/myrepo/custom-operator:1.0"
 
-	err := installOperatorWithYamlFiles(image, "kogito", client)
+	err := installOperatorWithYamlFiles(image, ns, client)
 	assert.NoError(t, err)
 
 	serviceAccount := v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      resource.ServiceAccountName,
-			Namespace: "kogito",
+			Namespace: ns,
 		},
 	}
 
@@ -50,7 +51,7 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 	serviceAccount = v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operator.Name,
-			Namespace: "kogito",
+			Namespace: ns,
 		},
 	}
 
@@ -61,7 +62,7 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 	deployment := &apps.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operator.Name,
-			Namespace: "kogito",
+			Namespace: ns,
 		},
 	}
 	_, err = kubernetes.ResourceC(client).Fetch(deployment)

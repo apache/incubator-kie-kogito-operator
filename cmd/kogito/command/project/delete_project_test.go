@@ -27,19 +27,21 @@ import (
 )
 
 func Test_DeleteProjectCmd_WhenWeSuccessfullyDelete(t *testing.T) {
-	cli := fmt.Sprintf("delete-project kogito")
+	ns := t.Name()
+	cli := fmt.Sprintf("delete-project %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Successfully deleted Kogito Project kogito")
+	assert.Contains(t, lines, fmt.Sprintf("Successfully deleted Kogito Project %s", ns))
 }
 
 func Test_DeleteProjectCmd_WhenProjectDoesNotExist(t *testing.T) {
-	cli := fmt.Sprintf("delete-project kogito")
+	ns := t.Name()
+	cli := fmt.Sprintf("delete-project %s", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
-	assert.Contains(t, lines, "Project kogito not found")
+	assert.Contains(t, lines, fmt.Sprintf("Project %s not found", ns))
 }

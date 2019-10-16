@@ -132,7 +132,7 @@ func (i *installDataIndexCommand) InitHook() {
 func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	var err error
-	if i.flags.Project, err = shared.EnsureProject(i.Client, context.ReadConfig(), i.flags.Project); err != nil {
+	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
 

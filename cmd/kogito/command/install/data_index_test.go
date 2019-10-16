@@ -31,8 +31,9 @@ import (
 )
 
 func Test_DeployDataIndexCmd(t *testing.T) {
-	cli := fmt.Sprintf("install data-index --project kogito --infinispan-url myservice:11222 --kafka-url my-cluster:9092")
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
@@ -40,8 +41,9 @@ func Test_DeployDataIndexCmd(t *testing.T) {
 }
 
 func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
-	cli := fmt.Sprintf("install data-index --project kogito")
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.Error(t, err)
@@ -49,10 +51,11 @@ func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
 }
 
 func Test_DeployDataIndexCmd_SuccessfullDeploy(t *testing.T) {
-	cli := fmt.Sprintf("install data-index --project kogito --infinispan-url myservice:11222 --kafka-url my-cluster:9092")
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}})
 	lines, _, err := test.ExecuteCli()
 
@@ -61,10 +64,11 @@ func Test_DeployDataIndexCmd_SuccessfullDeploy(t *testing.T) {
 }
 
 func Test_DeployDataIndexCmd_SuccessfullDeployWithInfinispanCredentials(t *testing.T) {
-	cli := fmt.Sprintf("install data-index --project kogito --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password")
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}})
 	lines, _, err := test.ExecuteCli()
 
@@ -73,12 +77,13 @@ func Test_DeployDataIndexCmd_SuccessfullDeployWithInfinispanCredentials(t *testi
 }
 
 func Test_DeployDataIndexCmd_SuccessfullDeployWithInfinispanCredentialsAndSecret(t *testing.T) {
-	cli := fmt.Sprintf("install data-index --project kogito --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password")
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}},
-		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: defaultInfinispanSecretName, Namespace: "kogito"}})
+		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: defaultInfinispanSecretName, Namespace: ns}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
@@ -86,7 +91,7 @@ func Test_DeployDataIndexCmd_SuccessfullDeployWithInfinispanCredentialsAndSecret
 
 	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
 		Name:      defaultInfinispanSecretName,
-		Namespace: "kogito",
+		Namespace: ns,
 	}}
 	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(secret)
 	assert.NoError(t, err)

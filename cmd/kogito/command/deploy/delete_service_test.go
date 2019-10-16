@@ -29,11 +29,12 @@ import (
 )
 
 func Test_DeleteServiceCmd_WhenWeSuccessfullyDelete(t *testing.T) {
-	cli := fmt.Sprintf("delete-service example-drools --project kogito")
+	ns := t.Name()
+	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}},
-		&v1alpha1.KogitoApp{ObjectMeta: metav1.ObjectMeta{Name: "example-drools", Namespace: "kogito"}})
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&v1alpha1.KogitoApp{ObjectMeta: metav1.ObjectMeta{Name: "example-drools", Namespace: ns}})
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
@@ -41,10 +42,11 @@ func Test_DeleteServiceCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 }
 
 func Test_DeleteServiceCmd_WhenServiceDoesNotExist(t *testing.T) {
-	cli := fmt.Sprintf("delete-service example-drools --project kogito")
+	ns := t.Name()
+	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "kogito"}})
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "with the name 'example-drools' doesn't exist")

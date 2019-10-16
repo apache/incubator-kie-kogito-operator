@@ -77,13 +77,10 @@ func (i *deleteProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	var err error
-	if i.flags.name, err = shared.CheckProjectLocally(context.ReadConfig(), i.flags.name); err != nil {
+	if i.flags.name, err = shared.EnsureProject(i.Client, i.flags.name); err != nil {
 		return err
 	}
-	if err := shared.CheckProjectExists(i.Client, i.flags.name); err != nil {
-		return err
-	}
-	log.Debugf("Using project %s", i.flags.name)
+
 	log.Debugf("About to delete project %s", i.flags.name)
 	if err := kubernetes.ResourceC(i.Client).Delete(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: i.flags.name}}); err != nil {
 		return err

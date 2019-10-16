@@ -76,13 +76,9 @@ func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	var err error
-	if i.flags.project, err = shared.CheckProjectLocally(context.ReadConfig(), i.flags.project); err != nil {
+	if i.flags.project, err = shared.EnsureProject(i.Client, i.flags.project); err != nil {
 		return err
 	}
-	if err := shared.CheckProjectExists(i.Client, i.flags.project); err != nil {
-		return err
-	}
-	log.Debugf("Using project %s", i.flags.project)
 
 	if err := shared.CheckKogitoAppExists(i.Client, i.flags.name, i.flags.project); err != nil {
 		return err

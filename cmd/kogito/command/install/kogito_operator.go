@@ -71,10 +71,8 @@ func (i *installKogitoOperatorCommand) InitHook() {
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
-	config := context.ReadConfig()
 	var err error
-
-	if i.flags.Namespace, err = shared.EnsureProject(i.Client, config, i.flags.Namespace); err != nil {
+	if i.flags.Namespace, err = shared.EnsureProject(i.Client, i.flags.Namespace); err != nil {
 		return err
 	}
 
