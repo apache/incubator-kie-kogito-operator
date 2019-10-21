@@ -84,5 +84,8 @@ tags
 ### IntelliJ ###
 .idea
 
+### Eclipse ###
+.project
+
 # vendor exceptions
 !vendor/**
