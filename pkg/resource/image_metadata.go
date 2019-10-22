@@ -15,6 +15,8 @@
 package resource
 
 import (
+	"encoding/base64"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -27,15 +29,28 @@ import (
 )
 
 const (
-	prometheusLabelKeyPrefix = "prometheus.io"
-	labelNamespaceSep        = "/"
-	orgKieNamespaceLabelKey  = "org.kie" + labelNamespaceSep
-	orgKiePersistenceKey     = "persistence"
-	dockerLabelServicesSep   = ","
-	portSep                  = ":"
-	defaultExportedProtocol  = "http"
-	portFormatWrongMessage   = "Service %s on " + openshift.ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
+	// DefaultExportedPort is the default protocol exposed by inner services specified in image metadata
+	DefaultExportedPort = "http"
+	// LabelKeyPrometheus is the label key for Prometheus metadata
+	LabelKeyPrometheus = "prometheus.io"
+	// LabelKeyOrgKie is the label key for KIE metadata
+	LabelKeyOrgKie = "org.kie" + labelNamespaceSep
+	// LabelKeyOrgKiePersistence is the label key for Persistence metadata
+	LabelKeyOrgKiePersistence = "org.kie" + labelNamespaceSep + "persistence"
+	// LabelKeyOrgKieProtoBuf is the label key for ProtoBuf metadata
+	LabelKeyOrgKieProtoBuf = "org.kie" + labelNamespaceSep + "persistence" + labelNamespaceSep + "proto"
+
+	labelNamespaceSep               = "/"
+	dockerLabelServicesSep, portSep = ",", ":"
+	portFormatWrongMessage          = "Service %s on " + openshift.ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
 )
+
+var defaultProbe = &corev1.Probe{
+	TimeoutSeconds:   int32(1),
+	PeriodSeconds:    int32(10),
+	SuccessThreshold: int32(1),
+	FailureThreshold: int32(3),
+}
 
 func dockerImageHasLabels(dockerImage *dockerv10.DockerImage) bool {
 	if dockerImage == nil || dockerImage.Config == nil || dockerImage.Config.Labels == nil {
@@ -44,9 +59,31 @@ func dockerImageHasLabels(dockerImage *dockerv10.DockerImage) bool {
 	return true
 }
 
-// mergeImageMetadataWithDeploymentConfig retrieves org.kie and prometheus.io labels from DockerImage and adds them to the DeploymentConfig
+// ExtractProtoBufFilesFromDockerImage will extract the protobuf files from the DockerImage labels prefixed with
+func ExtractProtoBufFilesFromDockerImage(prefixKey string, dockerImage *dockerv10.DockerImage) map[string]string {
+	files := map[string]string{}
+	if !dockerImageHasLabels(dockerImage) {
+		return files
+	}
+
+	for key, value := range dockerImage.Config.Labels {
+		if strings.Contains(key, LabelKeyOrgKieProtoBuf) {
+			splitKey := strings.Split(key, labelNamespaceSep)
+			fileName := fmt.Sprintf("%s-%s", prefixKey, splitKey[len(splitKey)-1])
+			if decode, err := base64.StdEncoding.DecodeString(value); err != nil {
+				log.Errorf("Error while converting file %s value: %s", fileName, err)
+			} else {
+				files[fileName] = string(decode)
+			}
+		}
+	}
+
+	return files
+}
+
+// MergeImageMetadataWithDeploymentConfig retrieves org.kie and prometheus.io labels from DockerImage and adds them to the DeploymentConfig
 // returns true if any changes occurred in the deploymentConfig based on the dockerImage labels
-func mergeImageMetadataWithDeploymentConfig(dc *appsv1.DeploymentConfig, dockerImage *dockerv10.DockerImage) bool {
+func MergeImageMetadataWithDeploymentConfig(dc *appsv1.DeploymentConfig, dockerImage *dockerv10.DockerImage) bool {
 	if !dockerImageHasLabels(dockerImage) {
 		return false
 	}
@@ -68,28 +105,23 @@ func mergeImageMetadataWithDeploymentConfig(dc *appsv1.DeploymentConfig, dockerI
 
 	added := false
 	for key, value := range dockerImage.Config.Labels {
-		if strings.Contains(key, orgKieNamespaceLabelKey) {
+		if strings.Contains(key, LabelKeyOrgKie) && !strings.Contains(key, LabelKeyOrgKiePersistence) {
 			splitedKey := strings.Split(key, labelNamespaceSep)
 			// we're only interested on keys like org.kie/something
 			if len(splitedKey) > 1 {
-				// persistence labels should be treated somewhere else
-				if splitedKey[1] != orgKiePersistenceKey {
-					importedKey := strings.Join(splitedKey[1:], labelNamespaceSep)
+				importedKey := strings.Join(splitedKey[1:], labelNamespaceSep)
+				if !added {
+					_, lblPresent := dc.Labels[importedKey]
+					_, selectorPresent := dc.Spec.Selector[importedKey]
+					_, podLblPresent := dc.Spec.Template.Labels[importedKey]
 
-					if !added {
-						_, lblPresent := dc.Labels[importedKey]
-						_, selectorPresent := dc.Spec.Selector[importedKey]
-						_, podLblPresent := dc.Spec.Template.Labels[importedKey]
-
-						added = !(lblPresent && selectorPresent && podLblPresent)
-					}
-
-					dc.Labels[importedKey] = value
-					dc.Spec.Selector[importedKey] = value
-					dc.Spec.Template.Labels[importedKey] = value
+					added = !(lblPresent && selectorPresent && podLblPresent)
 				}
+				dc.Labels[importedKey] = value
+				dc.Spec.Selector[importedKey] = value
+				dc.Spec.Template.Labels[importedKey] = value
 			}
-		} else if strings.Contains(key, prometheusLabelKeyPrefix) {
+		} else if strings.Contains(key, LabelKeyPrometheus) {
 			if !added {
 				_, present := dc.Spec.Template.Annotations[key]
 				added = !present
@@ -102,12 +134,12 @@ func mergeImageMetadataWithDeploymentConfig(dc *appsv1.DeploymentConfig, dockerI
 	return added
 }
 
-// discoverPortsAndProbesFromImage set Ports and Probes based on labels set on the DockerImage of this DeploymentConfig
-func discoverPortsAndProbesFromImage(dc *appsv1.DeploymentConfig, dockerImage *dockerv10.DockerImage) {
+// DiscoverPortsAndProbesFromImage set Ports and Probes based on labels set on the DockerImage of this DeploymentConfig
+func DiscoverPortsAndProbesFromImage(dc *appsv1.DeploymentConfig, dockerImage *dockerv10.DockerImage) {
 	if !dockerImageHasLabels(dockerImage) {
 		return
 	}
-	containerPorts := []corev1.ContainerPort{}
+	var containerPorts []corev1.ContainerPort
 	var nonSecureProbe *corev1.Probe
 	for key, value := range dockerImage.Config.Labels {
 		if key == openshift.ImageLabelForExposeServices {
@@ -126,7 +158,7 @@ func discoverPortsAndProbesFromImage(dc *appsv1.DeploymentConfig, dockerImage *d
 				portName := ports[1]
 				containerPorts = append(containerPorts, corev1.ContainerPort{Name: portName, ContainerPort: int32(portNumber), Protocol: corev1.ProtocolTCP})
 				// we have at least one service exported using default HTTP protocols, let's used as a probe!
-				if portName == defaultExportedProtocol {
+				if portName == DefaultExportedPort {
 					nonSecureProbe = defaultProbe
 					nonSecureProbe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.FromInt(portNumber)}
 				}

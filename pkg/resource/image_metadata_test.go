@@ -15,20 +15,23 @@
 package resource
 
 import (
+	"encoding/base64"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	appsv1 "github.com/openshift/api/apps/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"reflect"
 	"testing"
 )
 
 func Test_addMetadataFromDockerImage_MultiLabel(t *testing.T) {
 	dockerImage := &dockerv10.DockerImage{Config: &dockerv10.DockerConfig{
 		Labels: map[string]string{
-			orgKieNamespaceLabelKey + "layer1":        "value",
-			orgKieNamespaceLabelKey + "layer1/layer2": "value",
+			LabelKeyOrgKie + "layer1":        "value",
+			LabelKeyOrgKie + "layer1/layer2": "value",
 		},
 	}}
 	dcWithOutLabels := &appsv1.DeploymentConfig{
@@ -45,7 +48,7 @@ func Test_addMetadataFromDockerImage_MultiLabel(t *testing.T) {
 		},
 	}
 
-	added := mergeImageMetadataWithDeploymentConfig(dcWithOutLabels, dockerImage)
+	added := MergeImageMetadataWithDeploymentConfig(dcWithOutLabels, dockerImage)
 	assert.True(t, added)
 	assert.Contains(t, dcWithOutLabels.Labels, "layer1/layer2")
 	assert.Contains(t, dcWithOutLabels.Labels, "layer1")
@@ -55,10 +58,10 @@ func Test_addMetadataFromDockerImage_MultiLabel(t *testing.T) {
 func Test_addMetadataFromDockerImage(t *testing.T) {
 	dockerImage := &dockerv10.DockerImage{Config: &dockerv10.DockerConfig{
 		Labels: map[string]string{
-			orgKieNamespaceLabelKey + "myprocess":               "process",
-			orgKieNamespaceLabelKey + "myotherlabel":            "value",
-			orgKieNamespaceLabelKey + "persistence/anotherfile": "process.proto",
-			prometheusLabelKeyPrefix + "/path":                  "/metrics",
+			LabelKeyOrgKie + "myprocess":               "process",
+			LabelKeyOrgKie + "myotherlabel":            "value",
+			LabelKeyOrgKie + "persistence/anotherfile": "process.proto",
+			LabelKeyPrometheus + "/path":               "/metrics",
 		},
 	}}
 	dcWithLabels := &appsv1.DeploymentConfig{
@@ -69,7 +72,7 @@ func Test_addMetadataFromDockerImage(t *testing.T) {
 			Template: &v12.PodTemplateSpec{
 				ObjectMeta: v1.ObjectMeta{
 					Labels:      map[string]string{"myprocess": "process", "myotherlabel": "value"},
-					Annotations: map[string]string{prometheusLabelKeyPrefix + "/path": "/metrics"},
+					Annotations: map[string]string{LabelKeyPrometheus + "/path": "/metrics"},
 				},
 			},
 			Selector: map[string]string{"myprocess": "process", "myotherlabel": "value"},
@@ -83,7 +86,7 @@ func Test_addMetadataFromDockerImage(t *testing.T) {
 			Template: &v12.PodTemplateSpec{
 				ObjectMeta: v1.ObjectMeta{
 					Labels:      map[string]string{},
-					Annotations: map[string]string{prometheusLabelKeyPrefix + "/path": "/metrics"},
+					Annotations: map[string]string{LabelKeyPrometheus + "/path": "/metrics"},
 				},
 			},
 			Selector: map[string]string{"myprocess": "process", "myotherlabel": "value"},
@@ -136,8 +139,8 @@ func Test_addMetadataFromDockerImage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := mergeImageMetadataWithDeploymentConfig(tt.args.dc, tt.args.dockerImage); got != tt.want {
-				t.Errorf("mergeImageMetadataWithDeploymentConfig() = %v, want %v", got, tt.want)
+			if got := MergeImageMetadataWithDeploymentConfig(tt.args.dc, tt.args.dockerImage); got != tt.want {
+				t.Errorf("MergeImageMetadataWithDeploymentConfig() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -163,7 +166,7 @@ func Test_discoverPortsAndProbesFromImage(t *testing.T) {
 		},
 	}
 
-	discoverPortsAndProbesFromImage(dc, dockerImage)
+	DiscoverPortsAndProbesFromImage(dc, dockerImage)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Ports, 1)
 	assert.Equal(t, dc.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port.IntVal, int32(8080))
 	assert.Equal(t, dc.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port.IntVal, int32(8080))
@@ -187,8 +190,47 @@ func Test_discoverPortsAndProbesFromImageNoPorts(t *testing.T) {
 		},
 	}
 
-	discoverPortsAndProbesFromImage(dc, dockerImage)
+	DiscoverPortsAndProbesFromImage(dc, dockerImage)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Ports, 0)
 	assert.Nil(t, dc.Spec.Template.Spec.Containers[0].LivenessProbe)
 	assert.Nil(t, dc.Spec.Template.Spec.Containers[0].ReadinessProbe)
+}
+
+func TestExtractProtoBufFilesFromDockerImage(t *testing.T) {
+	base64ProtoFile := test.HelperLoadString(t, "base64-onboarding-proto")
+	protoFile, _ := base64.StdEncoding.DecodeString(base64ProtoFile)
+	dockerImage := &dockerv10.DockerImage{Config: &dockerv10.DockerConfig{
+		Labels: map[string]string{
+			LabelKeyOrgKie + "myprocess":                            "process",
+			LabelKeyOrgKieProtoBuf + "/onboarding.onboarding.proto": base64ProtoFile,
+		},
+	}}
+
+	type args struct {
+		prefixKey   string
+		dockerImage *dockerv10.DockerImage
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[string]string
+	}{
+		{
+			"With required Label",
+			args{"onboarding-service", dockerImage},
+			map[string]string{"onboarding-service-onboarding.onboarding.proto": string(protoFile)},
+		},
+		{
+			"Without Label",
+			args{"", &dockerv10.DockerImage{}},
+			map[string]string{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ExtractProtoBufFilesFromDockerImage(tt.args.prefixKey, tt.args.dockerImage); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ExtractProtoBufFilesFromDockerImage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

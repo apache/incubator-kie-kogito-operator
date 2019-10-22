@@ -15,6 +15,7 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -43,9 +44,9 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 	dockerImage := &dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
-				openshift.ImageLabelForExposeServices: "8080:http",
-				orgKieNamespaceLabelKey + "operator":  "kogito",
-				prometheusLabelKeyPrefix + "/scrape":  "true",
+				openshift.ImageLabelForExposeServices:   "8080:http",
+				resource.LabelKeyOrgKie + "operator":    "kogito",
+				resource.LabelKeyPrometheus + "/scrape": "true",
 			},
 		},
 	}
@@ -60,7 +61,7 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 	assert.NotNil(t, svc)
 	assert.Len(t, svc.Spec.Ports, 1)
 	assert.Equal(t, int32(8080), svc.Spec.Ports[0].Port)
-	assert.Contains(t, svc.Annotations, prometheusLabelKeyPrefix+"/scrape")
+	assert.Contains(t, svc.Annotations, resource.LabelKeyPrometheus+"/scrape")
 }
 
 func Test_addServiceLabels_whenLabelsAreNotProvided(t *testing.T) {

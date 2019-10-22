@@ -16,10 +16,10 @@ package resource
 
 import (
 	"fmt"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -33,13 +33,6 @@ const (
 	// ServiceAccountName is the name of service account used by Kogito Services Runtimes
 	ServiceAccountName = "kogito-service-viewer"
 )
-
-var defaultProbe = &corev1.Probe{
-	TimeoutSeconds:   int32(1),
-	PeriodSeconds:    int32(10),
-	SuccessThreshold: int32(1),
-	FailureThreshold: int32(3),
-}
 
 // NewDeploymentConfig creates a new DeploymentConfig resource for the KogitoApp based on the BuildConfig runner image
 func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildConfig, dockerImage *dockerv10.DockerImage) (dc *appsv1.DeploymentConfig, err error) {
@@ -90,8 +83,8 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 	addDefaultMeta(&dc.ObjectMeta, kogitoApp)
 	addDefaultMeta(&dc.Spec.Template.ObjectMeta, kogitoApp)
 	addDefaultLabels(&dc.Spec.Selector, kogitoApp)
-	mergeImageMetadataWithDeploymentConfig(dc, dockerImage)
-	discoverPortsAndProbesFromImage(dc, dockerImage)
+	resource.MergeImageMetadataWithDeploymentConfig(dc, dockerImage)
+	resource.DiscoverPortsAndProbesFromImage(dc, dockerImage)
 	setReplicas(kogitoApp, dc)
 
 	return dc, nil
