@@ -33,6 +33,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 
+	v1 "github.com/openshift/api/build/v1"
+	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
+
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -43,11 +46,6 @@ import (
 
 var log = logger.GetLogger("controller_kogitodataindex")
 
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
-
 // Add creates a new KogitoDataIndex Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -56,6 +54,10 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+	imageClient, err := imagev1.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		panic(fmt.Sprintf("Error getting image client: %v", err))
+	}
 	discover, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
 	if err != nil {
 		panic(fmt.Sprintf("Error getting discovery client: %v", err))
@@ -63,6 +65,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 	return &ReconcileKogitoDataIndex{
 		client: &client.Client{
+			ImageCli:   imageClient,
 			ControlCli: mgr.GetClient(),
 			Discovery:  discover},
 		scheme: mgr.GetScheme(),
@@ -79,6 +82,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// Watch for changes to primary resource KogitoDataIndex
 	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoDataIndex{}}, &handler.EnqueueRequestForObject{})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to KogitoApp since we need their runtime images to check for labels, persistence and so on
+	err = c.Watch(&source.Kind{Type: &v1.BuildConfig{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoApp{}})
 	if err != nil {
 		return err
 	}
@@ -114,8 +123,6 @@ type ReconcileKogitoDataIndex struct {
 
 // Reconcile reads that state of the cluster for a KogitoDataIndex object and makes changes based on the state read
 // and what is in the KogitoDataIndex.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.

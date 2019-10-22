@@ -15,6 +15,7 @@
 package resource
 
 import (
+	v1 "github.com/openshift/api/image/v1"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
@@ -192,4 +193,62 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 		Name:  "key2",
 		Value: "value2",
 	})
+}
+
+func Test_ensureProtoBufConfigMap(t *testing.T) {
+	// setup
+	dataIndex := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: t.Name(),
+		},
+	}
+	cmWithFile := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cm-with-file",
+			Namespace: t.Name(),
+		},
+		Data: map[string]string{"file.proto": "this is a protofile"},
+	}
+	cli, _ := test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile}, nil, nil)
+
+	// sanity check
+	assert.Len(t, cmWithFile.Data, 1)
+
+	// we don't have an image available, but the configMap has a file
+	// we should receive true because the map has changed with no file
+	ensureProtoBufConfigMap(dataIndex, cmWithFile, cli)
+	exist, err := kubernetes.ResourceC(cli).Fetch(cmWithFile)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.Len(t, cmWithFile.Data, 0)
+
+	// now we have deployed a image stream tag with a docker image that has the protobuf label with a file attached
+	// we should have this file in the given configMap. The file is encoded in base64 in the docker metadata
+	// see the test data directory for  the label org.kie/persistence/protobuf/onboarding(...)
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kogitoapp",
+			Namespace: t.Name(),
+		},
+	}
+	isTag := &v1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kogitoapp:latest",
+			Namespace: t.Name(),
+		},
+		Image: v1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: test.HelperLoadBytes(t, "onboarding-dockerimage-json"),
+			},
+		},
+	}
+
+	cli, _ = test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile, kogitoApp}, []runtime.Object{isTag}, nil)
+
+	ensureProtoBufConfigMap(dataIndex, cmWithFile, cli)
+	exist, err = kubernetes.ResourceC(cli).Fetch(cmWithFile)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.Len(t, cmWithFile.Data, 1)
+	assert.Contains(t, cmWithFile.Data, "kogitoapp-onboarding.onboarding.proto")
 }

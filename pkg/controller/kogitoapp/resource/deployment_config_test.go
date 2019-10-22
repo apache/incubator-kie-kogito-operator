@@ -15,6 +15,7 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,12 +46,12 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
 				// notice the semicolon
-				openshift.ImageLabelForExposeServices: "8080:http,8181;https",
-				orgKieNamespaceLabelKey + "operator":  "kogito",
-				prometheusLabelKeyPrefix + "/path":    "/metrics",
-				prometheusLabelKeyPrefix + "/port":    "8080",
-				prometheusLabelKeyPrefix + "/scheme":  "http",
-				prometheusLabelKeyPrefix + "/scrape":  "true",
+				openshift.ImageLabelForExposeServices:   "8080:http,8181;https",
+				resource.LabelKeyOrgKie + "operator":    "kogito",
+				resource.LabelKeyPrometheus + "/path":   "/metrics",
+				resource.LabelKeyPrometheus + "/port":   "8080",
+				resource.LabelKeyPrometheus + "/scheme": "http",
+				resource.LabelKeyPrometheus + "/scrape": "true",
 			},
 		},
 	}
@@ -65,10 +66,10 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 	// this one where added by the docker image :)
 	assert.Equal(t, "kogito", dc.Labels["operator"])
 	// prometheus labels
-	assert.Equal(t, "/metrics", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/path"])
-	assert.Equal(t, "8080", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/port"])
-	assert.Equal(t, "http", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/scheme"])
-	assert.Equal(t, "true", dc.Spec.Template.Annotations[prometheusLabelKeyPrefix+"/scrape"])
+	assert.Equal(t, "/metrics", dc.Spec.Template.Annotations[resource.LabelKeyPrometheus+"/path"])
+	assert.Equal(t, "8080", dc.Spec.Template.Annotations[resource.LabelKeyPrometheus+"/port"])
+	assert.Equal(t, "http", dc.Spec.Template.Annotations[resource.LabelKeyPrometheus+"/scheme"])
+	assert.Equal(t, "true", dc.Spec.Template.Annotations[resource.LabelKeyPrometheus+"/scrape"])
 }
 
 func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
