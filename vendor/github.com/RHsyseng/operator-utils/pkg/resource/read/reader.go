@@ -44,12 +44,20 @@ func (this *resourceReader) List(listObject runtime.Object) ([]resource.Kubernet
 	}
 	itemsValue := reflect.Indirect(reflect.ValueOf(listObject)).FieldByName("Items")
 	for index := 0; index < itemsValue.Len(); index++ {
-		item := itemsValue.Index(index).Addr().Interface().(resource.KubernetesResource)
+		item := addr(itemsValue.Index(index)).Interface().(resource.KubernetesResource)
 		if this.ownerObject == nil || isOwner(this.ownerObject, item) {
 			resources = append(resources, item)
 		}
 	}
 	return resources, nil
+}
+
+func addr(v reflect.Value) reflect.Value {
+	if v.Kind() == reflect.Ptr {
+		return v
+	}
+
+	return v.Addr()
 }
 
 func isOwner(owner metav1.Object, res resource.KubernetesResource) bool {

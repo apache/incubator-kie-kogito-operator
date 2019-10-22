@@ -15,9 +15,11 @@
 package resource
 
 import (
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
+	dockerv10 "github.com/openshift/api/image/docker10"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +37,8 @@ type KogitoAppResources struct {
 	DeploymentConfig   *appsv1.DeploymentConfig
 	Route              *routev1.Route
 	Service            *corev1.Service
+	ServiceMonitor     *monv1.ServiceMonitor
+	RuntimeImage       *dockerv10.DockerImage
 }
 
 // KogitoAppResourceStatusKind defines the kind of the resource status in the cluster

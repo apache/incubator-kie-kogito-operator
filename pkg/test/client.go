@@ -18,8 +18,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
+	discfake "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/kubernetes/scheme"
+	clienttesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -58,4 +62,17 @@ func CreateFakeClient(objects []runtime.Object, imageObjs []runtime.Object, buil
 		BuildCli:   buildcli,
 		ImageCli:   imgcli,
 	}, s
+}
+
+// CreateFakeDiscoveryClient will create a fake discovery client that supports prometheus api
+func CreateFakeDiscoveryClient() discovery.DiscoveryInterface {
+	return &discfake.FakeDiscovery{
+		Fake: &clienttesting.Fake{
+			Resources: []*metav1.APIResourceList{
+				{
+					GroupVersion: "monitoring.coreos.com/v1alpha1",
+				},
+			},
+		},
+	}
 }

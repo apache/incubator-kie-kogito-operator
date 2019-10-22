@@ -29,12 +29,18 @@ import (
 )
 
 const (
-	KogitoQuarkusUbi8Image       = "kogito-quarkus-ubi8"
-	KogitoQuarkusJVMUbi8Image    = "kogito-quarkus-jvm-ubi8"
-	KogitoQuarkusUbi8s2iImage    = "kogito-quarkus-ubi8-s2i"
-	KogitoSpringbootUbi8Image    = "kogito-springboot-ubi8"
+	// KogitoQuarkusUbi8Image quarkus runtime builder image
+	KogitoQuarkusUbi8Image = "kogito-quarkus-ubi8"
+	// KogitoQuarkusJVMUbi8Image quarkus jvm runtime builder image
+	KogitoQuarkusJVMUbi8Image = "kogito-quarkus-jvm-ubi8"
+	// KogitoQuarkusUbi8s2iImage quarkus s2i builder image
+	KogitoQuarkusUbi8s2iImage = "kogito-quarkus-ubi8-s2i"
+	// KogitoSpringbootUbi8Image springboot runtime builder image
+	KogitoSpringbootUbi8Image = "kogito-springboot-ubi8"
+	// KogitoSpringbootUbi8s2iImage springboot s2i builder image
 	KogitoSpringbootUbi8s2iImage = "kogito-springboot-ubi8-s2i"
-	KogitoDataIndexImage         = "kogito-data-index"
+	// KogitoDataIndexImage data index image
+	KogitoDataIndexImage = "kogito-data-index"
 )
 
 var (

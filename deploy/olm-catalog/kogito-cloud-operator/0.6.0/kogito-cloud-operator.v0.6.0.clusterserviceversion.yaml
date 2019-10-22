@@ -225,6 +225,8 @@ spec:
           verbs:
           - get
           - create
+          - list
+          - delete
         - apiGroups:
           - apps
           resourceNames:

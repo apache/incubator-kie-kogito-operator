@@ -190,7 +190,7 @@ func Test_createResult(t *testing.T) {
 
 func Test_updateObj(t *testing.T) {
 	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.GroupVersion, &v1alpha1.KogitoApp{})
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoApp{})
 
 	type args struct {
 		obj    meta.ResourceObject
@@ -500,7 +500,7 @@ func Test_statusUpdateForDeployment(t *testing.T) {
 
 func Test_statusUpdateForRoute(t *testing.T) {
 	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.GroupVersion, &routev1.Route{})
+	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{})
 
 	type args struct {
 		instance  *v1alpha1.KogitoApp
@@ -626,7 +626,8 @@ func Test_statusUpdateForRoute(t *testing.T) {
 
 func Test_statusUpdateForImageBuild(t *testing.T) {
 	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.GroupVersion, &obuildv1.BuildConfig{}, &obuildv1.Build{}, &imgv1.ImageStreamTag{})
+	s.AddKnownTypes(obuildv1.GroupVersion, &obuildv1.BuildConfig{}, &obuildv1.Build{})
+	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{})
 
 	dockerImageRaw, _ := json.Marshal(&dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
@@ -973,7 +974,8 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 
 func Test_ensureApplicationImageExists(t *testing.T) {
 	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.GroupVersion, &obuildv1.BuildConfig{}, &obuildv1.Build{}, &imgv1.ImageStreamTag{})
+	s.AddKnownTypes(obuildv1.GroupVersion, &obuildv1.BuildConfig{}, &obuildv1.Build{})
+	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{})
 
 	dockerImageRaw, _ := json.Marshal(&dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{

@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"testing"
 
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache/informertest"
@@ -26,19 +25,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kogitoclient "github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kogitoclient "github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	monfake "github.com/coreos/prometheus-operator/pkg/client/versioned/fake"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -47,6 +50,8 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	buildfake "github.com/openshift/client-go/build/clientset/versioned/fake"
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -200,6 +205,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
 	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
 	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
+	s.AddKnownTypes(monv1.SchemeGroupVersion, &monv1.ServiceMonitor{}, &monv1.ServiceMonitorList{})
 	// Create a fake client to mock API calls.
 	cli := fake.NewFakeClient(objs...)
 	// OpenShift Image Client Fake
@@ -207,6 +213,8 @@ func TestKogitoAppWithResource(t *testing.T) {
 
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
 	buildcli := buildfake.NewSimpleClientset().BuildV1()
+	moncli := monfake.NewSimpleClientset().MonitoringV1()
+	disccli := test.CreateFakeDiscoveryClient()
 	// ********** sanity check
 	kogitoAppList := &v1alpha1.KogitoAppList{}
 	err = cli.List(context.TODO(), kogitoAppList, client.InNamespace("test"))
@@ -219,9 +227,11 @@ func TestKogitoAppWithResource(t *testing.T) {
 	// call reconcile object and mock image and build clients
 	r := &ReconcileKogitoApp{
 		client: &kogitoclient.Client{
-			BuildCli:   buildcli,
-			ControlCli: cli,
-			ImageCli:   imgcli,
+			BuildCli:      buildcli,
+			ControlCli:    cli,
+			ImageCli:      imgcli,
+			PrometheusCli: moncli,
+			Discovery:     disccli,
 		},
 		scheme: s,
 		cache:  cache,
