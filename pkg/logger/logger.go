@@ -24,7 +24,8 @@ import (
 	"github.com/go-logr/logr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
@@ -84,7 +85,7 @@ func getLogger(name string, options *Opts) *zap.SugaredLogger {
 
 func createLogger(options *Opts) (logger Logger) {
 	log := Logger{
-		Logger:        logf.ZapLogger(options.Verbose),
+		Logger:        logzap.Logger(options.Verbose),
 		SugaredLogger: zapSugaredLogger(options),
 	}
 	defer log.SugaredLogger.Sync()
@@ -144,7 +145,7 @@ func zapSugaredLoggerTo(options *Opts) *zap.SugaredLogger {
 	}
 
 	opts = append(opts, zap.AddCallerSkip(1), zap.ErrorOutput(sink))
-	log := zap.New(zapcore.NewCore(&logf.KubeAwareEncoder{Encoder: enc, Verbose: options.Verbose}, sink, lvl))
+	log := zap.New(zapcore.NewCore(&logzap.KubeAwareEncoder{Encoder: enc, Verbose: options.Verbose}, sink, lvl))
 	log = log.WithOptions(opts...)
 
 	return log.Sugar()

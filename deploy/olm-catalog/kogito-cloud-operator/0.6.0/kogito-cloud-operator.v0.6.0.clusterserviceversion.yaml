@@ -2,7 +2,47 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: '[{"apiVersion":"app.kiegroup.org/v1alpha1","kind":"KogitoApp","metadata":{"name":"example-quarkus"},"spec":{"build":{"gitSource":{"contextDir":"jbpm-quarkus-example","uri":"https://github.com/kiegroup/kogito-examples"}}}},{"apiVersion":"app.kiegroup.org/v1alpha1","kind":"KogitoDataIndex","metadata":{"name":"kogito-data-index"},"spec":{"cpuLimit":"","cpuRequest":"","env":{},"image":"quay.io/kiegroup/kogito-data-index:latest","infinispan":{"serviceURI":"infinispan-server:11222"},"kafka":{"serviceURI":"my-cluster-kafka-bootstrap:9092"},"memoryLimit":"","memoryRequest":"","name":"kogito-data-index","replicas":1}}]'
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoApp",
+          "metadata": {
+            "name": "example-quarkus"
+          },
+          "spec": {
+            "build": {
+              "gitSource": {
+                "contextDir": "jbpm-quarkus-example",
+                "uri": "https://github.com/kiegroup/kogito-examples"
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoDataIndex",
+          "metadata": {
+            "name": "kogito-data-index"
+          },
+          "spec": {
+            "cpuLimit": "",
+            "cpuRequest": "",
+            "env": {},
+            "image": "quay.io/kiegroup/kogito-data-index:latest",
+            "infinispan": {
+              "serviceURI": "infinispan-server:11222"
+            },
+            "kafka": {
+              "serviceURI": "my-cluster-kafka-bootstrap:9092"
+            },
+            "memoryLimit": "",
+            "memoryRequest": "",
+            "name": "kogito-data-index",
+            "replicas": 1
+          }
+        }
+      ]
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"

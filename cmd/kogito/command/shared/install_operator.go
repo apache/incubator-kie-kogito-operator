@@ -42,8 +42,8 @@ const (
 	fileRoleYaml               = "role.yaml"
 	fileRoleBindingYaml        = "role_binding.yaml"
 	fileServiceAccountYaml     = "service_account.yaml"
-	fileKogitoAppCRDYaml       = "crds/app_v1alpha1_kogitoapp_crd.yaml"
-	fileKogitoDataIndexCRDYaml = "crds/app_v1alpha1_kogitodataindex_crd.yaml"
+	fileKogitoAppCRDYaml       = "crds/app.kiegroup.org_kogitoapps_crd.yaml"
+	fileKogitoDataIndexCRDYaml = "crds/app.kiegroup.org_kogitodataindices_crd.yaml"
 )
 
 var (
