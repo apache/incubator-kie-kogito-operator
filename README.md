@@ -19,9 +19,11 @@ Table of Contents
          * [Deploy to OpenShift 3.11](#deploy-to-openshift-311)
       * [Trigger a Kogito Runtime Service deployment](#trigger-a-kogito-runtime-service-deployment)
          * [Deploy a new service](#deploy-a-new-service)
-         * [Troubleshooting](#troubleshooting)
          * [Clean up a Kogito Service deployment](#clean-up-a-kogito-service-deployment)
          * [Native X JVM Builds](#native-x-jvm-builds)
+         * [Troubleshooting](#troubleshooting)
+            * [I'm not seeing any builds running!](#im-not-seeing-any-builds-running)
+            * [Native build fails with "The build pod was killed due to an out of memory condition."](#native-build-fails-with-the-build-pod-was-killed-due-to-an-out-of-memory-condition)
       * [Deploy Data Index Service](#deploy-data-index-service)
          * [Deploy Infinispan](#deploy-infinispan)
          * [Deploy Strimzi](#deploy-strimzi)
@@ -128,7 +130,31 @@ Alternatively, you can use the [CLI](#kogito-cli) to deploy your services:
 $ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example
 ```
 
+### Clean up a Kogito Service deployment
+
+```bash
+$ kogito delete-service example-quarkus
+```
+
+### Native X JVM Builds
+
+By default, the Kogito Services will be built with traditional `java` compilers to speed up the time and save resources. 
+
+This means that the final generated artifact will be a jar file with the chosen runtime (default to Quarkus) with its dependencies in the image user's home dir `/home/kogito/bin/lib`.
+
+Kogito Services when implemented with [Quarkus](https://quarkus.io/guides/kogito-guide) can be built to native binary. This means low ([really low](https://www.graalvm.org/docs/examples/java-performance-examples/)) footprint on runtime, but will demand a lot of resources during build time. Read more about AOT compilation [here](https://www.graalvm.org/docs/reference-manual/aot-compilation/).
+
+In our tests, native builds takes approximately 10 minutes and the build pod can consume up to 10GB of RAM and 1.5 CPU cores. Make sure that you have this resources available when running native builds.
+
+To deploy a service using native builds, run the `deploy-service` command with `--native` flag:
+
+```bash
+$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example --native
+```
+
 ### Troubleshooting 
+
+#### I'm not seeing any builds running!
 
 If you don't see any builds running nor any resources created in the namespace, try to take a look at the Kogito Operator log.
 
@@ -147,25 +173,36 @@ Use the pod name as the input of the following command:
 $ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t
 ```
 
-### Clean up a Kogito Service deployment
+#### Native build fails with "The build pod was killed due to an out of memory condition."
+
+By default, the operator will set the limit in the s2i build pod to 10GB of memory and 1 CPU. It might happen that your Kogito service would require even more resources from the cluster. 
+
+To increase this limit you can edit the `kogitoApp` custom resource in the `build` section:
+
+```yaml
+(...)
+spec:
+  build:
+    gitSource:
+      contextDir: onboarding-example/onboarding
+      uri: 'https://github.com/kiegroup/kogito-examples'
+    native: true
+    resources:
+      limits:
+        - resource: cpu
+          value: '2'
+        - resource: memory
+          value: 12Gi
+(...)
+``` 
+
+Using the CLI, specify how much of memory and CPU your service will use:
 
 ```bash
-$ kogito delete-service example-quarkus
+kogito deploy onboarding-service https://github.com/kiegroup/kogito-examples --context-dir onboarding-example/onboarding --native --build-limits memory=12Gi cpu=2  
 ```
 
-### Native X JVM Builds
-
-By default, the Kogito Services will be built with traditional `java` compilers to speed up the time and save resources. This means that the final generated artifact will be a [uber jar](https://stackoverflow.com/questions/11947037/what-is-an-uber-jar) with the chosen runtime (default to Quarkus).
-
-Kogito Services when implemented with [Quarkus](https://quarkus.io/guides/kogito-guide) can be built to native binary. This means low ([really low](https://www.graalvm.org/docs/examples/java-performance-examples/)) footprint on runtime, but will demand a lot of resources during build time. Read more about AOT compilation [here](https://www.graalvm.org/docs/reference-manual/aot-compilation/).
-
-In our tests, native builds takes approximately 10 minutes and the build pod can consume up to 3.5GB of RAM and 1.5 CPU cores. Make sure that you have this resources available when running native builds.
-
-To deploy a service using native builds, run the `deploy-service` command with `--native` flag:
-
-```bash
-$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example --native
-```
+For more information, see [Native X JVM Builds](#native-x-jvm-builds).
 
 ## Deploy Data Index Service
 
