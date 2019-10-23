@@ -429,7 +429,7 @@ You should be able to access the GraphQL interface via the route created for you
 $ oc get routes -l app=kogito-data-index
 
 NAME                HOST/PORT                                                                      PATH   SERVICES            PORT   TERMINATION   WILDCARD
-kogito-data-index   kogito-data-index-kogito.apps.mycluster.example.com                                   kogito-data-index   8180                 None
+kogito-data-index   kogito-data-index-kogito.apps.mycluster.example.com                                   kogito-data-index   8080                 None
 ```
 
 ## Kogito CLI
