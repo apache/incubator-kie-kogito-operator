@@ -578,15 +578,16 @@ $ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n opensh
 If you have an OpenShift cluster and admin privileges, you can run e2e tests with the following command:
 
 ```bash
-$ make run-e2e namespace=<namespace> tag=<tag> native=<true|false> maven_mirror=<maven_mirror_url>
+$ make run-e2e namespace=<namespace> tag=<tag> maven_mirror=<maven_mirror_url> image=<image_tag> tests=<full|jvm|native>
 ```
 
 Where:
 
 1. `namespace` (required) is a given temporary namespace where the test will run. You don't need to create the namespace, since it will be created and deleted after running the tests
 2. `tag` (optional, default is current release) is the image tag for the Kogito image builds, for example: `0.6.0-rc1`. Useful on situations where [Kogito Cloud images](https://github.com/kiegroup/kogito-cloud/tree/master/s2i) haven't released yet and are under a temporary tag
-3. `native` (optional, default is `false`) indicates if the e2e test should use native or jvm builds. See [Native X JVM Builds](#native-x-jvm-builds)
-4. `maven_mirror` (optional, default is empty) the Maven mirror URL. Useful when you need to speed up the build time by referring to a closer maven repository
+3. `maven_mirror` (optional, default is empty) the Maven mirror URL. Useful when you need to speed up the build time by referring to a closer maven repository
+4. `image` (optional, default is empty) indicates if the e2e test should be executed against specified Kogito operator image. If value is empty then local operator source code is used for test execution.
+4. `tests` (optional, default is `full`) indicates what types of tests should be executed. Possible values are `full`, `jvm` and `native`. If full is specified or parameter is not provided then both JVM and native tests are executed.
 
 In case of errors while running this test, a huge log dump will appear in your terminal. To save the test output in a local file to be analysed later, use the command below:
 
