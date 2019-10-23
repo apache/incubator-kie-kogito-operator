@@ -70,8 +70,9 @@ namespace = ""
 tag = ""
 native = "false"
 maven_mirror = ""
+image = ""
 run-e2e:
-	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror)
+	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror) $(image)
 
 .PHONY: prepare-olm
 version = ""
