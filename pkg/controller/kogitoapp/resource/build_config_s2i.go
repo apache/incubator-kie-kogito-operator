@@ -48,7 +48,7 @@ var (
 	// DefaultBuildS2INativeCPULimit is the default CPU limit for Native s2i builds
 	DefaultBuildS2INativeCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"}
 	// DefaultBuildS2INativeMemoryLimit is the default Memory limit for Native s2i builds
-	DefaultBuildS2INativeMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "4Gi"}
+	DefaultBuildS2INativeMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "10Gi"}
 	// DefaultBuildS2INativeLimits is the default resource limits for Native s2i builds
 	DefaultBuildS2INativeLimits = []v1alpha1.ResourceMap{DefaultBuildS2INativeCPULimit, DefaultBuildS2INativeMemoryLimit}
 )
