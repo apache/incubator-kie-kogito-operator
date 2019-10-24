@@ -135,6 +135,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	// https://issues.jboss.org/browse/KOGITO-617
 	metav1.AddToGroupVersion(s, apiextensionsv1beta1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, operatormkt.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, appsv1.GroupVersion)
 	metav1.AddToGroupVersion(s, olmapiv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, olmapiv1alpha1.SchemeGroupVersion)
 

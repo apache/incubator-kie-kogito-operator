@@ -54,6 +54,8 @@ Table of Contents
          * [Running End-to-End (E2E) tests](#running-end-to-end-e2e-tests)
             * [With the Kogito Operator SDK](#with-the-kogito-operator-sdk)
             * [With the Kogito CLI](#with-the-kogito-cli)
+         * [Running Smoke tests](#running-smoke-tests)
+            * [Running smoke tests with current branch](#running-smoke-tests-with-current-branch)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
       * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
 
@@ -828,6 +830,46 @@ where:
 - `native` (optional, default is `false`) indicates whether the E2E test should use `native` or `jvm` builds. For more information, see [Native X JVM builds](#native-x-jvm-builds).
 - `maven_mirror` (optional, default is empty) is the Maven mirror URL. This is helpful when you need to speed up the build time by referring to a closer Maven repository.
 - `skip_build` (optional, default is `true`) is set to `true` to skip building the CLI before running the test.
+
+### Running Smoke tests
+
+**REQUIREMENT:** You need to be authenticated to the cluster before running the tests.
+
+If you have an OpenShift cluster and admin privileges, you can run Smoke tests with the following command:
+
+```bash
+$ make run-smoke [key=value]*
+```
+
+You can set those optional keys:
+
+- `deploy_uri` is the URI where you can find operator deployment yaml files and crds. It can be a URL or a Filesystem absolute path. Default is https://raw.githubusercontent.com/kiegroup/kogito-cloud-operator/master/deploy/.
+- `maven_mirror` is the Maven mirror URL. This is helpful when you need to speed up the build time by referring to a closer Maven repository.
+- `operator_image` is the Operator image full name. Example: *operator_image=quay.io/kiegroup/kogito-cloud-operator*.
+- `operator_tag` is the Operator image tag. Default is the current version.
+- `feature` is a specific feature you want to run. Example: *feature=deploy_quarkus_with_persistence*
+- `local` to be set to true if running tests in local. Default is false.
+
+Logs will be shown on the Terminal.
+
+To save the test output in a local file for future reference, run the following command:
+
+```bash
+make run-smoke 2>&1 | tee log.out
+```
+
+**NOTE:** There is some more environment variables that can be set. Please see [smoke tests configuration](./test/smoke/README.md).
+
+#### Running smoke tests with current branch 
+
+```
+$ make
+$ docker tag quay.io/kiegroup/kogito-cloud-operator:0.7.0-rc1 quay.io/{USERNAME}/kogito-cloud-operator:0.7.0-rc1 
+$ docker push quay.io/{USERNAME}/kogito-cloud-operator:0.7.0-rc1
+$ make run-smoke --ope_name quay.io/{USERNAME}/kogito-cloud-operator
+```
+
+**NOTE:** Replace {USERNAME} with the username/group you want to push to. Docker needs to be logged in to quay.io and be able to push to your username/group.
 
 ### Running the Kogito Operator locally
 

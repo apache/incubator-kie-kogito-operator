@@ -25,14 +25,13 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/version"
 
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 const (
@@ -65,7 +64,7 @@ func MustInstallOperatorIfNotExists(namespace string, operatorImage string, cli 
 		operatorImage = DefaultOperatorImageNameTag
 	}
 
-	if exists, err := checkKogitoOperatorExists(cli, namespace); err != nil {
+	if exists, err := infrastructure.CheckKogitoOperatorExists(cli, namespace); err != nil {
 		return false, err
 	} else if exists {
 		if !silence {
@@ -127,28 +126,13 @@ func installOperatorWithYamlFiles(image string, namespace string, cli *client.Cl
 }
 
 func decodeAndCreateKubeObject(box *packr.Box, yamlDoc string, resourceRef meta.ResourceObject, namespace string, client *client.Client, beforeCreate func(object interface{})) error {
-	log := context.GetDefaultLogger()
 	dat, err := box.FindString(yamlDoc)
 	if err != nil {
 		return fmt.Errorf("Error reading file %s: %s ", yamlDoc, err)
 	}
 
-	docs := strings.Split(dat, "---")
-	for _, doc := range docs {
-		if err := yaml.NewYAMLOrJSONDecoder(strings.NewReader(doc), len([]byte(doc))).Decode(resourceRef); err != nil {
-			return fmt.Errorf("Error while unmarshal file '%s': %s ", yamlDoc, err)
-		}
-		resourceRef.SetNamespace(namespace)
-		resourceRef.SetResourceVersion("")
-		resourceRef.SetLabels(map[string]string{"app": operator.Name})
-
-		log.Debugf("Will create a new resource '%s' with name %s on %s ", resourceRef.GetObjectKind().GroupVersionKind().Kind, resourceRef.GetName(), resourceRef.GetNamespace())
-		if beforeCreate != nil {
-			beforeCreate(resourceRef)
-		}
-		if _, err := kubernetes.ResourceC(client).CreateIfNotExists(resourceRef); err != nil {
-			return fmt.Errorf("Error creating object %s: %s ", resourceRef.GetName(), err)
-		}
+	if err = kubernetes.ResourceC(client).CreateFromYamlContent(dat, namespace, resourceRef, beforeCreate); err != nil {
+		return fmt.Errorf("Error while creating resources from file '%s': %v ", yamlDoc, err)
 	}
 
 	return nil
