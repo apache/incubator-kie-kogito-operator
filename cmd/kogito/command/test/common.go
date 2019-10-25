@@ -17,11 +17,13 @@ package test
 import (
 	"bytes"
 	"github.com/spf13/cobra"
+	"path/filepath"
 	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -31,6 +33,14 @@ var (
 	testErr     *bytes.Buffer
 	testOut     *bytes.Buffer
 	rootCommand *cobra.Command
+)
+
+const (
+	// Test constants for config file, based on context ones
+	defaultConfigPath      = context.DefaultConfigPath
+	defaultConfigFile      = context.DefaultConfigFile + "-test"
+	defaultConfigExt       = context.DefaultConfigExt
+	defaultConfigFinalName = defaultConfigFile + "." + defaultConfigExt
 )
 
 // SetupFakeKubeCli will create a fake kube client for your tests
@@ -51,6 +61,7 @@ func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...run
 	kogitoRootCmd.Command().SetArgs(strings.Split(cli, " "))
 	kogitoRootCmd.Command().SetOut(testOut)
 	kogitoRootCmd.Command().SetErr(testErr)
+	kogitoRootCmd.Command().ParseFlags([]string{"--config", GetTestConfigFilePath()})
 
 	rootCommand = kogitoRootCmd.Command()
 
@@ -73,4 +84,24 @@ func ExecuteCli() (string, string, error) {
 	}()
 
 	return testOut.String(), testErr.String(), err
+}
+
+// InitConfigWithTestConfigFile setup cli Test and init config in context
+func InitConfigWithTestConfigFile() {
+	SetupCliTest("", context.CommandFactory{BuildCommands: buildCommands})
+	context.InitConfig()
+}
+
+func buildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
+	return []context.KogitoCommand{}
+}
+
+// GetTestConfigFilePath returns the full config file path for tests
+func GetTestConfigFilePath() string {
+	return filepath.Join(GetTestConfigPath(), defaultConfigFinalName)
+}
+
+// GetTestConfigPath returns the full config parent path for tests
+func GetTestConfigPath() string {
+	return filepath.Join(util.GetHomeDir(), defaultConfigPath)
 }
