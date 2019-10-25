@@ -11,6 +11,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openshift/api v0.0.0-00010101000000-000000000000
 	github.com/openshift/client-go v0.0.0-00010101000000-000000000000
+	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/operator-framework/operator-sdk v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
