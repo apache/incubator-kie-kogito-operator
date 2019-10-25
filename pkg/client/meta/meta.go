@@ -16,11 +16,11 @@ package meta
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 
 	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -81,6 +81,8 @@ var (
 	KindRole = DefinitionKind{"Role", false, rbac.SchemeGroupVersion}
 	// KindRoleBinding ...
 	KindRoleBinding = DefinitionKind{"RoleBinding", false, rbac.SchemeGroupVersion}
+	// KindOperatorSource ...
+	KindOperatorSource = DefinitionKind{"OperatorSource", false, operatormkt.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -100,6 +102,6 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s.AddKnownTypes(rbac.SchemeGroupVersion, &rbac.Role{}, &rbac.RoleBinding{})
 	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &apiextensionsv1beta1.CustomResourceDefinition{})
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{}, &v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{})
-
+	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &operatormkt.OperatorSource{}, &operatormkt.OperatorSourceList{})
 	return s
 }

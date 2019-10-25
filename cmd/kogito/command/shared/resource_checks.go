@@ -67,8 +67,7 @@ func CheckProjectExists(kubeCli *client.Client, namespace string) error {
 	return nil
 }
 
-// CheckKogitoOperatorExists ...
-func CheckKogitoOperatorExists(kubeCli *client.Client, namespace string) (bool, error) {
+func checkKogitoOperatorExists(kubeCli *client.Client, namespace string) (bool, error) {
 	log.Debug("Checking if Kogito Operator is deployed")
 	operatorDeployment := &v1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

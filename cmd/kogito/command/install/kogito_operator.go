@@ -76,5 +76,5 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 		return err
 	}
 
-	return shared.InstallOperatorIfNotExists(i.flags.Namespace, i.flags.Image, i.Client, false)
+	return shared.MustInstallOperatorIfNotExists(i.flags.Namespace, i.flags.Image, i.Client, false)
 }

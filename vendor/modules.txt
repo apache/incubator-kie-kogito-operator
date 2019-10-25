@@ -201,6 +201,9 @@ github.com/openshift/client-go/build/clientset/versioned
 github.com/openshift/client-go/build/clientset/versioned/typed/build/v1/fake
 github.com/openshift/client-go/image/clientset/versioned
 github.com/openshift/client-go/image/clientset/versioned/typed/image/v1/fake
+# github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
+github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1
+github.com/operator-framework/operator-marketplace/pkg/apis/operators/shared
 # github.com/operator-framework/operator-sdk v0.0.0-00010101000000-000000000000 => github.com/operator-framework/operator-sdk v0.11.0
 github.com/operator-framework/operator-sdk/pkg/k8sutil
 github.com/operator-framework/operator-sdk/pkg/kube-metrics
@@ -585,6 +588,7 @@ sigs.k8s.io/controller-runtime/pkg/reconcile
 sigs.k8s.io/controller-runtime/pkg/source
 sigs.k8s.io/controller-runtime/pkg/log
 sigs.k8s.io/controller-runtime/pkg/log/zap
+sigs.k8s.io/controller-runtime/pkg/runtime/scheme
 sigs.k8s.io/controller-runtime/pkg/client/apiutil
 sigs.k8s.io/controller-runtime/pkg/internal/objectutil
 sigs.k8s.io/controller-runtime/pkg/internal/log
