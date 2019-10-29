@@ -16,7 +16,6 @@ package kubernetes
 
 import (
 	"context"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
