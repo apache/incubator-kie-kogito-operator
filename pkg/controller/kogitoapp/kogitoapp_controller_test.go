@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"testing"
 
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache/informertest"
@@ -25,14 +26,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/stretchr/testify/assert"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitoclient "github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -86,9 +85,16 @@ func TestNewContainerWithResource(t *testing.T) {
 }
 
 func TestKogitoAppWithResource(t *testing.T) {
+
 	gitURL := "https://github.com/kiegroup/kogito-examples/"
 	kogitoapp := &cr
 	kogitoapp.Spec.Build = &v1alpha1.KogitoAppBuildObject{
+		ImageS2I: v1alpha1.Image{
+			ImageStreamTag: "0.4.0",
+		},
+		ImageRuntime: v1alpha1.Image{
+			ImageStreamTag: "0.4.0",
+		},
 		GitSource: &v1alpha1.GitSource{
 			URI:        &gitURL,
 			ContextDir: "jbpm-quarkus-example",
@@ -112,22 +118,93 @@ func TestKogitoAppWithResource(t *testing.T) {
 			},
 		},
 	}
+
+	image1 := imgv1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s:%s", kogitores.KogitoQuarkusUbi8Image, "0.4.0"),
+			Namespace: "test",
+		},
+		Image: imgv1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: dockerImageRaw,
+			},
+		},
+	}
+	image2 := imgv1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s:%s", kogitores.KogitoQuarkusJVMUbi8Image, "0.4.0"),
+			Namespace: "test",
+		},
+		Image: imgv1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: dockerImageRaw,
+			},
+		},
+	}
+	image3 := imgv1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s:%s", kogitores.KogitoQuarkusUbi8s2iImage, "0.4.0"),
+			Namespace: "test",
+		},
+		Image: imgv1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: dockerImageRaw,
+			},
+		},
+	}
+	image4 := imgv1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s:%s", kogitores.KogitoSpringbootUbi8Image, "0.4.0"),
+			Namespace: "test",
+		},
+		Image: imgv1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: dockerImageRaw,
+			},
+		},
+	}
+	image5 := imgv1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s:%s", kogitores.KogitoSpringbootUbi8s2iImage, "0.4.0"),
+			Namespace: "test",
+		},
+		Image: imgv1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: dockerImageRaw,
+			},
+		},
+	}
+	image6 := imgv1.ImageStreamTag{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s:%s", kogitores.KogitoDataIndexImage, "0.4.0"),
+			Namespace: "test",
+		},
+		Image: imgv1.Image{
+			DockerImageMetadata: runtime.RawExtension{
+				Raw: dockerImageRaw,
+			},
+		},
+	}
+
+	images := []runtime.Object{&isTag, &image1, &image2, &image3, &image4, &image5, &image6}
 	objs := []runtime.Object{kogitoapp}
 	// add to schemas to avoid: "failed to add object to fake client"
-	s := scheme.Scheme
+	// Create a fake client to mock API calls.
+	s := meta.GetRegisteredSchema()
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion,
 		kogitoapp,
 		&v1alpha1.KogitoAppList{})
-	s.AddKnownTypes(appsv1.SchemeGroupVersion,
+	s.AddKnownTypes(appsv1.GroupVersion,
 		&appsv1.DeploymentConfig{},
 		&appsv1.DeploymentConfigList{})
-	s.AddKnownTypes(buildv1.SchemeGroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
-	s.AddKnownTypes(routev1.SchemeGroupVersion, &routev1.Route{}, &routev1.RouteList{})
-	s.AddKnownTypes(imgv1.SchemeGroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
+	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
+	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
+	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
 	// Create a fake client to mock API calls.
 	cli := fake.NewFakeClient(objs...)
-	// OpenShift Image Client Fake with image tag defined and image built
-	imgcli := imgfake.NewSimpleClientset(&isTag).ImageV1()
+	// OpenShift Image Client Fake
+	imgcli := imgfake.NewSimpleClientset(images...).ImageV1()
+
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
 	buildcli := buildfake.NewSimpleClientset().BuildV1()
 	// ********** sanity check
@@ -155,6 +232,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 			Namespace: kogitoapp.Namespace,
 		},
 	}
+
 	res, err := r.Reconcile(req)
 	if err != nil {
 		t.Fatalf("reconcile: (%v)", err)
@@ -177,4 +255,10 @@ func TestKogitoAppWithResource(t *testing.T) {
 
 	assert.Equal(t, resource.MustParse(kogitores.DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse(kogitores.DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
+
+	for _, isName := range kogitores.ImageStreamNameList {
+		hasIs, _ := openshift.ImageStreamC(r.client).FetchTag(types.NamespacedName{Name: isName, Namespace: "test"}, "0.4.0")
+		assert.NotNil(t, hasIs)
+	}
+
 }

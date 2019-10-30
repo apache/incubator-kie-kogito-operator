@@ -49,7 +49,8 @@ func GetRequestedResources(context *Context) (*KogitoAppResources, error) {
 		Resources: &KogitoAppResources{},
 		Context:   context,
 	}
-	chain.AndBuild(buildConfigS2IBuilder).
+	chain.
+		AndBuild(buildConfigS2IBuilder).
 		AndBuild(buildConfigRuntimeBuilder).
 		AndBuild(imageStreamBuilder).
 		AndBuild(deploymentConfigBuilder).

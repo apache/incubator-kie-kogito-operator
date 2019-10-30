@@ -37,8 +37,9 @@ const (
 // ImageStreamInterface exposes OpenShift ImageStream operations
 type ImageStreamInterface interface {
 	FetchDockerImage(key types.NamespacedName) (*dockerv10.DockerImage, error)
-	FecthTag(key types.NamespacedName, tag string) (*imgv1.ImageStreamTag, error)
+	FetchTag(key types.NamespacedName, tag string) (*imgv1.ImageStreamTag, error)
 	CreateTagIfNotExists(image *imgv1.ImageStreamTag) (bool, error)
+	CreateImageStream(is *imgv1.ImageStream) (bool, error)
 }
 
 func newImageStream(c *client.Client) ImageStreamInterface {
@@ -52,17 +53,17 @@ type imageStream struct {
 	client *client.Client
 }
 
-// FecthTag fetches for a particular imagestreamtag on OpenShift cluster.
+// FetchTag fetches for a particular imagestreamtag on OpenShift cluster.
 // If tag is nil or empty, will search for "latest".
 // Returns nil if the object was not found.
-func (i *imageStream) FecthTag(key types.NamespacedName, tag string) (*imgv1.ImageStreamTag, error) {
+func (i *imageStream) FetchTag(key types.NamespacedName, tag string) (*imgv1.ImageStreamTag, error) {
 	if len(tag) == 0 {
 		tag = ImageTagLatest
 	}
 	tagRefName := fmt.Sprintf("%s:%s", key.Name, tag)
 	isTag, err := i.client.ImageCli.ImageStreamTags(key.Namespace).Get(tagRefName, metav1.GetOptions{})
 	if err != nil && errors.IsNotFound(err) {
-		log.Debugf("Image '%s' not found", tagRefName)
+		log.Debugf("Image '%s' not found on namespace %s", tagRefName, key.Namespace)
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -74,7 +75,7 @@ func (i *imageStream) FecthTag(key types.NamespacedName, tag string) (*imgv1.Ima
 // Returns nil if not found
 func (i *imageStream) FetchDockerImage(key types.NamespacedName) (*dockerv10.DockerImage, error) {
 	dockerImage := &dockerv10.DockerImage{}
-	isTag, err := i.FecthTag(key, "")
+	isTag, err := i.FetchTag(key, "")
 	if err != nil {
 		return nil, err
 	} else if isTag == nil {
@@ -105,5 +106,19 @@ func (i *imageStream) CreateTagIfNotExists(is *imgv1.ImageStreamTag) (bool, erro
 		return false, nil
 	}
 	log.Debugf("Image Stream Tag %s created in namespace %s", is.Name, is.Namespace)
+	return true, nil
+}
+
+// CreateImageStream will create a new ImageStream if not exists
+func (i *imageStream) CreateImageStream(is *imgv1.ImageStream) (bool, error) {
+	is, err := i.client.ImageCli.ImageStreams(is.Namespace).Create(is)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		log.Debugf("Error while creating Image Stream '%s' in namespace '%s'", is.Name, is.Namespace)
+		return false, err
+	} else if errors.IsAlreadyExists(err) {
+		log.Debug("Image Stream already exists in the namespace")
+		return false, nil
+	}
+	log.Debugf("Image Stream %s created in namespace %s", is.Name, is.Namespace)
 	return true, nil
 }

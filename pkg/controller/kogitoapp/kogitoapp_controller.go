@@ -16,12 +16,9 @@ package kogitoapp
 
 import (
 	"fmt"
-	"reflect"
-
 	utilsres "github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -32,6 +29,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
+	"time"
 
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
@@ -148,6 +148,13 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 
 	if instance.Spec.Runtime != v1alpha1.SpringbootRuntimeType {
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
+	}
+
+	isReconcile, err := r.ensureKogitoImageStream(instance)
+	if err != nil {
+		return reconcile.Result{}, err
+	} else if isReconcile.Requeue == true {
+		return reconcile.Result{Requeue: true, RequeueAfter: 500 * time.Millisecond}, nil
 	}
 
 	r.setDefaultBuildLimits(instance)
@@ -296,7 +303,6 @@ func (r *ReconcileKogitoApp) triggerBuilds(instance *v1alpha1.KogitoApp, bcs ...
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -326,4 +332,74 @@ func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.
 	}
 
 	return k8sRes
+}
+
+// Ensure that all Kogito images are available before the build.
+func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoApp) (reconcile.Result, error) {
+	isISPresentOnOpenshiftNamespace := true
+	isImagestreamReady := true
+
+	imageStreamTag := kogitores.ImageStreamTag
+	if instance.Spec.Build.ImageS2I.ImageStreamTag != "" || instance.Spec.Build.ImageRuntime.ImageStreamTag != "" {
+		if instance.Spec.Build.ImageS2I.ImageStreamTag == instance.Spec.Build.ImageRuntime.ImageStreamTag {
+			imageStreamTag = instance.Spec.Build.ImageS2I.ImageStreamTag
+			log.Infof("Using ImageS2I and RuntimeImage Tag from CR: %s", imageStreamTag)
+		} else {
+			log.Infof("ImageS2I and ImageRuntime are set and are different, using the default tag %s.", imageStreamTag)
+		}
+	}
+
+	kogitoRequiredIS := kogitores.KogitoImageStream(instance.Namespace, imageStreamTag, instance.Spec.Runtime, instance.Spec.Build.Native)
+
+	// First look on the current namespace, if the imagestreams are available, return
+	// and don't check for anything else.
+	// look for the Kogito image stream on the default namespace (openshift)
+	// All needed images must be present, if not create it on current namespace
+	for _, is := range kogitoRequiredIS.Items {
+		isCurrenctNs, _ := openshift.ImageStreamC(r.client).FetchTag(types.NamespacedName{Name: is.Name, Namespace: instance.Namespace}, imageStreamTag)
+		isOcpNs, _ := openshift.ImageStreamC(r.client).FetchTag(types.NamespacedName{Name: is.Name, Namespace: kogitores.ImageStreamNamespace}, imageStreamTag)
+		if isCurrenctNs == nil {
+			isImagestreamReady = false
+		}
+		if isOcpNs == nil {
+			isISPresentOnOpenshiftNamespace = false
+		}
+	}
+
+	if !isISPresentOnOpenshiftNamespace && !isImagestreamReady {
+
+		for _, is := range kogitoRequiredIS.Items {
+			is.Namespace = instance.Namespace
+			hasIs, err := openshift.ImageStreamC(r.client).FetchTag(types.NamespacedName{Name: is.Name, Namespace: instance.Namespace}, imageStreamTag)
+			if err != nil {
+				log.Error(err.Error())
+			}
+
+			if hasIs == nil {
+				_, err := openshift.ImageStreamC(r.client).CreateImageStream(&is)
+				if err != nil {
+					return reconcile.Result{}, err
+				}
+
+				tagRef := fmt.Sprintf("%s:%s", is.Name, imageStreamTag)
+				imageTag, getISerr := openshift.ImageStreamC(r.client).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, imageStreamTag)
+				if getISerr != nil {
+					log.Error(getISerr)
+				}
+				if imageTag != nil && imageTag.Image.Name != "" {
+					log.Infof("Image %s ready.", imageTag.Name)
+				} else {
+					log.Warnf("ImageStream %s not ready/found, scheduling reconcile", tagRef)
+					return reconcile.Result{Requeue: true}, nil
+				}
+			}
+		}
+
+		//set the isImagestreamReady to true to avoid it to be checked every time the reconcile runs
+	} else if isISPresentOnOpenshiftNamespace {
+		// if all imagestreams are present on the openshift namespace, set it as default
+		instance.Spec.Build.ImageS2I.ImageStreamNamespace = kogitores.ImageStreamNamespace
+		instance.Spec.Build.ImageRuntime.ImageStreamNamespace = kogitores.ImageStreamNamespace
+	}
+	return reconcile.Result{}, nil
 }
