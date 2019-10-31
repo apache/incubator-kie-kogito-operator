@@ -128,7 +128,3 @@ image/push/release:
 	docker push $(IMAGE_RELEASE_TAG)
 	@echo Pushing operator with tag $(IMAGE_LATEST_TAG) to $(IMAGE_REGISTRY)
 	docker push $(IMAGE_LATEST_TAG)
-
-.PHONY: app/push/release
-app/push/release:
-	@operator-courier push deploy/olm-catalog/kogito-cloud-operator/ $(APPLICATION_NAMESPACE) kogitocloud-operator $(CIRCLE_TAG) "basic $(TOKEN)"
