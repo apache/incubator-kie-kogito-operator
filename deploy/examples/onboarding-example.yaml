@@ -1,0 +1,71 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: onboarding-service
+spec:
+  build:
+    gitSource:
+      uri: https://github.com/kiegroup/kogito-examples
+      contextDir: onboarding-example/onboarding
+    imageRuntime:
+      imageStreamTag: 0.5.0
+    imageS2I:
+      imageStreamTag: 0.5.0
+    env:
+      # optional, but will improve your build time quite a lot
+      - name: MAVEN_MIRROR_URL
+        value: "<http://yourmavenurl>"
+  service:
+    labels:
+      onboarding: process
+  env:
+    - name: NAMESPACE
+      value: "<namespace_where_this_app_is_deployed>"
+
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: hr-service
+spec:
+  build:
+    gitSource:
+      uri: https://github.com/kiegroup/kogito-examples
+      contextDir: onboarding-example/hr
+    imageRuntime:
+      imageStreamTag: 0.5.0
+    imageS2I:
+      imageStreamTag: 0.5.0
+    env:
+      # optional, but will improve your build time quite a lot
+      - name: MAVEN_MIRROR_URL
+        value: "<http://yourmavenurl>"
+  service:
+    labels:
+      department: process
+      id: process
+      employeeValidation: process
+
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: payroll-service
+spec:
+  build:
+    gitSource:
+      uri: https://github.com/kiegroup/kogito-examples
+      contextDir: onboarding-example/payroll
+    imageRuntime:
+      imageStreamTag: 0.5.0
+    imageS2I:
+      imageStreamTag: 0.5.0
+    env:
+      # optional, but will improve your build time quite a lot
+      - name: MAVEN_MIRROR_URL
+        value: "<http://yourmavenurl>"
+  service:
+    labels:
+      taxRate: process
+      vacationDays: process
+      paymentDate: process

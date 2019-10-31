@@ -23,7 +23,7 @@ import (
 
 const (
 	// DefaultImage is the default image name for the Kogito Data Index Service
-	DefaultImage = "quay.io/kiegroup/data-index-service:latest"
+	DefaultImage = "quay.io/kiegroup/kogito-data-index:latest"
 	// defaultLabelKey is the default label key that should be added to all resources
 	defaultLabelKey = "app"
 	defaultReplicas = 1
@@ -31,7 +31,7 @@ const (
 	// this port can also be found into the docker label openshift.exposed-svc.
 	// since we're aiming for cluster agnostic, the image API is out of question.
 	// TODO: found an agnostic API to fetch the ImageRaw from the docker image and read this value from there.
-	defaultExposedPort       = 8180
+	defaultExposedPort       = 8080
 	defaultProtobufMountPath = "/var/kogito/dataindex/protobufs/"
 	defaultProtobufMountName = "protobuf-mount"
 )

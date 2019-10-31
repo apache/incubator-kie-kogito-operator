@@ -94,7 +94,7 @@ type InfinispanConnectionProperties struct {
 	// +optional
 	AuthRealm string `json:"authRealm,omitempty"`
 
-	// +kubebuilder:validation:Enum=PLAIN,DIGEST-MD5
+	// +kubebuilder:validation:Enum=PLAIN;DIGEST-MD5
 	// +optional
 	// SaslMechanism defined for the authentication. Will set the property infinispan.client.hotrod.sasl_mechanism
 	SaslMechanism InfinispanSaslMechanismType `json:"saslMechanism,omitempty"`
@@ -143,9 +143,11 @@ type KogitoDataIndexStatus struct {
 	ServiceStatus corev1.ServiceStatus `json:"serviceStatus"`
 
 	// OK when all resources are created successfully
+	// +listType=atomic
 	Conditions []DataIndexCondition `json:"conditions"`
 
 	// All dependencies OK means that everything was found within the namespace
+	// +listType=set
 	DependenciesStatus []DataIndexDependenciesStatus `json:"dependenciesStatus"`
 
 	// Route is where the service is exposed
@@ -187,7 +189,7 @@ const (
 
 // KogitoDataIndex is the Schema for the kogitodataindices API
 // +k8s:openapi-gen=true
-// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=kogitodataindices,scope=Namespaced
 type KogitoDataIndex struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -202,7 +204,8 @@ type KogitoDataIndex struct {
 type KogitoDataIndexList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KogitoDataIndex `json:"items"`
+	// +listType=atomic
+	Items []KogitoDataIndex `json:"items"`
 }
 
 func init() {

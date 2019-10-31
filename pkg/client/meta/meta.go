@@ -16,14 +16,15 @@ package meta
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 
 	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
 
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
@@ -46,6 +47,8 @@ type DefinitionKind struct {
 var (
 	// KindService for service
 	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
+	// KindServiceAccount for serviceAccount
+	KindServiceAccount = DefinitionKind{"ServiceAccount", false, corev1.SchemeGroupVersion}
 	// KindBuildConfig for a buildConfig
 	KindBuildConfig = DefinitionKind{"BuildConfig", true, buildv1.SchemeGroupVersion}
 	// KindDeploymentConfig for a DeploymentConfig
@@ -74,6 +77,12 @@ var (
 	KindDeployment = DefinitionKind{"Deployment", false, coreappsv1.SchemeGroupVersion}
 	// KindStatefulSet for a StatefulSet
 	KindStatefulSet = DefinitionKind{"StatefulSet", false, coreappsv1.SchemeGroupVersion}
+	// KindRole ...
+	KindRole = DefinitionKind{"Role", false, rbac.SchemeGroupVersion}
+	// KindRoleBinding ...
+	KindRoleBinding = DefinitionKind{"RoleBinding", false, rbac.SchemeGroupVersion}
+	// KindOperatorSource ...
+	KindOperatorSource = DefinitionKind{"OperatorSource", false, operatormkt.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -88,9 +97,13 @@ func SetGroupVersionKind(typeMeta *metav1.TypeMeta, kind DefinitionKind) {
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
 func GetRegisteredSchema() *runtime.Scheme {
 	s := scheme.Scheme
-	s.AddKnownTypes(corev1.SchemeGroupVersion, &corev1.Namespace{})
+	s.AddKnownTypes(corev1.SchemeGroupVersion, &corev1.Namespace{}, &corev1.ServiceAccount{})
+	s.AddKnownTypes(coreappsv1.SchemeGroupVersion, &coreappsv1.Deployment{})
+	s.AddKnownTypes(rbac.SchemeGroupVersion, &rbac.Role{}, &rbac.RoleBinding{})
 	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &apiextensionsv1beta1.CustomResourceDefinition{})
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{}, &v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{})
-
+	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &operatormkt.OperatorSource{}, &operatormkt.OperatorSourceList{})
+	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &metav1.CreateOptions{})
 	return s
 }

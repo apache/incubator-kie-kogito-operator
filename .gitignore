@@ -83,6 +83,10 @@ tags
 
 ### IntelliJ ###
 .idea
+*.iml
+
+### Eclipse ###
+.project
 
 # vendor exceptions
 !vendor/**

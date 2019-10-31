@@ -101,7 +101,7 @@ func deleteNestedMapEntry(object map[string]interface{}, keys ...string) {
 
 func getSchema(t *testing.T) validation.Schema {
 	box := packr.New("deploy/crds", "../../../../deploy/crds")
-	crdFile := "app_v1alpha1_kogitoapp_crd.yaml"
+	crdFile := "app.kiegroup.org_kogitoapps_crd.yaml"
 	assert.True(t, box.Has(crdFile))
 	yamlString, err := box.FindString(crdFile)
 	assert.NoError(t, err, "Error reading CRD yaml %v", yamlString)

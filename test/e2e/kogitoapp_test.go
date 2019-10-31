@@ -26,7 +26,7 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/builder"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
@@ -111,10 +111,10 @@ func deployKogitoQuarkusExample(t *testing.T, f *framework.Framework, ctx *frame
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Build: &v1alpha1.KogitoAppBuildObject{
-				Env: []v1alpha1.Env{ v1alpha1.Env{
+				Env: []v1alpha1.Env{v1alpha1.Env{
 					Name:  "MAVEN_MIRROR_URL",
 					Value: util.GetEnv("MAVEN_MIRROR_URL", ""),
-				} },
+				}},
 				GitSource: &v1alpha1.GitSource{
 					URI:        &gitProjectURI,
 					ContextDir: contextDir,
@@ -124,7 +124,7 @@ func deployKogitoQuarkusExample(t *testing.T, f *framework.Framework, ctx *frame
 		},
 	}
 
-	tag := util.GetEnv("KOGITO_IMAGE_TAG", builder.ImageStreamTag)
+	tag := util.GetEnv("KOGITO_IMAGE_TAG", resource.ImageStreamTag)
 	log.Infof("Using image tag %s", tag)
 
 	// set tags (used in devel for non-released versions)
@@ -138,7 +138,7 @@ func deployKogitoQuarkusExample(t *testing.T, f *framework.Framework, ctx *frame
 
 	bc := v1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s%s", kogitoService.Name, builder.BuildS2INameSuffix),
+			Name:      fmt.Sprintf("%s%s", kogitoService.Name, resource.BuildS2INameSuffix),
 			Namespace: namespace,
 		},
 	}

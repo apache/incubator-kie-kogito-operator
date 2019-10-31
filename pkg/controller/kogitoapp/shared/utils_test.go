@@ -91,3 +91,18 @@ func TestFromResourcesToResourcesRequirementsOnlyLimit(t *testing.T) {
 	assert.True(t, len(a.Requests) == 0)
 	assert.True(t, len(a.Limits) == 1)
 }
+
+func TestFromResourcesToResourcesRequirementsHalfLimit(t *testing.T) {
+	value := "500m"
+	a := FromResourcesToResourcesRequirements(v1alpha1.Resources{
+		Limits: []v1alpha1.ResourceMap{
+			{
+				Resource: cpuResource,
+				Value:    value,
+			},
+		},
+	})
+	assert.True(t, len(a.Requests) == 0)
+	assert.True(t, len(a.Limits) == 1)
+	assert.Equal(t, "500m", a.Limits.Cpu().String())
+}

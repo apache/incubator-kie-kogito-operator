@@ -19,29 +19,35 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-
+	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
+	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-
-	"k8s.io/apimachinery/pkg/runtime/schema"
-
+	rbac "k8s.io/api/rbac/v1"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
+	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	"k8s.io/client-go/discovery"
-	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var log = logger.GetLogger("client_api")
+const (
+	envVarKubeConfig = "KUBECONFIG"
+)
+
+var (
+	log                   = logger.GetLogger("client_api")
+	defaultKubeConfigPath = filepath.Join(".kube", "config")
+)
 
 // Client wraps clients functions from controller-runtime, Kube and OpenShift cli for generic API calls to the cluster
 type Client struct {
@@ -100,24 +106,28 @@ func ensureKubeClient() (controllercli.Client, error) {
 }
 
 func buildKubeConnectionConfig() (*restclient.Config, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", *getKubeConfigFile())
+	config, err := clientcmd.BuildConfigFromFlags("", getKubeConfigFile())
 	if err != nil {
 		return nil, err
 	}
 	return config, nil
 }
 
-func getKubeConfigFile() *string {
-	var kubeconfig string
+func getKubeConfigFile() string {
+	kubeconfig := util.GetEnv(envVarKubeConfig, "")
+	if len(kubeconfig) > 0 {
+		log.Debugf("Kube config file read from %s environment variable: %s", envVarKubeConfig, kubeconfig)
+		return kubeconfig
+	}
 	log.Debug("Trying to get kube config file from HOME directory")
 	if home := util.GetHomeDir(); home != "" {
-		kubeconfig = filepath.Join(home, ".kube", "config")
+		kubeconfig = filepath.Join(home, defaultKubeConfigPath)
 	} else {
 		log.Warn("Can't read HOME environment variable")
-		kubeconfig = filepath.Join(".kube", "config")
+		kubeconfig = defaultKubeConfigPath
 	}
 	log.Debug("Kube config file read from: ", kubeconfig)
-	return &kubeconfig
+	return kubeconfig
 }
 
 //restScope implementation
@@ -137,8 +147,14 @@ func newControllerCliOptions() controllercli.Options {
 
 	mapper := apimeta.NewDefaultRESTMapper([]schema.GroupVersion{})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindNamespace.Name), &restScope{name: apimeta.RESTScopeNameRoot})
+	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindServiceAccount.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(apiextensionsv1beta1.SchemeGroupVersion.WithKind(meta.KindCRD.Name), &restScope{name: apimeta.RESTScopeNameRoot})
 	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoApp.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(coreappsv1.SchemeGroupVersion.WithKind(meta.KindDeployment.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRole.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRoleBinding.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(operatormkt.SchemeGroupVersion.WithKind(meta.KindOperatorSource.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
 		schema.GroupVersionResource{

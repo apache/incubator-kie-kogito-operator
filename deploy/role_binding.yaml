@@ -9,7 +9,6 @@ roleRef:
   kind: Role
   name: kogito-cloud-operator
   apiGroup: rbac.authorization.k8s.io
-
 ---
 
 kind: RoleBinding

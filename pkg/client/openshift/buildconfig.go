@@ -16,6 +16,7 @@ package openshift
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,15 +30,15 @@ import (
 
 // BuildState describes the state of the build
 type BuildState struct {
-	ImageExists  bool
-	BuildRunning bool
+	ImageExists bool
+	Builds      *v1alpha1.Builds
 }
 
 // BuildConfigInterface exposes OpenShift BuildConfig operations
 type BuildConfigInterface interface {
 	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector string) (BuildState, error)
 	TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (bool, error)
-	BuildIsRunning(bc *buildv1.BuildConfig, labelSelector string) (bool, error)
+	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error)
 }
 
 func newBuildConfig(c *client.Client) BuildConfigInterface {
@@ -51,12 +52,11 @@ type buildConfig struct {
 	client *client.Client
 }
 
-// EnsureImageBuild checks for the corresponding image for the build. If there's no image, verifies if the build still running.
+// EnsureImageBuild checks for the corresponding image for the build and retrieves the status of the builds.
 // Returns a BuildState structure describing it's results. Label selector is used to query for the right bc
 func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector string) (BuildState, error) {
 	state := BuildState{
-		ImageExists:  false,
-		BuildRunning: false,
+		ImageExists: false,
 	}
 	bcNamed := types.NamespacedName{
 		Name:      bc.Name,
@@ -66,19 +66,16 @@ func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector st
 		return state, err
 	} else if img == nil {
 		log.Debugf("Image not found for build %s", bc.Name)
-		state.ImageExists = false
-		if running, err := b.BuildIsRunning(bc, labelSelector); running {
-			log.Debugf("Build %s is still running", bc.Name)
-			state.BuildRunning = true
-			return state, nil
-		} else if err != nil {
-			return state, err
-		}
-		// TODO: ensure that we don't have errors in the builds and inform this to the user
-		log.Debugf("There's no image and no build running or pending for %s.", bc.Name)
-		return state, nil
+	} else {
+		state.ImageExists = true
 	}
-	state.ImageExists = true
+
+	if builds, err := b.GetBuildsStatus(bc, labelSelector); builds != nil {
+		state.Builds = builds
+	} else if err != nil {
+		return state, err
+	}
+
 	return state, nil
 }
 
@@ -104,32 +101,46 @@ func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (b
 	return true, nil
 }
 
-// BuildIsRunning checks if there's a build on New, Pending or Running state for the buildConfiguration
-func (b *buildConfig) BuildIsRunning(bc *buildv1.BuildConfig, labelSelector string) (bool, error) {
+// GetBuildsStatus checks the status of the builds for the BuildConfig
+func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error) {
 	if exists, err := b.checkBuildConfigExists(bc); !exists {
-		return false, err
+		return nil, err
 	}
+
 	list, err := b.client.BuildCli.Builds(bc.Namespace).List(metav1.ListOptions{
-		LabelSelector:        labelSelector,
-		IncludeUninitialized: false,
+		LabelSelector: labelSelector,
 	})
 	if err != nil {
-		return false, err
+		return nil, err
 	}
+
+	status := &v1alpha1.Builds{}
+
 	for _, item := range list.Items {
 		// it's the build from our buildConfig
 		if strings.HasPrefix(item.Name, bc.Name) {
 			log.Debugf("Checking status of build '%s'", item.Name)
-			if item.Status.Phase == buildv1.BuildPhaseNew ||
-				item.Status.Phase == buildv1.BuildPhasePending ||
-				item.Status.Phase == buildv1.BuildPhaseRunning {
-				log.Debugf("Build %s is still running", item.Name)
-				return true, nil
+			switch item.Status.Phase {
+			case buildv1.BuildPhaseNew:
+				status.New = append(status.New, item.Name)
+			case buildv1.BuildPhasePending:
+				status.Pending = append(status.Pending, item.Name)
+			case buildv1.BuildPhaseRunning:
+				status.Running = append(status.Running, item.Name)
+			case buildv1.BuildPhaseComplete:
+				status.Complete = append(status.Complete, item.Name)
+			case buildv1.BuildPhaseFailed:
+				status.Failed = append(status.Failed, item.Name)
+			case buildv1.BuildPhaseError:
+				status.Error = append(status.Error, item.Name)
+			case buildv1.BuildPhaseCancelled:
+				status.Cancelled = append(status.Cancelled, item.Name)
 			}
 			log.Debugf("Build %s status is %s", item.Name, item.Status.Phase)
 		}
 	}
-	return false, nil
+
+	return status, nil
 }
 
 func (b *buildConfig) checkBuildConfigExists(bc *buildv1.BuildConfig) (bool, error) {

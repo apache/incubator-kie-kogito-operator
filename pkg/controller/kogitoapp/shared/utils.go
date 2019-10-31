@@ -53,12 +53,15 @@ func FromResourcesToResourcesRequirements(resources v1alpha1.Resources) (resReq 
 		resReq.Requests = corev1.ResourceList{}
 	}
 
+	// we have to enforce the string conversion first, so we normalize the value: https://issues.jboss.org/browse/KOGITO-415
 	for _, limit := range resources.Limits {
-		resReq.Limits[corev1.ResourceName(limit.Resource)] = resource.MustParse(string(limit.Value))
+		rawValue := resource.MustParse(limit.Value)
+		resReq.Limits[corev1.ResourceName(limit.Resource)] = resource.MustParse(rawValue.String())
 	}
 
 	for _, request := range resources.Requests {
-		resReq.Requests[corev1.ResourceName(request.Resource)] = resource.MustParse(string(request.Value))
+		rawValue := resource.MustParse(request.Value)
+		resReq.Requests[corev1.ResourceName(request.Resource)] = resource.MustParse(rawValue.String())
 	}
 
 	return resReq

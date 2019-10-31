@@ -46,7 +46,7 @@ vet:
 
 .PHONY: test
 test:
-	./hack/go-test.sh
+	./hack/go-test.sh $(coverage)
 
 .PHONY: lint
 lint:
@@ -58,8 +58,10 @@ build:
 	./hack/go-build.sh
 
 .PHONY: build-cli
+release = false
+version = ""
 build-cli:
-	./hack/go-build-cli.sh
+	./hack/go-build-cli.sh $(release) $(version)
 
 .PHONY: install-cli
 install-cli:
@@ -74,8 +76,27 @@ addheaders:
 	./hack/addheaders.sh
 
 .PHONY: run-e2e
+namespace = ""
+tag = ""
+native = "false"
+maven_mirror = ""
+image = ""
 run-e2e:
-	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror)
+	./hack/run-e2e.sh $(namespace) $(tag) $(native) $(maven_mirror) $(image)
+
+.PHONY: run-e2e-cli
+namespace = ""
+tag = ""
+native = "false"
+maven_mirror = ""
+skip_build = "false"
+run-e2e-cli:
+	./hack/run-e2e-cli.sh $(namespace) $(tag) $(native) $(maven_mirror) $(skip_build)
+
+.PHONY: prepare-olm
+version = ""
+prepare-olm:
+	./hack/pr-operatorhub.sh $(version)
 
 .PHONY: code/build/linux
 code/build/linux:
