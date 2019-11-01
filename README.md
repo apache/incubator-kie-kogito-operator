@@ -11,7 +11,7 @@ Table of Contents
       * [Requirements](#requirements)
       * [Installation](#installation)
          * [Deploy to OpenShift 4.x](#deploy-to-openshift-4x)
-            * [Optional Step](#Optional Step)
+            * [Optional Step](#optional-step)
             * [Via OperatorHub automatically](#via-operatorhub-automatically)
             * [Via OperatorHub manually](#via-operatorhub-manually)
             * [Via local Operator](#via-local-operator)
