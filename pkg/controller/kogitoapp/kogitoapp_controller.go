@@ -153,7 +153,7 @@ type ReconcileKogitoApp struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
 	log.Info("Reconciling KogitoApp")
 
 	// Fetch the KogitoApp instance
@@ -193,18 +193,23 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 			Client: r.client,
 		},
 	})
+
+	defer r.updateKogitoAppStatus(&request, instance, kogitoResources, updateResourceResult, &result, &resultErr)
+
 	if err != nil {
 		updateResourceResult.Err = err
 		updateResourceResult.ErrorReason = v1alpha1.ParseCRRequestFailedReason
+		return
 	}
 
 	deployedRes, err := kogitores.GetDeployedResources(instance, r.client)
 	if err != nil {
 		updateResourceResult.Err = err
 		updateResourceResult.ErrorReason = v1alpha1.RetrieveDeployedResourceFailedReason
+		return
 	}
 
-	if updateResourceResult.Err == nil {
+	{
 		requestedRes := compare.NewMapBuilder().Add(getKubernetesResources(kogitoResources)...).ResourceMap()
 
 		comparator := kogitores.GetComparator()
@@ -222,16 +227,19 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 			if err != nil {
 				updateResourceResult.Err = err
 				updateResourceResult.ErrorReason = v1alpha1.CreateResourceFailedReason
+				return
 			}
 			updated, err := writer.UpdateResources(deployedRes[resourceType], delta.Updated)
 			if err != nil {
 				updateResourceResult.Err = err
 				updateResourceResult.ErrorReason = v1alpha1.UpdateResourceFailedReason
+				return
 			}
 			removed, err := writer.RemoveResources(delta.Removed)
 			if err != nil {
 				updateResourceResult.Err = err
 				updateResourceResult.ErrorReason = v1alpha1.RemoveResourceFailedReason
+				return
 			}
 			hasUpdates = hasUpdates || added || updated || removed
 		}
@@ -251,25 +259,32 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 			if err = r.triggerBuilds(instance, bcs...); err != nil {
 				updateResourceResult.Err = err
 				updateResourceResult.ErrorReason = v1alpha1.TriggerBuildFailedReason
+				return
 			}
 		}
 	}
+
+	return
+}
+
+func (r *ReconcileKogitoApp) updateKogitoAppStatus(request *reconcile.Request, instance *v1alpha1.KogitoApp,
+	kogitoResources *kogitores.KogitoAppResources, updateResourceResult *status.UpdateResourcesResult, result *reconcile.Result, err *error) {
 
 	log.Infof("Handling Status updates on '%s'", instance.Name)
 	statusUpdateResult := status.ManageStatus(instance, kogitoResources, r.client, updateResourceResult, r.cache, request.NamespacedName)
 
 	if statusUpdateResult.Err != nil {
 		log.Warnf("Reconcile for '%s' finished with error", instance.Name)
-		return reconcile.Result{}, err
-	} else if statusUpdateResult.Updated {
-		log.Infof("Reconcile for '%s' finished with requeue", instance.Name)
-		return reconcile.Result{Requeue: true}, nil
+		*err = statusUpdateResult.Err
 	} else if statusUpdateResult.RequeueAfter > 0 {
 		log.Infof("Reconcile for '%s' finished with requeue in the given time interval", instance.Name)
-		return reconcile.Result{RequeueAfter: statusUpdateResult.RequeueAfter}, nil
+		result.RequeueAfter = statusUpdateResult.RequeueAfter
+	} else if statusUpdateResult.Updated {
+		// Updating the KogitoApp will trigger the execution of the reconcile loop, so it is not necessary to requeue the loop
+		log.Infof("Reconcile for '%s' finished with the KogitoApp updated", instance.Name)
+	} else {
+		log.Infof("Reconcile for '%s' successfully finished", instance.Name)
 	}
-	log.Infof("Reconcile for '%s' successfully finished", instance.Name)
-	return reconcile.Result{}, nil
 }
 
 func (r *ReconcileKogitoApp) setDefaultBuildLimits(instance *v1alpha1.KogitoApp) {
