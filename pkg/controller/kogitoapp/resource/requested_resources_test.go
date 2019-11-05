@@ -18,25 +18,29 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	dockerv10 "github.com/openshift/api/image/docker10"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	buildfake "github.com/openshift/client-go/build/clientset/versioned/fake"
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
+
+	monfake "github.com/coreos/prometheus-operator/pkg/client/versioned/fake"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
+
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -67,9 +71,10 @@ func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	resources, err := GetRequestedResources(&Context{
 		FactoryContext: resource.FactoryContext{
 			Client: &client.Client{
-				ControlCli: fake.NewFakeClient(),
-				BuildCli:   buildfake.NewSimpleClientset().BuildV1(),
-				ImageCli:   imgfake.NewSimpleClientset().ImageV1(),
+				ControlCli:    fake.NewFakeClient(),
+				BuildCli:      buildfake.NewSimpleClientset().BuildV1(),
+				ImageCli:      imgfake.NewSimpleClientset().ImageV1(),
+				PrometheusCli: monfake.NewSimpleClientset().MonitoringV1(),
 			},
 		},
 		KogitoApp: kogitoApp,
@@ -94,6 +99,7 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
 				openshift.ImageLabelForExposeServices: "8080:http",
+				resource.LabelPrometheusScrape:        "true",
 			},
 		},
 	})
@@ -114,9 +120,11 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	resources, err := GetRequestedResources(&Context{
 		FactoryContext: resource.FactoryContext{
 			Client: &client.Client{
-				ControlCli: fake.NewFakeClient(),
-				BuildCli:   buildfake.NewSimpleClientset().BuildV1(),
-				ImageCli:   imgfake.NewSimpleClientset(&isTag).ImageV1(),
+				ControlCli:    fake.NewFakeClient(),
+				BuildCli:      buildfake.NewSimpleClientset().BuildV1(),
+				ImageCli:      imgfake.NewSimpleClientset(&isTag).ImageV1(),
+				PrometheusCli: monfake.NewSimpleClientset().MonitoringV1(),
+				Discovery:     test.CreateFakeDiscoveryClient(),
 			},
 		},
 		KogitoApp: kogitoApp,
@@ -138,6 +146,8 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	assert.NotNil(t, resources.Service)
 
 	assert.NotNil(t, resources.Route)
+
+	assert.NotNil(t, resources.ServiceMonitor)
 
 	assert.Len(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports, 1)
 	assert.Equal(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, int32(8080))

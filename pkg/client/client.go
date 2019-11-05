@@ -38,6 +38,8 @@ import (
 
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
+
+	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 )
 
 const (
@@ -52,14 +54,20 @@ var (
 // Client wraps clients functions from controller-runtime, Kube and OpenShift cli for generic API calls to the cluster
 type Client struct {
 	// ControlCli is a reference for the controller-runtime client, normally built by a Manager inside the controller context.
-	ControlCli controllercli.Client
-	BuildCli   buildv1.BuildV1Interface
-	ImageCli   imagev1.ImageV1Interface
-	Discovery  discovery.DiscoveryInterface
+	ControlCli    controllercli.Client
+	BuildCli      buildv1.BuildV1Interface
+	ImageCli      imagev1.ImageV1Interface
+	Discovery     discovery.DiscoveryInterface
+	PrometheusCli monclientv1.MonitoringV1Interface
 }
 
 // IsOpenshift detects if the application is running on OpenShift or not
 func (c *Client) IsOpenshift() bool {
+	return c.HasServerGroup("openshift.io")
+}
+
+// HasServerGroup detects if the given api group is supported by the server
+func (c *Client) HasServerGroup(groupName string) bool {
 	if c.Discovery != nil {
 		groups, err := c.Discovery.ServerGroups()
 		if err != nil {
@@ -67,7 +75,7 @@ func (c *Client) IsOpenshift() bool {
 			return false
 		}
 		for _, group := range groups.Groups {
-			if strings.Contains(group.Name, "openshift.io") {
+			if strings.Contains(group.Name, groupName) {
 				return true
 			}
 		}

@@ -16,7 +16,6 @@ package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"k8s.io/apimachinery/pkg/types"
@@ -53,27 +52,17 @@ func GetRequestedResources(context *Context) (*KogitoAppResources, error) {
 		AndBuild(buildConfigS2IBuilder).
 		AndBuild(buildConfigRuntimeBuilder).
 		AndBuild(imageStreamBuilder).
+		AndBuild(runtimeImageGetter).
 		AndBuild(deploymentConfigBuilder).
 		AndBuild(serviceBuilder).
-		AndBuild(routeBuilder)
+		AndBuild(routeBuilder).
+		AndBuild(servicemonitorBuilder)
 	return chain.Resources, chain.Error
-}
-
-func callPreCreate(object meta.ResourceObject, chain *builderChain) error {
-	if chain.Error == nil && chain.Context.PreCreate != nil {
-		return chain.Context.PreCreate(object)
-	}
-	return nil
 }
 
 func buildConfigS2IBuilder(chain *builderChain) *builderChain {
 	bc, err := NewBuildConfigS2I(chain.Context.KogitoApp)
 	if err != nil {
-		chain.Error = err
-		return chain
-	}
-
-	if err := callPreCreate(&bc, chain); err != nil {
 		chain.Error = err
 		return chain
 	}
@@ -93,11 +82,6 @@ func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
 		return chain
 	}
 
-	if err := callPreCreate(&bc, chain); err != nil {
-		chain.Error = err
-		return chain
-	}
-
 	chain.Resources.BuildConfigRuntime = &bc
 
 	return chain
@@ -105,52 +89,31 @@ func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
 
 func imageStreamBuilder(chain *builderChain) *builderChain {
 	isS2I := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigS2I.Name)
-	if err := callPreCreate(isS2I, chain); err != nil {
-		chain.Error = err
-		return chain
-	}
-
 	chain.Resources.ImageStreamS2I = isS2I
 
 	isRuntime := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
-	if err := callPreCreate(isRuntime, chain); err != nil {
-		chain.Error = err
-		return chain
-	}
-
 	chain.Resources.ImageStreamRuntime = isRuntime
 
 	return chain
 }
 
 func deploymentConfigBuilder(chain *builderChain) *builderChain {
-	bcNamespacedName := types.NamespacedName{
-		Namespace: chain.Resources.BuildConfigRuntime.Namespace,
-		Name:      chain.Resources.BuildConfigRuntime.Name,
-	}
 	chain.Resources.DeploymentConfig = nil
 
-	if dockerImage, err := openshift.ImageStreamC(chain.Context.Client).FetchDockerImage(bcNamespacedName); err != nil {
-		chain.Error = err
-	} else if dockerImage != nil {
+	if chain.Resources.RuntimeImage != nil {
 		dc, err := NewDeploymentConfig(
 			chain.Context.KogitoApp,
 			chain.Resources.BuildConfigRuntime,
-			dockerImage,
+			chain.Resources.RuntimeImage,
 		)
 		if err != nil {
 			chain.Error = err
 			return chain
 		}
-		if err := callPreCreate(dc, chain); err != nil {
-			chain.Error = err
-			return chain
-		}
 
 		chain.Resources.DeploymentConfig = dc
-	} else {
-		log.Warnf("Couldn't find an image with name '%s' in the namespace '%s'. The DeploymentConfig will be created once the build is done.", bcNamespacedName.Name, bcNamespacedName.Namespace)
 	}
+
 	return chain
 }
 
@@ -159,11 +122,6 @@ func serviceBuilder(chain *builderChain) *builderChain {
 	if chain.Resources.DeploymentConfig != nil {
 		svc := NewService(chain.Context.KogitoApp, chain.Resources.DeploymentConfig)
 		if svc != nil {
-			if err := callPreCreate(svc, chain); err != nil {
-				chain.Error = err
-				return chain
-			}
-
 			chain.Resources.Service = svc
 		}
 	}
@@ -178,12 +136,39 @@ func routeBuilder(chain *builderChain) *builderChain {
 			chain.Error = err
 			return chain
 		}
-		if err := callPreCreate(route, chain); err != nil {
-			chain.Error = err
-			return chain
-		}
 
 		chain.Resources.Route = route
 	}
+	return chain
+}
+
+func servicemonitorBuilder(chain *builderChain) *builderChain {
+	if chain.Resources.RuntimeImage != nil && chain.Resources.Service != nil {
+		sm, err := NewServiceMonitor(chain.Context.KogitoApp, chain.Resources.RuntimeImage, chain.Resources.Service, chain.Context.Client)
+		if err != nil {
+			chain.Error = err
+			return chain
+		}
+		chain.Resources.ServiceMonitor = sm
+	}
+
+	return chain
+}
+
+func runtimeImageGetter(chain *builderChain) *builderChain {
+	bcNamespacedName := types.NamespacedName{
+		Namespace: chain.Resources.BuildConfigRuntime.Namespace,
+		Name:      chain.Resources.BuildConfigRuntime.Name,
+	}
+	chain.Resources.DeploymentConfig = nil
+
+	if dockerImage, err := openshift.ImageStreamC(chain.Context.Client).FetchDockerImage(bcNamespacedName); err != nil {
+		chain.Error = err
+	} else if dockerImage != nil {
+		chain.Resources.RuntimeImage = dockerImage
+	} else {
+		log.Warnf("Couldn't find an image with name '%s' in the namespace '%s'. The DeploymentConfig will be created once the build is done.", bcNamespacedName.Name, bcNamespacedName.Namespace)
+	}
+
 	return chain
 }

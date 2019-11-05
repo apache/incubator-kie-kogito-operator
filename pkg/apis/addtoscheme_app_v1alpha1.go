@@ -15,6 +15,7 @@
 package apis
 
 import (
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	oappsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -29,5 +30,6 @@ func init() {
 		routev1.Install,
 		oimagev1.Install,
 		buildv1.Install,
-		appsv1.AddToScheme)
+		appsv1.AddToScheme,
+		monv1.AddToScheme)
 }

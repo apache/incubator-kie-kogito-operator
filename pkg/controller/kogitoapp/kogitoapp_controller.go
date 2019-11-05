@@ -16,22 +16,22 @@ package kogitoapp
 
 import (
 	"fmt"
+	"reflect"
+	"time"
+
 	utilsres "github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	"time"
 
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
@@ -40,12 +40,15 @@ import (
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 
+	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
 
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -70,11 +73,21 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	if err != nil {
 		panic(fmt.Sprintf("Error getting build client: %v", err))
 	}
+	monClient, err := monclientv1.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		panic(fmt.Sprintf("Error getting prometheus client: %v", err))
+	}
+	discover, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+	if err != nil {
+		panic(fmt.Sprintf("Error getting discovery client: %v", err))
+	}
 
 	client := &kogitocli.Client{
-		ControlCli: mgr.GetClient(),
-		BuildCli:   buildClient,
-		ImageCli:   imageClient,
+		ControlCli:    mgr.GetClient(),
+		BuildCli:      buildClient,
+		ImageCli:      imageClient,
+		PrometheusCli: monClient,
+		Discovery:     discover,
 	}
 
 	return &ReconcileKogitoApp{
@@ -150,11 +163,11 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
-	isReconcile, err := r.ensureKogitoImageStream(instance)
+	requeue, err := r.ensureKogitoImageStream(instance)
 	if err != nil {
 		return reconcile.Result{}, err
-	} else if isReconcile.Requeue == true {
-		return reconcile.Result{Requeue: true, RequeueAfter: 500 * time.Millisecond}, nil
+	} else if requeue {
+		return reconcile.Result{RequeueAfter: time.Duration(500) * time.Millisecond}, nil
 	}
 
 	r.setDefaultBuildLimits(instance)
@@ -167,13 +180,6 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		KogitoApp: instance,
 		FactoryContext: resource.FactoryContext{
 			Client: r.client,
-			PreCreate: func(object meta.ResourceObject) error {
-				if object != nil {
-					log.Debugf("Setting controller reference pre create for '%s' kind '%s'", object.GetName(), object.GetObjectKind().GroupVersionKind().Kind)
-					return controllerutil.SetControllerReference(instance, object, r.scheme)
-				}
-				return nil
-			},
 		},
 	})
 	if err != nil {
@@ -181,58 +187,60 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 		updateResourceResult.ErrorReason = v1alpha1.ParseCRRequestFailedReason
 	}
 
-	deployedRes, err := kogitores.GetDeployedResources(instance, r.client.ControlCli)
+	deployedRes, err := kogitores.GetDeployedResources(instance, r.client)
 	if err != nil {
 		updateResourceResult.Err = err
 		updateResourceResult.ErrorReason = v1alpha1.RetrieveDeployedResourceFailedReason
 	}
 
-	requestedRes := compare.NewMapBuilder().Add(getKubernetesResources(kogitoResources)...).ResourceMap()
+	if updateResourceResult.Err == nil {
+		requestedRes := compare.NewMapBuilder().Add(getKubernetesResources(kogitoResources)...).ResourceMap()
 
-	comparator := kogitores.GetComparator()
-	deltas := comparator.Compare(deployedRes, requestedRes)
+		comparator := kogitores.GetComparator()
+		deltas := comparator.Compare(deployedRes, requestedRes)
 
-	writer := write.New(r.client.ControlCli).WithOwnerController(instance, r.scheme)
+		writer := write.New(r.client.ControlCli).WithOwnerController(instance, r.scheme)
 
-	var hasUpdates bool
-	for resourceType, delta := range deltas {
-		if !delta.HasChanges() {
-			continue
-		}
-		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
-		added, err := writer.AddResources(delta.Added)
-		if err != nil {
-			updateResourceResult.Err = err
-			updateResourceResult.ErrorReason = v1alpha1.CreateResourceFailedReason
-		}
-		updated, err := writer.UpdateResources(deployedRes[resourceType], delta.Updated)
-		if err != nil {
-			updateResourceResult.Err = err
-			updateResourceResult.ErrorReason = v1alpha1.UpdateResourceFailedReason
-		}
-		removed, err := writer.RemoveResources(delta.Removed)
-		if err != nil {
-			updateResourceResult.Err = err
-			updateResourceResult.ErrorReason = v1alpha1.RemoveResourceFailedReason
-		}
-		hasUpdates = hasUpdates || added || updated || removed
-	}
-
-	updateResourceResult.Updated = hasUpdates
-
-	bcDelta := deltas[reflect.TypeOf(obuildv1.BuildConfig{})]
-	if bcDelta.HasChanges() {
-		var bcs []*obuildv1.BuildConfig
-		for _, bc := range bcDelta.Added {
-			bcs = append(bcs, bc.(*obuildv1.BuildConfig))
-		}
-		for _, bc := range bcDelta.Updated {
-			bcs = append(bcs, bc.(*obuildv1.BuildConfig))
+		var hasUpdates bool
+		for resourceType, delta := range deltas {
+			if !delta.HasChanges() {
+				continue
+			}
+			log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
+			added, err := writer.AddResources(delta.Added)
+			if err != nil {
+				updateResourceResult.Err = err
+				updateResourceResult.ErrorReason = v1alpha1.CreateResourceFailedReason
+			}
+			updated, err := writer.UpdateResources(deployedRes[resourceType], delta.Updated)
+			if err != nil {
+				updateResourceResult.Err = err
+				updateResourceResult.ErrorReason = v1alpha1.UpdateResourceFailedReason
+			}
+			removed, err := writer.RemoveResources(delta.Removed)
+			if err != nil {
+				updateResourceResult.Err = err
+				updateResourceResult.ErrorReason = v1alpha1.RemoveResourceFailedReason
+			}
+			hasUpdates = hasUpdates || added || updated || removed
 		}
 
-		if err = r.triggerBuilds(instance, bcs...); err != nil {
-			updateResourceResult.Err = err
-			updateResourceResult.ErrorReason = v1alpha1.TriggerBuildFailedReason
+		updateResourceResult.Updated = hasUpdates
+
+		bcDelta := deltas[reflect.TypeOf(obuildv1.BuildConfig{})]
+		if bcDelta.HasChanges() {
+			var bcs []*obuildv1.BuildConfig
+			for _, bc := range bcDelta.Added {
+				bcs = append(bcs, bc.(*obuildv1.BuildConfig))
+			}
+			for _, bc := range bcDelta.Updated {
+				bcs = append(bcs, bc.(*obuildv1.BuildConfig))
+			}
+
+			if err = r.triggerBuilds(instance, bcs...); err != nil {
+				updateResourceResult.Err = err
+				updateResourceResult.ErrorReason = v1alpha1.TriggerBuildFailedReason
+			}
 		}
 	}
 
@@ -330,12 +338,15 @@ func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.
 	if kogitoRes.Route != nil {
 		k8sRes = append(k8sRes, kogitoRes.Route)
 	}
+	if kogitoRes.ServiceMonitor != nil {
+		k8sRes = append(k8sRes, kogitoRes.ServiceMonitor)
+	}
 
 	return k8sRes
 }
 
 // Ensure that all Kogito images are available before the build.
-func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoApp) (reconcile.Result, error) {
+func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoApp) (requeue bool, err error) {
 	isISPresentOnOpenshiftNamespace := true
 	isImagestreamReady := true
 
@@ -378,7 +389,7 @@ func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoAp
 			if hasIs == nil {
 				_, err := openshift.ImageStreamC(r.client).CreateImageStream(&is)
 				if err != nil {
-					return reconcile.Result{}, err
+					return false, err
 				}
 
 				tagRef := fmt.Sprintf("%s:%s", is.Name, imageStreamTag)
@@ -390,7 +401,7 @@ func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoAp
 					log.Infof("Image %s ready.", imageTag.Name)
 				} else {
 					log.Warnf("ImageStream %s not ready/found, scheduling reconcile", tagRef)
-					return reconcile.Result{Requeue: true}, nil
+					return true, nil
 				}
 			}
 		}
@@ -401,5 +412,5 @@ func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoAp
 		instance.Spec.Build.ImageS2I.ImageStreamNamespace = kogitores.ImageStreamNamespace
 		instance.Spec.Build.ImageRuntime.ImageStreamNamespace = kogitores.ImageStreamNamespace
 	}
-	return reconcile.Result{}, nil
+	return false, nil
 }

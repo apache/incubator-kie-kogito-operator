@@ -16,26 +16,34 @@ package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes/scheme"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"testing"
+
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	monfake "github.com/coreos/prometheus-operator/pkg/client/versioned/fake"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientv1 "sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/client-go/kubernetes/scheme"
+
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetDeployedResources(t *testing.T) {
 	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
+	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
 	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
-	s.AddKnownTypes(appsv1.GroupVersion, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
-	s.AddKnownTypes(appsv1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
+	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
+	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
+	s.AddKnownTypes(monv1.SchemeGroupVersion, &monv1.ServiceMonitor{}, &monv1.ServiceMonitorList{})
 
 	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
@@ -165,9 +173,33 @@ func TestGetDeployedResources(t *testing.T) {
 		},
 	}
 
+	sm1 := monv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "sm1",
+			Namespace: "test",
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					UID: "1234567",
+				},
+			},
+		},
+	}
+
+	sm2 := monv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "sm2",
+			Namespace: "test",
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					UID: "1234567890",
+				},
+			},
+		},
+	}
+
 	type args struct {
 		instance *v1alpha1.KogitoApp
-		client   clientv1.Reader
+		client   *client.Client
 	}
 	tests := []struct {
 		name    string
@@ -178,7 +210,11 @@ func TestGetDeployedResources(t *testing.T) {
 			"GetDeployedResources",
 			args{
 				kogitoApp,
-				fake.NewFakeClient(&bc1, &bc2, &dc1, &dc2, &is1, &is2, &rt1, &rt2, &svc1, &svc2),
+				&client.Client{
+					ControlCli:    fake.NewFakeClient(&bc1, &bc2, &dc1, &dc2, &is1, &is2, &rt1, &rt2, &svc1, &svc2),
+					PrometheusCli: monfake.NewSimpleClientset(&sm1, &sm2).MonitoringV1(),
+					Discovery:     test.CreateFakeDiscoveryClient(),
+				},
 			},
 			false,
 		},
@@ -190,8 +226,8 @@ func TestGetDeployedResources(t *testing.T) {
 				t.Errorf("GetDeployedResources() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if len(got) != 5 {
-				t.Errorf("GetDeployedResources() got = %v, want %v", got, "5 types of resources")
+			if len(got) != 6 {
+				t.Errorf("GetDeployedResources() got = %v, want %v", got, "6 types of resources")
 			}
 			if len(got[reflect.TypeOf(buildv1.BuildConfig{})]) != 1 ||
 				got[reflect.TypeOf(buildv1.BuildConfig{})][0].GetName() != bc1.GetName() {
@@ -212,6 +248,10 @@ func TestGetDeployedResources(t *testing.T) {
 			if len(got[reflect.TypeOf(v1.Service{})]) != 1 ||
 				got[reflect.TypeOf(v1.Service{})][0].GetName() != svc1.GetName() {
 				t.Errorf("getService() gotService = %v, want %v", got, svc1)
+			}
+			if len(got[reflect.TypeOf(monv1.ServiceMonitor{})]) != 1 ||
+				got[reflect.TypeOf(monv1.ServiceMonitor{})][0].GetName() != sm1.GetName() {
+				t.Errorf("getServiceMonitor() gotServiceMonitor = %v, want %v", got, sm1)
 			}
 		})
 	}

@@ -43,6 +43,15 @@ const (
 	// LabelKeyOrgKieProtoBuf is the label key for ProtoBuf metadata
 	LabelKeyOrgKieProtoBuf = "org.kie" + labelNamespaceSep + "persistence" + labelNamespaceSep + "proto"
 
+	// LabelPrometheusScrape is the label key for prometheus scrape configuration
+	LabelPrometheusScrape = LabelKeyPrometheus + "/scrape"
+	// LabelPrometheusPath is the label key for prometheus metrics path
+	LabelPrometheusPath = LabelKeyPrometheus + "/path"
+	// LabelPrometheusPort is the label key for prometheus metrics port
+	LabelPrometheusPort = LabelKeyPrometheus + "/port"
+	// LabelPrometheusScheme is the label key for Prometheus metrics endpoint scheme
+	LabelPrometheusScheme = LabelKeyPrometheus + "/scheme"
+
 	labelNamespaceSep               = "/"
 	dockerLabelServicesSep, portSep = ",", ":"
 	portFormatWrongMessage          = "Service %s on " + openshift.ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
@@ -202,4 +211,30 @@ func DiscoverPortsAndProbesFromImage(dc *appsv1.DeploymentConfig, dockerImage *d
 			dc.Spec.Template.Spec.Containers[0].ReadinessProbe = nonSecureProbe
 		}
 	}
+}
+
+// ExtractPrometheusConfigurationFromImage retrieves prometheus configurations from the prometheus.io labels of the dockerImage
+func ExtractPrometheusConfigurationFromImage(dockerImage *dockerv10.DockerImage) (scrape bool, scheme string, path string, port *intstr.IntOrString, err error) {
+	if !dockerImageHasLabels(dockerImage) {
+		return
+	}
+
+	if scrapeVal, has := dockerImage.Config.Labels[LabelPrometheusScrape]; has {
+		scrape, _ = strconv.ParseBool(scrapeVal)
+	}
+
+	scheme = dockerImage.Config.Labels[LabelPrometheusScheme]
+
+	path = dockerImage.Config.Labels[LabelPrometheusPath]
+
+	if portVal, has := dockerImage.Config.Labels[LabelPrometheusPort]; has {
+		portInt, err := strconv.ParseInt(portVal, 10, 32)
+		if err != nil {
+			return false, "", "", nil, err
+		}
+		portV := intstr.FromInt(int(portInt))
+		port = &portV
+	}
+
+	return
 }

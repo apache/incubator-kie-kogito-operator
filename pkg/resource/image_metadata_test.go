@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
 	"testing"
 )
@@ -60,7 +61,7 @@ func Test_addMetadataFromDockerImage(t *testing.T) {
 			LabelKeyOrgKie + "myprocess":               "process",
 			LabelKeyOrgKie + "myotherlabel":            "value",
 			LabelKeyOrgKie + "persistence/anotherfile": "process.proto",
-			LabelKeyPrometheus + "/path":               "/metrics",
+			LabelPrometheusPath:                        "/metrics",
 		},
 	}}
 	dcWithLabels := &appsv1.DeploymentConfig{
@@ -71,7 +72,7 @@ func Test_addMetadataFromDockerImage(t *testing.T) {
 			Template: &v12.PodTemplateSpec{
 				ObjectMeta: v1.ObjectMeta{
 					Labels:      map[string]string{"myprocess": "process", "myotherlabel": "value"},
-					Annotations: map[string]string{LabelKeyPrometheus + "/path": "/metrics"},
+					Annotations: map[string]string{LabelPrometheusPath: "/metrics"},
 				},
 			},
 			Selector: map[string]string{"myprocess": "process", "myotherlabel": "value"},
@@ -85,7 +86,7 @@ func Test_addMetadataFromDockerImage(t *testing.T) {
 			Template: &v12.PodTemplateSpec{
 				ObjectMeta: v1.ObjectMeta{
 					Labels:      map[string]string{},
-					Annotations: map[string]string{LabelKeyPrometheus + "/path": "/metrics"},
+					Annotations: map[string]string{LabelPrometheusPath: "/metrics"},
 				},
 			},
 			Selector: map[string]string{"myprocess": "process", "myotherlabel": "value"},
@@ -229,6 +230,80 @@ func TestExtractProtoBufFilesFromDockerImage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ExtractProtoBufFilesFromDockerImage(tt.args.prefixKey, tt.args.dockerImage); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ExtractProtoBufFilesFromDockerImage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestExtractPrometheusConfigurationFromImage(t *testing.T) {
+	port := intstr.FromInt(8080)
+
+	type args struct {
+		dockerImage *dockerv10.DockerImage
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantScrape bool
+		wantScheme string
+		wantPath   string
+		wantPort   *intstr.IntOrString
+		wantErr    bool
+	}{
+		{
+			"WithImageAnnotation",
+			args{
+				&dockerv10.DockerImage{
+					Config: &dockerv10.DockerConfig{
+						Labels: map[string]string{
+							LabelPrometheusScrape: "true",
+							LabelPrometheusPath:   "/ms",
+							LabelPrometheusPort:   "8080",
+							LabelPrometheusScheme: "https",
+						},
+					},
+				},
+			},
+			true,
+			"https",
+			"/ms",
+			&port,
+			false,
+		},
+		{
+			"WithoutImageAnnotation",
+			args{
+				&dockerv10.DockerImage{
+					Config: &dockerv10.DockerConfig{
+						Labels: map[string]string{},
+					},
+				},
+			},
+			false,
+			"",
+			"",
+			nil,
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotScrape, gotScheme, gotPath, gotPort, err := ExtractPrometheusConfigurationFromImage(tt.args.dockerImage)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ExtractPrometheusConfigurationFromImage() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotScrape != tt.wantScrape {
+				t.Errorf("ExtractPrometheusConfigurationFromImage() gotScrape = %v, want %v", gotScrape, tt.wantScrape)
+			}
+			if gotScheme != tt.wantScheme {
+				t.Errorf("ExtractPrometheusConfigurationFromImage() gotScheme = %v, want %v", gotScheme, tt.wantScheme)
+			}
+			if gotPath != tt.wantPath {
+				t.Errorf("ExtractPrometheusConfigurationFromImage() gotPath = %v, want %v", gotPath, tt.wantPath)
+			}
+			if !reflect.DeepEqual(gotPort, tt.wantPort) {
+				t.Errorf("ExtractPrometheusConfigurationFromImage() gotPort = %v, want %v", gotPort, tt.wantPort)
 			}
 		})
 	}

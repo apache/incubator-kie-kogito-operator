@@ -47,6 +47,8 @@ Table of Contents
             * [Kogito CLI](#kogito-cli-1)
          * [Running Locally](#running-locally)
       * [Prometheus Integration](#prometheus-integration)
+         * [Prometheus Annotations](#prometheus-annotations)
+         * [Prometheus Operator](#prometheus-operator)
       * [Contributing](#contributing)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -635,7 +637,9 @@ $ make test
 
 ## Prometheus Integration
 
-By default, if your Kogito Runtime Service has the [`monitoring-prometheus-addon`](https://github.com/kiegroup/kogito-runtimes/wiki/Configuration#enabling-metrics) dependency, the Kogito Operator will add annotations to the pod and service of the deployed application, for example:
+### Prometheus Annotations
+
+By default, if your Kogito Runtime Service has the [`monitoring-prometheus-addon`](https://github.com/kiegroup/kogito-runtimes/wiki/Configuration#enabling-metrics) dependency, metrics for the Kogito Service will be enabled. The Kogito Operator will add annotations to the pod and service of the deployed application, for example:
 
 ```yaml
 apiVersion: v1
@@ -675,27 +679,43 @@ status:
   loadBalancer: {}
 ``` 
 
-But those annotations [won't work for the Prometheus Operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheusioscrape). If you're deploying on OpenShift 4.x, chances are that you're using the Prometheus Operator. 
+### Prometheus Operator
 
-In a scenario where the Prometheus is deployed and managed by the Prometheus Operator, you should create a new [`ServiceMonitor`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/servicemonitor.crd.yaml) resource to expose the Kogito Service to Prometheus to scrape:
+Those annotations [won't work for the Prometheus Operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheusioscrape). If you're deploying on OpenShift 4.x, chances are that you're using the Prometheus Operator. 
+
+In a scenario where the Prometheus is deployed and managed by the Prometheus Operator, and if metrics for the Kogito Service are enabled, a new [`ServiceMonitor`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/servicemonitor.crd.yaml) resource will be deployed by the Kogito Operator to expose the metrics to Prometheus to scrape:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    team: kogito
+    app: onboarding-service
   name: onboarding-service
-  namespace: openshift-monitoring
+  namespace: kogito
 spec:
   endpoints:
   - path: /metrics
-    port: http
+    targetPort: 8080
+    scheme: http
   namespaceSelector:
     matchNames:
-    # the namespace where the service is deployed
     - kogito
   selector:
+    matchLabels:
+      app: onboarding-service
+```
+
+A [`Prometheus`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/prometheus.crd.yaml) resource which is managed by the Prometheus Operator should be manually configured to select the ServiceMonitor:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus
+spec:
+  serviceAccountName: prometheus
+  serviceMonitorSelector:
     matchLabels:
       app: onboarding-service
 ```
