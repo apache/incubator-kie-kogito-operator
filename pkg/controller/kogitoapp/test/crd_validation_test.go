@@ -45,7 +45,10 @@ func TestExampleCustomResources(t *testing.T) {
 		assert.NoError(t, err, "Error reading %v CR yaml", file)
 		var input map[string]interface{}
 		assert.NoError(t, yaml.Unmarshal([]byte(yamlString), &input))
-		assert.NoError(t, schema.Validate(input), "File %v does not validate against the CRD schema", file)
+		// only validates KogitoApp. TODO: add support for others CRDs
+		if input["kind"] == "KogitoApp" {
+			assert.NoError(t, schema.Validate(input), "File %v does not validate against the CRD schema", file)
+		}
 	}
 }
 

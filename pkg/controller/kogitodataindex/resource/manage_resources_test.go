@@ -43,7 +43,7 @@ func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
 	cm := newProtobufConfigMap(instance)
 	secret := &corev1.Secret{}
 	statefulset := newStatefulset(instance, cm, *secret)
-	client, _ := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
+	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
 
 	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
@@ -82,7 +82,7 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 		},
 	}
 	statefulset := newStatefulset(instance, cm, *secret)
-	client, _ := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
+	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
 
 	// reconcile
 	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
@@ -127,7 +127,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 		Data: map[string][]byte{
 			"user": []byte(userBytes), "pass": []byte(passBytes),
 		}})
-	client, _ := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset}, nil, nil)
+	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset}, nil, nil)
 
 	// make sure that defaults were inserted
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
@@ -209,7 +209,7 @@ func Test_ensureProtoBufConfigMap(t *testing.T) {
 		},
 		Data: map[string]string{"file.proto": "this is a protofile"},
 	}
-	cli, _ := test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile}, nil, nil)
 
 	// sanity check
 	assert.Len(t, cmWithFile.Data, 1)
@@ -243,7 +243,7 @@ func Test_ensureProtoBufConfigMap(t *testing.T) {
 		},
 	}
 
-	cli, _ = test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile, kogitoApp}, []runtime.Object{isTag}, nil)
+	cli = test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile, kogitoApp}, []runtime.Object{isTag}, nil)
 
 	ensureProtoBufConfigMap(dataIndex, cmWithFile, cli)
 	exist, err = kubernetes.ResourceC(cli).Fetch(cmWithFile)

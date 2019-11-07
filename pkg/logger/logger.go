@@ -66,7 +66,7 @@ func GetLogger(name string) *zap.SugaredLogger {
 
 func getDefaultOpts() *Opts {
 	return &Opts{
-		Verbose: util.GetBoolEnv("DEBUG"),
+		Verbose: util.GetBoolOSEnv("DEBUG"),
 		Output:  defaultOutput,
 		Console: false,
 	}
@@ -79,13 +79,15 @@ func getLogger(name string, options *Opts) *zap.SugaredLogger {
 	// be propagated through the whole operator, generating
 	// uniform and structured logs.
 	logger := createLogger(options)
-	logger.Logger = logf.Log.WithName(name)
+	//logger.Logger = logf.Log.WithName(name)
 	return logger.SugaredLogger.Named(name)
 }
 
 func createLogger(options *Opts) (logger Logger) {
 	log := Logger{
-		Logger:        logzap.Logger(options.Verbose),
+		Logger: logzap.New(func(opts *logzap.Options) {
+			opts.Development = options.Verbose
+		}),
 		SugaredLogger: zapSugaredLogger(options),
 	}
 	defer log.SugaredLogger.Sync()

@@ -12,40 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"reflect"
-	"testing"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 )
 
-func Test_EnvToMap(t *testing.T) {
-	type args struct {
-		env []v1alpha1.Env
+// getKogitoDataIndexRoute gets the deployed data index route
+func getKogitoDataIndexRoute(client *client.Client, namespace string) (string, error) {
+	route := ""
+	dataIndexes := &v1alpha1.KogitoDataIndexList{}
+	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, dataIndexes); err != nil {
+		return route, err
 	}
-	tests := []struct {
-		name string
-		args args
-		want map[string]string
-	}{
-		{"TestEnvToMap",
-			args{
-				[]v1alpha1.Env{
-					{Name: "test1", Value: "test1"},
-					{Name: "test2", Value: "test2"},
-				}},
-			map[string]string{
-				"test1": "test1",
-				"test2": "test2",
-			},
-		},
+	if len(dataIndexes.Items) > 0 {
+		// should be only one data index guaranteed by OLM, but still we are looking for the first one
+		route = dataIndexes.Items[0].Status.Route
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := EnvToMap(tt.args.env); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("envToMap() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	return route, nil
 }

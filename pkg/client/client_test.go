@@ -24,7 +24,7 @@ import (
 
 func Test_getKubeConfigFile(t *testing.T) {
 	// safe backup to not jeopardize user's envs
-	oldEnvVar := util.GetEnv(envVarKubeConfig, "")
+	oldEnvVar := util.GetOSEnv(envVarKubeConfig, "")
 	tempEnvConfig := "/tmp/config"
 	defer func() {
 		os.Setenv(envVarKubeConfig, oldEnvVar)
