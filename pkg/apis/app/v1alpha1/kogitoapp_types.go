@@ -185,6 +185,8 @@ const (
 type ReasonType string
 
 const (
+	// ServicesIntegrationFailedReason - Unable to inject external services to KogitoApp
+	ServicesIntegrationFailedReason ReasonType = "ServicesIntegrationFailed"
 	// ParseCRRequestFailedReason - Unable to resolve the CR request
 	ParseCRRequestFailedReason ReasonType = "ParseCRRequestFailed"
 	// RetrieveDeployedResourceFailedReason - Unable to retrieve the deployed resources

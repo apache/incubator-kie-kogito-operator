@@ -108,6 +108,10 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s.AddKnownTypes(rbac.SchemeGroupVersion, &rbac.Role{}, &rbac.RoleBinding{})
 	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &apiextensionsv1beta1.CustomResourceDefinition{})
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{}, &v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{})
+	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
+	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{})
+	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{})
+	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &operatormkt.OperatorSource{}, &operatormkt.OperatorSourceList{})
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &metav1.CreateOptions{})

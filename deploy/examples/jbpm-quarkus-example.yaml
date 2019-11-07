@@ -1,0 +1,13 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: example-quarkus
+spec:
+  build:
+    gitSource:
+      contextDir: jbpm-quarkus-example
+      uri: 'https://github.com/kiegroup/kogito-examples'
+    imageRuntime:
+      imageStreamTag: 0.5.0
+    imageS2I:
+      imageStreamTag: 0.5.0

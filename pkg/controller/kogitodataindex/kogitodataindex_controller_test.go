@@ -15,6 +15,7 @@
 package kogitodataindex
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -35,10 +36,10 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{},
 	}
-	client, s := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+	client := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
 	r := &ReconcileKogitoDataIndex{
 		client: client,
-		scheme: s,
+		scheme: meta.GetRegisteredSchema(),
 	}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{

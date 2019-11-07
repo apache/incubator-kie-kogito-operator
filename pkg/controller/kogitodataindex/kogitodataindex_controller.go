@@ -16,6 +16,7 @@ package kogitodataindex
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"time"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -129,6 +130,12 @@ type ReconcileKogitoDataIndex struct {
 func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling KogitoDataIndex")
+
+	// If it's an exclusion, the Data Index won't exist anymore. Routes need to be cleaned.
+	reqLogger.Infof("Injecting Data Index URL into KogitoApps in the namespace '%s'", request.Namespace)
+	if err := infrastructure.InjectDataIndexURLIntoKogitoApps(r.client, request.Namespace); err != nil {
+		return reconcile.Result{}, err
+	}
 
 	instances := &appv1alpha1.KogitoDataIndexList{}
 	if err := kubernetes.ResourceC(r.client).ListWithNamespace(request.Namespace, instances); err != nil {

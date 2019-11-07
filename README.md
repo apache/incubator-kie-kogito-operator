@@ -624,7 +624,7 @@ Change log level at runtime with the `DEBUG` environment variable. e.g. -
 ```bash
 $ make mod
 $ make clean
-$ DEBUG="true" operator-sdk up local --namespace=<namespace>
+$ DEBUG=true operator-sdk up local --namespace=<namespace>
 ```
 
 Before submitting PR, please be sure to read the [contributors guide](docs/CONTRIBUTING.MD).

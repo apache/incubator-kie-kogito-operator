@@ -34,9 +34,9 @@ github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
 # github.com/coreos/prometheus-operator v0.33.0 => github.com/coreos/prometheus-operator v0.31.1
 github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1
 github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1
+github.com/coreos/prometheus-operator/pkg/client/versioned/fake
 github.com/coreos/prometheus-operator/pkg/apis/monitoring
 github.com/coreos/prometheus-operator/pkg/client/versioned/scheme
-github.com/coreos/prometheus-operator/pkg/client/versioned/fake
 github.com/coreos/prometheus-operator/pkg/client/versioned
 github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1/fake
 # github.com/davecgh/go-spew v1.1.1
@@ -577,7 +577,6 @@ k8s.io/utils/buffer
 k8s.io/utils/trace
 k8s.io/utils/integer
 # sigs.k8s.io/controller-runtime v0.2.2
-sigs.k8s.io/controller-runtime/pkg/client/fake
 sigs.k8s.io/controller-runtime/pkg/client/config
 sigs.k8s.io/controller-runtime/pkg/manager
 sigs.k8s.io/controller-runtime/pkg/manager/signals
@@ -591,10 +590,10 @@ sigs.k8s.io/controller-runtime/pkg/source
 sigs.k8s.io/controller-runtime/pkg/controller/controllerutil
 sigs.k8s.io/controller-runtime/pkg/log
 sigs.k8s.io/controller-runtime/pkg/log/zap
+sigs.k8s.io/controller-runtime/pkg/client/fake
 sigs.k8s.io/controller-runtime/pkg/runtime/scheme
-sigs.k8s.io/controller-runtime/pkg/client/apiutil
-sigs.k8s.io/controller-runtime/pkg/internal/objectutil
 sigs.k8s.io/controller-runtime/pkg/internal/log
+sigs.k8s.io/controller-runtime/pkg/client/apiutil
 sigs.k8s.io/controller-runtime/pkg/internal/recorder
 sigs.k8s.io/controller-runtime/pkg/leaderelection
 sigs.k8s.io/controller-runtime/pkg/metrics
@@ -607,6 +606,7 @@ sigs.k8s.io/controller-runtime/pkg/predicate
 sigs.k8s.io/controller-runtime/pkg/event
 sigs.k8s.io/controller-runtime/pkg/source/internal
 sigs.k8s.io/controller-runtime/pkg/cache/informertest
+sigs.k8s.io/controller-runtime/pkg/internal/objectutil
 sigs.k8s.io/controller-runtime/pkg/webhook/admission
 sigs.k8s.io/controller-runtime/pkg/webhook/internal/certwatcher
 sigs.k8s.io/controller-runtime/pkg/webhook/internal/metrics

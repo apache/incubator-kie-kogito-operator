@@ -37,7 +37,7 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 			Replicas: 1,
 		},
 	}
-	client, _ := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+	client := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
 	resources, err := resource.CreateOrFetchResources(instance, commonres.FactoryContext{Client: client})
 	assert.NoError(t, err)
 

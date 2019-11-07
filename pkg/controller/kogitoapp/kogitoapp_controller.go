@@ -16,6 +16,7 @@ package kogitoapp
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"reflect"
 	"time"
 
@@ -111,24 +112,28 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{
+	err = addWatchObjects(c,
+		&handler.EnqueueRequestForOwner{IsController: true, OwnerType: &v1alpha1.KogitoApp{}},
 		&oappsv1.DeploymentConfig{},
 		&corev1.Service{},
 		&routev1.Route{},
 		&obuildv1.BuildConfig{},
-		&oimagev1.ImageStream{},
+		&oimagev1.ImageStream{})
+	if err != nil {
+		return err
 	}
-	ownerHandler := &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &v1alpha1.KogitoApp{},
-	}
-	for _, watchObject := range watchOwnedObjects {
-		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
+
+	return nil
+}
+
+// addWatchObjects add an object batch to the watch list
+func addWatchObjects(c controller.Controller, eventHandler handler.EventHandler, objects ...runtime.Object) error {
+	for _, watchObject := range objects {
+		err := c.Watch(&source.Kind{Type: watchObject}, eventHandler)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -173,6 +178,12 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (reconcile.Res
 	r.setDefaultBuildLimits(instance)
 
 	updateResourceResult := &status.UpdateResourcesResult{ErrorReason: v1alpha1.ReasonType("")}
+
+	log.Infof("Injecting external services references to '%s'", instance.Name)
+	if err = infrastructure.InjectEnvVarsFromExternalServices(instance, r.client); err != nil {
+		updateResourceResult.Err = err
+		updateResourceResult.ErrorReason = v1alpha1.ServicesIntegrationFailedReason
+	}
 
 	log.Infof("Checking if all resources for '%s' are created", instance.Name)
 	// create resources in the cluster that do not exist

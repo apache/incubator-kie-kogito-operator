@@ -16,32 +16,19 @@ package resource
 
 import (
 	"encoding/json"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
-
 	dockerv10 "github.com/openshift/api/image/docker10"
 
 	"github.com/stretchr/testify/assert"
 
-	appsv1 "github.com/openshift/api/apps/v1"
-	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
-	routev1 "github.com/openshift/api/route/v1"
-	buildfake "github.com/openshift/client-go/build/clientset/versioned/fake"
-	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
-
-	monfake "github.com/coreos/prometheus-operator/pkg/client/versioned/fake"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
-
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func createKogitoApp() *v1alpha1.KogitoApp {
@@ -63,19 +50,10 @@ func createKogitoApp() *v1alpha1.KogitoApp {
 
 func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	kogitoApp := createKogitoApp()
-
-	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{})
-	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
-
+	client := test.CreateFakeClient(nil, nil, nil)
 	resources, err := GetRequestedResources(&Context{
 		FactoryContext: resource.FactoryContext{
-			Client: &client.Client{
-				ControlCli:    fake.NewFakeClient(),
-				BuildCli:      buildfake.NewSimpleClientset().BuildV1(),
-				ImageCli:      imgfake.NewSimpleClientset().ImageV1(),
-				PrometheusCli: monfake.NewSimpleClientset().MonitoringV1(),
-			},
+			Client: client,
 		},
 		KogitoApp: kogitoApp,
 	})
@@ -92,9 +70,6 @@ func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	kogitoApp := createKogitoApp()
 
-	s := scheme.Scheme
-	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &buildv1.BuildConfig{}, &routev1.Route{})
-	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{})
 	dockerImageRaw, err := json.Marshal(&dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
@@ -114,18 +89,12 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 			},
 		},
 	}
-
+	client := test.CreateFakeClient([]runtime.Object{&isTag}, []runtime.Object{&isTag}, nil)
 	log.Errorf("kogitoapp", kogitoApp.GetName())
 
 	resources, err := GetRequestedResources(&Context{
 		FactoryContext: resource.FactoryContext{
-			Client: &client.Client{
-				ControlCli:    fake.NewFakeClient(),
-				BuildCli:      buildfake.NewSimpleClientset().BuildV1(),
-				ImageCli:      imgfake.NewSimpleClientset(&isTag).ImageV1(),
-				PrometheusCli: monfake.NewSimpleClientset().MonitoringV1(),
-				Discovery:     test.CreateFakeDiscoveryClient(),
-			},
+			Client: client,
 		},
 		KogitoApp: kogitoApp,
 	})

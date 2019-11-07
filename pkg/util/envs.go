@@ -15,14 +15,13 @@
 package util
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"os"
 	"strconv"
 )
 
-// GetBoolEnv gets a env variable as a boolean
-func GetBoolEnv(key string) bool {
-	val := GetEnv(key, "false")
+// GetBoolOSEnv gets a env variable as a boolean
+func GetBoolOSEnv(key string) bool {
+	val := GetOSEnv(key, "false")
 	ret, err := strconv.ParseBool(val)
 	if err != nil {
 		return false
@@ -30,8 +29,8 @@ func GetBoolEnv(key string) bool {
 	return ret
 }
 
-// GetEnv gets a env variable
-func GetEnv(key, fallback string) string {
+// GetOSEnv gets a env variable
+func GetOSEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {
 		value = fallback
@@ -45,15 +44,4 @@ func GetHomeDir() string {
 		return h
 	}
 	return os.Getenv("USERPROFILE") // windows
-}
-
-// EnvToMap converts an array of Env to a map
-func EnvToMap(env []v1alpha1.Env) map[string]string {
-	envMap := map[string]string{}
-
-	for _, e := range env {
-		envMap[e.Name] = e.Value
-	}
-
-	return envMap
 }

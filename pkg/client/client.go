@@ -122,7 +122,7 @@ func buildKubeConnectionConfig() (*restclient.Config, error) {
 }
 
 func getKubeConfigFile() string {
-	kubeconfig := util.GetEnv(envVarKubeConfig, "")
+	kubeconfig := util.GetOSEnv(envVarKubeConfig, "")
 	if len(kubeconfig) > 0 {
 		log.Debugf("Kube config file read from %s environment variable: %s", envVarKubeConfig, kubeconfig)
 		return kubeconfig

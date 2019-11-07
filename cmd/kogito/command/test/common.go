@@ -16,17 +16,16 @@ package test
 
 import (
 	"bytes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/spf13/cobra"
 	"path/filepath"
 	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var (
@@ -45,8 +44,7 @@ const (
 
 // SetupFakeKubeCli will create a fake kube client for your tests
 func SetupFakeKubeCli(initObjs ...runtime.Object) *client.Client {
-	s := meta.GetRegisteredSchema()
-	return &client.Client{ControlCli: fake.NewFakeClientWithScheme(s, initObjs...)}
+	return test.CreateFakeClient(initObjs, nil, nil)
 }
 
 // SetupCliTest creates the infrastructure for the CLI test
