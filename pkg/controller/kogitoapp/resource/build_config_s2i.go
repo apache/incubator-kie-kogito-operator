@@ -40,13 +40,13 @@ const (
 
 var (
 	// DefaultBuildS2IJVMCPULimit is the default CPU limit for JVM s2i builds
-	DefaultBuildS2IJVMCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "500m"}
+	DefaultBuildS2IJVMCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "2"}
 	// DefaultBuildS2IJVMMemoryLimit is the default Memory limit for JVM s2i builds
-	DefaultBuildS2IJVMMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "1Gi"}
+	DefaultBuildS2IJVMMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "2Gi"}
 	// DefaultBuildS2IJVMLimits is the default resource limits for JVM s2i builds
 	DefaultBuildS2IJVMLimits = []v1alpha1.ResourceMap{DefaultBuildS2IJVMCPULimit, DefaultBuildS2IJVMMemoryLimit}
 	// DefaultBuildS2INativeCPULimit is the default CPU limit for Native s2i builds
-	DefaultBuildS2INativeCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"}
+	DefaultBuildS2INativeCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "2"}
 	// DefaultBuildS2INativeMemoryLimit is the default Memory limit for Native s2i builds
 	DefaultBuildS2INativeMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "10Gi"}
 	// DefaultBuildS2INativeLimits is the default resource limits for Native s2i builds
