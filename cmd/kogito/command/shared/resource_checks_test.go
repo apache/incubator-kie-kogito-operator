@@ -18,7 +18,6 @@ import (
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 
@@ -26,8 +25,8 @@ import (
 )
 
 func TestEnsureProject(t *testing.T) {
-	// we have to manually set the init configuration since we won't rely on the commands that initialize this hook for us
-	context.InitConfig()
+	// we have to manually set the init configuration since we won't rely on the commands that initialize this hook for u
+	test.InitConfigWithTestConfigFile()
 	ns := t.Name()
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
 		ObjectMeta: v12.ObjectMeta{Name: ns},

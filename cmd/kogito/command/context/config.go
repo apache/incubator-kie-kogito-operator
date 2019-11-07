@@ -21,6 +21,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -46,7 +47,8 @@ type Configuration struct {
 func InitConfig() {
 	if rootCmd.ConfigFile() != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(rootCmd.ConfigFile())
+		fullPath, file := filepath.Split(rootCmd.ConfigFile())
+		updateConfigFile(fullPath, file)
 	} else {
 		// Find home directory.
 		home, err := homedir.Dir()
@@ -54,28 +56,35 @@ func InitConfig() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		// config viper
+		// Setup full path
 		fullPath := filepath.Join(home, DefaultConfigPath)
-		viper.AddConfigPath(fullPath)
-		viper.SetConfigName(DefaultConfigFile)
-		viper.SetConfigType(DefaultConfigExt)
-		// ensure file
-		if err := viper.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
-					panic(fmt.Errorf("Error creating path for config file: %s ", err))
-				} else {
-					if err := viper.WriteConfigAs(filepath.Join(fullPath, DefaultConfigFinalName)); err != nil {
-						panic(fmt.Errorf("Error while trying to write config file: %s ", err))
-					}
-				}
-			} else {
-				panic(fmt.Errorf("Error reading file: %s ", err))
-			}
-		}
+		updateConfigFile(fullPath, DefaultConfigFinalName)
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
+}
+
+func updateConfigFile(fullPath, file string) {
+	viper.AddConfigPath(fullPath)
+	// Retrieve the file name without the extension
+	viper.SetConfigName(strings.TrimSuffix(file, filepath.Ext(file)))
+	// Retrieve the extension and remove the dot
+	viper.SetConfigType(filepath.Ext(file)[1:])
+
+	// ensure file exists
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
+				panic(fmt.Errorf("Error creating path for config file: %s ", err))
+			} else {
+				if err := viper.WriteConfigAs(filepath.Join(fullPath, file)); err != nil {
+					panic(fmt.Errorf("Error while trying to write config file: %s ", err))
+				}
+			}
+		} else {
+			panic(fmt.Errorf("Error reading file: %s ", err))
+		}
+	}
 }
 
 // ReadConfig will read the configuration from disk

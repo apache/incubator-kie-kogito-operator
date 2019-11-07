@@ -18,12 +18,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/mitchellh/go-homedir"
 
 	"github.com/stretchr/testify/assert"
 
@@ -32,15 +30,14 @@ import (
 )
 
 func TestUseProjectCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
-	home, _ := homedir.Dir()
 	ns := uuid.New().String()
-	path := filepath.Join(home, context.DefaultConfigPath, context.DefaultConfigFinalName)
+	path := test.GetTestConfigFilePath()
 
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		err := os.Remove(path)
 		assert.NoError(t, err)
 	} else {
-		err := os.MkdirAll(filepath.Join(home, context.DefaultConfigPath), os.ModePerm)
+		err := os.MkdirAll(test.GetTestConfigPath(), os.ModePerm)
 		assert.NoError(t, err)
 	}
 
@@ -65,7 +62,7 @@ func TestUseProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
 }
 
 func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
-	context.InitConfig()
+	test.InitConfigWithTestConfigFile()
 	config := context.ReadConfig()
 	config.Namespace = ""
 	config.Save()
@@ -81,8 +78,8 @@ func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
 }
 
 func TestUseProjectCmd_WhenWhatIsTheNamespace_UseConfigNamespace(t *testing.T) {
+	test.InitConfigWithTestConfigFile()
 	ns := t.Name()
-	context.InitConfig()
 	// set the project
 	config := context.ReadConfig()
 	config.Namespace = ns
