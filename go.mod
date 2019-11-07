@@ -36,7 +36,7 @@ replace (
 )
 
 // thrift moved to github
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
+//replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
 
 // Pinned to kubernetes-1.14.1
 replace (
@@ -55,3 +55,5 @@ replace (
 )
 
 replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.11.0
+
+go 1.13
