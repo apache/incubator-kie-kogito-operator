@@ -27,6 +27,7 @@ Table of Contents
       * [Deploy Data Index Service](#deploy-data-index-service)
          * [Deploy Infinispan](#deploy-infinispan)
          * [Deploy Strimzi](#deploy-strimzi)
+            * [Create Required Topics](#creating-required-topics)
          * [Install Data Index Service](#install-data-index-service)
             * [Retrieve Kafka and Infinispan internal urls](#retrieve-kafka-and-infinispan-internal-urls)
             * [Install Data Index Service with Kogito CLI](#install-data-index-service-with-kogito-cli)
@@ -298,9 +299,18 @@ my-cluster-zookeeper-nodes    ClusterIP   None             <none>        2181/TC
 
 The service you're interested in is `my-cluster-kafka-bootstrap:9092`. We will use it to deploy the Data Index Service later.
 
-Having the cluster up and running, the next step is creating the `Kafka Topic`s required by the Data Index Service: `kogito-processinstances-events` and `kogito-usertaskinstances-events`.
+#### Create Required Topics
 
-In the OpenShift Web Console, go to the Installed Operators, Strimzi Operator, Kafka Topic tab. From there, create a new `Kafka Topic` and name it as `kogito-processinstances-events` like in the example below:
+Having the cluster up and running, the next step is to create the `Kafka Topic`s required by the Data Index Service: 
+
+- `kogito-processinstances-events`
+- `kogito-usertaskinstances-events` 
+- `kogito-processdomain-events`
+- `kogito-usertaskdomain-events`
+
+To create the required topics, in the OpenShift Web Console go to the Installed Operators, Strimzi Operator, Kafka Topic tab. 
+
+From there, create a new `Kafka Topic` and name it as `kogito-processinstances-events` like in the example below:
 
 ```yaml
 apiVersion: kafka.strimzi.io/v1beta1
@@ -317,7 +327,7 @@ spec:
     retention.ms: 604800000
     segment.bytes: 1073741824
 ```
-And then do the same for the `kogito-usertaskinstances-events` topic.
+And then do the same for the others topics listed above.
 
 To check if everything was created successfully run the following command:
 
@@ -347,7 +357,7 @@ Spec:
 Events:                      <none>
 ```
 
-Now that you have the required infrastrucuture, it's safe to deploy the Kogito Data Index Service.
+Now that you have the required infrastructure, it's safe to deploy the Kogito Data Index Service.
 
 ### Install Data Index Service
 
