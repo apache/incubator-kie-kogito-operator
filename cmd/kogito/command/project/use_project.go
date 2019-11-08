@@ -85,7 +85,7 @@ func (i *useProjectCommand) InitHook() {
 func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	if ns, err := kubernetes.NamespaceC(i.Client).Fetch(i.flags.project); err != nil {
-		return fmt.Errorf("Error while trying to look for the project. Are you logged in? %s", err)
+		return fmt.Errorf("Error while trying to look for the project. Are you logged in? %s ", err)
 	} else if ns != nil {
 		config := context.ReadConfig()
 		config.Namespace = i.flags.project
@@ -93,12 +93,11 @@ func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 
 		log.Infof("Project set to '%s'", i.flags.project)
 
-		if err := shared.SilentlyInstallOperatorIfNotExists(i.flags.project, "", i.Client); err != nil {
+		if _, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.project, "", i.Client); err != nil {
 			return err
 		}
-
 		return nil
 	}
 
-	return fmt.Errorf("Project '%s' not found. Try running 'kogito new-project %s' to create your Project first", i.flags.project, i.flags.project)
+	return fmt.Errorf("Project '%s' not found. Try running 'kogito new-project %s' to create your Project first ", i.flags.project, i.flags.project)
 }

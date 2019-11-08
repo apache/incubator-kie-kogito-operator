@@ -125,8 +125,8 @@ func (i *installDataIndexCommand) InitHook() {
 	i.command.Flags().StringVar(&i.flags.infinispanUser, "infinispan-user", "", "The Infinispan Server username")
 	i.command.Flags().StringVar(&i.flags.infinispanPassword, "infinispan-password", "", "The Infinispan Server password")
 
-	cobra.MarkFlagRequired(i.command.Flags(), "kafka-url")
-	cobra.MarkFlagRequired(i.command.Flags(), "infinispan-url")
+	_ = cobra.MarkFlagRequired(i.command.Flags(), "kafka-url")
+	_ = cobra.MarkFlagRequired(i.command.Flags(), "infinispan-url")
 }
 
 func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -136,8 +136,10 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		return err
 	}
 
-	if err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
 		return err
+	} else if !installed {
+		return nil
 	}
 
 	// if user and password is sent, let's create a secret to hold it and attach to the CRD
@@ -147,10 +149,10 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		}
 
 		if exist, err := kubernetes.ResourceC(i.Client).Fetch(&infinispanSecret); err != nil {
-			return fmt.Errorf("Error while trying to fetch for the Infinispan Credentials Secret: %s", err)
+			return fmt.Errorf("Error while trying to fetch for the Infinispan Credentials Secret: %s ", err)
 		} else if exist {
 			if err := kubernetes.ResourceC(i.Client).Delete(&infinispanSecret); err != nil {
-				return fmt.Errorf("Error while deleting Infinispan Credentials Secret: %s", err)
+				return fmt.Errorf("Error while deleting Infinispan Credentials Secret: %s ", err)
 			}
 		}
 
@@ -165,7 +167,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		i.flags.infinispan.UseAuth = true
 		i.flags.infinispan.SaslMechanism = v1alpha1.InfinispanSaslMechanismType(i.flags.infinispanSasl)
 		if err := kubernetes.ResourceC(i.Client).Create(&infinispanSecret); err != nil {
-			return fmt.Errorf("Error while trying to create an Infinispan Secret credentials: %s", err)
+			return fmt.Errorf("Error while trying to create an Infinispan Secret credentials: %s ", err)
 		}
 	}
 

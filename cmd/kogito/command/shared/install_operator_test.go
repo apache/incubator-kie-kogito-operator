@@ -84,10 +84,10 @@ func TestMustInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 		},
 	}
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, operatorSource)
-	// Operator is there in the hub and not exists in the given namespace, let's check if there's an error alerting the user
-	err := MustInstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Kogito Operator is available in the OperatorHub")
+	// Operator is there in the hub and not exists in the given namespace, let's check if there's no error
+	installed, err := MustInstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false)
+	assert.NoError(t, err)
+	assert.False(t, installed)
 }
 
 func TestTryToInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
@@ -103,8 +103,9 @@ func TestTryToInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 	}
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, operatorSource)
 	// Operator is there in the hub and not exists in the given namespace, shouldn't raise an error
-	err := TryToInstallOperatorIfNotExists(ns, defaultOperatorImageName, client)
+	installed, err := SilentlyInstallOperatorIfNotExists(ns, defaultOperatorImageName, client)
 	assert.NoError(t, err)
+	assert.False(t, installed)
 }
 
 func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {
@@ -115,9 +116,9 @@ func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: operatorMarketplaceNamespace}},
 	)
 	// operator is not in the hub, let's install with yaml files
-	err := MustInstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false)
+	installed, err := MustInstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false)
 	assert.NoError(t, err)
-
+	assert.True(t, installed)
 	// the operator is now in there, but no pods running because we're in a controlled test environment
 	exist, err := checkKogitoOperatorExists(client, ns)
 	assert.Error(t, err)

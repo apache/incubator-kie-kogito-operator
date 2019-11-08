@@ -93,12 +93,11 @@ func (i *newProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 		config.Save()
 		log.Infof("Project '%s' created successfully", ns.Name)
 
-		if err := shared.TryToInstallOperatorIfNotExists(ns.Name, "", i.Client); err != nil {
+		if _, err = shared.SilentlyInstallOperatorIfNotExists(ns.Name, "", i.Client); err != nil {
 			return err
 		}
-
-	} else {
-		log.Infof("Project '%s' already exists", i.flags.project)
+		return nil
 	}
+	log.Infof("Project '%s' already exists", i.flags.project)
 	return nil
 }
