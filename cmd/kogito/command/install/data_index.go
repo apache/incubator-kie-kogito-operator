@@ -182,6 +182,10 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 			Infinispan:    i.flags.infinispan,
 			Kafka:         i.flags.kafka,
 		},
+		Status: v1alpha1.KogitoDataIndexStatus{
+			Conditions:         []v1alpha1.DataIndexCondition{},
+			DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{},
+		},
 	}
 
 	if err := kubernetes.ResourceC(i.Client).Create(&kogitoDataIndex); err != nil {
