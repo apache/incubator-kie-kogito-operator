@@ -55,7 +55,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ## Requirements
 
-- go v1.12+
+- go v1.12
 - [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.11.0
 - ocp 3.11/4.x (you can use [CRC](https://github.com/code-ready/crc) for local deployment)
 - [kogito s2i imagestreams](https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml) installed
