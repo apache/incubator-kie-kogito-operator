@@ -47,7 +47,27 @@ func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
 	lines, _, err := test.ExecuteCli()
 
 	assert.Error(t, err)
-	assert.Contains(t, lines, "required flag(s) \"kafka-url\" not set")
+	assert.Contains(t, lines, "Infinispan Operator is not available in the Project")
+}
+
+func Test_DeployDataIndexCmd_SuccessfullDeployWithoutKafkaURI(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-instance my-cluster", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
+}
+
+func Test_DeployDataIndexCmd_SuccessfullDeployWithKafkaInstance(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
 }
 
 func Test_DeployDataIndexCmd_SuccessfullDeploy(t *testing.T) {

@@ -17,6 +17,7 @@ package resource
 import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
@@ -36,13 +37,19 @@ func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIn
 		imgUpdate := ensureImage(instance, resources.StatefulSet)
 		envUpdate := ensureEnvs(instance, resources.StatefulSet)
 		resUpdate := ensureResources(instance, resources.StatefulSet)
-		kafkaUpdate := ensureKafka(instance, resources.StatefulSet)
+		kafkaUpdate, err := ensureKafka(instance, resources.StatefulSet, client)
+		if err != nil {
+			return err
+		}
 		infinispanUpdate, err := ensureInfinispan(instance, resources.StatefulSet, client)
 		if err != nil {
 			return err
 		}
 
 		if err := ensureProtoBufConfigMap(instance, resources.ProtoBufConfigMap, client); err != nil {
+			return err
+		}
+		if err := ensureKafkaTopics(instance, resources.KafkaTopics, client); err != nil {
 			return err
 		}
 
@@ -173,20 +180,51 @@ func ensureInfinispan(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.St
 	return true, nil
 }
 
-func ensureKafka(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.StatefulSet) bool {
-	if &instance.Spec.Kafka == nil || len(statefulset.Spec.Template.Spec.Containers) == 0 {
-		return false
+func ensureKafka(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.StatefulSet, client *client.Client) (bool, error) {
+	if len(statefulset.Spec.Template.Spec.Containers) == 0 {
+		return false, nil
 	}
 
-	updated := false
-	for _, kafkaEnv := range managedKafkaKeys {
-		currentURI := util.GetEnvVarFromContainer(kafkaEnv, statefulset.Spec.Template.Spec.Containers[0])
-		if instance.Spec.Kafka.ServiceURI != currentURI {
-			log.Debugf("Found differences in the Kafka ServiceURI (%s). Updating to '%s'.", currentURI, instance.Spec.Kafka.ServiceURI)
-			util.SetEnvVar(kafkaEnv, instance.Spec.Kafka.ServiceURI, &statefulset.Spec.Template.Spec.Containers[0])
-			updated = true
+	if externalURI, err := getKafkaServerURI(instance.Spec.Kafka, instance.Namespace, client); err != nil {
+		return false, err
+	} else if len(externalURI) > 0 {
+		updated := false
+		for _, kafkaEnv := range managedKafkaKeys {
+			currentURI := util.GetEnvVarFromContainer(kafkaEnv, statefulset.Spec.Template.Spec.Containers[0])
+			if externalURI != currentURI {
+				log.Debugf("Found differences in the Kafka ServiceURI (%s). Updating to '%s'.", currentURI, externalURI)
+				util.SetEnvVar(kafkaEnv, externalURI, &statefulset.Spec.Template.Spec.Containers[0])
+				updated = true
+			}
+		}
+		return updated, nil
+	}
+
+	return false, nil
+}
+
+func ensureKafkaTopics(instance *v1alpha1.KogitoDataIndex, kafkaTopics []kafkabetav1.KafkaTopic, client *client.Client) error {
+	if len(kafkaTopics) == 0 {
+		return nil
+	}
+
+	kafkaName, kafkaReplicas, err := getKafkaServerReplicas(instance.Spec.Kafka, instance.Namespace, client)
+	if err != nil {
+		return err
+	} else if len(kafkaName) <= 0 || kafkaReplicas <= 0 {
+		return nil
+	}
+
+	for _, kafkaTopic := range kafkaTopics {
+		if kafkaTopic.Labels[kafkaClusterLabel] != kafkaName || kafkaTopic.Spec.Replicas != kafkaReplicas {
+			kafkaTopic.Labels[kafkaClusterLabel] = kafkaName
+			kafkaTopic.Spec.Replicas = kafkaReplicas
+			if err := kubernetes.ResourceC(client).Update(&kafkaTopic); err != nil {
+				log.Error("Error while updating Kafka Topic with new files: ", err)
+				return err
+			}
 		}
 	}
 
-	return updated
+	return nil
 }

@@ -48,7 +48,7 @@ func CreateFakeClient(objects []runtime.Object, imageObjs []runtime.Object, buil
 	}
 }
 
-// CreateFakeDiscoveryClient will create a fake discovery client that supports prometheus api
+// CreateFakeDiscoveryClient creates a fake discovery client that supports prometheus, infinispan, strimzi api
 func CreateFakeDiscoveryClient() discovery.DiscoveryInterface {
 	return &discfake.FakeDiscovery{
 		Fake: &clienttesting.Fake{
@@ -58,6 +58,9 @@ func CreateFakeDiscoveryClient() discovery.DiscoveryInterface {
 				},
 				{
 					GroupVersion: "infinispan.org/v1",
+				},
+				{
+					GroupVersion: "kafka.strimzi.io/v1beta1",
 				},
 			},
 		},

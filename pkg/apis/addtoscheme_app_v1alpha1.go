@@ -16,6 +16,7 @@ package apis
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 
 	appsv1 "k8s.io/api/apps/v1"
 
@@ -30,7 +31,9 @@ import (
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme,
+	AddToSchemes = append(AddToSchemes,
+		v1alpha1.SchemeBuilder.AddToScheme,
+		kafkabetav1.SchemeBuilder.AddToScheme,
 		oappsv1.Install,
 		routev1.Install,
 		oimagev1.Install,

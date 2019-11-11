@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, secret *corev1.Secret) *appsv1.StatefulSet {
+func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, secret *corev1.Secret, externalURI string) *appsv1.StatefulSet {
 	// create a standard probe
 	probe := defaultProbe
 	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.FromInt(defaultExposedPort)}
@@ -35,7 +35,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 	// defaults
 	envs = util.AppendStringMap(envs, defaultEnvs)
 	envs = util.AppendStringMap(envs, fromInfinispanToStringMap(instance.Spec.Infinispan))
-	envs = util.AppendStringMap(envs, fromKafkaToStringMap(instance.Spec.Kafka))
+	envs = util.AppendStringMap(envs, fromKafkaToStringMap(externalURI))
 
 	if instance.Spec.Replicas == 0 {
 		instance.Spec.Replicas = defaultReplicas
