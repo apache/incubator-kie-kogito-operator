@@ -150,8 +150,10 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
 		return err
+	} else if !installed {
+		return nil
 	}
 
 	if err := shared.CheckKogitoAppNotExists(i.Client, i.flags.name, i.flags.Project); err != nil {
@@ -206,7 +208,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 	log.Debugf("Trying to deploy Kogito Service '%s'", kogitoApp.Name)
 	// create it!
 	if err := kubernetes.ResourceC(i.Client).Create(kogitoApp); err != nil {
-		return fmt.Errorf("Error while creating a new KogitoApp in the context: %v", err)
+		return fmt.Errorf("Error while creating a new KogitoApp in the context: %v ", err)
 	}
 
 	log.Infof("KogitoApp '%s' successfully created on namespace '%s'", kogitoApp.Name, kogitoApp.Namespace)
