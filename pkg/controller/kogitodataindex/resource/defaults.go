@@ -51,7 +51,10 @@ const (
 	infinispanEnvKeyCredSecret string = "INFINISPAN_CREDENTIAL_SECRET"
 	interfaceEnvKeyServiceURI  string = "QUARKUS_INFINISPAN_CLIENT_SERVER_LIST"
 
-	kafkaEnvKeyServiceURI string = "MP_MESSAGING_INCOMING_KOGITO_PROCESSINSTANCES_EVENTS_BOOTSTRAP_SERVERS"
+	kafkaEnvKeyProcessInstancesServer string = "MP_MESSAGING_INCOMING_KOGITO_PROCESSINSTANCES_EVENTS_BOOTSTRAP_SERVERS"
+	kafkaEnvKeyUserTaskInstanceServer string = "MP_MESSAGING_INCOMING_KOGITO_USERTASKINSTANCES_EVENTS_BOOTSTRAP_SERVERS"
+	kafkaEnvKeyProcessDomainServer    string = "MP_MESSAGING_INCOMING_KOGITO_PROCESSDOMAIN_EVENTS_BOOTSTRAP_SERVERS"
+	kafkaEnvKeyUserTaskDomainServer   string = "MP_MESSAGING_INCOMING_KOGITO_USERTASKDOMAIN_EVENTS_BOOTSTRAP_SERVERS"
 )
 
 // managedEnvKeys are a collection of reserved keys
@@ -61,7 +64,10 @@ var managedEnvKeys = []string{
 }
 
 var managedKafkaKeys = []string{
-	kafkaEnvKeyServiceURI,
+	kafkaEnvKeyProcessInstancesServer,
+	kafkaEnvKeyUserTaskInstanceServer,
+	kafkaEnvKeyProcessDomainServer,
+	kafkaEnvKeyUserTaskDomainServer,
 }
 
 var managedInfinispanKeys = []string{

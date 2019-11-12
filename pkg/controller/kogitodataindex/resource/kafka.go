@@ -23,7 +23,9 @@ func fromKafkaToStringMap(kafka v1alpha1.KafkaConnectionProperties) map[string]s
 	}
 
 	if len(kafka.ServiceURI) > 0 {
-		propsmap[kafkaEnvKeyServiceURI] = kafka.ServiceURI
+		for _, envKey := range managedKafkaKeys {
+			propsmap[envKey] = kafka.ServiceURI
+		}
 	}
 
 	return propsmap

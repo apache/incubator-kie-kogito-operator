@@ -47,12 +47,16 @@ func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
 
 	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
-	assert.NotContains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kafkaEnvKeyServiceURI, Value: serviceuri})
+	for _, kafkaKey := range managedKafkaKeys {
+		assert.NotContains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kafkaKey, Value: serviceuri})
+	}
 
 	instance.Spec.Kafka = v1alpha1.KafkaConnectionProperties{ServiceURI: serviceuri}
 	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kafkaEnvKeyServiceURI, Value: serviceuri})
+	for _, kafkaKey := range managedKafkaKeys {
+		assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kafkaKey, Value: serviceuri})
+	}
 }
 
 func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
