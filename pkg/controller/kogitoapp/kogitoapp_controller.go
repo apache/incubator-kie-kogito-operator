@@ -29,7 +29,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
@@ -175,8 +174,6 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 		return reconcile.Result{RequeueAfter: time.Duration(500) * time.Millisecond}, nil
 	}
 
-	r.setDefaultBuildLimits(instance)
-
 	updateResourceResult := &status.UpdateResourcesResult{ErrorReason: v1alpha1.ReasonType("")}
 
 	log.Infof("Injecting external services references to '%s'", instance.Name)
@@ -284,34 +281,6 @@ func (r *ReconcileKogitoApp) updateKogitoAppStatus(request *reconcile.Request, i
 		log.Infof("Reconcile for '%s' finished with the KogitoApp updated", instance.Name)
 	} else {
 		log.Infof("Reconcile for '%s' successfully finished", instance.Name)
-	}
-}
-
-func (r *ReconcileKogitoApp) setDefaultBuildLimits(instance *v1alpha1.KogitoApp) {
-	if &instance.Spec.Build.Resources == nil {
-		instance.Spec.Build.Resources = v1alpha1.Resources{}
-	}
-	if len(instance.Spec.Build.Resources.Limits) == 0 {
-		if instance.Spec.Build.Native {
-			instance.Spec.Build.Resources.Limits = kogitores.DefaultBuildS2INativeLimits
-		} else {
-			instance.Spec.Build.Resources.Limits = kogitores.DefaultBuildS2IJVMLimits
-		}
-	} else {
-		if !shared.ContainsResource(v1alpha1.ResourceCPU, instance.Spec.Build.Resources.Limits) {
-			if instance.Spec.Build.Native {
-				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, kogitores.DefaultBuildS2INativeCPULimit)
-			} else {
-				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, kogitores.DefaultBuildS2IJVMCPULimit)
-			}
-		}
-		if !shared.ContainsResource(v1alpha1.ResourceMemory, instance.Spec.Build.Resources.Limits) {
-			if instance.Spec.Build.Native {
-				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, kogitores.DefaultBuildS2INativeMemoryLimit)
-			} else {
-				instance.Spec.Build.Resources.Limits = append(instance.Spec.Build.Resources.Limits, kogitores.DefaultBuildS2IJVMMemoryLimit)
-			}
-		}
 	}
 }
 

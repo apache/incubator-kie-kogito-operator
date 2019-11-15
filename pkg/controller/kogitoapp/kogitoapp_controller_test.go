@@ -256,8 +256,8 @@ func TestKogitoAppWithResource(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, bcS2I)
 
-	assert.Equal(t, resource.MustParse(kogitores.DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
-	assert.Equal(t, resource.MustParse(kogitores.DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
+	assert.Equal(t, "0", bcS2I.Spec.Resources.Limits.Cpu().String())
+	assert.Equal(t, "0", bcS2I.Spec.Resources.Limits.Memory().String())
 
 	for _, isName := range kogitores.ImageStreamNameList {
 		hasIs, _ := openshift.ImageStreamC(r.client).FetchTag(types.NamespacedName{Name: isName, Namespace: "test"}, "0.4.0")
