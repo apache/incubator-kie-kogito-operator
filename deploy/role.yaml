@@ -13,9 +13,9 @@ rules:
       - rbac.authorization.k8s.io
       - route.openshift.io
     resources:
-      - "*"
+      - '*'
     verbs:
-      - "*"
+      - '*'
   - apiGroups:
       - ""
     resources:
@@ -29,7 +29,7 @@ rules:
       - deployments
       - replicasets
     verbs:
-      - "*"
+      - '*'
   - apiGroups:
       - monitoring.coreos.com
     resources:
@@ -39,6 +39,16 @@ rules:
       - create
       - list
       - delete
+  - apiGroups:
+      - infinispan.org
+    resources:
+      - infinispans
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+      - watch
   - apiGroups:
       - apps
     resourceNames:

@@ -26,7 +26,7 @@ import (
 
 // DefaultBuildCommands will create a new start command for the Kogito CLI
 func DefaultBuildCommands() *cobra.Command {
-	return BuildCommands(&client.Client{}, nil)
+	return BuildCommands(client.NewForConsole(), nil)
 }
 
 // BuildCommands will create a customized start command for the Kogito CLI

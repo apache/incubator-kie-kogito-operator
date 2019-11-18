@@ -81,8 +81,14 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	}
 
 	if !reflect.DeepEqual(status, instance.Status) {
-		log.Debugf("About to update intance status")
+		log.Info("About to update instance status")
 		instance.Status = status
+		if instance.Status.Conditions == nil {
+			instance.Status.Conditions = []v1alpha1.DataIndexCondition{}
+		}
+		if instance.Status.DependenciesStatus == nil {
+			instance.Status.DependenciesStatus = []v1alpha1.DataIndexDependenciesStatus{}
+		}
 		if err = kubernetes.ResourceC(client).UpdateStatus(instance); err != nil {
 			return err
 		}

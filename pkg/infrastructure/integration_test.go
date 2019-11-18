@@ -15,7 +15,6 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -92,39 +91,5 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes}, nil, nil)
 	err := InjectEnvVarsFromExternalServices(kogitoApp, client)
 	assert.NoError(t, err)
-	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexRouteEnv, Value: expectedRoute})
-}
-
-func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
-	ns := t.Name()
-	name := "my-kogito-app"
-	expectedRoute := "http://dataindex-route.com"
-	kogitoApp := &v1alpha1.KogitoApp{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      name,
-			Namespace: ns,
-		},
-	}
-	dataIndexes := &v1alpha1.KogitoDataIndexList{
-		Items: []v1alpha1.KogitoDataIndex{
-			{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "kogito-data-index",
-					Namespace: ns,
-				},
-				Status: v1alpha1.KogitoDataIndexStatus{
-					Route: expectedRoute,
-				},
-			},
-		},
-	}
-	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes}, nil, nil)
-
-	err := InjectDataIndexURLIntoKogitoApps(client, ns)
-	assert.NoError(t, err)
-
-	exist, err := kubernetes.ResourceC(client).Fetch(kogitoApp)
-	assert.NoError(t, err)
-	assert.True(t, exist)
 	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexRouteEnv, Value: expectedRoute})
 }

@@ -8,6 +8,7 @@ Table of Contents
 =================
 
    * [Kogito Operator](#kogito-operator)
+   * [Table of Contents](#table-of-contents)
       * [Requirements](#requirements)
       * [Installation](#installation)
          * [Deploy to OpenShift 4.x](#deploy-to-openshift-4x)
@@ -27,9 +28,9 @@ Table of Contents
       * [Deploy Data Index Service](#deploy-data-index-service)
          * [Deploy Infinispan](#deploy-infinispan)
          * [Deploy Strimzi](#deploy-strimzi)
-            * [Create Required Topics](#creating-required-topics)
+            * [Create Required Topics](#create-required-topics)
          * [Install Data Index Service](#install-data-index-service)
-            * [Retrieve Kafka and Infinispan internal urls](#retrieve-kafka-and-infinispan-internal-urls)
+            * [Retrieve Kafka internal url](#retrieve-kafka-internal-url)
             * [Install Data Index Service with Kogito CLI](#install-data-index-service-with-kogito-cli)
             * [Install Data Index Service with Operator Catalog (OLM)](#install-data-index-service-with-operator-catalog-olm)
             * [Install Data Index Service with oc client](#install-data-index-service-with-oc-client)
@@ -50,6 +51,7 @@ Table of Contents
       * [Prometheus Integration](#prometheus-integration)
          * [Prometheus Annotations](#prometheus-annotations)
          * [Prometheus Operator](#prometheus-operator)
+      * [Infinispan Integration](#infinispan-integration)
       * [Contributing](#contributing)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -65,7 +67,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ### Deploy to OpenShift 4.x
 
-Kogito operator is a namespaced operator, which means that you will need to install it into the namespace you want your kogito application to run in.
+Kogito operator is a namespaced operator, which means that you will need to install it into the namespace you want your Kogito application to run in.
 
 #### Optional Step
 
@@ -214,70 +216,26 @@ For more information, see [Native X JVM Builds](#native-x-jvm-builds).
 
 ## Deploy Data Index Service
 
-The Kogito Operator is able to deploy the [Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) as a [Custom Resource](deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml) (`KogitoDataIndex`). Since Data Index Service depends on Kafka and Infinispan, it's necessary to manually deploy an Apache Kafka Cluster (we use here [Strimzi](https://strimzi.io/)) and an Infinispan Server (10.x) in the same namespace.
+The Kogito Operator is able to deploy the [Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) as a [Custom Resource](deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml) (`KogitoDataIndex`). 
 
-| :information_source: It's planned for future releases that the Kogito Operator will deploy an Infinispan and a Kafka cluster when deploying the Data Index Service. |
+Since Data Index Service depends on Kafka, it's necessary to manually deploy an Apache Kafka Cluster (we use [Strimzi](https://strimzi.io/)) in the same namespace.
+ 
+Data Index also depends on Infinispan, but since 0.6.0 version, Infinispan Server is *automagically* deployed for you.
+
+| :information_source: It's planned for future releases that the Kogito Operator will deploy a Kafka cluster when deploying the Data Index Service. |
 | --- |
 
 ### Deploy Infinispan
 
-To deploy an Infinispan Server, you can leverage from `oc new-app [docker image]` command as follows:
+If you plan to have the Data Index to connect to the Infinispan server deployed within the same namespace, Kogito Operator can handle this deployment for you.
 
-```bash
-$ oc new-app jboss/infinispan-server:10.0.0.Beta3
-```
+When installing the Kogito Operator from OperatorHub, the Infinispan Operator will be available in the same namespace. Otherwise, if you don't have OperatorHub or OLM available in your cluster, you'll have to [subscribe to Infinispan Operator](https://infinispan.org/infinispan-operator/master/documentation/asciidoc/titles/operator.html#deploying_operator_manually) manually.
 
-Expect a similar output like this one:
-
-```bash
---> Found Docker image caaa296 (5 months old) from Docker Hub for "jboss/infinispan-server:10.0.0.Beta3"
-
-    Infinispan Server 
-    ----------------- 
-    Provides a scalable in-memory distributed database designed for fast access to large volumes of data.
-
-    Tags: datagrid, java, jboss
-
-    * An image stream tag will be created as "infinispan-server:10.0.0.Beta3" that will track this image
-    * This image will be deployed in deployment config "infinispan-server"
-    * Ports 11211/tcp, 11222/tcp, 57600/tcp, 7600/tcp, 8080/tcp, 8181/tcp, 8888/tcp, 9990/tcp will be load balanced by service "infinispan-server"
-      * Other containers can access this service through the hostname "infinispan-server"
-
---> Creating resources ...
-    imagestream.image.openshift.io "infinispan-server" created
-    deploymentconfig.apps.openshift.io "infinispan-server" created
-    service "infinispan-server" created
---> Success
-    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/infinispan-server' 
-    Run 'oc status' to view your app.
-```
-
-OpenShift will create everything you need for Infinispan Server to work in the namespace. Make sure that the pod is running:
-
-```bash
-$ oc get pods -l app=infinispan-server
-```
-
-Take a look at the logs by running:
-
-```bash
-# take the pod name from the command you ran before
-$ oc logs -f <pod name>
-```
-
-The Infinispan server should be accessed within the namespace by port 11222:
-
-```bash
-$ oc get svc -l app=infinispan-server
-
-NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                      AGE
-infinispan-server   ClusterIP   172.30.193.214   <none>        7600/TCP,8080/TCP,8181/TCP,8888/TCP,9990/TCP,11211/TCP,11222/TCP,57600/TCP   4m19s
-```
+Having the Infinispan Operator deployed, just jump to [Install Data Index Service section](#install-data-index-service).
 
 ### Deploy Strimzi
 
-Deploying [Strimzi](https://strimzi.io/) is much easier since it's an Operator and should be available in the [OperatorHub](https://operatorhub.io/operator/strimzi-kafka-operator). On OpenShift Web Console, go to the left menu, Catalog, OperatorHub and search for `Strimzi`.
+Deploying [Strimzi](https://strimzi.io/) is easy since it's an Operator and should be available in the [OperatorHub](https://operatorhub.io/operator/strimzi-kafka-operator). On OpenShift Web Console, go to the left menu, Catalog, OperatorHub and search for `Strimzi`.
 
 Follow the on screen instructions to install the Strimzi Operator. At the end, you should see the Strimzi Operator on the Installed Operators tab:
 
@@ -361,20 +319,11 @@ Now that you have the required infrastructure, it's safe to deploy the Kogito Da
 
 ### Install Data Index Service
 
-#### Retrieve Kafka and Infinispan internal urls
+#### Retrieve Kafka internal url
 
-Having [installed](#installation) the Kogito Operator, create a new `Kogito Data Index` resource using the services URIs from Infinispan and Kafka:
+Having configured the Kafka Operator, you'll need the Kafka service URI to install the Data Index Service. 
 
-```bash
-$ oc get svc -l app=infinispan-server
-
-NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                      AGE
-infinispan-server   ClusterIP   172.30.193.214   <none>        7600/TCP,8080/TCP,8181/TCP,8888/TCP,9990/TCP,11211/TCP,11222/TCP,57600/TCP   4m19s
-```
-
-In this example, the Infinispan Server service is `infinispan-server:11222`.
-
-Then grab the Kafka cluster URI:
+Run the following command to take the internal URI:
 
 ```bash
 $ oc get svc -l strimzi.io/cluster=my-cluster | grep bootstrap
@@ -391,7 +340,13 @@ Use this information to create the Kogito Data Index resource.
 If you have installed the [Kogito CLI](#kogito-cli), you can simply run:
 
 ```bash
-$ kogito install data-index -p my-project --infinispan-url infinispan-server:11222 --kafka-url my-cluster-kafka-bootstrap:9092
+$ kogito install data-index -p my-project --kafka-url my-cluster-kafka-bootstrap:9092
+```
+
+Infinispan will be deployed for you using the Infinispan Operator. Just make sure that it's running in your project. Case not, an error message will be displayed:
+
+```
+Infinispan Operator is not available in the Project: my-project. Please make sure to install it before deploying Data Index without infinispan-url provided 
 ```
 
 #### Install Data Index Service with Operator Catalog (OLM)
@@ -404,26 +359,13 @@ kind: KogitoDataIndex
 metadata:
   name: kogito-data-index
 spec:
-  # If not informed, these default values will be set for you
-  # environment variables to set in the runtime container. Example: JAVAOPTS: "-Dquarkus.log.level=DEBUG"
-  env: {}
   # number of pods to be deployed
   replicas: 1
   # image to use for this deploy
   image: "quay.io/kiegroup/kogito-data-index:latest"
-  # Limits and requests for the Data Index pod
-  memoryLimit: ""
-  memoryRequest: ""
-  cpuLimit: ""
-  cpuRequest: ""
-  # details about the kafka connection
   kafka:
     # the service name and port for the kafka cluster. Example: my-kafka-cluster:9092
     serviceURI: my-cluster-kafka-bootstrap:9092
-  # details about the connected infinispan
-  infinispan:
-    # the service name and port of the infinispan cluster. Example: my-infinispan:11222
-    serviceURI: infinispan-server:11222
 ```
 
 #### Install Data Index Service with oc client
@@ -739,6 +681,37 @@ The metrics exposed by the Kogito Service can be seen on the _Graph_, for exampl
 ![](docs/img/prometheus_graph.png)
 
 For more information about the Prometheus Operator, check the [Getting Started guide](https://github.com/coreos/prometheus-operator/blob/master/Documentation/user-guides/getting-started.md). 
+
+## Infinispan Integration
+
+To make it easy to have an Infinispan server up and running in your project, Kogito Operator has a resource called `KogitoInfra` to handle Infinispan deployment for you. 
+
+For the Data Index service, if not provided a service URL to connect to the Infinispan server, one will be deployed using the [Infinispan Operator](https://github.com/infinispan/infinispan-operator).
+
+A random password for the `developer` user will be created and injected into the Data Index automatically. You don't have to do anything to have both services to work together.
+
+If you have plans to scale the Infinispan cluster, you can easily edit the [Infinispan CR](https://github.com/infinispan/infinispan-operator/blob/master/pkg/apis/infinispan/v1/infinispan_types.go) to meet your requirements. 
+
+By default, `KogitoInfra` will create a secret that holds the username and password to authenticate to this server. To see it, just run:
+
+```bash
+$ oc get secret/kogito-infinispan-credential -o yaml
+
+apiVersion: v1
+data:
+  password: VzNCcW9DeXdpMVdXdlZJZQ==
+  username: ZGV2ZWxvcGVy
+kind: Secret
+(...)
+```
+
+The key values are masked by Base64 algorithm, to view the password from the above output in your terminal use:
+
+```bash
+$ echo VzNCcW9DeXdpMVdXdlZJZQ== | base64 -d
+
+W3BqoCywi1WWvVIe
+```
 
 ## Contributing
 

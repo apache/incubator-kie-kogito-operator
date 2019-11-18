@@ -15,7 +15,7 @@ metadata:
             "cpuRequest": "",
             "image": "quay.io/kiegroup/kogito-data-index:latest",
             "infinispan": {
-              "serviceURI": "kogito-infinispan:11222"
+              "useKogitoInfra": true
             },
             "kafka": {
               "serviceURI": "kogito-kafka-kafka-bootstrap:9092"
@@ -23,6 +23,16 @@ metadata:
             "memoryLimit": "",
             "memoryRequest": "",
             "replicas": 1
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoInfra",
+          "metadata": {
+            "name": "kogito-infra"
+          },
+          "spec": {
+            "installInfinispan": true
           }
         },
         {
@@ -44,11 +54,11 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
-    containerImage: quay.io/kiegroup/kogito-cloud-operator:0.5.0
+    containerImage: quay.io/kiegroup/kogito-cloud-operator:0.6.0
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Cloud Operator for deployment and management of Kogito Services.
     repository: https://github.com/kiegroup/kogito-cloud-operator
-    support: Red Hat, Inc.
+    support: Red Hat
     tectonic-visibility: ocs
   labels:
     operator-kogitocloud: "true"
@@ -81,6 +91,14 @@ spec:
         path: runtime
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
+      - description: Git source
+        displayName: Source
+        path: build.gitSource.uri
+        x-descriptors:
+        - urn:alm:descriptor:org.w3:link
+      - description: Git context dir
+        displayName: Context Dir
+        path: build.gitSource.contextDir
       statusDescriptors:
       - description: Deployments for the KogitoApp environment.
         displayName: Deployments
@@ -92,9 +110,13 @@ spec:
         path: route
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
+      - description: Conditions History
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1alpha1
-    - description: The Kogito Data Index Service infrastructure deployment. See more
-        at https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service
+    - description: The Kogito Data Index Service infrastructure deployment
       displayName: Kogito Data Index
       kind: KogitoDataIndex
       name: kogitodataindices.app.kiegroup.org
@@ -121,17 +143,29 @@ spec:
         displayName: Image
         path: image
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
+        - urn:alm:descriptor:io.kubernetes:image
       - description: The Infinispan Service URI used by the Data Index Service
         displayName: Infinispan Service URI
         path: infinispan.serviceURI
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
+        - urn:alm:descriptor:com.tectonic.ui:service
       - description: The Kafka Cluster Service URI used by the Data Index Service
         displayName: Kafka Service URI
         path: kafka.serviceURI
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
+      - description: CPU request which will be requested upon container creation
+        displayName: CPU Request
+        path: cpuRequest
+      - description: CPU limit which will be available for the container
+        displayName: CPU Limit
+        path: cpuLimit
+      - description: Memory request which will be requested upon container creation
+        displayName: Memory Request
+        path: memoryRequest
+      - description: Memory limit which will be available for the container
+        displayName: Memory Limit
+        path: memoryLimit
       statusDescriptors:
       - description: The address for accessing data index service, if it is deployed.
         displayName: Route
@@ -139,6 +173,45 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
       version: v1alpha1
+    - description: Will be managed automatically by the operator, don't need to create
+        it manually. Kogito Infra is responsible to delegate the creation of each
+        infrastructure dependency (such as Infinispan) to a third party operator.
+        It holds the deployment status of each infrastructure dependency and custom
+        resources needed to run Kogito Runtime and Kogito Data Index services.
+      displayName: Kogito Infra
+      kind: KogitoInfra
+      name: kogitoinfras.app.kiegroup.org
+      resources:
+      - kind: Infinispan
+        name: ""
+        version: infinispan.org/v1
+      - kind: Secret
+        name: ""
+        version: v1
+      specDescriptors:
+      - description: Flag to install a Infinispan instance in the namespace
+        displayName: Install Infinispan
+        path: installInfinispan
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      statusDescriptors:
+      - description: General Infrastructure condition
+        displayName: Infrastructure Condition
+        path: condition.type
+      - description: Infinispan Service Name
+        displayName: Infinispan Service
+        path: infinispan.service
+      - description: Infinispan Credentials Secret
+        displayName: Infinispan Credentials Secret
+        path: infinispan.credentialSecret
+      version: v1alpha1
+    required:
+    - description: Represents a Infinispan cluster used internally by Kogito Data
+        Index Service
+      displayName: Infinispan Cluster
+      kind: Infinispan
+      name: infinispans.infinispan.org
+      version: v1
   description: |-
     Kogito Operator is designed to deploy Kogito Runtimes Services from source and every piece of infrastructure that the services might need:
 
@@ -226,6 +299,16 @@ spec:
           - list
           - delete
         - apiGroups:
+          - infinispan.org
+          resources:
+          - infinispans
+          verbs:
+          - get
+          - create
+          - list
+          - delete
+          - watch
+        - apiGroups:
           - apps
           resourceNames:
           - kogito-cloud-operator
@@ -264,7 +347,7 @@ spec:
   - automation
   labels:
     alm-owner-kogitocloud: kogitocloud-operator
-    operated-by: kogitocloud-operator.0.5.0
+    operated-by: kogitocloud-operator.0.6.0
   links:
   - name: Product Page
     url: https://kogito.kie.org/
@@ -274,10 +357,10 @@ spec:
     url: https://github.com/kiegroup/kogito-cloud-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
-    name: Red Hat, Inc.
+    name: Red Hat
   maturity: alpha
   provider:
-    name: Red Hat, Inc.
+    name: Red Hat
   replaces: kogito-cloud-operator.v0.5.0
   selector:
     matchLabels:

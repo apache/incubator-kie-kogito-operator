@@ -48,19 +48,19 @@ type KogitoDataIndexSpec struct {
 	Image string `json:"image,omitempty"`
 
 	// +optional
-	// MemoryLimit is the limit of Memory which will be available for the container
+	// MemoryLimit is the limit which will be available for the container
 	MemoryLimit string `json:"memoryLimit,omitempty"`
 
 	// +optional
-	// MemoryRequest is the request of Memory which will be available for the container
+	// MemoryRequest is the request which will be requested upon container creation
 	MemoryRequest string `json:"memoryRequest,omitempty"`
 
 	// +optional
-	// CPULimit is the limit of CPU which will be available for the container
+	// CPULimit is the limit which will be available for the container
 	CPULimit string `json:"cpuLimit,omitempty"`
 
 	// +optional
-	// CPURequest is the request of CPU which will be available for the container
+	// CPURequest is the request which will be requested upon container creation
 	CPURequest string `json:"cpuRequest,omitempty"`
 
 	// +optional
@@ -79,7 +79,8 @@ type KafkaConnectionProperties struct {
 	ServiceURI string `json:"serviceURI,omitempty"`
 }
 
-// InfinispanConnectionProperties is the confuguration needed for authenticating on Infinispan cluster.
+// InfinispanConnectionProperties is the configuration needed for authenticating on Infinispan cluster.
+// If not set, Data Index will connect to an existing Infinispan deployed by KogitoInfra resource and will set these values for you
 // More information can be found at https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description
 // +k8s:openapi-gen=true
 type InfinispanConnectionProperties struct {
@@ -100,8 +101,13 @@ type InfinispanConnectionProperties struct {
 	SaslMechanism InfinispanSaslMechanismType `json:"saslMechanism,omitempty"`
 
 	// +optional
-	// ServiceURI is the service URI to connect to the Infinispan cluster, e.g. myinifisan-cluster:11222
+	// ServiceURI is the service URI to connect to the Infinispan cluster, e.g. myinfinispan-cluster:11222
 	ServiceURI string `json:"serviceURI,omitempty"`
+
+	// +optional
+	// UseKogitoInfra flags if this Data Index instance will use a provided infrastructure by KogitoInfra CR. Defaults to true.
+	// Set this to false and fill all other properties to provide your own infrastructure
+	UseKogitoInfra bool `json:"useKogitoInfra,omitempty"`
 }
 
 // InfinispanSaslMechanismType is the possible SASL Mechanism used during infinispan connection. See: https://en.wikipedia.org/wiki/Simple_Authentication_and_Security_Layer#SASL_mechanisms
@@ -137,18 +143,18 @@ type KogitoDataIndexStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Status of the Data Index Service Deployment created and managed by it
-	DeploymentStatus appsv1.StatefulSetStatus `json:"deploymentStatus"`
+	DeploymentStatus appsv1.StatefulSetStatus `json:"deploymentStatus,omitempty"`
 
-	// Status of the Database Service created and managed by it
-	ServiceStatus corev1.ServiceStatus `json:"serviceStatus"`
+	// Status of the Data Index Service created and managed by it
+	ServiceStatus corev1.ServiceStatus `json:"serviceStatus,omitempty"`
 
 	// OK when all resources are created successfully
 	// +listType=atomic
-	Conditions []DataIndexCondition `json:"conditions"`
+	Conditions []DataIndexCondition `json:"conditions,omitempty"`
 
 	// All dependencies OK means that everything was found within the namespace
 	// +listType=set
-	DependenciesStatus []DataIndexDependenciesStatus `json:"dependenciesStatus"`
+	DependenciesStatus []DataIndexDependenciesStatus `json:"dependenciesStatus,omitempty"`
 
 	// Route is where the service is exposed
 	Route string `json:"route,omitempty"`

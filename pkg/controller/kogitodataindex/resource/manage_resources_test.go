@@ -42,7 +42,7 @@ func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
 	serviceuri := "myserviceuri:9092"
 	cm := newProtobufConfigMap(instance)
 	secret := &corev1.Secret{}
-	statefulset := newStatefulset(instance, cm, *secret)
+	statefulset := newStatefulset(instance, cm, secret)
 	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
 
 	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
@@ -85,7 +85,7 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 			"user": []byte(userBytes), "pass": []byte(passBytes),
 		},
 	}
-	statefulset := newStatefulset(instance, cm, *secret)
+	statefulset := newStatefulset(instance, cm, secret)
 	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
 
 	// reconcile
@@ -127,7 +127,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	userBytes := []byte("developer")
 	passBytes := []byte("developer")
 	cm := newProtobufConfigMap(instance)
-	statefulset := newStatefulset(instance, cm, corev1.Secret{
+	statefulset := newStatefulset(instance, cm, &corev1.Secret{
 		Data: map[string][]byte{
 			"user": []byte(userBytes), "pass": []byte(passBytes),
 		}})
@@ -163,7 +163,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	// check the result
 	_, err = kubernetes.ResourceC(client).Fetch(statefulset)
 	assert.NoError(t, err)
-	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+4+2) //default + infinispan + custom
+	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+2) //default + infinispan + custom
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "KOGITO_PROTOBUF_FOLDER",
 		Value: defaultEnvs["KOGITO_PROTOBUF_FOLDER"],
@@ -184,7 +184,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
 
-	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+4+1) //default + infinispan + custom
+	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+1) //default + infinispan + custom
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "KOGITO_PROTOBUF_FOLDER",
 		Value: defaultEnvs["KOGITO_PROTOBUF_FOLDER"],

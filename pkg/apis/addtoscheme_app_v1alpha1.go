@@ -15,21 +15,27 @@
 package apis
 
 import (
-	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+
+	appsv1 "k8s.io/api/apps/v1"
+
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+
 	oappsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	oimagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme, oappsv1.Install,
+	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme,
+		oappsv1.Install,
 		routev1.Install,
 		oimagev1.Install,
 		buildv1.Install,
 		appsv1.AddToScheme,
-		monv1.AddToScheme)
+		monv1.AddToScheme,
+		infinispanv1.AddToScheme)
 }

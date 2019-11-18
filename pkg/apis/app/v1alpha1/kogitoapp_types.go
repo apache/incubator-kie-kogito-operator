@@ -25,20 +25,40 @@ const KogitoAppCRDName = "kogitoapps.app.kiegroup.org"
 // KogitoAppSpec defines the desired state of KogitoApp
 // +k8s:openapi-gen=true
 type KogitoAppSpec struct {
-	// The name of the runtime used, either quarkus or springboot, defaults to quarkus
+	// The name of the runtime used, either quarkus or springboot
+	// Default value: quarkus
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Runtime"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime RuntimeType `json:"runtime,omitempty"`
+
+	// Number of replicas that the service will have deployed in the cluster
+	// Default value: 1
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=100
 	Replicas *int32 `json:"replicas,omitempty"`
+
+	// Environment variables for the runtime service
+	// Default value: nil
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Environment Variables"
 	// +listType=map
 	// +listMapKey=name
 	Env []Env `json:"env,omitempty"`
+
 	// The resources for the deployed pods, like memory and cpu
+	// Default value: nil
 	Resources Resources `json:"resources,omitempty"`
+
 	// S2I Build configuration
+	// Default value: nil
 	Build *KogitoAppBuildObject `json:"build"`
-	// Service configuration
+
+	// Kubernetes Service configuration
+	// Default value: nil
 	Service KogitoAppServiceObject `json:"service,omitempty"`
 }
 
@@ -145,11 +165,25 @@ type WebhookSecret struct {
 // KogitoAppStatus defines the observed state of KogitoApp
 // +k8s:openapi-gen=true
 type KogitoAppStatus struct {
+	// History of conditions for the service
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Conditions"
 	// +listType=atomic
-	Conditions  []Condition `json:"conditions"`
-	Route       string      `json:"route,omitempty"`
+	Conditions []Condition `json:"conditions"`
+	// External URL for the service
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Route"
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
+	Route string `json:"route,omitempty"`
+	// History of service deployments status
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Deployments"
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses"
 	Deployments Deployments `json:"deployments"`
-	Builds      Builds      `json:"builds"`
+	// History of service builds status
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Builds"
+	Builds Builds `json:"builds"`
 }
 
 // RuntimeType - type of condition

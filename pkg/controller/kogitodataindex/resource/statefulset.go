@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, secret corev1.Secret) *appsv1.StatefulSet {
+func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, secret *corev1.Secret) *appsv1.StatefulSet {
 	// create a standard probe
 	probe := defaultProbe
 	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.FromInt(defaultExposedPort)}
