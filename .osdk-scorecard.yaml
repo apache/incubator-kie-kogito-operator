@@ -1,0 +1,17 @@
+scorecard:
+  # Setting a global scorecard option
+  output: json
+  plugins:
+    # `basic` tests configured to test 2 CRs
+    - basic:
+        cr-manifest:
+          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml"
+          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml"
+          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoinfra_cr.yaml"
+    # `olm` tests configured to test 2 CRs
+    - olm:
+        cr-manifest:
+          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml"
+          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml"
+          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoinfra_cr.yaml"
+        csv-path: "deploy/olm-catalog/kogito-cloud-operator/0.6.0/kogito-cloud-operator.v0.6.0.clusterserviceversion.yaml"

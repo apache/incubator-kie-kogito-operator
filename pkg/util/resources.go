@@ -14,7 +14,9 @@
 
 package util
 
-import "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+)
 
 // EnvToMap converts an array of Env to a map
 func EnvToMap(env []v1alpha1.Env) map[string]string {

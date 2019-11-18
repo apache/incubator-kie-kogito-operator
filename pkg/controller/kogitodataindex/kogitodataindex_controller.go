@@ -16,6 +16,7 @@ package kogitodataindex
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"time"
 
@@ -29,14 +30,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	commonres "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 
+	v1 "github.com/openshift/api/build/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/discovery"
-
-	v1 "github.com/openshift/api/build/v1"
-	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -55,20 +52,8 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	imageClient, err := imagev1.NewForConfig(mgr.GetConfig())
-	if err != nil {
-		panic(fmt.Sprintf("Error getting image client: %v", err))
-	}
-	discover, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
-	if err != nil {
-		panic(fmt.Sprintf("Error getting discovery client: %v", err))
-	}
-
 	return &ReconcileKogitoDataIndex{
-		client: &client.Client{
-			ImageCli:   imageClient,
-			ControlCli: mgr.GetClient(),
-			Discovery:  discover},
+		client: client.NewForController(mgr.GetConfig(), mgr.GetClient()),
 		scheme: mgr.GetScheme(),
 	}
 }
@@ -89,6 +74,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// Watch for changes to KogitoApp since we need their runtime images to check for labels, persistence and so on
 	err = c.Watch(&source.Kind{Type: &v1.BuildConfig{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoApp{}})
+	if err != nil {
+		return err
+	}
+
+	// We also watch for any resources regarding infra to recreate it in case is deleted and we depend on them
+	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoInfra{}})
 	if err != nil {
 		return err
 	}
@@ -131,28 +122,36 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconci
 	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling KogitoDataIndex")
 
+	// TODO: move to finalizers the exclusion use case
 	// If it's an exclusion, the Data Index won't exist anymore. Routes need to be cleaned.
 	reqLogger.Infof("Injecting Data Index URL into KogitoApps in the namespace '%s'", request.Namespace)
 	if err := infrastructure.InjectDataIndexURLIntoKogitoApps(r.client, request.Namespace); err != nil {
 		return reconcile.Result{}, err
 	}
 
+	// Requires only one Data Index.
+	// The request might be coming from another source within this namespace, and since we only have one deployment, we
+	// can safely use this instance during the reconciliation phase
 	instances := &appv1alpha1.KogitoDataIndexList{}
 	if err := kubernetes.ResourceC(r.client).ListWithNamespace(request.Namespace, instances); err != nil {
 		return reconcile.Result{}, err
 	}
-
-	if len(instances.Items) > 1 {
+	instancesCount := len(instances.Items)
+	if instancesCount > 1 {
 		return reconcile.Result{RequeueAfter: time.Duration(5) * time.Minute},
-			fmt.Errorf("There's more than one KogitoDataIndex resource in this namespace, please delete one of them")
+			fmt.Errorf("There's more than one KogitoDataIndex resource in %s namespace, please delete one of them ", request.Namespace)
+	} else if instancesCount == 0 {
+		return reconcile.Result{}, nil
 	}
 
 	// Fetch the KogitoDataIndex instance
-	instance := &appv1alpha1.KogitoDataIndex{}
-	if exists, err := kubernetes.ResourceC(r.client).FetchWithKey(request.NamespacedName, instance); err != nil {
+	instance := &instances.Items[0]
+
+	// Deploy infra dependencies
+	if result, err := r.ensureKogitoInfra(instance); err != nil {
 		return reconcile.Result{}, err
-	} else if !exists {
-		return reconcile.Result{}, nil
+	} else if result != nil {
+		return *result, nil
 	}
 
 	// Create our inventory
@@ -183,4 +182,64 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconci
 	}
 
 	return reconcile.Result{}, nil
+}
+
+// ensureKogitoInfra will deploy a new Kogito Infra if needed based on Data Index instance requirements.
+// returns result not nil if needs reconciliation
+func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.KogitoDataIndex) (result *reconcile.Result, err error) {
+	log.Debug("Verify if we need to deploy Infinispan")
+
+	// Overrides any parameters not set
+	if instance.Spec.Infinispan.UseKogitoInfra {
+		// ensure infra
+		infra, created, err := infrastructure.CreateOrFetchInfra(instance.Namespace, r.client)
+		if err != nil {
+			return &reconcile.Result{}, err
+		}
+		if created {
+			// since we just created a new Infra instance, let's wait for it to provision everything before proceeding
+			log.Debug("Returning to reconcile phase to give some time for the Infinispan Operator to deploy")
+			return &reconcile.Result{RequeueAfter: time.Second * 10}, nil
+		}
+
+		// we're good?
+		if instance.Spec.Infinispan.ServiceURI == infra.Status.Infinispan.Service &&
+			instance.Spec.Infinispan.Credentials.SecretName == infra.Status.Infinispan.CredentialSecret &&
+			instance.Spec.Infinispan.Credentials.PasswordKey == infinispan.SecretPasswordKey &&
+			instance.Spec.Infinispan.Credentials.UsernameKey == infinispan.SecretUsernameKey {
+			return nil, nil
+		}
+
+		log.Debugf("Checking KogitoInfra status to make sure we are ready to use Infinispan. Status are: %s", infra.Status.Infinispan)
+		if infrastructure.IsInfinispanDeployed(infra) {
+			log.Debug("Looks ok, we are ready to use Infinispan!")
+			instance.Spec.Infinispan.ServiceURI = infra.Status.Infinispan.Service
+			instance.Spec.Infinispan.Credentials.SecretName = infra.Status.Infinispan.CredentialSecret
+			instance.Spec.Infinispan.Credentials.UsernameKey = infinispan.SecretUsernameKey
+			instance.Spec.Infinispan.Credentials.PasswordKey = infinispan.SecretPasswordKey
+			if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
+				return &reconcile.Result{}, err
+			}
+			return &reconcile.Result{}, nil
+		}
+		log.Debug("KogitoInfra is not ready, requeue")
+		// waiting for infinispan deployment
+		return &reconcile.Result{RequeueAfter: time.Second * 10}, nil
+	}
+
+	// Ensure default values
+	if &instance.Spec.Infinispan == nil ||
+		&instance.Spec.Infinispan.UseKogitoInfra == nil ||
+		len(instance.Spec.Infinispan.ServiceURI) == 0 ||
+		&instance.Spec.Infinispan.Credentials == nil {
+		instance.Spec.Infinispan = appv1alpha1.InfinispanConnectionProperties{
+			UseKogitoInfra: true,
+		}
+		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
+			return &reconcile.Result{}, err
+		}
+		return &reconcile.Result{}, nil
+	}
+
+	return nil, nil
 }

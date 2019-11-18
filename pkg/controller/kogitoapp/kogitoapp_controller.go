@@ -38,16 +38,9 @@ import (
 	obuildv1 "github.com/openshift/api/build/v1"
 	oimagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
-	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-
-	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/discovery"
-
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -66,33 +59,8 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	imageClient, err := imagev1.NewForConfig(mgr.GetConfig())
-	if err != nil {
-		panic(fmt.Sprintf("Error getting image client: %v", err))
-	}
-	buildClient, err := buildv1.NewForConfig(mgr.GetConfig())
-	if err != nil {
-		panic(fmt.Sprintf("Error getting build client: %v", err))
-	}
-	monClient, err := monclientv1.NewForConfig(mgr.GetConfig())
-	if err != nil {
-		panic(fmt.Sprintf("Error getting prometheus client: %v", err))
-	}
-	discover, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
-	if err != nil {
-		panic(fmt.Sprintf("Error getting discovery client: %v", err))
-	}
-
-	client := &kogitocli.Client{
-		ControlCli:    mgr.GetClient(),
-		BuildCli:      buildClient,
-		ImageCli:      imageClient,
-		PrometheusCli: monClient,
-		Discovery:     discover,
-	}
-
 	return &ReconcileKogitoApp{
-		client: client,
+		client: kogitocli.NewForController(mgr.GetConfig(), mgr.GetClient()),
 		scheme: mgr.GetScheme(),
 		cache:  mgr.GetCache(),
 	}

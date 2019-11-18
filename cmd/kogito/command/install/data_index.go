@@ -22,8 +22,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	resdataindex "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -74,18 +74,22 @@ func (i *installDataIndexCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:     "data-index [flags]",
 		Short:   "Installs the Kogito Data Index Service in the given Project",
-		Example: "data-index -p my-project --infinispan-url my-infinispan-server:11222 --kafka-url my-kafka-bootstrap:9092",
+		Example: "data-index -p my-project --kafka-url my-kafka-bootstrap:9092",
 		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito Runtime Services.
 
-				kafka-url and infinispan-url are required options since the Data Index Service needs both servers to be up and running in the cluster to 
+				kafka-url is required since the Data Index Service needs this server to be up and running in the cluster to 
                 work correctly. Please refer to the https://github.com/kiegroup/kogito-cloud-operator#install-data-index-service for more information regarding
-                how to deploy an Infinispan and Kafka cluster on OpenShift for the Data Index to use.
+                how to deploy a Kafka cluster on Kubernetes for the Data Index to use.
+
+				If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
+				Only use infinispan-url if you plan to connect to an external Infinispan server that are already provided in other namespace or infrastructure.
 
 				For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
+			log := context.GetDefaultLogger()
 			if len(i.flags.infinispanUser) > 0 && len(i.flags.infinispanPassword) == 0 {
 				return fmt.Errorf("infinispan-password wasn't provided, please set both infinispan-user and infinispan-password")
 			}
@@ -96,6 +100,16 @@ func (i *installDataIndexCommand) RegisterHook() {
 				len(i.flags.infinispanPassword) > 0 &&
 				len(i.flags.infinispanSasl) == 0 {
 				i.flags.infinispanSasl = string(v1alpha1.SASLPlain)
+			}
+			if len(i.flags.infinispan.ServiceURI) == 0 {
+				i.flags.infinispan.UseKogitoInfra = true
+				log.Info("infinispan-url not informed, Infinispan will be automatically deployed via Infinispan Operator")
+				if len(i.flags.infinispanPassword) > 0 || len(i.flags.infinispanUser) > 0 {
+					return fmt.Errorf("Credentials given, but infinispan-url not set. Please set infinispan URL when providing credentials ")
+				}
+			} else {
+				log.Infof("infinispan-url informed. Infinispan will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.infinispan.ServiceURI)
+				i.flags.infinispan.UseKogitoInfra = false
 			}
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
@@ -126,7 +140,6 @@ func (i *installDataIndexCommand) InitHook() {
 	i.command.Flags().StringVar(&i.flags.infinispanPassword, "infinispan-password", "", "The Infinispan Server password")
 
 	_ = cobra.MarkFlagRequired(i.command.Flags(), "kafka-url")
-	_ = cobra.MarkFlagRequired(i.command.Flags(), "infinispan-url")
 }
 
 func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -140,6 +153,14 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		return err
 	} else if !installed {
 		return nil
+	}
+
+	if i.flags.infinispan.UseKogitoInfra {
+		if available, err := infrastructure.IsInfinispanOperatorAvailable(i.Client, i.flags.Project); err != nil {
+			return err
+		} else if !available {
+			return fmt.Errorf("Infinispan Operator is not available in the Project: %s. Please make sure to install it before deploying Data Index without infinispan-url provided ", i.flags.Project)
+		}
 	}
 
 	// if user and password is sent, let's create a secret to hold it and attach to the CRD
@@ -165,6 +186,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		i.flags.infinispan.Credentials.UsernameKey = defaultInfinispanUsernameKey
 		i.flags.infinispan.Credentials.PasswordKey = defaultInfinispanPasswordKey
 		i.flags.infinispan.UseAuth = true
+		i.flags.infinispan.UseKogitoInfra = false
 		i.flags.infinispan.SaslMechanism = v1alpha1.InfinispanSaslMechanismType(i.flags.infinispanSasl)
 		if err := kubernetes.ResourceC(i.Client).Create(&infinispanSecret); err != nil {
 			return fmt.Errorf("Error while trying to create an Infinispan Secret credentials: %s ", err)

@@ -10,31 +10,33 @@ spec:
   # number of pods to be deployed
   replicas: 1
   # image to use for this deploy
-  image: "quay.io/kiegroup/kogito-data-index:0.5.1"
+  image: "quay.io/kiegroup/kogito-data-index:0.6.0"
   # Limits and requests for the Data Index pod
-  memoryLimit: ""
-  memoryRequest: ""
-  cpuLimit: ""
-  cpuRequest: ""
+  #memoryLimit: ""
+  #memoryRequest: ""
+  #cpuLimit: ""
+  #cpuRequest: ""
   # details about the kafka connection
   kafka:
     # the service name and port for the kafka cluster. Example: my-kafka-cluster:9092
     serviceURI: kogito-kafka-kafka-bootstrap:9092
   # details about the connected infinispan
   infinispan:
+    # will set this instance to auto provision an infra structure in the namespace and attach Infinispan credentials to it
+    useKogitoInfra: true
     # name of the auth realm. "default" is the realm name for
     #authRealm: ""
     # default to PLAIN
     #saslMechanism: ""
     # the service name and port of the infinispan cluster. Example: my-infinispan:11222
-    serviceURI: kogito-infinispan:11222
+    #serviceURI: kogito-infinispan:11222
       # will automatically set to true if the credentials are set
-      #useAuth: false
+      #useAuth: true
       # auth credentials
-      #credentials:
+    #credentials:
       # the secret used to store the Infinispan credentials
-      #secretName: ""
+     # secretName: "connect-secret"
       # username key defined in the secret to read from
-      #usernameKey: ""
+     # usernameKey: "username"
       # password key defined in the secret
-    #passwordKey: ""
+     # passwordKey: "password"

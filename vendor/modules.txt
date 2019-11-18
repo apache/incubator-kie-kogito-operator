@@ -162,6 +162,8 @@ github.com/hashicorp/hcl/json/token
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
+# github.com/infinispan/infinispan-operator v0.0.0-20191028165532-917f400bee62
+github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1
 # github.com/joho/godotenv v1.3.0
 github.com/joho/godotenv
 # github.com/json-iterator/go v1.1.6

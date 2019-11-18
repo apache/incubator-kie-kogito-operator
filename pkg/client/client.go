@@ -61,6 +61,52 @@ type Client struct {
 	PrometheusCli monclientv1.MonitoringV1Interface
 }
 
+// NewForConsole will create a brand new client using the local machine
+func NewForConsole() *Client {
+	client := &Client{}
+	config, err := buildKubeConnectionConfig()
+	if err != nil {
+		panic(fmt.Sprintf("Impossible to get Kubernetes local configuration: %v", err))
+	}
+	client.ControlCli, err = newKubeClient(config)
+	if err != nil {
+		panic(fmt.Sprintf("Impossible to create new Kubernetes client: %v", err))
+	}
+	client.Discovery, err = discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		panic(fmt.Sprintf("Impossible to create new Discovery client: %v", err))
+	}
+	return client
+}
+
+// NewForController creates a new client based on the rest config and the controller client created by Operator SDK
+// Panic if something goes wrong
+func NewForController(config *restclient.Config, client controllercli.Client) *Client {
+	imageClient, err := imagev1.NewForConfig(config)
+	if err != nil {
+		panic(fmt.Sprintf("Error getting image client: %v", err))
+	}
+	buildClient, err := buildv1.NewForConfig(config)
+	if err != nil {
+		panic(fmt.Sprintf("Error getting build client: %v", err))
+	}
+	monClient, err := monclientv1.NewForConfig(config)
+	if err != nil {
+		panic(fmt.Sprintf("Error getting prometheus client: %v", err))
+	}
+	discover, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		panic(fmt.Sprintf("Error getting discovery client: %v", err))
+	}
+	return &Client{
+		ControlCli:    client,
+		BuildCli:      buildClient,
+		ImageCli:      imageClient,
+		PrometheusCli: monClient,
+		Discovery:     discover,
+	}
+}
+
 // IsOpenshift detects if the application is running on OpenShift or not
 func (c *Client) IsOpenshift() bool {
 	return c.HasServerGroup("openshift.io")
@@ -105,6 +151,10 @@ func ensureKubeClient() (controllercli.Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	return newKubeClient(config)
+}
+
+func newKubeClient(config *restclient.Config) (controllercli.Client, error) {
 	log.Debugf("Creating a new core client for kube connection")
 	controlCli, err := controllercli.New(config, newControllerCliOptions())
 	if err != nil {

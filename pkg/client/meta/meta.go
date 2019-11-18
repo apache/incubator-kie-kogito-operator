@@ -107,7 +107,10 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s.AddKnownTypes(coreappsv1.SchemeGroupVersion, &coreappsv1.Deployment{})
 	s.AddKnownTypes(rbac.SchemeGroupVersion, &rbac.Role{}, &rbac.RoleBinding{})
 	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &apiextensionsv1beta1.CustomResourceDefinition{})
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{}, &v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{})
+	s.AddKnownTypes(v1alpha1.SchemeGroupVersion,
+		&v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{},
+		&v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{},
+		&v1alpha1.KogitoInfra{}, &v1alpha1.KogitoInfraList{})
 	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
 	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
 	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})

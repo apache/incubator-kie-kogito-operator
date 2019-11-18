@@ -9,6 +9,7 @@ require (
 	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/google/go-cmp v0.3.1
 	github.com/google/uuid v1.1.1
+	github.com/infinispan/infinispan-operator v0.0.0-20191028165532-917f400bee62
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openshift/api v0.0.0-00010101000000-000000000000
 	github.com/openshift/client-go v0.0.0-00010101000000-000000000000

@@ -47,7 +47,7 @@ func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
 	lines, _, err := test.ExecuteCli()
 
 	assert.Error(t, err)
-	assert.Contains(t, lines, "required flag(s) \"infinispan-url\", \"kafka-url\" not set")
+	assert.Contains(t, lines, "required flag(s) \"kafka-url\" not set")
 }
 
 func Test_DeployDataIndexCmd_SuccessfullDeploy(t *testing.T) {

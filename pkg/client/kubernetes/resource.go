@@ -30,9 +30,9 @@ import (
 // ResourceInterface has functions that interacts with any resource object in the Kubernetes cluster
 type ResourceInterface interface {
 	Create(resource meta.ResourceObject) error
-	CreateIfNotExists(resource meta.ResourceObject) (bool, error)
-	FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (bool, error)
-	Fetch(resource meta.ResourceObject) (bool, error)
+	CreateIfNotExists(resource meta.ResourceObject) (exists bool, err error)
+	FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (exists bool, err error)
+	Fetch(resource meta.ResourceObject) (exists bool, err error)
 	ListWithNamespace(namespace string, list runtime.Object) error
 	Delete(resource meta.ResourceObject) error
 	UpdateStatus(resource meta.ResourceObject) error

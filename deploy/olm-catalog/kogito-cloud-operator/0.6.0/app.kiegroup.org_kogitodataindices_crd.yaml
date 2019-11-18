@@ -30,12 +30,11 @@ spec:
           description: KogitoDataIndexSpec defines the desired state of KogitoDataIndex
           properties:
             cpuLimit:
-              description: CPULimit is the limit of CPU which will be available for
-                the container
+              description: CPULimit is the limit which will be available for the container
               type: string
             cpuRequest:
-              description: CPURequest is the request of CPU which will be available
-                for the container
+              description: CPURequest is the request which will be requested upon
+                container creation
               type: string
             env:
               additionalProperties:
@@ -81,11 +80,17 @@ spec:
                   type: string
                 serviceURI:
                   description: ServiceURI is the service URI to connect to the Infinispan
-                    cluster, e.g. myinifisan-cluster:11222
+                    cluster, e.g. myinfinispan-cluster:11222
                   type: string
                 useAuth:
                   description: UseAuth will be set to true if the credentials are
                     set. Will set the property infinispan.client.hotrod.use_auth
+                  type: boolean
+                useKogitoInfra:
+                  description: UseKogitoInfra flags if this Data Index instance will
+                    use a provided infrastructure by KogitoInfra CR. Defaults to true.
+                    Set this to false and fill all other properties to provide your
+                    own infrastructure
                   type: boolean
               type: object
             kafka:
@@ -98,12 +103,12 @@ spec:
                   type: string
               type: object
             memoryLimit:
-              description: MemoryLimit is the limit of Memory which will be available
-                for the container
+              description: MemoryLimit is the limit which will be available for the
+                container
               type: string
             memoryRequest:
-              description: MemoryRequest is the request of Memory which will be available
-                for the container
+              description: MemoryRequest is the request which will be requested upon
+                container creation
               type: string
             replicas:
               description: Replicas is the number of pod replicas that the Data Index
@@ -228,7 +233,8 @@ spec:
               description: Route is where the service is exposed
               type: string
             serviceStatus:
-              description: Status of the Database Service created and managed by it
+              description: Status of the Data Index Service created and managed by
+                it
               properties:
                 loadBalancer:
                   description: LoadBalancer contains the current status of the load-balancer,
@@ -255,11 +261,6 @@ spec:
                       type: array
                   type: object
               type: object
-          required:
-          - conditions
-          - dependenciesStatus
-          - deploymentStatus
-          - serviceStatus
           type: object
       type: object
   version: v1alpha1

@@ -66,19 +66,22 @@ func getInfinispanVars(container corev1.Container) []corev1.EnvVar {
 }
 
 // fromInfinispanToStringMap will convert the InfinispanConnectionProperties into a Map of environment variables to be set in the container
-func fromInfinispanToStringMap(infinispan v1alpha1.InfinispanConnectionProperties, secret corev1.Secret) map[string]string {
+func fromInfinispanToStringMap(infinispan v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret) map[string]string {
 	propsmap := map[string]string{}
 
 	if &infinispan == nil {
 		return propsmap
 	}
 
-	if &secret != nil && &infinispan.Credentials != nil && len(infinispan.Credentials.SecretName) > 0 {
+	if secret != nil && &infinispan.Credentials != nil && len(infinispan.Credentials.SecretName) > 0 {
 		log.Debugf("Using secret with data %s. String is %s", secret.Data, secret.String())
 		propsmap[infinispanEnvKeyUsername] = string(secret.Data[infinispan.Credentials.UsernameKey])
 		propsmap[infinispanEnvKeyPassword] = string(secret.Data[infinispan.Credentials.PasswordKey])
 		propsmap[infinispanEnvKeyUseAuth] = "true"
 		propsmap[infinispanEnvKeyCredSecret] = infinispan.Credentials.SecretName
+		if len(infinispan.SaslMechanism) == 0 {
+			infinispan.SaslMechanism = v1alpha1.SASLPlain
+		}
 	} else {
 		propsmap[infinispanEnvKeyUseAuth] = "false"
 	}

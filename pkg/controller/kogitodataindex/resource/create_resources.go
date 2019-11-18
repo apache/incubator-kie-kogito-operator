@@ -116,7 +116,7 @@ func createStatefulSet(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResou
 		f.Error = err
 		return f
 	}
-	statefulset := newStatefulset(f.KogitoDataIndex, f.Resources.ProtoBufConfigMap, *secret)
+	statefulset := newStatefulset(f.KogitoDataIndex, f.Resources.ProtoBufConfigMap, secret)
 	if err := f.CallPreCreate(statefulset); err != nil {
 		f.Error = err
 		return f

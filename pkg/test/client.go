@@ -56,6 +56,9 @@ func CreateFakeDiscoveryClient() discovery.DiscoveryInterface {
 				{
 					GroupVersion: "monitoring.coreos.com/v1alpha1",
 				},
+				{
+					GroupVersion: "infinispan.org/v1",
+				},
 			},
 		},
 	}

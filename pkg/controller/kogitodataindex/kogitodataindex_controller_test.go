@@ -16,6 +16,8 @@ package kogitodataindex
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -29,12 +31,15 @@ import (
 )
 
 func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
+	ns := t.Name()
 	instance := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
-			Namespace: "test",
+			Namespace: ns,
 		},
-		Spec: v1alpha1.KogitoDataIndexSpec{},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			Infinispan: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true},
+		},
 	}
 	client := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
 	r := &ReconcileKogitoDataIndex{
@@ -47,6 +52,8 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 			Namespace: instance.Namespace,
 		},
 	}
+
+	// basic checks
 	res, err := r.Reconcile(req)
 	if err != nil {
 		t.Fatalf("reconcile: (%v)", err)
@@ -54,4 +61,11 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 	if res.Requeue {
 		t.Error("reconcile did not requeue request as expected")
 	}
+
+	// check infra
+	infra, created, err := infrastructure.CreateOrFetchInfra(ns, client)
+	assert.NoError(t, err)
+	assert.False(t, created)
+	assert.NotNil(t, infra)
+	assert.Equal(t, infrastructure.DefaultKogitoInfraName, infra.GetName())
 }
