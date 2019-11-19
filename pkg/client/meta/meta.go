@@ -118,5 +118,8 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &operatormkt.OperatorSource{}, &operatormkt.OperatorSourceList{})
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &metav1.CreateOptions{})
+	// https://issues.jboss.org/browse/KOGITO-617
+	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &metav1.CreateOptions{})
+	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &metav1.CreateOptions{})
 	return s
 }
