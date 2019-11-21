@@ -77,8 +77,8 @@ func (i *installDataIndexCommand) RegisterHook() {
 		Example: "data-index -p my-project --kafka-url my-kafka-bootstrap:9092",
 		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito Runtime Services.
 
-				kafka-url is required since the Data Index Service needs this server to be up and running in the cluster to 
-                work correctly. Please refer to the https://github.com/kiegroup/kogito-cloud-operator#install-data-index-service for more information regarding
+				kafka-url is required because the Data Index Service needs this server to be up and running in the cluster to
+                work correctly. Please refer to the https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-installation for more information regarding
                 how to deploy a Kafka cluster on Kubernetes for the Data Index to use.
 
 				If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
@@ -163,7 +163,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		}
 	}
 
-	// if user and password is sent, let's create a secret to hold it and attach to the CRD
+	// If user and password are sent, create a secret to hold them and attach them to the CRD
 	if len(i.flags.infinispanUser) > 0 && len(i.flags.infinispanPassword) > 0 {
 		infinispanSecret := v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{Name: defaultInfinispanSecretName, Namespace: i.flags.Project},

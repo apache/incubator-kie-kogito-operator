@@ -27,11 +27,11 @@ const (
 )
 
 var (
-	// DockerTagRegxCompiled is the compiled regx to verify docker tag names
+	// DockerTagRegxCompiled is the compiled regex to verify docker tag names
 	DockerTagRegxCompiled = *regexp.MustCompile(dockerTagRegx)
 )
 
-// FromStringToImage will convert a plain string into a image. See: https://regex101.com/r/jl7MPD/2
+// FromStringToImage converts a plain string into an image. For example, see https://regex101.com/r/jl7MPD/2.
 func FromStringToImage(imagetag string) v1alpha1.Image {
 	image := v1alpha1.Image{}
 	if len(imagetag) > 0 {
@@ -51,7 +51,7 @@ func FromStringToImage(imagetag string) v1alpha1.Image {
 	return image
 }
 
-// FromStringArrayToControllerEnvs converts a string array in the format of key=value pairs to the kogitoapp controller required type
+// FromStringArrayToControllerEnvs converts a string array in the format of key=value pairs to the required type for the KogitoApp controller
 func FromStringArrayToControllerEnvs(strings []string) []v1alpha1.Env {
 	if strings == nil {
 		return nil
@@ -77,7 +77,7 @@ func FromStringArrayToControllerResourceMap(strings []string) []v1alpha1.Resourc
 	return res
 }
 
-// ExtractResource will read a string array in the format memory=512M, cpu=1 and will return the value for a given kind
+// ExtractResource reads a string array in the format memory=512M, cpu=1 and returns the value for a given kind
 func ExtractResource(kind v1alpha1.ResourceKind, resources []string) string {
 	for _, res := range resources {
 		resKV := strings.Split(res, "=")

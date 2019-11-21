@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// BuildCommands will create the commands available in this package
+// BuildCommands creates the commands available in this package
 func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) (commands []context.KogitoCommand) {
 	return []context.KogitoCommand{
 		newDeleteServiceCommand(ctx, rootCommand),

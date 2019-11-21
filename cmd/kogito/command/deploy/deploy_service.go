@@ -78,16 +78,16 @@ func (i *deployCommand) RegisterHook() {
 		Short:   "Deploys a new Kogito Runtime Service into the given Project",
 		Aliases: []string{"deploy"},
 		Long: `deploy-service will create a new Kogito Runtime Service from source in the Project context.
-		Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed. 
+		Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 		To know what's your context, use "kogito use-project". To set a new Project in the context use "kogito use-project NAME".
-		
+
 		Please note that this command requires the Kogito Operator installed in the cluster.
-		For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#installation.
+		For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#kogito-operator-installation.
 		`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
-		// args validation
+		// Args validation
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 2 {
 				return fmt.Errorf("requires 2 args, received %v", len(args))
@@ -167,7 +167,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 		i.flags.Project,
 	)
 
-	// build the application
+	// Build the application
 	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      i.flags.name,
@@ -206,13 +206,13 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 		},
 	}
 	log.Debugf("Trying to deploy Kogito Service '%s'", kogitoApp.Name)
-	// create it!
+	// Create the Kogito application
 	if err := kubernetes.ResourceC(i.Client).Create(kogitoApp); err != nil {
 		return fmt.Errorf("Error while creating a new KogitoApp in the context: %v ", err)
 	}
 
 	log.Infof("KogitoApp '%s' successfully created on namespace '%s'", kogitoApp.Name, kogitoApp.Namespace)
-	// TODO: we should provide this info with a -f flag
+	// TODO: We should provide this info with a -f flag
 	log.Infof("You can see the deployment status by using 'oc describe %s %s -n %s'", "kogitoapp", i.flags.name, i.flags.Project)
 	log.Infof("Your Kogito Runtime Service should be deploying. To see its logs, run 'oc logs -f bc/%s-builder -n %s'", i.flags.name, i.flags.Project)
 

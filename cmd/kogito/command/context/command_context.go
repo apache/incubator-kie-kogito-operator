@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CommandContext is the data struct to support command executions with hooks, configurations and so on
+// CommandContext is the data structure to support command executions with hooks, configurations, and other execution details
 type CommandContext struct {
 	// CommonPreRun is the common pre run function that should run before the command execution
 	CommonPreRun func(cmd *cobra.Command, args []string)

@@ -34,7 +34,7 @@ type CommonFlags struct {
 	Requests []string
 }
 
-// AddDeployFlags will add the common deploy flags to the given command
+// AddDeployFlags adds the common deploy flags to the given command
 func AddDeployFlags(command *cobra.Command, flags *CommonFlags) {
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
@@ -60,7 +60,7 @@ func CheckDeployArgs(flags *CommonFlags) error {
 	return nil
 }
 
-// CheckImageTag simple check for the given image tag
+// CheckImageTag checks the given image tag
 func CheckImageTag(image string) error {
 	if len(image) > 0 && !shared.DockerTagRegxCompiled.MatchString(image) {
 		return fmt.Errorf("invalid name for image tag. Valid format is namespace/image-name:tag. Received %s", image)

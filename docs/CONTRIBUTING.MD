@@ -1,62 +1,48 @@
-# Contributing to Kogito Operator
+# Contributing to the Kogito Operator
 
-Many thanks for your interest in contributing to this project. We love contributions! :heart:
+Thank you for your interest in contributing to this project!
 
-Any kind of contribution is welcome: code, design ideas, bug reporting, documentation (including this one!) and so on.
+Any kind of contribution is welcome: code, design ideas, bug reporting, or documentation (including this page).
 
-## Some tips before you start
+## Prerequisites
 
-If you understand that you can contribute with code, here's some advice that might help during your journey:
+For code contributions, review the following prerequisites:
 
-1. Make yourself comfortable with the Go language. If you're a new programmer, take a look at the [official docs](https://golang.org/doc/). For a more advanced/intermediate level, [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book might be a good starting point.
-2. Become familiar with [the Operator SDK](https://github.com/operator-framework/operator-sdk). There's a [useful guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) that you can follow using [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/memcached-operator) as an example.
-3. Make sure to have all [requirements](../README.md#requirements) set on your local machine.
+- Become familiar with the Go language. For an introduction to Go, see the official [Go Documentation](https://golang.org/doc/). For an intermediate or advanced Go resource, see [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book.
+- Become familiar with the [Operator SDK](https://github.com/operator-framework/operator-sdk). For more information, see the [Operator SDK User Guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) and use the [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/memcached-operator) as an example.
+- Ensure that you have all [Kogito Operator requirements](../README.md#kogito-operator-requirements) set on your local machine. **You must use the listed versions.**
 
-## Contributors Guide
+## Kogito Operator environment
 
-Please follow the sections below to be able to start contributing to the Kogito Operator project.
+The Operator SDK is updated regularly and the Kogito Operator code typically uses the most recent SDK updates as soon as possible. The Operate SDK has not reached a major version yet, so incompatibilities might occur.
 
-### Environment
+If you do not have a preferred IDE, use Visual Studio Code with the [`vscode-go`](https://github.com/Microsoft/vscode-go) plugin for Go language tools support.
 
-Start with having all the [requirements](../README.md#requirements) set on your local machine and **make sure** you stick with the versions described. 
+To use Go modules with VS Code, see [Go modules support in VS Code](https://github.com/Microsoft/vscode-go/wiki/Go-modules-support-in-Visual-Studio-Code).
 
-The operator SDK has regular updates. We try to update our code to use the most recent updated SDK as soon as possible. Since they are not on a major version yet, incompatibilities might happen.
+To debug Go in your VS code, see [Debugging Go code using VS Code](https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code).
 
-If you don't have a preferred IDE, we recommend using VS Code with the following plugins:
+### Kogito Operator unit tests
 
-- [`vscode-go`](https://github.com/Microsoft/vscode-go) for Go lang tools support
+For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/unit-testing.md).
 
-To use Go modules with VS Code, follow the ["Go modules support in VS Code"](https://github.com/Microsoft/vscode-go/wiki/Go-modules-support-in-Visual-Studio-Code) guide to configure the IDE properly.
+In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitoapp_controller_test.go`](../pkg/controller/kogitoapp/kogitoapp_controller_test.go) test file.
 
-If you care to debug, follow the ["Debugging Go code using VS Code"](https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code) guide to be able to configure the IDE properly.
+[End-to-end (E2E) tests](https://github.com/operator-framework/operator-sdk/blob/master/doc/test-framework/writing-e2e-tests.md)  are automated integration tests that run on a local Kubernetes or OpenShift cluster. E2E considerations are in the [Kogito backlog](https://issues.jboss.org/browse/KOGITO-130) for future development.
 
-### Testing
+### Kogito Operator collaboration and pull requests
 
-We love tests and we do our best to always have a unit test to ensure that a certain feature was implemented correctly. 
+Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/kiegroup/kogito-cloud-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.
 
-The Operator SDK has a great documentation explaining how to perform [unit testing](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/unit-testing.md) to an operator. Take your time and have a good read of it to have an overall understanding.
+After you update the source with your new proposed feature or bug fix, open a [pull request (PR)](https://help.github.com/en/articles/about-pull-requests) that meets the following requirements:
 
-In general, we follow the recommendations listed in that article to write unit tests. There's a small issue that might take you off guard when mocking up specific OpenShift APIs like `BuildConfig` and `DeploymentConfig` that are not listed there. Take a look at [`kogitoapp_controller_test.go`](../pkg/controller/kogitoapp/kogitoapp_controller_test.go) file as a reference of how to set up your test cases and create fake API calls.
+- You have a JIRA associated with the PR.
+- Your PR has the name of the JIRA in the title, for example, `[KOGITO-XXX] - Awesome feature that solves it all`.
+- The PR solves only the problem described in the JIRA.
+- You have written unit tests for the particular fix or feature.
+- You ran `make test` before submitting the PR and everything is working accordingly.
+- You tested the feature on an actual OpenShift cluster.
 
-[End-to-end (e2e)](https://github.com/operator-framework/operator-sdk/blob/master/doc/test-framework/writing-e2e-tests.md) tests is a topic that we are pursuing and it's on our [backlog](https://issues.jboss.org/browse/KOGITO-130) to have it solved soon. 
+After you send your PR, a maintainer will review your code and might ask you to make changes and to [squash your commits](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we can merge.
 
-E2e is basically an automated integration test written to have it running on a local Kubernetes/OpenShift cluster.
-
-### Sending a Pull Request
-
-Before starting to work on a new feature that you found to be missing or on a fix for a bug that you might be facing, [please open an issue](https://github.com/kiegroup/kogito-cloud-operator/issues) to discuss your idea or bug report with the maintainers.
-
-If you're willing to collaborate, you can always work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. The chances are that we already have someone on it, but it's always worth leaving a comment at the JIRA asking if they need some help.
-
-Once you have your feature/bug fixed, open a [Pull Request (PR)](https://help.github.com/en/articles/about-pull-requests) to us and make sure that:
-
-1. You have a JIRA associated with the PR
-2. Your PR has the name of the JIRA in the title, e.g. `[KOGITO-XXX] - Awesome feature that solves it all`
-3. The PR solves only the problem described in the JIRA
-4. You have written unit tests for the particular fix/feature
-5. You ran `make test` before submitting the PR and everything is working accordingly
-6. You tested the feature on an actual OpenShift cluster
-
-After sending your PR, a maintainer will review your code and might ask for changes. That said, you might be asked to [squash your commit](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we merge.
-
-In case of any more questions, please fell free to reach us via the [issues page](https://github.com/kiegroup/kogito-cloud-operator/issues).
+If you have any questions, contact a Kogito Operator maintainer in the [issues page](https://github.com/kiegroup/kogito-cloud-operator/issues).

@@ -44,22 +44,22 @@ const (
 	fileServiceAccountYaml     = "service_account.yaml"
 	fileKogitoAppCRDYaml       = "crds/app.kiegroup.org_kogitoapps_crd.yaml"
 	fileKogitoDataIndexCRDYaml = "crds/app.kiegroup.org_kogitodataindices_crd.yaml"
-	docURLInstallOperator      = "https://github.com/kiegroup/kogito-cloud-operator#via-operatorhub-automatically"
+	docURLInstallOperator      = "https://github.com/kiegroup/kogito-cloud-operator#automatically-in-operatorhub"
 )
 
 var (
-	// DefaultOperatorImageNameTag is the default name of the kogito operator image
+	// DefaultOperatorImageNameTag is the default name of the Kogito operator image
 	DefaultOperatorImageNameTag = fmt.Sprintf("%s:%s", defaultOperatorImageName, version.Version)
 )
 
-// SilentlyInstallOperatorIfNotExists will try to install the operator and won't log a message if it's installed.
+// SilentlyInstallOperatorIfNotExists attempts to install the operator and does not log a message if it is installed
 func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client) (installed bool, err error) {
 	return MustInstallOperatorIfNotExists(namespace, operatorImage, client, true)
 }
 
-// MustInstallOperatorIfNotExists will install the operator using the deploy/*yaml and deploy/crds/*crds.yaml files if we won't find the operator deployment in the given namespace.
-// If the operator is available at the OperatorHub in OpenShift installations and not installed, will warn a message and will stop the flow
-// operatorImage could be an empty string, in this case it will be assumed the default one
+// If the operator deployment is not in the given namespace, MustInstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files
+// If the operator is available at the OperatorHub in OpenShift installations and not installed, MustInstallOperatorIfNotExists generates a warning message and stops the flow
+// operatorImage can be an empty string. In this case, the empty string is the default value.
 func MustInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client, silence bool) (installed bool, err error) {
 	log := context.GetDefaultLogger()
 

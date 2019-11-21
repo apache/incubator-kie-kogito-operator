@@ -25,7 +25,7 @@ var (
 	logVerbose    bool
 )
 
-// GetDefaultLogger gets the default logger
+// GetDefaultLogger retrieves the default logger
 func GetDefaultLogger() *zap.SugaredLogger {
 	return getDefaultLoggerWithOut(logVerbose, commandOutput)
 }
