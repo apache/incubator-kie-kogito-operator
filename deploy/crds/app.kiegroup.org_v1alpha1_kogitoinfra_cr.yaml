@@ -5,4 +5,4 @@ metadata:
   name: kogito-infra
 spec:
   # set to true if a Infinispan instance should be installed in the namespace via Infinispan Operator
-  installInfinispan: true
+  installInfinispan: false

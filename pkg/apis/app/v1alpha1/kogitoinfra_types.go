@@ -86,7 +86,6 @@ const (
 
 // KogitoInfra is the Schema for the kogitoinfras API
 // +k8s:openapi-gen=true
-// +kubebuilder:subresource:status
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
 type KogitoInfra struct {
 	metav1.TypeMeta   `json:",inline"`

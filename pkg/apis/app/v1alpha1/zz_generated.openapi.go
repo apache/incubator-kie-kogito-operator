@@ -62,7 +62,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds are being newly created",
+							Description: "Builds are being created",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -119,7 +119,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds have been successful",
+							Description: "Builds have executed and succeeded",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -157,7 +157,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds have been prevented from executing by error",
+							Description: "Builds have been prevented from executing by an error",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -198,7 +198,7 @@ func schema_pkg_apis_app_v1alpha1_Condition(ref common.ReferenceCallback) common
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "Condition - The condition for the kogito-cloud-operator",
+				Description: "Condition is the condition for the kogito-cloud-operator",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"type": {
@@ -272,7 +272,7 @@ func schema_pkg_apis_app_v1alpha1_Deployments(ref common.ReferenceCallback) comm
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Deployments are starting, may or may not succeed",
+							Description: "Deployments are starting",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -291,7 +291,7 @@ func schema_pkg_apis_app_v1alpha1_Deployments(ref common.ReferenceCallback) comm
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Deployments are not starting, unclear what next step will be",
+							Description: "Deployments are not starting and the next step is unclear",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -332,7 +332,7 @@ func schema_pkg_apis_app_v1alpha1_Env(ref common.ReferenceCallback) common.OpenA
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "Env Data to define environment variables in key/value pair fashion",
+				Description: "Env Data to define environment variables in key-value pair fashion",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"name": {
@@ -371,14 +371,14 @@ func schema_pkg_apis_app_v1alpha1_GitSource(ref common.ReferenceCallback) common
 					},
 					"reference": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Branch to use in the git repository",
+							Description: "Branch to use in the Git repository",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"contextDir": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Context/subdirectory where the code is located, relatively to repo root",
+							Description: "Context/subdirectory where the code is located, relative to the repo root",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -394,7 +394,7 @@ func schema_pkg_apis_app_v1alpha1_InfinispanConnectionProperties(ref common.Refe
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "InfinispanConnectionProperties is the configuration needed for authenticating on Infinispan cluster. If not set, Data Index will connect to an existing Infinispan deployed by KogitoInfra resource and will set these values for you More information can be found at https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description",
+				Description: "InfinispanConnectionProperties is the configuration needed for authenticating an Infinispan cluster If this configuration is not set, the Data Index connects to an existing Infinispan Server deployed by the KogitoInfra resource and sets these values for you For more information, see https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"credentials": {
@@ -404,28 +404,28 @@ func schema_pkg_apis_app_v1alpha1_InfinispanConnectionProperties(ref common.Refe
 					},
 					"useAuth": {
 						SchemaProps: spec.SchemaProps{
-							Description: "UseAuth will be set to true if the credentials are set. Will set the property infinispan.client.hotrod.use_auth",
+							Description: "UseAuth is set to true if the credentials are set. This also sets the property infinispan.client.hotrod.use_auth.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
 					"authRealm": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Name of the Infinispan authentication realm. Will set the property infinispan.client.hotrod.auth_realm",
+							Description: "Name of the Infinispan authentication realm. This sets the property infinispan.client.hotrod.auth_realm.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"saslMechanism": {
 						SchemaProps: spec.SchemaProps{
-							Description: "SaslMechanism defined for the authentication. Will set the property infinispan.client.hotrod.sasl_mechanism",
+							Description: "SaslMechanism defined for the authentication. This sets the property infinispan.client.hotrod.sasl_mechanism.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"serviceURI": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ServiceURI is the service URI to connect to the Infinispan cluster, e.g. myinfinispan-cluster:11222",
+							Description: "ServiceURI is the service URI to connect to the Infinispan cluster, for example, myinfinispan-cluster:11222",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -552,20 +552,20 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					},
 					"imageRuntime": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ImageRuntime is used build configurations to build a final runtime image based on a s2i configuration",
+							Description: "ImageRuntime is used by build configurations to build a final runtime image based on an S2I configuration",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
 						},
 					},
 					"native": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is quarkus. See: https://www.graalvm.org/docs/reference-manual/aot-compilation/",
+							Description: "Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus. For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Resources for build pods. Default limits are 1GB RAM/0.5 cpu on jvm and 4GB RAM/1 cpu for native builds.",
+							Description: "Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
 						},
 					},
@@ -582,7 +582,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppServiceObject(ref common.ReferenceCal
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoAppServiceObject Data to define the service of the kogito app",
+				Description: "KogitoAppServiceObject Data to define the service of the Kogito application",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"labels": {
@@ -615,7 +615,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 				Properties: map[string]spec.Schema{
 					"runtime": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The name of the runtime used, either quarkus or springboot Default value: quarkus",
+							Description: "The name of the runtime used, either Quarkus or Springboot Default value: quarkus",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -648,8 +648,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The resources for the deployed pods, like memory and cpu Default value: nil",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
 						},
 					},
 					"build": {
@@ -779,7 +778,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 				Properties: map[string]spec.Schema{
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Replicas is the number of pod replicas that the Data Index Service will spin",
+							Description: "Replicas is the number of pod replicas that the Data Index Service will create",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -808,28 +807,28 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"memoryLimit": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MemoryLimit is the limit which will be available for the container",
+							Description: "MemoryLimit is the limit of Memory for the container",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"memoryRequest": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MemoryRequest is the request which will be requested upon container creation",
+							Description: "MemoryRequest is the request of Memory for the container",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"cpuLimit": {
 						SchemaProps: spec.SchemaProps{
-							Description: "CPULimit is the limit which will be available for the container",
+							Description: "CPULimit is the limit of CPU for the container",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"cpuRequest": {
 						SchemaProps: spec.SchemaProps{
-							Description: "CPURequest is the request which will be requested upon container creation",
+							Description: "CPURequest is the request of CPU for the container",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -842,7 +841,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"kafka": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Kafka has the data used by the Kogito Data Index to connecto to a Kafka cluster",
+							Description: "Kafka has the data used by the Kogito Data Index to connect to a Kafka cluster",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
 						},
 					},
@@ -1024,7 +1023,7 @@ func schema_pkg_apis_app_v1alpha1_ResourceMap(ref common.ReferenceCallback) comm
 				Properties: map[string]spec.Schema{
 					"resource": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Resource type like cpu and memory",
+							Description: "Resource type like CPU and memory",
 							Type:        []string{"string"},
 							Format:      "",
 						},

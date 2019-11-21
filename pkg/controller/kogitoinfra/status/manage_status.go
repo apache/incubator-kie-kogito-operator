@@ -33,26 +33,32 @@ const maxConditionsBuffer = 5
 
 // SetResourceFailed sets the instance as failed
 func SetResourceFailed(instance *v1alpha1.KogitoInfra, cli *client.Client, err error) error {
-	log.Warn("Setting instance as failed", err)
-	instance.Status.Condition.Type = v1alpha1.FailureInfraConditionType
-	instance.Status.Condition.Status = corev1.ConditionFalse
-	instance.Status.Condition.Message = err.Error()
-	instance.Status.Condition.LastTransitionTime = metav1.Now()
+	if instance.Status.Condition.Message != err.Error() {
+		log.Warn("Setting instance as failed", err)
+		instance.Status.Condition.Type = v1alpha1.FailureInfraConditionType
+		instance.Status.Condition.Status = corev1.ConditionFalse
+		instance.Status.Condition.Message = err.Error()
+		instance.Status.Condition.LastTransitionTime = metav1.Now()
 
-	if err := kubernetes.ResourceC(cli).UpdateStatus(instance); err != nil {
-		return err
+		if err := kubernetes.ResourceC(cli).Update(instance); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
 // SetResourceSuccess sets the instance as success
 func SetResourceSuccess(instance *v1alpha1.KogitoInfra, cli *client.Client) error {
-	instance.Status.Condition.Type = v1alpha1.SuccessInfraConditionType
-	instance.Status.Condition.Status = corev1.ConditionTrue
-	instance.Status.Condition.LastTransitionTime = metav1.Now()
+	if instance.Status.Condition.Type != v1alpha1.SuccessInfraConditionType {
+		instance.Status.Condition.Type = v1alpha1.SuccessInfraConditionType
+		instance.Status.Condition.Status = corev1.ConditionTrue
+		instance.Status.Condition.Message = ""
+		instance.Status.Condition.LastTransitionTime = metav1.Now()
 
-	if err := kubernetes.ResourceC(cli).UpdateStatus(instance); err != nil {
-		return err
+		if err := kubernetes.ResourceC(cli).Update(instance); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -63,7 +69,7 @@ func ManageDependenciesStatus(instance *v1alpha1.KogitoInfra, cli *client.Client
 	updatedInfinispan := ensureInfinispan(instance, cli)
 	if updatedInfinispan {
 		log.Infof("Updating status of Kogito Infra instance %s ", instance.Status)
-		if updatedErr := kubernetes.ResourceC(cli).UpdateStatus(instance); updatedErr != nil {
+		if updatedErr := kubernetes.ResourceC(cli).Update(instance); updatedErr != nil {
 			return fmt.Errorf("Error while trying to update instance status: %s ", updatedErr)
 		}
 	}

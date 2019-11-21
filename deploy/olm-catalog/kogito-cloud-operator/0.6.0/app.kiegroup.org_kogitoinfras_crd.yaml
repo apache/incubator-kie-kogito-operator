@@ -10,8 +10,6 @@ spec:
     plural: kogitoinfras
     singular: kogitoinfra
   scope: Namespaced
-  subresources:
-    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoInfra is the Schema for the kogitoinfras API
