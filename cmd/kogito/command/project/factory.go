@@ -25,5 +25,6 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []co
 		newDeleteProjectCommand(ctx, rootCommand),
 		newNewProjectCommand(ctx, rootCommand),
 		newUseProjectCommand(ctx, rootCommand),
+		newDisplayProjectCommand(ctx, rootCommand),
 	}
 }
