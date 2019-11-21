@@ -102,7 +102,7 @@ func TestTryToInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 		},
 	}
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, operatorSource)
-	// Operator is there in the hub and not exists in the given namespace, shouldn't raise an error
+	// Operator is in the hub but does not exist in the given namespace. Don't raise an error.
 	installed, err := SilentlyInstallOperatorIfNotExists(ns, defaultOperatorImageName, client)
 	assert.NoError(t, err)
 	assert.False(t, installed)
@@ -115,11 +115,11 @@ func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: operatorMarketplaceNamespace}},
 	)
-	// operator is not in the hub, let's install with yaml files
+	// Operator is not in the hub. Install with yaml files.
 	installed, err := MustInstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false)
 	assert.NoError(t, err)
 	assert.True(t, installed)
-	// the operator is now in there, but no pods running because we're in a controlled test environment
+	// Operator is now in the hub, but no pods are running because this is a controlled test environment
 	exist, err := checkKogitoOperatorExists(client, ns)
 	assert.Error(t, err)
 	assert.True(t, exist)

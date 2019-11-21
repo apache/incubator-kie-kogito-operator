@@ -27,41 +27,41 @@ import (
 )
 
 const (
-	// DefaultConfigPath is the directory name for the kogito config files
+	// DefaultConfigPath is the directory name for the Kogito config files
 	DefaultConfigPath = ".kogito"
-	// DefaultConfigFile is the name of the kogito config file
+	// DefaultConfigFile is the name of the Kogito config file
 	DefaultConfigFile = "config"
-	// DefaultConfigExt is the default extension for the kogito config file
+	// DefaultConfigExt is the default extension for the Kogito config file
 	DefaultConfigExt = "yaml"
-	// DefaultConfigFinalName is the full URI for kogito config file
+	// DefaultConfigFinalName is the full URI for the Kogito config file
 	DefaultConfigFinalName = DefaultConfigFile + "." + DefaultConfigExt
 )
 
-// Configuration is the struct for the configuration definition for the Kogito CLI application add all configuration needed to this struct
+// Configuration is the structure for the configuration definition for the Kogito CLI application. Add all configuration to this structure.
 type Configuration struct {
-	// Namespace is the projet/namespace context where the application will be deployed
+	// Namespace is the project/namespace context where the application will be deployed
 	Namespace string
 }
 
-// InitConfig will initialize the configuration file properly
+// InitConfig initializes the configuration file properly
 func InitConfig() {
 	if rootCmd.ConfigFile() != "" {
-		// Use config file from the flag.
+		// Use config file from the flag
 		fullPath, file := filepath.Split(rootCmd.ConfigFile())
 		updateConfigFile(fullPath, file)
 	} else {
-		// Find home directory.
+		// Find home directory
 		home, err := homedir.Dir()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		// Setup full path
+		// Set up full path
 		fullPath := filepath.Join(home, DefaultConfigPath)
 		updateConfigFile(fullPath, DefaultConfigFinalName)
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.AutomaticEnv() // Read in environment variables that match
 }
 
 func updateConfigFile(fullPath, file string) {
@@ -71,7 +71,7 @@ func updateConfigFile(fullPath, file string) {
 	// Retrieve the extension and remove the dot
 	viper.SetConfigType(filepath.Ext(file)[1:])
 
-	// ensure file exists
+	// Ensure file exists
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			if err := os.MkdirAll(fullPath, os.ModePerm); err != nil {
@@ -87,11 +87,11 @@ func updateConfigFile(fullPath, file string) {
 	}
 }
 
-// ReadConfig will read the configuration from disk
+// ReadConfig reads the configuration from disk
 func ReadConfig() Configuration {
 	log := GetDefaultLogger()
 
-	// If a config file is found, read it in.
+	// If a config file is found, read it in
 	if err := viper.ReadInConfig(); err == nil {
 		config := Configuration{}
 		if err := viper.Unmarshal(&config); err != nil {
@@ -103,9 +103,9 @@ func ReadConfig() Configuration {
 	return Configuration{}
 }
 
-// Save will write all configuration data back to the configuration file
+// Save writes all configuration data back to the configuration file
 func (c *Configuration) Save() {
-	// TODO: keep an eye on viper to come up with a solution like viper.Marshal(&c)
+	// TODO: Keep an eye on viper to come up with a solution like viper.Marshal(&c)
 	if b, err := yaml.Marshal(&c); err != nil {
 		panic(fmt.Errorf("Error while marshalling config objects: %s ", err))
 	} else {

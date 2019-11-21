@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	// SchemeGroupVersion is group version used to register these objects
+	// SchemeGroupVersion is the group version used to register these objects
 	SchemeGroupVersion = schema.GroupVersion{Group: "app.kiegroup.org", Version: "v1alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme

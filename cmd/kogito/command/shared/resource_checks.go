@@ -27,7 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EnsureProject will check if the given project is a valid string in the context and if exists in the cluster
+// EnsureProject verifies whether the given project is a valid string in the context and whether it exists in the cluster
 func EnsureProject(kubeCli *client.Client, project string) (string, error) {
 	config := context.ReadConfig()
 	var err error
@@ -43,8 +43,8 @@ func EnsureProject(kubeCli *client.Client, project string) (string, error) {
 	return project, nil
 }
 
-// checkProjectLocally will verify if the project/namespace exists in the CLI context.
-// Won't fecth the cluster to verify if the project/namespace exists. This is a local validation only.
+// checkProjectLocally verifies whether the project/namespace exists in the CLI context
+// This does not fetch the cluster to verify if the project/namespace exists. This is a local validation only.
 func checkProjectLocally(config context.Configuration, project string) (localProject string, err error) {
 	if len(project) == 0 {
 		if len(config.Namespace) == 0 {
@@ -89,7 +89,7 @@ func checkKogitoOperatorExists(kubeCli *client.Client, namespace string) (bool, 
 	return true, nil
 }
 
-// CheckKogitoAppNotExists returns an error if the kogitoapp exists
+// CheckKogitoAppNotExists returns an error if the KogitoApp exists
 func CheckKogitoAppNotExists(kubeCli *client.Client, name string, namespace string) error {
 	log.Debugf("Checking if Kogito Service '%s' was deployed before on namespace %s", name, namespace)
 	kogitoapp := &v1alpha1.KogitoApp{
@@ -107,7 +107,7 @@ func CheckKogitoAppNotExists(kubeCli *client.Client, name string, namespace stri
 	return nil
 }
 
-// CheckKogitoAppExists will return an error if the Kogito Service DOES NOT exist in the project/namespace
+// CheckKogitoAppExists returns an error if the Kogito Service does not exist in the project/namespace
 func CheckKogitoAppExists(kubeCli *client.Client, name string, project string) error {
 	log.Debugf("Checking if Kogito Service '%s' was deployed before on project %s", name, project)
 	kogitoapp := &v1alpha1.KogitoApp{

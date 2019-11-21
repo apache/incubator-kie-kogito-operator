@@ -41,7 +41,7 @@ func TestUseProjectCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	// open
+	// Open the project
 	file, err := os.Create(path)
 	defer file.Close()
 	assert.NoError(t, err)
@@ -68,7 +68,7 @@ func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
 	config.Save()
 	ns := t.Name()
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
-	// set the project
+	// Set the project
 	test.SetupCliTest(strings.Join([]string{"use-project", ns}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
 	o1, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
@@ -80,7 +80,7 @@ func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
 func TestUseProjectCmd_WhenWhatIsTheNamespace_UseConfigNamespace(t *testing.T) {
 	test.InitConfigWithTestConfigFile()
 	ns := t.Name()
-	// set the project
+	// Set the project
 	config := context.ReadConfig()
 	config.Namespace = ns
 	config.Save()

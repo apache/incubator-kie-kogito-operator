@@ -8,7 +8,7 @@
 // deletions, and modifications. The summation of all edits is called the
 // Levenshtein distance as this problem is well-known in computer science.
 //
-// This package prioritizes performance over accuracy. That is, the run time
+// This package prioritizes performance over accuracy. That is, the runtime
 // is more important than obtaining a minimal Levenshtein distance.
 package diff
 

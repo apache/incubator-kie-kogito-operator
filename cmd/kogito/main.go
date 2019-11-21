@@ -21,12 +21,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command"
 )
 
-// Main starts the kogito cli
+// Main starts the Kogito CLI
 func Main() error {
 	return command.DefaultBuildCommands().Execute()
 }
 
-// Execute adds all child command to the root command and sets flags appropriately.
+// Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
 	if err := Main(); err != nil {

@@ -24,12 +24,12 @@ import (
 	"io"
 )
 
-// DefaultBuildCommands will create a new start command for the Kogito CLI
+// DefaultBuildCommands creates a new start command for the Kogito CLI
 func DefaultBuildCommands() *cobra.Command {
 	return BuildCommands(client.NewForConsole(), nil)
 }
 
-// BuildCommands will create a customized start command for the Kogito CLI
+// BuildCommands creates a customized start command for the Kogito CLI
 func BuildCommands(kubeClient *client.Client, output io.Writer) *cobra.Command {
 	ctx := &context.CommandContext{Client: kubeClient}
 

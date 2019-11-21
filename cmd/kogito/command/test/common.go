@@ -35,14 +35,14 @@ var (
 )
 
 const (
-	// Test constants for config file, based on context ones
+	// Test constants for config file, based on context
 	defaultConfigPath      = context.DefaultConfigPath
 	defaultConfigFile      = context.DefaultConfigFile + "-test"
 	defaultConfigExt       = context.DefaultConfigExt
 	defaultConfigFinalName = defaultConfigFile + "." + defaultConfigExt
 )
 
-// SetupFakeKubeCli will create a fake kube client for your tests
+// SetupFakeKubeCli creates a fake kube client for your tests
 func SetupFakeKubeCli(initObjs ...runtime.Object) *client.Client {
 	return test.CreateFakeClient(initObjs, nil, nil)
 }
@@ -68,7 +68,7 @@ func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...run
 	return ctx
 }
 
-//ExecuteCli will execute the cli setup before
+//ExecuteCli executes the CLI setup before executing the test
 func ExecuteCli() (string, string, error) {
 	if rootCommand == nil {
 		panic("RootCommand reference not found. Try calling SetupCliTest first ")
@@ -84,7 +84,7 @@ func ExecuteCli() (string, string, error) {
 	return testOut.String(), testErr.String(), err
 }
 
-// InitConfigWithTestConfigFile setup cli Test and init config in context
+// InitConfigWithTestConfigFile setup CLI Test and init config in context
 func InitConfigWithTestConfigFile() {
 	SetupCliTest("", context.CommandFactory{BuildCommands: buildCommands})
 	context.InitConfig()
