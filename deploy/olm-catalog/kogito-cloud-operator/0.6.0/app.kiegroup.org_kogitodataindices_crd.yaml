@@ -30,11 +30,10 @@ spec:
           description: KogitoDataIndexSpec defines the desired state of KogitoDataIndex
           properties:
             cpuLimit:
-              description: CPULimit is the limit which will be available for the container
+              description: CPULimit is the limit of CPU for the container
               type: string
             cpuRequest:
-              description: CPURequest is the request which will be requested upon
-                container creation
+              description: CPURequest is the request of CPU for the container
               type: string
             env:
               additionalProperties:
@@ -50,41 +49,40 @@ spec:
                 connect to the Infinispan cluster
               properties:
                 authRealm:
-                  description: Name of the Infinispan authentication realm. Will set
-                    the property infinispan.client.hotrod.auth_realm
+                  description: Name of the Infinispan authentication realm. This sets
+                    the property infinispan.client.hotrod.auth_realm.
                   type: string
                 credentials:
                   description: SecretCredentialsType is the data structure for specifyng
                     credentials within a Secret
                   properties:
                     passwordKey:
-                      description: PasswordKey is the password info for the Infinispan
-                        user. Will set the propery infinispan.client.hotrod.auth_password
+                      description: PasswordKey is the password for the Infinispan
+                        user. This sets the propery infinispan.client.hotrod.auth_password.
                       type: string
                     secretName:
                       description: SecretName is the name of the secret where the
                         credentials are set
                       type: string
                     usernameKey:
-                      description: UsernameKey is the username info for the user which
-                        will be authenticated in the cluster. Will set the property
-                        infinispan.client.hotrod.auth_username
+                      description: UsernameKey is the user name for the user who will
+                        be authenticated in the cluster. This sets the property infinispan.client.hotrod.auth_username.
                       type: string
                   type: object
                 saslMechanism:
-                  description: SaslMechanism defined for the authentication. Will
-                    set the property infinispan.client.hotrod.sasl_mechanism
+                  description: SaslMechanism defined for the authentication. This
+                    sets the property infinispan.client.hotrod.sasl_mechanism.
                   enum:
                   - PLAIN
                   - DIGEST-MD5
                   type: string
                 serviceURI:
                   description: ServiceURI is the service URI to connect to the Infinispan
-                    cluster, e.g. myinfinispan-cluster:11222
+                    cluster, for example, myinfinispan-cluster:11222
                   type: string
                 useAuth:
-                  description: UseAuth will be set to true if the credentials are
-                    set. Will set the property infinispan.client.hotrod.use_auth
+                  description: UseAuth is set to true if the credentials are set.
+                    This also sets the property infinispan.client.hotrod.use_auth.
                   type: boolean
                 useKogitoInfra:
                   description: UseKogitoInfra flags if this Data Index instance will
@@ -94,25 +92,23 @@ spec:
                   type: boolean
               type: object
             kafka:
-              description: Kafka has the data used by the Kogito Data Index to connecto
+              description: Kafka has the data used by the Kogito Data Index to connect
                 to a Kafka cluster
               properties:
                 serviceURI:
                   description: ServiceURI is the service URI to connect to the Infinispan
-                    cluster, e.g. myinifisan-cluster:11222
+                    cluster, for example, myinifisan-cluster:11222
                   type: string
               type: object
             memoryLimit:
-              description: MemoryLimit is the limit which will be available for the
-                container
+              description: MemoryLimit is the limit of Memory for the container
               type: string
             memoryRequest:
-              description: MemoryRequest is the request which will be requested upon
-                container creation
+              description: MemoryRequest is the request of Memory for the container
               type: string
             replicas:
               description: Replicas is the number of pod replicas that the Data Index
-                Service will spin
+                Service will create
               format: int32
               maximum: 100
               minimum: 0
@@ -124,12 +120,12 @@ spec:
             conditions:
               description: OK when all resources are created successfully
               items:
-                description: DataIndexCondition possible conditions for the Data Index
-                  Service
+                description: DataIndexCondition indicates the possible conditions
+                  for the Data Index Service
                 properties:
                   condition:
-                    description: DataIndexConditionType possible status that the resource
-                      can be
+                    description: DataIndexConditionType indicates the possible status
+                      that the resource can have
                     type: string
                   lastTransitionTime:
                     format: date-time
@@ -144,8 +140,8 @@ spec:
               description: All dependencies OK means that everything was found within
                 the namespace
               items:
-                description: DataIndexDependenciesStatus is all possible status that
-                  the dependencies can have
+                description: DataIndexDependenciesStatus indicates all possible statuses
+                  that the dependencies can have
                 type: string
               type: array
             deploymentStatus:

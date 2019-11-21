@@ -17,6 +17,7 @@ package client
 import (
 	"fmt"
 	"path/filepath"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"
 
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
@@ -77,6 +78,14 @@ func NewForConsole() *Client {
 		panic(fmt.Sprintf("Impossible to create new Discovery client: %v", err))
 	}
 	return client
+}
+
+// WrapperForManager creates a wrapper around the manager client, useful for small operations that requires the client interface.
+// only creates the ControlCli reference
+func WrapperForManager(mgr manager.Manager) *Client {
+	return &Client{
+		ControlCli: mgr.GetClient(),
+	}
 }
 
 // NewForController creates a new client based on the rest config and the controller client created by Operator SDK

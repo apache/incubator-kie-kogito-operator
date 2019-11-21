@@ -25,6 +25,7 @@ import (
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"testing"
@@ -70,6 +71,15 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, operator.Name, deployment.Name)
 	assert.Equal(t, image, deployment.Spec.Template.Spec.Containers[0].Image)
+
+	// checks CRD
+	crds := &apiextensionsv1beta1.CustomResourceDefinitionList{}
+	err = kubernetes.ResourceC(client).ListWithNamespace(ns, crds)
+	assert.NoError(t, err)
+	assert.Len(t, crds.Items, 3)
+	assert.Contains(t, crds.Items[0].Name, "app.kiegroup.org")
+	assert.Contains(t, crds.Items[1].Name, "app.kiegroup.org")
+	assert.Contains(t, crds.Items[2].Name, "app.kiegroup.org")
 }
 
 func TestMustInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {

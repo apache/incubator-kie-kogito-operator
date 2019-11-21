@@ -36,15 +36,14 @@ import (
 )
 
 const (
-	defaultOperatorImageName   = "quay.io/kiegroup/kogito-cloud-operator"
-	boxDeployPath              = "../../../../deploy"
-	fileOperatorYaml           = "operator.yaml"
-	fileRoleYaml               = "role.yaml"
-	fileRoleBindingYaml        = "role_binding.yaml"
-	fileServiceAccountYaml     = "service_account.yaml"
-	fileKogitoAppCRDYaml       = "crds/app.kiegroup.org_kogitoapps_crd.yaml"
-	fileKogitoDataIndexCRDYaml = "crds/app.kiegroup.org_kogitodataindices_crd.yaml"
-	docURLInstallOperator      = "https://github.com/kiegroup/kogito-cloud-operator#automatically-in-operatorhub"
+	defaultOperatorImageName = "quay.io/kiegroup/kogito-cloud-operator"
+	boxDeployPath            = "../../../../deploy"
+	fileOperatorYaml         = "operator.yaml"
+	fileRoleYaml             = "role.yaml"
+	fileRoleBindingYaml      = "role_binding.yaml"
+	fileServiceAccountYaml   = "service_account.yaml"
+	crdYAMLpattern           = "_crd.yaml"
+	docURLInstallOperator    = "https://github.com/kiegroup/kogito-cloud-operator#via-operatorhub-automatically"
 )
 
 var (
@@ -57,7 +56,7 @@ func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, 
 	return MustInstallOperatorIfNotExists(namespace, operatorImage, client, true)
 }
 
-// If the operator deployment is not in the given namespace, MustInstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files
+// MustInstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files, if the operator deployment is not in the given namespace.
 // If the operator is available at the OperatorHub in OpenShift installations and not installed, MustInstallOperatorIfNotExists generates a warning message and stops the flow
 // operatorImage can be an empty string. In this case, the empty string is the default value.
 func MustInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client, silence bool) (installed bool, err error) {
@@ -97,12 +96,13 @@ func MustInstallOperatorIfNotExists(namespace string, operatorImage string, clie
 func installOperatorWithYamlFiles(image string, namespace string, client *client.Client) error {
 	box := packr.New("deploy", boxDeployPath)
 
-	if err := decodeAndCreateKubeObject(box, fileKogitoAppCRDYaml, &apiextensionsv1beta1.CustomResourceDefinition{}, namespace, client, nil); err != nil {
-		return err
+	// creates all CRDs found in the deploy directory
+	for _, crd := range getAllCRDsFileNames(box) {
+		if err := decodeAndCreateKubeObject(box, crd, &apiextensionsv1beta1.CustomResourceDefinition{}, namespace, client, nil); err != nil {
+			return err
+		}
 	}
-	if err := decodeAndCreateKubeObject(box, fileKogitoDataIndexCRDYaml, &apiextensionsv1beta1.CustomResourceDefinition{}, namespace, client, nil); err != nil {
-		return err
-	}
+
 	if err := decodeAndCreateKubeObject(box, fileServiceAccountYaml, &v1.ServiceAccount{}, namespace, client, nil); err != nil {
 		return err
 	}
@@ -149,4 +149,15 @@ func decodeAndCreateKubeObject(box *packr.Box, yamlDoc string, resourceRef meta.
 	}
 
 	return nil
+}
+
+// getAllCRDsFileNames reads all CRDs files from box
+func getAllCRDsFileNames(box *packr.Box) []string {
+	var crds []string
+	for _, file := range box.List() {
+		if strings.Contains(file, crdYAMLpattern) {
+			crds = append(crds, file)
+		}
+	}
+	return crds
 }

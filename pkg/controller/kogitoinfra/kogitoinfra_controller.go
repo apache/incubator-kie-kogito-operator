@@ -17,12 +17,12 @@ package kogitoinfra
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
+	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"time"
-
-	v1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -65,7 +65,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &v1.Infinispan{}}
+	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &infinispanv1.Infinispan{}}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &appv1alpha1.KogitoInfra{},
@@ -73,6 +73,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	for _, watchObject := range watchOwnedObjects {
 		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
 		if err != nil {
+			if kindErr, ok := err.(*meta.NoKindMatchError); ok {
+				if kindErr.GroupKind.Group == infinispanv1.SchemeGroupVersion.Group {
+					log.Warnf("Tried to watch Infinispan CRD, but failed. Infinispan deployment won't be available.")
+					continue
+				}
+			}
 			return err
 		}
 	}
@@ -173,7 +179,7 @@ func (r *ReconcileKogitoInfra) updateResourceStatus(instance *appv1alpha1.Kogito
 	log.Info("Updating Kogito Infra status")
 	result = &reconcile.Result{}
 	if *err != nil {
-		log.Warn("Seems that an error occurred, setting failure state", err)
+		log.Warn("Seems that an error occurred, setting failure state: ", *err)
 		if statusErr := status.SetResourceFailed(instance, r.client, *err); statusErr != nil {
 			err = &statusErr
 		}

@@ -34,7 +34,7 @@ spec:
               properties:
                 env:
                   items:
-                    description: Env Data to define environment variables in key/value
+                    description: Env Data to define environment variables in key-value
                       pair fashion
                     properties:
                       name:
@@ -51,10 +51,10 @@ spec:
                   properties:
                     contextDir:
                       description: Context/subdirectory where the code is located,
-                        relatively to repo root
+                        relative to the repo root
                       type: string
                     reference:
-                      description: Branch to use in the git repository
+                      description: Branch to use in the Git repository
                       type: string
                     uri:
                       description: Git URI for the s2i source
@@ -63,8 +63,8 @@ spec:
                   - uri
                   type: object
                 imageRuntime:
-                  description: ImageRuntime is used build configurations to build
-                    a final runtime image based on a s2i configuration
+                  description: ImageRuntime is used by build configurations to build
+                    a final runtime image based on an S2I configuration
                   properties:
                     imageStreamName:
                       type: string
@@ -87,13 +87,13 @@ spec:
                 incremental:
                   type: boolean
                 native:
-                  description: 'Native indicates if the Kogito Service built should
-                    be compiled to run on native mode when Runtime is quarkus. See:
-                    https://www.graalvm.org/docs/reference-manual/aot-compilation/'
+                  description: Native indicates if the Kogito Service built should
+                    be compiled to run on native mode when Runtime is Quarkus. For
+                    more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
                   type: boolean
                 resources:
                   description: Resources for build pods. Default limits are 1GB RAM/0.5
-                    cpu on jvm and 4GB RAM/1 cpu for native builds.
+                    CPU on JVM and 4GB RAM/1 CPU for native builds.
                   properties:
                     limits:
                       items:
@@ -101,7 +101,7 @@ spec:
                           Resources
                         properties:
                           resource:
-                            description: Resource type like cpu and memory
+                            description: Resource type like CPU and memory
                             enum:
                             - cpu
                             - memory
@@ -120,7 +120,7 @@ spec:
                           Resources
                         properties:
                           resource:
-                            description: Resource type like cpu and memory
+                            description: Resource type like CPU and memory
                             enum:
                             - cpu
                             - memory
@@ -157,7 +157,7 @@ spec:
               description: 'Environment variables for the runtime service Default
                 value: nil'
               items:
-                description: Env Data to define environment variables in key/value
+                description: Env Data to define environment variables in key-value
                   pair fashion
                 properties:
                   name:
@@ -176,15 +176,15 @@ spec:
               minimum: 0
               type: integer
             resources:
-              description: 'The resources for the deployed pods, like memory and cpu
-                Default value: nil'
+              description: Resources Data to define Resources needed for each deployed
+                pod
               properties:
                 limits:
                   items:
                     description: ResourceMap Data to define a list of possible Resources
                     properties:
                       resource:
-                        description: Resource type like cpu and memory
+                        description: Resource type like CPU and memory
                         enum:
                         - cpu
                         - memory
@@ -202,7 +202,7 @@ spec:
                     description: ResourceMap Data to define a list of possible Resources
                     properties:
                       resource:
-                        description: Resource type like cpu and memory
+                        description: Resource type like CPU and memory
                         enum:
                         - cpu
                         - memory
@@ -217,7 +217,7 @@ spec:
                   type: array
               type: object
             runtime:
-              description: 'The name of the runtime used, either quarkus or springboot
+              description: 'The name of the runtime used, either Quarkus or Springboot
                 Default value: quarkus'
               enum:
               - quarkus
@@ -247,12 +247,12 @@ spec:
                     type: string
                   type: array
                 complete:
-                  description: Builds have been successful
+                  description: Builds have executed and succeeded
                   items:
                     type: string
                   type: array
                 error:
-                  description: Builds have been prevented from executing by error
+                  description: Builds have been prevented from executing by an error
                   items:
                     type: string
                   type: array
@@ -262,7 +262,7 @@ spec:
                     type: string
                   type: array
                 new:
-                  description: Builds are being newly created
+                  description: Builds are being created
                   items:
                     type: string
                   type: array
@@ -280,7 +280,7 @@ spec:
             conditions:
               description: History of conditions for the service
               items:
-                description: Condition - The condition for the kogito-cloud-operator
+                description: Condition is the condition for the kogito-cloud-operator
                 properties:
                   lastTransitionTime:
                     format: date-time
@@ -288,12 +288,12 @@ spec:
                   message:
                     type: string
                   reason:
-                    description: ReasonType - type of reason
+                    description: ReasonType is the type of reason
                     type: string
                   status:
                     type: string
                   type:
-                    description: ConditionType - type of condition
+                    description: ConditionType is the type of condition
                     type: string
                 required:
                 - status
@@ -314,13 +314,12 @@ spec:
                     type: string
                   type: array
                 starting:
-                  description: Deployments are starting, may or may not succeed
+                  description: Deployments are starting
                   items:
                     type: string
                   type: array
                 stopped:
-                  description: Deployments are not starting, unclear what next step
-                    will be
+                  description: Deployments are not starting and the next step is unclear
                   items:
                     type: string
                   type: array
