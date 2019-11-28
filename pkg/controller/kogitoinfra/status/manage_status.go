@@ -25,6 +25,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
+	"time"
 )
 
 var log = logger.GetLogger("status_kogitoinfra")
@@ -38,7 +39,7 @@ func SetResourceFailed(instance *v1alpha1.KogitoInfra, cli *client.Client, err e
 		instance.Status.Condition.Type = v1alpha1.FailureInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionFalse
 		instance.Status.Condition.Message = err.Error()
-		instance.Status.Condition.LastTransitionTime = metav1.Now()
+		instance.Status.Condition.LastTransitionTime = metav1.Now().Format(time.RFC3339)
 
 		if err := kubernetes.ResourceC(cli).Update(instance); err != nil {
 			return err
@@ -54,7 +55,7 @@ func SetResourceSuccess(instance *v1alpha1.KogitoInfra, cli *client.Client) erro
 		instance.Status.Condition.Type = v1alpha1.SuccessInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionTrue
 		instance.Status.Condition.Message = ""
-		instance.Status.Condition.LastTransitionTime = metav1.Now()
+		instance.Status.Condition.LastTransitionTime = metav1.Now().Format(time.RFC3339)
 
 		if err := kubernetes.ResourceC(cli).Update(instance); err != nil {
 			return err

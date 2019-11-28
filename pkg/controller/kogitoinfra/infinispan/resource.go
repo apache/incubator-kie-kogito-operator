@@ -153,7 +153,7 @@ func newInfinispanLinkedSecret(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Cl
 	if err != nil {
 		return nil, err
 	}
-	credentials, err := getDeveloperCredential(infinispanSecret.Data[identityFileName])
+	credentials, err := getDeveloperCredential(infinispanSecret)
 	if err != nil {
 		return nil, err
 	}

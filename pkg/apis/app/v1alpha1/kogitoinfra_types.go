@@ -36,11 +36,16 @@ type KogitoInfraStatus struct {
 	Infinispan InfinispanInstallStatus `json:"infinispan,omitempty"`
 }
 
+/*
+	TODO: Change `LastTransitionTime` to Time type when k8s implements a way of validating date-time on non array objects:
+	https://github.com/coreos/prometheus-operator/issues/2399#issuecomment-466320464
+*/
+
 // KogitoInfraCondition ...
 type KogitoInfraCondition struct {
 	Type               KogitoInfraConditionType `json:"type"`
 	Status             v1.ConditionStatus       `json:"status"`
-	LastTransitionTime metav1.Time              `json:"lastTransitionTime,omitempty"`
+	LastTransitionTime string                   `json:"lastTransitionTime,omitempty"`
 	Message            string                   `json:"message,omitempty"`
 }
 

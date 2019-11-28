@@ -45,7 +45,6 @@ spec:
               description: KogitoInfraCondition ...
               properties:
                 lastTransitionTime:
-                  format: date-time
                   type: string
                 message:
                   type: string

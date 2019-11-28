@@ -24,25 +24,42 @@ import (
 )
 
 const (
-	infinispanOperatorGeneratedSecret = "%s-generated-secret"
+	infinispanOperatorGeneratedSecret         = "%s-generated-secret"
+	infinispanOperatorAppRealmGeneratedSecret = "%s-app-generated-secret"
 )
 
 // getOperatorGeneratedSecret will fetch for the generated secret created by the Infinispan Operator
 func getOperatorGeneratedSecret(infra *v1alpha1.KogitoInfra, cli *client.Client) (*corev1.Secret, error) {
-	secret := &corev1.Secret{
+	secretNames := getInfinispanGeneratedSecretName()
+	for _, secretName := range secretNames {
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: infra.Namespace,
+				Name:      secretName,
+			},
+			Data: map[string][]byte{},
+		}
+
+		if exists, err := kubernetes.ResourceC(cli).Fetch(secret); err != nil {
+			return nil, err
+		} else if exists {
+			return secret, nil
+		}
+	}
+	// return the supposed generated default one, in the next reconcile phase will get the managed by the Operator
+	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: infra.Namespace,
-			Name:      getInfinispanGeneratedSecretName(),
+			Name:      secretNames[0],
 		},
 		Data: map[string][]byte{},
-	}
-	if _, err := kubernetes.ResourceC(cli).Fetch(secret); err != nil {
-		return nil, err
-	}
-	return secret, nil
+	}, nil
 }
 
 // getInfinispanGeneratedSecretName gets the formatted name for the generated Infinispan Operator secret
-func getInfinispanGeneratedSecretName() string {
-	return fmt.Sprintf(infinispanOperatorGeneratedSecret, InstanceName)
+func getInfinispanGeneratedSecretName() []string {
+	return []string{
+		fmt.Sprintf(infinispanOperatorGeneratedSecret, InstanceName),
+		fmt.Sprintf(infinispanOperatorAppRealmGeneratedSecret, InstanceName),
+	}
 }

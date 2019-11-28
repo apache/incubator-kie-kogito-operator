@@ -663,12 +663,18 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject"),
 						},
 					},
+					"infra": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Infrastructure definition",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppInfra"),
+						},
+					},
 				},
 				Required: []string{"build"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppInfra", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"},
 	}
 }
 

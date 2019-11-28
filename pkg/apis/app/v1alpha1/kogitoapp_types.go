@@ -61,6 +61,9 @@ type KogitoAppSpec struct {
 	// Kubernetes Service configuration
 	// Default value: nil
 	Service KogitoAppServiceObject `json:"service,omitempty"`
+
+	// Infrastructure definition
+	Infra KogitoAppInfra `json:"infra,omitempty"`
 }
 
 // Resources Data to define Resources needed for each deployed pod
@@ -187,7 +190,31 @@ type KogitoAppStatus struct {
 	Builds Builds `json:"builds"`
 }
 
-// RuntimeType is the type of condition
+// KogitoAppInfraInstallInfinispanType defines the Infinispan installation mode
+type KogitoAppInfraInstallInfinispanType string
+
+const (
+	// KogitoAppInfraInstallInfinispanAlways - Always installs Infinispan
+	KogitoAppInfraInstallInfinispanAlways KogitoAppInfraInstallInfinispanType = "Always"
+	// KogitoAppInfraInstallInfinispanNever - Never installs Infinispan
+	KogitoAppInfraInstallInfinispanNever KogitoAppInfraInstallInfinispanType = "Never"
+	// KogitoAppInfraInstallInfinispanAuto - The Operator will try to discover if the service needs persistence by scanning the runtime image metadata
+	KogitoAppInfraInstallInfinispanAuto KogitoAppInfraInstallInfinispanType = "Auto"
+)
+
+// KogitoAppInfra defines details regarding the Kogito Infrastructure to support the deployed Kogito Service
+type KogitoAppInfra struct {
+	// By default Kogito Operator installs an Infinispan instance in the namespace if the service needs persistence ('Auto').
+	// Set to 'Never' to disable this behavior, e.g. if the service will use another persistence mechanism.
+	// Set to 'Always' to always install Infinispan, even if the service won't need persistence.
+	// For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
+	// More info: https://github.com/kiegroup/kogito-cloud-operator#infinispan-environment-variables.
+	// Default to false, which means it installs Infinispan if the service requires persistence.
+	// +kubebuilder:validation:Enum=Always;Never;Auto
+	InstallInfinispan KogitoAppInfraInstallInfinispanType `json:"installInfinispan,omitempty"`
+}
+
+// RuntimeType - type of condition
 type RuntimeType string
 
 const (
@@ -238,6 +265,8 @@ const (
 	BuildS2IFailedReason ReasonType = "BuildS2IFailedReason"
 	// BuildRuntimeFailedReason - Unable to build the runtime image
 	BuildRuntimeFailedReason ReasonType = "BuildRuntimeFailedReason"
+	// DeployKogitoInfraFailedReason - Unable to deploy Kogito Infra
+	DeployKogitoInfraFailedReason ReasonType = "DeployKogitoInfraFailedReason"
 	// UnknownReason - Unable to determine the error
 	UnknownReason ReasonType = "Unknown"
 )

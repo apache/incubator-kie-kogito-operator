@@ -37,6 +37,12 @@ Table of Contents
             * [For Windows](#for-windows)
             * [Building the Kogito CLI from source](#building-the-kogito-cli-from-source)
          * [Deploying a Kogito service from source with the Kogito CLI](#deploying-a-kogito-service-from-source-with-the-kogito-cli)
+      * [Prometheus integration with the Kogito Operator](#prometheus-integration-with-the-kogito-operator)
+         * [Prometheus annotations](#prometheus-annotations)
+         * [Prometheus Operator](#prometheus-operator)
+      * [Infinispan integration](#infinispan-integration)
+         * [Kogito Services](#kogito-services)
+         * [Data Index Service](#data-index-service)
       * [Kogito Operator development](#kogito-operator-development)
          * [Building the Kogito Operator](#building-the-kogito-operator)
          * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
@@ -44,10 +50,6 @@ Table of Contents
             * [With the Kogito Operator SDK](#with-the-kogito-operator-sdk)
             * [With the Kogito CLI](#with-the-kogito-cli)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
-      * [Prometheus integration with the Kogito Operator](#prometheus-integration-with-the-kogito-operator)
-         * [Prometheus annotations](#prometheus-annotations)
-         * [Prometheus Operator](#prometheus-operator)
-      * [Infinispan integration](#infinispan-integration)
       * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -447,6 +449,181 @@ You can shorten the previous command as shown in the following example:
 ```bash
 $ kogito deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project <project-name>
 ```
+## Prometheus integration with the Kogito Operator
+
+### Prometheus annotations
+
+By default, if your Kogito Runtimes service contains the `monitoring-prometheus-addon` dependency, metrics for the Kogito service are enabled. For more information about Prometheus metrics in Kogito services, see [Enabling metrics](https://github.com/kiegroup/kogito-runtimes/wiki/Configuration#enabling-metrics).
+
+The Kogito Operator adds Prometheus annotations to the pod and service of the deployed application, as shown in the following example:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    org.kie.kogito/managed-by: Kogito Operator
+    org.kie.kogito/operator-crd: KogitoApp
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8080"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+  labels:
+    app: onboarding-service
+    onboarding: process
+  name: onboarding-service
+  namespace: kogito
+  ownerReferences:
+  - apiVersion: app.kiegroup.org/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: KogitoApp
+    name: onboarding-service
+spec:
+  clusterIP: 172.30.173.165
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: onboarding-service
+    onboarding: process
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+```
+
+### Prometheus Operator
+
+The [Prometheus Operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheusioscrape) does not directly support the Prometheus annotations that the Kogito Operator adds to your Kogito services. If you are deploying the Kogito Operator on OpenShift 4.x, then you are likely using the Prometheus Operator.
+
+Therefore, in a scenario where Prometheus is deployed and managed by the Prometheus Operator, and if metrics for the Kogito service are enabled, a new [`ServiceMonitor`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/servicemonitor.crd.yaml) resource is deployed by the Kogito Operator to expose the metrics for Prometheus to scrape:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: onboarding-service
+  name: onboarding-service
+  namespace: kogito
+spec:
+  endpoints:
+  - path: /metrics
+    targetPort: 8080
+    scheme: http
+  namespaceSelector:
+    matchNames:
+    - kogito
+  selector:
+    matchLabels:
+      app: onboarding-service
+```
+
+You must manually configure your [`Prometheus`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/prometheus.crd.yaml) resource that is managed by the Prometheus Operator to select the `ServiceMonitor` resource:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus
+spec:
+  serviceAccountName: prometheus
+  serviceMonitorSelector:
+    matchLabels:
+      app: onboarding-service
+```
+
+After you configure your Prometheus resource with the `ServiceMonitor` resource, you can see the endpoint being scraped by Prometheus in the **Targets** page of the Prometheus web console:
+
+![](docs/img/prometheus_target.png)
+
+The metrics exposed by the Kogito service appear in the **Graph** view:
+
+![](docs/img/prometheus_graph.png)
+
+For more information about the Prometheus Operator, see the [Prometheus Operator](https://github.com/coreos/prometheus-operator/blob/master/Documentation/user-guides/getting-started.md) documentation.
+
+## Infinispan integration
+
+To help you start and run an Infinispan Server instance in your project, the Kogito Operator has a resource called `KogitoInfra` to handle Infinispan deployment for you.
+
+The `KogitoInfra` resource use the [Infinispan Operator](https://github.com/infinispan/infinispan-operator) to deploy new Infinispan server instances if needed.
+
+You can freely edit and manage the Infinispan instance. Kogito Operator do not manage or handle the Infinispan instances. 
+For example, if you have plans to scale the Infinispan cluster, you can edit the `replicas` field in the [Infinispan CR](https://github.com/infinispan/infinispan-operator/blob/master/pkg/apis/infinispan/v1/infinispan_types.go) to meet your requirements.
+
+By default, the `KogitoInfra` resource creates a secret that holds the user name and password for Infinispan authentication. 
+To view the credentials, run the following command:
+
+```bash
+$ oc get secret/kogito-infinispan-credential -o yaml
+
+apiVersion: v1
+data:
+  password: VzNCcW9DeXdpMVdXdlZJZQ==
+  username: ZGV2ZWxvcGVy
+kind: Secret
+(...)
+```
+
+The key values are masked by a Base64 algorithm. To view the password from the previous example output in your terminal, 
+run the following command:
+
+```bash
+$ echo VzNCcW9DeXdpMVdXdlZJZQ== | base64 -d
+
+W3BqoCywi1WWvVIe
+```
+
+For more information about Infinispan Operator, please see [their official documentation](https://infinispan.org/infinispan-operator/master/documentation/asciidoc/titles/operator.html).
+
+**Note:** *Sometimes the OperatorHub will install DataGrid operator instead of Infinispan when installing Kogito Operator. 
+If this happens, please uninstall DataGrid and install Infinispan manually since they are not compatible*
+
+### Kogito Services
+
+If your Kogito Service depends on the [persistence add-on](https://github.com/kiegroup/kogito-runtimes/wiki/Persistence), 
+Kogito Operator installs Infinispan and inject the connection properties as environment variables into the service. 
+Depending on the runtime, this variables will differ. See the table below:
+
+
+|Quarkus Runtime                          |Springboot Runtime              | Description                                       |Example                |
+|-----------------------------------------|--------------------------------|---------------------------------------------------|-----------------------| 
+|QUARKUS_INFINISPAN_CLIENT_SERVER_LIST    |INFINISPAN_REMOTE_SERVER_LIST   |Service URI from deployed Infinispan               |kogito-infinispan:11222|
+|QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME  |INFINISPAN_REMOTE_AUTH_USER_NAME|Default username generated by Infinispan Operator  |developer              |
+|QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD  |INFINISPAN_REMOTE_AUTH_PASSWORD |Random password generated by Infinispan Operator   |Z1Nz34JpuVdzMQKi       |
+|QUARKUS_INFINISPAN_CLIENT_SASL_MECHANISM |INFINISPAN_REMOTE_SASL_MECHANISM|Default to `PLAIN`                                 |`PLAIN`                |
+
+Just make sure that your Kogito Service can read these properties in runtime. 
+Those variables names are the same as the ones used by Infinispan clients from Quarkus and Springboot.
+
+On Quarkus, make sure that your `aplication.properties` file has the properties listed like the example below:
+
+```properties
+quarkus.infinispan-client.server-list=
+quarkus.infinispan-client.auth-username=
+quarkus.infinispan-client.auth-password=
+quarkus.infinispan-client.sasl-mechanism=
+```
+
+These properties are replaced by the environment variables in runtime.
+
+You can control the installation method for the Infinispan by using the flag `infinispan-install` in the Kogito CLI or 
+editing the `spec.infra.installInfinispan` in `KogitoApp` custom resource:
+
+- **`Auto`** - The operator tries to discover if the service needs persistence by scanning the runtime image for the `org.kie/persistence/required` label attribute
+- **`Always`** - Infinispan is installed in the namespace without checking if the service needs persistence or not
+- **`Never`** - Infinispan is not installed, even if the service requires persistence. Use this option only if you intend to deploy your own persistence mechanism and you know how to configure your service to access it  
+
+### Data Index Service
+
+For the Data Index Service, if you do not provide a service URL to connect to Infinispan, a new server is deployed via `KogitoInfra`.
+
+A random password for the `developer` user is created and injected into the Data Index automatically.
+You do not need to do anything for both services to work together.
 
 ## Kogito Operator development
 
@@ -554,134 +731,6 @@ You can use the following command to vet, format, lint, and test your code:
 
 ```bash
 $ make test
-```
-
-## Prometheus integration with the Kogito Operator
-
-### Prometheus annotations
-
-By default, if your Kogito Runtimes service contains the `monitoring-prometheus-addon` dependency, metrics for the Kogito service are enabled. For more information about Prometheus metrics in Kogito services, see [Enabling metrics](https://github.com/kiegroup/kogito-runtimes/wiki/Configuration#enabling-metrics).
-
-The Kogito Operator adds Prometheus annotations to the pod and service of the deployed application, as shown in the following example:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    org.kie.kogito/managed-by: Kogito Operator
-    org.kie.kogito/operator-crd: KogitoApp
-    prometheus.io/path: /metrics
-    prometheus.io/port: "8080"
-    prometheus.io/scheme: http
-    prometheus.io/scrape: "true"
-  labels:
-    app: onboarding-service
-    onboarding: process
-  name: onboarding-service
-  namespace: kogito
-  ownerReferences:
-  - apiVersion: app.kiegroup.org/v1alpha1
-    blockOwnerDeletion: true
-    controller: true
-    kind: KogitoApp
-    name: onboarding-service
-spec:
-  clusterIP: 172.30.173.165
-  ports:
-  - name: http
-    port: 8080
-    protocol: TCP
-    targetPort: 8080
-  selector:
-    app: onboarding-service
-    onboarding: process
-  sessionAffinity: None
-  type: ClusterIP
-status:
-  loadBalancer: {}
-```
-
-### Prometheus Operator
-
-The [Prometheus Operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheusioscrape) does not directly support the Prometheus annotations that the Kogito Operator adds to your Kogito services. If you are deploying the Kogito Operator on OpenShift 4.x, then you are likely using the Prometheus Operator.
-
-Therefore, in a scenario where Prometheus is deployed and managed by the Prometheus Operator, and if metrics for the Kogito service are enabled, a new [`ServiceMonitor`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/servicemonitor.crd.yaml) resource is deployed by the Kogito Operator to expose the metrics for Prometheus to scrape:
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  labels:
-    app: onboarding-service
-  name: onboarding-service
-  namespace: kogito
-spec:
-  endpoints:
-  - path: /metrics
-    targetPort: 8080
-    scheme: http
-  namespaceSelector:
-    matchNames:
-    - kogito
-  selector:
-    matchLabels:
-      app: onboarding-service
-```
-
-You must manually configure your [`Prometheus`](https://github.com/coreos/prometheus-operator/blob/master/example/prometheus-operator-crd/prometheus.crd.yaml) resource that is managed by the Prometheus Operator to select the `ServiceMonitor` resource:
-
-```yaml
-apiVersion: monitoring.coreos.com/v1
-kind: Prometheus
-metadata:
-  name: prometheus
-spec:
-  serviceAccountName: prometheus
-  serviceMonitorSelector:
-    matchLabels:
-      app: onboarding-service
-```
-
-After you configure your Prometheus resource with the `ServiceMonitor` resource, you can see the endpoint being scraped by Prometheus in the **Targets** page of the Prometheus web console:
-
-![](docs/img/prometheus_target.png)
-
-The metrics exposed by the Kogito service appear in the **Graph** view:
-
-![](docs/img/prometheus_graph.png)
-
-For more information about the Prometheus Operator, see the [Prometheus Operator](https://github.com/coreos/prometheus-operator/blob/master/Documentation/user-guides/getting-started.md) documentation.
-
-## Infinispan integration
-
-To help you start and run an Infinispan Server instance in your project, the Kogito Operator has a resource called `KogitoInfra` to handle Infinispan deployment for you.
-
-For the Data Index Service, if you do not provide a service URL to connect to Infinispan Server, a URL is deployed using the [Infinispan Operator](https://github.com/infinispan/infinispan-operator).
-
-A random password for the `developer` user is created and injected into the Data Index automatically. You do not need to do anything for both services to work together.
-
-If you have plans to scale the Infinispan cluster, you can edit the [Infinispan CR](https://github.com/infinispan/infinispan-operator/blob/master/pkg/apis/infinispan/v1/infinispan_types.go) to meet your requirements.
-
-By default, the `KogitoInfra` resource creates a secret that holds the user name and password to authenticate this server. To view the credentials, run the following command:
-
-```bash
-$ oc get secret/kogito-infinispan-credential -o yaml
-
-apiVersion: v1
-data:
-  password: VzNCcW9DeXdpMVdXdlZJZQ==
-  username: ZGV2ZWxvcGVy
-kind: Secret
-(...)
-```
-
-The key values are masked by a Base64 algorithm. To view the password from the previous example output in your terminal, run the following command:
-
-```bash
-$ echo VzNCcW9DeXdpMVdXdlZJZQ== | base64 -d
-
-W3BqoCywi1WWvVIe
 ```
 
 ## Contributing to the Kogito Operator

@@ -8,9 +8,9 @@ spec:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/onboarding
     imageRuntime:
-      imageStreamTag: 0.5.0
+      imageStreamTag: 0.6.0
     imageS2I:
-      imageStreamTag: 0.5.0
+      imageStreamTag: 0.6.0
     env:
       # optional, but will improve your build time quite a lot
       - name: MAVEN_MIRROR_URL
@@ -33,9 +33,9 @@ spec:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/hr
     imageRuntime:
-      imageStreamTag: 0.5.0
+      imageStreamTag: 0.6.0
     imageS2I:
-      imageStreamTag: 0.5.0
+      imageStreamTag: 0.6.0
     env:
       # optional, but will improve your build time quite a lot
       - name: MAVEN_MIRROR_URL
@@ -57,15 +57,15 @@ spec:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/payroll
     imageRuntime:
-      imageStreamTag: 0.5.0
+      imageStreamTag: 0.6.0
     imageS2I:
-      imageStreamTag: 0.5.0
+      imageStreamTag: 0.6.0
     env:
       # optional, but will improve your build time quite a lot
       - name: MAVEN_MIRROR_URL
         value: "<http://yourmavenurl>"
   service:
     labels:
-      taxRate: process
-      vacationDays: process
-      paymentDate: process
+      taxes/rate: process
+      vacations/days: process
+      payments/date: process

@@ -18,6 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	utilres "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"reflect"
 	"testing"
 	"time"
@@ -74,19 +76,6 @@ var (
 	}
 )
 
-func TestNewContainerWithResource(t *testing.T) {
-	container := corev1.Container{
-		Name:            cr.Name,
-		Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
-		Resources:       shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
-		ImagePullPolicy: corev1.PullAlways,
-	}
-	assert.NotNil(t, container)
-	cpuQty := resource.MustParse(cpuValue)
-	assert.Equal(t, container.Resources.Limits.Cpu(), &cpuQty)
-	assert.Equal(t, container.Resources.Requests.Cpu(), &resource.Quantity{Format: resource.DecimalSI})
-}
-
 func createFakeKogitoApp() *v1alpha1.KogitoApp {
 	gitURL := "https://github.com/kiegroup/kogito-examples/"
 	kogitoapp := &cr
@@ -106,12 +95,14 @@ func createFakeKogitoApp() *v1alpha1.KogitoApp {
 	return kogitoapp
 }
 
-func createFakeImages(kogitoAppName string) []runtime.Object {
+func createFakeImages(kogitoAppName string, runtimeLabels map[string]string) []runtime.Object {
+	if nil == runtimeLabels {
+		runtimeLabels = map[string]string{}
+		runtimeLabels[openshift.ImageLabelForExposeServices] = "8080:http"
+	}
 	dockerImageRaw, _ := json.Marshal(&dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
-			Labels: map[string]string{
-				openshift.ImageLabelForExposeServices: "8080:http",
-			},
+			Labels: runtimeLabels,
 		},
 	})
 
@@ -209,11 +200,23 @@ func createFakeImages(kogitoAppName string) []runtime.Object {
 	return []runtime.Object{&isTag, &isTagBuild, &image1, &image2, &image3, &image4, &image5, &image6}
 }
 
+func TestNewContainerWithResource(t *testing.T) {
+	container := corev1.Container{
+		Name:            cr.Name,
+		Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
+		Resources:       shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
+		ImagePullPolicy: corev1.PullAlways,
+	}
+	assert.NotNil(t, container)
+	cpuQty := resource.MustParse(cpuValue)
+	assert.Equal(t, container.Resources.Limits.Cpu(), &cpuQty)
+	assert.Equal(t, container.Resources.Requests.Cpu(), &resource.Quantity{Format: resource.DecimalSI})
+}
+
 func TestKogitoAppWithResource(t *testing.T) {
 	kogitoapp := createFakeKogitoApp()
-	images := createFakeImages(kogitoapp.Name)
+	images := createFakeImages(kogitoapp.Name, nil)
 	objs := []runtime.Object{kogitoapp}
-	s := meta.GetRegisteredSchema()
 	fakeClient := test.CreateFakeClient(objs, images, []runtime.Object{})
 
 	// ********** sanity check
@@ -224,12 +227,12 @@ func TestKogitoAppWithResource(t *testing.T) {
 	}
 	assert.True(t, len(kogitoAppList.Items) > 0)
 	assert.True(t, kogitoAppList.Items[0].Spec.Resources.Limits[0].Resource == cpuResource)
-	cachefake := &cachev1.FakeInformers{}
+	fakeCache := &cachev1.FakeInformers{}
 	// call reconcile object and mock image and build clients
 	r := &ReconcileKogitoApp{
 		client: fakeClient,
-		scheme: s,
-		cache:  cachefake,
+		scheme: meta.GetRegisteredSchema(),
+		cache:  fakeCache,
 	}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
@@ -350,7 +353,7 @@ func TestReconcileKogitoApp_updateKogitoAppStatus(t *testing.T) {
 	}
 
 	runtimeObjs := []runtime.Object{kogitoapp, route}
-	imageObjs := createFakeImages(kogitoapp.Name)
+	imageObjs := createFakeImages(kogitoapp.Name, nil)
 	buildObjs := []runtime.Object{buildconfigRuntime, buildconfigS2I, buildList}
 
 	clientfake := test.CreateFakeClient(runtimeObjs, imageObjs, buildObjs)
@@ -479,6 +482,43 @@ func TestReconcileKogitoApp_updateKogitoAppStatus(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
+	kogitoApp := createFakeKogitoApp()
+	imgs := createFakeImages(kogitoApp.Name, map[string]string{utilres.LabelKeyOrgKiePersistenceRequired: "true"})
+	kogitoApp.Spec.Infra = v1alpha1.KogitoAppInfra{}
+	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp}, imgs, nil)
+	fakeCache := &cachev1.FakeInformers{}
+	// call reconcile object and mock image and build clients
+	r := &ReconcileKogitoApp{
+		client: fakeClient,
+		scheme: meta.GetRegisteredSchema(),
+		cache:  fakeCache,
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      kogitoApp.Name,
+			Namespace: kogitoApp.Namespace,
+		},
+	}
+	// first reconcile
+	result, err := r.Reconcile(req)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	// requeue for kogitoInfra
+	assert.True(t, result.Requeue)
+
+	kogitoInfra, created, ready, err := infrastructure.EnsureInfinispanWithKogitoInfra(kogitoApp.Namespace, fakeClient)
+	assert.NoError(t, err)
+	assert.False(t, created)      // created in reconciliation phase
+	assert.False(t, ready)        // not ready, we don't have status
+	assert.NotNil(t, kogitoInfra) // must exist a infra
+
+	dc := &appsv1.DeploymentConfig{ObjectMeta: metav1.ObjectMeta{Name: kogitoApp.Name, Namespace: kogitoApp.Namespace}}
+	exists, err := kubernetes.ResourceC(fakeClient).Fetch(dc)
+	assert.NoError(t, err)
+	assert.False(t, exists) // we don't have a dc yet because Infinispan is not ready
 }
 
 type mockCache struct {

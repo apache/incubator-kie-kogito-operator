@@ -168,6 +168,26 @@ spec:
                     type: string
                 type: object
               type: array
+            infra:
+              description: Infrastructure definition
+              properties:
+                installInfinispan:
+                  description: 'By default Kogito Operator installs an Infinispan
+                    instance in the namespace if the service needs persistence (''Auto'').
+                    Set to ''Never'' to disable this behavior, e.g. if the service
+                    will use another persistence mechanism. Set to ''Always'' to always
+                    install Infinispan, even if the service won''t need persistence.
+                    For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment
+                    variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
+                    More info: https://github.com/kiegroup/kogito-cloud-operator#infinispan-environment-variables.
+                    Default to false, which means it installs Infinispan if the service
+                    requires persistence.'
+                  enum:
+                  - Always
+                  - Never
+                  - Auto
+                  type: string
+              type: object
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster Default value: 1'
