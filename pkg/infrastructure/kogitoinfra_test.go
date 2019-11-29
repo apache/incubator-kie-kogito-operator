@@ -26,7 +26,7 @@ import (
 func Test_CreateOrFetchKogitoInfra_NotExists(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
-	infra, created, err := CreateOrFetchInfra(ns, cli)
+	infra, created, err := createOrFetchInfra(ns, cli)
 	assert.NoError(t, err)
 	assert.NotNil(t, infra)
 	assert.True(t, created)
@@ -40,7 +40,7 @@ func Test_CreateOrFetchKogitoInfra_Exists(t *testing.T) {
 		Spec:       v1alpha1.KogitoInfraSpec{InstallInfinispan: false},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
-	infra, created, err := CreateOrFetchInfra(ns, cli)
+	infra, created, err := createOrFetchInfra(ns, cli)
 	assert.NoError(t, err)
 	assert.NotNil(t, infra)
 	assert.False(t, created)

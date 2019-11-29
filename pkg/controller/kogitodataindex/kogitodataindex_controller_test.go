@@ -63,9 +63,10 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 	}
 
 	// check infra
-	infra, created, err := infrastructure.CreateOrFetchInfra(ns, client)
+	infra, created, ready, err := infrastructure.EnsureInfinispanWithKogitoInfra(ns, client)
 	assert.NoError(t, err)
-	assert.False(t, created)
-	assert.NotNil(t, infra)
+	assert.False(t, created) // the created = true were returned when the infra was created during the reconcile phase
+	assert.False(t, ready)   // we don't have status defined since the KogitoInfra controller is not running
+	assert.NotNil(t, infra)  // we have a infra instance created during reconciliation phase
 	assert.Equal(t, infrastructure.DefaultKogitoInfraName, infra.GetName())
 }

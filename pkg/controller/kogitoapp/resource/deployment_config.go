@@ -17,10 +17,12 @@ package resource
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
@@ -32,6 +34,33 @@ const (
 	defaultReplicas = int32(1)
 	// ServiceAccountName is the name of service account used by Kogito Services Runtimes
 	ServiceAccountName = "kogito-service-viewer"
+
+	envVarInfinispanServerList     = "SERVER_LIST"
+	envVarInfinispanUser           = "USERNAME"
+	envVarInfinispanPassword       = "PASSWORD"
+	envVarInfinispanSaslMechanism  = "SASL_MECHANISM"
+	defaultInfinispanSaslMechanism = v1alpha1.SASLPlain
+)
+
+var (
+	/*
+		Infinispan variables for the KogitoInfra deployed infrastructure.
+		For Quarkus: https://quarkus.io/guides/infinispan-client#quarkus-infinispan-client_configuration
+		For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
+	*/
+
+	envVarInfinispanQuarkus = map[string]string{
+		envVarInfinispanServerList:    "QUARKUS_INFINISPAN_CLIENT_SERVER_LIST",
+		envVarInfinispanUser:          "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
+		envVarInfinispanPassword:      "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
+		envVarInfinispanSaslMechanism: "QUARKUS_INFINISPAN_CLIENT_SASL_MECHANISM",
+	}
+	envVarInfinispanSpring = map[string]string{
+		envVarInfinispanServerList:    "INFINISPAN_REMOTE_SERVER_LIST",
+		envVarInfinispanUser:          "INFINISPAN_REMOTE_AUTH_USER_NAME",
+		envVarInfinispanPassword:      "INFINISPAN_REMOTE_AUTH_PASSWORD",
+		envVarInfinispanSaslMechanism: "INFINISPAN_REMOTE_SASL_MECHANISM",
+	}
 )
 
 // NewDeploymentConfig creates a new DeploymentConfig resource for the KogitoApp based on the BuildConfig runner image
@@ -97,4 +126,32 @@ func setReplicas(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
 		replicas = *kogitoApp.Spec.Replicas
 	}
 	dc.Spec.Replicas = replicas
+}
+
+// SetInfinispanEnvVars sets Infinispan variables to the given KogitoApp instance DeploymentConfig by reading information from the KogitoInfra
+func SetInfinispanEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) error {
+	if dc != nil && kogitoApp != nil &&
+		(kogitoInfra != nil && &kogitoInfra.Status != nil && &kogitoInfra.Status.Infinispan != nil) {
+		uri, err := infrastructure.GetInfinispanServiceURI(cli, kogitoInfra)
+		if err != nil {
+			return err
+		}
+		user, password, err := infrastructure.GetInfinispanCredentials(cli, kogitoInfra)
+		if err != nil {
+			return err
+		}
+
+		// inject credentials to deploymentConfig container
+		if len(dc.Spec.Template.Spec.Containers) > 0 {
+			vars := envVarInfinispanQuarkus
+			if kogitoApp.Spec.Runtime == v1alpha1.SpringbootRuntimeType {
+				vars = envVarInfinispanSpring
+			}
+			util.SetEnvVar(vars[envVarInfinispanServerList], uri, &dc.Spec.Template.Spec.Containers[0])
+			util.SetEnvVar(vars[envVarInfinispanUser], user, &dc.Spec.Template.Spec.Containers[0])
+			util.SetEnvVar(vars[envVarInfinispanPassword], password, &dc.Spec.Template.Spec.Containers[0])
+			util.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(defaultInfinispanSaslMechanism), &dc.Spec.Template.Spec.Containers[0])
+		}
+	}
+	return nil
 }

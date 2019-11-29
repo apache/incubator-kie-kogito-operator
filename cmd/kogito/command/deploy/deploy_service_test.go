@@ -49,7 +49,8 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 								-v --context-dir drools-quarkus-example --project %s
 								--image-s2i=myimage --image-runtime=myimage:0.2
 								--limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi
-								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi`, ns)
+								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi
+								--install-infinispan Always`, ns)
 	// Clean up after the command above
 	cli = strings.Join(strings.Fields(cli), " ")
 	ctx := test.SetupCliTest(cli,
@@ -82,6 +83,7 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.Equal(t, kogitoApp.Spec.Build.ImageS2I.ImageStreamName, "myimage")
 	assert.Equal(t, kogitoApp.Spec.Build.ImageRuntime.ImageStreamName, "myimage")
 	assert.Equal(t, kogitoApp.Spec.Build.ImageRuntime.ImageStreamTag, "0.2")
+	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAlways, kogitoApp.Spec.Infra.InstallInfinispan)
 }
 
 func Test_DeployCmd_CustomImage(t *testing.T) {
@@ -111,4 +113,6 @@ func Test_DeployCmd_CustomImage(t *testing.T) {
 	assert.Equal(t, "openshift", instance.Spec.Build.ImageRuntime.ImageStreamNamespace)
 	assert.Equal(t, "myimage", instance.Spec.Build.ImageRuntime.ImageStreamName)
 	assert.Equal(t, "0.2", instance.Spec.Build.ImageRuntime.ImageStreamTag)
+
+	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAuto, instance.Spec.Infra.InstallInfinispan)
 }

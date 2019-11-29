@@ -34,15 +34,17 @@ import (
 const (
 	// DefaultExportedPort is the default protocol exposed by inner services specified in image metadata
 	DefaultExportedPort = "http"
-	// LabelKeyPrometheus is the label key for Prometheus metadata
-	LabelKeyPrometheus = "prometheus.io"
 	// LabelKeyOrgKie is the label key for KIE metadata
 	LabelKeyOrgKie = "org.kie" + labelNamespaceSep
 	// LabelKeyOrgKiePersistence is the label key for Persistence metadata
-	LabelKeyOrgKiePersistence = "org.kie" + labelNamespaceSep + "persistence"
+	LabelKeyOrgKiePersistence = LabelKeyOrgKie + "persistence"
+	// LabelKeyOrgKiePersistenceRequired is the label key to check if persistence is enabled or not
+	LabelKeyOrgKiePersistenceRequired = LabelKeyOrgKiePersistence + labelNamespaceSep + "required"
 	// LabelKeyOrgKieProtoBuf is the label key for ProtoBuf metadata
-	LabelKeyOrgKieProtoBuf = "org.kie" + labelNamespaceSep + "persistence" + labelNamespaceSep + "proto"
+	LabelKeyOrgKieProtoBuf = LabelKeyOrgKiePersistence + labelNamespaceSep + "proto"
 
+	// LabelKeyPrometheus is the label key for Prometheus metadata
+	LabelKeyPrometheus = "prometheus.io"
 	// LabelPrometheusScrape is the label key for prometheus scrape configuration
 	LabelPrometheusScrape = LabelKeyPrometheus + "/scrape"
 	// LabelPrometheusPath is the label key for prometheus metrics path
@@ -98,22 +100,24 @@ func decompressBase64GZip(contents string) (string, error) {
 	var reader *gzip.Reader
 	defer func() {
 		if reader != nil {
-			reader.Close()
+			if err := reader.Close(); err != nil {
+				log.Errorf("Error closing gzip reader ", err)
+			}
 		}
 	}()
 	if decode, err = base64.StdEncoding.DecodeString(contents); err != nil {
-		return "", fmt.Errorf("Error while converting contents from base64: %s", err)
+		return "", fmt.Errorf("Error while converting contents from base64: %s ", err)
 	}
 	if reader, err = gzip.NewReader(bytes.NewReader(decode)); err != nil {
 		// the file might not being compressed, we should support old versions where the labels are not compressed
-		err = fmt.Errorf("Error while decompressing contents: %s", err)
+		err = fmt.Errorf("Error while decompressing contents: %s ", err)
 		if strings.Contains(err.Error(), "invalid header") {
 			return string(decode), err
 		}
 		return "", err
 	}
 	if decode, err = ioutil.ReadAll(reader); err != nil {
-		return "", fmt.Errorf("Error while reading contents after decompressing: %s", err)
+		return "", fmt.Errorf("Error while reading contents after decompressing: %s ", err)
 	}
 	return string(decode), nil
 }
@@ -237,4 +241,16 @@ func ExtractPrometheusConfigurationFromImage(dockerImage *dockerv10.DockerImage)
 	}
 
 	return
+}
+
+// IsPersistenceEnabled verifies if the image has labels indicating that persistence is enabled
+func IsPersistenceEnabled(dockerImage *dockerv10.DockerImage) (enabled bool) {
+	if !dockerImageHasLabels(dockerImage) {
+		return false
+	}
+	var err error
+	if enabled, err = strconv.ParseBool(dockerImage.Config.Labels[LabelKeyOrgKiePersistenceRequired]); err != nil {
+		return false
+	}
+	return enabled
 }

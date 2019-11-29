@@ -28,9 +28,30 @@ const (
 	DefaultKogitoInfraName = "kogito-infra"
 )
 
-// CreateOrFetchInfra will fetch for any reference of KogitoInfra in the given namespace.
+// EnsureInfinispanWithKogitoInfra creates a new instance of KogitoInfra if not exists with an Infinispan deployed if not exists. If exists, checks if Infinispan is deployed.
+func EnsureInfinispanWithKogitoInfra(namespace string, cli *client.Client) (infra *v1alpha1.KogitoInfra, created, ready bool, err error) {
+	ready = false
+	infra, created, err = createOrFetchInfra(namespace, cli)
+	if err != nil {
+		return
+	}
+	if created {
+		// since we just created a new Infra instance, let's wait for it to provision everything before proceeding
+		return
+	}
+	if !infra.Spec.InstallInfinispan {
+		infra.Spec.InstallInfinispan = true
+		err = kubernetes.ResourceC(cli).Update(infra)
+		ready = false
+		return
+	}
+	ready = isInfinispanDeployed(infra)
+	return
+}
+
+// createOrFetchInfra will fetch for any reference of KogitoInfra in the given namespace.
 // If not exists, a new one with Infinispan enabled will be created and returned
-func CreateOrFetchInfra(namespace string, cli *client.Client) (infra *v1alpha1.KogitoInfra, created bool, err error) {
+func createOrFetchInfra(namespace string, cli *client.Client) (infra *v1alpha1.KogitoInfra, created bool, err error) {
 	log := logger.GetLogger("infrastructure_kogitoinfra")
 	log.Debug("Fetching for KogitoInfra list in namespace")
 	// let's look for the deployed infra
@@ -56,8 +77,8 @@ func CreateOrFetchInfra(namespace string, cli *client.Client) (infra *v1alpha1.K
 	return infra, true, nil
 }
 
-// IsInfinispanDeployed will verify if the given KogitoInfra has Infinispan deployed
-func IsInfinispanDeployed(infra *v1alpha1.KogitoInfra) bool {
+// isInfinispanDeployed will verify if the given KogitoInfra has Infinispan deployed
+func isInfinispanDeployed(infra *v1alpha1.KogitoInfra) bool {
 	if &infra.Status != nil &&
 		&infra.Status.Infinispan != nil &&
 		len(infra.Status.Infinispan.Condition) > 0 {

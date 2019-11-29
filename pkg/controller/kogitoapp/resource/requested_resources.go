@@ -56,7 +56,7 @@ func GetRequestedResources(context *Context) (*KogitoAppResources, error) {
 		AndBuild(deploymentConfigBuilder).
 		AndBuild(serviceBuilder).
 		AndBuild(routeBuilder).
-		AndBuild(servicemonitorBuilder)
+		AndBuild(serviceMonitorBuilder)
 	return chain.Resources, chain.Error
 }
 
@@ -142,7 +142,7 @@ func routeBuilder(chain *builderChain) *builderChain {
 	return chain
 }
 
-func servicemonitorBuilder(chain *builderChain) *builderChain {
+func serviceMonitorBuilder(chain *builderChain) *builderChain {
 	if chain.Resources.RuntimeImage != nil && chain.Resources.Service != nil {
 		sm, err := NewServiceMonitor(chain.Context.KogitoApp, chain.Resources.RuntimeImage, chain.Resources.Service, chain.Context.Client)
 		if err != nil {

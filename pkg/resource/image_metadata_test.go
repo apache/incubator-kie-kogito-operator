@@ -349,3 +349,46 @@ func Test_decompressBase64GZip(t *testing.T) {
 		})
 	}
 }
+
+func TestIsPersistenceEnabled(t *testing.T) {
+	imageWithLabel := &dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{Labels: map[string]string{LabelKeyOrgKiePersistenceRequired: "true"}},
+	}
+	imageWithoutLabel := &dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{Labels: map[string]string{}},
+	}
+	imageWithEmptyLabel := &dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{Labels: map[string]string{LabelKeyOrgKiePersistenceRequired: ""}},
+	}
+	type args struct {
+		dockerImage *dockerv10.DockerImage
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			"Image has label",
+			args{imageWithLabel},
+			true,
+		},
+		{
+			"Image hasn't label",
+			args{imageWithoutLabel},
+			false,
+		},
+		{
+			"Image has empty label",
+			args{imageWithEmptyLabel},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsPersistenceEnabled(tt.args.dockerImage); got != tt.want {
+				t.Errorf("IsPersistenceEnabled() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

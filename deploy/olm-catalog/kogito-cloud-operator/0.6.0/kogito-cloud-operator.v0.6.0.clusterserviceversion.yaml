@@ -110,6 +110,12 @@ spec:
         path: route
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
+      - description: Infinispan Installation Mode that could be either 'Auto' (default),
+          'Always' or 'Never'. 'Auto' the operator will try to guess if Infinispan
+          is needed by the service; 'Always' will always install it, and 'Never' won't
+          install Infinispan even if the service requires it.
+        displayName: Infinispan Installation Mode
+        path: infra.installInfinispan
       - description: Conditions History
         displayName: Conditions
         path: conditions

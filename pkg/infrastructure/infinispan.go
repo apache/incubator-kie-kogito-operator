@@ -15,15 +15,20 @@
 package infrastructure
 
 import (
+	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"k8s.io/api/apps/v1"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	infinispanServerGroup = "infinispan.org"
-	operatorName          = "infinispan-operator"
+	infinispanServerGroup  = "infinispan.org"
+	infinispanOperatorName = "infinispan-operator"
+	defaultInfinispanPort  = 11222
 )
 
 // IsInfinispanOperatorAvailable verify if Infinispan Operator is running in the given namespace and the CRD is available
@@ -33,7 +38,7 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 	if cli.HasServerGroup(infinispanServerGroup) {
 		log.Debugf("Infinispan CRDs available. Checking if Infinispan Operator is deployed in the namespace %s", namespace)
 		// then check if there's a Infinispan Operator deployed
-		deployment := &v1.Deployment{ObjectMeta: v12.ObjectMeta{Namespace: namespace, Name: operatorName}}
+		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: infinispanOperatorName}}
 		exists := false
 		var err error
 		if exists, err = kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
@@ -48,4 +53,55 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 	}
 	log.Debugf("Looks like Infinispan Operator is not available in the namespace %s", namespace)
 	return false, nil
+}
+
+// GetInfinispanServiceURI fetches for the Infinispan service linked with the given KogitoInfra and returns a formatted URI
+func GetInfinispanServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri string, err error) {
+	if &infra == nil || &infra.Status == nil || &infra.Status.Infinispan == nil {
+		return "", nil
+	}
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.Service, Namespace: infra.Namespace},
+	}
+	exists := false
+	if exists, err = kubernetes.ResourceC(cli).Fetch(service); err != nil {
+		return "", err
+	}
+
+	if exists {
+		for _, port := range service.Spec.Ports {
+			if port.TargetPort.IntVal == defaultInfinispanPort {
+				return fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal), nil
+			}
+		}
+		return "", fmt.Errorf("Infinispan default port (%d) not found in service %s ", defaultInfinispanPort, service.Name)
+	}
+
+	return "", nil
+}
+
+// GetInfinispanCredentials fetches the Infinispan secret credentials managed by the given KogitoInfra and returns the credentials stored
+func GetInfinispanCredentials(cli *client.Client, infra *v1alpha1.KogitoInfra) (user, password string, err error) {
+	user = ""
+	password = ""
+	err = nil
+	if &infra == nil || &infra.Status == nil || &infra.Status.Infinispan == nil {
+		return
+	}
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.CredentialSecret, Namespace: infra.Namespace},
+	}
+	exists := false
+	if exists, err = kubernetes.ResourceC(cli).Fetch(secret); err != nil {
+		return
+	}
+
+	if exists {
+		user = string(secret.Data[infinispan.SecretUsernameKey])
+		password = string(secret.Data[infinispan.SecretPasswordKey])
+	}
+
+	return
 }
