@@ -19,7 +19,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -81,27 +80,15 @@ func GetInfinispanServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (u
 	return "", nil
 }
 
-// GetInfinispanCredentials fetches the Infinispan secret credentials managed by the given KogitoInfra and returns the credentials stored
-func GetInfinispanCredentials(cli *client.Client, infra *v1alpha1.KogitoInfra) (user, password string, err error) {
-	user = ""
-	password = ""
+// GetInfinispanCredentialsSecret will fetch for the secret created to hold Infinispan credentials
+func GetInfinispanCredentialsSecret(cli *client.Client, infra *v1alpha1.KogitoInfra) (secret *corev1.Secret, err error) {
 	err = nil
 	if &infra == nil || &infra.Status == nil || &infra.Status.Infinispan == nil {
 		return
 	}
-
-	secret := &corev1.Secret{
+	secret = &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.CredentialSecret, Namespace: infra.Namespace},
 	}
-	exists := false
-	if exists, err = kubernetes.ResourceC(cli).Fetch(secret); err != nil {
-		return
-	}
-
-	if exists {
-		user = string(secret.Data[infinispan.SecretUsernameKey])
-		password = string(secret.Data[infinispan.SecretPasswordKey])
-	}
-
+	_, err = kubernetes.ResourceC(cli).Fetch(secret)
 	return
 }

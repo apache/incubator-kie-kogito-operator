@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
@@ -136,7 +137,7 @@ func SetInfinispanEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra,
 		if err != nil {
 			return err
 		}
-		user, password, err := infrastructure.GetInfinispanCredentials(cli, kogitoInfra)
+		secret, err := infrastructure.GetInfinispanCredentialsSecret(cli, kogitoInfra)
 		if err != nil {
 			return err
 		}
@@ -148,9 +149,9 @@ func SetInfinispanEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra,
 				vars = envVarInfinispanSpring
 			}
 			util.SetEnvVar(vars[envVarInfinispanServerList], uri, &dc.Spec.Template.Spec.Containers[0])
-			util.SetEnvVar(vars[envVarInfinispanUser], user, &dc.Spec.Template.Spec.Containers[0])
-			util.SetEnvVar(vars[envVarInfinispanPassword], password, &dc.Spec.Template.Spec.Containers[0])
 			util.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(defaultInfinispanSaslMechanism), &dc.Spec.Template.Spec.Containers[0])
+			util.SetEnvVarFromSecret(vars[envVarInfinispanUser], infinispan.SecretUsernameKey, secret, &dc.Spec.Template.Spec.Containers[0])
+			util.SetEnvVarFromSecret(vars[envVarInfinispanPassword], infinispan.SecretPasswordKey, secret, &dc.Spec.Template.Spec.Containers[0])
 		}
 	}
 	return nil

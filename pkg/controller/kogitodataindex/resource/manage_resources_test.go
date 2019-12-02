@@ -15,6 +15,7 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	v1 "github.com/openshift/api/image/v1"
 	"testing"
 
@@ -88,19 +89,33 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 	statefulset := newStatefulset(instance, cm, secret)
 	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
 
+	valueFromUsername := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: secret.Name},
+			Key:                  infinispan.SecretUsernameKey,
+		},
+	}
+	valueFromPassword := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: secret.Name},
+			Key:                  infinispan.SecretPasswordKey,
+		},
+	}
+
 	// reconcile
 	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: string(infinispanEnvKeyUsername), Value: "developer"})
-	assert.NotContains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: string(infinispanEnvKeyAuthRealm), Value: "default"})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyUsername, ValueFrom: valueFromUsername})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyPassword, ValueFrom: valueFromPassword})
+	assert.NotContains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyAuthRealm, Value: "default"})
 
 	// let's change
 	instance.Spec.Infinispan.AuthRealm = "default"
 	instance.Spec.Infinispan.ServiceURI = "myservice:11222"
 	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: string(infinispanEnvKeyAuthRealm), Value: "default"})
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: string(interfaceEnvKeyServiceURI), Value: "myservice:11222"})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyAuthRealm, Value: "default"})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: interfaceEnvKeyServiceURI, Value: "myservice:11222"})
 }
 
 func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
@@ -128,6 +143,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	passBytes := []byte("developer")
 	cm := newProtobufConfigMap(instance)
 	statefulset := newStatefulset(instance, cm, &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: t.Name()},
 		Data: map[string][]byte{
 			"user": []byte(userBytes), "pass": []byte(passBytes),
 		}})
@@ -144,9 +160,15 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 		Value: "true",
 	})
 
+	valueFromUsername := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: t.Name()},
+			Key:                  infinispan.SecretUsernameKey,
+		},
+	}
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  infinispanEnvKeyUsername,
-		Value: "developer",
+		Name:      infinispanEnvKeyUsername,
+		ValueFrom: valueFromUsername,
 	})
 
 	// change the spec, adding one more key
