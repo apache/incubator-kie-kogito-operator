@@ -161,7 +161,7 @@ func ensureInfinispan(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.St
 		}
 	}
 
-	infinispanEnvs := fromInfinispanToStringMap(instance.Spec.Infinispan, secret)
+	infinispanEnvs := fromInfinispanToStringMap(instance.Spec.Infinispan)
 	currentInfinispan := getInfinispanVars(statefulset.Spec.Template.Spec.Containers[0])
 
 	if util.EnvVarCheck(currentInfinispan, util.FromMapToEnvVar(infinispanEnvs)) {

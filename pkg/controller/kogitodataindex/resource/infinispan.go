@@ -18,7 +18,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -66,17 +67,16 @@ func getInfinispanVars(container corev1.Container) []corev1.EnvVar {
 }
 
 // fromInfinispanToStringMap will convert the InfinispanConnectionProperties into a Map of environment variables to be set in the container
-func fromInfinispanToStringMap(infinispan v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret) map[string]string {
+func fromInfinispanToStringMap(infinispan v1alpha1.InfinispanConnectionProperties) map[string]string {
 	propsmap := map[string]string{}
 
 	if &infinispan == nil {
 		return propsmap
 	}
 
-	if secret != nil && &infinispan.Credentials != nil && len(infinispan.Credentials.SecretName) > 0 {
-		log.Debugf("Using secret with data %s. String is %s", secret.Data, secret.String())
-		propsmap[infinispanEnvKeyUsername] = string(secret.Data[infinispan.Credentials.UsernameKey])
-		propsmap[infinispanEnvKeyPassword] = string(secret.Data[infinispan.Credentials.PasswordKey])
+	if &infinispan.Credentials != nil && len(infinispan.Credentials.SecretName) > 0 {
+		propsmap[infinispanEnvKeyUsername] = ""
+		propsmap[infinispanEnvKeyPassword] = ""
 		propsmap[infinispanEnvKeyUseAuth] = "true"
 		propsmap[infinispanEnvKeyCredSecret] = infinispan.Credentials.SecretName
 		if len(infinispan.SaslMechanism) == 0 {
@@ -97,6 +97,17 @@ func fromInfinispanToStringMap(infinispan v1alpha1.InfinispanConnectionPropertie
 
 	log.Debugf("Infinispan properties created as %s", propsmap)
 	return propsmap
+}
+
+// setInfinispanCredentialsSecret will bind Infinispan Credentials in the container using the given secret as a reference
+func setInfinispanCredentialsSecret(infinispanProps v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret, container *corev1.Container) {
+	if &infinispanProps.Credentials != nil &&
+		len(infinispanProps.Credentials.SecretName) > 0 &&
+		secret != nil &&
+		container != nil {
+		util.SetEnvVarFromSecret(infinispanEnvKeyUsername, infinispan.SecretUsernameKey, secret, container)
+		util.SetEnvVarFromSecret(infinispanEnvKeyPassword, infinispan.SecretPasswordKey, secret, container)
+	}
 }
 
 // fetchInfinispanCredentials will fetch the secret defined in KogitoDataIndex.Spec.Infinispan.Credentials.Secret

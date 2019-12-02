@@ -34,7 +34,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 	envs := instance.Spec.Env
 	// defaults
 	envs = util.AppendStringMap(envs, defaultEnvs)
-	envs = util.AppendStringMap(envs, fromInfinispanToStringMap(instance.Spec.Infinispan, secret))
+	envs = util.AppendStringMap(envs, fromInfinispanToStringMap(instance.Spec.Infinispan))
 	envs = util.AppendStringMap(envs, fromKafkaToStringMap(instance.Spec.Kafka))
 
 	if instance.Spec.Replicas == 0 {
@@ -98,6 +98,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 		},
 	}
 
+	setInfinispanCredentialsSecret(instance.Spec.Infinispan, secret, &statefulset.Spec.Template.Spec.Containers[0])
 	meta.SetGroupVersionKind(&statefulset.TypeMeta, meta.KindStatefulSet)
 	addDefaultMetadata(&statefulset.ObjectMeta, instance)
 	addDefaultMetadata(&statefulset.Spec.Template.ObjectMeta, instance)

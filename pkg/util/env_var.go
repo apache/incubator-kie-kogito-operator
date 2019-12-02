@@ -132,6 +132,26 @@ func SetEnvVar(key, value string, container *corev1.Container) {
 	container.Env = append(container.Env, corev1.EnvVar{Name: key, Value: value})
 }
 
+// SetEnvVarFromSecret will set the Environment Variable from a Secret
+func SetEnvVarFromSecret(key, secretKey string, secret *corev1.Secret, container *corev1.Container) {
+	if container == nil || secret == nil {
+		return
+	}
+	valueFrom := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: secret.Name},
+			Key:                  secretKey,
+		},
+	}
+	for i, env := range container.Env {
+		if env.Name == key {
+			container.Env[i].ValueFrom = valueFrom
+			return
+		}
+	}
+	container.Env = append(container.Env, corev1.EnvVar{Name: key, ValueFrom: valueFrom})
+}
+
 // EnvVarCheck checks whether the src and dst []EnvVar have the same values
 func EnvVarCheck(dst, src []corev1.EnvVar) bool {
 	for _, denv := range dst {
