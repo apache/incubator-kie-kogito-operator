@@ -75,8 +75,12 @@ type KogitoDataIndexSpec struct {
 // KafkaConnectionProperties has the data needed to connect to a Kafka cluster
 type KafkaConnectionProperties struct {
 	// +optional
-	// ServiceURI is the service URI to connect to the Infinispan cluster, for example, myinifisan-cluster:11222
-	ServiceURI string `json:"serviceURI,omitempty"`
+	// ExternalURI is the service URI to connect to the Kafka cluster, for example, my-cluster-kafka-bootstrap:9092
+	ExternalURI string `json:"externalURI,omitempty"`
+
+	// +optional
+	// Instance is the Kafka instance to be used, for example, kogito-kafka
+	Instance string `json:"instance,omitempty"`
 }
 
 // InfinispanConnectionProperties is the configuration needed for authenticating an Infinispan cluster

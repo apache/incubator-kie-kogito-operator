@@ -15,19 +15,21 @@
 package kogitodataindex
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/stretchr/testify/assert"
 	"testing"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
@@ -41,7 +43,35 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true},
 		},
 	}
-	client := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+	kafkaList := &kafkabetav1.KafkaList{
+		Items: []kafkabetav1.Kafka{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "kafka",
+					Namespace: ns,
+				},
+				Spec: kafkabetav1.KafkaSpec{
+					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+						Replicas: 1,
+					},
+				},
+				Status: kafkabetav1.KafkaStatus{
+					Listeners: []kafkabetav1.ListenerStatus{
+						{
+							Type: "plain",
+							Addresses: []kafkabetav1.ListenerAddress{
+								{
+									Host: "kafka",
+									Port: 9092,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	client := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
 	r := &ReconcileKogitoDataIndex{
 		client: client,
 		scheme: meta.GetRegisteredSchema(),

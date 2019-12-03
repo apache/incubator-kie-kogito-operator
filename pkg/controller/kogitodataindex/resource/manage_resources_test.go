@@ -15,22 +15,28 @@
 package resource
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
-	v1 "github.com/openshift/api/image/v1"
 	"testing"
 
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	"github.com/stretchr/testify/assert"
+
+	imgv1 "github.com/openshift/api/image/v1"
 )
 
 func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
+	serviceuri := "myserviceuri:9092"
 	instance := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
@@ -40,19 +46,15 @@ func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
 			Replicas: 1,
 		},
 	}
-	serviceuri := "myserviceuri:9092"
 	cm := newProtobufConfigMap(instance)
 	secret := &corev1.Secret{}
-	statefulset := newStatefulset(instance, cm, secret)
+	statefulset := newStatefulset(instance, cm, secret, serviceuri)
 	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
 
 	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
-	assert.NoError(t, err)
-	for _, kafkaKey := range managedKafkaKeys {
-		assert.NotContains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kafkaKey, Value: serviceuri})
-	}
+	assert.Error(t, err)
 
-	instance.Spec.Kafka = v1alpha1.KafkaConnectionProperties{ServiceURI: serviceuri}
+	instance.Spec.Kafka = v1alpha1.KafkaConnectionProperties{ExternalURI: serviceuri}
 	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
 	for _, kafkaKey := range managedKafkaKeys {
@@ -77,6 +79,34 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 			},
 		},
 	}
+	kafkaList := &kafkabetav1.KafkaList{
+		Items: []kafkabetav1.Kafka{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "kafka",
+					Namespace: "test",
+				},
+				Spec: kafkabetav1.KafkaSpec{
+					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+						Replicas: 1,
+					},
+				},
+				Status: kafkabetav1.KafkaStatus{
+					Listeners: []kafkabetav1.ListenerStatus{
+						{
+							Type: "plain",
+							Addresses: []kafkabetav1.ListenerAddress{
+								{
+									Host: "kafka",
+									Port: 9092,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 	userBytes := []byte("developer")
 	passBytes := []byte("developer")
 	cm := newProtobufConfigMap(instance)
@@ -86,8 +116,9 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 			"user": []byte(userBytes), "pass": []byte(passBytes),
 		},
 	}
-	statefulset := newStatefulset(instance, cm, secret)
-	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
+	serviceuri := "kafka:9092"
+	statefulset := newStatefulset(instance, cm, secret, serviceuri)
+	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret, kafkaList}, nil, nil)
 
 	valueFromUsername := &corev1.EnvVarSource{
 		SecretKeyRef: &corev1.SecretKeySelector{
@@ -139,15 +170,44 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 			},
 		},
 	}
+	kafkaList := &kafkabetav1.KafkaList{
+		Items: []kafkabetav1.Kafka{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "kafka",
+					Namespace: "test",
+				},
+				Spec: kafkabetav1.KafkaSpec{
+					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+						Replicas: 1,
+					},
+				},
+				Status: kafkabetav1.KafkaStatus{
+					Listeners: []kafkabetav1.ListenerStatus{
+						{
+							Type: "plain",
+							Addresses: []kafkabetav1.ListenerAddress{
+								{
+									Host: "kafka",
+									Port: 9092,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 	userBytes := []byte("developer")
 	passBytes := []byte("developer")
 	cm := newProtobufConfigMap(instance)
+	serviceuri := "kafka:9092"
 	statefulset := newStatefulset(instance, cm, &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: t.Name()},
 		Data: map[string][]byte{
 			"user": []byte(userBytes), "pass": []byte(passBytes),
-		}})
-	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset}, nil, nil)
+		}}, serviceuri)
+	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, kafkaList}, nil, nil)
 
 	// make sure that defaults were inserted
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
@@ -185,7 +245,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	// check the result
 	_, err = kubernetes.ResourceC(client).Fetch(statefulset)
 	assert.NoError(t, err)
-	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+2) //default + infinispan + custom
+	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+2+4) //default + infinispan + custom
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "KOGITO_PROTOBUF_FOLDER",
 		Value: defaultEnvs["KOGITO_PROTOBUF_FOLDER"],
@@ -206,7 +266,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
 	assert.NoError(t, err)
 
-	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+1) //default + infinispan + custom
+	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+1+4) //default + infinispan + custom
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "KOGITO_PROTOBUF_FOLDER",
 		Value: defaultEnvs["KOGITO_PROTOBUF_FOLDER"],
@@ -257,12 +317,12 @@ func Test_ensureProtoBufConfigMap(t *testing.T) {
 			Namespace: t.Name(),
 		},
 	}
-	isTag := &v1.ImageStreamTag{
+	isTag := &imgv1.ImageStreamTag{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogitoapp:latest",
 			Namespace: t.Name(),
 		},
-		Image: v1.Image{
+		Image: imgv1.Image{
 			DockerImageMetadata: runtime.RawExtension{
 				Raw: test.HelperLoadBytes(t, "onboarding-dockerimage-json"),
 			},
@@ -277,4 +337,194 @@ func Test_ensureProtoBufConfigMap(t *testing.T) {
 	assert.True(t, exist)
 	assert.Len(t, cmWithFile.Data, 1)
 	assert.Contains(t, cmWithFile.Data, "kogitoapp-onboarding.onboarding.proto")
+}
+
+func Test_ensureKafka(t *testing.T) {
+	ns := t.Name()
+
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			Kafka: v1alpha1.KafkaConnectionProperties{
+				ExternalURI: "kafka:9092",
+			},
+		},
+	}
+
+	statefulSet := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Env: []v1.EnvVar{
+								{
+									Name:  kafkaEnvKeyProcessInstancesServer,
+									Value: "kafka1:9092",
+								},
+								{
+									Name:  kafkaEnvKeyUserTaskInstanceServer,
+									Value: "kafka2:9092",
+								},
+								{
+									Name:  kafkaEnvKeyProcessDomainServer,
+									Value: "kafka3:9092",
+								},
+								{
+									Name:  kafkaEnvKeyUserTaskDomainServer,
+									Value: "kafka4:9092",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cli := test.CreateFakeClient([]runtime.Object{instance, statefulSet}, nil, nil)
+
+	type args struct {
+		instance    *v1alpha1.KogitoDataIndex
+		statefulset *appsv1.StatefulSet
+		client      *client.Client
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			"EnsureKafka",
+			args{
+				instance,
+				statefulSet,
+				cli,
+			},
+			true,
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ensureKafka(tt.args.instance, tt.args.statefulset, tt.args.client)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ensureKafka() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ensureKafka() got = %v, want %v", got, tt.want)
+				return
+			}
+			assert.Equal(t, len(statefulSet.Spec.Template.Spec.Containers[0].Env), 4)
+			for _, kafkaEnv := range managedKafkaKeys {
+				for _, env := range statefulSet.Spec.Template.Spec.Containers[0].Env {
+					if kafkaEnv == env.Name {
+						assert.Equal(t, env.Value, instance.Spec.Kafka.ExternalURI)
+						break
+					}
+				}
+			}
+		})
+	}
+}
+
+func Test_ensureKafkaTopics(t *testing.T) {
+	ns := t.Name()
+
+	kafka := &kafkabetav1.Kafka{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kafka",
+			Namespace: ns,
+		},
+		Spec: kafkabetav1.KafkaSpec{
+			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+				Replicas: 1,
+			},
+		},
+	}
+
+	kafkaTopic1 := kafkabetav1.KafkaTopic{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kafkaTopic1",
+			Namespace: ns,
+			Labels: map[string]string{
+				kafkaClusterLabel: "kafka1",
+			},
+		},
+		Spec: kafkabetav1.KafkaTopicSpec{
+			Replicas: 2,
+		},
+	}
+
+	kafkaTopic2 := kafkabetav1.KafkaTopic{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kafkaTopic2",
+			Namespace: ns,
+			Labels: map[string]string{
+				kafkaClusterLabel: "kafka2",
+			},
+		},
+		Spec: kafkabetav1.KafkaTopicSpec{
+			Replicas: 3,
+		},
+	}
+
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			Kafka: v1alpha1.KafkaConnectionProperties{
+				Instance: kafka.Name,
+			},
+		},
+	}
+
+	cli := test.CreateFakeClient([]runtime.Object{instance, kafka, &kafkaTopic1, &kafkaTopic2}, nil, nil)
+
+	type args struct {
+		instance    *v1alpha1.KogitoDataIndex
+		kafkaTopics []kafkabetav1.KafkaTopic
+		client      *client.Client
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			"EnsureKafkaTopics",
+			args{
+				instance,
+				[]kafkabetav1.KafkaTopic{
+					kafkaTopic1,
+					kafkaTopic2,
+				},
+				cli,
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ensureKafkaTopics(tt.args.instance, tt.args.kafkaTopics, tt.args.client); (err != nil) != tt.wantErr {
+				t.Errorf("ensureKafkaTopics() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for _, kafkaTopic := range tt.args.kafkaTopics {
+				exists, err := kubernetes.ResourceC(cli).Fetch(&kafkaTopic)
+				assert.True(t, exists)
+				assert.NoError(t, err)
+				assert.Equal(t, kafkaTopic.Labels[kafkaClusterLabel], kafka.Name)
+				assert.Equal(t, kafkaTopic.Spec.Replicas, kafka.Spec.Replicas)
+			}
+		})
+	}
 }

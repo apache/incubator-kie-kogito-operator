@@ -16,6 +16,7 @@ package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
@@ -41,6 +42,9 @@ type KogitoDataIndexResources struct {
 	// Route to expose the service in the Ingress. Supported only on OpenShift for now
 	Route       *routev1.Route
 	RouteStatus KogitoDataIndexResourcesStatus
+	// KafkaTopics are the Kafka Topics required by the Data Index Service
+	KafkaTopics      []kafkabetav1.KafkaTopic
+	KafkaTopicStatus KogitoDataIndexResourcesStatus
 }
 
 // KogitoDataIndexResourcesStatus identifies the status of the resource
@@ -84,7 +88,8 @@ func CreateOrFetchResources(instance *v1alpha1.KogitoDataIndex, context resource
 		build(createProtoBufConfigMap).
 		build(createStatefulSet).
 		build(createService).
-		buildOnOpenshift(createRoute)
+		buildOnOpenshift(createRoute).
+		build(createKafkaTopic)
 
 	return *factory.Resources, factory.Error
 }
@@ -116,7 +121,12 @@ func createStatefulSet(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResou
 		f.Error = err
 		return f
 	}
-	statefulset := newStatefulset(f.KogitoDataIndex, f.Resources.ProtoBufConfigMap, secret)
+	externalURI, err := getKafkaServerURI(f.KogitoDataIndex.Spec.Kafka, f.KogitoDataIndex.Namespace, f.Context.Client)
+	if err != nil {
+		f.Error = err
+		return f
+	}
+	statefulset := newStatefulset(f.KogitoDataIndex, f.Resources.ProtoBufConfigMap, secret, externalURI)
 	if err := f.CallPreCreate(statefulset); err != nil {
 		f.Error = err
 		return f
@@ -176,6 +186,42 @@ func createRoute(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFa
 	}
 
 	f.Resources.Route = route
+
+	return f
+}
+
+func createKafkaTopic(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
+	kafkaName, kafkaReplicas, err := getKafkaServerReplicas(f.KogitoDataIndex.Spec.Kafka, f.KogitoDataIndex.Namespace, f.Context.Client)
+	if err != nil {
+		f.Error = err
+		return f
+	} else if len(kafkaName) <= 0 || kafkaReplicas <= 0 {
+		return f
+	}
+
+	for _, kafkaTopicName := range kafkaTopicNames {
+		kafkaTopic := newKafkaTopic(kafkaTopicName, kafkaName, kafkaReplicas, f.KogitoDataIndex.Namespace)
+
+		if f.Error = f.CallPreCreate(kafkaTopic); f.Error != nil {
+			return f
+		}
+
+		newTopic, err := kubernetes.ResourceC(f.Context.Client).CreateIfNotExists(kafkaTopic)
+		if err != nil {
+			f.Error = err
+			return f
+		}
+
+		if f.CallPostCreate(newTopic, kafkaTopic); f.Error != nil {
+			return f
+		}
+
+		if newTopic {
+			f.Resources.KafkaTopicStatus.New = newTopic
+		}
+
+		f.Resources.KafkaTopics = append(f.Resources.KafkaTopics, *kafkaTopic)
+	}
 
 	return f
 }

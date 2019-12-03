@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
 	commonres "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -37,7 +38,35 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 			Replicas: 1,
 		},
 	}
-	client := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+	kafkaList := &kafkabetav1.KafkaList{
+		Items: []kafkabetav1.Kafka{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "kafka",
+					Namespace: "test",
+				},
+				Spec: kafkabetav1.KafkaSpec{
+					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+						Replicas: 1,
+					},
+				},
+				Status: kafkabetav1.KafkaStatus{
+					Listeners: []kafkabetav1.ListenerStatus{
+						{
+							Type: "plain",
+							Addresses: []kafkabetav1.ListenerAddress{
+								{
+									Host: "kafka",
+									Port: 9092,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	client := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
 	resources, err := resource.CreateOrFetchResources(instance, commonres.FactoryContext{Client: client})
 	assert.NoError(t, err)
 

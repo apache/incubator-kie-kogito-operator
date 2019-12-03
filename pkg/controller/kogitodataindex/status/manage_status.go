@@ -20,11 +20,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 
@@ -49,7 +48,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 		status.ServiceStatus = resources.Service.Status
 	}
 
-	if status.DependenciesStatus, err = checkDependenciesStatus(instance); err != nil {
+	if status.DependenciesStatus, err = checkDependenciesStatus(instance, client); err != nil {
 		return err
 	}
 
@@ -89,7 +88,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 		if instance.Status.DependenciesStatus == nil {
 			instance.Status.DependenciesStatus = []v1alpha1.DataIndexDependenciesStatus{}
 		}
-		if err = kubernetes.ResourceC(client).UpdateStatus(instance); err != nil {
+		if err = kubernetes.ResourceC(client).Update(instance); err != nil {
 			return err
 		}
 	}
@@ -123,13 +122,13 @@ func checkCurrentCondition(resources *resource.KogitoDataIndexResources, client 
 	}, nil
 }
 
-func checkDependenciesStatus(instance *v1alpha1.KogitoDataIndex) ([]v1alpha1.DataIndexDependenciesStatus, error) {
+func checkDependenciesStatus(instance *v1alpha1.KogitoDataIndex, client *client.Client) ([]v1alpha1.DataIndexDependenciesStatus, error) {
 	// TODO: perform a real check for CRD/CRs once we have operators platform check and integration with OLM
 	deps := []v1alpha1.DataIndexDependenciesStatus{}
 	if &instance.Spec.Infinispan == nil || len(instance.Spec.Infinispan.ServiceURI) == 0 {
 		deps = append(deps, v1alpha1.DataIndexDependenciesStatusMissingInfinispan)
 	}
-	if &instance.Spec.Kafka == nil || len(instance.Spec.Kafka.ServiceURI) == 0 {
+	if kafka, err := resource.IsKafkaServerURIResolved(instance, client); !kafka || err != nil {
 		deps = append(deps, v1alpha1.DataIndexDependenciesStatusMissingKafka)
 	}
 

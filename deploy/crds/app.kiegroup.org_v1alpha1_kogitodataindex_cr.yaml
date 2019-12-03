@@ -16,8 +16,8 @@ spec:
   cpuRequest: ""
   # details about the kafka connection
   kafka:
-    # the service name and port for the kafka cluster. Example: my-kafka-cluster:9092
-    serviceURI: kogito-kafka-kafka-bootstrap:9092
+    # the Kafka service instance to be used. Example: kogito-kafka
+    instance: kogito-kafka
   # details about the connected infinispan
   infinispan:
     # let's leave this burden to KogitoInfra CR to deploy a new Infinispan instance for us

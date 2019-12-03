@@ -95,9 +95,13 @@ spec:
               description: Kafka has the data used by the Kogito Data Index to connect
                 to a Kafka cluster
               properties:
-                serviceURI:
-                  description: ServiceURI is the service URI to connect to the Infinispan
-                    cluster, for example, myinifisan-cluster:11222
+                externalURI:
+                  description: ExternalURI is the service URI to connect to the Kafka
+                    cluster, for example, my-cluster-kafka-bootstrap:9092
+                  type: string
+                instance:
+                  description: Instance is the Kafka instance to be used, for example,
+                    kogito-kafka
                   type: string
               type: object
             memoryLimit:

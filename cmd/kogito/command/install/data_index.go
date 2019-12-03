@@ -74,15 +74,15 @@ func (i *installDataIndexCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:     "data-index [flags]",
 		Short:   "Installs the Kogito Data Index Service in the given Project",
-		Example: "data-index -p my-project --kafka-url my-kafka-bootstrap:9092",
+		Example: "data-index -p my-project",
 		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito Runtime Services.
 
-				kafka-url is required because the Data Index Service needs this server to be up and running in the cluster to
-                work correctly. Please refer to the https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-installation for more information regarding
-                how to deploy a Kafka cluster on Kubernetes for the Data Index to use.
+				If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
+				If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Data Index service's namespace.
+				Otherwise, the operator will try to fetch a Strimzi Kafka instance in the namespace and use it to locate the Kafka server. 
 
 				If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
-				Only use infinispan-url if you plan to connect to an external Infinispan server that are already provided in other namespace or infrastructure.
+				Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.
 
 				For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
 		RunE:    i.Exec,
@@ -111,6 +111,13 @@ func (i *installDataIndexCommand) RegisterHook() {
 				log.Infof("infinispan-url informed. Infinispan will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.infinispan.ServiceURI)
 				i.flags.infinispan.UseKogitoInfra = false
 			}
+			if len(i.flags.kafka.ExternalURI) > 0 {
+				log.Infof("kafka-url informed. Kafka will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.kafka.ExternalURI)
+			} else if len(i.flags.kafka.Instance) > 0 {
+				log.Infof("kafka-instance informed. Kafka will NOT be provisioned for you. Make sure Kafka instance %s is properly deployed in the project. If the Kafka instance is found, Kafka Topics for Data Index service will be deployed in the project if they don't exist already", i.flags.kafka.Instance)
+			} else {
+				log.Info("No Kafka information has been given. A Kafka instance will be searched in the namespace. If any Kafka instance is found in the project, Data Index service will be deployed, and Kafka Topics will be created accordingly if they don't exist already")
+			}
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
@@ -132,14 +139,13 @@ func (i *installDataIndexCommand) InitHook() {
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", resdataindex.DefaultImage, "Image tag (namespace/name:tag) for the runtime Service, e.g: openshift/kogito-data-index:latest")
-	i.command.Flags().StringVar(&i.flags.kafka.ServiceURI, "kafka-url", "", "The Kafka cluster internal URI, example: my-kafka-cluster:9092")
+	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
+	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
 	i.command.Flags().StringVar(&i.flags.infinispan.ServiceURI, "infinispan-url", "", "The Infinispan Server internal URI, example: infinispan-server:11222")
 	i.command.Flags().StringVar(&i.flags.infinispan.AuthRealm, "infinispan-authrealm", "", "The Infinispan Server Auth Realm for authentication, example: ApplicationRealm")
 	i.command.Flags().StringVar(&i.flags.infinispanSasl, "infinispan-sasl", "", "The Infinispan Server SASL Mechanism, example: PLAIN")
 	i.command.Flags().StringVar(&i.flags.infinispanUser, "infinispan-user", "", "The Infinispan Server username")
 	i.command.Flags().StringVar(&i.flags.infinispanPassword, "infinispan-password", "", "The Infinispan Server password")
-
-	_ = cobra.MarkFlagRequired(i.command.Flags(), "kafka-url")
 }
 
 func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error {

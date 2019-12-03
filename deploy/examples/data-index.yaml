@@ -18,8 +18,8 @@ spec:
   #cpuRequest: ""
   # details about the kafka connection
   kafka:
-    # the service name and port for the kafka cluster. Example: my-kafka-cluster:9092
-    serviceURI: kogito-kafka-kafka-bootstrap:9092
+    # the name of the Kafka instance deployed with Strimzi. Example: my-cluster
+    instance: kogito-kafka
   # details about the connected infinispan
   infinispan:
     # will set this instance to auto provision an infra structure in the namespace and attach Infinispan credentials to it

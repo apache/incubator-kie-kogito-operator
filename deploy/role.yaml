@@ -50,6 +50,17 @@ rules:
       - delete
       - watch
   - apiGroups:
+      - kafka.strimzi.io
+    resources:
+      - kafkas
+      - kafkatopics
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+      - watch
+  - apiGroups:
       - apps
     resourceNames:
       - kogito-cloud-operator

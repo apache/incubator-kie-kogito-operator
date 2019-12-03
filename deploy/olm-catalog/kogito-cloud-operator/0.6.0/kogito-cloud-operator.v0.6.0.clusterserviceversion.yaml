@@ -33,7 +33,7 @@ metadata:
               "useKogitoInfra": true
             },
             "kafka": {
-              "serviceURI": "kogito-kafka-kafka-bootstrap:9092"
+              "instance": "kogito-kafka"
             },
             "memoryLimit": "",
             "memoryRequest": "",
@@ -218,6 +218,16 @@ spec:
       kind: Infinispan
       name: infinispans.infinispan.org
       version: v1
+    - description: Represents a Kafka cluster
+      displayName: Kafka
+      kind: Kafka
+      name: kafkas.kafka.strimzi.io
+      version: v1beta1
+    - description: Represents a topic inside a Kafka cluster
+      displayName: Kafka Topic
+      kind: KafkaTopic
+      name: kafkatopics.kafka.strimzi.io
+      version: v1beta1
   description: |-
     Kogito Operator is designed to deploy Kogito Runtimes Services from source and every piece of infrastructure that the services might need:
 
@@ -308,6 +318,17 @@ spec:
           - infinispan.org
           resources:
           - infinispans
+          verbs:
+          - get
+          - create
+          - list
+          - delete
+          - watch
+        - apiGroups:
+          - kafka.strimzi.io
+          resources:
+          - kafkas
+          - kafkatopics
           verbs:
           - get
           - create

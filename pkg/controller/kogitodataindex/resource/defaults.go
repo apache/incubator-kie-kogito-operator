@@ -55,6 +55,11 @@ const (
 	kafkaEnvKeyUserTaskInstanceServer string = "MP_MESSAGING_INCOMING_KOGITO_USERTASKINSTANCES_EVENTS_BOOTSTRAP_SERVERS"
 	kafkaEnvKeyProcessDomainServer    string = "MP_MESSAGING_INCOMING_KOGITO_PROCESSDOMAIN_EVENTS_BOOTSTRAP_SERVERS"
 	kafkaEnvKeyUserTaskDomainServer   string = "MP_MESSAGING_INCOMING_KOGITO_USERTASKDOMAIN_EVENTS_BOOTSTRAP_SERVERS"
+
+	kafkaTopicNameProcessInstances  string = "kogito-processinstances-events"
+	kafkaTopicNameUserTaskInstances string = "kogito-usertaskinstances-events"
+	kafkaTopicNameProcessDomain     string = "kogito-processdomain-events"
+	kafkaTopicNameUserTaskDomain    string = "kogito-usertaskdomain-events"
 )
 
 // managedEnvKeys are a collection of reserved keys
@@ -78,6 +83,13 @@ var managedInfinispanKeys = []string{
 	infinispanEnvKeySasl,
 	infinispanEnvKeyCredSecret,
 	interfaceEnvKeyServiceURI,
+}
+
+var kafkaTopicNames = []string{
+	kafkaTopicNameProcessInstances,
+	kafkaTopicNameUserTaskInstances,
+	kafkaTopicNameProcessDomain,
+	kafkaTopicNameUserTaskDomain,
 }
 
 var defaultAnnotations = map[string]string{
