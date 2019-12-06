@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
@@ -27,8 +28,6 @@ import (
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -65,7 +64,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &infinispanv1.Infinispan{}}
+	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &infinispanv1.Infinispan{}, &kafkav1beta1.Kafka{}}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &appv1alpha1.KogitoInfra{},
@@ -74,8 +73,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
 		if err != nil {
 			if kindErr, ok := err.(*meta.NoKindMatchError); ok {
-				if kindErr.GroupKind.Group == infinispanv1.SchemeGroupVersion.Group {
-					log.Warnf("Tried to watch Infinispan CRD, but failed. Infinispan deployment won't be available.")
+				if kindErr.GroupKind.Group == infinispanv1.SchemeGroupVersion.Group ||
+					kindErr.GroupKind.Group == kafkav1beta1.SchemeGroupVersion.Group {
+					log.Warnf("Tried to watch Infinispan and Kafka CRD, but failed.")
 					continue
 				}
 			}
@@ -131,22 +131,26 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		return
 	}
 	if instance.Spec.InstallInfinispan && !infinispanAvailable {
-		resultErr = fmt.Errorf("Infinispan is not available in the namespace %s, impossible to deploy ", instance.Namespace)
+		resultErr = fmt.Errorf("Infinispan is not available in the namespace %s, impossible to continue ", instance.Namespace)
 		return
 	}
 
-	// Creates Infinispan resources
-	infinispanReqsRes, resultErr := infinispan.CreateRequiredResources(instance, r.client)
+	// Verify Kafka
+	if instance.Spec.InstallKafka && !infrastructure.IsStrimziAvailable(r.client) {
+		resultErr = fmt.Errorf("Kafka is not available in the namespace %s, impossible to continue ", instance.Namespace)
+		return
+	}
+
+	requestedResources, resultErr := r.createRequiredResources(instance)
 	if resultErr != nil {
 		return
 	}
-	infinispanDeployedRes, resultErr := infinispan.GetDeployedResources(instance, r.client)
+	deployedResources, resultErr := r.getDeployedResources(instance)
 	if resultErr != nil {
 		return
 	}
-	// Gets Infinispan comparator
-	comparator := infinispan.GetComparator()
-	deltas := comparator.Compare(infinispanDeployedRes, infinispanReqsRes)
+	comparator := r.getComparator()
+	deltas := comparator.Compare(deployedResources, requestedResources)
 
 	writer := write.New(r.client.ControlCli).WithOwnerController(instance, r.scheme)
 	for resourceType, delta := range deltas {
@@ -158,7 +162,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		if resultErr != nil {
 			return
 		}
-		_, resultErr = writer.UpdateResources(infinispanDeployedRes[resourceType], delta.Updated)
+		_, resultErr = writer.UpdateResources(deployedResources[resourceType], delta.Updated)
 		if resultErr != nil {
 			return
 		}
@@ -168,13 +172,19 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		}
 	}
 
-	if resultErr = status.ManageDependenciesStatus(instance, r.client); resultErr != nil {
+	if result.Requeue, resultErr = status.ManageDependenciesStatus(instance, r.client); resultErr != nil {
 		return
+	}
+
+	if result.Requeue {
+		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
+		result.RequeueAfter = time.Second * 30
 	}
 
 	return
 }
 
+// updateResourceStatus updates the base status for the KogitoInfra instance
 func (r *ReconcileKogitoInfra) updateResourceStatus(instance *appv1alpha1.KogitoInfra, result *reconcile.Result, err *error) {
 	log.Info("Updating Kogito Infra status")
 	result = &reconcile.Result{}

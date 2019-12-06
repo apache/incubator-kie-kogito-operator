@@ -87,7 +87,7 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 					Namespace: "test",
 				},
 				Spec: kafkabetav1.KafkaSpec{
-					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+					Kafka: kafkabetav1.KafkaClusterSpec{
 						Replicas: 1,
 					},
 				},
@@ -178,7 +178,7 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 					Namespace: "test",
 				},
 				Spec: kafkabetav1.KafkaSpec{
-					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+					Kafka: kafkabetav1.KafkaClusterSpec{
 						Replicas: 1,
 					},
 				},
@@ -442,7 +442,7 @@ func Test_ensureKafkaTopics(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -523,7 +523,7 @@ func Test_ensureKafkaTopics(t *testing.T) {
 				assert.True(t, exists)
 				assert.NoError(t, err)
 				assert.Equal(t, kafkaTopic.Labels[kafkaClusterLabel], kafka.Name)
-				assert.Equal(t, kafkaTopic.Spec.Replicas, kafka.Spec.Replicas)
+				assert.Equal(t, kafkaTopic.Spec.Replicas, kafka.Spec.Kafka.Replicas)
 			}
 		})
 	}

@@ -44,7 +44,7 @@ func Test_createKafkaTopic(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -95,7 +95,7 @@ func Test_createKafkaTopic(t *testing.T) {
 					if kafkaTopic.Name == kafkaTopicName {
 						assert.Equal(t, kafkaTopic.Namespace, instance.Namespace)
 						assert.Equal(t, kafkaTopic.Labels[kafkaClusterLabel], kafka.Name)
-						assert.Equal(t, kafkaTopic.Spec.Replicas, kafka.Spec.Replicas)
+						assert.Equal(t, kafkaTopic.Spec.Replicas, kafka.Spec.Kafka.Replicas)
 						break
 					}
 				}

@@ -46,9 +46,11 @@ func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIn
 			return err
 		}
 
+		/* Ignore protobuf changes for now, see deprecation note
 		if err := ensureProtoBufConfigMap(instance, resources.ProtoBufConfigMap, client); err != nil {
 			return err
 		}
+		*/
 		if err := ensureKafkaTopics(instance, resources.KafkaTopics, client); err != nil {
 			return err
 		}
@@ -63,6 +65,7 @@ func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIn
 	return nil
 }
 
+// Deprecated: until we don't have labels working on OCP 4.x and KOGITO-587 implemented, we should let the user modify the CM
 func ensureProtoBufConfigMap(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, client *client.Client) error {
 	if cm == nil {
 		return nil

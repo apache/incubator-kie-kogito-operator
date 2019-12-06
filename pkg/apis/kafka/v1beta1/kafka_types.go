@@ -20,13 +20,71 @@ import (
 
 // KafkaSpec defines the desired state of Kafka
 type KafkaSpec struct {
-	KafkaClusterSpec `json:"kafka,omitempty"`
+	Kafka          KafkaClusterSpec     `json:"kafka,omitempty"`
+	Zookeeper      ZookeeperClusterSpec `json:"zookeeper,omitempty"`
+	EntityOperator EntityOperatorSpec   `json:"entityOperator,omitempty"`
+}
+
+// EntityOperatorSpec ...
+type EntityOperatorSpec struct {
+	TopicOperator EntityTopicOperatorSpec `json:"topicOperator,omitempty"`
+	UserOperator  EntityUserOperatorSpec  `json:"userOperator,omitempty"`
+}
+
+// EntityTopicOperatorSpec ...
+type EntityTopicOperatorSpec struct {
+}
+
+// EntityUserOperatorSpec ...
+type EntityUserOperatorSpec struct {
+}
+
+// KafkaMap a feasible way to implement a map with interface values to match the Java counterpart: Map<String, Object>
+type KafkaMap map[string]interface{}
+
+// DeepCopy implements a custom deepcopy function since map[string]interface{} it's not available
+func (kafkaMap *KafkaMap) DeepCopy() *KafkaMap {
+	o := &KafkaMap{}
+	*o = *kafkaMap
+	return o
 }
 
 // KafkaClusterSpec defines the desired state of Kafka Cluster
 type KafkaClusterSpec struct {
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas   int32          `json:"replicas,omitempty"`
+	Listeners  KafkaListeners `json:"listeners,omitempty"`
+	Storage    KafkaStorage   `json:"storage,omitempty"`
+	Config     KafkaMap       `json:"config,omitempty"`
+	JvmOptions KafkaMap       `json:"jvmOptions,omitempty"`
 }
+
+// KafkaListeners Configures the broker authorization
+type KafkaListeners struct {
+	Plain KafkaListenerPlain `json:"plain,omitempty"`
+}
+
+// KafkaListenerPlain Listener type Plain
+type KafkaListenerPlain struct {
+}
+
+// ZookeeperClusterSpec Representation of a Strimzi-managed ZooKeeper "cluster".
+type ZookeeperClusterSpec struct {
+	Replicas int32        `json:"replicas,omitempty"`
+	Storage  KafkaStorage `json:"storage,omitempty"`
+}
+
+// KafkaStorage The type of storage used by Kafka brokers
+type KafkaStorage struct {
+	StorageType KafkaStorageType `json:"type,omitempty"`
+}
+
+// KafkaStorageType defines the enum for Kafka storage
+type KafkaStorageType string
+
+const (
+	// KafkaEphemeralStorage ...
+	KafkaEphemeralStorage KafkaStorageType = "ephemeral"
+)
 
 // KafkaStatus defines the observed state of Kafka
 type KafkaStatus struct {

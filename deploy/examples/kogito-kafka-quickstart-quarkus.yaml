@@ -1,0 +1,31 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: kogito-kafka-quickstart-quarkus
+spec:
+  infra:
+    installInfinispan: Auto
+    installKafka: Always
+  build:
+    env:
+    - name: MAVEN_MIRROR_URL
+      # choose your own
+      value: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+    - name: MAVEN_ARGS_APPEND
+      value: -pl kogito-kafka-quickstart-quarkus -am
+    - name: ARTIFACT_DIR
+      value: kogito-kafka-quickstart-quarkus/target
+    gitSource:
+      reference: 0.5.0
+      uri: https://github.com/mswiderski/kogito-quickstarts
+    imageRuntime:
+      imageStreamTag: 0.6.0
+    imageS2I:
+      imageStreamTag: 0.6.0
+    resources: {}
+  env:
+  # those blank env is needed until we have Quarkus reading them without explicit definition
+  - name: MP_MESSAGING_INCOMING_TRAVELLERS_BOOTSTRAP_SERVERS
+  - name: MP_MESSAGING_OUTGOING_PROCESSEDTRAVELLERS_BOOTSTRAP_SERVERS
+  - name: JAVA_OPTIONS
+    value: -Dquarkus.log.level=DEBUG -Dquarkus.log.category."org.apache.kafka".level=INFO

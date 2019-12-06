@@ -19,21 +19,32 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// InfraComponentInstallStatusType is the base structure to define the status for an actor in the infrastructure
+type InfraComponentInstallStatusType struct {
+	Service   string             `json:"service,omitempty"`
+	Name      string             `json:"name,omitempty"`
+	Condition []InstallCondition `json:"condition,omitempty"`
+}
+
 // KogitoInfraSpec defines the desired state of KogitoInfra
 // +k8s:openapi-gen=true
 type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// InstallInfinispan indicates if Infinispan should be installed or not using Infinispan Operator.
+	// Indicates if Infinispan should be installed or not using Infinispan Operator.
 	// Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.
 	InstallInfinispan bool `json:"installInfinispan"`
+	// Indicates if Kafka should be installed or not using Strimzi (Kafka Operator).
+	// Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.
+	InstallKafka bool `json:"installKafka"`
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
-	Condition  KogitoInfraCondition    `json:"condition,omitempty"`
-	Infinispan InfinispanInstallStatus `json:"infinispan,omitempty"`
+	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
+	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
+	Kafka      InfraComponentInstallStatusType `json:"kafka,omitempty"`
 }
 
 /*
@@ -51,10 +62,8 @@ type KogitoInfraCondition struct {
 
 // InfinispanInstallStatus defines the Infinispan installation status
 type InfinispanInstallStatus struct {
-	Service          string             `json:"service,omitempty"`
-	CredentialSecret string             `json:"credentialSecret,omitempty"`
-	Name             string             `json:"name,omitempty"`
-	Condition        []InstallCondition `json:"condition,omitempty"`
+	InfraComponentInstallStatusType
+	CredentialSecret string `json:"credentialSecret,omitempty"`
 }
 
 // InstallCondition defines the installation condition for the infrastructure actor

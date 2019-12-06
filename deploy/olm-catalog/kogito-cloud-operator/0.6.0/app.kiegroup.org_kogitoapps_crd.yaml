@@ -179,13 +179,23 @@ spec:
                     install Infinispan, even if the service won''t need persistence.
                     For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment
                     variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
-                    More info: https://github.com/kiegroup/kogito-cloud-operator#infinispan-environment-variables.
-                    Default to false, which means it installs Infinispan if the service
-                    requires persistence.'
+                    More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
+                    Default to ''Auto'', which means it installs Infinispan if the
+                    service requires persistence.'
                   enum:
                   - Always
                   - Never
                   - Auto
+                  type: string
+                installKafka:
+                  description: 'Set to ''Always'' to have Kafka installed automatically
+                    via Strimzi Operator when deploying the Kogito Service. ''Never''
+                    otherwise. The Kafka cluster service endpoint will be inject in
+                    the Kogito Service container via an environment variable named
+                    "KAFKA_BOOTSTRAP_SERVERS" e.g.: kafka-kogito:9092 Default to ''Never'''
+                  enum:
+                  - Always
+                  - Never
                   type: string
               type: object
             replicas:

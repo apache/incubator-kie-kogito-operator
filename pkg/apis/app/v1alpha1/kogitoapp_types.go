@@ -202,16 +202,31 @@ const (
 	KogitoAppInfraInstallInfinispanAuto KogitoAppInfraInstallInfinispanType = "Auto"
 )
 
+// KogitoAppInfraInstallKafkaType defines the Kafka	 installation mode
+type KogitoAppInfraInstallKafkaType string
+
+const (
+	// KogitoAppInfraInstallKafkaAlways - Always installs Kafka
+	KogitoAppInfraInstallKafkaAlways KogitoAppInfraInstallKafkaType = "Always"
+	// KogitoAppInfraInstallKafkaNever - Never installs Kafka
+	KogitoAppInfraInstallKafkaNever KogitoAppInfraInstallKafkaType = "Never"
+)
+
 // KogitoAppInfra defines details regarding the Kogito Infrastructure to support the deployed Kogito Service
 type KogitoAppInfra struct {
 	// By default Kogito Operator installs an Infinispan instance in the namespace if the service needs persistence ('Auto').
 	// Set to 'Never' to disable this behavior, e.g. if the service will use another persistence mechanism.
 	// Set to 'Always' to always install Infinispan, even if the service won't need persistence.
 	// For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
-	// More info: https://github.com/kiegroup/kogito-cloud-operator#infinispan-environment-variables.
-	// Default to false, which means it installs Infinispan if the service requires persistence.
+	// More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
+	// Default to 'Auto', which means it installs Infinispan if the service requires persistence.
 	// +kubebuilder:validation:Enum=Always;Never;Auto
 	InstallInfinispan KogitoAppInfraInstallInfinispanType `json:"installInfinispan,omitempty"`
+	// Set to 'Always' to have Kafka installed automatically via Strimzi Operator when deploying the Kogito Service. 'Never' otherwise.
+	// The Kafka cluster service endpoint will be inject in the Kogito Service container via an environment variable named "KAFKA_BOOTSTRAP_SERVERS" e.g.: kafka-kogito:9092
+	// Default to 'Never'
+	// +kubebuilder:validation:Enum=Always;Never
+	InstallKafka KogitoAppInfraInstallKafkaType `json:"installKafka,omitempty"`
 }
 
 // RuntimeType - type of condition

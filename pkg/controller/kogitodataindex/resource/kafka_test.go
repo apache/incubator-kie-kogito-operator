@@ -36,7 +36,7 @@ func TestIsKafkaServerURIResolved(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -161,7 +161,7 @@ func Test_getKafkaInstance(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -230,7 +230,7 @@ func Test_getKafkaInstanceInNamespace(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -294,7 +294,7 @@ func Test_getKafkaInstanceWithName(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -357,7 +357,7 @@ func Test_getKafkaServerReplicas(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -456,7 +456,7 @@ func Test_getKafkaServerURI(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: kafkabetav1.KafkaSpec{
-			KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+			Kafka: kafkabetav1.KafkaClusterSpec{
 				Replicas: 1,
 			},
 		},
@@ -627,7 +627,7 @@ func Test_resolveKafkaServerReplicas(t *testing.T) {
 			args{
 				&kafkabetav1.Kafka{
 					Spec: kafkabetav1.KafkaSpec{
-						KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+						Kafka: kafkabetav1.KafkaClusterSpec{
 							Replicas: 2,
 						},
 					},

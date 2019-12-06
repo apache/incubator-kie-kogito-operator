@@ -25,8 +25,9 @@ import (
 )
 
 const (
+	// InfinispanOperatorName is the Infinispan Operator default name
+	InfinispanOperatorName = "infinispan-operator"
 	infinispanServerGroup  = "infinispan.org"
-	infinispanOperatorName = "infinispan-operator"
 	defaultInfinispanPort  = 11222
 )
 
@@ -36,8 +37,8 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 	// first check for CRD
 	if cli.HasServerGroup(infinispanServerGroup) {
 		log.Debugf("Infinispan CRDs available. Checking if Infinispan Operator is deployed in the namespace %s", namespace)
-		// then check if there's a Infinispan Operator deployed
-		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: infinispanOperatorName}}
+		// then check if there's an Infinispan Operator deployed
+		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: InfinispanOperatorName}}
 		exists := false
 		var err error
 		if exists, err = kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
