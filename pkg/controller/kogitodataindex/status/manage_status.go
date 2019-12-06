@@ -66,7 +66,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	}
 
 	status.Conditions = instance.Status.Conditions
-	if currentCondition, err = checkCurrentCondition(resources, client); err != nil {
+	if currentCondition, err = checkCurrentCondition(resources); err != nil {
 		return err
 	}
 
@@ -96,7 +96,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	return nil
 }
 
-func checkCurrentCondition(resources *resource.KogitoDataIndexResources, client *client.Client) (v1alpha1.DataIndexCondition, error) {
+func checkCurrentCondition(resources *resource.KogitoDataIndexResources) (v1alpha1.DataIndexCondition, error) {
 	if resources.StatefulSet == nil ||
 		resources.ProtoBufConfigMap == nil ||
 		resources.Service == nil {
@@ -124,7 +124,7 @@ func checkCurrentCondition(resources *resource.KogitoDataIndexResources, client 
 
 func checkDependenciesStatus(instance *v1alpha1.KogitoDataIndex, client *client.Client) ([]v1alpha1.DataIndexDependenciesStatus, error) {
 	// TODO: perform a real check for CRD/CRs once we have operators platform check and integration with OLM
-	deps := []v1alpha1.DataIndexDependenciesStatus{}
+	var deps []v1alpha1.DataIndexDependenciesStatus
 	if &instance.Spec.Infinispan == nil || len(instance.Spec.Infinispan.ServiceURI) == 0 {
 		deps = append(deps, v1alpha1.DataIndexDependenciesStatusMissingInfinispan)
 	}

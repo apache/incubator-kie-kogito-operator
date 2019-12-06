@@ -26,10 +26,11 @@ import (
 func Test_CreateOrFetchKogitoInfra_NotExists(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
-	infra, created, err := createOrFetchInfra(ns, cli)
+	infra, created, ready, err := EnsureKogitoInfra(ns, cli).WithKafka()
 	assert.NoError(t, err)
 	assert.NotNil(t, infra)
 	assert.True(t, created)
+	assert.False(t, ready)
 	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 }
 
@@ -40,10 +41,12 @@ func Test_CreateOrFetchKogitoInfra_Exists(t *testing.T) {
 		Spec:       v1alpha1.KogitoInfraSpec{InstallInfinispan: false},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
-	infra, created, err := createOrFetchInfra(ns, cli)
+	infra, created, ready, err := EnsureKogitoInfra(ns, cli).WithInfinispan()
 	assert.NoError(t, err)
 	assert.NotNil(t, infra)
 	assert.False(t, created)
+	// should not be ready since we just deployed Infinispan
+	assert.False(t, ready)
 	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
-	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.True(t, infra.Spec.InstallInfinispan)
 }

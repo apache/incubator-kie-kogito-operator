@@ -29,6 +29,7 @@ import (
 	dockerv10 "github.com/openshift/api/image/docker10"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 const (
@@ -41,6 +42,9 @@ const (
 	envVarInfinispanPassword       = "PASSWORD"
 	envVarInfinispanSaslMechanism  = "SASL_MECHANISM"
 	defaultInfinispanSaslMechanism = v1alpha1.SASLPlain
+
+	envVarKafkaBootstrapURI    = "KAFKA_BOOTSTRAP_SERVERS"
+	envVarKafkaBootstrapSuffix = "_BOOTSTRAP_SERVERS"
 )
 
 var (
@@ -152,6 +156,27 @@ func SetInfinispanEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra,
 			util.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(defaultInfinispanSaslMechanism), &dc.Spec.Template.Spec.Containers[0])
 			util.SetEnvVarFromSecret(vars[envVarInfinispanUser], infinispan.SecretUsernameKey, secret, &dc.Spec.Template.Spec.Containers[0])
 			util.SetEnvVarFromSecret(vars[envVarInfinispanPassword], infinispan.SecretPasswordKey, secret, &dc.Spec.Template.Spec.Containers[0])
+		}
+	}
+	return nil
+}
+
+// SetKafkaEnvVars sets Kafka variables to the given KogitoApp instance DeploymentConfig by reading information from the KogitoInfra
+func SetKafkaEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) error {
+	if dc != nil && kogitoApp != nil &&
+		(kogitoInfra != nil && &kogitoInfra.Status != nil && &kogitoInfra.Status.Kafka != nil) {
+		uri, err := infrastructure.GetKafkaServiceURI(cli, kogitoInfra)
+		if err != nil {
+			return err
+		}
+		if len(dc.Spec.Template.Spec.Containers) > 0 {
+			util.SetEnvVar(envVarKafkaBootstrapURI, uri, &dc.Spec.Template.Spec.Containers[0])
+			// let's also add a secret feature that injects all _BOOTSTRAP_SERVERS env vars with the correct uri :p
+			for _, env := range dc.Spec.Template.Spec.Containers[0].Env {
+				if strings.HasSuffix(env.Name, envVarKafkaBootstrapSuffix) {
+					util.SetEnvVar(env.Name, uri, &dc.Spec.Template.Spec.Containers[0])
+				}
+			}
 		}
 	}
 	return nil

@@ -46,7 +46,7 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 					Namespace: "test",
 				},
 				Spec: kafkabetav1.KafkaSpec{
-					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+					Kafka: kafkabetav1.KafkaClusterSpec{
 						Replicas: 1,
 					},
 				},

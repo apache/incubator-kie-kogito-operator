@@ -192,7 +192,7 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 	// Overrides any parameters not set
 	if instance.Spec.Infinispan.UseKogitoInfra {
 		// ensure infra
-		infra, created, ready, err := infrastructure.EnsureInfinispanWithKogitoInfra(instance.Namespace, r.client)
+		infra, created, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan()
 		if err != nil {
 			return &reconcile.Result{}, err
 		}
@@ -204,7 +204,11 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 
 		// We do this check to not have to update the Data Index instance every time with the same data.
 		// Should be removed once we solve this: https://issues.jboss.org/browse/KOGITO-601
-		if instance.Spec.Infinispan.ServiceURI == infra.Status.Infinispan.Service &&
+		uri, err := infrastructure.GetInfinispanServiceURI(r.client, infra)
+		if err != nil {
+			return &reconcile.Result{}, err
+		}
+		if instance.Spec.Infinispan.ServiceURI == uri &&
 			instance.Spec.Infinispan.Credentials.SecretName == infra.Status.Infinispan.CredentialSecret &&
 			instance.Spec.Infinispan.Credentials.PasswordKey == infinispan.SecretPasswordKey &&
 			instance.Spec.Infinispan.Credentials.UsernameKey == infinispan.SecretUsernameKey {
@@ -214,7 +218,7 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 		log.Debugf("Checking KogitoInfra status to make sure we are ready to use Infinispan. Status are: %s", infra.Status.Infinispan)
 		if ready {
 			log.Debug("Looks ok, we are ready to use Infinispan!")
-			instance.Spec.Infinispan.ServiceURI = infra.Status.Infinispan.Service
+			instance.Spec.Infinispan.ServiceURI = uri
 			instance.Spec.Infinispan.Credentials.SecretName = infra.Status.Infinispan.CredentialSecret
 			instance.Spec.Infinispan.Credentials.UsernameKey = infinispan.SecretUsernameKey
 			instance.Spec.Infinispan.Credentials.PasswordKey = infinispan.SecretPasswordKey

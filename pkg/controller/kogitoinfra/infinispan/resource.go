@@ -43,7 +43,7 @@ const (
 
 var log = logger.GetLogger("kogitoinfra_resource")
 
-// GetDeployedResources will fetch for every resources already deployed using kogitoInfra instance as a reference
+// GetDeployedResources will fetch for every resource already deployed using kogitoInfra instance as a reference
 func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
 	if kogitoInfra.Spec.InstallInfinispan {
 		reader := read.New(cli.ControlCli).WithNamespace(kogitoInfra.Namespace).WithOwnerObject(kogitoInfra)
@@ -59,8 +59,9 @@ func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client)
 		if err != nil && !errors.IsNotFound(err) {
 			log.Warn("Failed to get deployed secret", err)
 			return nil, err
+		} else if err == nil {
+			resources[secretType] = []resource.KubernetesResource{secret}
 		}
-		resources[secretType] = []resource.KubernetesResource{secret}
 	}
 
 	return resources, nil
@@ -69,7 +70,7 @@ func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client)
 // CreateRequiredResources will create all resources needed for the deployment of Infinispan based on its operator.
 // Return an empty array if `.Spec.InstallInfinispan` is set to `false`
 func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	resources = make(map[reflect.Type][]resource.KubernetesResource)
+	resources = make(map[reflect.Type][]resource.KubernetesResource, 2)
 	log.Debugf("Creating default resources for Infinispan installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
 	if kogitoInfra.Spec.InstallInfinispan {
 		// ignoring custom secrets for now: https://github.com/infinispan/infinispan-operator/issues/211

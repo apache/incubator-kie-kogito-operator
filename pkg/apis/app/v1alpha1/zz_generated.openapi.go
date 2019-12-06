@@ -983,13 +983,20 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 				Properties: map[string]spec.Schema{
 					"installInfinispan": {
 						SchemaProps: spec.SchemaProps{
-							Description: "InstallInfinispan indicates if Infinispan should be installed or not using Infinispan Operator. Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.",
+							Description: "Indicates if Infinispan should be installed or not using Infinispan Operator. Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"installKafka": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Indicates if Kafka should be installed or not using Strimzi (Kafka Operator). Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
 				},
-				Required: []string{"installInfinispan"},
+				Required: []string{"installInfinispan", "installKafka"},
 			},
 		},
 	}
@@ -1012,11 +1019,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraStatus(ref common.ReferenceCallback
 							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanInstallStatus"),
 						},
 					},
+					"kafka": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfraComponentInstallStatusType"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanInstallStatus", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoInfraCondition"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanInstallStatus", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfraComponentInstallStatusType", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoInfraCondition"},
 	}
 }
 

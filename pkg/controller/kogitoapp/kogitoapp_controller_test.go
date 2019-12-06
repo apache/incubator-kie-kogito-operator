@@ -502,14 +502,19 @@ func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 			Namespace: kogitoApp.Namespace,
 		},
 	}
-	// first reconcile
+	// first reconcile to create the objects
 	result, err := r.Reconcile(req)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	// requeue for kogitoInfra
+	assert.False(t, result.Requeue)
+
+	// second reconcile should create infra
+	result, err = r.Reconcile(req)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
 	assert.True(t, result.Requeue)
 
-	kogitoInfra, created, ready, err := infrastructure.EnsureInfinispanWithKogitoInfra(kogitoApp.Namespace, fakeClient)
+	kogitoInfra, created, ready, err := infrastructure.EnsureKogitoInfra(kogitoApp.Namespace, fakeClient).WithInfinispan()
 	assert.NoError(t, err)
 	assert.False(t, created)      // created in reconciliation phase
 	assert.False(t, ready)        // not ready, we don't have status
@@ -518,7 +523,7 @@ func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 	dc := &appsv1.DeploymentConfig{ObjectMeta: metav1.ObjectMeta{Name: kogitoApp.Name, Namespace: kogitoApp.Namespace}}
 	exists, err := kubernetes.ResourceC(fakeClient).Fetch(dc)
 	assert.NoError(t, err)
-	assert.False(t, exists) // we don't have a dc yet because Infinispan is not ready
+	assert.True(t, exists) // Already created in the first reconciliation phase
 }
 
 type mockCache struct {

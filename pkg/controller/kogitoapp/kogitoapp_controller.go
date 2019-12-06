@@ -136,8 +136,15 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
-	if &instance.Spec.Infra == nil || len(instance.Spec.Infra.InstallInfinispan) == 0 {
-		instance.Spec.Infra = v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanAuto}
+	// infra defaults
+	if &instance.Spec.Infra == nil {
+		instance.Spec.Infra = v1alpha1.KogitoAppInfra{}
+	}
+	if len(instance.Spec.Infra.InstallKafka) == 0 {
+		instance.Spec.Infra.InstallKafka = v1alpha1.KogitoAppInfraInstallKafkaNever
+	}
+	if len(instance.Spec.Infra.InstallInfinispan) == 0 {
+		instance.Spec.Infra.InstallInfinispan = v1alpha1.KogitoAppInfraInstallInfinispanAuto
 	}
 
 	requeue, err := r.ensureKogitoImageStream(instance)
@@ -172,23 +179,26 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 		return
 	}
 
-	requeue, err = r.ensureKogitoInfra(instance, kogitoResources.RuntimeImage, kogitoResources.DeploymentConfig)
-	if err != nil {
-		updateResourceResult.Err = err
-		updateResourceResult.ErrorReason = v1alpha1.DeployKogitoInfraFailedReason
-		return
-	}
-	if requeue {
-		result.Requeue = true
-		result.RequeueAfter = 5 * time.Second
-		return
-	}
-
 	deployedRes, err := kogitores.GetDeployedResources(instance, r.client)
 	if err != nil {
 		updateResourceResult.Err = err
 		updateResourceResult.ErrorReason = v1alpha1.RetrieveDeployedResourceFailedReason
 		return
+	}
+
+	// if we got resources deployed, lets deploy the infrastructure
+	if len(deployedRes) > 0 {
+		requeue, err = r.ensureKogitoInfra(instance, kogitoResources.RuntimeImage, kogitoResources.DeploymentConfig)
+		if err != nil {
+			updateResourceResult.Err = err
+			updateResourceResult.ErrorReason = v1alpha1.DeployKogitoInfraFailedReason
+			return
+		}
+		if requeue {
+			result.Requeue = true
+			result.RequeueAfter = 5 * time.Second
+			return
+		}
 	}
 
 	{
@@ -396,10 +406,24 @@ func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoAp
 }
 
 func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
+	requeueInfinispan, err := r.ensureInfinispan(instance, runtimeImage, requestedDeployment)
+	if err != nil {
+		return false, err
+	}
+
+	requeueKafka, err := r.ensureKafka(instance, requestedDeployment)
+	if err != nil {
+		return false, err
+	}
+
+	return requeueInfinispan || requeueKafka, nil
+}
+
+func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
 	log.Debug("Verify if we need to deploy Infinispan")
 	if instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAlways ||
 		(instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAuto && resource.IsPersistenceEnabled(runtimeImage)) {
-		infra, created, ready, err := infrastructure.EnsureInfinispanWithKogitoInfra(instance.Namespace, r.client)
+		infra, created, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan()
 		if err != nil {
 			return true, err
 		}
@@ -413,10 +437,36 @@ func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, run
 				return true, err
 			}
 			log.Debug("KogitoInfra is ready, proceed!")
-			return false, nil
+		} else if !ready {
+			log.Debug("KogitoInfra is not ready, requeue")
+			return true, nil
 		}
-		log.Debug("KogitoInfra is not ready, requeue")
-		return true, nil
+	}
+	return false, nil
+}
+
+func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
+	log.Debug("Verify if we need to deploy Kafka")
+	if instance.Spec.Infra.InstallKafka == v1alpha1.KogitoAppInfraInstallKafkaAlways {
+		infra, created, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithKafka()
+		if err != nil {
+			return true, err
+		}
+		if created {
+			// since we just created a new Infra instance, let's wait for it to provision everything before proceeding
+			log.Debug("Returning to reconcile phase to give some time for the Kafka Operator to deploy")
+			return true, nil
+		}
+		if ready {
+			if err := kogitores.SetKafkaEnvVars(r.client, infra, instance, requestedDeployment); err != nil {
+				return true, err
+			}
+			log.Debug("KogitoInfra is ready, proceed!")
+			return false, nil
+		} else if !ready {
+			log.Debug("KogitoInfra is not ready, requeue")
+			return true, nil
+		}
 	}
 	return false, nil
 }

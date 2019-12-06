@@ -34,6 +34,7 @@ type ResourceInterface interface {
 	FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (exists bool, err error)
 	Fetch(resource meta.ResourceObject) (exists bool, err error)
 	ListWithNamespace(namespace string, list runtime.Object) error
+	ListWithNamespaceAndLabel(namespace string, list runtime.Object, labels map[string]string) error
 	Delete(resource meta.ResourceObject) error
 	UpdateStatus(resource meta.ResourceObject) error
 	Update(resource meta.ResourceObject) error
@@ -127,8 +128,17 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 }
 
 // ListWithNamespace fetches and binds a list resource from the Kubernetes cluster with the defined namespace.
-func (r *resource) ListWithNamespace(ns string, list runtime.Object) error {
-	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(ns))
+func (r *resource) ListWithNamespace(namespace string, list runtime.Object) error {
+	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(namespace))
+	if err != nil {
+		log.Debug("Failed to list resource. ", err)
+		return err
+	}
+	return nil
+}
+
+func (r *resource) ListWithNamespaceAndLabel(namespace string, list runtime.Object, labels map[string]string) error {
+	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(namespace), runtimecli.MatchingLabels(labels))
 	if err != nil {
 		log.Debug("Failed to list resource. ", err)
 		return err

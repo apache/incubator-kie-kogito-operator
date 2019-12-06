@@ -42,8 +42,11 @@ Table of Contents
          * [Prometheus annotations](#prometheus-annotations)
          * [Prometheus Operator](#prometheus-operator)
       * [Infinispan integration](#infinispan-integration)
-         * [Kogito Services](#kogito-services)
-         * [Data Index Service](#data-index-service)
+         * [Infinispan for Kogito Services](#infinispan-for-kogito-services)
+         * [Infinispan for Data Index Service](#infinispan-for-data-index-service)
+      * [Kafka integration](#kafka-integration)
+         * [Kafka for Kogito Services](#kafka-for-kogito-services)
+         * [Kafka For Data Index](#kafka-for-data-index)
       * [Kogito Operator development](#kogito-operator-development)
          * [Building the Kogito Operator](#building-the-kogito-operator)
          * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
@@ -52,6 +55,7 @@ Table of Contents
             * [With the Kogito CLI](#with-the-kogito-cli)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
       * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
+
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -543,10 +547,10 @@ W3BqoCywi1WWvVIe
 
 For more information about Infinispan Operator, please see [their official documentation](https://infinispan.org/infinispan-operator/master/documentation/asciidoc/titles/operator.html).
 
-**Note:** *Sometimes the OperatorHub will install DataGrid operator instead of Infinispan when installing Kogito Operator. 
+**Note:** *Sometimes the [OperatorHub will install DataGrid operator instead of Infinispan](https://github.com/operator-framework/operator-lifecycle-manager/issues/1158) when installing Kogito Operator. 
 If this happens, please uninstall DataGrid and install Infinispan manually since they are not compatible*
 
-### Kogito Services
+### Infinispan for Kogito Services
 
 If your Kogito Service depends on the [persistence add-on](https://github.com/kiegroup/kogito-runtimes/wiki/Persistence), 
 Kogito Operator installs Infinispan and inject the connection properties as environment variables into the service. 
@@ -563,7 +567,7 @@ Depending on the runtime, this variables will differ. See the table below:
 Just make sure that your Kogito Service can read these properties in runtime. 
 Those variables names are the same as the ones used by Infinispan clients from Quarkus and Springboot.
 
-On Quarkus, make sure that your `aplication.properties` file has the properties listed like the example below:
+[On Quarkus versions below 1.1.0 (Kogito 0.6.0)](https://github.com/quarkusio/quarkus/issues/5708), make sure that your `aplication.properties` file has the properties listed like the example below:
 
 ```properties
 quarkus.infinispan-client.server-list=
@@ -579,14 +583,128 @@ editing the `spec.infra.installInfinispan` in `KogitoApp` custom resource:
 
 - **`Auto`** - The operator tries to discover if the service needs persistence by scanning the runtime image for the `org.kie/persistence/required` label attribute
 - **`Always`** - Infinispan is installed in the namespace without checking if the service needs persistence or not
-- **`Never`** - Infinispan is not installed, even if the service requires persistence. Use this option only if you intend to deploy your own persistence mechanism and you know how to configure your service to access it  
+- **`Never`** - Infinispan is not installed, even if the service requires persistence. Use this option only if you intend to deploy your own persistence mechanism and you know how to configure your service to access it
+  
 
-### Data Index Service
+### Infinispan for Data Index Service
 
 For the Data Index Service, if you do not provide a service URL to connect to Infinispan, a new server is deployed via `KogitoInfra`.
 
 A random password for the `developer` user is created and injected into the Data Index automatically.
 You do not need to do anything for both services to work together.
+
+## Kafka integration
+
+Like Infinispan, Kogito Operator can deploy a Kafka cluster for your Kogito services via `KogitoInfra` custom resource.
+
+To deploy a Kafka cluster with Zookeeper to support sending and receiving messages within a process, Kogito Operator relies
+on the [Strimzi Operator](https://strimzi.io/docs/latest/).
+
+You can freely edit the Kafka instance deployed by the operator to fulfill any requirement that you need. 
+The Kafka instance is not managed by Kogito, instead it's managed by Strimzi. 
+That's why Kogito Operator is dependant on Strimzi Operator and it's installed once you install the Kogito Operator using
+OLM.
+
+_**Note:** Sometimes the OperatorHub will install AMQ Streams operator instead of Strimzi when installing Kogito Operator. 
+If this happens, please uninstall AMQ Streams and install Strimzi manually since they are not compatible_
+
+### Kafka for Kogito Services
+
+To enable Kafka installation during deployment of your service, use the following Kogito CLI command:
+
+```bash
+$ kogito deploy kogito-kafka-quickstart-quarkus https://github.com/mswiderski/kogito-quickstarts --install-kafka Always \
+--build-env MAVEN_ARGS_APPEND="-pl kogito-kafka-quickstart-quarkus -am" ARTIFACT_DIR="kogito-kafka-quickstart-quarkus/target"  
+```
+
+Or using the custom resource (CR) yaml file:
+
+```bash
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: kogito-kafka-quickstart-quarkus
+spec:
+  infra:
+    installKafka: Always
+  build:
+    env:
+    - name: MAVEN_ARGS_APPEND
+      value: -pl kogito-kafka-quickstart-quarkus -am
+    - name: ARTIFACT_DIR
+      value: kogito-kafka-quickstart-quarkus/target
+    gitSource:
+      uri: https://github.com/mswiderski/kogito-quickstarts
+```
+
+The flag `--install-kafka Always` in the CLI and the attribute `installKafka: Always` in the CR tells to the operator
+to deploy a Kafka cluster in the namespace if no Kafka cluster owned by Kogito Operator is found.
+
+A variable named `KAFKA_BOOTSTRAP_SERVERS` is injected into the service container. For Quarkus runtimes, this works
+out of the box when using [Kafka Client](https://quarkus.io/guides/kafka-streams#topic-configuration) version 1.x or greater. 
+For Springboot you might need to rely on property substitution in the `application.properties` like:
+
+```properties
+spring.kafka.bootstrap.servers=${KAFKA_BOOTSTRAP_SERVERS}
+```
+
+Also, if the container has any environment variable with the suffix `_BOOTSTRAP_SERVERS`, they are injected by the 
+value of `KAFKA_BOOTSTRAP_SERVERS` variable as well. For example, by running:
+ 
+```bash
+$ kogito deploy kogito-kafka-quickstart-quarkus https://github.com/mswiderski/kogito-quickstarts --install-kafka Always \
+--build-env MAVEN_ARGS_APPEND="-pl kogito-kafka-quickstart-quarkus -am" ARTIFACT_DIR="kogito-kafka-quickstart-quarkus/target \
+-e MP_MESSAGING_INCOMING_TRAVELLERS_BOOTSTRAP_SERVERS -e MP_MESSAGING_OUTGOING_PROCESSEDTRAVELLERS_BOOTSTRAP_SERVERS"  
+```
+The variables `MP_MESSAGING_INCOMING_TRAVELLERS_BOOTSTRAP_SERVERS` and `MP_MESSAGING_OUTGOING_PROCESSEDTRAVELLERS_BOOTSTRAP_SERVERS`
+will have the deployed Kafka service URL inject into them.
+
+Please note that for services with [Quarkus version below 1.1.0](https://github.com/quarkusio/quarkus/issues/5708) (Kogito Runtimes 0.6.0), it's required to add these Kafka properties in the 
+`application.properties`. Otherwise they won't be replaced in runtime by environment variables injected by the operator.
+
+### Kafka For Data Index
+
+Data Index allows you to inform the service name defined by the Kafka cluster deployed in the same namespace.
+You can let `KogitoInfra` to deploy Kafka for you via Strimzi Operator. 
+
+Just deploy the `KogitoInfra` CR with `installKafka` attribute set to `true`:
+
+```yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoInfra
+metadata:
+  name: kogito-infra
+spec:
+  # let's install both since Data Index needs persistence and messaging
+  installInfinispan: true
+  installKafka: true
+```
+
+Then deploy Data Index service CR like:
+
+```yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoDataIndex
+metadata:
+  name: kogito-data-index
+spec:
+  replicas: 1
+  image: "quay.io/kiegroup/kogito-data-index:0.6.0"
+  kafka:
+    # default kafka instance deployed by KogitoInfra
+    instance: kogito-kafka
+  infinispan:
+    # reuse the Infinispan deployed by KogitoInfra
+    useKogitoInfra: true
+```
+
+Or use Kogito CLI:
+
+```bash
+kogito install data-index --kafka-instance kogito-kafka
+```
+
+That's it! The information required to connect to Kafka will be automatically set for you by the operator to the Data Index service.
 
 ## Kogito Operator development
 

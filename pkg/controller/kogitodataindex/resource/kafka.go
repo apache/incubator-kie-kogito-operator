@@ -21,6 +21,7 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -51,7 +52,7 @@ func fromKafkaToStringMap(externalURI string) map[string]string {
 // IsKafkaServerURIResolved checks if the URI of the Kafka server is provided or resolvable in the namespace
 func IsKafkaServerURIResolved(instance *v1alpha1.KogitoDataIndex, client *client.Client) (bool, error) {
 	if len(instance.Spec.Kafka.ExternalURI) == 0 {
-		if !isStrimziAvailable(client) {
+		if !infrastructure.IsStrimziAvailable(client) {
 			return false, nil
 		}
 		if kafka, err := getKafkaInstance(instance.Spec.Kafka, instance.Namespace, client); err != nil {
@@ -63,10 +64,11 @@ func IsKafkaServerURIResolved(instance *v1alpha1.KogitoDataIndex, client *client
 	return true, nil
 }
 
+// TODO: change to infrastructure.GetKafkaServiceURI once we implement KOGITO-614
 func getKafkaServerURI(kafkaProp v1alpha1.KafkaConnectionProperties, namespace string, client *client.Client) (string, error) {
 	if len(kafkaProp.ExternalURI) > 0 {
 		return kafkaProp.ExternalURI, nil
-	} else if isStrimziAvailable(client) {
+	} else if infrastructure.IsStrimziAvailable(client) {
 		if kafka, err := getKafkaInstance(kafkaProp, namespace, client); err != nil {
 			return "", err
 		} else if kafka != nil {
@@ -79,7 +81,7 @@ func getKafkaServerURI(kafkaProp v1alpha1.KafkaConnectionProperties, namespace s
 }
 
 func getKafkaServerReplicas(kafkaProp v1alpha1.KafkaConnectionProperties, namespace string, client *client.Client) (string, int32, error) {
-	if len(kafkaProp.ExternalURI) <= 0 && isStrimziAvailable(client) {
+	if len(kafkaProp.ExternalURI) <= 0 && infrastructure.IsStrimziAvailable(client) {
 		if kafka, err := getKafkaInstance(kafkaProp, namespace, client); err != nil {
 			return "", 0, err
 		} else if kafka != nil {
@@ -113,8 +115,8 @@ func resolveKafkaServerURI(kafka *kafkabetav1.Kafka) string {
 
 func resolveKafkaServerReplicas(kafka *kafkabetav1.Kafka) int32 {
 	if kafka != nil {
-		if kafka.Spec.KafkaClusterSpec.Replicas > 0 {
-			return kafka.Spec.KafkaClusterSpec.Replicas
+		if kafka.Spec.Kafka.Replicas > 0 {
+			return kafka.Spec.Kafka.Replicas
 		}
 		return 1
 	}
@@ -166,8 +168,4 @@ func newKafkaTopic(topicName string, kafkaName string, kafkaReplicas int32, name
 			},
 		},
 	}
-}
-
-func isStrimziAvailable(client *client.Client) bool {
-	return client.HasServerGroup("kafka.strimzi.io")
 }

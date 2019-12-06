@@ -31,11 +31,13 @@ import (
 const (
 	defaultDeployRuntime     = string(v1alpha1.QuarkusRuntimeType)
 	defaultInstallInfinispan = string(v1alpha1.KogitoAppInfraInstallInfinispanAuto)
+	defaultInstallKafka      = string(v1alpha1.KogitoAppInfraInstallKafkaNever)
 )
 
 var (
 	deployRuntimeValidEntries     = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
 	installInfinispanValidEntries = []string{string(v1alpha1.KogitoAppInfraInstallInfinispanAuto), string(v1alpha1.KogitoAppInfraInstallInfinispanNever), string(v1alpha1.KogitoAppInfraInstallInfinispanAlways)}
+	installKafkaValidEntries      = []string{string(v1alpha1.KogitoAppInfraInstallKafkaNever), string(v1alpha1.KogitoAppInfraInstallKafkaAlways)}
 )
 
 type deployFlags struct {
@@ -54,6 +56,7 @@ type deployFlags struct {
 	buildLimits       []string
 	buildRequests     []string
 	installInfinispan string
+	installKafka      string
 }
 
 type deployCommand struct {
@@ -116,6 +119,9 @@ func (i *deployCommand) RegisterHook() {
 			if !util.Contains(i.flags.installInfinispan, installInfinispanValidEntries) {
 				return fmt.Errorf("install-infinispan not valid. Valid entries are %s. Received %s", installInfinispanValidEntries, i.flags.installInfinispan)
 			}
+			if !util.Contains(i.flags.installKafka, installKafkaValidEntries) {
+				return fmt.Errorf("install-infinispan not valid. Valid entries are %s. Received %s", installInfinispanValidEntries, i.flags.installInfinispan)
+			}
 			if err := CheckImageTag(i.flags.imageRuntime); err != nil {
 				return err
 			}
@@ -146,6 +152,7 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().StringVar(&i.flags.imageS2I, "image-s2i", "", "Image tag (namespace/name:tag) for using during the s2i build, e.g: openshift/kogito-quarkus-ubi8-s2i:latest")
 	i.command.Flags().StringVar(&i.flags.imageRuntime, "image-runtime", "", "Image tag (namespace/name:tag) for using during service runtime, e.g: openshift/kogito-quarkus-ubi8:latest")
 	i.command.Flags().StringVar(&i.flags.installInfinispan, "install-infinispan", defaultInstallInfinispan, "Infinispan installation mode: \"Always\", \"Never\" or \"Auto\". \"Always\" will install Infinispan in the same namespace no matter what, \"Never\" won't install Infinispan even if the service requires it and \"Auto\" will install only if the service requires persistence.")
+	i.command.Flags().StringVar(&i.flags.installKafka, "install-kafka", defaultInstallKafka, "Kafka installation mode: \"Always\" or \"Never\". \"Always\" will use the Strimzi Operator to install a Kafka cluster. The environment variable 'KAFKA_BOOTSTRAP_SERVERS' will be available for the service during runtime.")
 }
 
 func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -207,7 +214,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 				Limits:   shared.FromStringArrayToControllerResourceMap(i.flags.Limits),
 				Requests: shared.FromStringArrayToControllerResourceMap(i.flags.Requests),
 			},
-			Infra: v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanType(i.flags.installInfinispan)},
+			Infra: v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanType(i.flags.installInfinispan), InstallKafka: v1alpha1.KogitoAppInfraInstallKafkaType(i.flags.installKafka)},
 		},
 		Status: v1alpha1.KogitoAppStatus{
 			Conditions: []v1alpha1.Condition{},

@@ -51,7 +51,7 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 					Namespace: ns,
 				},
 				Spec: kafkabetav1.KafkaSpec{
-					KafkaClusterSpec: kafkabetav1.KafkaClusterSpec{
+					Kafka: kafkabetav1.KafkaClusterSpec{
 						Replicas: 1,
 					},
 				},
@@ -93,7 +93,7 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 	}
 
 	// check infra
-	infra, created, ready, err := infrastructure.EnsureInfinispanWithKogitoInfra(ns, client)
+	infra, created, ready, err := infrastructure.EnsureKogitoInfra(ns, client).WithInfinispan()
 	assert.NoError(t, err)
 	assert.False(t, created) // the created = true were returned when the infra was created during the reconcile phase
 	assert.False(t, ready)   // we don't have status defined since the KogitoInfra controller is not running

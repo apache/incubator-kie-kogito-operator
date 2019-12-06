@@ -99,6 +99,17 @@ spec:
       - description: Git context dir
         displayName: Context Dir
         path: build.gitSource.contextDir
+      - description: Infinispan Installation Mode that could be either 'Auto' (default),
+          'Always' or 'Never'. 'Auto' the operator will try to guess if Infinispan
+          is needed by the service; 'Always' will always install it, and 'Never' won't
+          install Infinispan even if the service requires it.
+        displayName: Infinispan Installation Mode
+        path: infra.installInfinispan
+      - description: Kafka Installation Mode that could be either 'Never' (default)
+          or 'Always'. 'Always' will always install Kafka, and 'Never' won't install
+          it.
+        displayName: Kafka Installation Mode
+        path: infra.installKafka
       statusDescriptors:
       - description: Deployments for the KogitoApp environment.
         displayName: Deployments
@@ -110,12 +121,6 @@ spec:
         path: route
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
-      - description: Infinispan Installation Mode that could be either 'Auto' (default),
-          'Always' or 'Never'. 'Auto' the operator will try to guess if Infinispan
-          is needed by the service; 'Always' will always install it, and 'Never' won't
-          install Infinispan even if the service requires it.
-        displayName: Infinispan Installation Mode
-        path: infra.installInfinispan
       - description: Conditions History
         displayName: Conditions
         path: conditions
@@ -194,10 +199,18 @@ spec:
       - kind: Secret
         name: ""
         version: v1
+      - kind: Kafka
+        name: ""
+        version: kafka.strimzi.io/v1beta1
       specDescriptors:
       - description: Flag to install a Infinispan instance in the namespace
         displayName: Install Infinispan
         path: installInfinispan
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Flag to install a Kafka instance in the namespace
+        displayName: Install Kafka
+        path: installKafka
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       statusDescriptors:
@@ -210,6 +223,9 @@ spec:
       - description: Infinispan Credentials Secret
         displayName: Infinispan Credentials Secret
         path: infinispan.credentialSecret
+      - description: Kafka Service Name
+        displayName: Kafka Service
+        path: kafka.service
       version: v1alpha1
     required:
     - description: Represents a Infinispan cluster used internally by Kogito Data
