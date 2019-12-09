@@ -6,3 +6,5 @@ metadata:
 spec:
   # set to true if a Infinispan instance should be installed in the namespace via Infinispan Operator
   installInfinispan: false
+  # set to true if a Kafka instance should be installed in the namespace via Strimzi Operator
+  installKafka: false
