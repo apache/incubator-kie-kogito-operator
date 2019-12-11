@@ -16,6 +16,7 @@ package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -94,5 +95,81 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 	exist, err := kubernetes.ResourceC(client).Fetch(kogitoApp)
 	assert.NoError(t, err)
 	assert.True(t, exist)
-	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexRouteEnv, Value: expectedRoute})
+	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
+}
+
+func Test_getKogitoDataIndexURLs(t *testing.T) {
+	ns := t.Name()
+	hostname := "dataindex-route.com"
+	expectedHttpUrl := "http://" + hostname
+	expectedWsUrl := "ws://" + hostname
+	expectedHttpsUrl := "https://" + hostname
+	expectedWssUrl := "wss://" + hostname
+	unsecureDI := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHttpUrl},
+	}
+	secureDI := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHttpsUrl},
+	}
+	cliUnsecure := test.CreateFakeClient([]runtime.Object{unsecureDI}, nil, nil)
+	cliSecure := test.CreateFakeClient([]runtime.Object{secureDI}, nil, nil)
+	type args struct {
+		client    *client.Client
+		namespace string
+	}
+	tests := []struct {
+		name        string
+		args        args
+		wantHttpUrl string
+		wantWsUrl   string
+		wantErr     bool
+	}{
+		{
+			name: "With unsecure route",
+			args: args{
+				client:    cliUnsecure,
+				namespace: ns,
+			},
+			wantHttpUrl: expectedHttpUrl,
+			wantWsUrl:   expectedWsUrl,
+			wantErr:     false,
+		},
+		{
+			name: "With secure route",
+			args: args{
+				client:    cliSecure,
+				namespace: ns,
+			},
+			wantHttpUrl: expectedHttpsUrl,
+			wantWsUrl:   expectedWssUrl,
+			wantErr:     false,
+		},
+		{
+			name: "With blank route",
+			args: args{
+				client:    test.CreateFakeClient(nil, nil, nil),
+				namespace: ns,
+			},
+			wantHttpUrl: "",
+			wantWsUrl:   "",
+			wantErr:     false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotHttpUrl, gotWsUrl, err := getKogitoDataIndexURLs(tt.args.client, tt.args.namespace)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getKogitoDataIndexURLs() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotHttpUrl != tt.wantHttpUrl {
+				t.Errorf("getKogitoDataIndexURLs() gotHttpUrl = %v, want %v", gotHttpUrl, tt.wantHttpUrl)
+			}
+			if gotWsUrl != tt.wantWsUrl {
+				t.Errorf("getKogitoDataIndexURLs() gotWsUrl = %v, want %v", gotWsUrl, tt.wantWsUrl)
+			}
+		})
+	}
 }

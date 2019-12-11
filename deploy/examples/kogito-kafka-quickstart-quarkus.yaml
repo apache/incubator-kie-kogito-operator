@@ -17,7 +17,7 @@ spec:
       value: kogito-kafka-quickstart-quarkus/target
     gitSource:
       reference: 0.5.0
-      uri: https://github.com/mswiderski/kogito-quickstarts
+      uri: https://github.com/kiegroup/kogito-quickstarts
     imageRuntime:
       imageStreamTag: 0.6.0
     imageS2I:
