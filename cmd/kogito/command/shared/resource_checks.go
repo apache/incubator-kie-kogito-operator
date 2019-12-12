@@ -83,7 +83,8 @@ func checkKogitoOperatorExists(kubeCli *client.Client, namespace string) (bool, 
 	}
 
 	if operatorDeployment.Status.AvailableReplicas == 0 {
-		return true, fmt.Errorf("Kogito Operator seems to be created in the namespace '%s', but there's no available pods replicas deployed ", namespace)
+		log.Warnf("Kogito Operator seems to be created in the namespace '%s' but there's no available pods replicas deployed ", namespace)
+		return true, nil
 	}
 
 	return true, nil

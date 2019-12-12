@@ -23,6 +23,7 @@ import (
 type installKogitoOperatorFlags struct {
 	Namespace string
 	Image     string
+	Force     bool
 }
 
 type installKogitoOperatorCommand struct {
@@ -68,6 +69,7 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	i.command.Flags().StringVarP(&i.flags.Namespace, "project", "p", "", "The project name where the operator will be deployed")
 	i.command.Flags().StringVarP(&i.flags.Image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
+	i.command.Flags().BoolVarP(&i.flags.Force, "force", "f", false, "Force the operator installation")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -76,8 +78,14 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 		return err
 	}
 
-	if _, err = shared.MustInstallOperatorIfNotExists(i.flags.Namespace, i.flags.Image, i.Client, false); err != nil {
-		return err
+	if _, err = shared.ForceInstallOperator(i.flags.Namespace, i.flags.Image, i.flags.Force, i.Client); err != nil {
+		return nil
+	}
+
+	if !i.flags.Force {
+		if _, err = shared.MustInstallOperatorIfNotExists(i.flags.Namespace, i.flags.Image, i.Client, false); err != nil {
+			return err
+		}
 	}
 	return nil
 }

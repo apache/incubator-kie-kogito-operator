@@ -51,6 +51,18 @@ var (
 	DefaultOperatorImageNameTag = fmt.Sprintf("%s:%s", defaultOperatorImageName, version.Version)
 )
 
+// ForceInstallOperator force the installation of operator using the deploy/*yaml and deploy/crds/*crds.yaml files
+func ForceInstallOperator(namespace string, operatorImage string, force bool, client *client.Client) (installed bool, err error) {
+
+	if force {
+		if err := installOperatorWithYamlFiles(operatorImage, namespace, client); err != nil {
+			return false, fmt.Errorf("Error while deploying Kogito Operator via template yaml files: %s ", err)
+		}
+		log.Infof("Kogito Operator was installed in the namespace '%s'", namespace)
+	}
+	return true, nil
+}
+
 // SilentlyInstallOperatorIfNotExists attempts to install the operator and does not log a message if it is installed
 func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client) (installed bool, err error) {
 	return MustInstallOperatorIfNotExists(namespace, operatorImage, client, true)
@@ -78,7 +90,7 @@ func MustInstallOperatorIfNotExists(namespace string, operatorImage string, clie
 	if available, err := isOperatorAvailableInOperatorHub(client); err != nil {
 		log.Warnf("Couldn't find if the Kogito Operator is available in the cluster: %s ", err)
 	} else if available {
-		log.Warnf("Couldn't install the Kogito Operator automatically. The operator is available in the OperatorHub, please install it manually via Web Console. See: %s ", docURLInstallOperator)
+		log.Warnf("Kogito Operator is available in the OperatorHub, please install it via Web Console. But if you want to install it manually, please use 'kogito install operator -f'")
 		return false, nil
 	}
 
