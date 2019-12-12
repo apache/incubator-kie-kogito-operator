@@ -38,6 +38,9 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+
+	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
+	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 )
 
 // DefinitionKind is a resource kind representation from a Kubernetes/Openshift cluster
@@ -125,5 +128,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	// https://issues.jboss.org/browse/KOGITO-617
 	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &metav1.CreateOptions{})
 	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &metav1.CreateOptions{})
+	s.AddKnownTypes(olmapiv1.SchemeGroupVersion, &olmapiv1.OperatorGroup{})
+	s.AddKnownTypes(olmapiv1alpha1.SchemeGroupVersion, &olmapiv1alpha1.Subscription{})
 	return s
 }

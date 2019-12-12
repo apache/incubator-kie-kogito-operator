@@ -6,13 +6,15 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.3
+	github.com/go-openapi/validate v0.18.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/google/go-cmp v0.3.1
 	github.com/google/uuid v1.1.1
 	github.com/infinispan/infinispan-operator v0.0.0-20191028165532-917f400bee62
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/openshift/api v0.0.0-00010101000000-000000000000
-	github.com/openshift/client-go v0.0.0-00010101000000-000000000000
+	github.com/openshift/api v3.9.1-0.20190424152011-77b8897ec79a+incompatible
+	github.com/openshift/client-go v0.0.0-20190401163519-84c2b942258a
+	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190605231540-b8a4faf68e36
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/operator-framework/operator-sdk v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v0.0.5
