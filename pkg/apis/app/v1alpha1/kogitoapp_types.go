@@ -286,7 +286,7 @@ const (
 	UnknownReason ReasonType = "Unknown"
 )
 
-// Condition is the condition for the kogito-cloud-operator
+// Condition is the condition for the kogito-operator
 // +k8s:openapi-gen=true
 type Condition struct {
 	Type               ConditionType          `json:"type"`

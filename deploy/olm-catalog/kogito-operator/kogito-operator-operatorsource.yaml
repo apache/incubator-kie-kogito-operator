@@ -1,11 +1,11 @@
 apiVersion: operators.coreos.com/v1
 kind: OperatorSource
 metadata:
-  name: kogitocloud-operator
+  name: kogito-operator
   namespace: openshift-marketplace
 spec:
   type: appregistry
   endpoint: https://quay.io/cnr
   registryNamespace: kiegroup
-  displayName: "Kogito Cloud Operators"
+  displayName: "Kogito Operator"
   publisher: "Red Hat"

@@ -198,7 +198,7 @@ func schema_pkg_apis_app_v1alpha1_Condition(ref common.ReferenceCallback) common
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "Condition is the condition for the kogito-cloud-operator",
+				Description: "Condition is the condition for the kogito-operator",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"type": {

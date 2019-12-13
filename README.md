@@ -86,7 +86,7 @@ The Kogito Operator is available in the OperatorHub as a community operator. To 
 You can also verify the Operator availability in the catalog by running the following command:
 
 ```bash
-$ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n openshift-marketplace
+$ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-marketplace
 ```
 Follow the OpenShift Web Console instructions in the **Catalog** -> **OperatorHub** section in the left menu to install it in any namespace in the cluster.
 
@@ -97,7 +97,7 @@ Follow the OpenShift Web Console instructions in the **Catalog** -> **OperatorHu
 If you cannot find the Kogito Operator in OperatorHub, you can install it manually by creating an entry in the OperatorHub Catalog:
 
 ```bash
-$ oc create -f deploy/olm-catalog/kogito-cloud-operator/kogitocloud-operatorsource.yaml
+$ oc create -f deploy/olm-catalog/kogito-operator/kogito-operator-operatorsource.yaml
 ```
 
 After several minutes, the Operator appears under the **Catalog** -> **OperatorHub** section in the OpenShift Web Console. To find the Operator, search by the _Kogito_ name. You can then install the Operator as described in the [Automatically in OperatorHub](#automatically-in-operatorhub) section.
@@ -166,13 +166,13 @@ To view the Operator logs, first identify where the operator is deployed:
 $ oc get pods
 
 NAME                                     READY   STATUS      RESTARTS   AGE
-kogito-cloud-operator-6d7b6d4466-9ng8t   1/1     Running     0          26m
+kogito-operator-6d7b6d4466-9ng8t   1/1     Running     0          26m
 ```
 
 Use the pod name as the input in the following command:
 
 ```bash
-$ oc logs -f kogito-cloud-operator-6d7b6d4466-9ng8t
+$ oc logs -f kogito-operator-6d7b6d4466-9ng8t
 ```
 
 ## Kogito Data Index Service deployment
@@ -727,27 +727,27 @@ To install the Kogito Operator on OpenShift 4.x for end-to-end (E2E) testing, en
 Push the Operator bundle to your quay application repository as shown in the following example:
 
 ```bash
-$ operator-courier push deploy/olm-catalog/kogito-cloud-operator/ namespace kogitocloud-operator 0.6.0 "basic XXXXXXXXX"
+$ operator-courier push deploy/olm-catalog/kogito-operator/ namespace kogito-operator 0.6.0 "basic XXXXXXXXX"
 ```
 
 If you push to another quay repository, replace `namespace` with your user name or the other namespace. The push command does not overwrite an existing repository, so you must delete the bundle before you can build and upload a new version. After you upload the bundle, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
 
-The OpenShift cluster needs access to the created application. Ensure that the application is **public** or that you have configured the private repository credentials in the cluster. To make the application public, go to your `quay.io` account, and in the **Applications** tab look for the `kogitocloud-operator` application. Under the settings section, click **make public**.
+The OpenShift cluster needs access to the created application. Ensure that the application is **public** or that you have configured the private repository credentials in the cluster. To make the application public, go to your `quay.io` account, and in the **Applications** tab look for the `kogito-operator` application. Under the settings section, click **make public**.
 
 ```bash
 ## Kogito imagestreams should already be installed and available, for example:
 $ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
-$ oc create -f deploy/olm-catalog/kogito-cloud-operator/kogitocloud-operatorsource.yaml
+$ oc create -f deploy/olm-catalog/kogito-operator/kogito-operator-operatorsource.yaml
 ```
 
-Replace `registryNamespace` in the `kogitocloud-operatorsource.yaml` file with your quay namespace. The name, display name, and publisher of the Operator are the only other attributes that you can modify.
+Replace `registryNamespace` in the `kogito-operator-operatorsource.yaml` file with your quay namespace. The name, display name, and publisher of the Operator are the only other attributes that you can modify.
 
 After several minutes, the Operator appears under **Catalog** -> **OperatorHub** in the OpenShift Web Console. To find the Operator, filter the provider type by _Custom_.
 
 To verify the operator status, run the following command:
 
 ```bash
-$ oc describe operatorsource.operators.coreos.com/kogitocloud-operator -n openshift-marketplace
+$ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-marketplace
 ```
 
 ### Running End-to-End (E2E) tests
