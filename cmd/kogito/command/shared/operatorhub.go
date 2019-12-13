@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultOperatorPackageName   = "kogitocloud-operator"
+	defaultOperatorPackageName   = "kogito-operator"
 	communityOperatorSource      = "community-operators"
 	operatorMarketplaceNamespace = "openshift-marketplace"
 )

@@ -18,6 +18,6 @@ if [[ -z ${CI} ]]; then
     ./hack/go-mod.sh
     operator-sdk generate k8s
     operator-sdk generate openapi
-    operator-sdk olm-catalog gen-csv --csv-version 0.6.0 --update-crds # --from-version 1.0.0 //future
+    operator-sdk olm-catalog gen-csv --csv-version 0.6.0  --update-crds --operator-name kogito-operator  #--from-version 0.6.0
 fi
 go vet ./...
