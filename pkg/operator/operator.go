@@ -16,5 +16,5 @@ package operator
 
 const (
 	// Name is the name of the Kogito Operator deployed in a namespace
-	Name = "kogito-cloud-operator"
+	Name = "kogito-operator"
 )

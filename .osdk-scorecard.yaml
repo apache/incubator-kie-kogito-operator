@@ -14,4 +14,4 @@ scorecard:
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoinfra_cr.yaml"
-        csv-path: "deploy/olm-catalog/kogito-cloud-operator/0.7.0-rc1/kogito-cloud-operator.v0.7.0-rc1.clusterserviceversion.yaml"
+        csv-path: "deploy/olm-catalog/kogito-operator/0.7.0-rc1/kogito-operator.v0.7.0-rc1.clusterserviceversion.yaml"

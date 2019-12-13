@@ -310,7 +310,7 @@ spec:
             conditions:
               description: History of conditions for the service
               items:
-                description: Condition is the condition for the kogito-cloud-operator
+                description: Condition is the condition for the kogito-operator
                 properties:
                   lastTransitionTime:
                     format: date-time

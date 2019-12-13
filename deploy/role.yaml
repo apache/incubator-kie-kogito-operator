@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
-  name: kogito-cloud-operator
+  name: kogito-operator
 rules:
   - apiGroups:
       - ""
@@ -63,7 +63,7 @@ rules:
   - apiGroups:
       - apps
     resourceNames:
-      - kogito-cloud-operator
+      - kogito-operator
     resources:
       - deployments/finalizers
     verbs:
