@@ -1,7 +1,0 @@
-channels:
-- currentCSV: kogito-cloud-operator.v0.6.0
-  name: alpha
-- currentCSV: kogito-cloud-operator.v0.7.0-rc1
-  name: dev-preview
-defaultChannel: alpha
-packageName: kogitocloud-operator
