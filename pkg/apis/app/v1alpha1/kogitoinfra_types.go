@@ -62,8 +62,8 @@ type KogitoInfraCondition struct {
 
 // InfinispanInstallStatus defines the Infinispan installation status
 type InfinispanInstallStatus struct {
-	InfraComponentInstallStatusType
-	CredentialSecret string `json:"credentialSecret,omitempty"`
+	InfraComponentInstallStatusType `json:",inline"`
+	CredentialSecret                string `json:"credentialSecret,omitempty"`
 }
 
 // InstallCondition defines the installation condition for the infrastructure actor

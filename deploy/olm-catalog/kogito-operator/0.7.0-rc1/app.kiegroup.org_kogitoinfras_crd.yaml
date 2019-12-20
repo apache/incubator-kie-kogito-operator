@@ -66,7 +66,32 @@ spec:
               description: InfinispanInstallStatus defines the Infinispan installation
                 status
               properties:
+                condition:
+                  items:
+                    description: InstallCondition defines the installation condition
+                      for the infrastructure actor
+                    properties:
+                      lastTransitionTime:
+                        format: date-time
+                        type: string
+                      message:
+                        type: string
+                      status:
+                        type: string
+                      type:
+                        description: InstallConditionType defines the possibles conditions
+                          that a install might have
+                        type: string
+                    required:
+                    - status
+                    - type
+                    type: object
+                  type: array
                 credentialSecret:
+                  type: string
+                name:
+                  type: string
+                service:
                   type: string
               type: object
             kafka:

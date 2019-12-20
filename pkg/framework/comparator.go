@@ -18,6 +18,13 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+
+	appsv1 "github.com/openshift/api/apps/v1"
+	buildv1 "github.com/openshift/api/build/v1"
+	routev1 "github.com/openshift/api/route/v1"
+
+	v1 "k8s.io/api/core/v1"
+
 	"reflect"
 )
 
@@ -98,4 +105,103 @@ func (c *comparatorBuilder) Build() *Comparator {
 func (c *comparatorBuilder) BuildAsFunc() (reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool) {
 	c.Build()
 	return c.comparator.ResourceType, c.comparator.CompFunc
+}
+
+func containAllLabels(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	deployedLabels := deployed.GetLabels()
+	requestedLabels := requested.GetLabels()
+
+	for key, value := range requestedLabels {
+		if deployedLabels[key] != value {
+			return false
+		}
+	}
+
+	return true
+}
+
+// CreateDeploymentConfigComparator creates a new comparator for DeploymentConfig using Trigger and RollingParams
+func CreateDeploymentConfigComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		dcDeployed := deployed.(*appsv1.DeploymentConfig)
+		dcRequested := requested.(*appsv1.DeploymentConfig).DeepCopy()
+
+		for i := range dcDeployed.Spec.Triggers {
+			if len(dcRequested.Spec.Triggers) <= i {
+				return false
+			}
+			triggerDeployed := dcDeployed.Spec.Triggers[i]
+			triggerRequested := dcRequested.Spec.Triggers[i]
+			if triggerDeployed.ImageChangeParams != nil && triggerRequested.ImageChangeParams != nil && triggerRequested.ImageChangeParams.From.Namespace == "" {
+				//This value is generated based on image stream being found in current or openshift project:
+				triggerDeployed.ImageChangeParams.From.Namespace = ""
+			}
+		}
+
+		if dcRequested.Spec.Strategy.RollingParams == nil && dcDeployed.Spec.Strategy.Type == dcRequested.Spec.Strategy.Type {
+			dcDeployed.Spec.Strategy.RollingParams = dcRequested.Spec.Strategy.RollingParams
+		}
+		return true
+	}
+}
+
+// CreateBuildConfigComparator creates a new comparator for BuildConfig using Label, Trigger and SourceStrategy
+func CreateBuildConfigComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		bcDeployed := deployed.(*buildv1.BuildConfig)
+		bcRequested := requested.(*buildv1.BuildConfig).DeepCopy()
+
+		if !containAllLabels(bcDeployed, bcRequested) {
+			return false
+		}
+		if bcDeployed.Spec.Strategy.SourceStrategy != nil {
+			//This value is generated based on image stream being found in current or openshift project:
+			bcDeployed.Spec.Strategy.SourceStrategy.From.Namespace = bcRequested.Spec.Strategy.SourceStrategy.From.Namespace
+		}
+		if len(bcDeployed.Spec.Triggers) > 0 && len(bcRequested.Spec.Triggers) == 0 {
+			//Triggers are generated based on provided github repo
+			bcDeployed.Spec.Triggers = bcRequested.Spec.Triggers
+		}
+		return true
+	}
+}
+
+// CreateServiceComparator creates a new comparator for Service using Label
+func CreateServiceComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		svcDeployed := deployed.(*v1.Service)
+		svcRequested := requested.(*v1.Service).DeepCopy()
+
+		if !containAllLabels(svcDeployed, svcRequested) {
+			return false
+		}
+		return true
+	}
+}
+
+// CreateRouteComparator creates a new comparator for Route using Label
+func CreateRouteComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		rtDeployed := deployed.(*routev1.Route)
+		rtRequested := requested.(*routev1.Route).DeepCopy()
+
+		if !containAllLabels(rtDeployed, rtRequested) {
+			return false
+		}
+		return true
+	}
+}
+
+// CreateConfigMapComparator creates a new comparator for ConfigMap using Label
+func CreateConfigMapComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		cmDeployed := deployed.(*v1.ConfigMap)
+		cmRequested := requested.(*v1.ConfigMap).DeepCopy()
+
+		if !containAllLabels(cmDeployed, cmRequested) {
+			return false
+		}
+
+		return true
+	}
 }

@@ -27,6 +27,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -34,18 +37,44 @@ import (
 var log = logger.GetLogger("status_kogitodataindex")
 
 // ManageStatus will guarantee the status changes
-func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.KogitoDataIndexResources, client *client.Client) error {
+func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.KogitoDataIndexResources, resourcesUpdate bool, reconcileError bool, client *client.Client) error {
 	var err error
 	var exists bool
 	status := v1alpha1.KogitoDataIndexStatus{}
 	currentCondition := v1alpha1.DataIndexCondition{}
 
+	var statefulSet *appsv1.StatefulSet
 	if resources.StatefulSet != nil {
-		status.DeploymentStatus = resources.StatefulSet.Status
+		statefulSet = &appsv1.StatefulSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      resources.StatefulSet.Name,
+				Namespace: resources.StatefulSet.Namespace,
+			},
+		}
+		if exists, err = kubernetes.ResourceC(client).Fetch(statefulSet); err != nil {
+			return err
+		} else if exists {
+			status.DeploymentStatus = statefulSet.Status
+		} else {
+			statefulSet = nil
+		}
 	}
 
+	var service *corev1.Service
 	if resources.Service != nil {
-		status.ServiceStatus = resources.Service.Status
+		service = &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      resources.Service.Name,
+				Namespace: resources.Service.Namespace,
+			},
+		}
+		if exists, err = kubernetes.ResourceC(client).Fetch(service); err != nil {
+			return err
+		} else if exists {
+			status.ServiceStatus = service.Status
+		} else {
+			service = nil
+		}
 	}
 
 	if status.DependenciesStatus, err = checkDependenciesStatus(instance, client); err != nil {
@@ -66,12 +95,9 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	}
 
 	status.Conditions = instance.Status.Conditions
-	if currentCondition, err = checkCurrentCondition(resources); err != nil {
-		return err
-	}
-
+	currentCondition = checkCurrentCondition(statefulSet, service, resourcesUpdate, reconcileError)
 	lastCondition := getLastCondition(instance)
-	if lastCondition == nil || (currentCondition.Condition != lastCondition.Condition && currentCondition.Message != lastCondition.Message) {
+	if lastCondition == nil || (currentCondition.Condition != lastCondition.Condition || currentCondition.Message != lastCondition.Message) {
 		log.Debugf("Creating new status conditions. Actual conditions: %s. Current condition: %s", instance.Status.Conditions, currentCondition)
 		if &status.Conditions == nil {
 			status.Conditions = []v1alpha1.DataIndexCondition{}
@@ -96,29 +122,44 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	return nil
 }
 
-func checkCurrentCondition(resources *resource.KogitoDataIndexResources) (v1alpha1.DataIndexCondition, error) {
-	if resources.StatefulSet == nil ||
-		resources.Service == nil {
+func checkCurrentCondition(statefulSet *appsv1.StatefulSet, service *corev1.Service, resourcesUpdate bool, reconcileError bool) v1alpha1.DataIndexCondition {
+	if reconcileError {
 		return v1alpha1.DataIndexCondition{
-			Condition:          v1alpha1.ConditionProvisioning,
-			Message:            "Not all objects created",
+			Condition:          v1alpha1.ConditionFailed,
+			Message:            "Deployment Error",
 			LastTransitionTime: metav1.NewTime(time.Now()),
-		}, nil
+		}
 	}
 
-	if resources.StatefulSet.Status.ReadyReplicas == resources.StatefulSet.Status.Replicas {
+	if statefulSet == nil || service == nil {
 		return v1alpha1.DataIndexCondition{
-			Condition:          v1alpha1.ConditionOK,
-			Message:            "Deployment Finished",
+			Condition:          v1alpha1.ConditionFailed,
+			Message:            "Deployment Failed",
 			LastTransitionTime: metav1.NewTime(time.Now()),
-		}, nil
+		}
+	}
+
+	if resourcesUpdate {
+		return v1alpha1.DataIndexCondition{
+			Condition:          v1alpha1.ConditionProvisioning,
+			Message:            "Deploying Objects",
+			LastTransitionTime: metav1.NewTime(time.Now()),
+		}
+	}
+
+	if statefulSet.Status.ReadyReplicas < statefulSet.Status.Replicas {
+		return v1alpha1.DataIndexCondition{
+			Condition:          v1alpha1.ConditionProvisioning,
+			Message:            "Deployment In Progress",
+			LastTransitionTime: metav1.NewTime(time.Now()),
+		}
 	}
 
 	return v1alpha1.DataIndexCondition{
-		Condition:          v1alpha1.ConditionProvisioning,
-		Message:            "Deployment Not Started",
+		Condition:          v1alpha1.ConditionOK,
+		Message:            "Deployment Finished",
 		LastTransitionTime: metav1.NewTime(time.Now()),
-	}, nil
+	}
 }
 
 func checkDependenciesStatus(instance *v1alpha1.KogitoDataIndex, client *client.Client) ([]v1alpha1.DataIndexDependenciesStatus, error) {

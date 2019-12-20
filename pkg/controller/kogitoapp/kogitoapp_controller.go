@@ -16,9 +16,6 @@ package kogitoapp
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/openshift/api/image/docker10"
 	"reflect"
 	"time"
 
@@ -32,14 +29,20 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
+	"github.com/openshift/api/image/docker10"
 	oimagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -158,12 +161,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 
 	log.Infof("Checking if all resources for '%s' are created", instance.Name)
 	// create resources in the cluster that do not exist
-	kogitoResources, err := kogitores.GetRequestedResources(&kogitores.Context{
-		KogitoApp: instance,
-		FactoryContext: framework.FactoryContext{
-			Client: r.client,
-		},
-	})
+	kogitoResources, err := kogitores.GetRequestedResources(instance, r.client)
 
 	defer r.updateKogitoAppStatus(&request, instance, kogitoResources, updateResourceResult, &result, &resultErr)
 
@@ -486,7 +484,7 @@ func (r *ReconcileKogitoApp) rollOutDeploymentIfConfigMapBroken(instance *v1alph
 }
 
 func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.KubernetesResource {
-	k8sRes := make([]utilsres.KubernetesResource, 7)
+	var k8sRes []utilsres.KubernetesResource
 
 	if kogitoRes.BuildConfigS2I != nil {
 		k8sRes = append(k8sRes, kogitoRes.BuildConfigS2I)

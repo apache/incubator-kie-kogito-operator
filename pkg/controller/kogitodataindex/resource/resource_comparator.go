@@ -17,8 +17,6 @@ package resource
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	appsv1 "github.com/openshift/api/apps/v1"
-	buildv1 "github.com/openshift/api/build/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
@@ -29,37 +27,19 @@ func GetComparator() compare.MapComparator {
 	resourceComparator := compare.DefaultComparator()
 
 	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
-			WithType(reflect.TypeOf(appsv1.DeploymentConfig{})).
-			WithCustomComparator(framework.CreateDeploymentConfigComparator()).
-			UseDefaultComparator().
-			BuildAsFunc())
-
-	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
-			WithType(reflect.TypeOf(buildv1.BuildConfig{})).
-			WithCustomComparator(framework.CreateBuildConfigComparator()).
-			UseDefaultComparator().
-			BuildAsFunc())
-
-	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
+		framework.
+			NewComparatorBuilder().
 			WithType(reflect.TypeOf(v1.Service{})).
 			WithCustomComparator(framework.CreateServiceComparator()).
 			UseDefaultComparator().
 			BuildAsFunc())
 
 	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
+		framework.
+			NewComparatorBuilder().
 			WithType(reflect.TypeOf(routev1.Route{})).
 			WithCustomComparator(framework.CreateRouteComparator()).
 			UseDefaultComparator().
-			BuildAsFunc())
-
-	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
-			WithType(reflect.TypeOf(v1.ConfigMap{})).
-			WithCustomComparator(framework.CreateConfigMapComparator()).
 			BuildAsFunc())
 
 	return compare.MapComparator{Comparator: resourceComparator}

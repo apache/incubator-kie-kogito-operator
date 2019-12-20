@@ -15,7 +15,6 @@
 package resource
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,11 +58,7 @@ func Test_createKafkaTopic(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
 
 	factory := &kogitoDataIndexResourcesFactory{
-		Factory: framework.Factory{
-			Context: &framework.FactoryContext{
-				Client: client,
-			},
-		},
+		Client:          client,
 		Resources:       &KogitoDataIndexResources{},
 		KogitoDataIndex: instance,
 	}
@@ -87,7 +82,6 @@ func Test_createKafkaTopic(t *testing.T) {
 			got := createKafkaTopic(tt.args.f)
 
 			assert.NoError(t, got.Error)
-			assert.True(t, got.Resources.KafkaTopicStatus.New)
 			assert.Equal(t, len(got.Resources.KafkaTopics), len(kafkaTopicNames))
 
 			for _, kafkaTopicName := range kafkaTopicNames {

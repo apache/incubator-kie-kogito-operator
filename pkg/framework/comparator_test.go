@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package framework
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -91,7 +90,7 @@ func Test_containAllLabels(t *testing.T) {
 	}
 }
 
-func Test_createBuildConfigComparator(t *testing.T) {
+func Test_CreateBuildConfigComparator(t *testing.T) {
 	type args struct {
 		deployed  resource.KubernetesResource
 		requested resource.KubernetesResource
@@ -152,10 +151,10 @@ func Test_createBuildConfigComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				framework.NewComparatorBuilder().
+				NewComparatorBuilder().
 					WithType(tt.want).
 					UseDefaultComparator().
-					WithCustomComparator(createBuildConfigComparator()).
+					WithCustomComparator(CreateBuildConfigComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createBuildConfigComparator() got = %v, want %v", got, tt.want)
@@ -167,7 +166,7 @@ func Test_createBuildConfigComparator(t *testing.T) {
 	}
 }
 
-func Test_createDeploymentConfigComparator(t *testing.T) {
+func Test_CreateDeploymentConfigComparator(t *testing.T) {
 	type args struct {
 		deployed  resource.KubernetesResource
 		requested resource.KubernetesResource
@@ -279,10 +278,10 @@ func Test_createDeploymentConfigComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				framework.NewComparatorBuilder().
+				NewComparatorBuilder().
 					WithType(tt.want).
 					UseDefaultComparator().
-					WithCustomComparator(createDeploymentConfigComparator()).
+					WithCustomComparator(CreateDeploymentConfigComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createDeploymentConfigComparator() got = %v, want %v", got, tt.want)
@@ -294,7 +293,7 @@ func Test_createDeploymentConfigComparator(t *testing.T) {
 	}
 }
 
-func Test_createRouteComparator(t *testing.T) {
+func Test_CreateRouteComparator(t *testing.T) {
 	type args struct {
 		deployed  resource.KubernetesResource
 		requested resource.KubernetesResource
@@ -355,10 +354,10 @@ func Test_createRouteComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				framework.NewComparatorBuilder().
+				NewComparatorBuilder().
 					WithType(tt.want).
 					UseDefaultComparator().
-					WithCustomComparator(createRouteComparator()).
+					WithCustomComparator(CreateRouteComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createRouteComparator() got = %v, want %v", got, tt.want)
@@ -370,7 +369,7 @@ func Test_createRouteComparator(t *testing.T) {
 	}
 }
 
-func Test_createServiceComparator(t *testing.T) {
+func Test_CreateServiceComparator(t *testing.T) {
 	type args struct {
 		deployed  resource.KubernetesResource
 		requested resource.KubernetesResource
@@ -431,10 +430,10 @@ func Test_createServiceComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				framework.NewComparatorBuilder().
+				NewComparatorBuilder().
 					WithType(tt.want).
 					UseDefaultComparator().
-					WithCustomComparator(createServiceComparator()).
+					WithCustomComparator(CreateServiceComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createServiceComparator() got = %v, want %v", got, tt.want)
