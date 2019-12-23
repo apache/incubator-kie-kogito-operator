@@ -156,12 +156,6 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 
 	updateResourceResult := &status.UpdateResourcesResult{ErrorReason: v1alpha1.ReasonType("")}
 
-	log.Infof("Injecting external services references to '%s'", instance.Name)
-	if err = infrastructure.InjectEnvVarsFromExternalServices(instance, r.client); err != nil {
-		updateResourceResult.Err = err
-		updateResourceResult.ErrorReason = v1alpha1.ServicesIntegrationFailedReason
-	}
-
 	log.Infof("Checking if all resources for '%s' are created", instance.Name)
 	// create resources in the cluster that do not exist
 	kogitoResources, err := kogitores.GetRequestedResources(&kogitores.Context{
@@ -186,17 +180,20 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 		return
 	}
 
-	// if we got resources deployed, lets deploy the infrastructure
 	if len(deployedRes) > 0 {
-		requeue, err = r.ensureKogitoInfra(instance, kogitoResources.RuntimeImage, kogitoResources.DeploymentConfig)
-		if err != nil {
+		if requeue, err = r.ensureKogitoInfra(instance, kogitoResources.RuntimeImage, kogitoResources.DeploymentConfig); err != nil {
 			updateResourceResult.Err = err
 			updateResourceResult.ErrorReason = v1alpha1.DeployKogitoInfraFailedReason
 			return
-		}
-		if requeue {
+		} else if requeue {
 			result.Requeue = true
 			result.RequeueAfter = 5 * time.Second
+			return
+		}
+
+		if err = r.injectExternalVariables(instance, kogitoResources.DeploymentConfig); err != nil {
+			updateResourceResult.Err = err
+			updateResourceResult.ErrorReason = v1alpha1.ServicesIntegrationFailedReason
 			return
 		}
 	}
@@ -469,4 +466,24 @@ func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, requested
 		}
 	}
 	return false, nil
+}
+
+func (r *ReconcileKogitoApp) injectExternalVariables(instance *v1alpha1.KogitoApp, requestedDeployment *oappsv1.DeploymentConfig) error {
+	if requestedDeployment == nil {
+		return nil
+	}
+
+	log.Infof("Injecting external route URL to '%s'", instance.Name)
+	if err := kogitores.SetExternalRouteEnvVar(r.client, instance, requestedDeployment); err != nil {
+		return err
+	}
+
+	if len(requestedDeployment.Spec.Template.Spec.Containers) > 0 {
+		log.Infof("Injecting external services references to '%s'", instance.Name)
+		if err := infrastructure.InjectEnvVarsFromExternalServices(instance, &requestedDeployment.Spec.Template.Spec.Containers[0], r.client); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
