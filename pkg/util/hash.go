@@ -18,6 +18,8 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
+	"math/rand"
+	"strconv"
 )
 
 // GenerateMD5Hash will generate a MD5 hash from the given map
@@ -30,4 +32,9 @@ func GenerateMD5Hash(source map[string]string) string {
 		fmt.Fprintf(b, "%s=\"%s\"\n", k, v)
 	}
 	return fmt.Sprintf("%x", md5.Sum(b.Bytes()))
+}
+
+// RandomSuffix generates a random suffix to be used in names for kubernetes objects
+func RandomSuffix() string {
+	return strconv.Itoa(rand.Intn(10000))
 }

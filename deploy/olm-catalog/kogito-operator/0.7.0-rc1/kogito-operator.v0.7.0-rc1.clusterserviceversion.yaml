@@ -6,21 +6,6 @@ metadata:
       [
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
-          "kind": "KogitoApp",
-          "metadata": {
-            "name": "example-quarkus"
-          },
-          "spec": {
-            "build": {
-              "gitSource": {
-                "contextDir": "jbpm-quarkus-example",
-                "uri": "https://github.com/kiegroup/kogito-examples"
-              }
-            }
-          }
-        },
-        {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoDataIndex",
           "metadata": {
             "name": "kogito-data-index"
@@ -49,6 +34,21 @@ metadata:
           "spec": {
             "installInfinispan": false,
             "installKafka": false
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoApp",
+          "metadata": {
+            "name": "example-quarkus"
+          },
+          "spec": {
+            "build": {
+              "gitSource": {
+                "contextDir": "jbpm-quarkus-example",
+                "uri": "https://github.com/kiegroup/kogito-examples"
+              }
+            }
           }
         }
       ]

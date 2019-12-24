@@ -19,6 +19,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
+	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
+	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 
 	"github.com/stretchr/testify/assert"
 
@@ -97,7 +99,17 @@ func TestMustInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 	// Operator is there in the hub and not exists in the given namespace, let's check if there's no error
 	installed, err := MustInstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false)
 	assert.NoError(t, err)
-	assert.False(t, installed)
+	assert.True(t, installed)
+
+	groups := &olmapiv1.OperatorGroupList{}
+	err = kubernetes.ResourceC(client).ListWithNamespace(ns, groups)
+	assert.NoError(t, err)
+	assert.Contains(t, groups.Items[0].Name, ns)
+
+	subs := &v1alpha1.Subscription{ObjectMeta: metav1.ObjectMeta{Name: defaultOperatorPackageName, Namespace: ns}}
+	exists, err := kubernetes.ResourceC(client).Fetch(subs)
+	assert.NoError(t, err)
+	assert.True(t, exists)
 }
 
 func TestTryToInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
@@ -115,7 +127,7 @@ func TestTryToInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 	// Operator is in the hub but does not exist in the given namespace. Don't raise an error.
 	installed, err := SilentlyInstallOperatorIfNotExists(ns, defaultOperatorImageName, client)
 	assert.NoError(t, err)
-	assert.False(t, installed)
+	assert.True(t, installed)
 }
 
 func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {

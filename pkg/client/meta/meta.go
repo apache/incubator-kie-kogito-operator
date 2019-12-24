@@ -94,6 +94,10 @@ var (
 	KindOperatorSource = DefinitionKind{"OperatorSource", false, operatormkt.SchemeGroupVersion}
 	// KindServiceMonitor ...
 	KindServiceMonitor = DefinitionKind{"ServiceMonitor", false, monv1.SchemeGroupVersion}
+	// KindOperatorGroup ...
+	KindOperatorGroup = DefinitionKind{"OperatorGroup", false, olmapiv1.SchemeGroupVersion}
+	// KindSubscription ...
+	KindSubscription = DefinitionKind{"Subscription", false, olmapiv1alpha1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -123,12 +127,16 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
 	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
 	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &operatormkt.OperatorSource{}, &operatormkt.OperatorSourceList{})
+	s.AddKnownTypes(olmapiv1.SchemeGroupVersion, &olmapiv1.OperatorGroup{}, &olmapiv1.OperatorGroupList{})
+	s.AddKnownTypes(olmapiv1alpha1.SchemeGroupVersion, &olmapiv1alpha1.Subscription{}, &olmapiv1alpha1.SubscriptionList{})
+
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &metav1.CreateOptions{})
+	metav1.AddToGroupVersion(s, v1alpha1.SchemeGroupVersion)
 	// https://issues.jboss.org/browse/KOGITO-617
-	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &metav1.CreateOptions{})
-	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &metav1.CreateOptions{})
-	s.AddKnownTypes(olmapiv1.SchemeGroupVersion, &olmapiv1.OperatorGroup{})
-	s.AddKnownTypes(olmapiv1alpha1.SchemeGroupVersion, &olmapiv1alpha1.Subscription{})
+	metav1.AddToGroupVersion(s, apiextensionsv1beta1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, operatormkt.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, olmapiv1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, olmapiv1alpha1.SchemeGroupVersion)
+
 	return s
 }
