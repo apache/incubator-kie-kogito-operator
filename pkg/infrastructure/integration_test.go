@@ -16,7 +16,9 @@ package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	appsv1 "github.com/openshift/api/apps/v1"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"testing"
 
@@ -30,29 +32,20 @@ func Test_InjectEnvironmentVarsFromExternalServices(t *testing.T) {
 	name := "my-kogito-app"
 	expectedRoute := "http://dataindex-route.com"
 
-	kogitoApp := &v1alpha1.KogitoApp{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      name,
-			Namespace: ns,
-		},
+	kogitoApp := &v1alpha1.KogitoApp{ObjectMeta: v1.ObjectMeta{Name: name, Namespace: ns}}
+	dc := &appsv1.DeploymentConfig{
+		ObjectMeta: v1.ObjectMeta{Name: name, Namespace: ns},
+		Spec:       appsv1.DeploymentConfigSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: name}}}}},
 	}
-	dataIndexes := &v1alpha1.KogitoDataIndexList{
-		Items: []v1alpha1.KogitoDataIndex{
-			{
-				ObjectMeta: v1.ObjectMeta{
-					Name:      "kogito-data-index",
-					Namespace: ns,
-				},
-				Status: v1alpha1.KogitoDataIndexStatus{
-					Route: expectedRoute,
-				},
-			},
-		},
-	}
-	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes}, nil, nil)
-	err := InjectEnvVarsFromExternalServices(kogitoApp, client)
+	dataIndexes := &v1alpha1.KogitoDataIndexList{Items: []v1alpha1.KogitoDataIndex{{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedRoute}},
+	}}
+
+	client := test.CreateFakeClient([]runtime.Object{dc, dataIndexes}, nil, nil)
+	err := InjectEnvVarsFromExternalServices(kogitoApp, &dc.Spec.Template.Spec.Containers[0], client)
 	assert.NoError(t, err)
-	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
+	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
 }
 
 func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
@@ -62,10 +55,7 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 	expectedRoute := "http://dataindex-route2.com"
 
 	kogitoApp := &v1alpha1.KogitoApp{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      name,
-			Namespace: ns,
-		},
+		ObjectMeta: v1.ObjectMeta{Name: name, Namespace: ns},
 		Spec: v1alpha1.KogitoAppSpec{
 			Env: []v1alpha1.Env{
 				{
@@ -74,6 +64,10 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 				},
 			},
 		},
+	}
+	dc := &appsv1.DeploymentConfig{
+		ObjectMeta: v1.ObjectMeta{Name: name, Namespace: ns},
+		Spec:       appsv1.DeploymentConfigSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: name}}}}},
 	}
 	dataIndexes := &v1alpha1.KogitoDataIndexList{
 		Items: []v1alpha1.KogitoDataIndex{
@@ -89,7 +83,7 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 		},
 	}
 	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes}, nil, nil)
-	err := InjectEnvVarsFromExternalServices(kogitoApp, client)
+	err := InjectEnvVarsFromExternalServices(kogitoApp, &dc.Spec.Template.Spec.Containers[0], client)
 	assert.NoError(t, err)
-	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
+	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -29,6 +30,7 @@ import (
 	dockerv10 "github.com/openshift/api/image/docker10"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"strings"
 )
 
@@ -45,6 +47,8 @@ const (
 
 	envVarKafkaBootstrapURI    = "KAFKA_BOOTSTRAP_SERVERS"
 	envVarKafkaBootstrapSuffix = "_BOOTSTRAP_SERVERS"
+
+	envVarExternalURL = "KOGITO_SERVICE_URL"
 )
 
 var (
@@ -179,5 +183,20 @@ func SetKafkaEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogi
 			}
 		}
 	}
+	return nil
+}
+
+// SetExternalRouteEnvVar sets the external URL to the given requested deploymentConfig
+func SetExternalRouteEnvVar(cli *client.Client, kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) error {
+	if dc == nil || kogitoApp == nil {
+		return nil
+	}
+
+	if exists, route, err := openshift.RouteC(cli).GetHostFromRoute(types.NamespacedName{Namespace: kogitoApp.Namespace, Name: kogitoApp.Name}); err != nil {
+		return err
+	} else if exists {
+		util.SetEnvVar(envVarExternalURL, fmt.Sprintf("http://%s", route), &dc.Spec.Template.Spec.Containers[0])
+	}
+
 	return nil
 }

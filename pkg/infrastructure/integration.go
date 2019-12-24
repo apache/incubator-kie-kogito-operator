@@ -18,10 +18,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	v1 "k8s.io/api/core/v1"
 )
 
 // InjectEnvVarsFromExternalServices inject environment variables from external services that the KogitoApp runtime might need
-func InjectEnvVarsFromExternalServices(kogitoApp *v1alpha1.KogitoApp, client *client.Client) error {
+func InjectEnvVarsFromExternalServices(kogitoApp *v1alpha1.KogitoApp, container *v1.Container, client *client.Client) error {
 	log.Debugf("Querying Data Index route to inject into KogitoApp: %s", kogitoApp.GetName())
 	// We look for a deployed data index to inject into the runtime service
 	// later we could also integrate with other external services like Kafka, Infinispan and SSO
@@ -30,7 +31,7 @@ func InjectEnvVarsFromExternalServices(kogitoApp *v1alpha1.KogitoApp, client *cl
 		return err
 	}
 	log.Debugf("Data Index route is '%s'", httpUrl)
-	kogitoApp.Spec.Env = util.AppendOrReplaceEnv(v1alpha1.Env{Name: kogitoDataIndexHttpRouteEnv, Value: httpUrl}, kogitoApp.Spec.Env)
-	kogitoApp.Spec.Env = util.AppendOrReplaceEnv(v1alpha1.Env{Name: kogitoDataIndexWsRouteEnv, Value: wsUrl}, kogitoApp.Spec.Env)
+	util.SetEnvVar(kogitoDataIndexHttpRouteEnv, httpUrl, container)
+	util.SetEnvVar(kogitoDataIndexWsRouteEnv, wsUrl, container)
 	return nil
 }
