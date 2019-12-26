@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	kogitoDataIndexHttpRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
-	kogitoDataIndexWsRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
+	kogitoDataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
+	kogitoDataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
 	webSocketScheme             = "ws"
 	webSocketSecureScheme       = "wss"
 	httpScheme                  = "http"
@@ -40,32 +40,32 @@ func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) e
 		return err
 	}
 	log.Debugf("Found %s KogitoApps in the namespace '%s' ", len(kogitoApps.Items), namespace)
-	routeHttp := ""
-	routeWs := ""
+	routeHTTP := ""
+	routeWS := ""
 	if len(kogitoApps.Items) > 0 {
 		log.Debug("Querying Data Index route to inject into KogitoApps ")
 		var err error
-		routeHttp, routeWs, err = getKogitoDataIndexURLs(client, namespace)
+		routeHTTP, routeWS, err = getKogitoDataIndexURLs(client, namespace)
 		if err != nil {
 			return err
 		}
-		log.Debugf("Data Index route is '%s'", routeHttp)
+		log.Debugf("Data Index route is '%s'", routeHTTP)
 	}
 
 	for _, kogitoApp := range kogitoApps.Items {
 		// here we compare the current value to avoid updating the app every time
-		updateHttp := util.GetEnvValue(kogitoDataIndexHttpRouteEnv, kogitoApp.Spec.Env) != routeHttp
-		updateWs := util.GetEnvValue(kogitoDataIndexWsRouteEnv, kogitoApp.Spec.Env) != routeWs
-		if updateHttp {
-			log.Debugf("Updating kogitoApp '%s' to inject route %s ", kogitoApp.GetName(), routeHttp)
-			kogitoApp.Spec.Env = util.AppendOrReplaceEnv(v1alpha1.Env{Name: kogitoDataIndexHttpRouteEnv, Value: routeHttp}, kogitoApp.Spec.Env)
+		updateHTTP := util.GetEnvValue(kogitoDataIndexHTTPRouteEnv, kogitoApp.Spec.Env) != routeHTTP
+		updateWS := util.GetEnvValue(kogitoDataIndexWSRouteEnv, kogitoApp.Spec.Env) != routeWS
+		if updateHTTP {
+			log.Debugf("Updating kogitoApp '%s' to inject route %s ", kogitoApp.GetName(), routeHTTP)
+			kogitoApp.Spec.Env = util.AppendOrReplaceEnv(v1alpha1.Env{Name: kogitoDataIndexHTTPRouteEnv, Value: routeHTTP}, kogitoApp.Spec.Env)
 		}
-		if updateWs {
-			log.Debugf("Updating kogitoApp '%s' to inject route %s ", kogitoApp.GetName(), routeWs)
-			kogitoApp.Spec.Env = util.AppendOrReplaceEnv(v1alpha1.Env{Name: kogitoDataIndexWsRouteEnv, Value: routeWs}, kogitoApp.Spec.Env)
+		if updateWS {
+			log.Debugf("Updating kogitoApp '%s' to inject route %s ", kogitoApp.GetName(), routeWS)
+			kogitoApp.Spec.Env = util.AppendOrReplaceEnv(v1alpha1.Env{Name: kogitoDataIndexWSRouteEnv, Value: routeWS}, kogitoApp.Spec.Env)
 		}
 		// update only once
-		if updateWs || updateHttp {
+		if updateWS || updateHTTP {
 			if err := kubernetes.ResourceC(client).Update(&kogitoApp); err != nil {
 				return err
 			}
@@ -88,10 +88,10 @@ func getKogitoDataIndexRoute(client *client.Client, namespace string) (string, e
 	return route, nil
 }
 
-func getKogitoDataIndexURLs(client *client.Client, namespace string) (httpUrl, wsUrl string, err error) {
+func getKogitoDataIndexURLs(client *client.Client, namespace string) (httpURL, wsURL string, err error) {
 	route := ""
-	httpUrl = ""
-	wsUrl = ""
+	httpURL = ""
+	wsURL = ""
 	route, err = getKogitoDataIndexRoute(client, namespace)
 	if err != nil {
 		return
@@ -103,11 +103,11 @@ func getKogitoDataIndexURLs(client *client.Client, namespace string) (httpUrl, w
 			log.Warnf("Failed to parse data index route url (%s), set to empty: %s", route, err)
 			return
 		}
-		httpUrl = routeURL.String()
+		httpURL = routeURL.String()
 		if httpScheme == routeURL.Scheme {
-			wsUrl = fmt.Sprintf("%s://%s", webSocketScheme, routeURL.Host)
+			wsURL = fmt.Sprintf("%s://%s", webSocketScheme, routeURL.Host)
 		} else {
-			wsUrl = fmt.Sprintf("%s://%s", webSocketSecureScheme, routeURL.Host)
+			wsURL = fmt.Sprintf("%s://%s", webSocketSecureScheme, routeURL.Host)
 		}
 	}
 	return

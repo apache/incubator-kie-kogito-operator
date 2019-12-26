@@ -26,12 +26,12 @@ func InjectEnvVarsFromExternalServices(kogitoApp *v1alpha1.KogitoApp, container 
 	log.Debugf("Querying Data Index route to inject into KogitoApp: %s", kogitoApp.GetName())
 	// We look for a deployed data index to inject into the runtime service
 	// later we could also integrate with other external services like Kafka, Infinispan and SSO
-	httpUrl, wsUrl, err := getKogitoDataIndexURLs(client, kogitoApp.GetNamespace())
+	httpURL, wsURL, err := getKogitoDataIndexURLs(client, kogitoApp.GetNamespace())
 	if err != nil {
 		return err
 	}
-	log.Debugf("Data Index route is '%s'", httpUrl)
-	util.SetEnvVar(kogitoDataIndexHttpRouteEnv, httpUrl, container)
-	util.SetEnvVar(kogitoDataIndexWsRouteEnv, wsUrl, container)
+	log.Debugf("Data Index route is '%s'", httpURL)
+	util.SetEnvVar(kogitoDataIndexHTTPRouteEnv, httpURL, container)
+	util.SetEnvVar(kogitoDataIndexWSRouteEnv, wsURL, container)
 	return nil
 }

@@ -284,6 +284,8 @@ const (
 	DeployKogitoInfraFailedReason ReasonType = "DeployKogitoInfraFailedReason"
 	// UnknownReason - Unable to determine the error
 	UnknownReason ReasonType = "Unknown"
+	// RolloutDeploymentFailedReason - Unable to rollout deployment
+	RolloutDeploymentFailedReason ReasonType = "RolloutDeploymentFailedReason"
 )
 
 // Condition is the condition for the kogito-operator

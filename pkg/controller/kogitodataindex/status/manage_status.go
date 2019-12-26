@@ -98,7 +98,6 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 
 func checkCurrentCondition(resources *resource.KogitoDataIndexResources) (v1alpha1.DataIndexCondition, error) {
 	if resources.StatefulSet == nil ||
-		resources.ProtoBufConfigMap == nil ||
 		resources.Service == nil {
 		return v1alpha1.DataIndexCondition{
 			Condition:          v1alpha1.ConditionProvisioning,

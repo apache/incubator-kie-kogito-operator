@@ -30,8 +30,8 @@ const (
 	runnerSourcePath = "/home/kogito/bin"
 )
 
-// NewBuildConfigRuntime creates a new build configuration for Kogito services builds
-func NewBuildConfigRuntime(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.BuildConfig) (buildConfig buildv1.BuildConfig, err error) {
+// newBuildConfigRuntime creates a new build configuration for Kogito services builds
+func newBuildConfigRuntime(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.BuildConfig) (buildConfig buildv1.BuildConfig, err error) {
 	if fromBuild == nil {
 		err = errors.New("Impossible to create a runner build configuration without a s2i build definition")
 		return buildConfig, err

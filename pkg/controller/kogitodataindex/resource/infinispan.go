@@ -26,26 +26,9 @@ import (
 
 // updateInfinispanVars will update the infinispan environment variables based on a KEY=VALUE map
 func updateInfinispanVars(container *corev1.Container, newVars map[string]string) {
-	newEnvs := []corev1.EnvVar{}
-	infinispanVar := false
-
-	for _, env := range container.Env {
-		for _, infinispanEnv := range managedInfinispanKeys {
-			if infinispanEnv == env.Name {
-				infinispanVar = true
-			}
-		}
-		if !infinispanVar {
-			newEnvs = append(newEnvs, env)
-		}
-		infinispanVar = false
+	for k, v := range newVars {
+		util.SetEnvVar(k, v, container)
 	}
-
-	for key, value := range newVars {
-		newEnvs = append(newEnvs, corev1.EnvVar{Name: key, Value: value})
-	}
-
-	container.Env = newEnvs
 }
 
 // getInfinispanVars will get the infinispan env vars from the container env

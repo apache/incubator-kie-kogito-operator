@@ -20,6 +20,7 @@ import (
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"reflect"
@@ -45,7 +46,7 @@ var log = logger.GetLogger("kogitoinfra_resource")
 
 // GetDeployedResources will fetch for every resource already deployed using kogitoInfra instance as a reference
 func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	if kogitoInfra.Spec.InstallInfinispan {
+	if infrastructure.IsInfinispanAvailable(cli) {
 		reader := read.New(cli.ControlCli).WithNamespace(kogitoInfra.Namespace).WithOwnerObject(kogitoInfra)
 		// unfortunately the SecretList is buggy, so we have to fetch it manually: https://github.com/kubernetes-sigs/controller-runtime/issues/362
 		resources, err = reader.ListAll(&infinispan.InfinispanList{})
@@ -63,7 +64,6 @@ func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client)
 			resources[secretType] = []resource.KubernetesResource{secret}
 		}
 	}
-
 	return resources, nil
 }
 

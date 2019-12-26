@@ -30,7 +30,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	commonres "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 
-	v1 "github.com/openshift/api/build/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -73,7 +72,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to KogitoApp since we need their runtime images to check for labels, persistence and so on
-	err = c.Watch(&source.Kind{Type: &v1.BuildConfig{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoApp{}})
+	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoApp{}})
 	if err != nil {
 		return err
 	}
@@ -85,7 +84,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	watchOwnedObjects := []runtime.Object{
-		&corev1.ConfigMap{},
 		&corev1.Service{},
 		&appsv1.StatefulSet{},
 	}

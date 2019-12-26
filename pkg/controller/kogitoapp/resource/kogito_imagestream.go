@@ -57,9 +57,9 @@ var (
 	}
 )
 
-// NewImageStreamTag creates a new ImageStreamTag on the OpenShift cluster using the tag reference name.
+// newImageStreamTag creates a new ImageStreamTag on the OpenShift cluster using the tag reference name.
 // tagRefName refers to a full tag name like kogito-app:latest. If no tag is passed (e.g. kogito-app), "latest" will be used for the tag
-func NewImageStreamTag(kogitoApp *v1alpha1.KogitoApp, tagRefName string) *imgv1.ImageStream {
+func newImageStreamTag(kogitoApp *v1alpha1.KogitoApp, tagRefName string) *imgv1.ImageStream {
 	result := strings.Split(tagRefName, ":")
 	if len(result) == 1 {
 		result = append(result, openshift.ImageTagLatest)

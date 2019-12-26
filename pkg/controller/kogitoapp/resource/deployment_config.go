@@ -35,6 +35,8 @@ import (
 )
 
 const (
+	kogitoHome = "/home/kogito"
+
 	defaultReplicas = int32(1)
 	// ServiceAccountName is the name of service account used by Kogito Services Runtimes
 	ServiceAccountName = "kogito-service-viewer"
@@ -48,7 +50,12 @@ const (
 	envVarKafkaBootstrapURI    = "KAFKA_BOOTSTRAP_SERVERS"
 	envVarKafkaBootstrapSuffix = "_BOOTSTRAP_SERVERS"
 
-	envVarExternalURL = "KOGITO_SERVICE_URL"
+	envVarExternalURL        = "KOGITO_SERVICE_URL"
+	downwardAPIVolumeName    = "podinfo"
+	downwardAPIVolumeMount   = kogitoHome + "/" + downwardAPIVolumeName
+	downwardAPIProtoBufCMKey = "protobufcm"
+
+	postHookPersistenceScript = kogitoHome + "/launch/post-hook-persistence.sh"
 )
 
 var (
@@ -70,10 +77,14 @@ var (
 		envVarInfinispanPassword:      "INFINISPAN_REMOTE_AUTH_PASSWORD",
 		envVarInfinispanSaslMechanism: "INFINISPAN_REMOTE_SASL_MECHANISM",
 	}
+
+	downwardAPIDefaultMode = int32(420)
+
+	podStartExecCommand = []string{"/bin/bash", "-c", "if [ -x " + postHookPersistenceScript + " ]; then " + postHookPersistenceScript + "; fi"}
 )
 
-// NewDeploymentConfig creates a new DeploymentConfig resource for the KogitoApp based on the BuildConfig runner image
-func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildConfig, dockerImage *dockerv10.DockerImage) (dc *appsv1.DeploymentConfig, err error) {
+// newDeploymentConfig creates a new DeploymentConfig resource for the KogitoApp based on the BuildConfig runner image
+func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildConfig, dockerImage *dockerv10.DockerImage) (dc *appsv1.DeploymentConfig, err error) {
 	if runnerBC == nil {
 		return nil, fmt.Errorf("Impossible to create the DeploymentConfig without a reference to a the service BuildConfig")
 	}
@@ -88,6 +99,9 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 				Type: appsv1.DeploymentStrategyTypeRolling,
 			},
 			Template: &corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{
+					downwardAPIProtoBufCMKey: GenerateProtoBufConfigMapName(kogitoApp),
+				}},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
@@ -98,9 +112,34 @@ func NewDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 							Resources:       shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Resources),
 							Image:           runnerBC.Spec.Output.To.Name,
 							ImagePullPolicy: corev1.PullAlways,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      downwardAPIVolumeName,
+									MountPath: downwardAPIVolumeMount,
+								},
+							},
+							Lifecycle: &corev1.Lifecycle{
+								PostStart: &corev1.Handler{
+									Exec: &corev1.ExecAction{Command: podStartExecCommand},
+								},
+							},
 						},
 					},
 					ServiceAccountName: ServiceAccountName,
+					Volumes: []corev1.Volume{
+						{
+							Name: downwardAPIVolumeName,
+							VolumeSource: corev1.VolumeSource{
+								DownwardAPI: &corev1.DownwardAPIVolumeSource{
+									Items: []corev1.DownwardAPIVolumeFile{
+										{Path: "name", FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name", APIVersion: "v1"}},
+										{Path: downwardAPIProtoBufCMKey, FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.labels['" + downwardAPIProtoBufCMKey + "']", APIVersion: "v1"}},
+									},
+									DefaultMode: &downwardAPIDefaultMode,
+								},
+							},
+						},
+					},
 				},
 			},
 			Triggers: appsv1.DeploymentTriggerPolicies{

@@ -184,13 +184,13 @@ func TestNewServiceMonitor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewServiceMonitor(tt.args.kogitoApp, tt.args.dockerImage, tt.args.service, tt.args.client)
+			got, err := newServiceMonitor(tt.args.kogitoApp, tt.args.dockerImage, tt.args.service, tt.args.client)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewServiceMonitor() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("newServiceMonitor() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewServiceMonitor() got = %v, want %v", got, tt.want)
+				t.Errorf("newServiceMonitor() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

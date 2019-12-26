@@ -18,11 +18,11 @@ spec:
       reference: override-bootstrap
       uri: https://github.com/ricardozanini/kogito-travel-agency-tutorial
     imageRuntime:
-      imageStreamTag: 0.6.0
+      imageStreamTag: 0.6.1
     imageS2I:
-      imageStreamTag: 0.6.0
+      imageStreamTag: 0.6.1
     env:
       # optional, but will improve your build time quite a lot
       - name: MAVEN_MIRROR_URL
         # choose your own
-        value: "http://nexus3-nexus.apps-crc.testing/repository/maven-public/"
+        value: "http://nexus3.nexus.svc.cluster.local:8081/repository/maven-public/"

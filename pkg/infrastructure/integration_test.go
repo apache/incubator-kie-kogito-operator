@@ -15,16 +15,16 @@
 package infrastructure
 
 import (
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	appsv1 "github.com/openshift/api/apps/v1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Test_InjectEnvironmentVarsFromExternalServices(t *testing.T) {
@@ -45,7 +45,7 @@ func Test_InjectEnvironmentVarsFromExternalServices(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{dc, dataIndexes}, nil, nil)
 	err := InjectEnvVarsFromExternalServices(kogitoApp, &dc.Spec.Template.Spec.Containers[0], client)
 	assert.NoError(t, err)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
+	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHTTPRouteEnv, Value: expectedRoute})
 }
 
 func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
@@ -59,7 +59,7 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 		Spec: v1alpha1.KogitoAppSpec{
 			Env: []v1alpha1.Env{
 				{
-					Name:  kogitoDataIndexHttpRouteEnv,
+					Name:  kogitoDataIndexHTTPRouteEnv,
 					Value: oldRoute,
 				},
 			},
@@ -85,5 +85,5 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes}, nil, nil)
 	err := InjectEnvVarsFromExternalServices(kogitoApp, &dc.Spec.Template.Spec.Containers[0], client)
 	assert.NoError(t, err)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
+	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHTTPRouteEnv, Value: expectedRoute})
 }

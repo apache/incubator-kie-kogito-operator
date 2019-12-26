@@ -143,6 +143,7 @@ func SetEnvVarFromSecret(key, secretKey string, secret *corev1.Secret, container
 			Key:                  secretKey,
 		},
 	}
+	SetEnvVar(key, "", container)
 	for i, env := range container.Env {
 		if env.Name == key {
 			container.Env[i].ValueFrom = valueFrom

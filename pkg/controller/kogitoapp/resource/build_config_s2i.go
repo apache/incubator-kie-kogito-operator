@@ -53,8 +53,8 @@ var (
 	DefaultBuildS2INativeLimits = []v1alpha1.ResourceMap{DefaultBuildS2INativeCPULimit, DefaultBuildS2INativeMemoryLimit}
 )
 
-// NewBuildConfigS2I creates a new build configuration for source to image (s2i) builds
-func NewBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.BuildConfig, err error) {
+// newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
+func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.BuildConfig, err error) {
 	if kogitoApp.Spec.Build == nil || kogitoApp.Spec.Build.GitSource == nil {
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}

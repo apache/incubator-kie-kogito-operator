@@ -8,6 +8,9 @@ spec:
       # this value is just an example, set yours (optional)
       - name: MAVEN_MIRROR_URL
         value: "http://nexus3.nexus.svc.cluster.local:8081/repository/maven-public/"
+     # enable persistence
+      - name: MAVEN_ARGS_APPEND
+        value: "-Ppersistence"
     gitSource:
       contextDir: jbpm-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'

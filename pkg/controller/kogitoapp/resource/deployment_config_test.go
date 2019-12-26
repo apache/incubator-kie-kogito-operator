@@ -57,9 +57,9 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 			},
 		},
 	}
-	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
-	bcRuntime, _ := NewBuildConfigRuntime(kogitoApp, &bcS2I)
-	dc, err := NewDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+	bcS2I, _ := newBuildConfigS2I(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
 	assert.Nil(t, err)
 	assert.NotNil(t, dc)
 	// we should have only one port. the 8181 is invalid.
@@ -90,9 +90,9 @@ func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
 			},
 		},
 	}
-	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
-	bcRuntime, _ := NewBuildConfigRuntime(kogitoApp, &bcS2I)
-	dc, err := NewDeploymentConfig(kogitoApp, &bcRuntime, &dockerv10.DockerImage{})
+	bcS2I, _ := newBuildConfigS2I(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, &dockerv10.DockerImage{})
 	assert.Nil(t, err)
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Selector, 1)

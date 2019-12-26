@@ -31,8 +31,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	"github.com/stretchr/testify/assert"
-
-	imgv1 "github.com/openshift/api/image/v1"
 )
 
 func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
@@ -46,16 +44,17 @@ func Test_ManageResources_WhenKafkaURIIsChanged(t *testing.T) {
 			Replicas: 1,
 		},
 	}
-	cm := newProtobufConfigMap(instance)
+	cli := test.CreateFakeClient(nil, nil, nil)
 	secret := &corev1.Secret{}
-	statefulset := newStatefulset(instance, cm, secret, serviceuri)
-	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret}, nil, nil)
+	statefulset, err := newStatefulset(instance, secret, serviceuri, cli)
+	assert.NoError(t, err)
+	cli = test.CreateFakeClient([]runtime.Object{instance, statefulset, secret}, nil, nil)
 
-	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.Error(t, err)
 
 	instance.Spec.Kafka = v1alpha1.KafkaConnectionProperties{ExternalURI: serviceuri}
-	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.NoError(t, err)
 	for _, kafkaKey := range managedKafkaKeys {
 		assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kafkaKey, Value: serviceuri})
@@ -109,16 +108,16 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 	}
 	userBytes := []byte("developer")
 	passBytes := []byte("developer")
-	cm := newProtobufConfigMap(instance)
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "infinispan-secret", Namespace: "test"},
 		Data: map[string][]byte{
-			"user": []byte(userBytes), "pass": []byte(passBytes),
+			"user": userBytes, "pass": passBytes,
 		},
 	}
 	serviceuri := "kafka:9092"
-	statefulset := newStatefulset(instance, cm, secret, serviceuri)
-	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, secret, kafkaList}, nil, nil)
+	statefulset, err := newStatefulset(instance, secret, serviceuri, test.CreateFakeClient(nil, nil, nil))
+	assert.NoError(t, err)
+	cli := test.CreateFakeClient([]runtime.Object{instance, statefulset, secret, kafkaList}, nil, nil)
 
 	valueFromUsername := &corev1.EnvVarSource{
 		SecretKeyRef: &corev1.SecretKeySelector{
@@ -134,7 +133,7 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 	}
 
 	// reconcile
-	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.NoError(t, err)
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyUsername, ValueFrom: valueFromUsername})
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyPassword, ValueFrom: valueFromPassword})
@@ -143,7 +142,7 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 	// let's change
 	instance.Spec.Infinispan.AuthRealm = "default"
 	instance.Spec.Infinispan.ServiceURI = "myservice:11222"
-	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.NoError(t, err)
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyAuthRealm, Value: "default"})
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: interfaceEnvKeyServiceURI, Value: "myservice:11222"})
@@ -200,19 +199,19 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	}
 	userBytes := []byte("developer")
 	passBytes := []byte("developer")
-	cm := newProtobufConfigMap(instance)
 	serviceuri := "kafka:9092"
-	statefulset := newStatefulset(instance, cm, &corev1.Secret{
+	statefulset, err := newStatefulset(instance, &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: t.Name()},
 		Data: map[string][]byte{
-			"user": []byte(userBytes), "pass": []byte(passBytes),
-		}}, serviceuri)
-	client := test.CreateFakeClient([]runtime.Object{instance, cm, statefulset, kafkaList}, nil, nil)
+			"user": userBytes, "pass": passBytes,
+		}}, serviceuri, test.CreateFakeClient(nil, nil, nil))
+	assert.NoError(t, err)
+	cli := test.CreateFakeClient([]runtime.Object{instance, statefulset, kafkaList}, nil, nil)
 
 	// make sure that defaults were inserted
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "KOGITO_PROTOBUF_FOLDER",
-		Value: defaultEnvs["KOGITO_PROTOBUF_FOLDER"],
+		Value: "",
 	})
 
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
@@ -239,16 +238,15 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	}
 
 	// reconcile
-	err := ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.NoError(t, err)
 
 	// check the result
-	_, err = kubernetes.ResourceC(client).Fetch(statefulset)
+	_, err = kubernetes.ResourceC(cli).Fetch(statefulset)
 	assert.NoError(t, err)
-	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+2+4) //default + infinispan + custom
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "KOGITO_PROTOBUF_FOLDER",
-		Value: defaultEnvs["KOGITO_PROTOBUF_FOLDER"],
+		Value: "",
 	})
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "key1",
@@ -263,13 +261,12 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	instance.Spec.Env = map[string]string{
 		"key1": "value1",
 	}
-	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset, ProtoBufConfigMap: cm}, client)
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.NoError(t, err)
 
-	assert.Len(t, statefulset.Spec.Template.Spec.Containers[0].Env, 2+5+1+4) //default + infinispan + custom
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "KOGITO_PROTOBUF_FOLDER",
-		Value: defaultEnvs["KOGITO_PROTOBUF_FOLDER"],
+		Value: "", //we don't have a configMap associated to it
 	})
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  "key1",
@@ -279,64 +276,6 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 		Name:  "key2",
 		Value: "value2",
 	})
-}
-
-func Test_ensureProtoBufConfigMap(t *testing.T) {
-	// setup
-	dataIndex := &v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: t.Name(),
-		},
-	}
-	cmWithFile := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "cm-with-file",
-			Namespace: t.Name(),
-		},
-		Data: map[string]string{"file.proto": "this is a protofile"},
-	}
-	cli := test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile}, nil, nil)
-
-	// sanity check
-	assert.Len(t, cmWithFile.Data, 1)
-
-	// we don't have an image available, but the configMap has a file
-	// we should receive true because the map has changed with no file
-	ensureProtoBufConfigMap(dataIndex, cmWithFile, cli)
-	exist, err := kubernetes.ResourceC(cli).Fetch(cmWithFile)
-	assert.NoError(t, err)
-	assert.True(t, exist)
-	assert.Len(t, cmWithFile.Data, 0)
-
-	// now we have deployed a image stream tag with a docker image that has the protobuf label with a file attached
-	// we should have this file in the given configMap. The file is encoded in base64 in the docker metadata
-	// see the test data directory for  the label org.kie/persistence/protobuf/onboarding(...)
-	kogitoApp := &v1alpha1.KogitoApp{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kogitoapp",
-			Namespace: t.Name(),
-		},
-	}
-	isTag := &imgv1.ImageStreamTag{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kogitoapp:latest",
-			Namespace: t.Name(),
-		},
-		Image: imgv1.Image{
-			DockerImageMetadata: runtime.RawExtension{
-				Raw: test.HelperLoadBytes(t, "onboarding-dockerimage-json"),
-			},
-		},
-	}
-
-	cli = test.CreateFakeClient([]runtime.Object{dataIndex, cmWithFile, kogitoApp}, []runtime.Object{isTag}, nil)
-
-	ensureProtoBufConfigMap(dataIndex, cmWithFile, cli)
-	exist, err = kubernetes.ResourceC(cli).Fetch(cmWithFile)
-	assert.NoError(t, err)
-	assert.True(t, exist)
-	assert.Len(t, cmWithFile.Data, 1)
-	assert.Contains(t, cmWithFile.Data, "kogitoapp-onboarding.onboarding.proto")
 }
 
 func Test_ensureKafka(t *testing.T) {

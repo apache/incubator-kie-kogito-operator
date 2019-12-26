@@ -524,6 +524,12 @@ func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 	exists, err := kubernetes.ResourceC(fakeClient).Fetch(dc)
 	assert.NoError(t, err)
 	assert.True(t, exists) // Already created in the first reconciliation phase
+
+	cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: kogitores.GenerateProtoBufConfigMapName(kogitoApp), Namespace: kogitoApp.Namespace}}
+	exists, err = kubernetes.ResourceC(fakeClient).Fetch(cm)
+	assert.NoError(t, err)
+	assert.True(t, exists) // Already created in the first reconciliation phase
+	assert.NotNil(t, cm)
 }
 
 type mockCache struct {
