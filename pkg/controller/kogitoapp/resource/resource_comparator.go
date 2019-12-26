@@ -17,6 +17,7 @@ package resource
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
+	rescompare "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -28,10 +29,44 @@ import (
 func GetComparator() compare.MapComparator {
 	resourceComparator := compare.DefaultComparator()
 
-	resourceComparator.SetComparator(createDeploymentConfigComparator(resourceComparator))
-	resourceComparator.SetComparator(createBuildConfigComparator(resourceComparator))
-	resourceComparator.SetComparator(createServiceComparator(resourceComparator))
-	resourceComparator.SetComparator(createRouteComparator(resourceComparator))
+	resourceComparator.SetComparator(
+		rescompare.
+			NewComparatorBuilder().
+			WithType(reflect.TypeOf(appsv1.DeploymentConfig{})).
+			WithCustomComparator(createDeploymentConfigComparator()).
+			UseDefaultComparator(true).
+			BuildAsFunc())
+
+	resourceComparator.SetComparator(
+		rescompare.
+			NewComparatorBuilder().
+			WithType(reflect.TypeOf(buildv1.BuildConfig{})).
+			WithCustomComparator(createBuildConfigComparator()).
+			UseDefaultComparator(true).
+			BuildAsFunc())
+
+	resourceComparator.SetComparator(
+		rescompare.
+			NewComparatorBuilder().
+			WithType(reflect.TypeOf(v1.Service{})).
+			WithCustomComparator(createServiceComparator()).
+			UseDefaultComparator(true).
+			BuildAsFunc())
+
+	resourceComparator.SetComparator(
+		rescompare.
+			NewComparatorBuilder().
+			WithType(reflect.TypeOf(routev1.Route{})).
+			WithCustomComparator(createRouteComparator()).
+			UseDefaultComparator(true).
+			BuildAsFunc())
+
+	resourceComparator.SetComparator(
+		rescompare.
+			NewComparatorBuilder().
+			WithType(reflect.TypeOf(v1.ConfigMap{})).
+			WithCustomComparator(createConfigMapComparator()).
+			BuildAsFunc())
 
 	return compare.MapComparator{Comparator: resourceComparator}
 }
@@ -49,11 +84,8 @@ func containAllLabels(deployed resource.KubernetesResource, requested resource.K
 	return true
 }
 
-func createDeploymentConfigComparator(resourceComparator compare.ResourceComparator) (
-	reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool) {
-	dcType := reflect.TypeOf(appsv1.DeploymentConfig{})
-	defaultDCComparator := resourceComparator.GetComparator(dcType)
-	return dcType, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+func createDeploymentConfigComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		dc1 := deployed.(*appsv1.DeploymentConfig)
 		dc2 := requested.(*appsv1.DeploymentConfig).DeepCopy()
 
@@ -72,16 +104,12 @@ func createDeploymentConfigComparator(resourceComparator compare.ResourceCompara
 		if dc2.Spec.Strategy.RollingParams == nil && dc1.Spec.Strategy.Type == dc2.Spec.Strategy.Type {
 			dc1.Spec.Strategy.RollingParams = dc2.Spec.Strategy.RollingParams
 		}
-
-		return defaultDCComparator(deployed, requested)
+		return true
 	}
 }
 
-func createBuildConfigComparator(resourceComparator compare.ResourceComparator) (
-	reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool) {
-	bcType := reflect.TypeOf(buildv1.BuildConfig{})
-	defaultBCComparator := resourceComparator.GetComparator(bcType)
-	return bcType, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+func createBuildConfigComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		bc1 := deployed.(*buildv1.BuildConfig)
 		bc2 := requested.(*buildv1.BuildConfig).DeepCopy()
 
@@ -96,36 +124,43 @@ func createBuildConfigComparator(resourceComparator compare.ResourceComparator) 
 			//Triggers are generated based on provided github repo
 			bc1.Spec.Triggers = bc2.Spec.Triggers
 		}
-		return defaultBCComparator(deployed, requested)
+		return true
 	}
 }
 
-func createServiceComparator(resourceComparator compare.ResourceComparator) (
-	reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool) {
-	svcType := reflect.TypeOf(v1.Service{})
-	defaultSvcComparator := resourceComparator.GetComparator(svcType)
-	return svcType, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+func createServiceComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		svc1 := deployed.(*v1.Service)
 		svc2 := requested.(*v1.Service).DeepCopy()
 
 		if !containAllLabels(svc1, svc2) {
 			return false
 		}
-		return defaultSvcComparator(deployed, requested)
+		return true
 	}
 }
 
-func createRouteComparator(resourceComparator compare.ResourceComparator) (
-	reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool) {
-	rtType := reflect.TypeOf(routev1.Route{})
-	defaultRtComparator := resourceComparator.GetComparator(rtType)
-	return rtType, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+func createRouteComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		rt1 := deployed.(*routev1.Route)
 		rt2 := requested.(*routev1.Route).DeepCopy()
 
 		if !containAllLabels(rt1, rt2) {
 			return false
 		}
-		return defaultRtComparator(deployed, requested)
+		return true
+	}
+}
+
+func createConfigMapComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		rt1 := deployed.(*v1.ConfigMap)
+		rt2 := requested.(*v1.ConfigMap).DeepCopy()
+
+		if !containAllLabels(rt1, rt2) {
+			return false
+		}
+
+		return true
 	}
 }

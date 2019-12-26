@@ -21,10 +21,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"reflect"
 )
+
+/* TODO : should be rethinked by KOGITO-601 */
 
 // ManageResources will trigger updates on resources if needed
 func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIndexResources, client *client.Client) error {
@@ -46,16 +48,14 @@ func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIn
 			return err
 		}
 
-		/* Ignore protobuf changes for now, see deprecation note
-		if err := ensureProtoBufConfigMap(instance, resources.ProtoBufConfigMap, client); err != nil {
-			return err
-		}
-		*/
 		if err := ensureKafkaTopics(instance, resources.KafkaTopics, client); err != nil {
 			return err
 		}
-
-		if replicaUpdate || imgUpdate || envUpdate || resUpdate || kafkaUpdate || infinispanUpdate {
+		volumeUpdate, err := ensureVolumes(resources, client)
+		if err != nil {
+			return err
+		}
+		if replicaUpdate || imgUpdate || envUpdate || resUpdate || kafkaUpdate || infinispanUpdate || volumeUpdate {
 			if err := kubernetes.ResourceC(client).Update(resources.StatefulSet); err != nil {
 				return err
 			}
@@ -65,30 +65,21 @@ func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIn
 	return nil
 }
 
-// Deprecated: until we don't have labels working on OCP 4.x and KOGITO-587 implemented, we should let the user modify the CM
-func ensureProtoBufConfigMap(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, client *client.Client) error {
-	if cm == nil {
-		return nil
+func ensureVolumes(resources *KogitoDataIndexResources, cli *client.Client) (bool, error) {
+	if len(resources.StatefulSet.Spec.Template.Spec.Containers) == 0 {
+		return false, nil
 	}
-
-	files, err := getAllProtoFilesFromKogitoApps(client, instance.Namespace)
-	if err != nil {
-		log.Errorf("Error while fetching for protobuf files: %s ", err)
-		return err
+	copyss := resources.StatefulSet.DeepCopy()
+	copyss.Spec.Template.Spec.Volumes = nil
+	copyss.Spec.Template.Spec.Containers[0].VolumeMounts = nil
+	if err := mountProtoBufConfigMaps(copyss, cli); err != nil {
+		return false, err
 	}
-
-	hashFiles := util.GenerateMD5Hash(files)
-	hashCm := util.GenerateMD5Hash(cm.Data)
-
-	if hashFiles != hashCm {
-		log.Debugf("ProfoBuf Config Map will change from \n %s \n to \n %s", cm.Data, files)
-		cm.Data = files
-		if err := kubernetes.ResourceC(client).Update(cm); err != nil {
-			log.Errorf("Error while updating configMap with new files: %s ", err)
-			return err
-		}
+	if !reflect.DeepEqual(copyss.Spec.Template.Spec.Volumes, resources.StatefulSet.Spec.Template.Spec.Volumes) {
+		resources.StatefulSet = copyss
+		return true, nil
 	}
-	return nil
+	return false, nil
 }
 
 func ensureReplicas(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.StatefulSet) bool {

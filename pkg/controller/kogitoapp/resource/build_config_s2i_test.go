@@ -111,7 +111,7 @@ func TestNewBuildConfigS2I(t *testing.T) {
 		},
 	}
 
-	bc, err := NewBuildConfigS2I(kogitoApp)
+	bc, err := newBuildConfigS2I(kogitoApp)
 	assert.NoError(t, err)
 	assert.Contains(t, bc.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{
 		Name:  buildS2IlimitCPUEnvVarKey,

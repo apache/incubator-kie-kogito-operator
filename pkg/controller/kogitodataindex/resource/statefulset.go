@@ -16,15 +16,18 @@ package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"path"
 )
 
-func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, secret *corev1.Secret, externalURI string) *appsv1.StatefulSet {
+func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, externalURI string, cli *client.Client) (*appsv1.StatefulSet, error) {
 	// create a standard probe
 	probe := defaultProbe
 	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.FromInt(defaultExposedPort)}
@@ -32,8 +35,6 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 	removeManagedEnvVars(instance)
 	// from cr
 	envs := instance.Spec.Env
-	// defaults
-	envs = util.AppendStringMap(envs, defaultEnvs)
 	envs = util.AppendStringMap(envs, fromInfinispanToStringMap(instance.Spec.Infinispan))
 	envs = util.AppendStringMap(envs, fromKafkaToStringMap(externalURI))
 
@@ -57,18 +58,6 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 			},
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
-					Volumes: []corev1.Volume{
-						{
-							Name: defaultProtobufMountName,
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: cm.Name,
-									},
-								},
-							},
-						},
-					},
 					Containers: []corev1.Container{
 						{
 							Name:            instance.Name,
@@ -85,12 +74,6 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 							},
 							LivenessProbe:  probe,
 							ReadinessProbe: probe,
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      defaultProtobufMountName,
-									MountPath: defaultProtobufMountPath,
-								},
-							},
 						},
 					},
 				},
@@ -98,11 +81,49 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, cm *corev1.ConfigMap, se
 		},
 	}
 
+	if err := mountProtoBufConfigMaps(statefulset, cli); err != nil {
+		return nil, err
+	}
 	setInfinispanCredentialsSecret(instance.Spec.Infinispan, secret, &statefulset.Spec.Template.Spec.Containers[0])
 	meta.SetGroupVersionKind(&statefulset.TypeMeta, meta.KindStatefulSet)
 	addDefaultMetadata(&statefulset.ObjectMeta, instance)
 	addDefaultMetadata(&statefulset.Spec.Template.ObjectMeta, instance)
 	statefulset.Spec.Selector.MatchLabels = statefulset.Labels
 
-	return statefulset
+	return statefulset, nil
+}
+
+// mountProtoBufConfigMaps mounts protobuf configMaps from KogitoApps into the given stateful set
+func mountProtoBufConfigMaps(statefulset *appsv1.StatefulSet, cli *client.Client) (err error) {
+	var cms *corev1.ConfigMapList
+	if cms, err = infrastructure.GetProtoBufConfigMaps(statefulset.Namespace, cli); err != nil {
+		return err
+	}
+
+	for _, cm := range cms.Items {
+		statefulset.Spec.Template.Spec.Volumes =
+			append(statefulset.Spec.Template.Spec.Volumes, corev1.Volume{
+				Name: cm.Name,
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: cm.Name,
+						},
+					},
+				},
+			})
+		statefulset.Spec.Template.Spec.Containers[0].VolumeMounts =
+			append(statefulset.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"])})
+	}
+	if len(statefulset.Spec.Template.Spec.Volumes) > 0 {
+		for k, v := range protoBufEnvs {
+			util.SetEnvVar(k, v, &statefulset.Spec.Template.Spec.Containers[0])
+		}
+	} else {
+		for _, v := range protoBufKeys {
+			util.SetEnvVar(v, "", &statefulset.Spec.Template.Spec.Containers[0])
+		}
+	}
+
+	return nil
 }

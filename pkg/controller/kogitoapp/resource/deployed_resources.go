@@ -45,6 +45,7 @@ func GetDeployedResources(instance *v1alpha1.KogitoApp, client *client.Client) (
 		&appsv1.DeploymentConfigList{},
 		&corev1.ServiceList{},
 		&routev1.RouteList{},
+		&corev1.ConfigMapList{},
 	}
 
 	if isPrometheusOperatorReady(client) {

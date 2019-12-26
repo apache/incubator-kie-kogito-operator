@@ -33,9 +33,6 @@ type KogitoDataIndexResources struct {
 	// StatefulSet is the resource responsible for the Data Index Service image deployment in the cluster
 	StatefulSet       *appsv1.StatefulSet
 	StatefulSetStatus KogitoDataIndexResourcesStatus
-	// ProtoBufConfigMap will mount a config map for protobuf files that the Data Index Service will read
-	ProtoBufConfigMap       *corev1.ConfigMap
-	ProtoBufConfigMapStatus KogitoDataIndexResourcesStatus
 	// Service to expose the data index service internally
 	Service       *corev1.Service
 	ServiceStatus KogitoDataIndexResourcesStatus
@@ -83,36 +80,13 @@ func CreateOrFetchResources(instance *v1alpha1.KogitoDataIndex, context resource
 		KogitoDataIndex: instance,
 	}
 
-	// TODO: add Kafka, KafkaTopic and Infinispan
 	factory.
-		build(createProtoBufConfigMap).
 		build(createStatefulSet).
 		build(createService).
 		buildOnOpenshift(createRoute).
 		build(createKafkaTopic)
 
 	return *factory.Resources, factory.Error
-}
-
-func createProtoBufConfigMap(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
-	cm := newProtobufConfigMap(f.KogitoDataIndex)
-	if err := f.CallPreCreate(cm); err != nil {
-		f.Error = err
-		return f
-	}
-
-	if f.Resources.ProtoBufConfigMapStatus.New, f.Error =
-		kubernetes.ResourceC(f.Context.Client).CreateIfNotExists(cm); f.Error != nil {
-		return f
-	}
-
-	if f.CallPostCreate(f.Resources.ProtoBufConfigMapStatus.New, cm); f.Error != nil {
-		return f
-	}
-
-	f.Resources.ProtoBufConfigMap = cm
-
-	return f
 }
 
 func createStatefulSet(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
@@ -126,7 +100,11 @@ func createStatefulSet(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResou
 		f.Error = err
 		return f
 	}
-	statefulset := newStatefulset(f.KogitoDataIndex, f.Resources.ProtoBufConfigMap, secret, externalURI)
+	statefulset, err := newStatefulset(f.KogitoDataIndex, secret, externalURI, f.Context.Client)
+	if err != nil {
+		f.Error = err
+		return f
+	}
 	if err := f.CallPreCreate(statefulset); err != nil {
 		f.Error = err
 		return f

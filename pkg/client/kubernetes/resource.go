@@ -29,14 +29,23 @@ import (
 
 // ResourceInterface has functions that interacts with any resource object in the Kubernetes cluster
 type ResourceInterface interface {
+	// Create creates a new Kubernetes object in the cluster.
+	// Note that no checks will be performed in the cluster. If you're not sure, use CreateIfNotExists.
 	Create(resource meta.ResourceObject) error
+	// CreateIfNotExists will fetch for the object resource in the Kubernetes cluster, if not exists, will create it.
 	CreateIfNotExists(resource meta.ResourceObject) (exists bool, err error)
+	// FetchWithKey fetches and binds a resource from the Kubernetes cluster with the defined key. If not exists, returns false.
 	FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (exists bool, err error)
+	// Fetch fetches and binds a resource with given name and namespace from the Kubernetes cluster. If not exists, returns false.
 	Fetch(resource meta.ResourceObject) (exists bool, err error)
+	// ListWithNamespace fetches and binds a list resource from the Kubernetes cluster with the defined namespace.
 	ListWithNamespace(namespace string, list runtime.Object) error
+	// ListWithNamespaceAndLabel same as ListWithNamespace, but also limit the query scope by the given labels
 	ListWithNamespaceAndLabel(namespace string, list runtime.Object, labels map[string]string) error
 	Delete(resource meta.ResourceObject) error
+	// UpdateStatus update the given object status
 	UpdateStatus(resource meta.ResourceObject) error
+	// Update the given object
 	Update(resource meta.ResourceObject) error
 }
 
@@ -54,7 +63,6 @@ func newResource(c *client.Client) *resource {
 	}
 }
 
-// UpdateStatus update the given object status
 func (r *resource) UpdateStatus(resource meta.ResourceObject) error {
 	log.Debugf("About to update status for object %s on namespace %s", resource.GetName(), resource.GetNamespace())
 	if err := r.client.ControlCli.Status().Update(context.TODO(), resource); err != nil {
@@ -65,7 +73,6 @@ func (r *resource) UpdateStatus(resource meta.ResourceObject) error {
 	return nil
 }
 
-// Update the given object
 func (r *resource) Update(resource meta.ResourceObject) error {
 	log.Debugf("About to update object %s on namespace %s", resource.GetName(), resource.GetNamespace())
 	if err := r.client.ControlCli.Update(context.TODO(), resource); err != nil {
@@ -76,12 +83,10 @@ func (r *resource) Update(resource meta.ResourceObject) error {
 	return nil
 }
 
-// Fetch fetches and binds a resource with given name and namespace from the Kubernetes cluster. If not exists, returns false.
 func (r *resource) Fetch(resource meta.ResourceObject) (bool, error) {
 	return r.FetchWithKey(types.NamespacedName{Name: resource.GetName(), Namespace: resource.GetNamespace()}, resource)
 }
 
-// FetchWithKey fetches and binds a resource from the Kubernetes cluster with the defined key. If not exists, returns false.
 func (r *resource) FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (bool, error) {
 	log.Debugf("About to fetch object '%s' on namespace '%s'", key.Name, key.Namespace)
 	err := r.client.ControlCli.Get(context.TODO(), key, resource)
@@ -98,8 +103,6 @@ func (r *resource) FetchWithKey(key types.NamespacedName, resource meta.Resource
 	return true, nil
 }
 
-// Create creates a new Kubernetes object in the cluster.
-// Note that no checks will be performed in the cluster. If you're not sure, use CreateIfNotExists.
 func (r *resource) Create(resource meta.ResourceObject) error {
 	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 	log.Debug("Creating")
@@ -110,7 +113,6 @@ func (r *resource) Create(resource meta.ResourceObject) error {
 	return nil
 }
 
-// CreateIfNotExists will fetch for the object resource in the Kubernetes cluster, if not exists, will create it.
 func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error) {
 	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 
@@ -127,7 +129,6 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 	return false, nil
 }
 
-// ListWithNamespace fetches and binds a list resource from the Kubernetes cluster with the defined namespace.
 func (r *resource) ListWithNamespace(namespace string, list runtime.Object) error {
 	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(namespace))
 	if err != nil {

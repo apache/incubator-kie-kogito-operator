@@ -95,23 +95,23 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 	exist, err := kubernetes.ResourceC(client).Fetch(kogitoApp)
 	assert.NoError(t, err)
 	assert.True(t, exist)
-	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexHttpRouteEnv, Value: expectedRoute})
+	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexHTTPRouteEnv, Value: expectedRoute})
 }
 
 func Test_getKogitoDataIndexURLs(t *testing.T) {
 	ns := t.Name()
 	hostname := "dataindex-route.com"
-	expectedHttpUrl := "http://" + hostname
-	expectedWsUrl := "ws://" + hostname
-	expectedHttpsUrl := "https://" + hostname
-	expectedWssUrl := "wss://" + hostname
+	expectedHTTPURL := "http://" + hostname
+	expectedWSURL := "ws://" + hostname
+	expectedHTTPSURL := "https://" + hostname
+	expectedWSSURL := "wss://" + hostname
 	unsecureDI := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
-		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHttpUrl},
+		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHTTPURL},
 	}
 	secureDI := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
-		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHttpsUrl},
+		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHTTPSURL},
 	}
 	cliUnsecure := test.CreateFakeClient([]runtime.Object{unsecureDI}, nil, nil)
 	cliSecure := test.CreateFakeClient([]runtime.Object{secureDI}, nil, nil)
@@ -122,8 +122,8 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	tests := []struct {
 		name        string
 		args        args
-		wantHttpUrl string
-		wantWsUrl   string
+		wantHTTPURL string
+		wantWSURL   string
 		wantErr     bool
 	}{
 		{
@@ -132,8 +132,8 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 				client:    cliUnsecure,
 				namespace: ns,
 			},
-			wantHttpUrl: expectedHttpUrl,
-			wantWsUrl:   expectedWsUrl,
+			wantHTTPURL: expectedHTTPURL,
+			wantWSURL:   expectedWSURL,
 			wantErr:     false,
 		},
 		{
@@ -142,8 +142,8 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 				client:    cliSecure,
 				namespace: ns,
 			},
-			wantHttpUrl: expectedHttpsUrl,
-			wantWsUrl:   expectedWssUrl,
+			wantHTTPURL: expectedHTTPSURL,
+			wantWSURL:   expectedWSSURL,
 			wantErr:     false,
 		},
 		{
@@ -152,23 +152,23 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 				client:    test.CreateFakeClient(nil, nil, nil),
 				namespace: ns,
 			},
-			wantHttpUrl: "",
-			wantWsUrl:   "",
+			wantHTTPURL: "",
+			wantWSURL:   "",
 			wantErr:     false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotHttpUrl, gotWsUrl, err := getKogitoDataIndexURLs(tt.args.client, tt.args.namespace)
+			gotHTTPURL, gotWSURL, err := getKogitoDataIndexURLs(tt.args.client, tt.args.namespace)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getKogitoDataIndexURLs() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotHttpUrl != tt.wantHttpUrl {
-				t.Errorf("getKogitoDataIndexURLs() gotHttpUrl = %v, want %v", gotHttpUrl, tt.wantHttpUrl)
+			if gotHTTPURL != tt.wantHTTPURL {
+				t.Errorf("getKogitoDataIndexURLs() gotHTTPURL = %v, want %v", gotHTTPURL, tt.wantHTTPURL)
 			}
-			if gotWsUrl != tt.wantWsUrl {
-				t.Errorf("getKogitoDataIndexURLs() gotWsUrl = %v, want %v", gotWsUrl, tt.wantWsUrl)
+			if gotWSURL != tt.wantWSURL {
+				t.Errorf("getKogitoDataIndexURLs() gotWSURL = %v, want %v", gotWSURL, tt.wantWSURL)
 			}
 		})
 	}

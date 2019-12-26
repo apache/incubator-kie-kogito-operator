@@ -24,8 +24,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// NewRoute creates a new Route resource based on the Service created for the KogitoApp container
-func NewRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *routev1.Route, err error) {
+// newRoute creates a new Route resource based on the Service created for the KogitoApp container
+func newRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *routev1.Route, err error) {
 	if service == nil {
 		return route, fmt.Errorf("Impossible to create a Route without a service on Kogito app %s", kogitoApp.Name)
 	}

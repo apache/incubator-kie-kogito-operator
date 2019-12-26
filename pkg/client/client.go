@@ -16,6 +16,7 @@ package client
 
 import (
 	"fmt"
+	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"strings"
@@ -60,6 +61,7 @@ type Client struct {
 	ImageCli      imagev1.ImageV1Interface
 	Discovery     discovery.DiscoveryInterface
 	PrometheusCli monclientv1.MonitoringV1Interface
+	DeploymentCli appsv1.AppsV1Interface
 }
 
 // NewForConsole will create a brand new client using the local machine
@@ -107,12 +109,18 @@ func NewForController(config *restclient.Config, client controllercli.Client) *C
 	if err != nil {
 		panic(fmt.Sprintf("Error getting discovery client: %v", err))
 	}
+	dcClient, err := appsv1.NewForConfig(config)
+	if err != nil {
+		panic(fmt.Sprintf("Error getting deployment config client: %v", err))
+	}
+
 	return &Client{
 		ControlCli:    client,
 		BuildCli:      buildClient,
 		ImageCli:      imageClient,
 		PrometheusCli: monClient,
 		Discovery:     discover,
+		DeploymentCli: dcClient,
 	}
 }
 

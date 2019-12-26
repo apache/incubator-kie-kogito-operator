@@ -27,6 +27,8 @@ import (
 
 var log = logger.GetLogger("builder_kogitoapp")
 
+// TODO: remove this structure since now we're relying on RHSysUtils
+
 // KogitoAppResources has a reference for every resource needed to deploy the KogitoApp
 type KogitoAppResources struct {
 	KogitoAppResourcesStatus
@@ -39,6 +41,7 @@ type KogitoAppResources struct {
 	Service            *corev1.Service
 	ServiceMonitor     *monv1.ServiceMonitor
 	RuntimeImage       *dockerv10.DockerImage
+	ProtoBufCM         *corev1.ConfigMap
 }
 
 // KogitoAppResourceStatusKind defines the kind of the resource status in the cluster

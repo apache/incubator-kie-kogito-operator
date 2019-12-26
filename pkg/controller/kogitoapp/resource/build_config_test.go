@@ -48,8 +48,8 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 			},
 		},
 	}
-	bcS2I, _ := NewBuildConfigS2I(kogitoApp)
-	bcRuntime, _ := NewBuildConfigRuntime(kogitoApp, &bcS2I)
+	bcS2I, _ := newBuildConfigS2I(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
 
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "false"})
 	assert.NotContains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "true"})
@@ -84,10 +84,10 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 			},
 		},
 	}
-	bcS2I, err := NewBuildConfigS2I(kogitoApp)
+	bcS2I, err := newBuildConfigS2I(kogitoApp)
 	assert.Nil(t, err)
 	assert.NotNil(t, bcS2I)
-	bcRuntime, err := NewBuildConfigRuntime(kogitoApp, &bcS2I)
+	bcRuntime, err := newBuildConfigRuntime(kogitoApp, &bcS2I)
 	assert.Nil(t, err)
 	assert.NotNil(t, bcRuntime)
 
@@ -115,10 +115,10 @@ func Test_buildConfigResource_New(t *testing.T) {
 			},
 		},
 	}
-	bcS2I, err := NewBuildConfigS2I(kogitoApp)
+	bcS2I, err := newBuildConfigS2I(kogitoApp)
 	assert.Nil(t, err)
 	assert.NotNil(t, bcS2I)
-	bcRuntime, err := NewBuildConfigRuntime(kogitoApp, &bcS2I)
+	bcRuntime, err := newBuildConfigRuntime(kogitoApp, &bcS2I)
 	assert.Nil(t, err)
 	assert.NotNil(t, bcRuntime)
 

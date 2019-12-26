@@ -50,7 +50,7 @@ func addDefaultMeta(objectMeta *metav1.ObjectMeta, kogitoApp *v1alpha1.KogitoApp
 // addDefaultLabels adds the default labels
 func addDefaultLabels(m *map[string]string, kogitoApp *v1alpha1.KogitoApp) {
 	if *m == nil {
-		(*m) = map[string]string{}
+		*m = map[string]string{}
 	}
 	(*m)[LabelKeyAppName] = kogitoApp.Name
 }

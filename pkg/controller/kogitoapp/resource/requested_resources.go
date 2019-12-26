@@ -34,7 +34,7 @@ type builderChain struct {
 	Error     error
 }
 
-func (c *builderChain) AndBuild(f func(*builderChain) *builderChain) *builderChain {
+func (c *builderChain) andBuild(f func(*builderChain) *builderChain) *builderChain {
 	if c.Error == nil {
 		return f(c)
 	}
@@ -49,19 +49,20 @@ func GetRequestedResources(context *Context) (*KogitoAppResources, error) {
 		Context:   context,
 	}
 	chain.
-		AndBuild(buildConfigS2IBuilder).
-		AndBuild(buildConfigRuntimeBuilder).
-		AndBuild(imageStreamBuilder).
-		AndBuild(runtimeImageGetter).
-		AndBuild(deploymentConfigBuilder).
-		AndBuild(serviceBuilder).
-		AndBuild(routeBuilder).
-		AndBuild(serviceMonitorBuilder)
+		andBuild(buildConfigS2IBuilder).
+		andBuild(buildConfigRuntimeBuilder).
+		andBuild(protoBufConfigMap).
+		andBuild(imageStreamBuilder).
+		andBuild(runtimeImageGetter).
+		andBuild(deploymentConfigBuilder).
+		andBuild(serviceBuilder).
+		andBuild(routeBuilder).
+		andBuild(serviceMonitorBuilder)
 	return chain.Resources, chain.Error
 }
 
 func buildConfigS2IBuilder(chain *builderChain) *builderChain {
-	bc, err := NewBuildConfigS2I(chain.Context.KogitoApp)
+	bc, err := newBuildConfigS2I(chain.Context.KogitoApp)
 	if err != nil {
 		chain.Error = err
 		return chain
@@ -73,7 +74,7 @@ func buildConfigS2IBuilder(chain *builderChain) *builderChain {
 }
 
 func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
-	bc, err := NewBuildConfigRuntime(
+	bc, err := newBuildConfigRuntime(
 		chain.Context.KogitoApp,
 		chain.Resources.BuildConfigS2I,
 	)
@@ -87,11 +88,17 @@ func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
 	return chain
 }
 
+func protoBufConfigMap(chain *builderChain) *builderChain {
+	chain.Error = nil
+	chain.Resources.ProtoBufCM = newProtoBufConfigMap(chain.Context.KogitoApp)
+	return chain
+}
+
 func imageStreamBuilder(chain *builderChain) *builderChain {
-	isS2I := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigS2I.Name)
+	isS2I := newImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigS2I.Name)
 	chain.Resources.ImageStreamS2I = isS2I
 
-	isRuntime := NewImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
+	isRuntime := newImageStreamTag(chain.Context.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
 	chain.Resources.ImageStreamRuntime = isRuntime
 
 	return chain
@@ -101,7 +108,7 @@ func deploymentConfigBuilder(chain *builderChain) *builderChain {
 	chain.Resources.DeploymentConfig = nil
 
 	if chain.Resources.RuntimeImage != nil {
-		dc, err := NewDeploymentConfig(
+		dc, err := newDeploymentConfig(
 			chain.Context.KogitoApp,
 			chain.Resources.BuildConfigRuntime,
 			chain.Resources.RuntimeImage,
@@ -120,7 +127,7 @@ func deploymentConfigBuilder(chain *builderChain) *builderChain {
 func serviceBuilder(chain *builderChain) *builderChain {
 	// Service depends on the DC
 	if chain.Resources.DeploymentConfig != nil {
-		svc := NewService(chain.Context.KogitoApp, chain.Resources.DeploymentConfig)
+		svc := newService(chain.Context.KogitoApp, chain.Resources.DeploymentConfig)
 		if svc != nil {
 			chain.Resources.Service = svc
 		}
@@ -131,7 +138,7 @@ func serviceBuilder(chain *builderChain) *builderChain {
 func routeBuilder(chain *builderChain) *builderChain {
 	// we only create a router if we already have a service
 	if chain.Resources.Service != nil {
-		route, err := NewRoute(chain.Context.KogitoApp, chain.Resources.Service)
+		route, err := newRoute(chain.Context.KogitoApp, chain.Resources.Service)
 		if err != nil {
 			chain.Error = err
 			return chain
@@ -144,7 +151,7 @@ func routeBuilder(chain *builderChain) *builderChain {
 
 func serviceMonitorBuilder(chain *builderChain) *builderChain {
 	if chain.Resources.RuntimeImage != nil && chain.Resources.Service != nil {
-		sm, err := NewServiceMonitor(chain.Context.KogitoApp, chain.Resources.RuntimeImage, chain.Resources.Service, chain.Context.Client)
+		sm, err := newServiceMonitor(chain.Context.KogitoApp, chain.Resources.RuntimeImage, chain.Resources.Service, chain.Context.Client)
 		if err != nil {
 			chain.Error = err
 			return chain

@@ -32,14 +32,8 @@ const (
 	// since we're aiming for cluster agnostic, the image API is out of question.
 	// TODO: found an agnostic API to fetch the ImageRaw from the docker image and read this value from there.
 	defaultExposedPort       = 8080
-	defaultProtobufMountPath = "/var/kogito/dataindex/protobufs/"
-	defaultProtobufMountName = "protobuf-mount"
+	defaultProtobufMountPath = "/home/kogito/data/protobufs"
 )
-
-var defaultEnvs = map[string]string{
-	"KOGITO_PROTOBUF_FOLDER": defaultProtobufMountPath,
-	"KOGITO_PROTOBUF_WATCH":  "true",
-}
 
 // Collection of Infinispan/Kafka Environment Variables that need to be set in the Data Index image
 const (
@@ -60,12 +54,22 @@ const (
 	kafkaTopicNameUserTaskInstances string = "kogito-usertaskinstances-events"
 	kafkaTopicNameProcessDomain     string = "kogito-processdomain-events"
 	kafkaTopicNameUserTaskDomain    string = "kogito-usertaskdomain-events"
+
+	protoBufKeyFolder string = "KOGITO_PROTOBUF_FOLDER"
+	protoBufKeyWatch  string = "KOGITO_PROTOBUF_WATCH"
 )
 
+var protoBufEnvs = map[string]string{
+	protoBufKeyFolder: defaultProtobufMountPath,
+	protoBufKeyWatch:  "true",
+}
+
 // managedEnvKeys are a collection of reserved keys
-var managedEnvKeys = []string{
-	"KOGITO_PROTOBUF_FOLDER",
-	"KOGITO_PROTOBUF_WATCH",
+var managedEnvKeys []string
+
+var protoBufKeys = []string{
+	protoBufKeyFolder,
+	protoBufKeyWatch,
 }
 
 var managedKafkaKeys = []string{
@@ -120,6 +124,7 @@ func addDefaultMetadata(objectMeta *metav1.ObjectMeta, instance *v1alpha1.Kogito
 }
 
 func init() {
+	managedEnvKeys = append(managedEnvKeys, protoBufKeys...)
 	managedEnvKeys = append(managedEnvKeys, managedInfinispanKeys...)
 	managedEnvKeys = append(managedEnvKeys, managedKafkaKeys...)
 }

@@ -16,7 +16,7 @@ package resource
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
+	resource2 "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -93,9 +93,8 @@ func Test_containAllLabels(t *testing.T) {
 
 func Test_createBuildConfigComparator(t *testing.T) {
 	type args struct {
-		resourceComparator compare.ResourceComparator
-		deployed           resource.KubernetesResource
-		requested          resource.KubernetesResource
+		deployed  resource.KubernetesResource
+		requested resource.KubernetesResource
 	}
 	tests := []struct {
 		name  string
@@ -106,7 +105,6 @@ func Test_createBuildConfigComparator(t *testing.T) {
 		{
 			"Equals",
 			args{
-				resourceComparator: compare.DefaultComparator(),
 				deployed: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
@@ -130,7 +128,6 @@ func Test_createBuildConfigComparator(t *testing.T) {
 		{
 			"NotEquals",
 			args{
-				resourceComparator: compare.DefaultComparator(),
 				deployed: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
@@ -154,7 +151,12 @@ func Test_createBuildConfigComparator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := createBuildConfigComparator(tt.args.resourceComparator)
+			got, got1 :=
+				resource2.NewComparatorBuilder().
+					WithType(tt.want).
+					UseDefaultComparator(true).
+					WithCustomComparator(createBuildConfigComparator()).
+					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createBuildConfigComparator() got = %v, want %v", got, tt.want)
 			}
@@ -167,9 +169,8 @@ func Test_createBuildConfigComparator(t *testing.T) {
 
 func Test_createDeploymentConfigComparator(t *testing.T) {
 	type args struct {
-		resourceComparator compare.ResourceComparator
-		deployed           resource.KubernetesResource
-		requested          resource.KubernetesResource
+		deployed  resource.KubernetesResource
+		requested resource.KubernetesResource
 	}
 	tests := []struct {
 		name  string
@@ -181,7 +182,6 @@ func Test_createDeploymentConfigComparator(t *testing.T) {
 
 			"Equals",
 			args{
-				resourceComparator: compare.DefaultComparator(),
 				deployed: &appsv1.DeploymentConfig{
 					Spec: appsv1.DeploymentConfigSpec{
 						Strategy: appsv1.DeploymentStrategy{
@@ -230,8 +230,6 @@ func Test_createDeploymentConfigComparator(t *testing.T) {
 		{
 			"NotEquals",
 			args{
-				resourceComparator: compare.DefaultComparator(),
-
 				deployed: &appsv1.DeploymentConfig{
 					Spec: appsv1.DeploymentConfigSpec{
 						Strategy: appsv1.DeploymentStrategy{
@@ -280,7 +278,12 @@ func Test_createDeploymentConfigComparator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := createDeploymentConfigComparator(tt.args.resourceComparator)
+			got, got1 :=
+				resource2.NewComparatorBuilder().
+					WithType(tt.want).
+					UseDefaultComparator(true).
+					WithCustomComparator(createDeploymentConfigComparator()).
+					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createDeploymentConfigComparator() got = %v, want %v", got, tt.want)
 			}
@@ -293,9 +296,8 @@ func Test_createDeploymentConfigComparator(t *testing.T) {
 
 func Test_createRouteComparator(t *testing.T) {
 	type args struct {
-		resourceComparator compare.ResourceComparator
-		deployed           resource.KubernetesResource
-		requested          resource.KubernetesResource
+		deployed  resource.KubernetesResource
+		requested resource.KubernetesResource
 	}
 	tests := []struct {
 		name  string
@@ -306,7 +308,6 @@ func Test_createRouteComparator(t *testing.T) {
 		{
 			"Equals",
 			args{
-				resourceComparator: compare.DefaultComparator(),
 				deployed: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
@@ -329,7 +330,7 @@ func Test_createRouteComparator(t *testing.T) {
 		},
 		{
 			"NotEquals",
-			args{resourceComparator: compare.DefaultComparator(),
+			args{
 				deployed: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
@@ -353,7 +354,12 @@ func Test_createRouteComparator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := createRouteComparator(tt.args.resourceComparator)
+			got, got1 :=
+				resource2.NewComparatorBuilder().
+					WithType(tt.want).
+					UseDefaultComparator(true).
+					WithCustomComparator(createRouteComparator()).
+					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createRouteComparator() got = %v, want %v", got, tt.want)
 			}
@@ -366,9 +372,8 @@ func Test_createRouteComparator(t *testing.T) {
 
 func Test_createServiceComparator(t *testing.T) {
 	type args struct {
-		resourceComparator compare.ResourceComparator
-		deployed           resource.KubernetesResource
-		requested          resource.KubernetesResource
+		deployed  resource.KubernetesResource
+		requested resource.KubernetesResource
 	}
 	tests := []struct {
 		name  string
@@ -379,7 +384,6 @@ func Test_createServiceComparator(t *testing.T) {
 		{
 			"Equals",
 			args{
-				resourceComparator: compare.DefaultComparator(),
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
@@ -402,7 +406,7 @@ func Test_createServiceComparator(t *testing.T) {
 		},
 		{
 			"NotEquals",
-			args{resourceComparator: compare.DefaultComparator(),
+			args{
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
@@ -426,7 +430,12 @@ func Test_createServiceComparator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := createServiceComparator(tt.args.resourceComparator)
+			got, got1 :=
+				resource2.NewComparatorBuilder().
+					WithType(tt.want).
+					UseDefaultComparator(true).
+					WithCustomComparator(createServiceComparator()).
+					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createServiceComparator() got = %v, want %v", got, tt.want)
 			}

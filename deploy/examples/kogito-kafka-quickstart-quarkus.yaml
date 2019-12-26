@@ -16,12 +16,12 @@ spec:
     - name: ARTIFACT_DIR
       value: kogito-kafka-quickstart-quarkus/target
     gitSource:
-      reference: 0.5.0
+      reference: 0.6.1
       uri: https://github.com/kiegroup/kogito-quickstarts
     imageRuntime:
-      imageStreamTag: 0.6.0
+      imageStreamTag: 0.6.1
     imageS2I:
-      imageStreamTag: 0.6.0
+      imageStreamTag: 0.6.1
     resources: {}
   env:
   # those blank env is needed until we have Quarkus reading them without explicit definition

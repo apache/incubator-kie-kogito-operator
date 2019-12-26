@@ -27,8 +27,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// NewService creates a Service resource based on the DC Containers ports exposed. Returns nil if no ports is found on Deployment Config
-func NewService(kogitoApp *v1alpha1.KogitoApp, deploymentConfig *appsv1.DeploymentConfig) (service *corev1.Service) {
+// newService creates a Service resource based on the DC Containers ports exposed. Returns nil if no ports is found on Deployment Config
+func newService(kogitoApp *v1alpha1.KogitoApp, deploymentConfig *appsv1.DeploymentConfig) (service *corev1.Service) {
 	if deploymentConfig == nil {
 		// we can't create a service without a DC
 		return nil

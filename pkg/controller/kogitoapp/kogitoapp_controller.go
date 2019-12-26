@@ -86,7 +86,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&corev1.Service{},
 		&routev1.Route{},
 		&obuildv1.BuildConfig{},
-		&oimagev1.ImageStream{})
+		&oimagev1.ImageStream{},
+		&corev1.ConfigMap{})
 	if err != nil {
 		return err
 	}
@@ -198,6 +199,13 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 		}
 	}
 
+	// Verifies if deployed configMap has integrity, roll out if it does not and let the application update it
+	if err := r.rollOutDeploymentIfConfigMapBroken(instance, deployedRes); err != nil {
+		updateResourceResult.Err = err
+		updateResourceResult.ErrorReason = v1alpha1.RolloutDeploymentFailedReason
+		return
+	}
+
 	{
 		requestedRes := compare.NewMapBuilder().Add(getKubernetesResources(kogitoResources)...).ResourceMap()
 
@@ -299,37 +307,6 @@ func (r *ReconcileKogitoApp) triggerBuilds(instance *v1alpha1.KogitoApp, bcs ...
 		}
 	}
 	return nil
-}
-
-func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.KubernetesResource {
-	k8sRes := make([]utilsres.KubernetesResource, 7)
-
-	if kogitoRes.BuildConfigS2I != nil {
-		k8sRes = append(k8sRes, kogitoRes.BuildConfigS2I)
-	}
-	if kogitoRes.BuildConfigRuntime != nil {
-		k8sRes = append(k8sRes, kogitoRes.BuildConfigRuntime)
-	}
-	if kogitoRes.ImageStreamS2I != nil {
-		k8sRes = append(k8sRes, kogitoRes.ImageStreamS2I)
-	}
-	if kogitoRes.ImageStreamRuntime != nil {
-		k8sRes = append(k8sRes, kogitoRes.ImageStreamRuntime)
-	}
-	if kogitoRes.DeploymentConfig != nil {
-		k8sRes = append(k8sRes, kogitoRes.DeploymentConfig)
-	}
-	if kogitoRes.Service != nil {
-		k8sRes = append(k8sRes, kogitoRes.Service)
-	}
-	if kogitoRes.Route != nil {
-		k8sRes = append(k8sRes, kogitoRes.Route)
-	}
-	if kogitoRes.ServiceMonitor != nil {
-		k8sRes = append(k8sRes, kogitoRes.ServiceMonitor)
-	}
-
-	return k8sRes
 }
 
 // Ensure that all Kogito images are available before the build.
@@ -484,6 +461,70 @@ func (r *ReconcileKogitoApp) injectExternalVariables(instance *v1alpha1.KogitoAp
 			return err
 		}
 	}
+	return nil
+}
 
+func (r *ReconcileKogitoApp) rollOutDeploymentIfConfigMapBroken(instance *v1alpha1.KogitoApp, deployed map[reflect.Type][]utilsres.KubernetesResource) (err error) {
+	deployedDeployment := getDeployed(reflect.TypeOf(oappsv1.DeploymentConfig{}), deployed, instance.Name)
+	deployedConfigMap := getDeployed(reflect.TypeOf(corev1.ConfigMap{}), deployed, kogitores.GenerateProtoBufConfigMapName(instance))
+
+	if deployedDeployment == nil {
+		return nil
+	}
+
+	// only rolls out the dc if all replicas are available
+	if !resource.IsSafeToRollOutDeploymentConfig(deployedDeployment.(*oappsv1.DeploymentConfig)) {
+		return nil
+	}
+
+	if deployedConfigMap == nil || !kogitores.CheckProtoBufConfigMapIntegrity(deployedConfigMap.(*corev1.ConfigMap)) {
+		if _, err := openshift.DeploymentC(r.client).RolloutLatest(deployedDeployment.GetName(), deployedDeployment.GetNamespace()); err != nil {
+			return err
+		}
+		return nil
+	}
+	return nil
+}
+
+func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.KubernetesResource {
+	k8sRes := make([]utilsres.KubernetesResource, 7)
+
+	if kogitoRes.BuildConfigS2I != nil {
+		k8sRes = append(k8sRes, kogitoRes.BuildConfigS2I)
+	}
+	if kogitoRes.BuildConfigRuntime != nil {
+		k8sRes = append(k8sRes, kogitoRes.BuildConfigRuntime)
+	}
+	if kogitoRes.ImageStreamS2I != nil {
+		k8sRes = append(k8sRes, kogitoRes.ImageStreamS2I)
+	}
+	if kogitoRes.ImageStreamRuntime != nil {
+		k8sRes = append(k8sRes, kogitoRes.ImageStreamRuntime)
+	}
+	if kogitoRes.DeploymentConfig != nil {
+		k8sRes = append(k8sRes, kogitoRes.DeploymentConfig)
+	}
+	if kogitoRes.Service != nil {
+		k8sRes = append(k8sRes, kogitoRes.Service)
+	}
+	if kogitoRes.Route != nil {
+		k8sRes = append(k8sRes, kogitoRes.Route)
+	}
+	if kogitoRes.ServiceMonitor != nil {
+		k8sRes = append(k8sRes, kogitoRes.ServiceMonitor)
+	}
+	if kogitoRes.ProtoBufCM != nil {
+		k8sRes = append(k8sRes, kogitoRes.ProtoBufCM)
+	}
+
+	return k8sRes
+}
+
+func getDeployed(resourceType reflect.Type, deployed map[reflect.Type][]utilsres.KubernetesResource, name string) utilsres.KubernetesResource {
+	for _, res := range deployed[resourceType] {
+		if res.GetName() == name {
+			return res
+		}
+	}
 	return nil
 }

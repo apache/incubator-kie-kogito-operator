@@ -25,8 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NewServiceMonitor creates a new ServiceMonitor resource for the KogitoApp based on the Prometheus labels of the runtime image
-func NewServiceMonitor(kogitoApp *v1alpha1.KogitoApp, dockerImage *dockerv10.DockerImage, service *corev1.Service, client *client.Client) (*monv1.ServiceMonitor, error) {
+// newServiceMonitor creates a new ServiceMonitor resource for the KogitoApp based on the Prometheus labels of the runtime image
+func newServiceMonitor(kogitoApp *v1alpha1.KogitoApp, dockerImage *dockerv10.DockerImage, service *corev1.Service, client *client.Client) (*monv1.ServiceMonitor, error) {
 	if !isPrometheusOperatorReady(client) {
 		return nil, nil
 	}

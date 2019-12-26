@@ -31,11 +31,16 @@ const (
 	defaultInfinispanPort  = 11222
 )
 
+// IsInfinispanAvailable checks whether Infinispan CRD is available or not
+func IsInfinispanAvailable(cli *client.Client) bool {
+	return cli.HasServerGroup(infinispanServerGroup)
+}
+
 // IsInfinispanOperatorAvailable verify if Infinispan Operator is running in the given namespace and the CRD is available
 func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, error) {
 	log.Debugf("Checking if Infinispan Operator is available in the namespace %s", namespace)
 	// first check for CRD
-	if cli.HasServerGroup(infinispanServerGroup) {
+	if IsInfinispanAvailable(cli) {
 		log.Debugf("Infinispan CRDs available. Checking if Infinispan Operator is deployed in the namespace %s", namespace)
 		// then check if there's an Infinispan Operator deployed
 		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: InfinispanOperatorName}}

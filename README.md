@@ -31,6 +31,7 @@ Table of Contents
             * [Installing the Kogito Data Index Service with the Kogito CLI](#installing-the-kogito-data-index-service-with-the-kogito-cli)
             * [Installing the Kogito Data Index Service with the Operator Catalog (OLM)](#installing-the-kogito-data-index-service-with-the-operator-catalog-olm)
             * [Installing the Kogito Data Index Service with the oc client](#installing-the-kogito-data-index-service-with-the-oc-client)
+         * [Kogito Data Index Integration with persistent Kogito Services](#kogito-data-index-integration-with-persistent-kogito-services)
       * [Kogito CLI](#kogito-cli)
          * [Kogito CLI requirements](#kogito-cli-requirements)
          * [Kogito CLI installation](#kogito-cli-installation)
@@ -55,7 +56,6 @@ Table of Contents
             * [With the Kogito CLI](#with-the-kogito-cli)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
       * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
-
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -319,6 +319,39 @@ $ oc get routes -l app=kogito-data-index
 NAME                HOST/PORT                                                  PATH   SERVICES            PORT   TERMINATION   WILDCARD
 kogito-data-index   kogito-data-index-kogito.apps.mycluster.example.com               kogito-data-index   8080   None
 ```
+
+### Kogito Data Index Integration with persistent Kogito Services
+
+If your Kogito Service has [persistence](https://github.com/kiegroup/kogito-runtimes/wiki/Persistence) enabled, Data Index will mount a volume based on a `configMap` created for you during the deployment of the service. 
+
+This `configMap` has the `-protobuf-files` suffix and inside it you'll see the protobuf files that your service generated 
+during build time. For example:
+
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: example-quarkus-protobuf-files
+  labels:
+    kogito-protobuf: true
+data:
+  visaApplications.proto: |-
+    syntax = "proto2"; 
+    package org.acme.travels.visaApplications; 
+    import "kogito-index.proto";
+    import "kogito-types.proto";
+    option kogito_model = "VisaApplications";
+    option kogito_id = "visaApplications";
+    # data suppressed for brevit
+ ```    
+During the deployment of a new set of protobuf files (e.g. a new persistent Kogito Service is deployed), Data Index 
+will spin up a new `pod` referring to this new volume attached.
+
+Updated protobuf files will be automatically refreshed by Kubernetes volumes after some time, this means that if you add a new
+property in your domain data, this data will be reflect automatically in the Data Index without restarts.
+
+_Please note that removed Kogito Services will remove the protobuf files associated to it as well. This means that you won't
+be able to see the data through the Data Index anymore, although the data still persisted in Infinispan._
 
 ## Kogito CLI
 
