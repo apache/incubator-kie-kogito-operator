@@ -134,6 +134,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s.AddKnownTypes(infinispanv1.SchemeGroupVersion, &infinispanv1.Infinispan{}, &infinispanv1.InfinispanList{})
 	s.AddKnownTypes(keycloakv1alpha1.SchemeGroupVersion, &keycloakv1alpha1.Keycloak{}, &keycloakv1alpha1.KeycloakList{})
 	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
+	s.AddKnownTypes(coreappsv1.SchemeGroupVersion, &coreappsv1.StatefulSet{}, &coreappsv1.StatefulSetList{})
 	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
 	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
 	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
