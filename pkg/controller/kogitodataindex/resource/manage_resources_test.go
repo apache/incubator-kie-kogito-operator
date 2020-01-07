@@ -15,8 +15,12 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"testing"
 
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -466,4 +470,113 @@ func Test_ensureKafkaTopics(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_ensureHTTPPort(t *testing.T) {
+	serviceuri := "myserviceuri:9092"
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: "test",
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			Replicas: 1,
+			HTTPPort: 9001,
+		},
+	}
+	cli := test.CreateFakeClient(nil, nil, nil)
+	secret := &corev1.Secret{}
+	statefulset, err := newStatefulset(instance, secret, serviceuri, cli)
+	assert.NoError(t, err)
+	cli = test.CreateFakeClient([]runtime.Object{instance, statefulset, secret}, nil, nil)
+
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
+	assert.Error(t, err)
+
+	instance.Spec.Kafka = v1alpha1.KafkaConnectionProperties{ExternalURI: serviceuri}
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
+	assert.NoError(t, err)
+
+	// make sure that the http port was correctly added.
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		Name:  dataIndexEnvKeyHTTPPort,
+		Value: "9001",
+	})
+
+	// update the env
+	// reconcile and test
+	// override the env http port env
+	util.SetEnvVar(dataIndexEnvKeyHTTPPort, "4000", &statefulset.Spec.Template.Spec.Containers[0])
+	// reconcile
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
+	assert.NoError(t, err)
+	// make sure that the http port was correctly rolled back.
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		Name:  dataIndexEnvKeyHTTPPort,
+		Value: "9001",
+	})
+
+	// update the probes
+	// reconcile and test
+	// update LivenessProbe
+	statefulset.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port = intstr.FromString("4000")
+	// reconcile
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
+	assert.NoError(t, err)
+	// test LivenessProbe
+	assert.Equal(t, intstr.IntOrString(intstr.IntOrString{Type: 0, IntVal: 9001, StrVal: ""}), statefulset.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port)
+
+	// update ReadinessProbe
+	statefulset.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port = intstr.FromString("4000")
+	// reconcile
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
+	assert.NoError(t, err)
+	// test ReadinessProbe
+	assert.Equal(t, intstr.IntOrString(intstr.IntOrString{Type: 0, IntVal: 9001, StrVal: ""}), statefulset.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port)
+
+	// update the http port
+	//reconcile and test
+	// update the http port
+	statefulset.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort = 4000
+	// reconcile
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
+	assert.NoError(t, err)
+	// test http port
+	assert.Equal(t, int32(9001), statefulset.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort)
+
+	// update the route
+	// reconcile and test
+	// update the route http port
+	route := &routev1.Route{}
+	routeFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, route)
+	if !routeFound {
+		route = &routev1.Route{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      instance.Name,
+				Namespace: instance.Namespace,
+			},
+			Spec: routev1.RouteSpec{
+				Host: "localhost",
+				Port: &routev1.RoutePort{
+					TargetPort: intstr.FromString("4000"),
+				},
+			},
+		}
+		err := kubernetes.ResourceC(cli).Create(route)
+		assert.NoError(t, err)
+	} else {
+		route.Spec.Port = &routev1.RoutePort{TargetPort: intstr.FromString("4000")}
+	}
+	err = kubernetes.ResourceC(cli).Update(route)
+	assert.NoError(t, err)
+	// reconcile
+	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
+	assert.NoError(t, err)
+
+	routeAfterReconcile := &routev1.Route{}
+	routeAfterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeAfterReconcile)
+	assert.True(t, routeAfterReconcileFound)
+
+	assert.Equal(t, intstr.FromInt(9001), routeAfterReconcile.Spec.Port.TargetPort)
+
 }

@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -785,6 +785,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Replicas is the number of pod replicas that the Data Index Service will create",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"httpPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},

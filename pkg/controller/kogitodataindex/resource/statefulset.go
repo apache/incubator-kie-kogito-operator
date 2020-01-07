@@ -25,14 +25,33 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"path"
+	"strconv"
 )
 
 func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, externalURI string, cli *client.Client) (*appsv1.StatefulSet, error) {
+	// define the http port
+
+	httpPort := defineDataIndexHTTPPort(instance)
+	log.Debugf("Method defineDataIndexHTTPPort(instance) returned http port number %i", httpPort)
+
 	// create a standard probe
 	probe := defaultProbe
-	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.FromInt(defaultExposedPort)}
+	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: httpPort}}
 	// environment variables
 	removeManagedEnvVars(instance)
+	// set KOGITO_DATA_INDEX_HTTP_PORT env
+	hasEnv := false
+	for envName := range instance.Spec.Env {
+		if envName == dataIndexEnvKeyHTTPPort {
+			hasEnv = true
+		}
+	}
+	if len(instance.Spec.Env) == 0 || !hasEnv {
+		envMap := make(map[string]string)
+		envMap[dataIndexEnvKeyHTTPPort] = util.FormatInt32ToString(httpPort)
+		log.Debugf("Has no %s Env, adding it to spec %s", dataIndexEnvKeyHTTPPort, envMap)
+		instance.Spec.Env = util.AppendStringMap(instance.Spec.Env, envMap)
+	}
 	// from cr
 	envs := instance.Spec.Env
 	envs = util.AppendStringMap(envs, fromInfinispanToStringMap(instance.Spec.Infinispan))
@@ -68,7 +87,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "http",
-									ContainerPort: defaultExposedPort,
+									ContainerPort: httpPort,
 									Protocol:      corev1.ProtocolTCP,
 								},
 							},
@@ -90,6 +109,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 	addDefaultMetadata(&statefulset.Spec.Template.ObjectMeta, instance)
 	statefulset.Spec.Selector.MatchLabels = statefulset.Labels
 
+	log.Infof("Stateful set ports ", statefulset.Spec.Template.Spec.Containers[0].Ports)
 	return statefulset, nil
 }
 
@@ -126,4 +146,29 @@ func mountProtoBufConfigMaps(statefulset *appsv1.StatefulSet, cli *client.Client
 	}
 
 	return nil
+}
+
+// defineDataIndexHTTPPort will define which port the dataindex should be listening to. To set it use httpPort cr parameter.
+// defaults to 8080
+func defineDataIndexHTTPPort(instance *v1alpha1.KogitoDataIndex) int32 {
+	// first check if the env KOGITO_DATA_INDEX_HTTP_PORT is set
+	for env, value := range instance.Spec.Env {
+		if env == "KOGITO_DATA_INDEX_HTTP_PORT" {
+			parsedPort, err := strconv.ParseInt(value, 10, 32)
+			if err != nil {
+				log.Warnf("Failed to parse provided port via Env %s, using the default.", value)
+				return defaultExposedPort
+			}
+			return int32(parsedPort)
+		}
+	}
+
+	// port should be greater than 0
+	if instance.Spec.HTTPPort < 1 {
+		log.Debugf("HTTPPort not set, returning default http port.")
+		return defaultExposedPort
+	} else {
+		log.Debugf("HTTPPort is set, returning port number %i", int(instance.Spec.HTTPPort))
+		return instance.Spec.HTTPPort
+	}
 }

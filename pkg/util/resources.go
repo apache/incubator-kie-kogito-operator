@@ -16,6 +16,7 @@ package util
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"strconv"
 )
 
 // EnvToMap converts an array of Env to a map
@@ -54,4 +55,9 @@ func GetEnvValue(key string, envs []v1alpha1.Env) string {
 		}
 	}
 	return ""
+}
+
+// FormatInt32ToString parse a int32 to string
+func FormatInt32ToString(n int32) string {
+	return strconv.FormatInt(int64(n), 10)
 }

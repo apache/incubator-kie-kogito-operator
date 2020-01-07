@@ -39,6 +39,10 @@ type KogitoDataIndexSpec struct {
 	// +optional
 	Replicas int32 `json:"replicas,omitempty"`
 
+	// HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.
+	// +optional
+	HTTPPort int32 `json:"httpPort,omitempty"`
+
 	// +optional
 	//Env is a collection of additional environment variables to add to the Data Index container
 	Env map[string]string `json:"env,omitempty"`

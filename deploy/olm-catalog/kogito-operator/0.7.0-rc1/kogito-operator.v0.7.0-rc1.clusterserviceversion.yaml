@@ -6,27 +6,6 @@ metadata:
       [
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
-          "kind": "KogitoDataIndex",
-          "metadata": {
-            "name": "kogito-data-index"
-          },
-          "spec": {
-            "cpuLimit": "",
-            "cpuRequest": "",
-            "image": "quay.io/kiegroup/kogito-data-index:latest",
-            "infinispan": {
-              "useKogitoInfra": false
-            },
-            "kafka": {
-              "instance": "kogito-kafka"
-            },
-            "memoryLimit": "",
-            "memoryRequest": "",
-            "replicas": 1
-          }
-        },
-        {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoInfra",
           "metadata": {
             "name": "kogito-infra"
@@ -49,6 +28,27 @@ metadata:
                 "uri": "https://github.com/kiegroup/kogito-examples"
               }
             }
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoDataIndex",
+          "metadata": {
+            "name": "kogito-data-index"
+          },
+          "spec": {
+            "cpuLimit": "",
+            "cpuRequest": "",
+            "image": "quay.io/kiegroup/kogito-data-index:latest",
+            "infinispan": {
+              "useKogitoInfra": false
+            },
+            "kafka": {
+              "instance": "kogito-kafka"
+            },
+            "memoryLimit": "",
+            "memoryRequest": "",
+            "replicas": 1
           }
         }
       ]

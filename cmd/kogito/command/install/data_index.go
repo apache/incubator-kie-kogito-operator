@@ -31,6 +31,7 @@ import (
 )
 
 const (
+	defaultDataIndexHTTPPort     = 8080
 	defaultDataIndexName         = "kogito-data-index"
 	defaultInfinispanSecretName  = "kogito-data-index-infinispan-credentials"
 	defaultInfinispanUsernameKey = "username"
@@ -40,6 +41,7 @@ const (
 type installDataIndexFlags struct {
 	deploy.CommonFlags
 	image              string
+	httpPort           int32
 	kafka              v1alpha1.KafkaConnectionProperties
 	infinispan         v1alpha1.InfinispanConnectionProperties
 	infinispanSasl     string
@@ -139,6 +141,7 @@ func (i *installDataIndexCommand) InitHook() {
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", resdataindex.DefaultImage, "Image tag (namespace/name:tag) for the runtime Service, e.g: openshift/kogito-data-index:latest")
+	i.command.Flags().Int32Var(&i.flags.httpPort, "http-port", defaultDataIndexHTTPPort, "Default HTTP port which Data Index image will be listening")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
 	i.command.Flags().StringVar(&i.flags.infinispan.ServiceURI, "infinispan-url", "", "The Infinispan Server internal URI, example: infinispan-server:11222")
@@ -203,6 +206,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		ObjectMeta: metav1.ObjectMeta{Name: defaultDataIndexName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas:      i.flags.Replicas,
+			HTTPPort:      i.flags.httpPort,
 			Env:           util.FromStringsKeyPairToMap(i.flags.Env),
 			Image:         i.flags.image,
 			MemoryLimit:   shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Limits),

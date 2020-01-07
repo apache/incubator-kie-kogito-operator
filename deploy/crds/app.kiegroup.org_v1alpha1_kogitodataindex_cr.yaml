@@ -9,6 +9,7 @@ spec:
   replicas: 1
   # image to use for this deploy
   image: "quay.io/kiegroup/kogito-data-index:latest"
+  # httpPort: 8080
   # Limits and requests for the Data Index pod
   memoryLimit: ""
   memoryRequest: ""

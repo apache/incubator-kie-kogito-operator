@@ -35,7 +35,7 @@ func newRoute(instance *v1alpha1.KogitoDataIndex, service *corev1.Service) (rout
 		ObjectMeta: service.ObjectMeta,
 		Spec: routev1.RouteSpec{
 			Port: &routev1.RoutePort{
-				TargetPort: intstr.FromInt(defaultExposedPort),
+				TargetPort: intstr.IntOrString{IntVal: defineDataIndexHTTPPort(instance)},
 			},
 			To: routev1.RouteTargetReference{
 				Kind: meta.KindService.Name,

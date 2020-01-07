@@ -21,8 +21,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	v1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
 )
 
@@ -36,6 +39,7 @@ func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIn
 		}
 
 		replicaUpdate := ensureReplicas(instance, resources.StatefulSet)
+		portUpdate := ensureHTTPPort(instance, resources.StatefulSet, client)
 		imgUpdate := ensureImage(instance, resources.StatefulSet)
 		envUpdate := ensureEnvs(instance, resources.StatefulSet)
 		resUpdate := ensureResources(instance, resources.StatefulSet)
@@ -55,7 +59,7 @@ func ManageResources(instance *v1alpha1.KogitoDataIndex, resources *KogitoDataIn
 		if err != nil {
 			return err
 		}
-		if replicaUpdate || imgUpdate || envUpdate || resUpdate || kafkaUpdate || infinispanUpdate || volumeUpdate {
+		if replicaUpdate || portUpdate || imgUpdate || envUpdate || resUpdate || kafkaUpdate || infinispanUpdate || volumeUpdate {
 			if err := kubernetes.ResourceC(client).Update(resources.StatefulSet); err != nil {
 				return err
 			}
@@ -92,6 +96,99 @@ func ensureReplicas(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.Stat
 	}
 
 	return false
+}
+
+func ensureHTTPPort(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.StatefulSet, client *client.Client) bool {
+	hasDiff := false
+
+	if len(statefulset.Spec.Template.Spec.Containers) > 0 {
+
+		expectedPort := defineDataIndexHTTPPort(instance)
+		containerPorts := extractPortsFromDeployment(statefulset)
+
+		// ensure dataIndexEnvKeyHTTPPort
+		envMap := make(map[string]string)
+		envMap[dataIndexEnvKeyHTTPPort] = string(expectedPort)
+		for index, senv := range statefulset.Spec.Template.Spec.Containers[0].Env {
+			if len(statefulset.Spec.Template.Spec.Containers[0].Env) > 0 {
+				if senv.Name == dataIndexEnvKeyHTTPPort && senv.Value != util.FormatInt32ToString(expectedPort) {
+					log.Debugf("ENV %s has value and was manually updated, reverting it from %s to %s", dataIndexEnvKeyHTTPPort, senv.Value, expectedPort)
+					statefulset.Spec.Template.Spec.Containers[0].Env[index].Value = util.FormatInt32ToString(expectedPort)
+					hasDiff = true
+				}
+			}
+		}
+
+		// ensure data index service port and targePort
+		service := &corev1.Service{}
+		_, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, service)
+		if err != nil {
+			log.Warnf("Failed to retrieve dataindex service: %s", err.Error())
+		}
+		serviceUpdate := false
+		for index, port := range service.Spec.Ports {
+			if port.Name == "http" {
+				if port.Port != expectedPort {
+					log.Debugf("Data Index Service Port mismatch, updating from %s to %s", port.Port, expectedPort)
+					service.Spec.Ports[index].Port = expectedPort
+					serviceUpdate = true
+				}
+				if port.TargetPort != intstr.FromInt(int(expectedPort)) {
+					log.Debugf("Data Index Service TargetPort mismatch, updating from %s to %s", port.TargetPort, expectedPort)
+					service.Spec.Ports[index].TargetPort = intstr.FromInt(int(expectedPort))
+					serviceUpdate = true
+				}
+			}
+		}
+		if serviceUpdate {
+			err = kubernetes.ResourceC(client).Update(service)
+			if err != nil {
+				log.Warnf("Failed to update dataindex service %s", err.Error())
+			}
+		}
+
+		// ensure route.
+		route := &v1.Route{}
+		routeFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, route)
+		if err != nil {
+			log.Warnf("Failed to retrieve dataindex route: %s", err.Error())
+		}
+		if routeFound && route.Spec.Port.TargetPort != intstr.FromInt(int(expectedPort)) {
+			log.Debugf("Data Index Route Port.TargetPort mismatch, updating from %s to %s", route.Spec.Port.TargetPort, expectedPort)
+			route.Spec.Port.TargetPort = intstr.FromInt(int(expectedPort))
+			err = kubernetes.ResourceC(client).Update(route)
+			if err != nil {
+				log.Warnf("Failed to update dataindex route %s", err.Error())
+			}
+		}
+
+		// ensure Readiness and Liveness
+		if statefulset.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port != intstr.FromInt(int(expectedPort)) {
+			log.Debugf("LivenessProbe TCPSocket port mismatch, updating from %s to %s",
+				statefulset.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port,
+				expectedPort)
+			statefulset.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port = intstr.FromInt(int(expectedPort))
+			hasDiff = true
+		}
+		if statefulset.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port != intstr.FromInt(int(expectedPort)) {
+			log.Debugf("ReadinessProbe TCPSocket port mismatch, updating from %s to %s",
+				statefulset.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port,
+				expectedPort)
+			statefulset.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port = intstr.FromInt(int(expectedPort))
+			hasDiff = true
+		}
+
+		// ensure http port
+		for i, cport := range containerPorts {
+			if cport.Name == "http" && cport.Port != expectedPort {
+				log.Debugf("Http port changed from %i changed to %s, reverting", expectedPort, cport.Port)
+				statefulset.Spec.Template.Spec.Containers[0].Ports[i].ContainerPort = expectedPort
+				hasDiff = true
+			}
+		}
+	}
+
+	return hasDiff
 }
 
 func ensureImage(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.StatefulSet) bool {

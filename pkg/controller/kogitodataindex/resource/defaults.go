@@ -37,6 +37,7 @@ const (
 
 // Collection of Infinispan/Kafka Environment Variables that need to be set in the Data Index image
 const (
+	dataIndexEnvKeyHTTPPort    string = "KOGITO_DATA_INDEX_HTTP_PORT"
 	infinispanEnvKeyUsername   string = "INFINISPAN_USERNAME"
 	infinispanEnvKeyPassword   string = "INFINISPAN_PASSWORD"
 	infinispanEnvKeyUseAuth    string = "INFINISPAN_USEAUTH"

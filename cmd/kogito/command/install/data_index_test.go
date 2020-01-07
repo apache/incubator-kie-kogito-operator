@@ -50,6 +50,20 @@ func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
 	assert.Contains(t, lines, "Infinispan Operator is not available in the Project")
 }
 
+func Test_DeployDataIndexCmd_CustomHTTPPort(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --http-port 9090 --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
+
+}
+
 func Test_DeployDataIndexCmd_SuccessfullDeployWithoutKafkaURI(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-instance my-cluster", ns)

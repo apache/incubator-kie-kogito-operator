@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	v1 "github.com/openshift/api/route/v1"
 	"time"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -86,6 +87,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	watchOwnedObjects := []runtime.Object{
 		&corev1.Service{},
 		&appsv1.StatefulSet{},
+		&v1.Route{},
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
