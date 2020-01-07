@@ -16,12 +16,13 @@ package client
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"strings"
 
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	coreappsv1 "k8s.io/api/apps/v1"
@@ -45,6 +46,7 @@ import (
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 )
 
@@ -205,6 +207,8 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(ocroutev1.SchemeGroupVersion.WithKind(meta.KindRoute.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(olmapiv1.SchemeGroupVersion.WithKind(meta.KindOperatorGroup.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(olmapiv1alpha1.SchemeGroupVersion.WithKind(meta.KindSubscription.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(monv1.SchemeGroupVersion.WithKind(meta.KindPrometheus.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindPod.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
