@@ -87,6 +87,8 @@ tags
 
 ### Eclipse ###
 .project
+.settings
+.classpath
 
 # vendor exceptions
 !vendor/**

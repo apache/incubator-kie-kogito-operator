@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
@@ -142,8 +143,8 @@ func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, installed)
 	// Operator is now in the hub, but no pods are running because this is a controlled test environment
-	exist, err := checkKogitoOperatorExists(client, ns)
+	exist, err := infrastructure.CheckKogitoOperatorExists(client, ns)
 	assert.Error(t, err)
 	assert.True(t, exist)
-	assert.Contains(t, err.Error(), "Kogito Operator seems to be created in the namespace")
+	assert.Contains(t, err.Error(), "kogito-operator Operator seems to be created in the namespace")
 }

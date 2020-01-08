@@ -16,15 +16,19 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
 
 	runtimecli "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // ResourceInterface has functions that interacts with any resource object in the Kubernetes cluster
@@ -47,6 +51,8 @@ type ResourceInterface interface {
 	UpdateStatus(resource meta.ResourceObject) error
 	// Update the given object
 	Update(resource meta.ResourceObject) error
+	// CreateFromYamlContent creates Kubernetes resources from a yaml string content
+	CreateFromYamlContent(yamlContent, namespace string, resourceRef meta.ResourceObject, beforeCreate func(object interface{})) error
 }
 
 type resource struct {
@@ -127,6 +133,30 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 	}
 	log.Debug("Skip creating - object already exists")
 	return false, nil
+}
+
+func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, resourceRef meta.ResourceObject, beforeCreate func(object interface{})) error {
+	docs := strings.Split(yamlFileContent, "---")
+	for _, doc := range docs {
+		if err := yaml.NewYAMLOrJSONDecoder(strings.NewReader(doc), len([]byte(doc))).Decode(resourceRef); err != nil {
+			return fmt.Errorf("Error while unmarshalling file: %v ", err)
+		}
+
+		if namespace != "" {
+			resourceRef.SetNamespace(namespace)
+		}
+		resourceRef.SetResourceVersion("")
+		resourceRef.SetLabels(map[string]string{"app": operator.Name})
+
+		log.Debugf("Will create a new resource '%s' with name %s on %s ", resourceRef.GetObjectKind().GroupVersionKind().Kind, resourceRef.GetName(), resourceRef.GetNamespace())
+		if beforeCreate != nil {
+			beforeCreate(resourceRef)
+		}
+		if _, err := r.CreateIfNotExists(resourceRef); err != nil {
+			return fmt.Errorf("Error creating object %s: %v ", resourceRef.GetName(), err)
+		}
+	}
+	return nil
 }
 
 func (r *resource) ListWithNamespace(namespace string, list runtime.Object) error {

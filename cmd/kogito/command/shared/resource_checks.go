@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
-	v1 "k8s.io/api/apps/v1"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -65,28 +63,6 @@ func CheckProjectExists(kubeCli *client.Client, namespace string) error {
 	}
 	log.Debugf("Namespace '%s' exists", namespace)
 	return nil
-}
-
-func checkKogitoOperatorExists(kubeCli *client.Client, namespace string) (bool, error) {
-	log.Debug("Checking if Kogito Operator is deployed")
-	operatorDeployment := &v1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      operator.Name,
-			Namespace: namespace,
-		},
-	}
-
-	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(operatorDeployment); err != nil {
-		return false, fmt.Errorf("Error while trying to look for Kogito Operator installation: %s ", err)
-	} else if !exists {
-		return false, nil
-	}
-
-	if operatorDeployment.Status.AvailableReplicas == 0 {
-		return true, fmt.Errorf("Kogito Operator seems to be created in the namespace '%s', but there's no available pods replicas deployed ", namespace)
-	}
-
-	return true, nil
 }
 
 // CheckKogitoAppNotExists returns an error if the KogitoApp exists

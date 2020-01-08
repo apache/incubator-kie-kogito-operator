@@ -40,6 +40,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
+	ocappsv1 "github.com/openshift/api/apps/v1"
+	ocroutev1 "github.com/openshift/api/route/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 
@@ -68,18 +70,9 @@ type Client struct {
 
 // NewForConsole will create a brand new client using the local machine
 func NewForConsole() *Client {
-	client := &Client{}
-	config, err := buildKubeConnectionConfig()
+	client, err := NewClientBuilder().WithDiscoveryClient().Build()
 	if err != nil {
-		panic(fmt.Sprintf("Impossible to get Kubernetes local configuration: %v", err))
-	}
-	client.ControlCli, err = newKubeClient(config)
-	if err != nil {
-		panic(fmt.Sprintf("Impossible to create new Kubernetes client: %v", err))
-	}
-	client.Discovery, err = discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		panic(fmt.Sprintf("Impossible to create new Discovery client: %v", err))
+		panic(err)
 	}
 	return client
 }
@@ -95,35 +88,11 @@ func WrapperForManager(mgr manager.Manager) *Client {
 // NewForController creates a new client based on the rest config and the controller client created by Operator SDK
 // Panic if something goes wrong
 func NewForController(config *restclient.Config, client controllercli.Client) *Client {
-	imageClient, err := imagev1.NewForConfig(config)
+	newClient, err := NewClientBuilder().WithAllClients().UseConfig(config).UseControllerClient(client).Build()
 	if err != nil {
-		panic(fmt.Sprintf("Error getting image client: %v", err))
+		panic(err)
 	}
-	buildClient, err := buildv1.NewForConfig(config)
-	if err != nil {
-		panic(fmt.Sprintf("Error getting build client: %v", err))
-	}
-	monClient, err := monclientv1.NewForConfig(config)
-	if err != nil {
-		panic(fmt.Sprintf("Error getting prometheus client: %v", err))
-	}
-	discover, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		panic(fmt.Sprintf("Error getting discovery client: %v", err))
-	}
-	dcClient, err := appsv1.NewForConfig(config)
-	if err != nil {
-		panic(fmt.Sprintf("Error getting deployment config client: %v", err))
-	}
-
-	return &Client{
-		ControlCli:    client,
-		BuildCli:      buildClient,
-		ImageCli:      imageClient,
-		PrometheusCli: monClient,
-		Discovery:     discover,
-		DeploymentCli: dcClient,
-	}
+	return newClient
 }
 
 // IsOpenshift detects if the application is running on OpenShift or not
@@ -231,6 +200,8 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRole.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRoleBinding.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(operatormkt.SchemeGroupVersion.WithKind(meta.KindOperatorSource.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(ocappsv1.SchemeGroupVersion.WithKind(meta.KindDeploymentConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(ocroutev1.SchemeGroupVersion.WithKind(meta.KindRoute.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(olmapiv1.SchemeGroupVersion.WithKind(meta.KindOperatorGroup.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(olmapiv1alpha1.SchemeGroupVersion.WithKind(meta.KindSubscription.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 

@@ -145,7 +145,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 
 func (b *buildConfig) checkBuildConfigExists(bc *buildv1.BuildConfig) (bool, error) {
 	if _, err := b.client.BuildCli.BuildConfigs(bc.Namespace).Get(bc.Name, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
-		log.Warnf("BuildConfig not found in namespace")
+		log.Warnf("BuildConfig not found in namespace %s", bc.Namespace)
 		return false, nil
 	} else if err != nil {
 		return false, err
