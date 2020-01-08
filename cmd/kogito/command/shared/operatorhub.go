@@ -16,15 +16,17 @@ package shared
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	"github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 const (
@@ -69,18 +71,12 @@ func installOperatorWithOperatorHub(namespace string, cli *client.Client) error 
 		return err
 	}
 
-	subs := &olmapiv1alpha1.SubscriptionList{}
-	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, subs); err != nil {
+	if sub, err := framework.GetSubscription(cli, namespace, defaultOperatorPackageName, communityOperatorSource); err != nil {
 		return err
-	}
-
-	for _, sub := range subs.Items {
-		if sub.Spec.Package == defaultOperatorPackageName &&
-			sub.Spec.CatalogSource == communityOperatorSource {
-			log.Warnf("Found subscription %s with package %s and catalog source %s. Won't create a new one",
-				sub.Name, sub.Spec.Package, sub.Spec.CatalogSource)
-			return nil
-		}
+	} else if sub != nil {
+		log.Warnf("Found subscription %s with package %s and catalog source %s. Won't create a new one",
+			sub.Name, sub.Spec.Package, sub.Spec.CatalogSource)
+		return nil
 	}
 
 	subscription := &olmapiv1alpha1.Subscription{

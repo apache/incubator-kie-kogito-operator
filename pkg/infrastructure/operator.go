@@ -19,6 +19,7 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
 
 	v1 "k8s.io/api/apps/v1"
@@ -31,7 +32,7 @@ func CheckKogitoOperatorExists(kubeCli *client.Client, namespace string) (bool, 
 	return CheckOperatorExists(kubeCli, namespace, operator.Name)
 }
 
-// CheckOperatorExists checks whether operator is existing and running.
+// CheckOperatorExists checks whether operator is existing and running. It expects that deployment name is equal to operator name.
 // If it is existing but not running, it returns true and an error
 func CheckOperatorExists(kubeCli *client.Client, namespace, operatorName string) (bool, error) {
 	log.Debugf("Checking if %s Operator is deployed in namespace %s", operatorName, namespace)
@@ -52,5 +53,39 @@ func CheckOperatorExists(kubeCli *client.Client, namespace, operatorName string)
 		return true, fmt.Errorf("%s Operator seems to be created in the namespace '%s', but there's no available pods replicas deployed ", operatorName, namespace)
 	}
 
+	return true, nil
+}
+
+// CheckOperatorExistsUsingSubscription checks whether operator is existing and running. For this check informations from subscription are used.
+// If it is existing but not running, it returns true and an error
+func CheckOperatorExistsUsingSubscription(kubeCli *client.Client, namespace, operatorPackageName, operatorSource string) (bool, error) {
+	log.Debugf("Checking if Operator with %s Subscription is deployed in namespace %s", operatorPackageName, namespace)
+
+	subscription, err := framework.GetSubscription(kubeCli, namespace, operatorPackageName, operatorSource)
+	if err != nil {
+		return false, err
+	} else if subscription == nil {
+		return false, nil
+	}
+	log.Debugf("Found subscription %s", operatorPackageName)
+
+	subscriptionCsv := subscription.Status.CurrentCSV
+	if subscriptionCsv == "" {
+		// Subscription doesn't contain current CSV yet, operator is still being installed.
+		log.Debugf("Subscription %s doesn't contain current CSV yet.", operatorPackageName)
+		return false, nil
+	}
+	log.Debugf("Found Subscription current CSV %s", subscriptionCsv)
+
+	operatorDeployments := &v1.DeploymentList{}
+	if err := kubernetes.ResourceC(kubeCli).ListWithNamespaceAndLabel(namespace, operatorDeployments, map[string]string{"olm.owner.kind": "ClusterServiceVersion", "olm.owner": subscriptionCsv}); err != nil {
+		return false, fmt.Errorf("Error while trying to fetch DC with label olm.owner: '%s' Operator installation: %s ", subscriptionCsv, err)
+	}
+
+	if len(operatorDeployments.Items) == 0 {
+		return false, nil
+	} else if len(operatorDeployments.Items) == 1 && operatorDeployments.Items[0].Status.AvailableReplicas == 0 {
+		return true, fmt.Errorf("Operator based on Subscription '%s' seems to be created in the namespace '%s', but there's no available pods replicas deployed ", operatorPackageName, namespace)
+	}
 	return true, nil
 }
