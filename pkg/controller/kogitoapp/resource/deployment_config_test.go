@@ -15,14 +15,13 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-
 	dockerv10 "github.com/openshift/api/image/docker10"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,11 +48,11 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 			Labels: map[string]string{
 				// notice the semicolon
 				openshift.ImageLabelForExposeServices: "8080:http,8181;https",
-				resource.LabelKeyOrgKie + "operator":  "kogito",
-				resource.LabelPrometheusPath:          "/metrics",
-				resource.LabelPrometheusPort:          "8080",
-				resource.LabelPrometheusScheme:        "http",
-				resource.LabelPrometheusScrape:        "true",
+				framework.LabelKeyOrgKie + "operator": "kogito",
+				framework.LabelPrometheusPath:         "/metrics",
+				framework.LabelPrometheusPort:         "8080",
+				framework.LabelPrometheusScheme:       "http",
+				framework.LabelPrometheusScrape:       "true",
 			},
 		},
 	}
@@ -68,10 +67,10 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 	// this one where added by the docker image :)
 	assert.Equal(t, "kogito", dc.Labels["operator"])
 	// prometheus labels
-	assert.Equal(t, "/metrics", dc.Spec.Template.Annotations[resource.LabelPrometheusPath])
-	assert.Equal(t, "8080", dc.Spec.Template.Annotations[resource.LabelPrometheusPort])
-	assert.Equal(t, "http", dc.Spec.Template.Annotations[resource.LabelPrometheusScheme])
-	assert.Equal(t, "true", dc.Spec.Template.Annotations[resource.LabelPrometheusScrape])
+	assert.Equal(t, "/metrics", dc.Spec.Template.Annotations[framework.LabelPrometheusPath])
+	assert.Equal(t, "8080", dc.Spec.Template.Annotations[framework.LabelPrometheusPort])
+	assert.Equal(t, "http", dc.Spec.Template.Annotations[framework.LabelPrometheusScheme])
+	assert.Equal(t, "true", dc.Spec.Template.Annotations[framework.LabelPrometheusScrape])
 }
 
 func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {

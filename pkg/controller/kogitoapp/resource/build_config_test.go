@@ -72,11 +72,11 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 					URI:        &uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
-				ImageS2I: v1alpha1.Image{
+				ImageS2I: v1alpha1.ImageStream{
 					ImageStreamTag:       "latest",
 					ImageStreamNamespace: "openshift",
 				},
-				ImageRuntime: v1alpha1.Image{
+				ImageRuntime: v1alpha1.ImageStream{
 					ImageStreamName:      "my-image",
 					ImageStreamNamespace: "openshift",
 				},
@@ -134,7 +134,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 
 func Test_parseImage(t *testing.T) {
 	type args struct {
-		image *v1alpha1.Image
+		image *v1alpha1.ImageStream
 	}
 	tests := []struct {
 		name  string
@@ -144,7 +144,7 @@ func Test_parseImage(t *testing.T) {
 	}{
 		{"testParseImage",
 			args{
-				image: &v1alpha1.Image{
+				image: &v1alpha1.ImageStream{
 					ImageStreamName:      "testImage",
 					ImageStreamTag:       "vTest",
 					ImageStreamNamespace: "testNamespace",

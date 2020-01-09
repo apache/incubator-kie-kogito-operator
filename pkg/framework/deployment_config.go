@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package framework
 
 import (
 	v1 "github.com/openshift/api/apps/v1"

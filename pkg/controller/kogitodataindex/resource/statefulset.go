@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
@@ -35,7 +36,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 	removeManagedEnvVars(instance)
 	// from cr
 	envs := instance.Spec.Env
-	envs = util.AppendStringMap(envs, fromInfinispanToStringMap(instance.Spec.Infinispan))
+	//envs = util.AppendStringMap(envs, infrastructure.FromInfinispanToStringMap(instance.Spec.InfinispanProperties))
 	envs = util.AppendStringMap(envs, fromKafkaToStringMap(externalURI))
 
 	if instance.Spec.Replicas == 0 {
@@ -62,7 +63,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 						{
 							Name:            instance.Name,
 							Image:           instance.Spec.Image,
-							Env:             util.FromMapToEnvVar(envs),
+							Env:             framework.MapToEnvVar(envs),
 							Resources:       extractResources(instance),
 							ImagePullPolicy: corev1.PullAlways,
 							Ports: []corev1.ContainerPort{
@@ -84,7 +85,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 	if err := mountProtoBufConfigMaps(statefulset, cli); err != nil {
 		return nil, err
 	}
-	setInfinispanCredentialsSecret(instance.Spec.Infinispan, secret, &statefulset.Spec.Template.Spec.Containers[0])
+	infrastructure.SetInfinispanVariables(instance.Spec.InfinispanProperties, secret, &statefulset.Spec.Template.Spec.Containers[0])
 	meta.SetGroupVersionKind(&statefulset.TypeMeta, meta.KindStatefulSet)
 	addDefaultMetadata(&statefulset.ObjectMeta, instance)
 	addDefaultMetadata(&statefulset.Spec.Template.ObjectMeta, instance)
@@ -117,11 +118,11 @@ func mountProtoBufConfigMaps(statefulset *appsv1.StatefulSet, cli *client.Client
 	}
 	if len(statefulset.Spec.Template.Spec.Volumes) > 0 {
 		for k, v := range protoBufEnvs {
-			util.SetEnvVar(k, v, &statefulset.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVar(k, v, &statefulset.Spec.Template.Spec.Containers[0])
 		}
 	} else {
 		for _, v := range protoBufKeys {
-			util.SetEnvVar(v, "", &statefulset.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVar(v, "", &statefulset.Spec.Template.Spec.Containers[0])
 		}
 	}
 

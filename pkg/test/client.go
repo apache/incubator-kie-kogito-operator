@@ -30,8 +30,18 @@ import (
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
 )
 
-// CreateFakeClient will create a fake client for mock test
+// CreateFakeClient will create a fake client for mock test on Kubernetes env, use cases that depends on OpenShift should use CreateFakeClientOnOpenShift
 func CreateFakeClient(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
+	return CreateFakeClientWithDisco(objects, imageObjs, buildObjs, false)
+}
+
+// CreateFakeClientOnOpenShift same as CreateFakeClientWithDisco setting openshift flag to true
+func CreateFakeClientOnOpenShift(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
+	return CreateFakeClientWithDisco(objects, imageObjs, buildObjs, true)
+}
+
+// CreateFakeClientWithDisco controls if the Discovery API should return true for `IsOpenShift` calls
+func CreateFakeClientWithDisco(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object, openshift bool) *client.Client {
 	// Create a fake client to mock API calls.
 	cli := fake.NewFakeClientWithScheme(meta.GetRegisteredSchema(), objects...)
 	// OpenShift Image Client Fake with image tag defined and image built
@@ -44,13 +54,13 @@ func CreateFakeClient(objects []runtime.Object, imageObjs []runtime.Object, buil
 		BuildCli:      buildcli,
 		ImageCli:      imgcli,
 		PrometheusCli: monfake.NewSimpleClientset().MonitoringV1(),
-		Discovery:     CreateFakeDiscoveryClient(),
+		Discovery:     CreateFakeDiscoveryClient(openshift),
 	}
 }
 
 // CreateFakeDiscoveryClient creates a fake discovery client that supports prometheus, infinispan, strimzi api
-func CreateFakeDiscoveryClient() discovery.DiscoveryInterface {
-	return &discfake.FakeDiscovery{
+func CreateFakeDiscoveryClient(openshift bool) discovery.DiscoveryInterface {
+	disco := &discfake.FakeDiscovery{
 		Fake: &clienttesting.Fake{
 			Resources: []*metav1.APIResourceList{
 				{
@@ -65,4 +75,8 @@ func CreateFakeDiscoveryClient() discovery.DiscoveryInterface {
 			},
 		},
 	}
+	if openshift {
+		disco.Fake.Resources = append(disco.Fake.Resources, &metav1.APIResourceList{GroupVersion: "openshift.io/v1"})
+	}
+	return disco
 }

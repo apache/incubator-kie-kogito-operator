@@ -18,8 +18,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	routev1 "github.com/openshift/api/route/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -50,7 +51,7 @@ type KogitoDataIndexResourcesStatus struct {
 }
 
 type kogitoDataIndexResourcesFactory struct {
-	resource.Factory
+	framework.Factory
 	Resources       *KogitoDataIndexResources
 	KogitoDataIndex *v1alpha1.KogitoDataIndex
 }
@@ -73,9 +74,9 @@ func (f *kogitoDataIndexResourcesFactory) buildOnOpenshift(fn func(*kogitoDataIn
 }
 
 // CreateOrFetchResources will create the needed resources in the cluster if they not exists, fetch otherwise
-func CreateOrFetchResources(instance *v1alpha1.KogitoDataIndex, context resource.FactoryContext) (KogitoDataIndexResources, error) {
+func CreateOrFetchResources(instance *v1alpha1.KogitoDataIndex, context framework.FactoryContext) (KogitoDataIndexResources, error) {
 	factory := kogitoDataIndexResourcesFactory{
-		Factory:         resource.Factory{Context: &context},
+		Factory:         framework.Factory{Context: &context},
 		Resources:       &KogitoDataIndexResources{},
 		KogitoDataIndex: instance,
 	}
@@ -90,7 +91,7 @@ func CreateOrFetchResources(instance *v1alpha1.KogitoDataIndex, context resource
 }
 
 func createStatefulSet(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
-	secret, err := fetchInfinispanCredentials(f.KogitoDataIndex, f.Context.Client)
+	secret, err := infrastructure.FetchInfinispanCredentials(&f.KogitoDataIndex.Spec, f.KogitoDataIndex.Namespace, f.Context.Client)
 	if err != nil {
 		f.Error = err
 		return f

@@ -2,7 +2,7 @@ module github.com/kiegroup/kogito-cloud-operator
 
 require (
 	github.com/DATA-DOG/godog v0.7.13
-	github.com/RHsyseng/operator-utils v0.0.0-20191024171429-aada4a416142
+	github.com/RHsyseng/operator-utils v0.0.0-20200107012339-36cb05326a3c
 	github.com/coreos/prometheus-operator v0.33.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0

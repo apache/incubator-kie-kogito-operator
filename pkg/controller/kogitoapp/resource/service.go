@@ -17,7 +17,7 @@ package resource
 import (
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"strings"
 
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -90,7 +90,7 @@ func importPrometheusAnnotations(deploymentConfig *appsv1.DeploymentConfig, serv
 
 	present := true
 	for key, value := range deploymentConfig.Spec.Template.Annotations {
-		if strings.Contains(key, resource.LabelKeyPrometheus) {
+		if strings.Contains(key, framework.LabelKeyPrometheus) {
 			if present {
 				_, present = service.Annotations[key]
 			}

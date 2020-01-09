@@ -15,6 +15,7 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"reflect"
 	"testing"
 
@@ -22,7 +23,6 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	dockerv10 "github.com/openshift/api/image/docker10"
@@ -63,10 +63,10 @@ func TestNewServiceMonitor(t *testing.T) {
 				&dockerv10.DockerImage{
 					Config: &dockerv10.DockerConfig{
 						Labels: map[string]string{
-							resource.LabelPrometheusScrape: "true",
-							resource.LabelPrometheusPath:   "/ms",
-							resource.LabelPrometheusPort:   "8080",
-							resource.LabelPrometheusScheme: "https",
+							framework.LabelPrometheusScrape: "true",
+							framework.LabelPrometheusPath:   "/ms",
+							framework.LabelPrometheusPort:   "8080",
+							framework.LabelPrometheusScheme: "https",
 						},
 					},
 				},
@@ -79,7 +79,7 @@ func TestNewServiceMonitor(t *testing.T) {
 				},
 				&client.Client{
 					ControlCli: fake.NewFakeClient(),
-					Discovery:  test.CreateFakeDiscoveryClient(),
+					Discovery:  test.CreateFakeDiscoveryClient(false),
 				},
 			},
 			&monv1.ServiceMonitor{
@@ -130,7 +130,7 @@ func TestNewServiceMonitor(t *testing.T) {
 				&dockerv10.DockerImage{
 					Config: &dockerv10.DockerConfig{
 						Labels: map[string]string{
-							resource.LabelPrometheusScrape: "true",
+							framework.LabelPrometheusScrape: "true",
 						},
 					},
 				},
@@ -143,7 +143,7 @@ func TestNewServiceMonitor(t *testing.T) {
 				},
 				&client.Client{
 					ControlCli: fake.NewFakeClient(),
-					Discovery:  test.CreateFakeDiscoveryClient(),
+					Discovery:  test.CreateFakeDiscoveryClient(false),
 				},
 			},
 			&monv1.ServiceMonitor{
@@ -210,7 +210,7 @@ func Test_isPrometheusOperatorReady(t *testing.T) {
 			args{
 				&client.Client{
 					ControlCli: fake.NewFakeClient(),
-					Discovery:  test.CreateFakeDiscoveryClient(),
+					Discovery:  test.CreateFakeDiscoveryClient(false),
 				},
 			},
 			true,

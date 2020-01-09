@@ -41,29 +41,29 @@ const (
 )
 
 // BuildImageStreams are the image streams needed to perform the initial builds
-var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
+var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.ImageStream{
 	BuildTypeS2I: {
-		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
+		v1alpha1.QuarkusRuntimeType: v1alpha1.ImageStream{
 			ImageStreamName: KogitoQuarkusUbi8s2iImage,
 			ImageStreamTag:  ImageStreamTag,
 		},
-		v1alpha1.SpringbootRuntimeType: v1alpha1.Image{
+		v1alpha1.SpringbootRuntimeType: v1alpha1.ImageStream{
 			ImageStreamName: KogitoSpringbootUbi8s2iImage,
 			ImageStreamTag:  ImageStreamTag,
 		},
 	},
 	BuildTypeRuntime: {
-		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
+		v1alpha1.QuarkusRuntimeType: v1alpha1.ImageStream{
 			ImageStreamName: KogitoQuarkusUbi8Image,
 			ImageStreamTag:  ImageStreamTag,
 		},
-		v1alpha1.SpringbootRuntimeType: v1alpha1.Image{
+		v1alpha1.SpringbootRuntimeType: v1alpha1.ImageStream{
 			ImageStreamName: KogitoSpringbootUbi8Image,
 			ImageStreamTag:  ImageStreamTag,
 		},
 	},
 	BuildTypeRuntimeJvm: {
-		v1alpha1.QuarkusRuntimeType: v1alpha1.Image{
+		v1alpha1.QuarkusRuntimeType: v1alpha1.ImageStream{
 			ImageStreamName: KogitoQuarkusJVMUbi8Image,
 			ImageStreamTag:  ImageStreamTag,
 		},
@@ -71,7 +71,7 @@ var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.Image{
 }
 
 // ensureImageBuild will check the build image parameters for emptiness and fill then with default values
-func ensureImageBuild(image v1alpha1.Image, defaultImage v1alpha1.Image) v1alpha1.Image {
+func ensureImageBuild(image v1alpha1.ImageStream, defaultImage v1alpha1.ImageStream) v1alpha1.ImageStream {
 	if &image != nil {
 		if len(image.ImageStreamTag) == 0 {
 			image.ImageStreamTag = defaultImage.ImageStreamTag
@@ -87,6 +87,6 @@ func ensureImageBuild(image v1alpha1.Image, defaultImage v1alpha1.Image) v1alpha
 	return defaultImage
 }
 
-func parseImage(image *v1alpha1.Image) (string, string) {
+func parseImage(image *v1alpha1.ImageStream) (string, string) {
 	return fmt.Sprintf("%s:%s", image.ImageStreamName, image.ImageStreamTag), image.ImageStreamNamespace
 }

@@ -6,6 +6,21 @@ metadata:
       [
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoApp",
+          "metadata": {
+            "name": "example-quarkus"
+          },
+          "spec": {
+            "build": {
+              "gitSource": {
+                "contextDir": "jbpm-quarkus-example",
+                "uri": "https://github.com/kiegroup/kogito-examples"
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoDataIndex",
           "metadata": {
             "name": "kogito-data-index"
@@ -38,17 +53,12 @@ metadata:
         },
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
-          "kind": "KogitoApp",
+          "kind": "KogitoJobsService",
           "metadata": {
-            "name": "example-quarkus"
+            "name": "jobs-service"
           },
           "spec": {
-            "build": {
-              "gitSource": {
-                "contextDir": "jbpm-quarkus-example",
-                "uri": "https://github.com/kiegroup/kogito-examples"
-              }
-            }
+            "replicas": 1
           }
         }
       ]
@@ -142,9 +152,6 @@ spec:
       - kind: Route
         name: ""
         version: route.openshift.io/v1
-      - kind: ConfigMap
-        name: ""
-        version: v1
       specDescriptors:
       - description: The number of pod replicas that the Data Index Service will spin
         displayName: Replicas
@@ -158,7 +165,7 @@ spec:
         - urn:alm:descriptor:io.kubernetes:image
       - description: The Infinispan Service URI used by the Data Index Service
         displayName: Infinispan Service URI
-        path: infinispan.serviceURI
+        path: infinispan.uri
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:service
       - description: The Kafka Cluster Service URI used by the Data Index Service
@@ -227,6 +234,67 @@ spec:
       - description: Kafka Service Name
         displayName: Kafka Service
         path: kafka.service
+      version: v1alpha1
+    - description: The Kogito Jobs Service infrastructure deployment
+      kind: KogitoJobsService
+      name: kogitojobsservices.app.kiegroup.org
+      resources:
+      - kind: Deployment
+        name: ""
+        version: v1
+      - kind: Service
+        name: ""
+        version: v1
+      - kind: Route
+        name: ""
+        version: route.openshift.io/v1
+      - kind: ImageStream
+        name: ""
+        version: image.openshift.io/v1
+      specDescriptors:
+      - description: The number of pod replicas that the Jobs Service will spin
+        displayName: Replicas
+        path: replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+      - description: The Infinispan URI used by the Jobs Service
+        displayName: Infinispan URI
+        path: infinispan.uri
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:service
+      - description: Resource requirements for Jobs Service
+        displayName: Resource requirements
+        path: resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      - description: Retry backoff time in milliseconds between the job execution
+          attempts, in case of execution failure.
+        displayName: Retry backoff time
+        path: backOffRetryMillis
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:label
+      - description: Maximum interval in milliseconds when retrying to execute jobs,
+          in case of failures.
+        displayName: Maximum interval limit
+        path: maxIntervalLimitToRetryMillis
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:label
+      statusDescriptors:
+      - description: The address for accessing the service, if it is deployed
+        displayName: Route
+        path: externalURI
+        x-descriptors:
+        - urn:alm:descriptor:org.w3:link
+      - description: Resolved image name used by the service
+        displayName: Image
+        path: image
+        x-descriptors:
+        - urn:alm:descriptor:text
+      - description: General Conditions of the service
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1alpha1
     required:
     - description: Represents a Infinispan cluster used internally by Kogito Data
@@ -360,6 +428,12 @@ spec:
           - deployments/finalizers
           verbs:
           - update
+        - apiGroups:
+          - app.kiegroup.org
+          resources:
+          - '*'
+          verbs:
+          - '*'
         serviceAccountName: kogito-operator
       - rules:
         - apiGroups:

@@ -26,5 +26,6 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []co
 		installCmd,
 		newInstallKogitoOperatorCommand(ctx, installCmd.Command()),
 		newInstallDataIndexCommand(ctx, installCmd.Command()),
+		newInstallJobsServiceCommand(ctx, installCmd.Command()),
 	}
 }

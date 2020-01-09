@@ -31,15 +31,11 @@ import (
 
 const (
 	// InstanceName is the default name for the Infinispan provisioned instance
-	InstanceName = "kogito-infinispan"
-	// SecretUsernameKey is the secret username key set in the linked secret
-	SecretUsernameKey = "username"
-	// SecretPasswordKey is the secret password key set in the linked secret
-	SecretPasswordKey = "password"
-	secretName        = "kogito-infinispan-credential"
-	identityFileName  = "identities.yaml"
-	annotationKeyMD5  = "org.kie.kogito/infraInfinispanCredentialsFileHash"
-	replicasSize      = 1
+	InstanceName     = "kogito-infinispan"
+	secretName       = "kogito-infinispan-credential"
+	identityFileName = "identities.yaml"
+	annotationKeyMD5 = "org.kie.kogito/infraInfinispanCredentialsFileHash"
+	replicasSize     = 1
 )
 
 var log = logger.GetLogger("kogitoinfra_resource")
@@ -165,8 +161,8 @@ func newInfinispanLinkedSecret(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Cl
 		},
 		Type: v1.SecretTypeOpaque,
 		StringData: map[string]string{
-			SecretUsernameKey: credentials.Username,
-			SecretPasswordKey: credentials.Password,
+			infrastructure.InfinispanSecretUsernameKey: credentials.Username,
+			infrastructure.InfinispanSecretPasswordKey: credentials.Password,
 		},
 	}
 	return secret, nil

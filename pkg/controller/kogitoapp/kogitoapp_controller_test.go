@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	utilres "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"reflect"
 	"testing"
 	"time"
@@ -80,10 +80,10 @@ func createFakeKogitoApp() *v1alpha1.KogitoApp {
 	gitURL := "https://github.com/kiegroup/kogito-examples/"
 	kogitoapp := &cr
 	kogitoapp.Spec.Build = &v1alpha1.KogitoAppBuildObject{
-		ImageS2I: v1alpha1.Image{
+		ImageS2I: v1alpha1.ImageStream{
 			ImageStreamTag: "0.4.0",
 		},
-		ImageRuntime: v1alpha1.Image{
+		ImageRuntime: v1alpha1.ImageStream{
 			ImageStreamTag: "0.4.0",
 		},
 		GitSource: &v1alpha1.GitSource{
@@ -279,9 +279,11 @@ func TestReconcileKogitoApp_updateKogitoAppStatus(t *testing.T) {
 			},
 		},
 		Route: "http://localhost",
-		Conditions: []v1alpha1.Condition{
-			{
-				Type: v1alpha1.DeployedConditionType,
+		ConditionsMeta: v1alpha1.ConditionsMeta{
+			Conditions: []v1alpha1.Condition{
+				{
+					Type: v1alpha1.DeployedConditionType,
+				},
 			},
 		},
 	}
@@ -486,7 +488,7 @@ func TestReconcileKogitoApp_updateKogitoAppStatus(t *testing.T) {
 
 func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 	kogitoApp := createFakeKogitoApp()
-	imgs := createFakeImages(kogitoApp.Name, map[string]string{utilres.LabelKeyOrgKiePersistenceRequired: "true"})
+	imgs := createFakeImages(kogitoApp.Name, map[string]string{framework.LabelKeyOrgKiePersistenceRequired: "true"})
 	kogitoApp.Spec.Infra = v1alpha1.KogitoAppInfra{}
 	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp}, imgs, nil)
 	fakeCache := &cachev1.FakeInformers{}

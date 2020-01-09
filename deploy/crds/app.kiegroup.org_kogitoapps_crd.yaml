@@ -308,9 +308,9 @@ spec:
                   type: array
               type: object
             conditions:
-              description: History of conditions for the service
+              description: History of conditions for the resource
               items:
-                description: Condition is the condition for the kogito-operator
+                description: Condition is the detailed condition for the resource
                 properties:
                   lastTransitionTime:
                     format: date-time

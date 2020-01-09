@@ -15,6 +15,9 @@
 package shared
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"regexp"
 	"strings"
 
@@ -23,7 +26,7 @@ import (
 )
 
 const (
-	dockerTagRegx = `(?P<namespace>.+/)?(?P<image>[^:]+)(?P<tag>:.+)?`
+	dockerTagRegx = `(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/)?(?P<namespace>.+/)?(?P<image>[^:]+)(?P<tag>:.+)?`
 )
 
 var (
@@ -31,24 +34,53 @@ var (
 	DockerTagRegxCompiled = *regexp.MustCompile(dockerTagRegx)
 )
 
-// FromStringToImage converts a plain string into an image. For example, see https://regex101.com/r/jl7MPD/2.
-func FromStringToImage(imagetag string) v1alpha1.Image {
-	image := v1alpha1.Image{}
-	if len(imagetag) > 0 {
-		if strings.HasPrefix(imagetag, ":") {
-			image.ImageStreamTag = strings.Split(imagetag, ":")[1]
-			return image
+// FromStringToImageStream converts a plain string into an ImageStream (ignores domain). For example, see https://regex101.com/r/1YX9rh/1.
+func FromStringToImageStream(imageTag string) v1alpha1.ImageStream {
+	_, ns, name, tag := fromStringToImageArray(imageTag)
+	image := v1alpha1.ImageStream{
+		ImageStreamName:      name,
+		ImageStreamTag:       tag,
+		ImageStreamNamespace: ns,
+	}
+
+	return image
+}
+
+// FromStringToImage converts a plain string into an Image. For example, see https://regex101.com/r/1YX9rh/1.
+func FromStringToImage(imageTag string) v1alpha1.Image {
+	domain, ns, name, tag := fromStringToImageArray(imageTag)
+	image := v1alpha1.Image{
+		Domain:    domain,
+		Namespace: ns,
+		Name:      name,
+		Tag:       tag,
+	}
+
+	return image
+}
+
+func fromStringToImageArray(imageTag string) (domain, namespace, name, tag string) {
+	domain = ""
+	namespace = ""
+	name = ""
+	tag = ""
+	if len(imageTag) > 0 {
+		if strings.HasPrefix(imageTag, ":") {
+			tag = strings.Split(imageTag, ":")[1]
+			return
 		}
 
-		imageMatch := DockerTagRegxCompiled.FindStringSubmatch(imagetag)
+		imageMatch := DockerTagRegxCompiled.FindStringSubmatch(imageTag)
 		if len(imageMatch[1]) > 0 {
-			imageNamespace := strings.Split(imageMatch[1], "/")
-			image.ImageStreamNamespace = imageNamespace[len(imageNamespace)-2]
+			domain = strings.Split(imageMatch[1], "/")[0]
 		}
-		image.ImageStreamName = imageMatch[2]
-		image.ImageStreamTag = strings.ReplaceAll(imageMatch[3], ":", "")
+		if len(imageMatch[2]) > 0 {
+			namespace = strings.Split(imageMatch[2], "/")[0]
+		}
+		name = imageMatch[3]
+		tag = strings.ReplaceAll(imageMatch[4], ":", "")
 	}
-	return image
+	return
 }
 
 // FromStringArrayToControllerEnvs converts a string array in the format of key=value pairs to the required type for the KogitoApp controller
@@ -57,11 +89,19 @@ func FromStringArrayToControllerEnvs(strings []string) []v1alpha1.Env {
 		return nil
 	}
 	var envs []v1alpha1.Env
-	mapstr := util.FromStringsKeyPairToMap(strings)
-	for k, v := range mapstr {
+	mapStr := util.FromStringsKeyPairToMap(strings)
+	for k, v := range mapStr {
 		envs = append(envs, v1alpha1.Env{Name: k, Value: v})
 	}
 	return envs
+}
+
+// FromStringArrayToEnvs converts a string array in the format of key=value pairs to the required type for the Kubernetes EnvVar type
+func FromStringArrayToEnvs(strings []string) []v1.EnvVar {
+	if strings == nil {
+		return nil
+	}
+	return framework.MapToEnvVar(util.FromStringsKeyPairToMap(strings))
 }
 
 // FromStringArrayToControllerResourceMap ...
@@ -73,6 +113,19 @@ func FromStringArrayToControllerResourceMap(strings []string) []v1alpha1.Resourc
 	mapstr := util.FromStringsKeyPairToMap(strings)
 	for k, v := range mapstr {
 		res = append(res, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceKind(k), Value: v})
+	}
+	return res
+}
+
+// FromStringArrayToResources ...
+func FromStringArrayToResources(strings []string) v1.ResourceList {
+	if strings == nil {
+		return nil
+	}
+	res := v1.ResourceList{}
+	mapStr := util.FromStringsKeyPairToMap(strings)
+	for k, v := range mapStr {
+		res[v1.ResourceName(k)] = resource.MustParse(v)
 	}
 	return res
 }

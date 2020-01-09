@@ -1,0 +1,6 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoJobsService
+metadata:
+  name: jobs-service
+spec:
+  replicas: 1

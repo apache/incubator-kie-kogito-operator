@@ -17,17 +17,17 @@ package kafka
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
-	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"reflect"
 )
 
 // GetComparators gets the comparator for Kafka resources
-func GetComparators() []kogitores.Comparator {
-	return []kogitores.Comparator{createKafkaComparator()}
+func GetComparators() []framework.Comparator {
+	return []framework.Comparator{createKafkaComparator()}
 }
 
-func createKafkaComparator() kogitores.Comparator {
-	return kogitores.Comparator{
+func createKafkaComparator() framework.Comparator {
+	return framework.Comparator{
 		ResourceType: reflect.TypeOf(kafkabetav1.Kafka{}),
 		CompFunc: func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 			kafkaDep := deployed.(*kafkabetav1.Kafka)

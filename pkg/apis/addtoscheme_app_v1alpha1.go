@@ -15,18 +15,15 @@
 package apis
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
-
-	appsv1 "k8s.io/api/apps/v1"
-
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	oappsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	oimagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 func init() {

@@ -20,9 +20,9 @@ import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/status"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"k8s.io/apimachinery/pkg/api/meta"
 	"time"
 
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -72,12 +72,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	for _, watchObject := range watchOwnedObjects {
 		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
 		if err != nil {
-			if kindErr, ok := err.(*meta.NoKindMatchError); ok {
-				if kindErr.GroupKind.Group == infinispanv1.SchemeGroupVersion.Group ||
-					kindErr.GroupKind.Group == kafkav1beta1.SchemeGroupVersion.Group {
-					log.Warnf("Tried to watch Infinispan and Kafka CRD, but failed.")
-					continue
-				}
+			if framework.IsNoKindMatchError(infinispanv1.SchemeGroupVersion.Group, err) ||
+				framework.IsNoKindMatchError(kafkav1beta1.SchemeGroupVersion.Group, err) {
+				log.Warn("Tried to watch Infinispan and Kafka CRD, but failed. Maybe related Operators are not installed?")
+				continue
 			}
 			return err
 		}
@@ -112,7 +110,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 	}
 	if len(instances.Items) > 1 {
 		return reconcile.Result{RequeueAfter: time.Duration(5) * time.Minute},
-			fmt.Errorf("There's more than one KogitoInfra resource in this namespace, please delete one of them")
+			fmt.Errorf("There's more than one KogitoInfra resource in this namespace, please delete one of them ")
 	}
 
 	// Fetch the KogitoInfra instance

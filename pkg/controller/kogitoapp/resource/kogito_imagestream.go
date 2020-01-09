@@ -91,8 +91,8 @@ func newImageStreamTag(kogitoApp *v1alpha1.KogitoApp, tagRefName string) *imgv1.
 	return is
 }
 
-// KogitoImageStream returns the KogitoImagestreamList with all Kogito needed images.
-// It will be used to create the Kogito Image Stream on the cluster in case it is missing.
+// KogitoImageStream returns the ImageStreamList with all Kogito needed images.
+// It will be used to create the Kogito Images on the cluster in case it is missing.
 func KogitoImageStream(targetNamespace string, targetTag string, buildType v1alpha1.RuntimeType, native bool) imgv1.ImageStreamList {
 
 	var KogitoImageStreamList imgv1.ImageStreamList

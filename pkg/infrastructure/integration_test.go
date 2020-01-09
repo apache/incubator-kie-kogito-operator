@@ -45,7 +45,7 @@ func Test_InjectEnvironmentVarsFromExternalServices(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{dc, dataIndexes}, nil, nil)
 	err := InjectEnvVarsFromExternalServices(kogitoApp, &dc.Spec.Template.Spec.Containers[0], client)
 	assert.NoError(t, err)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHTTPRouteEnv, Value: expectedRoute})
+	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: dataIndexHTTPRouteEnv, Value: expectedRoute})
 }
 
 func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
@@ -59,7 +59,7 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 		Spec: v1alpha1.KogitoAppSpec{
 			Env: []v1alpha1.Env{
 				{
-					Name:  kogitoDataIndexHTTPRouteEnv,
+					Name:  dataIndexHTTPRouteEnv,
 					Value: oldRoute,
 				},
 			},
@@ -85,5 +85,5 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes}, nil, nil)
 	err := InjectEnvVarsFromExternalServices(kogitoApp, &dc.Spec.Template.Spec.Containers[0], client)
 	assert.NoError(t, err)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: kogitoDataIndexHTTPRouteEnv, Value: expectedRoute})
+	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: dataIndexHTTPRouteEnv, Value: expectedRoute})
 }

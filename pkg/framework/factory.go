@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package framework
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 )
+
+// TODO: remove this since now we're relying on Operator Utils way of doing things
 
 // FactoryContext is the base structure needed to create the resources objects in the cluster
 type FactoryContext struct {

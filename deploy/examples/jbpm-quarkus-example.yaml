@@ -7,7 +7,7 @@ spec:
     env:
       # this value is just an example, set yours (optional)
       - name: MAVEN_MIRROR_URL
-        value: "http://nexus3.nexus.svc.cluster.local:8081/repository/maven-public/"
+        value: "http://nexus3.kogito-tools.svc.cluster.local:8081/repository/maven-public/"
     gitSource:
       contextDir: jbpm-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'

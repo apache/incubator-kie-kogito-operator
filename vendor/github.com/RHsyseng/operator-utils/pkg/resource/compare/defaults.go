@@ -1,14 +1,23 @@
 package compare
 
 import (
+	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	oappsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
+	"strings"
+)
+
+const (
+	imageTriggersAnnotation           = "image.openshift.io/triggers"
+	deploymentRevisionAnnotation      = "deployment.kubernetes.io/revision"
+	imageTriggerContainerNameValueFmt = "spec.template.spec.containers[?(@.name==\\\"%s\\\")].image"
 )
 
 type resourceComparator struct {
@@ -81,6 +90,7 @@ func getObjectMap(objects []resource.KubernetesResource) map[string]resource.Kub
 func defaultMap() map[reflect.Type]func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 	equalsMap := make(map[reflect.Type]func(resource.KubernetesResource, resource.KubernetesResource) bool)
 	equalsMap[reflect.TypeOf(oappsv1.DeploymentConfig{})] = equalDeploymentConfigs
+	equalsMap[reflect.TypeOf(appsv1.Deployment{})] = equalDeployment
 	equalsMap[reflect.TypeOf(corev1.Service{})] = equalServices
 	equalsMap[reflect.TypeOf(routev1.Route{})] = equalRoutes
 	equalsMap[reflect.TypeOf(rbacv1.Role{})] = equalRoles
@@ -150,39 +160,8 @@ func equalDeploymentConfigs(deployed resource.KubernetesResource, requested reso
 			}
 		}
 	}
-	if dc1.Spec.Template != nil && dc2.Spec.Template != nil {
-		for i := range dc1.Spec.Template.Spec.Volumes {
-			if len(dc2.Spec.Template.Spec.Volumes) <= i {
-				logger.Info("No matching volume found in requested DC", "deployed.DC.volume", dc1.Spec.Template.Spec.Volumes[i])
-				return false
-			}
-			volSrc1 := dc1.Spec.Template.Spec.Volumes[i].VolumeSource
-			volSrc2 := dc2.Spec.Template.Spec.Volumes[i].VolumeSource
-			if volSrc1.Secret != nil && volSrc2.Secret != nil && volSrc2.Secret.DefaultMode == nil {
-				volSrc1.Secret.DefaultMode = nil
-			}
-		}
-		if dc2.Spec.Template.Spec.RestartPolicy == "" {
-			dc1.Spec.Template.Spec.RestartPolicy = ""
-		}
-		if dc2.Spec.Template.Spec.DNSPolicy == "" {
-			dc1.Spec.Template.Spec.DNSPolicy = ""
-		}
-		//noinspection GoDeprecation
-		if dc2.Spec.Template.Spec.DeprecatedServiceAccount == "" {
-			dc1.Spec.Template.Spec.DeprecatedServiceAccount = ""
-		}
-		if dc2.Spec.Template.Spec.SecurityContext == nil {
-			dc1.Spec.Template.Spec.SecurityContext = nil
-		}
-		if dc2.Spec.Template.Spec.SchedulerName == "" {
-			dc1.Spec.Template.Spec.SchedulerName = ""
-		}
-		ignoreGenerateContainerValues(dc1.Spec.Template.Spec.Containers, dc2.Spec.Template.Spec.Containers, triggerBasedImage)
-		ignoreGenerateContainerValues(dc1.Spec.Template.Spec.InitContainers, dc2.Spec.Template.Spec.InitContainers, triggerBasedImage)
-		if dc2.Spec.Template.Spec.TerminationGracePeriodSeconds == nil {
-			dc1.Spec.Template.Spec.TerminationGracePeriodSeconds = nil
-		}
+	if !checkGeneratePodValues(dc1.Spec.Template, dc2.Spec.Template, triggerBasedImage) {
+		return false
 	}
 	ignoreEmptyMaps(dc1, dc2)
 
@@ -197,6 +176,104 @@ func equalDeploymentConfigs(deployed resource.KubernetesResource, requested reso
 		logger.Info("Resources are not equal", "deployed", deployed, "requested", requested)
 	}
 	return equal
+}
+
+func equalDeployment(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	d1 := deployed.(*appsv1.Deployment)
+	d2 := requested.(*appsv1.Deployment)
+
+	d1 = d1.DeepCopy()
+	triggerBasedImage := make(map[string]bool)
+
+	if d2.Spec.Strategy.RollingUpdate == nil && d1.Spec.Strategy.RollingUpdate != nil {
+		d1.Spec.Strategy.RollingUpdate = nil
+	}
+	if d1.Spec.Strategy.RollingUpdate != nil && d2.Spec.Strategy.RollingUpdate != nil {
+		if d2.Spec.Strategy.RollingUpdate.MaxSurge == nil {
+			d1.Spec.Strategy.RollingUpdate.MaxSurge = nil
+		}
+		if d2.Spec.Strategy.RollingUpdate.MaxUnavailable == nil {
+			d1.Spec.Strategy.RollingUpdate.MaxUnavailable = nil
+		}
+	}
+	if d2.Spec.RevisionHistoryLimit == nil {
+		d1.Spec.RevisionHistoryLimit = nil
+	}
+	if d2.Spec.ProgressDeadlineSeconds == nil {
+		d1.Spec.ProgressDeadlineSeconds = nil
+	}
+
+	if &d1.Spec.Template != nil && &d2.Spec.Template != nil {
+		if v, ok := d1.Annotations[imageTriggersAnnotation]; ok {
+			for _, container := range d1.Spec.Template.Spec.Containers {
+				if strings.Contains(v, fmt.Sprintf(imageTriggerContainerNameValueFmt, container.Name)) {
+					triggerBasedImage[container.Name] = true
+				}
+			}
+			for _, initContainer := range d1.Spec.Template.Spec.InitContainers {
+				if strings.Contains(v, fmt.Sprintf(imageTriggerContainerNameValueFmt, initContainer.Name)) {
+					triggerBasedImage[initContainer.Name] = true
+				}
+			}
+		}
+		if !checkGeneratePodValues(&d1.Spec.Template, &d2.Spec.Template, triggerBasedImage) {
+			return false
+		}
+	}
+
+	delete(d1.Annotations, deploymentRevisionAnnotation)
+
+	ignoreEmptyMaps(d1, d2)
+
+	var pairs [][2]interface{}
+	pairs = append(pairs, [2]interface{}{d1.Name, d2.Name})
+	pairs = append(pairs, [2]interface{}{d1.Namespace, d2.Namespace})
+	pairs = append(pairs, [2]interface{}{d1.Labels, d2.Labels})
+	pairs = append(pairs, [2]interface{}{d1.Annotations, d2.Annotations})
+	pairs = append(pairs, [2]interface{}{d1.Spec, d2.Spec})
+	equal := EqualPairs(pairs)
+	if !equal {
+		logger.Info("Resources are not equal", "deployed", deployed, "requested", requested)
+	}
+	return equal
+}
+
+func checkGeneratePodValues(pod1 *corev1.PodTemplateSpec, pod2 *corev1.PodTemplateSpec, triggerBasedImage map[string]bool) bool {
+	if pod1 != nil && pod2 != nil {
+		for i := range pod1.Spec.Volumes {
+			if len(pod2.Spec.Volumes) <= i {
+				logger.Info("No matching volume found in requested deployment", "deployed.deployment.volume", pod1.Spec.Volumes[i])
+				return false
+			}
+			volSrc1 := pod1.Spec.Volumes[i].VolumeSource
+			volSrc2 := pod2.Spec.Volumes[i].VolumeSource
+			if volSrc1.Secret != nil && volSrc2.Secret != nil && volSrc2.Secret.DefaultMode == nil {
+				volSrc1.Secret.DefaultMode = nil
+			}
+		}
+		if pod2.Spec.RestartPolicy == "" {
+			pod1.Spec.RestartPolicy = ""
+		}
+		if pod2.Spec.DNSPolicy == "" {
+			pod1.Spec.DNSPolicy = ""
+		}
+		//noinspection GoDeprecation
+		if pod2.Spec.DeprecatedServiceAccount == "" {
+			pod1.Spec.DeprecatedServiceAccount = ""
+		}
+		if pod2.Spec.SecurityContext == nil {
+			pod1.Spec.SecurityContext = nil
+		}
+		if pod2.Spec.SchedulerName == "" {
+			pod1.Spec.SchedulerName = ""
+		}
+		ignoreGenerateContainerValues(pod1.Spec.Containers, pod2.Spec.Containers, triggerBasedImage)
+		ignoreGenerateContainerValues(pod1.Spec.InitContainers, pod2.Spec.InitContainers, triggerBasedImage)
+		if pod2.Spec.TerminationGracePeriodSeconds == nil {
+			pod1.Spec.TerminationGracePeriodSeconds = nil
+		}
+	}
+	return true
 }
 
 func ignoreGenerateContainerValues(containers1 []corev1.Container, containers2 []corev1.Container, triggerBasedImage map[string]bool) {

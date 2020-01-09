@@ -45,20 +45,19 @@ spec:
               description: Image to use for this service
               type: string
             infinispan:
-              description: Infinispan has the data used by the Kogito Data Index to
-                connect to the Infinispan cluster
+              description: Has the data used by the service to connect to the Infinispan
+                cluster.
               properties:
                 authRealm:
                   description: Name of the Infinispan authentication realm. This sets
                     the property infinispan.client.hotrod.auth_realm.
                   type: string
                 credentials:
-                  description: SecretCredentialsType is the data structure for specifyng
+                  description: SecretCredentialsType is the data structure for specifying
                     credentials within a Secret
                   properties:
                     passwordKey:
-                      description: PasswordKey is the password for the Infinispan
-                        user. This sets the propery infinispan.client.hotrod.auth_password.
+                      description: PasswordKey is the password for the user.
                       type: string
                     secretName:
                       description: SecretName is the name of the secret where the
@@ -66,7 +65,7 @@ spec:
                       type: string
                     usernameKey:
                       description: UsernameKey is the user name for the user who will
-                        be authenticated in the cluster. This sets the property infinispan.client.hotrod.auth_username.
+                        be authenticated.
                       type: string
                   type: object
                 saslMechanism:
@@ -76,19 +75,23 @@ spec:
                   - PLAIN
                   - DIGEST-MD5
                   type: string
-                serviceURI:
-                  description: ServiceURI is the service URI to connect to the Infinispan
-                    cluster, for example, myinfinispan-cluster:11222
+                uri:
+                  description: URI to connect to the Infinispan cluster (can it be
+                    an internal service or external URI), for example, myinfinispan-cluster:11222
                   type: string
                 useAuth:
                   description: UseAuth is set to true if the credentials are set.
                     This also sets the property infinispan.client.hotrod.use_auth.
                   type: boolean
                 useKogitoInfra:
-                  description: UseKogitoInfra flags if this Data Index instance will
-                    use a provided infrastructure by KogitoInfra CR. Defaults to true.
-                    Set this to false and fill all other properties to provide your
-                    own infrastructure
+                  description: UseKogitoInfra flags if the instance will use a provided
+                    infrastructure by KogitoInfra CR. Setting this to true will deploy
+                    a new KogitoInfra CR into the namespace that will install Infinispan
+                    via Infinispan Operator. Infinispan Operator MUST be installed
+                    in the namespace for this to work. On OpenShift, OLM should install
+                    it for you. If running on Kubernetes without OLM installed, please
+                    install Infinispan Operator first. Set this to false and fill
+                    all other properties to provide your own infrastructure
                   type: boolean
               type: object
             kafka:
@@ -96,8 +99,8 @@ spec:
                 to a Kafka cluster
               properties:
                 externalURI:
-                  description: ExternalURI is the service URI to connect to the Kafka
-                    cluster, for example, my-cluster-kafka-bootstrap:9092
+                  description: URI is the service URI to connect to the Kafka cluster,
+                    for example, my-cluster-kafka-bootstrap:9092
                   type: string
                 instance:
                   description: Instance is the Kafka instance to be used, for example,

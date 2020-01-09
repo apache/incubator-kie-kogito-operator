@@ -12,14 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package framework
 
 import (
-	"bytes"
-	"compress/gzip"
-	"encoding/base64"
-	"fmt"
-	"io/ioutil"
 	"strconv"
 	"strings"
 
@@ -40,8 +35,6 @@ const (
 	LabelKeyOrgKiePersistence = LabelKeyOrgKie + "persistence"
 	// LabelKeyOrgKiePersistenceRequired is the label key to check if persistence is enabled or not
 	LabelKeyOrgKiePersistenceRequired = LabelKeyOrgKiePersistence + labelNamespaceSep + "required"
-	// LabelKeyOrgKieProtoBuf is the label key for ProtoBuf metadata
-	LabelKeyOrgKieProtoBuf = LabelKeyOrgKiePersistence + labelNamespaceSep + "proto"
 
 	// LabelKeyPrometheus is the label key for Prometheus metadata
 	LabelKeyPrometheus = "prometheus.io"
@@ -71,55 +64,6 @@ func dockerImageHasLabels(dockerImage *dockerv10.DockerImage) bool {
 		return false
 	}
 	return true
-}
-
-// ExtractProtoBufFilesFromDockerImage will extract the protobuf files from the DockerImage labels prefixed with
-func ExtractProtoBufFilesFromDockerImage(prefixKey string, dockerImage *dockerv10.DockerImage) map[string]string {
-	files := map[string]string{}
-	if !dockerImageHasLabels(dockerImage) {
-		return files
-	}
-	for key, value := range dockerImage.Config.Labels {
-		if strings.Contains(key, LabelKeyOrgKieProtoBuf) {
-			splitKey := strings.Split(key, labelNamespaceSep)
-			fileName := fmt.Sprintf("%s-%s", prefixKey, splitKey[len(splitKey)-1])
-			if fileContent, err := decompressBase64GZip(value); err != nil && len(fileContent) == 0 {
-				log.Errorf("Error while trying to read file %s from image label: %s", fileName, err)
-			} else {
-				files[fileName] = fileContent
-			}
-		}
-	}
-
-	return files
-}
-
-func decompressBase64GZip(contents string) (string, error) {
-	var decode []byte
-	var err error
-	var reader *gzip.Reader
-	defer func() {
-		if reader != nil {
-			if err := reader.Close(); err != nil {
-				log.Errorf("Error closing gzip reader ", err)
-			}
-		}
-	}()
-	if decode, err = base64.StdEncoding.DecodeString(contents); err != nil {
-		return "", fmt.Errorf("Error while converting contents from base64: %s ", err)
-	}
-	if reader, err = gzip.NewReader(bytes.NewReader(decode)); err != nil {
-		// the file might not being compressed, we should support old versions where the labels are not compressed
-		err = fmt.Errorf("Error while decompressing contents: %s ", err)
-		if strings.Contains(err.Error(), "invalid header") {
-			return string(decode), err
-		}
-		return "", err
-	}
-	if decode, err = ioutil.ReadAll(reader); err != nil {
-		return "", fmt.Errorf("Error while reading contents after decompressing: %s ", err)
-	}
-	return string(decode), nil
 }
 
 // MergeImageMetadataWithDeploymentConfig retrieves org.kie and prometheus.io labels from DockerImage and adds them to the DeploymentConfig

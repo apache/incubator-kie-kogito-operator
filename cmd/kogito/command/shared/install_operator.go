@@ -16,6 +16,7 @@ package shared
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	"strings"
 
@@ -42,6 +43,9 @@ const (
 	fileRoleBindingYaml      = "role_binding.yaml"
 	fileServiceAccountYaml   = "service_account.yaml"
 	crdYAMLPattern           = "_crd.yaml"
+	// skipOperatorInstallEnv if this is set to "true", we won't try to install the operator at all.
+	// It's a flag indicating that we are running the operator locally with operator-sdk, thus not needed to install the Operator in the namespace
+	skipOperatorInstallEnv = "SKIP_OPERATOR"
 )
 
 var (
@@ -59,6 +63,11 @@ func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, 
 // operatorImage can be an empty string. In this case, the empty string is the default value.
 func MustInstallOperatorIfNotExists(namespace string, operatorImage string, cli *client.Client, silence bool) (installed bool, err error) {
 	log := context.GetDefaultLogger()
+
+	if util.GetBoolOSEnv(skipOperatorInstallEnv) {
+		log.Infof("%s environment variable set to true, skipping operator installation process", skipOperatorInstallEnv)
+		return true, nil
+	}
 
 	if len(operatorImage) == 0 {
 		operatorImage = DefaultOperatorImageNameTag

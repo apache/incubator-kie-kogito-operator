@@ -32,10 +32,10 @@ func Test_extractManagedEnvVars(t *testing.T) {
 	}{
 		{"When there is a managed key",
 			args{container: &corev1.Container{Env: []corev1.EnvVar{
-				{Name: infinispanEnvKeyUsername, Value: "username"},
+				{Name: "INFINISPAN_USERNAME", Value: "username"},
 				{Name: "key1", Value: "value1"},
 			}}},
-			[]corev1.EnvVar{{Name: infinispanEnvKeyUsername, Value: "username"}}},
+			[]corev1.EnvVar{{Name: "INFINISPAN_USERNAME", Value: "username"}}},
 		{"When there is no managed key",
 			args{container: &corev1.Container{Env: []corev1.EnvVar{
 				{Name: "key1", Value: "value1"},

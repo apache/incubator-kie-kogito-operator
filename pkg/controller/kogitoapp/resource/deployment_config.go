@@ -21,10 +21,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
@@ -160,8 +158,8 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 	addDefaultMeta(&dc.ObjectMeta, kogitoApp)
 	addDefaultMeta(&dc.Spec.Template.ObjectMeta, kogitoApp)
 	addDefaultLabels(&dc.Spec.Selector, kogitoApp)
-	resource.MergeImageMetadataWithDeploymentConfig(dc, dockerImage)
-	resource.DiscoverPortsAndProbesFromImage(dc, dockerImage)
+	framework.MergeImageMetadataWithDeploymentConfig(dc, dockerImage)
+	framework.DiscoverPortsAndProbesFromImage(dc, dockerImage)
 	setReplicas(kogitoApp, dc)
 
 	return dc, nil
@@ -195,10 +193,10 @@ func SetInfinispanEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra,
 			if kogitoApp.Spec.Runtime == v1alpha1.SpringbootRuntimeType {
 				vars = envVarInfinispanSpring
 			}
-			util.SetEnvVar(vars[envVarInfinispanServerList], uri, &dc.Spec.Template.Spec.Containers[0])
-			util.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(defaultInfinispanSaslMechanism), &dc.Spec.Template.Spec.Containers[0])
-			util.SetEnvVarFromSecret(vars[envVarInfinispanUser], infinispan.SecretUsernameKey, secret, &dc.Spec.Template.Spec.Containers[0])
-			util.SetEnvVarFromSecret(vars[envVarInfinispanPassword], infinispan.SecretPasswordKey, secret, &dc.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVar(vars[envVarInfinispanServerList], uri, &dc.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(defaultInfinispanSaslMechanism), &dc.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVarFromSecret(vars[envVarInfinispanUser], infrastructure.InfinispanSecretUsernameKey, secret, &dc.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVarFromSecret(vars[envVarInfinispanPassword], infrastructure.InfinispanSecretPasswordKey, secret, &dc.Spec.Template.Spec.Containers[0])
 		}
 	}
 	return nil
@@ -213,11 +211,11 @@ func SetKafkaEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogi
 			return err
 		}
 		if len(dc.Spec.Template.Spec.Containers) > 0 {
-			util.SetEnvVar(envVarKafkaBootstrapURI, uri, &dc.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVar(envVarKafkaBootstrapURI, uri, &dc.Spec.Template.Spec.Containers[0])
 			// let's also add a secret feature that injects all _BOOTSTRAP_SERVERS env vars with the correct uri :p
 			for _, env := range dc.Spec.Template.Spec.Containers[0].Env {
 				if strings.HasSuffix(env.Name, envVarKafkaBootstrapSuffix) {
-					util.SetEnvVar(env.Name, uri, &dc.Spec.Template.Spec.Containers[0])
+					framework.SetEnvVar(env.Name, uri, &dc.Spec.Template.Spec.Containers[0])
 				}
 			}
 		}
@@ -234,7 +232,7 @@ func SetExternalRouteEnvVar(cli *client.Client, kogitoApp *v1alpha1.KogitoApp, d
 	if exists, route, err := openshift.RouteC(cli).GetHostFromRoute(types.NamespacedName{Namespace: kogitoApp.Namespace, Name: kogitoApp.Name}); err != nil {
 		return err
 	} else if exists {
-		util.SetEnvVar(envVarExternalURL, fmt.Sprintf("http://%s", route), &dc.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(envVarExternalURL, fmt.Sprintf("http://%s", route), &dc.Spec.Template.Spec.Containers[0])
 	}
 
 	return nil

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package framework
 
 import (
 	corev1 "k8s.io/api/core/v1"
@@ -76,32 +76,7 @@ func EnvOverride(dst []corev1.EnvVar, src ...corev1.EnvVar) []corev1.EnvVar {
 	return dst
 }
 
-//FromMapToEnvVar converts a map[string]string in the format KEY=VALUE into a EnvVar Kubernetes object
-func FromMapToEnvVar(mapEnv map[string]string) []corev1.EnvVar {
-	var envs []corev1.EnvVar
-
-	for key, value := range mapEnv {
-		envs = append(envs, corev1.EnvVar{
-			Name:  key,
-			Value: value,
-		})
-	}
-
-	return envs
-}
-
-// FromEnvVarToMap will convert EnvVar resource to a Map definition
-func FromEnvVarToMap(envs []corev1.EnvVar) map[string]string {
-	envMap := map[string]string{}
-
-	for _, env := range envs {
-		envMap[env.Name] = env.Value
-	}
-
-	return envMap
-}
-
-// GetEnvVarFromContainer get the environment variable from the container
+// GetEnvVarFromContainer gets the environment variable value from the container
 func GetEnvVarFromContainer(key string, container corev1.Container) string {
 	if &container == nil {
 		return ""

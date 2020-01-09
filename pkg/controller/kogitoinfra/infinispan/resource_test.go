@@ -18,6 +18,7 @@ import (
 	"fmt"
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -75,8 +76,8 @@ func Test_CreateRequiredInfinispanResources_HaveGeneratedSecret(t *testing.T) {
 	cli := test.CreateFakeClient([]runtime.Object{kogitoInfra, infinispanSecret}, nil, nil)
 	secret, err := newInfinispanLinkedSecret(kogitoInfra, cli)
 	assert.NoError(t, err)
-	assert.True(t, len(secret.StringData[SecretPasswordKey]) > 0)
-	assert.Equal(t, kogitoInfinispanUser, string(secret.StringData[SecretUsernameKey]))
+	assert.True(t, len(secret.StringData[infrastructure.InfinispanSecretPasswordKey]) > 0)
+	assert.Equal(t, kogitoInfinispanUser, string(secret.StringData[infrastructure.InfinispanSecretUsernameKey]))
 
 	resources, err := CreateRequiredResources(kogitoInfra, cli)
 	assert.NoError(t, err)

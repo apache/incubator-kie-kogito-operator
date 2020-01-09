@@ -17,13 +17,13 @@ package resource
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 // Context is the context for building KogitoApp resources
 type Context struct {
-	resource.FactoryContext
+	framework.FactoryContext
 	//KogitoApp is the cached instance of the created CR
 	KogitoApp *v1alpha1.KogitoApp
 }

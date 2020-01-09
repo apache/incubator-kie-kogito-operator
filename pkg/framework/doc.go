@@ -12,19 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
-
-import (
-	v1 "k8s.io/api/core/v1"
-)
-
-// AddFilesToConfigMap add files in the map format, where the key is the file name and the value it's contents, to a configMap
-func AddFilesToConfigMap(files map[string]string, cm *v1.ConfigMap) {
-	if cm.Data == nil {
-		cm.Data = map[string]string{}
-	}
-
-	for key, value := range files {
-		cm.Data[key] = value
-	}
-}
+// Package framework contains structures and functions to handle operator SDK and controllers specificness
+package framework
