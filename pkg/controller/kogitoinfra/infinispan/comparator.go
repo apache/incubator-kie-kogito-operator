@@ -18,25 +18,25 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
 )
 
 // GetComparators prepare the functions to perform comparisons between Kubernetes resources
-func GetComparators() []kogitores.Comparator {
+func GetComparators() []framework.Comparator {
 	resourceComparator := compare.DefaultComparator()
-	return []kogitores.Comparator{
+	return []framework.Comparator{
 		createSecretComparator(resourceComparator),
 		createInfinispanComparator(),
 	}
 }
 
-func createSecretComparator(resourceComparator compare.ResourceComparator) kogitores.Comparator {
+func createSecretComparator(resourceComparator compare.ResourceComparator) framework.Comparator {
 	secretType := reflect.TypeOf(v1.Secret{})
 	defaultSecretComparator := resourceComparator.GetComparator(secretType)
 
-	return kogitores.Comparator{
+	return framework.Comparator{
 		ResourceType: secretType,
 		CompFunc: func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 			if !reflect.DeepEqual(deployed.GetAnnotations()[annotationKeyMD5], requested.GetAnnotations()[annotationKeyMD5]) {
@@ -47,8 +47,8 @@ func createSecretComparator(resourceComparator compare.ResourceComparator) kogit
 	}
 }
 
-func createInfinispanComparator() kogitores.Comparator {
-	return kogitores.Comparator{
+func createInfinispanComparator() framework.Comparator {
+	return framework.Comparator{
 		ResourceType: reflect.TypeOf(infinispanv1.Infinispan{}),
 		CompFunc: func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 			infinispanDep := deployed.(*infinispanv1.Infinispan)

@@ -15,6 +15,7 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -27,7 +28,6 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	"github.com/stretchr/testify/assert"
@@ -69,12 +69,12 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas: 1,
-			Infinispan: v1alpha1.InfinispanConnectionProperties{
+			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 				Credentials: v1alpha1.SecretCredentialsType{
 					SecretName:  "infinispan-secret",
 					UsernameKey: "user",
 					PasswordKey: "pass",
-				},
+				}},
 			},
 		},
 	}
@@ -122,30 +122,30 @@ func Test_ManageResources_WhenWeChangeInfinispanVars(t *testing.T) {
 	valueFromUsername := &corev1.EnvVarSource{
 		SecretKeyRef: &corev1.SecretKeySelector{
 			LocalObjectReference: corev1.LocalObjectReference{Name: secret.Name},
-			Key:                  infinispan.SecretUsernameKey,
+			Key:                  infrastructure.InfinispanSecretUsernameKey,
 		},
 	}
 	valueFromPassword := &corev1.EnvVarSource{
 		SecretKeyRef: &corev1.SecretKeySelector{
 			LocalObjectReference: corev1.LocalObjectReference{Name: secret.Name},
-			Key:                  infinispan.SecretPasswordKey,
+			Key:                  infrastructure.InfinispanSecretPasswordKey,
 		},
 	}
 
 	// reconcile
 	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.NoError(t, err)
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyUsername, ValueFrom: valueFromUsername})
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyPassword, ValueFrom: valueFromPassword})
-	assert.NotContains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyAuthRealm, Value: "default"})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "INFINISPAN_USERNAME", ValueFrom: valueFromUsername})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "INFINISPAN_PASSWORD", ValueFrom: valueFromPassword})
+	assert.NotContains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "INFINISPAN_AUTHREALM", Value: "default"})
 
 	// let's change
-	instance.Spec.Infinispan.AuthRealm = "default"
-	instance.Spec.Infinispan.ServiceURI = "myservice:11222"
+	instance.Spec.InfinispanProperties.AuthRealm = "default"
+	instance.Spec.InfinispanProperties.URI = "myservice:11222"
 	err = ManageResources(instance, &KogitoDataIndexResources{StatefulSet: statefulset}, cli)
 	assert.NoError(t, err)
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: infinispanEnvKeyAuthRealm, Value: "default"})
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: interfaceEnvKeyServiceURI, Value: "myservice:11222"})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "INFINISPAN_AUTHREALM", Value: "default"})
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{Name: "INFINISPAN_CLIENT_SERVER_LIST", Value: "myservice:11222"})
 }
 
 func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
@@ -160,13 +160,13 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 				"key1":                   "value1",
 				"KOGITO_PROTOBUF_FOLDER": "/any/invalid/path",
 			},
-			Infinispan: v1alpha1.InfinispanConnectionProperties{
+			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 				Credentials: v1alpha1.SecretCredentialsType{
 					SecretName:  "infinispan-secret",
 					UsernameKey: "user",
 					PasswordKey: "pass",
 				},
-			},
+			}},
 		},
 	}
 	kafkaList := &kafkabetav1.KafkaList{
@@ -215,18 +215,18 @@ func Test_ManageResources_WhenTheresAMixOnEnvs(t *testing.T) {
 	})
 
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  infinispanEnvKeyUseAuth,
+		Name:  "INFINISPAN_USEAUTH",
 		Value: "true",
 	})
 
 	valueFromUsername := &corev1.EnvVarSource{
 		SecretKeyRef: &corev1.SecretKeySelector{
 			LocalObjectReference: corev1.LocalObjectReference{Name: t.Name()},
-			Key:                  infinispan.SecretUsernameKey,
+			Key:                  infrastructure.InfinispanSecretUsernameKey,
 		},
 	}
 	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:      infinispanEnvKeyUsername,
+		Name:      "INFINISPAN_USERNAME",
 		ValueFrom: valueFromUsername,
 	})
 

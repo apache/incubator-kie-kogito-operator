@@ -18,7 +18,7 @@ import (
 	"fmt"
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -33,7 +33,7 @@ func newRoute(kogitoApp *v1alpha1.KogitoApp, service *corev1.Service) (route *ro
 		ObjectMeta: *service.ObjectMeta.DeepCopy(),
 		Spec: routev1.RouteSpec{
 			Port: &routev1.RoutePort{
-				TargetPort: intstr.FromString(resource.DefaultExportedPort),
+				TargetPort: intstr.FromString(framework.DefaultExportedPort),
 			},
 			To: routev1.RouteTargetReference{
 				Kind: meta.KindService.Name,

@@ -19,7 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	dockerv10 "github.com/openshift/api/image/docker10"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +31,7 @@ func newServiceMonitor(kogitoApp *v1alpha1.KogitoApp, dockerImage *dockerv10.Doc
 		return nil, nil
 	}
 
-	scrape, scheme, path, port, err := resource.ExtractPrometheusConfigurationFromImage(dockerImage)
+	scrape, scheme, path, port, err := framework.ExtractPrometheusConfigurationFromImage(dockerImage)
 
 	if err != nil {
 		return nil, err

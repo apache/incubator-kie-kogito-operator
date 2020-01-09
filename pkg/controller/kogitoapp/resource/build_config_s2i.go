@@ -17,13 +17,12 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"strconv"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -82,7 +81,7 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	return buildConfig, nil
 }
 
-func resolveS2IImage(kogitoApp *v1alpha1.KogitoApp) v1alpha1.Image {
+func resolveS2IImage(kogitoApp *v1alpha1.KogitoApp) v1alpha1.ImageStream {
 	return ensureImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
 }
 
@@ -96,14 +95,14 @@ func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildCon
 	}
 }
 
-func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, image *v1alpha1.Image) {
+func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, image *v1alpha1.ImageStream) {
 	envs := shared.FromEnvToEnvVar(kogitoApp.Spec.Build.Env)
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
-		envs = util.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
 	}
 	limitCPU, limitMemory := getBCS2ILimitsAsIntString(buildConfig)
-	envs = util.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitCPUEnvVarKey, Value: limitCPU})
-	envs = util.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: limitMemory})
+	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitCPUEnvVarKey, Value: limitCPU})
+	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: limitMemory})
 
 	imageName, imageNamespace := parseImage(image)
 

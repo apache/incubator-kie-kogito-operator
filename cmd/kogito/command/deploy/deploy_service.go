@@ -198,8 +198,8 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 					ContextDir: i.flags.contextDir,
 					Reference:  i.flags.reference,
 				},
-				ImageS2I:     shared.FromStringToImage(i.flags.imageS2I),
-				ImageRuntime: shared.FromStringToImage(i.flags.imageRuntime),
+				ImageS2I:     shared.FromStringToImageStream(i.flags.imageS2I),
+				ImageRuntime: shared.FromStringToImageStream(i.flags.imageRuntime),
 				Native:       i.flags.native,
 				Resources: v1alpha1.Resources{
 					Limits:   shared.FromStringArrayToControllerResourceMap(i.flags.buildLimits),
@@ -217,7 +217,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 			Infra: v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanType(i.flags.installInfinispan), InstallKafka: v1alpha1.KogitoAppInfraInstallKafkaType(i.flags.installKafka)},
 		},
 		Status: v1alpha1.KogitoAppStatus{
-			Conditions: []v1alpha1.Condition{},
+			ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: make([]v1alpha1.Condition, 0)},
 		},
 	}
 	log.Debugf("Trying to deploy Kogito Service '%s'", kogitoApp.Name)

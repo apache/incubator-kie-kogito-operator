@@ -31,10 +31,10 @@ import (
 )
 
 const (
-	defaultDataIndexName         = "kogito-data-index"
-	defaultInfinispanSecretName  = "kogito-data-index-infinispan-credentials"
-	defaultInfinispanUsernameKey = "username"
-	defaultInfinispanPasswordKey = "password"
+	defaultDataIndexName                 = "kogito-data-index"
+	defaultDataIndexInfinispanSecretName = "kogito-data-index-infinispan-credentials"
+	defaultInfinispanUsernameKey         = "username"
+	defaultInfinispanPasswordKey         = "password"
 )
 
 type installDataIndexFlags struct {
@@ -77,14 +77,14 @@ func (i *installDataIndexCommand) RegisterHook() {
 		Example: "data-index -p my-project",
 		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito Runtime Services.
 
-				If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
-				If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Data Index service's namespace.
-				Otherwise, the operator will try to fetch a Strimzi Kafka instance in the namespace and use it to locate the Kafka server. 
+If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
+If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Data Index service's namespace.
+Otherwise, the operator will try to fetch a Strimzi Kafka instance in the namespace and use it to locate the Kafka server. 
 
-				If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
-				Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.
+If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
+Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.
 
-				For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
+For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
@@ -101,14 +101,14 @@ func (i *installDataIndexCommand) RegisterHook() {
 				len(i.flags.infinispanSasl) == 0 {
 				i.flags.infinispanSasl = string(v1alpha1.SASLPlain)
 			}
-			if len(i.flags.infinispan.ServiceURI) == 0 {
+			if len(i.flags.infinispan.URI) == 0 {
 				i.flags.infinispan.UseKogitoInfra = true
 				log.Info("infinispan-url not informed, Infinispan will be automatically deployed via Infinispan Operator")
 				if len(i.flags.infinispanPassword) > 0 || len(i.flags.infinispanUser) > 0 {
 					return fmt.Errorf("Credentials given, but infinispan-url not set. Please set infinispan URL when providing credentials ")
 				}
 			} else {
-				log.Infof("infinispan-url informed. Infinispan will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.infinispan.ServiceURI)
+				log.Infof("infinispan-url informed. Infinispan will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.infinispan.URI)
 				i.flags.infinispan.UseKogitoInfra = false
 			}
 			if len(i.flags.kafka.ExternalURI) > 0 {
@@ -138,10 +138,10 @@ func (i *installDataIndexCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", resdataindex.DefaultImage, "Image tag (namespace/name:tag) for the runtime Service, e.g: openshift/kogito-data-index:latest")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", resdataindex.DefaultImage, "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
-	i.command.Flags().StringVar(&i.flags.infinispan.ServiceURI, "infinispan-url", "", "The Infinispan Server internal URI, example: infinispan-server:11222")
+	i.command.Flags().StringVar(&i.flags.infinispan.URI, "infinispan-url", "", "The Infinispan Server URI, example: infinispan-server:11222")
 	i.command.Flags().StringVar(&i.flags.infinispan.AuthRealm, "infinispan-authrealm", "", "The Infinispan Server Auth Realm for authentication, example: ApplicationRealm")
 	i.command.Flags().StringVar(&i.flags.infinispanSasl, "infinispan-sasl", "", "The Infinispan Server SASL Mechanism, example: PLAIN")
 	i.command.Flags().StringVar(&i.flags.infinispanUser, "infinispan-user", "", "The Infinispan Server username")
@@ -172,7 +172,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	// If user and password are sent, create a secret to hold them and attach them to the CRD
 	if len(i.flags.infinispanUser) > 0 && len(i.flags.infinispanPassword) > 0 {
 		infinispanSecret := v1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: defaultInfinispanSecretName, Namespace: i.flags.Project},
+			ObjectMeta: metav1.ObjectMeta{Name: defaultDataIndexInfinispanSecretName, Namespace: i.flags.Project},
 		}
 
 		if exist, err := kubernetes.ResourceC(i.Client).Fetch(&infinispanSecret); err != nil {
@@ -202,15 +202,15 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: defaultDataIndexName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Replicas:      i.flags.Replicas,
-			Env:           util.FromStringsKeyPairToMap(i.flags.Env),
-			Image:         i.flags.image,
-			MemoryLimit:   shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Limits),
-			MemoryRequest: shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Requests),
-			CPULimit:      shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Limits),
-			CPURequest:    shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Requests),
-			Infinispan:    i.flags.infinispan,
-			Kafka:         i.flags.kafka,
+			Replicas:       i.flags.Replicas,
+			Env:            util.FromStringsKeyPairToMap(i.flags.Env),
+			Image:          i.flags.image,
+			MemoryLimit:    shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Limits),
+			MemoryRequest:  shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Requests),
+			CPULimit:       shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Limits),
+			CPURequest:     shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Requests),
+			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: i.flags.infinispan},
+			Kafka:          i.flags.kafka,
 		},
 		Status: v1alpha1.KogitoDataIndexStatus{
 			Conditions:         []v1alpha1.DataIndexCondition{},

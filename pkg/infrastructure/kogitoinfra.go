@@ -19,7 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -106,7 +106,7 @@ func (k *ensureComponent) createOrFetchInfra(namespace string) {
 	}
 	// found nothing, creating
 	k.infra = &v1alpha1.KogitoInfra{
-		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: namespace},
 		Spec:       v1alpha1.KogitoInfraSpec{InstallInfinispan: false, InstallKafka: false},
 	}
 	log.Debug("We don't have KogitoInfra deployed, trying to create a new one")

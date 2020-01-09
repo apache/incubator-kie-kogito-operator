@@ -27,9 +27,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	appsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	cachev1 "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -37,67 +35,6 @@ import (
 )
 
 var log = logger.GetLogger("kogitoapp.controller")
-
-const maxBuffer = 30
-
-// setProvisioning - Sets the condition type to Provisioning and status True if not yet set.
-func setProvisioning(cr *v1alpha1.KogitoApp) bool {
-	log := log.With("kind", cr.Kind, "name", cr.Name, "namespace", cr.Namespace)
-	size := len(cr.Status.Conditions)
-	if size > 0 && cr.Status.Conditions[size-1].Type == v1alpha1.ProvisioningConditionType {
-		log.Debug("Status: unchanged status [provisioning].")
-		return false
-	}
-	log.Debug("Status: set provisioning")
-	condition := v1alpha1.Condition{
-		Type:               v1alpha1.ProvisioningConditionType,
-		Status:             corev1.ConditionTrue,
-		LastTransitionTime: metav1.Now(),
-	}
-	cr.Status.Conditions = addCondition(cr.Status.Conditions, condition)
-	return true
-}
-
-// setDeployed - Updates the condition with the DeployedCondition and True status
-func setDeployed(cr *v1alpha1.KogitoApp) bool {
-	log := log.With("kind", cr.Kind, "name", cr.Name, "namespace", cr.Namespace)
-	size := len(cr.Status.Conditions)
-	if size > 0 && cr.Status.Conditions[size-1].Type == v1alpha1.DeployedConditionType {
-		log.Debug("Status: unchanged status [deployed].")
-		return false
-	}
-	log.Debugf("Status: changed status [deployed].")
-	condition := v1alpha1.Condition{
-		Type:               v1alpha1.DeployedConditionType,
-		Status:             corev1.ConditionTrue,
-		LastTransitionTime: metav1.Now(),
-	}
-	cr.Status.Conditions = addCondition(cr.Status.Conditions, condition)
-	return true
-}
-
-// setFailed - Sets the failed condition with the error reason and message
-func setFailed(cr *v1alpha1.KogitoApp, reason v1alpha1.ReasonType, err error) {
-	log := log.With("kind", cr.Kind, "name", cr.Name, "namespace", cr.Namespace)
-	log.Debug("Status: set failed")
-	condition := v1alpha1.Condition{
-		Type:               v1alpha1.FailedConditionType,
-		Status:             corev1.ConditionTrue,
-		LastTransitionTime: metav1.Now(),
-		Reason:             reason,
-		Message:            err.Error(),
-	}
-	cr.Status.Conditions = addCondition(cr.Status.Conditions, condition)
-}
-
-func addCondition(conditions []v1alpha1.Condition, condition v1alpha1.Condition) []v1alpha1.Condition {
-	size := len(conditions) + 1
-	first := 0
-	if size > maxBuffer {
-		first = size - maxBuffer
-	}
-	return append(conditions, condition)[first:size]
-}
 
 // UpdateResourcesResult contains the results of the update of the resources
 type UpdateResourcesResult struct {
@@ -165,7 +102,7 @@ func ManageStatus(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppRes
 			} else {
 				log.Infof("Failed to read the cached instance")
 				// Error reading the object - requeue the request.
-				setFailed(instance, v1alpha1.UnknownReason, err)
+				instance.Status.SetFailed(v1alpha1.UnknownReason, err)
 				createResult(true, 0, nil, result)
 			}
 		} else {
@@ -179,7 +116,7 @@ func ManageStatus(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppRes
 		updated, err := updateObj(instance, client)
 		createResult(updated, 0, err, result)
 	} else if result.RequeueAfter <= 0 && result.Err == nil {
-		if setDeployed(instance) {
+		if instance.Status.SetDeployed() {
 			log.Infof("'%s' successfully deployed", instance.Name)
 			if instance.ResourceVersion == cachedInstance.ResourceVersion {
 				updated, err := updateObj(instance, client)
@@ -206,10 +143,10 @@ func updateObj(obj meta.ResourceObject, client *client.Client) (bool, error) {
 func statusUpdateForResources(instance *v1alpha1.KogitoApp, result *UpdateResourcesResult) (bool, error) {
 	if result != nil {
 		if result.Err != nil {
-			setFailed(instance, result.ErrorReason, result.Err)
+			instance.Status.SetFailed(result.ErrorReason, result.Err)
 			return true, result.Err
 		} else if result.Updated {
-			setProvisioning(instance)
+			instance.Status.SetProvisioning()
 			return true, nil
 		}
 	}
@@ -286,7 +223,8 @@ func statusUpdateForRoute(instance *v1alpha1.KogitoApp, resources *resource.Kogi
 	return 0, false, nil
 }
 
-func statusUpdateForImageBuild(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (requeue time.Duration, updated bool, err error) {
+func statusUpdateForImageBuild(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (
+	requeue time.Duration, updated bool, err error) {
 	// ensure builds
 	log.Infof("Checking if build for '%s' is finished", instance.Name)
 	var imageExists, building, runtimeFailed, s2iFailed bool
@@ -296,7 +234,7 @@ func statusUpdateForImageBuild(instance *v1alpha1.KogitoApp, resources *resource
 
 	if building {
 		// let's wait for the build to finish
-		if setProvisioning(instance) {
+		if instance.Status.SetProvisioning() {
 			updated = true
 		}
 
@@ -304,12 +242,12 @@ func statusUpdateForImageBuild(instance *v1alpha1.KogitoApp, resources *resource
 	}
 
 	if runtimeFailed {
-		setFailed(instance, v1alpha1.BuildRuntimeFailedReason, fmt.Errorf("runtime image build failed"))
+		instance.Status.SetFailed(v1alpha1.BuildRuntimeFailedReason, fmt.Errorf("runtime image build failed"))
 		updated = true
 	}
 
 	if s2iFailed {
-		setFailed(instance, v1alpha1.BuildS2IFailedReason, fmt.Errorf("s2i image build failed"))
+		instance.Status.SetFailed(v1alpha1.BuildS2IFailedReason, fmt.Errorf("s2i image build failed"))
 		updated = true
 	}
 
@@ -427,7 +365,8 @@ func getBCLabelsAsUniqueSelectors(bc *obuildv1.BuildConfig) string {
 func statusUpdateForKogitoApp(instance *v1alpha1.KogitoApp, cachedInstance *v1alpha1.KogitoApp) bool {
 	// Update CR if needed
 	if !reflect.DeepEqual(instance.Spec, cachedInstance.Spec) {
-		if setProvisioning(instance) && instance.ResourceVersion == cachedInstance.ResourceVersion {
+		if instance.Status.SetProvisioning() &&
+			instance.ResourceVersion == cachedInstance.ResourceVersion {
 			log.Infof("Instance spec updated")
 			return true
 		}

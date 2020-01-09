@@ -80,6 +80,8 @@ var (
 	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
 	// KindKogitoDataIndexList for a KindKogitoDataIndexList controller
 	KindKogitoDataIndexList = DefinitionKind{"KogitoDataIndexList", false, v1alpha1.SchemeGroupVersion}
+	// KindKogitoJobsService for a KogitoJobsService controller
+	KindKogitoJobsService = DefinitionKind{"KogitoJobsService", false, v1alpha1.SchemeGroupVersion}
 	// KindConfigMap for a ConfigMap
 	KindConfigMap = DefinitionKind{"ConfigMap", false, corev1.SchemeGroupVersion}
 	// KindDeployment for a Deployment
@@ -119,7 +121,8 @@ func GetRegisteredSchema() *runtime.Scheme {
 	s.AddKnownTypes(v1alpha1.SchemeGroupVersion,
 		&v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{},
 		&v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{},
-		&v1alpha1.KogitoInfra{}, &v1alpha1.KogitoInfraList{})
+		&v1alpha1.KogitoInfra{}, &v1alpha1.KogitoInfraList{},
+		&v1alpha1.KogitoJobsService{}, &v1alpha1.KogitoJobsServiceList{})
 	s.AddKnownTypes(kafkabetav1.SchemeGroupVersion, &kafkabetav1.Kafka{}, &kafkabetav1.KafkaList{}, &kafkabetav1.KafkaTopic{}, &kafkabetav1.KafkaTopicList{})
 	s.AddKnownTypes(infinispanv1.SchemeGroupVersion, &infinispanv1.Infinispan{}, &infinispanv1.InfinispanList{})
 	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})

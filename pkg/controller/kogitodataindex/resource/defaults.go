@@ -16,6 +16,7 @@ package resource
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,14 +38,6 @@ const (
 
 // Collection of Infinispan/Kafka Environment Variables that need to be set in the Data Index image
 const (
-	infinispanEnvKeyUsername   string = "INFINISPAN_USERNAME"
-	infinispanEnvKeyPassword   string = "INFINISPAN_PASSWORD"
-	infinispanEnvKeyUseAuth    string = "INFINISPAN_USEAUTH"
-	infinispanEnvKeyAuthRealm  string = "INFINISPAN_AUTHREALM"
-	infinispanEnvKeySasl       string = "INFINISPAN_SASLMECHANISM"
-	infinispanEnvKeyCredSecret string = "INFINISPAN_CREDENTIAL_SECRET"
-	interfaceEnvKeyServiceURI  string = "QUARKUS_INFINISPAN_CLIENT_SERVER_LIST"
-
 	kafkaEnvKeyProcessInstancesServer string = "MP_MESSAGING_INCOMING_KOGITO_PROCESSINSTANCES_EVENTS_BOOTSTRAP_SERVERS"
 	kafkaEnvKeyUserTaskInstanceServer string = "MP_MESSAGING_INCOMING_KOGITO_USERTASKINSTANCES_EVENTS_BOOTSTRAP_SERVERS"
 	kafkaEnvKeyProcessDomainServer    string = "MP_MESSAGING_INCOMING_KOGITO_PROCESSDOMAIN_EVENTS_BOOTSTRAP_SERVERS"
@@ -77,16 +70,6 @@ var managedKafkaKeys = []string{
 	kafkaEnvKeyUserTaskInstanceServer,
 	kafkaEnvKeyProcessDomainServer,
 	kafkaEnvKeyUserTaskDomainServer,
-}
-
-var managedInfinispanKeys = []string{
-	infinispanEnvKeyUsername,
-	infinispanEnvKeyPassword,
-	infinispanEnvKeyUseAuth,
-	infinispanEnvKeyAuthRealm,
-	infinispanEnvKeySasl,
-	infinispanEnvKeyCredSecret,
-	interfaceEnvKeyServiceURI,
 }
 
 var kafkaTopicNames = []string{
@@ -125,6 +108,6 @@ func addDefaultMetadata(objectMeta *metav1.ObjectMeta, instance *v1alpha1.Kogito
 
 func init() {
 	managedEnvKeys = append(managedEnvKeys, protoBufKeys...)
-	managedEnvKeys = append(managedEnvKeys, managedInfinispanKeys...)
+	managedEnvKeys = append(managedEnvKeys, infrastructure.GetInfinispanEnvVarsKeys()...)
 	managedEnvKeys = append(managedEnvKeys, managedKafkaKeys...)
 }

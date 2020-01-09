@@ -213,7 +213,7 @@ func TestGetDeployedResources(t *testing.T) {
 				&client.Client{
 					ControlCli:    fake.NewFakeClient(&bc1, &bc2, &dc1, &dc2, &is1, &is2, &rt1, &rt2, &svc1, &svc2),
 					PrometheusCli: monfake.NewSimpleClientset(&sm1, &sm2).MonitoringV1(),
-					Discovery:     test.CreateFakeDiscoveryClient(),
+					Discovery:     test.CreateFakeDiscoveryClient(false),
 				},
 			},
 			false,

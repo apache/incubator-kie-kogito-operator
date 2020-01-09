@@ -15,8 +15,10 @@
 package infrastructure
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	oappsv1 "github.com/openshift/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -32,4 +34,33 @@ func GetProtoBufConfigMaps(namespace string, cli *client.Client) (*v1.ConfigMapL
 		return nil, err
 	}
 	return cms, nil
+}
+
+// getKogitoAppsDCs gets all dcs owned by KogitoApps within the given namespace
+func getKogitoAppsDCs(namespace string, cli *client.Client) ([]oappsv1.DeploymentConfig, error) {
+	var kdcs []oappsv1.DeploymentConfig
+	kogitoApps := &v1alpha1.KogitoAppList{}
+	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoApps); err != nil {
+		return nil, err
+	}
+	log.Debugf("Found %d KogitoApps in the namespace '%s' ", len(kogitoApps.Items), namespace)
+	if len(kogitoApps.Items) == 0 {
+		return kdcs, nil
+	}
+	dcs := &oappsv1.DeploymentConfigList{}
+	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
+		return nil, err
+	}
+	log.Debug("Looking for DeploymentConfigs owned by KogitoApps")
+	for _, dc := range dcs.Items {
+		for _, owner := range dc.OwnerReferences {
+			for _, app := range kogitoApps.Items {
+				if owner.UID == app.UID {
+					kdcs = append(kdcs, dc)
+					break
+				}
+			}
+		}
+	}
+	return kdcs, nil
 }

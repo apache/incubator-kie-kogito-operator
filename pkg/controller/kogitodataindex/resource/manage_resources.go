@@ -20,7 +20,8 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"reflect"
@@ -113,10 +114,10 @@ func ensureEnvs(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.Stateful
 		}
 		hasDiff := false
 		removeManagedEnvVars(instance)
-		envs := util.FromMapToEnvVar(instance.Spec.Env)
+		envs := framework.MapToEnvVar(instance.Spec.Env)
 		managedEnvs := extractManagedEnvVars(&statefulset.Spec.Template.Spec.Containers[0])
 
-		if !util.EnvVarCheck(envs, statefulset.Spec.Template.Spec.Containers[0].Env) {
+		if !framework.EnvVarCheck(envs, statefulset.Spec.Template.Spec.Containers[0].Env) {
 			log.Debugf("Found difference in env vars (%s). Setting to %s", statefulset.Spec.Template.Spec.Containers[0].Env, envs)
 			statefulset.Spec.Template.Spec.Containers[0].Env = envs
 			hasDiff = true
@@ -145,27 +146,27 @@ func ensureResources(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.Sta
 }
 
 func ensureInfinispan(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.StatefulSet, client *client.Client) (bool, error) {
-	if len(statefulset.Spec.Template.Spec.Containers) == 0 || &instance.Spec.Infinispan == nil {
+	if len(statefulset.Spec.Template.Spec.Containers) == 0 || &instance.Spec.InfinispanProperties == nil {
 		return false, nil
 	}
 
 	secret := &corev1.Secret{}
-	if &instance.Spec.Infinispan.Credentials != nil {
+	if &instance.Spec.InfinispanProperties.Credentials != nil {
 		var err error
-		secret, err = fetchInfinispanCredentials(instance, client)
+		secret, err = infrastructure.FetchInfinispanCredentials(&instance.Spec, instance.Namespace, client)
 		if err != nil {
 			return false, err
 		}
-		if secret == nil && len(instance.Spec.Infinispan.Credentials.SecretName) > 0 {
-			log.Warnf("Secret %s not found, skipping Infinispan credentials update", instance.Spec.Infinispan.Credentials.SecretName)
+		if secret == nil && len(instance.Spec.InfinispanProperties.Credentials.SecretName) > 0 {
+			log.Warnf("Secret %s not found, skipping Infinispan credentials update", instance.Spec.InfinispanProperties.Credentials.SecretName)
 			return false, nil
 		}
 	}
 
-	infinispanEnvs := fromInfinispanToStringMap(instance.Spec.Infinispan)
-	currentInfinispan := getInfinispanVars(statefulset.Spec.Template.Spec.Containers[0])
+	infinispanEnvs := infrastructure.FromInfinispanToStringMap(instance.Spec.InfinispanProperties)
+	currentInfinispan := infrastructure.GetInfinispanVars(statefulset.Spec.Template.Spec.Containers[0])
 
-	if util.EnvVarCheck(currentInfinispan, util.FromMapToEnvVar(infinispanEnvs)) {
+	if framework.EnvVarCheck(currentInfinispan, framework.MapToEnvVar(infinispanEnvs)) {
 		return false, nil
 	}
 
@@ -184,10 +185,10 @@ func ensureKafka(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.Statefu
 	} else if len(externalURI) > 0 {
 		updated := false
 		for _, kafkaEnv := range managedKafkaKeys {
-			currentURI := util.GetEnvVarFromContainer(kafkaEnv, statefulset.Spec.Template.Spec.Containers[0])
+			currentURI := framework.GetEnvVarFromContainer(kafkaEnv, statefulset.Spec.Template.Spec.Containers[0])
 			if externalURI != currentURI {
-				log.Debugf("Found differences in the Kafka ServiceURI (%s). Updating to '%s'.", currentURI, externalURI)
-				util.SetEnvVar(kafkaEnv, externalURI, &statefulset.Spec.Template.Spec.Containers[0])
+				log.Debugf("Found differences in the Kafka URI (%s). Updating to '%s'.", currentURI, externalURI)
+				framework.SetEnvVar(kafkaEnv, externalURI, &statefulset.Spec.Template.Spec.Containers[0])
 				updated = true
 			}
 		}

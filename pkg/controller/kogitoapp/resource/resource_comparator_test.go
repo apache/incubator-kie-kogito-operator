@@ -16,7 +16,7 @@ package resource
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	resource2 "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -152,9 +152,9 @@ func Test_createBuildConfigComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				resource2.NewComparatorBuilder().
+				framework.NewComparatorBuilder().
 					WithType(tt.want).
-					UseDefaultComparator(true).
+					UseDefaultComparator().
 					WithCustomComparator(createBuildConfigComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
@@ -279,9 +279,9 @@ func Test_createDeploymentConfigComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				resource2.NewComparatorBuilder().
+				framework.NewComparatorBuilder().
 					WithType(tt.want).
-					UseDefaultComparator(true).
+					UseDefaultComparator().
 					WithCustomComparator(createDeploymentConfigComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
@@ -355,9 +355,9 @@ func Test_createRouteComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				resource2.NewComparatorBuilder().
+				framework.NewComparatorBuilder().
 					WithType(tt.want).
-					UseDefaultComparator(true).
+					UseDefaultComparator().
 					WithCustomComparator(createRouteComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {
@@ -431,9 +431,9 @@ func Test_createServiceComparator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 :=
-				resource2.NewComparatorBuilder().
+				framework.NewComparatorBuilder().
 					WithType(tt.want).
-					UseDefaultComparator(true).
+					UseDefaultComparator().
 					WithCustomComparator(createServiceComparator()).
 					BuildAsFunc()
 			if !reflect.DeepEqual(got, tt.want) {

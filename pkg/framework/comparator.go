@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package framework
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
@@ -34,7 +34,7 @@ type ComparatorBuilder interface {
 	// WithType defines the comparator resource type
 	WithType(resourceType reflect.Type) ComparatorBuilder
 	// UseDefaultComparator defines if the comparator will delegate the comparision to inner comparators from Operator Utils
-	UseDefaultComparator(use bool) ComparatorBuilder
+	UseDefaultComparator() ComparatorBuilder
 	// Build creates the Comparator
 	Build() *Comparator
 	// BuildAsFunc creates the Comparator in the form of Operator Utils interface
@@ -70,9 +70,11 @@ func (c *comparatorBuilder) WithCustomComparator(customComparator func(deployed 
 	return c
 }
 
-func (c *comparatorBuilder) UseDefaultComparator(use bool) ComparatorBuilder {
-	if use {
-		c.defaultComparator = compare.DefaultComparator().GetComparator(c.comparator.ResourceType)
+func (c *comparatorBuilder) UseDefaultComparator() ComparatorBuilder {
+	c.defaultComparator = compare.DefaultComparator().GetComparator(c.comparator.ResourceType)
+	// we don't have a default comparator for the given type, call the generic one
+	if c.defaultComparator == nil {
+		c.defaultComparator = compare.DefaultComparator().GetDefaultComparator()
 	}
 	return c
 }
@@ -81,7 +83,9 @@ func (c *comparatorBuilder) Build() *Comparator {
 	c.comparator.CompFunc = func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		equal := true
 		// calls the first comparator defined by the caller
-		equal = c.customComparator(deployed, requested) && equal
+		if c.customComparator != nil {
+			equal = c.customComparator(deployed, requested) && equal
+		}
 		if equal && c.defaultComparator != nil {
 			// calls the default comparator from Operator Utils
 			equal = c.defaultComparator(deployed, requested) && equal

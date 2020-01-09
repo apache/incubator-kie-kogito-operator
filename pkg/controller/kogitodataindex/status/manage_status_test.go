@@ -15,12 +15,12 @@
 package status
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
-	commonres "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 
@@ -67,7 +67,7 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 		},
 	}
 	client := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
-	resources, err := resource.CreateOrFetchResources(instance, commonres.FactoryContext{Client: client})
+	resources, err := resource.CreateOrFetchResources(instance, framework.FactoryContext{Client: client})
 	assert.NoError(t, err)
 
 	err = ManageStatus(instance, &resources, client)

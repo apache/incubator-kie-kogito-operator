@@ -8,6 +8,7 @@ Table of Contents
 =================
 
    * [Kogito Operator](#kogito-operator)
+   * [Table of Contents](#table-of-contents)
       * [Kogito Operator requirements](#kogito-operator-requirements)
       * [Kogito Operator installation](#kogito-operator-installation)
          * [Deploying to OpenShift 4.x](#deploying-to-openshift-4x)
@@ -32,6 +33,12 @@ Table of Contents
             * [Installing the Kogito Data Index Service with the Operator Catalog (OLM)](#installing-the-kogito-data-index-service-with-the-operator-catalog-olm)
             * [Installing the Kogito Data Index Service with the oc client](#installing-the-kogito-data-index-service-with-the-oc-client)
          * [Kogito Data Index Integration with persistent Kogito Services](#kogito-data-index-integration-with-persistent-kogito-services)
+      * [Kogito Jobs Service deployment](#kogito-jobs-service-deployment)
+         * [Kogito Jobs Service installation](#kogito-jobs-service-installation)
+            * [Installing the Kogito Jobs Service with the Kogito CLI](#installing-the-kogito-jobs-service-with-the-kogito-cli)
+            * [Installing the Kogito Jobs Service with the Operator Catalog (OLM)](#installing-the-kogito-jobs-service-with-the-operator-catalog-olm)
+            * [Installing the Kogito Data Index Service with the oc client](#installing-the-kogito-data-index-service-with-the-oc-client-1)
+         * [Enabling Persistence with Infinispan](#enabling-persistence-with-infinispan)
       * [Kogito CLI](#kogito-cli)
          * [Kogito CLI requirements](#kogito-cli-requirements)
          * [Kogito CLI installation](#kogito-cli-installation)
@@ -354,6 +361,75 @@ property in your domain data, this data will be reflect automatically in the Dat
 
 _Please note that removed Kogito Services will remove the protobuf files associated to it as well. This means that you won't
 be able to see the data through the Data Index anymore, although the data still persisted in Infinispan._
+
+## Kogito Jobs Service deployment
+
+Like Data Index, [Jobs Service](https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service) can be deployed via Operator or CLI. 
+If persistence is required, the operator will also deploy an Infinispan server using Infinispan Operator.
+
+### Kogito Jobs Service installation
+
+There's a couple of ways to install the Jobs Service into your namespace using Kogito Operator.
+
+#### Installing the Kogito Jobs Service with the Kogito CLI
+
+If you have installed the [Kogito CLI](https://github.com/kiegroup/kogito-cloud-operator#kogito-cli), 
+run the following command to create the Kogito Jobs Service resource:
+
+``` 
+$ kogito install jobs-service -p my-project
+```
+
+There's some options to customize the Jobs Service deployment with CLI. 
+Run `kogito install jobs-service --help` to understand and set them according to your requirements.  
+
+#### Installing the Kogito Jobs Service with the Operator Catalog (OLM)
+
+If you are running on OpenShift 4.x, you can use the OperatorHub user interface to create the Kogito Jobs Service resource. 
+In the OpenShift Web Console, go to **Installed Operators** -> **Kogito Operator** -> **Kogito Jobs Service**. 
+Click **Create Kogito Jobs Service** and create a new resource as shown in the following example:
+
+```yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoJobsService
+metadata:
+  name: jobs-service
+spec:
+  replicas: 1
+```
+
+#### Installing the Kogito Data Index Service with the oc client
+
+To create the Kogito Jobs Service resource using the oc client, you can use the CR file from the previous example as a reference 
+and create the custom resource from the command line as shown in the following example:
+
+```bash
+ # Clone this repository
+ $ git clone https://github.com/kiegroup/kogito-cloud-operator.git
+ $ cd kogito-cloud-operator
+ # Make your changes
+ $ vi deploy/crds/app.kiegroup.org_v1alpha1_kogitojobsservice_cr.yaml
+ # Deploy to the cluster
+ $ oc create -f deploy/crds/app.kiegroup.org_v1alpha1_kogitojobsservice_cr.yaml -n my-project
+```
+
+### Enabling Persistence with Infinispan
+
+Jobs Service supports persistence with Infinispan by setting the property `spec.infinispan.useKogitoInfra` to `true` in the
+CR or the flag `--enable-persistence` in the CLI.
+
+When doing this Kogito Operator deploys a new Infinispan server using Infinispan Operator for you within the same namespace
+that you're deploying Jobs Service. It also sets all information regarding server authentication.
+
+For this to work, bear in mind that Infinispan Operator must be installed in the namespace. If the Kogito Operator was installed
+with OLM, it means that the Infinispan Operator would also be installed. If it was installed manually, you will also have to manually
+install the Infinispan Operator.
+
+It's also possible to fine tune the Infinispan integration by setting the properties `spec.infinispan.credentials`, 
+`spec.infinispan.uri` and `spec.infinispan.useKogitoInfra` to `false` in the CR. This way the Infinispan server won't be deployed
+and the Jobs Service will try to connect to the given URI. Just make sure that your cluster have access to this URI.
+
+This process behaves similarly to the one defined by the [Data Index Service](#deploying-infinispan). 
 
 ## Kogito CLI
 

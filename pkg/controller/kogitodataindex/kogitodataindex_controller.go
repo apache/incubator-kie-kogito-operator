@@ -16,7 +16,7 @@ package kogitodataindex
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"time"
 
@@ -28,8 +28,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	commonres "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -154,7 +152,7 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconci
 
 	// Create our inventory
 	reqLogger.Infof("Ensure Kogito Data Index '%s' resources are created", instance.Name)
-	resources, err := resource.CreateOrFetchResources(instance, commonres.FactoryContext{
+	resources, err := resource.CreateOrFetchResources(instance, framework.FactoryContext{
 		Client: r.client,
 		PreCreate: func(object meta.ResourceObject) error {
 			if object != nil {
@@ -187,62 +185,15 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconci
 func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.KogitoDataIndex) (result *reconcile.Result, err error) {
 	log.Debug("Verify if we need to deploy Infinispan")
 
-	// Overrides any parameters not set
-	if instance.Spec.Infinispan.UseKogitoInfra {
-		// ensure infra
-		infra, created, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan()
-		if err != nil {
-			return &reconcile.Result{}, err
-		}
-		if created {
-			// since we just created a new Infra instance, let's wait for it to provision everything before proceeding
-			log.Debug("Returning to reconcile phase to give some time for the Infinispan Operator to deploy")
-			return &reconcile.Result{RequeueAfter: time.Second * 10}, nil
-		}
-
-		// We do this check to not have to update the Data Index instance every time with the same data.
-		// Should be removed once we solve this: https://issues.jboss.org/browse/KOGITO-601
-		uri, err := infrastructure.GetInfinispanServiceURI(r.client, infra)
-		if err != nil {
-			return &reconcile.Result{}, err
-		}
-		if instance.Spec.Infinispan.ServiceURI == uri &&
-			instance.Spec.Infinispan.Credentials.SecretName == infra.Status.Infinispan.CredentialSecret &&
-			instance.Spec.Infinispan.Credentials.PasswordKey == infinispan.SecretPasswordKey &&
-			instance.Spec.Infinispan.Credentials.UsernameKey == infinispan.SecretUsernameKey {
-			return nil, nil
-		}
-
-		log.Debugf("Checking KogitoInfra status to make sure we are ready to use Infinispan. Status are: %s", infra.Status.Infinispan)
-		if ready {
-			log.Debug("Looks ok, we are ready to use Infinispan!")
-			instance.Spec.Infinispan.ServiceURI = uri
-			instance.Spec.Infinispan.Credentials.SecretName = infra.Status.Infinispan.CredentialSecret
-			instance.Spec.Infinispan.Credentials.UsernameKey = infinispan.SecretUsernameKey
-			instance.Spec.Infinispan.Credentials.PasswordKey = infinispan.SecretPasswordKey
-			if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
-				return &reconcile.Result{}, err
-			}
-			return &reconcile.Result{}, nil
-		}
-		log.Debug("KogitoInfra is not ready, requeue")
-		// waiting for infinispan deployment
-		return &reconcile.Result{RequeueAfter: time.Second * 10}, nil
-	}
-
-	// Ensure default values
-	if &instance.Spec.Infinispan == nil ||
-		&instance.Spec.Infinispan.UseKogitoInfra == nil ||
-		len(instance.Spec.Infinispan.ServiceURI) == 0 ||
-		&instance.Spec.Infinispan.Credentials == nil {
-		instance.Spec.Infinispan = appv1alpha1.InfinispanConnectionProperties{
-			UseKogitoInfra: true,
-		}
+	if update, requeueAfter, err := infrastructure.DeployInfinispanWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
+		return &reconcile.Result{}, err
+	} else if update {
 		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
 			return &reconcile.Result{}, err
 		}
-		return &reconcile.Result{}, nil
+	} else if requeueAfter > 0 {
+		return &reconcile.Result{RequeueAfter: requeueAfter}, nil
 	}
 
-	return nil, nil
+	return &reconcile.Result{}, nil
 }

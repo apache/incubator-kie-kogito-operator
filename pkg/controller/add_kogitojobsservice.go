@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package controller
 
-import "github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitojobsservice"
+)
 
-var log = logger.GetLogger("resource_api")
+func init() {
+	// AddToManagerFuncs is a list of functions to create controllers and add them to a manager.
+	AddToManagerFuncs = append(AddToManagerFuncs, kogitojobsservice.Add)
+}

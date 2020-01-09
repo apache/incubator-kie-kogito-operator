@@ -59,7 +59,7 @@ func TestIsKafkaServerURIResolved(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"ExternalURI",
+			"URI",
 			args{
 				&v1alpha1.KogitoDataIndex{
 					Spec: v1alpha1.KogitoDataIndexSpec{

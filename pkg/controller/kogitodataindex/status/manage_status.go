@@ -124,7 +124,7 @@ func checkCurrentCondition(resources *resource.KogitoDataIndexResources) (v1alph
 func checkDependenciesStatus(instance *v1alpha1.KogitoDataIndex, client *client.Client) ([]v1alpha1.DataIndexDependenciesStatus, error) {
 	// TODO: perform a real check for CRD/CRs once we have operators platform check and integration with OLM
 	var deps []v1alpha1.DataIndexDependenciesStatus
-	if &instance.Spec.Infinispan == nil || len(instance.Spec.Infinispan.ServiceURI) == 0 {
+	if &instance.Spec.InfinispanProperties == nil || len(instance.Spec.InfinispanProperties.URI) == 0 {
 		deps = append(deps, v1alpha1.DataIndexDependenciesStatusMissingInfinispan)
 	}
 	if kafka, err := resource.IsKafkaServerURIResolved(instance, client); !kafka || err != nil {

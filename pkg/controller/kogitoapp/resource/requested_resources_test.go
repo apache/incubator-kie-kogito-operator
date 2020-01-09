@@ -16,12 +16,12 @@ package resource
 
 import (
 	"encoding/json"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
 	dockerv10 "github.com/openshift/api/image/docker10"
 
 	"github.com/stretchr/testify/assert"
@@ -52,7 +52,7 @@ func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	kogitoApp := createKogitoApp()
 	client := test.CreateFakeClient(nil, nil, nil)
 	resources, err := GetRequestedResources(&Context{
-		FactoryContext: resource.FactoryContext{
+		FactoryContext: framework.FactoryContext{
 			Client: client,
 		},
 		KogitoApp: kogitoApp,
@@ -74,7 +74,7 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
 				openshift.ImageLabelForExposeServices: "8080:http",
-				resource.LabelPrometheusScrape:        "true",
+				framework.LabelPrometheusScrape:       "true",
 			},
 		},
 	})
@@ -93,7 +93,7 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	log.Errorf("kogitoapp", kogitoApp.GetName())
 
 	resources, err := GetRequestedResources(&Context{
-		FactoryContext: resource.FactoryContext{
+		FactoryContext: framework.FactoryContext{
 			Client: client,
 		},
 		KogitoApp: kogitoApp,

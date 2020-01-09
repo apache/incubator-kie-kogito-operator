@@ -15,13 +15,17 @@
 package infrastructure
 
 import (
+	"github.com/google/uuid"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	oappsv1 "github.com/openshift/api/apps/v1"
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"testing"
 )
 
@@ -31,7 +35,7 @@ func Test_getKogitoDataIndexRoute(t *testing.T) {
 	dataIndexes := &v1alpha1.KogitoDataIndexList{
 		Items: []v1alpha1.KogitoDataIndex{
 			{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      "kogito-data-index",
 					Namespace: ns,
 				},
@@ -40,7 +44,7 @@ func Test_getKogitoDataIndexRoute(t *testing.T) {
 				},
 			},
 			{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      "kogito-data-index2",
 					Namespace: ns,
 				},
@@ -69,15 +73,24 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 	name := "my-kogito-app"
 	expectedRoute := "http://dataindex-route.com"
 	kogitoApp := &v1alpha1.KogitoApp{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
+			UID:       types.UID(uuid.New().String()),
+		},
+	}
+	dc := &oappsv1.DeploymentConfig{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoApp.Name, Namespace: kogitoApp.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoApp.UID}}},
+		Spec: oappsv1.DeploymentConfigSpec{
+			Template: &v1.PodTemplateSpec{
+				Spec: v1.PodSpec{Containers: []v1.Container{{Name: "test"}}},
+			},
 		},
 	}
 	dataIndexes := &v1alpha1.KogitoDataIndexList{
 		Items: []v1alpha1.KogitoDataIndex{
 			{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Name:      "kogito-data-index",
 					Namespace: ns,
 				},
@@ -87,15 +100,15 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes}, nil, nil)
+	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes, dc}, nil, nil)
 
 	err := InjectDataIndexURLIntoKogitoApps(client, ns)
 	assert.NoError(t, err)
 
-	exist, err := kubernetes.ResourceC(client).Fetch(kogitoApp)
+	exist, err := kubernetes.ResourceC(client).Fetch(dc)
 	assert.NoError(t, err)
 	assert.True(t, exist)
-	assert.Contains(t, kogitoApp.Spec.Env, v1alpha1.Env{Name: kogitoDataIndexHTTPRouteEnv, Value: expectedRoute})
+	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: dataIndexHTTPRouteEnv, Value: expectedRoute})
 }
 
 func Test_getKogitoDataIndexURLs(t *testing.T) {
@@ -106,11 +119,11 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	expectedHTTPSURL := "https://" + hostname
 	expectedWSSURL := "wss://" + hostname
 	unsecureDI := &v1alpha1.KogitoDataIndex{
-		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
 		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHTTPURL},
 	}
 	secureDI := &v1alpha1.KogitoDataIndex{
-		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
 		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHTTPSURL},
 	}
 	cliUnsecure := test.CreateFakeClient([]runtime.Object{unsecureDI}, nil, nil)

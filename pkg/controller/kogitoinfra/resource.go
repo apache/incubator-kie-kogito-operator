@@ -17,11 +17,10 @@ package kogitoinfra
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 
 	"reflect"
 )
@@ -58,7 +57,7 @@ func (r *ReconcileKogitoInfra) createRequiredResources(instance *v1alpha1.Kogito
 
 // getComparator gets the comparator map from the resources managed by the KogitoInfra controller
 func (r *ReconcileKogitoInfra) getComparator() compare.MapComparator {
-	var comparators []kogitores.Comparator
+	var comparators []framework.Comparator
 	comparators = append(comparators, infinispan.GetComparators()...)
 	comparators = append(comparators, kafka.GetComparators()...)
 

@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package framework
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	appsv1 "github.com/openshift/api/apps/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
 	"github.com/stretchr/testify/assert"
@@ -196,45 +195,6 @@ func Test_discoverPortsAndProbesFromImageNoPorts(t *testing.T) {
 	assert.Nil(t, dc.Spec.Template.Spec.Containers[0].ReadinessProbe)
 }
 
-func TestExtractProtoBufFilesFromDockerImage(t *testing.T) {
-	compressedFile := test.HelperLoadString(t, "base64-onboarding-proto")
-	decompressedFile, _ := decompressBase64GZip(compressedFile)
-	dockerImage := &dockerv10.DockerImage{Config: &dockerv10.DockerConfig{
-		Labels: map[string]string{
-			LabelKeyOrgKie + "myprocess":                            "process",
-			LabelKeyOrgKieProtoBuf + "/onboarding.onboarding.proto": compressedFile,
-		},
-	}}
-
-	type args struct {
-		prefixKey   string
-		dockerImage *dockerv10.DockerImage
-	}
-	tests := []struct {
-		name string
-		args args
-		want map[string]string
-	}{
-		{
-			"With required Label",
-			args{"onboarding-service", dockerImage},
-			map[string]string{"onboarding-service-onboarding.onboarding.proto": decompressedFile},
-		},
-		{
-			"Without Label",
-			args{"", &dockerv10.DockerImage{}},
-			map[string]string{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := ExtractProtoBufFilesFromDockerImage(tt.args.prefixKey, tt.args.dockerImage); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ExtractProtoBufFilesFromDockerImage() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestExtractPrometheusConfigurationFromImage(t *testing.T) {
 	port := intstr.FromInt(8080)
 
@@ -304,47 +264,6 @@ func TestExtractPrometheusConfigurationFromImage(t *testing.T) {
 			}
 			if !reflect.DeepEqual(gotPort, tt.wantPort) {
 				t.Errorf("ExtractPrometheusConfigurationFromImage() gotPort = %v, want %v", gotPort, tt.wantPort)
-			}
-		})
-	}
-}
-
-func Test_decompressBase64GZip(t *testing.T) {
-	compressed := test.HelperLoadString(t, "base64-onboarding-proto")
-	uncompressed := test.HelperLoadString(t, "base64-onboarding-proto-uncompressed")
-	raw := test.HelperLoadString(t, "onboarding-proto-raw")
-
-	type args struct {
-		contents string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
-	}{
-		{
-			name:    "Reading a compressed archive",
-			args:    args{contents: compressed},
-			want:    raw,
-			wantErr: false,
-		},
-		{
-			name:    "Reading a uncompressed archive",
-			args:    args{contents: uncompressed},
-			want:    raw,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := decompressBase64GZip(tt.args.contents)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("decompressBase64GZip() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("decompressBase64GZip() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

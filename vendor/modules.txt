@@ -17,7 +17,7 @@ github.com/DATA-DOG/godog/gherkin
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/RHsyseng/operator-utils v0.0.0-20191024171429-aada4a416142
+# github.com/RHsyseng/operator-utils v0.0.0-20200107012339-36cb05326a3c
 github.com/RHsyseng/operator-utils/pkg/resource
 github.com/RHsyseng/operator-utils/pkg/resource/compare
 github.com/RHsyseng/operator-utils/pkg/resource/write
@@ -455,6 +455,7 @@ k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme
 # k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655 => k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 k8s.io/apimachinery/pkg/apis/meta/v1
+k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/util/intstr
 k8s.io/apimachinery/pkg/runtime/schema
@@ -462,7 +463,6 @@ k8s.io/apimachinery/pkg/api/meta
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/types
 k8s.io/apimachinery/pkg/util/yaml
-k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/conversion
 k8s.io/apimachinery/pkg/fields
 k8s.io/apimachinery/pkg/labels

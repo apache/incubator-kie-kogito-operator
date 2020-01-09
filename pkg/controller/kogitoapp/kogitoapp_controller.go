@@ -16,6 +16,7 @@ package kogitoapp
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/openshift/api/image/docker10"
 	"reflect"
@@ -32,8 +33,6 @@ import (
 	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/resource"
-
 	oappsv1 "github.com/openshift/api/apps/v1"
 	obuildv1 "github.com/openshift/api/build/v1"
 	oimagev1 "github.com/openshift/api/image/v1"
@@ -161,7 +160,7 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 	// create resources in the cluster that do not exist
 	kogitoResources, err := kogitores.GetRequestedResources(&kogitores.Context{
 		KogitoApp: instance,
-		FactoryContext: resource.FactoryContext{
+		FactoryContext: framework.FactoryContext{
 			Client: r.client,
 		},
 	})
@@ -362,7 +361,7 @@ func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoAp
 					log.Error(getISerr)
 				}
 				if imageTag != nil && imageTag.Image.Name != "" {
-					log.Infof("Image %s ready.", imageTag.Name)
+					log.Infof("ImageStream %s ready.", imageTag.Name)
 				} else {
 					log.Warnf("ImageStream %s not ready/found, scheduling reconcile", tagRef)
 					return true, nil
@@ -396,7 +395,7 @@ func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, run
 func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
 	log.Debug("Verify if we need to deploy Infinispan")
 	if instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAlways ||
-		(instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAuto && resource.IsPersistenceEnabled(runtimeImage)) {
+		(instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAuto && framework.IsPersistenceEnabled(runtimeImage)) {
 		infra, created, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan()
 		if err != nil {
 			return true, err
@@ -465,15 +464,15 @@ func (r *ReconcileKogitoApp) injectExternalVariables(instance *v1alpha1.KogitoAp
 }
 
 func (r *ReconcileKogitoApp) rollOutDeploymentIfConfigMapBroken(instance *v1alpha1.KogitoApp, deployed map[reflect.Type][]utilsres.KubernetesResource) (err error) {
-	deployedDeployment := getDeployed(reflect.TypeOf(oappsv1.DeploymentConfig{}), deployed, instance.Name)
-	deployedConfigMap := getDeployed(reflect.TypeOf(corev1.ConfigMap{}), deployed, kogitores.GenerateProtoBufConfigMapName(instance))
+	deployedDeployment := framework.GetResource(reflect.TypeOf(oappsv1.DeploymentConfig{}), instance.Name, deployed)
+	deployedConfigMap := framework.GetResource(reflect.TypeOf(corev1.ConfigMap{}), kogitores.GenerateProtoBufConfigMapName(instance), deployed)
 
 	if deployedDeployment == nil {
 		return nil
 	}
 
 	// only rolls out the dc if all replicas are available
-	if !resource.IsSafeToRollOutDeploymentConfig(deployedDeployment.(*oappsv1.DeploymentConfig)) {
+	if !framework.IsSafeToRollOutDeploymentConfig(deployedDeployment.(*oappsv1.DeploymentConfig)) {
 		return nil
 	}
 
@@ -518,13 +517,4 @@ func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.
 	}
 
 	return k8sRes
-}
-
-func getDeployed(resourceType reflect.Type, deployed map[reflect.Type][]utilsres.KubernetesResource, name string) utilsres.KubernetesResource {
-	for _, res := range deployed[resourceType] {
-		if res.GetName() == name {
-			return res
-		}
-	}
-	return nil
 }

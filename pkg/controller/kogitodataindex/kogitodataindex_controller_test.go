@@ -40,7 +40,7 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 			Namespace: ns,
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Infinispan: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true},
+			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
 		},
 	}
 	kafkaList := &kafkabetav1.KafkaList{

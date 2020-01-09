@@ -58,7 +58,7 @@ func newBuildConfigRuntime(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 	return buildConfig, err
 }
 
-func resolveRuntimeImage(kogitoApp *v1alpha1.KogitoApp) (v1alpha1.Image, BuildType) {
+func resolveRuntimeImage(kogitoApp *v1alpha1.KogitoApp) (v1alpha1.ImageStream, BuildType) {
 	buildType := BuildTypeRuntime
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoApp.Spec.Build.Native {
 		buildType = BuildTypeRuntimeJvm
@@ -84,7 +84,7 @@ func setBCRuntimeSource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.Buil
 	}
 }
 
-func setBCRuntimeStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, image *v1alpha1.Image) {
+func setBCRuntimeStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, image *v1alpha1.ImageStream) {
 	imageName, imageNamespace := parseImage(image)
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{

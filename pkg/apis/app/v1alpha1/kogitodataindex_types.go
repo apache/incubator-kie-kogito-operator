@@ -23,14 +23,10 @@ import (
 // KogitoDataIndexCRDName is the name of the Kogito Data Index CRD in the cluster
 const KogitoDataIndexCRDName = "kogitodataindices.app.kiegroup.org"
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: JSON tags are required. Any new fields that you add must have JSON tags for the fields to be serialized.
-
 // KogitoDataIndexSpec defines the desired state of KogitoDataIndex
 // +k8s:openapi-gen=true
 type KogitoDataIndexSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - Desired state of cluster
-	// IMPORTANT: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	InfinispanMeta `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Replicas is the number of pod replicas that the Data Index Service will create
@@ -64,10 +60,6 @@ type KogitoDataIndexSpec struct {
 	CPURequest string `json:"cpuRequest,omitempty"`
 
 	// +optional
-	// Infinispan has the data used by the Kogito Data Index to connect to the Infinispan cluster
-	Infinispan InfinispanConnectionProperties `json:"infinispan,omitempty"`
-
-	// +optional
 	// Kafka has the data used by the Kogito Data Index to connect to a Kafka cluster
 	Kafka KafkaConnectionProperties `json:"kafka,omitempty"`
 }
@@ -75,68 +67,12 @@ type KogitoDataIndexSpec struct {
 // KafkaConnectionProperties has the data needed to connect to a Kafka cluster
 type KafkaConnectionProperties struct {
 	// +optional
-	// ExternalURI is the service URI to connect to the Kafka cluster, for example, my-cluster-kafka-bootstrap:9092
+	// URI is the service URI to connect to the Kafka cluster, for example, my-cluster-kafka-bootstrap:9092
 	ExternalURI string `json:"externalURI,omitempty"`
 
 	// +optional
 	// Instance is the Kafka instance to be used, for example, kogito-kafka
 	Instance string `json:"instance,omitempty"`
-}
-
-// InfinispanConnectionProperties is the configuration needed for authenticating an Infinispan cluster
-// If this configuration is not set, the Data Index connects to an existing Infinispan Server deployed by the KogitoInfra resource and sets these values for you
-// For more information, see https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description
-// +k8s:openapi-gen=true
-type InfinispanConnectionProperties struct {
-	// +optional
-	Credentials SecretCredentialsType `json:"credentials,omitempty"`
-
-	// UseAuth is set to true if the credentials are set. This also sets the property infinispan.client.hotrod.use_auth.
-	// +optional
-	UseAuth bool `json:"useAuth,omitempty"`
-
-	// Name of the Infinispan authentication realm. This sets the property infinispan.client.hotrod.auth_realm.
-	// +optional
-	AuthRealm string `json:"authRealm,omitempty"`
-
-	// +kubebuilder:validation:Enum=PLAIN;DIGEST-MD5
-	// +optional
-	// SaslMechanism defined for the authentication. This sets the property infinispan.client.hotrod.sasl_mechanism.
-	SaslMechanism InfinispanSaslMechanismType `json:"saslMechanism,omitempty"`
-
-	// +optional
-	// ServiceURI is the service URI to connect to the Infinispan cluster, for example, myinfinispan-cluster:11222
-	ServiceURI string `json:"serviceURI,omitempty"`
-
-	// +optional
-	// UseKogitoInfra flags if this Data Index instance will use a provided infrastructure by KogitoInfra CR. Defaults to true.
-	// Set this to false and fill all other properties to provide your own infrastructure
-	UseKogitoInfra bool `json:"useKogitoInfra,omitempty"`
-}
-
-// InfinispanSaslMechanismType is the possible SASL Mechanism used during infinispan connection. For more information, see https://en.wikipedia.org/wiki/Simple_Authentication_and_Security_Layer#SASL_mechanisms.
-type InfinispanSaslMechanismType string
-
-const (
-	// SASLPlain is the PLAIN type
-	SASLPlain InfinispanSaslMechanismType = "PLAIN"
-	// SASLDigestMD5 is the DIGEST-MD5 type
-	SASLDigestMD5 InfinispanSaslMechanismType = "DIGEST-MD5"
-)
-
-// SecretCredentialsType is the data structure for specifyng credentials within a Secret
-type SecretCredentialsType struct {
-	// +optional
-	// SecretName is the name of the secret where the credentials are set
-	SecretName string `json:"secretName,omitempty"`
-
-	// +optional
-	// UsernameKey is the user name for the user who will be authenticated in the cluster. This sets the property infinispan.client.hotrod.auth_username.
-	UsernameKey string `json:"usernameKey,omitempty"`
-
-	// +optional
-	// PasswordKey is the password for the Infinispan user. This sets the propery infinispan.client.hotrod.auth_password.
-	PasswordKey string `json:"passwordKey,omitempty"`
 }
 
 // KogitoDataIndexStatus defines the observed state of KogitoDataIndex

@@ -27,7 +27,7 @@ spec:
     # default to PLAIN
     #saslMechanism: ""
     # the service name and port of the infinispan cluster. Example: my-infinispan:11222
-    #serviceURI: kogito-infinispan:11222
+    #uri: kogito-infinispan:11222
     # will automatically set to true if the credentials are set
     #useAuth: false
     # auth credentials

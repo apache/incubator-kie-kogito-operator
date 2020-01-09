@@ -15,7 +15,6 @@
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -119,9 +118,9 @@ type KogitoAppBuildObject struct {
 	// +listMapKey=type
 	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
 	// ImageS2I is used by build configurations to build the image from source
-	ImageS2I Image `json:"imageS2I,omitempty"`
+	ImageS2I ImageStream `json:"imageS2I,omitempty"`
 	// ImageRuntime is used by build configurations to build a final runtime image based on an S2I configuration
-	ImageRuntime Image `json:"imageRuntime,omitempty"`
+	ImageRuntime ImageStream `json:"imageRuntime,omitempty"`
 	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus. For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
 	Native bool `json:"native,omitempty"`
 	// Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.
@@ -169,11 +168,7 @@ type WebhookSecret struct {
 // KogitoAppStatus defines the observed state of KogitoApp
 // +k8s:openapi-gen=true
 type KogitoAppStatus struct {
-	// History of conditions for the service
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Conditions"
-	// +listType=atomic
-	Conditions []Condition `json:"conditions"`
+	ConditionsMeta `json:",inline"`
 	// External URL for the service
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Route"
@@ -239,63 +234,11 @@ const (
 	SpringbootRuntimeType RuntimeType = "springboot"
 )
 
-// Image contains the image details
-type Image struct {
+// ImageStream contains the image details
+type ImageStream struct {
 	ImageStreamName      string `json:"imageStreamName,omitempty"`
 	ImageStreamTag       string `json:"imageStreamTag,omitempty"`
 	ImageStreamNamespace string `json:"imageStreamNamespace,omitempty"`
-}
-
-// ConditionType is the type of condition
-type ConditionType string
-
-const (
-	// DeployedConditionType - The KogitoApp is deployed
-	DeployedConditionType ConditionType = "Deployed"
-	// ProvisioningConditionType - The KogitoApp is being provisioned
-	ProvisioningConditionType ConditionType = "Provisioning"
-	// FailedConditionType - The KogitoApp is in a failed state
-	FailedConditionType ConditionType = "Failed"
-)
-
-// ReasonType is the type of reason
-type ReasonType string
-
-const (
-	// ServicesIntegrationFailedReason - Unable to inject external services to KogitoApp
-	ServicesIntegrationFailedReason ReasonType = "ServicesIntegrationFailed"
-	// ParseCRRequestFailedReason - Unable to resolve the CR request
-	ParseCRRequestFailedReason ReasonType = "ParseCRRequestFailed"
-	// RetrieveDeployedResourceFailedReason - Unable to retrieve the deployed resources
-	RetrieveDeployedResourceFailedReason ReasonType = "RetrieveDeployedResourceFailed"
-	// CreateResourceFailedReason - Unable to create the requested resources
-	CreateResourceFailedReason ReasonType = "CreateResourceFailed"
-	// RemoveResourceFailedReason - Unable to remove the requested resources
-	RemoveResourceFailedReason ReasonType = "RemoveResourceFailed"
-	// UpdateResourceFailedReason - Unable to update the requested resources
-	UpdateResourceFailedReason ReasonType = "UpdateResourceFailed"
-	// TriggerBuildFailedReason - Unable to trigger the builds
-	TriggerBuildFailedReason ReasonType = "TriggerBuildFailed"
-	// BuildS2IFailedReason - Unable to build with the S2I image
-	BuildS2IFailedReason ReasonType = "BuildS2IFailedReason"
-	// BuildRuntimeFailedReason - Unable to build the runtime image
-	BuildRuntimeFailedReason ReasonType = "BuildRuntimeFailedReason"
-	// DeployKogitoInfraFailedReason - Unable to deploy Kogito Infra
-	DeployKogitoInfraFailedReason ReasonType = "DeployKogitoInfraFailedReason"
-	// UnknownReason - Unable to determine the error
-	UnknownReason ReasonType = "Unknown"
-	// RolloutDeploymentFailedReason - Unable to rollout deployment
-	RolloutDeploymentFailedReason ReasonType = "RolloutDeploymentFailedReason"
-)
-
-// Condition is the condition for the kogito-operator
-// +k8s:openapi-gen=true
-type Condition struct {
-	Type               ConditionType          `json:"type"`
-	Status             corev1.ConditionStatus `json:"status"`
-	LastTransitionTime metav1.Time            `json:"lastTransitionTime,omitempty"`
-	Reason             ReasonType             `json:"reason,omitempty"`
-	Message            string                 `json:"message,omitempty"`
 }
 
 // Deployments ...
