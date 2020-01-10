@@ -43,9 +43,10 @@ func Test_InstallOperatorNoNamespace(t *testing.T) {
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	test.ExecuteCli()
 
-	cli = fmt.Sprintf("install operator")
+	cli = fmt.Sprintf("install operator --install-data-index")
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Operator successfully deployed")
+	assert.Contains(t, lines, "Kogito Data Index Service successfully installed in the Project")
 }

@@ -55,13 +55,13 @@ var (
 
 // SilentlyInstallOperatorIfNotExists attempts to install the operator and does not log a message if it is installed
 func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client) (installed bool, err error) {
-	return MustInstallOperatorIfNotExists(namespace, operatorImage, client, true)
+	return InstallOperatorIfNotExists(namespace, operatorImage, client, false)
 }
 
-// MustInstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files, if the operator deployment is not in the given namespace.
-// If the operator is available at the OperatorHub in OpenShift installations and not installed, MustInstallOperatorIfNotExists generates a warning message and stops the flow
+// InstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files, if the operator deployment is not in the given namespace.
+// If the operator is available at the OperatorHub in OpenShift installations and not installed, tries to install the Operator via OLM Subscriptions.
 // operatorImage can be an empty string. In this case, the empty string is the default value.
-func MustInstallOperatorIfNotExists(namespace string, operatorImage string, cli *client.Client, silence bool) (installed bool, err error) {
+func InstallOperatorIfNotExists(namespace string, operatorImage string, cli *client.Client, warnIfInstalled bool) (installed bool, err error) {
 	log := context.GetDefaultLogger()
 
 	if util.GetBoolOSEnv(skipOperatorInstallEnv) {
@@ -76,7 +76,7 @@ func MustInstallOperatorIfNotExists(namespace string, operatorImage string, cli 
 	if exists, err := infrastructure.CheckKogitoOperatorExists(cli, namespace); err != nil {
 		return false, err
 	} else if exists {
-		if !silence {
+		if warnIfInstalled {
 			log.Infof("Kogito Operator is already deployed in the namespace '%s', skipping ", namespace)
 		}
 		return true, nil

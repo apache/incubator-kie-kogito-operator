@@ -17,6 +17,7 @@ package project
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"testing"
 
@@ -26,16 +27,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//context.CommandFactory{BuildCommands:BuildCommands},
-
 func TestNewProject_WhenNewProjectDoesNotExist(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("new-project --project %s", ns)
+	cli := fmt.Sprintf("new-project --project %s --install-data-index", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "created")
 	assert.Contains(t, lines, ns)
+	assert.Contains(t, lines, fmt.Sprintf(message.DataIndexSuccessfulInstalled, ns))
 }
 
 func TestNewProject_WhenNewProjectExist(t *testing.T) {
@@ -54,7 +54,7 @@ func TestNewProject_WhenTheresNoNamedFlag(t *testing.T) {
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "created")
+	assert.Contains(t, lines, "created successfully")
 	assert.Contains(t, lines, ns)
 }
 
@@ -64,4 +64,15 @@ func TestNewProject_WhenTheresNoName(t *testing.T) {
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Please set a project for new-project")
+}
+
+func TestNewProject_WithoutDataIndex(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("new-project -n %s ", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "created successfully")
+	assert.Contains(t, lines, ns)
+	assert.NotContains(t, lines, fmt.Sprintf(message.DataIndexSuccessfulInstalled, ns))
 }

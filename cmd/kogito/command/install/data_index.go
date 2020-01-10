@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -31,8 +32,7 @@ import (
 )
 
 const (
-	defaultDataIndexName                 = "kogito-data-index"
-	defaultDataIndexInfinispanSecretName = "kogito-data-index-infinispan-credentials"
+	defaultDataIndexInfinispanSecretName = resdataindex.DefaultDataIndexName + "-infinispan-credentials"
 	defaultInfinispanUsernameKey         = "username"
 	defaultInfinispanPasswordKey         = "password"
 )
@@ -200,7 +200,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	}
 
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: defaultDataIndexName, Namespace: i.flags.Project},
+		ObjectMeta: metav1.ObjectMeta{Name: resdataindex.DefaultDataIndexName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas:       i.flags.Replicas,
 			Env:            util.FromStringsKeyPairToMap(i.flags.Env),
@@ -219,11 +219,11 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	}
 
 	if err := kubernetes.ResourceC(i.Client).Create(&kogitoDataIndex); err != nil {
-		return fmt.Errorf("Error while trying to create a new Kogito Data Index Service: %s ", err)
+		return fmt.Errorf(message.DataIndexErrCreating, err)
 	}
 
-	log.Infof("Kogito Data Index Service successfully installed in the Project %s.", i.flags.Project)
-	log.Infof("Check the Service status by running 'oc describe kogitodataindex/%s -n %s'", kogitoDataIndex.Name, i.flags.Project)
+	log.Infof(message.DataIndexSuccessfulInstalled, i.flags.Project)
+	log.Infof(message.DataIndexCheckStatus, kogitoDataIndex.Name, i.flags.Project)
 
 	return nil
 }

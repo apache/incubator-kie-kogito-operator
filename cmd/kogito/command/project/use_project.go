@@ -24,7 +24,8 @@ import (
 )
 
 type useProjectFlags struct {
-	project string
+	project          string
+	installDataIndex bool
 }
 
 type useProjectCommand struct {
@@ -80,6 +81,7 @@ func (i *useProjectCommand) InitHook() {
 	i.flags = useProjectFlags{}
 	i.Parent.AddCommand(i.command)
 	i.command.Flags().StringVarP(&i.flags.project, "project", "n", "", "The project project")
+	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
 }
 
 func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -93,10 +95,11 @@ func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 
 		log.Infof("Project set to '%s'", i.flags.project)
 
-		if _, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.project, "", i.Client); err != nil {
-			return err
+		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperator()
+		if i.flags.installDataIndex {
+			install.InstallDataIndex()
 		}
-		return nil
+		return install.GetError()
 	}
 
 	return fmt.Errorf("Project '%s' not found. Try running 'kogito new-project %s' to create your Project first ", i.flags.project, i.flags.project)

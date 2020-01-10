@@ -21,8 +21,9 @@ import (
 )
 
 type installKogitoOperatorFlags struct {
-	Namespace string
-	Image     string
+	namespace        string
+	image            string
+	installDataIndex bool
 }
 
 type installKogitoOperatorCommand struct {
@@ -66,18 +67,20 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 func (i *installKogitoOperatorCommand) InitHook() {
 	i.flags = installKogitoOperatorFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.Namespace, "project", "p", "", "The project name where the operator will be deployed")
-	i.command.Flags().StringVarP(&i.flags.Image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
+	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
+	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
-	if i.flags.Namespace, err = shared.EnsureProject(i.Client, i.flags.Namespace); err != nil {
+	if i.flags.namespace, err = shared.EnsureProject(i.Client, i.flags.namespace); err != nil {
 		return err
 	}
 
-	if _, err = shared.MustInstallOperatorIfNotExists(i.flags.Namespace, i.flags.Image, i.Client, false); err != nil {
-		return err
+	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image)
+	if i.flags.installDataIndex {
+		install.InstallDataIndex()
 	}
-	return nil
+	return install.GetError()
 }
