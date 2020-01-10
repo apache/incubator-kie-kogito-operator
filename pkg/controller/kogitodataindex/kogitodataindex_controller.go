@@ -189,11 +189,12 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 		return &reconcile.Result{}, err
 	} else if update {
 		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
-			return &reconcile.Result{}, err
+			return nil, err
 		}
+		return &reconcile.Result{}, nil
 	} else if requeueAfter > 0 {
 		return &reconcile.Result{RequeueAfter: requeueAfter}, nil
 	}
 
-	return &reconcile.Result{}, nil
+	return nil, nil
 }

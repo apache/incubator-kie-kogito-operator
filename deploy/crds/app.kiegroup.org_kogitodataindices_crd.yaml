@@ -57,15 +57,16 @@ spec:
                     credentials within a Secret
                   properties:
                     passwordKey:
-                      description: PasswordKey is the password for the user.
+                      description: PasswordKey is the key pointing to a value in a
+                        Secret holding the password value
                       type: string
                     secretName:
                       description: SecretName is the name of the secret where the
                         credentials are set
                       type: string
                     usernameKey:
-                      description: UsernameKey is the user name for the user who will
-                        be authenticated.
+                      description: UsernameKey is the key pointing to a value in a
+                        Secret holding the username value
                       type: string
                   type: object
                 saslMechanism:
