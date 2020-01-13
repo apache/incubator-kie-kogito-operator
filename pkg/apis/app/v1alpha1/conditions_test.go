@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
+	"time"
 )
 
 func TestSetDeployed(t *testing.T) {
@@ -71,8 +72,10 @@ func TestSetProvisioningSkipUpdate(t *testing.T) {
 func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	now := metav1.Now()
 	conditionsMeta := ConditionsMeta{}
-
+	// let's wait a little bit for systems that are too fast, otherwise the comparision above could fail
+	time.Sleep(1 * time.Millisecond)
 	assert.True(t, conditionsMeta.SetProvisioning())
+	time.Sleep(1 * time.Millisecond)
 	assert.True(t, conditionsMeta.SetDeployed())
 
 	assert.NotEmpty(t, conditionsMeta.Conditions)

@@ -6,6 +6,17 @@ metadata:
       [
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoInfra",
+          "metadata": {
+            "name": "kogito-infra"
+          },
+          "spec": {
+            "installInfinispan": false,
+            "installKafka": false
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoJobsService",
           "metadata": {
             "name": "jobs-service"
@@ -48,17 +59,6 @@ metadata:
             "memoryLimit": "",
             "memoryRequest": "",
             "replicas": 1
-          }
-        },
-        {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
-          "kind": "KogitoInfra",
-          "metadata": {
-            "name": "kogito-infra"
-          },
-          "spec": {
-            "installInfinispan": false,
-            "installKafka": false
           }
         }
       ]
