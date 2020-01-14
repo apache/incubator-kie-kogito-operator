@@ -62,7 +62,7 @@ func DeployInfinispanWithKogitoInfra(instance v1alpha1.InfinispanAware, namespac
 
 		uri, err := GetInfinispanServiceURI(cli, infra)
 		if err != nil {
-			return false, 0, nil
+			return false, 0, err
 		}
 		if instance.GetInfinispanProperties().URI == uri &&
 			instance.GetInfinispanProperties().Credentials.SecretName == infra.Status.Infinispan.CredentialSecret &&
@@ -150,44 +150,6 @@ func SetInfinispanVariables(infinispanProps v1alpha1.InfinispanConnectionPropert
 	}
 }
 
-/* TODO: remove it as part of KOGITO-601 */
-
-// FromInfinispanToStringMap will convert the InfinispanConnectionProperties into a Map of environment variables to be set in the container
-func FromInfinispanToStringMap(infinispan v1alpha1.InfinispanConnectionProperties) map[string]string {
-	propsmap := map[string]string{}
-
-	if &infinispan == nil {
-		return propsmap
-	}
-
-	if &infinispan.Credentials != nil && len(infinispan.Credentials.SecretName) > 0 {
-		propsmap[infinispanEnvKeyUsername] = ""
-		propsmap[infinispanEnvKeyPassword] = ""
-		propsmap[infinispanEnvKeyUseAuth] = "true"
-		propsmap[infinispanEnvKeyCredSecret] = infinispan.Credentials.SecretName
-		if len(infinispan.SaslMechanism) == 0 {
-			infinispan.SaslMechanism = v1alpha1.SASLPlain
-		}
-	} else {
-		propsmap[infinispanEnvKeyUseAuth] = "false"
-	}
-	if len(infinispan.AuthRealm) > 0 {
-		propsmap[infinispanEnvKeyAuthRealm] = infinispan.AuthRealm
-	}
-	if len(infinispan.SaslMechanism) > 0 {
-		propsmap[infinispanEnvKeySasl] = string(infinispan.SaslMechanism)
-	}
-	if len(infinispan.URI) > 0 {
-		propsmap[infinispanEnvKeyQuarkusServerList] = infinispan.URI
-		propsmap[infinispanEnvKeyServerList] = infinispan.URI
-	}
-
-	log.Debugf("Infinispan properties created as %s", propsmap)
-	return propsmap
-}
-
-/* TODO: remove it as part of KOGITO-601 */
-
 // GetInfinispanEnvVarsKeys gets the collection of Infinispan managed environment variables
 func GetInfinispanEnvVarsKeys() []string {
 	return []string{
@@ -200,24 +162,4 @@ func GetInfinispanEnvVarsKeys() []string {
 		infinispanEnvKeyQuarkusServerList,
 		infinispanEnvKeyServerList,
 	}
-}
-
-/* TODO: remove it as part of KOGITO-601 */
-
-// GetInfinispanVars will get the infinispan env vars from the container env
-func GetInfinispanVars(container corev1.Container) []corev1.EnvVar {
-	var envs []corev1.EnvVar
-	if &container == nil {
-		return envs
-	}
-
-	for _, env := range container.Env {
-		for _, infinispanKey := range GetInfinispanEnvVarsKeys() {
-			if env.Name == infinispanKey {
-				envs = append(envs, env)
-			}
-		}
-	}
-
-	return envs
 }

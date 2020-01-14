@@ -16,17 +16,18 @@ package resource
 
 import (
 	"encoding/json"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+
 	dockerv10 "github.com/openshift/api/image/docker10"
+	imgv1 "github.com/openshift/api/image/v1"
 
 	"github.com/stretchr/testify/assert"
 
-	imgv1 "github.com/openshift/api/image/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -51,12 +52,7 @@ func createKogitoApp() *v1alpha1.KogitoApp {
 func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	kogitoApp := createKogitoApp()
 	client := test.CreateFakeClient(nil, nil, nil)
-	resources, err := GetRequestedResources(&Context{
-		FactoryContext: framework.FactoryContext{
-			Client: client,
-		},
-		KogitoApp: kogitoApp,
-	})
+	resources, err := GetRequestedResources(kogitoApp, client)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, resources)
@@ -92,12 +88,7 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{&isTag}, []runtime.Object{&isTag}, nil)
 	log.Errorf("kogitoapp", kogitoApp.GetName())
 
-	resources, err := GetRequestedResources(&Context{
-		FactoryContext: framework.FactoryContext{
-			Client: client,
-		},
-		KogitoApp: kogitoApp,
-	})
+	resources, err := GetRequestedResources(kogitoApp, client)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, resources)

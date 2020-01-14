@@ -469,18 +469,33 @@ func equalRoleBindings(deployed resource.KubernetesResource, requested resource.
 func equalSecrets(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 	secret1 := deployed.(*corev1.Secret)
 	secret2 := requested.(*corev1.Secret)
+	secret1 = mergeSecretStringDataToData(secret1)
+	secret2 = mergeSecretStringDataToData(secret2)
 	var pairs [][2]interface{}
 	pairs = append(pairs, [2]interface{}{secret1.Name, secret2.Name})
 	pairs = append(pairs, [2]interface{}{secret1.Namespace, secret2.Namespace})
 	pairs = append(pairs, [2]interface{}{secret1.Labels, secret2.Labels})
 	pairs = append(pairs, [2]interface{}{secret1.Annotations, secret2.Annotations})
 	pairs = append(pairs, [2]interface{}{secret1.Data, secret2.Data})
-	pairs = append(pairs, [2]interface{}{secret1.StringData, secret2.StringData})
 	equal := EqualPairs(pairs)
 	if !equal {
 		logger.Info("Resources are not equal", "deployed", deployed, "requested", requested)
 	}
 	return equal
+}
+
+func mergeSecretStringDataToData(secret *corev1.Secret) *corev1.Secret {
+	s := secret.DeepCopy()
+	// StringData overwrites Data
+	if len(s.StringData) > 0 {
+		if s.Data == nil {
+			s.Data = map[string][]byte{}
+		}
+		for k, v := range s.StringData {
+			s.Data[k] = []byte(v)
+		}
+	}
+	return s
 }
 
 func equalBuildConfigs(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {

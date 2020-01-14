@@ -2,14 +2,14 @@ module github.com/kiegroup/kogito-cloud-operator
 
 require (
 	github.com/DATA-DOG/godog v0.7.13
-	github.com/RHsyseng/operator-utils v0.0.0-20200107012339-36cb05326a3c
+	github.com/RHsyseng/operator-utils v0.0.0-20200108204558-82090ef57586
 	github.com/coreos/prometheus-operator v0.33.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.3
 	github.com/go-openapi/validate v0.18.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.7.1
-	github.com/google/go-cmp v0.3.1
+	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/infinispan/infinispan-operator v0.0.0-20191028165532-917f400bee62
 	github.com/mitchellh/go-homedir v1.1.0

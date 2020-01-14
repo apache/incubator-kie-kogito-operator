@@ -46,6 +46,5 @@ func newRoute(instance *v1alpha1.KogitoDataIndex, service *corev1.Service) (rout
 
 	addDefaultMetadata(&route.ObjectMeta, instance)
 	meta.SetGroupVersionKind(&route.TypeMeta, meta.KindRoute)
-	route.ResourceVersion = ""
 	return route, nil
 }

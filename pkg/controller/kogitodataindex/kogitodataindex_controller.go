@@ -16,27 +16,35 @@ package kogitodataindex
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"time"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/status"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+
+	routev1 "github.com/openshift/api/route/v1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/runtime"
+
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	utilsres "github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
+	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 )
 
 var log = logger.GetLogger("controller_kogitodataindex")
@@ -84,6 +92,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	watchOwnedObjects := []runtime.Object{
 		&corev1.Service{},
 		&appsv1.StatefulSet{},
+		&routev1.Route{},
+		&kafkabetav1.KafkaTopic{},
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -92,6 +102,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	for _, watchObject := range watchOwnedObjects {
 		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
 		if err != nil {
+			if framework.IsNoKindMatchError(kafkabetav1.SchemeGroupVersion.Group, err) {
+				log.Warn("Tried to watch Kafka CRD, but failed. Maybe related Operators are not installed?")
+				continue
+			}
 			return err
 		}
 	}
@@ -114,7 +128,7 @@ type ReconcileKogitoDataIndex struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
 	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling KogitoDataIndex")
 
@@ -150,34 +164,58 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (reconci
 		return *result, nil
 	}
 
+	var hasUpdates bool
+
 	// Create our inventory
 	reqLogger.Infof("Ensure Kogito Data Index '%s' resources are created", instance.Name)
-	resources, err := resource.CreateOrFetchResources(instance, framework.FactoryContext{
-		Client: r.client,
-		PreCreate: func(object meta.ResourceObject) error {
-			if object != nil {
-				return controllerutil.SetControllerReference(instance, object, r.scheme)
-			}
-			return nil
-		},
-	})
+	resources, err := resource.GetRequestedResources(instance, r.client)
+
+	result = reconcile.Result{}
+
+	defer r.updateStatus(&request, instance, resources, &hasUpdates, &resultErr)
+
 	if err != nil {
-		return reconcile.Result{}, err
+		resultErr = err
+		return
 	}
 
-	if !resources.StatefulSetStatus.New {
-		reqLogger.Infof("Handling changes in Kogito Data Index '%s'", instance.Name)
-		if err = resource.ManageResources(instance, &resources, r.client); err != nil {
-			return reconcile.Result{}, err
+	deployedResources, err := resource.GetDeployedResources(instance, r.client)
+	if err != nil {
+		resultErr = err
+		return
+	}
+
+	requestedResources := compare.NewMapBuilder().Add(getKubernetesResources(resources)...).ResourceMap()
+
+	comparator := resource.GetComparator()
+	deltas := comparator.Compare(deployedResources, requestedResources)
+
+	writer := write.New(r.client.ControlCli).WithOwnerController(instance, r.scheme)
+
+	for resourceType, delta := range deltas {
+		if !delta.HasChanges() {
+			continue
 		}
+		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
+		added, err := writer.AddResources(delta.Added)
+		if err != nil {
+			resultErr = err
+			return
+		}
+		updated, err := writer.UpdateResources(deployedResources[resourceType], delta.Updated)
+		if err != nil {
+			resultErr = err
+			return
+		}
+		removed, err := writer.RemoveResources(delta.Removed)
+		if err != nil {
+			resultErr = err
+			return
+		}
+		hasUpdates = hasUpdates || added || updated || removed
 	}
 
-	reqLogger.Infof("Handling Status updates on '%s'", instance.Name)
-	if err = status.ManageStatus(instance, &resources, r.client); err != nil {
-		return reconcile.Result{}, err
-	}
-
-	return reconcile.Result{}, nil
+	return
 }
 
 // ensureKogitoInfra will deploy a new Kogito Infra if needed based on Data Index instance requirements.
@@ -186,7 +224,7 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 	log.Debug("Verify if we need to deploy Infinispan")
 
 	if update, requeueAfter, err := infrastructure.DeployInfinispanWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
-		return &reconcile.Result{}, err
+		return nil, err
 	} else if update {
 		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
 			return nil, err
@@ -197,4 +235,40 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 	}
 
 	return nil, nil
+}
+
+func getKubernetesResources(resources *resource.KogitoDataIndexResources) []utilsres.KubernetesResource {
+	var k8sRes []utilsres.KubernetesResource
+
+	if resources.StatefulSet != nil {
+		k8sRes = append(k8sRes, resources.StatefulSet)
+	}
+	if resources.Service != nil {
+		k8sRes = append(k8sRes, resources.Service)
+	}
+	if resources.Route != nil {
+		k8sRes = append(k8sRes, resources.Route)
+	}
+	if resources.KafkaTopics != nil && len(resources.KafkaTopics) > 0 {
+		for _, r := range resources.KafkaTopics {
+			k8sRes = append(k8sRes, r)
+		}
+	}
+
+	return k8sRes
+}
+
+func (r *ReconcileKogitoDataIndex) updateStatus(request *reconcile.Request, instance *appv1alpha1.KogitoDataIndex,
+	resources *resource.KogitoDataIndexResources, resourcesUpdate *bool, err *error) {
+	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+
+	reconcileError := *err != nil
+
+	reqLogger.Infof("Handling Status updates on '%s'", instance.Name)
+	if errStatus := status.ManageStatus(instance, resources, *resourcesUpdate, reconcileError, r.client); errStatus != nil {
+		if !reconcileError {
+			*err = errStatus
+		}
+		return
+	}
 }

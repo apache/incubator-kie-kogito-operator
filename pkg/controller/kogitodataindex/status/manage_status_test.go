@@ -15,14 +15,22 @@
 package status
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"reflect"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+
 	"github.com/stretchr/testify/assert"
+
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+
+	routev1 "github.com/openshift/api/route/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -67,12 +75,365 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 		},
 	}
 	client := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
-	resources, err := resource.CreateOrFetchResources(instance, framework.FactoryContext{Client: client})
+	resources, err := resource.GetRequestedResources(instance, client)
 	assert.NoError(t, err)
 
-	err = ManageStatus(instance, &resources, client)
+	err = ManageStatus(instance, resources, false, false, client)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.NotNil(t, instance.Status.Conditions)
 	assert.Len(t, instance.Status.Conditions, 1)
+}
+
+func Test_checkCurrentCondition(t *testing.T) {
+	type args struct {
+		statefulSet     *appsv1.StatefulSet
+		service         *corev1.Service
+		resourcesUpdate bool
+		reconcileError  bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want v1alpha1.DataIndexCondition
+	}{
+		{
+			"ReconcileError",
+			args{
+				&appsv1.StatefulSet{},
+				&corev1.Service{},
+				false,
+				true,
+			},
+			v1alpha1.DataIndexCondition{
+				Condition: v1alpha1.ConditionFailed,
+				Message:   "Deployment Error",
+			},
+		},
+		{
+			"NoStatefulSet",
+			args{
+				nil,
+				&corev1.Service{},
+				false,
+				false,
+			},
+			v1alpha1.DataIndexCondition{
+				Condition: v1alpha1.ConditionFailed,
+				Message:   "Deployment Failed",
+			},
+		},
+		{
+			"NoService",
+			args{
+				&appsv1.StatefulSet{},
+				nil,
+				false,
+				false,
+			},
+			v1alpha1.DataIndexCondition{
+				Condition: v1alpha1.ConditionFailed,
+				Message:   "Deployment Failed",
+			},
+		},
+		{
+			"ResourcesUpdate",
+			args{
+				&appsv1.StatefulSet{},
+				&corev1.Service{},
+				true,
+				false,
+			},
+			v1alpha1.DataIndexCondition{
+				Condition: v1alpha1.ConditionProvisioning,
+				Message:   "Deploying Objects",
+			},
+		},
+		{
+			"Provisioning",
+			args{
+				&appsv1.StatefulSet{
+					Status: appsv1.StatefulSetStatus{
+						ReadyReplicas: 0,
+						Replicas:      1,
+					},
+				},
+				&corev1.Service{},
+				false,
+				false,
+			},
+			v1alpha1.DataIndexCondition{
+				Condition: v1alpha1.ConditionProvisioning,
+				Message:   "Deployment In Progress",
+			},
+		},
+		{
+			"OK",
+			args{
+				&appsv1.StatefulSet{
+					Status: appsv1.StatefulSetStatus{
+						ReadyReplicas: 1,
+						Replicas:      1,
+					},
+				},
+				&corev1.Service{},
+				false,
+				false,
+			},
+			v1alpha1.DataIndexCondition{
+				Condition: v1alpha1.ConditionOK,
+				Message:   "Deployment Finished",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := checkCurrentCondition(tt.args.statefulSet, tt.args.service, tt.args.resourcesUpdate, tt.args.reconcileError); !reflect.DeepEqual(got.Condition, tt.want.Condition) || !reflect.DeepEqual(got.Message, tt.want.Message) {
+				t.Errorf("checkCurrentCondition() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestManageStatus(t *testing.T) {
+	ssStatus := appsv1.StatefulSetStatus{
+		Replicas:        1,
+		ReadyReplicas:   1,
+		CurrentRevision: "12345",
+	}
+
+	ss := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test",
+			Name:      "ss1",
+		},
+		Status: ssStatus,
+	}
+
+	svcStatus := corev1.ServiceStatus{
+		LoadBalancer: corev1.LoadBalancerStatus{
+			Ingress: []corev1.LoadBalancerIngress{
+				{
+					Hostname: "test",
+					IP:       "1.1.1.1",
+				},
+			},
+		},
+	}
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test",
+			Name:      "svc1",
+		},
+		Status: svcStatus,
+	}
+
+	rt := &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test",
+			Name:      "rt1",
+		},
+		Spec: routev1.RouteSpec{
+			Host: "test",
+		},
+	}
+
+	type args struct {
+		instance        *v1alpha1.KogitoDataIndex
+		resources       *resource.KogitoDataIndexResources
+		resourcesUpdate bool
+		reconcileError  bool
+		client          *client.Client
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *v1alpha1.KogitoDataIndexStatus
+		wantErr bool
+	}{
+		{
+			"ManageStatus",
+			args{
+				&v1alpha1.KogitoDataIndex{
+					Spec: v1alpha1.KogitoDataIndexSpec{
+						InfinispanMeta: v1alpha1.InfinispanMeta{
+							InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+								URI: "test-infinispan",
+							},
+						},
+						Kafka: v1alpha1.KafkaConnectionProperties{
+							ExternalURI: "test-kafka",
+						},
+					},
+				},
+				&resource.KogitoDataIndexResources{
+					StatefulSet: ss,
+					Service:     svc,
+					Route:       rt,
+				},
+				false,
+				false,
+				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+					&v1alpha1.KogitoDataIndex{
+						Spec: v1alpha1.KogitoDataIndexSpec{
+							InfinispanMeta: v1alpha1.InfinispanMeta{
+								InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+									URI: "test-infinispan",
+								},
+							},
+							Kafka: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
+						},
+					}},
+					nil, nil),
+			},
+			&v1alpha1.KogitoDataIndexStatus{
+				DeploymentStatus: ssStatus,
+				ServiceStatus:    svcStatus,
+				Route:            "http://test",
+				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{
+					v1alpha1.DataIndexDependenciesStatusOK,
+				},
+				Conditions: []v1alpha1.DataIndexCondition{
+					{
+						Condition: v1alpha1.ConditionOK,
+						Message:   "Deployment Finished",
+					},
+				},
+			},
+			false,
+		},
+		{
+			"ResourceUpdate",
+			args{
+				&v1alpha1.KogitoDataIndex{
+					Spec: v1alpha1.KogitoDataIndexSpec{
+						InfinispanMeta: v1alpha1.InfinispanMeta{
+							InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+								URI: "test-infinispan",
+							},
+						},
+						Kafka: v1alpha1.KafkaConnectionProperties{
+							ExternalURI: "test-kafka",
+						},
+					},
+				},
+				&resource.KogitoDataIndexResources{
+					StatefulSet: ss,
+					Service:     svc,
+					Route:       rt,
+				},
+				true,
+				false,
+				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+					&v1alpha1.KogitoDataIndex{
+						Spec: v1alpha1.KogitoDataIndexSpec{
+							InfinispanMeta: v1alpha1.InfinispanMeta{
+								InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+									URI: "test-infinispan",
+								},
+							},
+							Kafka: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
+						},
+					}},
+					nil, nil),
+			},
+			&v1alpha1.KogitoDataIndexStatus{
+				DeploymentStatus: ssStatus,
+				ServiceStatus:    svcStatus,
+				Route:            "http://test",
+				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{
+					v1alpha1.DataIndexDependenciesStatusOK,
+				},
+				Conditions: []v1alpha1.DataIndexCondition{
+					{
+						Condition: v1alpha1.ConditionProvisioning,
+						Message:   "Deploying Objects",
+					},
+				},
+			},
+			false,
+		},
+		{
+			"ReconcileError",
+			args{
+				&v1alpha1.KogitoDataIndex{
+					Spec: v1alpha1.KogitoDataIndexSpec{
+						InfinispanMeta: v1alpha1.InfinispanMeta{
+							InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+								URI: "test-infinispan",
+							},
+						},
+						Kafka: v1alpha1.KafkaConnectionProperties{
+							ExternalURI: "test-kafka",
+						},
+					},
+				},
+				&resource.KogitoDataIndexResources{
+					StatefulSet: ss,
+					Service:     svc,
+					Route:       rt,
+				},
+				false,
+				true,
+				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+					&v1alpha1.KogitoDataIndex{
+						Spec: v1alpha1.KogitoDataIndexSpec{
+							InfinispanMeta: v1alpha1.InfinispanMeta{
+								InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+									URI: "test-infinispan",
+								},
+							},
+							Kafka: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
+						},
+					}},
+					nil, nil),
+			},
+			&v1alpha1.KogitoDataIndexStatus{
+				DeploymentStatus: ssStatus,
+				ServiceStatus:    svcStatus,
+				Route:            "http://test",
+				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{
+					v1alpha1.DataIndexDependenciesStatusOK,
+				},
+				Conditions: []v1alpha1.DataIndexCondition{
+					{
+						Condition: v1alpha1.ConditionFailed,
+						Message:   "Deployment Error",
+					},
+				},
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ManageStatus(tt.args.instance, tt.args.resources, tt.args.resourcesUpdate, tt.args.reconcileError, tt.args.client); (err != nil) != tt.wantErr {
+				t.Errorf("ManageStatus() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+
+		if exist, err := kubernetes.ResourceC(tt.args.client).Fetch(tt.args.instance); err != nil {
+			t.Errorf("ManageStatus() failed to update data index instance status, error = %v", err)
+		} else if !exist {
+			t.Errorf("ManageStatus() failed to retrieve data index instance")
+		} else {
+			if !reflect.DeepEqual(tt.args.instance.Status.DeploymentStatus, tt.want.DeploymentStatus) ||
+				!reflect.DeepEqual(tt.args.instance.Status.ServiceStatus, tt.want.ServiceStatus) ||
+				!reflect.DeepEqual(tt.args.instance.Status.Route, tt.want.Route) ||
+				!reflect.DeepEqual(tt.args.instance.Status.DependenciesStatus, tt.want.DependenciesStatus) ||
+				len(tt.args.instance.Status.Conditions) != len(tt.want.Conditions) ||
+				!reflect.DeepEqual(tt.args.instance.Status.Conditions[0].Condition, tt.want.Conditions[0].Condition) ||
+				!reflect.DeepEqual(tt.args.instance.Status.Conditions[0].Message, tt.want.Conditions[0].Message) {
+				t.Errorf("ManageStatus() got status = %v, want status %v", tt.args.instance.Status, tt.want)
+			}
+		}
+	}
 }
