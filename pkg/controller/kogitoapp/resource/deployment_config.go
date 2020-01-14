@@ -40,6 +40,7 @@ const (
 	ServiceAccountName = "kogito-service-viewer"
 
 	envVarInfinispanServerList     = "SERVER_LIST"
+	envVarInfinispanUseAuth        = "USE_AUTH"
 	envVarInfinispanUser           = "USERNAME"
 	envVarInfinispanPassword       = "PASSWORD"
 	envVarInfinispanSaslMechanism  = "SASL_MECHANISM"
@@ -65,13 +66,15 @@ var (
 
 	envVarInfinispanQuarkus = map[string]string{
 		envVarInfinispanServerList:    "QUARKUS_INFINISPAN_CLIENT_SERVER_LIST",
+		envVarInfinispanUseAuth:       "QUARKUS_INFINISPAN_CLIENT_USE_AUTH",
 		envVarInfinispanUser:          "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
 		envVarInfinispanPassword:      "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
 		envVarInfinispanSaslMechanism: "QUARKUS_INFINISPAN_CLIENT_SASL_MECHANISM",
 	}
 	envVarInfinispanSpring = map[string]string{
 		envVarInfinispanServerList:    "INFINISPAN_REMOTE_SERVER_LIST",
-		envVarInfinispanUser:          "INFINISPAN_REMOTE_AUTH_USER_NAME",
+		envVarInfinispanUseAuth:       "INFINISPAN_REMOTE_USE_AUTH",
+		envVarInfinispanUser:          "INFINISPAN_REMOTE_AUTH_USERNAME",
 		envVarInfinispanPassword:      "INFINISPAN_REMOTE_AUTH_PASSWORD",
 		envVarInfinispanSaslMechanism: "INFINISPAN_REMOTE_SASL_MECHANISM",
 	}
@@ -193,6 +196,7 @@ func SetInfinispanEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra,
 			if kogitoApp.Spec.Runtime == v1alpha1.SpringbootRuntimeType {
 				vars = envVarInfinispanSpring
 			}
+			framework.SetEnvVar(vars[envVarInfinispanUseAuth], "true", &dc.Spec.Template.Spec.Containers[0])
 			framework.SetEnvVar(vars[envVarInfinispanServerList], uri, &dc.Spec.Template.Spec.Containers[0])
 			framework.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(defaultInfinispanSaslMechanism), &dc.Spec.Template.Spec.Containers[0])
 			framework.SetEnvVarFromSecret(vars[envVarInfinispanUser], infrastructure.InfinispanSecretUsernameKey, secret, &dc.Spec.Template.Spec.Containers[0])
