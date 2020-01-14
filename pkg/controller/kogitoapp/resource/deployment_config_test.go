@@ -15,8 +15,11 @@
 package resource
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"testing"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	"github.com/stretchr/testify/assert"
 
@@ -24,7 +27,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	dockerv10 "github.com/openshift/api/image/docker10"
 
+	appsv1 "github.com/openshift/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
@@ -100,4 +108,129 @@ func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
 	assert.Equal(t, "test", dc.Labels[LabelKeyAppName])
 	assert.Equal(t, "test", dc.Spec.Selector[LabelKeyAppName])
 	assert.Equal(t, "test", dc.Spec.Template.Labels[LabelKeyAppName])
+}
+
+func Test_SetInfinispanEnvVars_QuarkusRuntime(t *testing.T) {
+	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
+	kogitoInfra := createTestKogitoInfra()
+	dc := createTestDeploymentConfig()
+	service := createTestService(kogitoInfra, 11222)
+	secret := createTestSecret(kogitoInfra, "test", "test")
+
+	objs := []runtime.Object{service, secret}
+	fakeClient := test.CreateFakeClient(objs, nil, []runtime.Object{})
+	SetInfinispanEnvVars(fakeClient, kogitoInfra, kogitoApp, dc)
+
+	container := dc.Spec.Template.Spec.Containers[0]
+	assert.Equal(t, 5, len(container.Env))
+	assert.True(t, contains(container.Env, envVarInfinispanQuarkus[envVarInfinispanServerList]))
+	assert.True(t, contains(container.Env, envVarInfinispanQuarkus[envVarInfinispanUseAuth]))
+	assert.True(t, contains(container.Env, envVarInfinispanQuarkus[envVarInfinispanUser]))
+	assert.True(t, contains(container.Env, envVarInfinispanQuarkus[envVarInfinispanPassword]))
+	assert.True(t, contains(container.Env, envVarInfinispanQuarkus[envVarInfinispanSaslMechanism]))
+}
+
+func Test_SetInfinispanEnvVars_SpringBootRuntime(t *testing.T) {
+	kogitoApp := createTestKogitoApp(v1alpha1.SpringbootRuntimeType)
+	kogitoInfra := createTestKogitoInfra()
+	dc := createTestDeploymentConfig()
+	service := createTestService(kogitoInfra, 11222)
+	secret := createTestSecret(kogitoInfra, "test", "test")
+
+	objs := []runtime.Object{service, secret}
+	fakeClient := test.CreateFakeClient(objs, nil, []runtime.Object{})
+	SetInfinispanEnvVars(fakeClient, kogitoInfra, kogitoApp, dc)
+
+	container := dc.Spec.Template.Spec.Containers[0]
+	assert.Equal(t, 5, len(container.Env))
+	assert.True(t, contains(container.Env, envVarInfinispanSpring[envVarInfinispanServerList]))
+	assert.True(t, contains(container.Env, envVarInfinispanSpring[envVarInfinispanUseAuth]))
+	assert.True(t, contains(container.Env, envVarInfinispanSpring[envVarInfinispanUser]))
+	assert.True(t, contains(container.Env, envVarInfinispanSpring[envVarInfinispanPassword]))
+	assert.True(t, contains(container.Env, envVarInfinispanSpring[envVarInfinispanSaslMechanism]))
+}
+
+func contains(env []v1.EnvVar, key string) bool {
+	for i := range env {
+		envVar := env[i]
+		if envVar.Name == key {
+			return true
+		}
+	}
+	return false
+}
+
+func createTestKogitoApp(runtime v1alpha1.RuntimeType) *v1alpha1.KogitoApp {
+	return &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: runtime,
+		},
+	}
+}
+
+func createTestKogitoInfra() *v1alpha1.KogitoInfra {
+	return &v1alpha1.KogitoInfra{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: v1alpha1.KogitoInfraSpec{
+			InstallInfinispan: true,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Infinispan: v1alpha1.InfinispanInstallStatus{
+				InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+					Service: "test",
+				},
+				CredentialSecret: "test",
+			},
+		},
+	}
+}
+
+func createTestDeploymentConfig() *appsv1.DeploymentConfig {
+	return &appsv1.DeploymentConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: appsv1.DeploymentConfigSpec{
+			Template: &v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Env: []v1.EnvVar{},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func createTestService(kogitoInfra *v1alpha1.KogitoInfra, port int) *corev1.Service {
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.Service, Namespace: kogitoInfra.Namespace},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{
+				{
+					TargetPort: intstr.FromInt(port),
+				},
+			},
+		},
+	}
+}
+
+func createTestSecret(kogitoInfra *v1alpha1.KogitoInfra, username, password string) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.CredentialSecret, Namespace: kogitoInfra.Namespace},
+		Data: map[string][]byte{
+			infrastructure.InfinispanSecretUsernameKey: []byte(username),
+			infrastructure.InfinispanSecretPasswordKey: []byte(password),
+		},
+	}
 }
