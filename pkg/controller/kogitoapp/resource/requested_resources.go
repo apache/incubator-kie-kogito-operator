@@ -90,10 +90,10 @@ func protoBufConfigMap(chain *builderChain) *builderChain {
 }
 
 func imageStreamBuilder(chain *builderChain) *builderChain {
-	isS2I := newImageStreamTag(chain.KogitoApp, chain.Resources.BuildConfigS2I.Name)
+	isS2I := newImageStream(chain.KogitoApp, chain.Resources.BuildConfigS2I.Name)
 	chain.Resources.ImageStreamS2I = isS2I
 
-	isRuntime := newImageStreamTag(chain.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
+	isRuntime := newImageStream(chain.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
 	chain.Resources.ImageStreamRuntime = isRuntime
 
 	return chain

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/version"
 	"reflect"
 	"testing"
 	"time"
@@ -58,6 +59,7 @@ var (
 	cpuResource    = v1alpha1.ResourceCPU
 	memoryResource = v1alpha1.ResourceMemory
 	cpuValue       = "1"
+	gitURL         = "https://github.com/kiegroup/kogito-examples/"
 	cr             = v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
@@ -72,27 +74,25 @@ var (
 					},
 				},
 			},
+			Build: &v1alpha1.KogitoAppBuildObject{
+				ImageS2I:     v1alpha1.ImageStream{},
+				ImageRuntime: v1alpha1.ImageStream{},
+				Native:       false,
+				GitSource: &v1alpha1.GitSource{
+					URI:        &gitURL,
+					ContextDir: "jbpm-quarkus-example",
+				},
+			},
 		},
 	}
 )
 
 func createFakeKogitoApp() *v1alpha1.KogitoApp {
-	gitURL := "https://github.com/kiegroup/kogito-examples/"
-	kogitoapp := &cr
-	kogitoapp.Spec.Build = &v1alpha1.KogitoAppBuildObject{
-		ImageS2I: v1alpha1.ImageStream{
-			ImageStreamTag: "0.4.0",
-		},
-		ImageRuntime: v1alpha1.ImageStream{
-			ImageStreamTag: "0.4.0",
-		},
-		GitSource: &v1alpha1.GitSource{
-			URI:        &gitURL,
-			ContextDir: "jbpm-quarkus-example",
-		},
-	}
+	kogitoApp := cr.DeepCopy()
+	kogitoApp.Spec.Build.ImageS2I = v1alpha1.ImageStream{ImageStreamTag: "0.4.0"}
+	kogitoApp.Spec.Build.ImageRuntime = v1alpha1.ImageStream{ImageStreamTag: "0.4.0"}
 
-	return kogitoapp
+	return kogitoApp
 }
 
 func createFakeImages(kogitoAppName string, runtimeLabels map[string]string) []runtime.Object {
@@ -532,6 +532,58 @@ func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists) // Already created in the first reconciliation phase
 	assert.NotNil(t, cm)
+}
+
+func TestReconcileKogitoApp_AddNewImageTag(t *testing.T) {
+	kogitoApp := &cr
+	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp}, nil, []runtime.Object{})
+	fakeCache := &cachev1.FakeInformers{}
+	r := &ReconcileKogitoApp{
+		client: fakeClient,
+		scheme: meta.GetRegisteredSchema(),
+		cache:  fakeCache,
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      kogitoApp.Name,
+			Namespace: kogitoApp.Namespace,
+		},
+	}
+
+	result, err := r.Reconcile(req)
+	assert.NoError(t, err)
+	assert.False(t, result.Requeue)
+
+	exists, err := kubernetes.ResourceC(fakeClient).Fetch(kogitoApp)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp.Namespace, version.Version, kogitoApp.Spec.Runtime, kogitoApp.Spec.Build.Native).Items {
+		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, version.Version)
+		assert.NotNil(t, hasIs)
+	}
+
+	v := "0.6.0"
+	kogitoApp.Spec.Build.ImageRuntime.ImageStreamTag = v
+	kogitoApp.Spec.Build.ImageS2I.ImageStreamTag = v
+
+	err = kubernetes.ResourceC(fakeClient).Update(kogitoApp)
+	assert.NoError(t, err)
+
+	result, err = r.Reconcile(req)
+	assert.NoError(t, err)
+	assert.False(t, result.Requeue)
+
+	// old version stills there
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp.Namespace, version.Version, kogitoApp.Spec.Runtime, kogitoApp.Spec.Build.Native).Items {
+		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, version.Version)
+		assert.NotNil(t, hasIs)
+	}
+	// new version deployed
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp.Namespace, v, kogitoApp.Spec.Runtime, kogitoApp.Spec.Build.Native).Items {
+		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, v)
+		assert.NotNil(t, hasIs)
+	}
 }
 
 type mockCache struct {

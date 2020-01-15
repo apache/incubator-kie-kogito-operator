@@ -26,7 +26,7 @@ import (
 
 func TestKogitoImageStreamGeneration(t *testing.T) {
 
-	itemsTest := KogitoImageStream("test", version.Version, "", false)
+	itemsTest := CreateKogitoImageStream("test", version.Version, "", false)
 	assert.Equal(t, 6, len(itemsTest.Items))
 
 	for _, item := range itemsTest.Items {
@@ -96,21 +96,21 @@ func TestKogitoImageStreamGeneration(t *testing.T) {
 }
 
 func TestQuarkusKogitoImageStreamGenerationNonNative(t *testing.T) {
-	itemsTest := KogitoImageStream("quarkus", version.Version, v1alpha1.QuarkusRuntimeType, false)
+	itemsTest := CreateKogitoImageStream("quarkus", version.Version, v1alpha1.QuarkusRuntimeType, false)
 	assert.Equal(t, 2, len(itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusJVMUbi8Image, itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusUbi8s2iImage, itemsTest.Items))
 }
 
 func TestQuarkusKogitoImageStreamGenerationNative(t *testing.T) {
-	itemsTest := KogitoImageStream("quarkus", version.Version, v1alpha1.QuarkusRuntimeType, true)
+	itemsTest := CreateKogitoImageStream("quarkus", version.Version, v1alpha1.QuarkusRuntimeType, true)
 	assert.Equal(t, 2, len(itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusUbi8s2iImage, itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusUbi8Image, itemsTest.Items))
 }
 
 func TestSpringbootKogitoImageStreamGenerationNative(t *testing.T) {
-	itemsTest := KogitoImageStream("springboot", version.Version, v1alpha1.SpringbootRuntimeType, false)
+	itemsTest := CreateKogitoImageStream("springboot", version.Version, v1alpha1.SpringbootRuntimeType, false)
 	assert.Equal(t, 2, len(itemsTest.Items))
 	assert.True(t, containsIsName(KogitoSpringbootUbi8Image, itemsTest.Items))
 	assert.True(t, containsIsName(KogitoSpringbootUbi8s2iImage, itemsTest.Items))
