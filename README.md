@@ -833,27 +833,69 @@ The output of this command is a ready-to-use Kogito Operator image that you can 
 
 ### Deploying to OpenShift 4.x for development purposes
 
-To install the Kogito Operator on OpenShift 4.x for end-to-end (E2E) testing, ensure that you have access to a `quay.io` account to create an application repository. Follow the Operator Courier [authentication](https://github.com/operator-framework/operator-courier/#authentication) instructions to obtain an account token. This token is in the format `basic XXXXXXXXX` and both words are required for the command.
+To install the Kogito Operator on OpenShift 4.x for end-to-end (E2E) testing, ensure that you have access to a `quay.io` 
+account to create an application repository. 
 
-Push the Operator bundle to your quay application repository as shown in the following example:
+Follow the steps below:
 
-```bash
-$ operator-courier push deploy/olm-catalog/kogito-operator/ namespace kogito-operator 0.6.0 "basic XXXXXXXXX"
+1. Run `make prepare-olm version=0.7.0-rc4`. Bear in mind that if there's different versions
+in the `deploy/olm-catalog/kogito-operator/kogito-operator.package.yaml` file, every CSV must 
+be included in the output folder. At this time, the script did not copy previous CSV versions to the 
+output folder, so it must be copied manually.
+
+2. Grab [Quay credentials](https://github.com/operator-framework/operator-courier/#authentication) with:
+
+```
+$ export QUAY_USERNAME=youruser
+$ export QUAY_PASSWORD=yourpass
+
+$ AUTH_TOKEN=$(curl -sH "Content-Type: application/json" -XPOST https://quay.io/cnr/api/v1/users/login -d '
+{
+    "user": {
+        "username": "'"${QUAY_USERNAME}"'",
+        "password": "'"${QUAY_PASSWORD}"'"
+    }
+}' | jq -r '.token')
+``` 
+
+3. Set courier variables:
+
+```
+$ export OPERATOR_DIR=build/_output/operatorhub/
+$ export QUAY_NAMESPACE=kiegroup # should be different in your environment
+$ export PACKAGE_NAME=kogito-operator
+$ export PACKAGE_VERSION=0.7.0-rc4
+$ export TOKEN=$AUTH_TOKEN
 ```
 
-If you push to another quay repository, replace `namespace` with your user name or the other namespace. The push command does not overwrite an existing repository, so you must delete the bundle before you can build and upload a new version. After you upload the bundle, create an [Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) to load your operator bundle in OpenShift.
+If you push to another quay repository, replace `QUAY_NAMESPACE` with your user name or the other namespace. 
+The push command does not overwrite an existing repository, so you must delete the bundle before you can 
+build and upload a new version. After you upload the bundle, create an 
+[Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster) 
+to load your operator bundle in OpenShift.
 
-The OpenShift cluster needs access to the created application. Ensure that the application is **public** or that you have configured the private repository credentials in the cluster. To make the application public, go to your `quay.io` account, and in the **Applications** tab look for the `kogito-operator` application. Under the settings section, click **make public**.
+4. Run `operator-courier` to publish the operator application to Quay:
 
-```bash
-## Kogito imagestreams should already be installed and available, for example:
-$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
+```
+operator-courier push "$OPERATOR_DIR" "$QUAY_NAMESPACE" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$TOKEN"
+```
+
+5. Check if the application was pushed successfully in Quay.io. The OpenShift cluster needs access to the created application. 
+Ensure that the application is **public** or that you have configured the private repository credentials in the cluster. 
+To make the application public, go to your `quay.io` account, and in the **Applications** tab look for the `kogito-operator` 
+application. Under the settings section, click **make public**.
+
+6. Publish the operator source to your OpenShift cluster:
+
+```
 $ oc create -f deploy/olm-catalog/kogito-operator/kogito-operator-operatorsource.yaml
 ```
 
-Replace `registryNamespace` in the `kogito-operator-operatorsource.yaml` file with your quay namespace. The name, display name, and publisher of the Operator are the only other attributes that you can modify.
+Replace `registryNamespace` in the `kogito-operator-operatorsource.yaml` file with your quay namespace. 
+The name, display name, and publisher of the Operator are the only other attributes that you can modify.
 
-After several minutes, the Operator appears under **Catalog** -> **OperatorHub** in the OpenShift Web Console. To find the Operator, filter the provider type by _Custom_.
+After several minutes, the Operator appears under **Catalog** -> **OperatorHub** in the OpenShift Web Console. 
+To find the Operator, filter the provider type by _Custom_.
 
 To verify the operator status, run the following command:
 
@@ -940,8 +982,8 @@ make run-smoke 2>&1 | tee log.out
 
 ```
 $ make
-$ docker tag quay.io/kiegroup/kogito-cloud-operator:0.7.0-rc1 quay.io/{USERNAME}/kogito-cloud-operator:0.7.0-rc1 
-$ docker push quay.io/{USERNAME}/kogito-cloud-operator:0.7.0-rc1
+$ docker tag quay.io/kiegroup/kogito-cloud-operator:0.7.0-rc4 quay.io/{USERNAME}/kogito-cloud-operator:0.7.0-rc4 
+$ docker push quay.io/{USERNAME}/kogito-cloud-operator:0.7.0-rc4
 $ make run-smoke --ope_name quay.io/{USERNAME}/kogito-cloud-operator
 ```
 

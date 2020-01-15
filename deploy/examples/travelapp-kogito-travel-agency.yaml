@@ -18,9 +18,9 @@ spec:
       reference: override-bootstrap
       uri: https://github.com/ricardozanini/kogito-travel-agency-tutorial
     imageRuntime:
-      imageStreamTag: 0.6.1
+      imageStreamTag: 0.7.0-rc4
     imageS2I:
-      imageStreamTag: 0.6.1
+      imageStreamTag: 0.7.0-rc4
     env:
       # optional, but will improve your build time quite a lot
       - name: MAVEN_MIRROR_URL
