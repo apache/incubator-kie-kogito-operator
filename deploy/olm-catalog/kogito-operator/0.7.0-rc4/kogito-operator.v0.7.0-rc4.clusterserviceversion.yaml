@@ -43,7 +43,7 @@ metadata:
               "useKogitoInfra": false
             },
             "kafka": {
-              "instance": "kogito-kafka"
+              "useKogitoInfra": false
             },
             "memoryLimit": "",
             "memoryRequest": "",
@@ -58,7 +58,8 @@ metadata:
           },
           "spec": {
             "installInfinispan": false,
-            "installKafka": false
+            "installKafka": false,
+            "installKeycloak": false
           }
         }
       ]

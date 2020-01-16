@@ -18,8 +18,8 @@ spec:
   #cpuRequest: ""
   # details about the kafka connection
   kafka:
-    # the name of the Kafka instance deployed with Strimzi. Example: my-cluster
-    instance: kogito-kafka
+    # will set this instance to auto provision an infra structure in the namespace
+    useKogitoInfra: true
   # details about the connected infinispan
   infinispan:
     # will set this instance to auto provision an infra structure in the namespace and attach Infinispan credentials to it

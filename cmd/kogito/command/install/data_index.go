@@ -79,7 +79,7 @@ func (i *installDataIndexCommand) RegisterHook() {
 
 If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
 If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Data Index service's namespace.
-Otherwise, the operator will try to fetch a Strimzi Kafka instance in the namespace and use it to locate the Kafka server. 
+Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given namespace.
 
 If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
 Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.
@@ -116,7 +116,8 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 			} else if len(i.flags.kafka.Instance) > 0 {
 				log.Infof("kafka-instance informed. Kafka will NOT be provisioned for you. Make sure Kafka instance %s is properly deployed in the project. If the Kafka instance is found, Kafka Topics for Data Index service will be deployed in the project if they don't exist already", i.flags.kafka.Instance)
 			} else {
-				log.Info("No Kafka information has been given. A Kafka instance will be searched in the namespace. If any Kafka instance is found in the project, Data Index service will be deployed, and Kafka Topics will be created accordingly if they don't exist already")
+				i.flags.kafka.UseKogitoInfra = true
+				log.Info("No Kafka information has been given. A Kafka instance will be automatically deployed via Strimzi Operator in the namespace. Kafka Topics will be created accordingly if they don't exist already")
 			}
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
@@ -169,6 +170,12 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		}
 	}
 
+	if i.flags.kafka.UseKogitoInfra {
+		if available := infrastructure.IsStrimziAvailable(i.Client); !available {
+			return fmt.Errorf("Strimzi Operator is not available in the Project: %s. Please make sure to install it before deploying Data Index without Kafka provided ", i.flags.Project)
+		}
+	}
+
 	// If user and password are sent, create a secret to hold them and attach them to the CRD
 	if len(i.flags.infinispanUser) > 0 && len(i.flags.infinispanPassword) > 0 {
 		infinispanSecret := v1.Secret{
@@ -210,7 +217,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 			CPULimit:       shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Limits),
 			CPURequest:     shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Requests),
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: i.flags.infinispan},
-			Kafka:          i.flags.kafka,
+			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},
 		},
 		Status: v1alpha1.KogitoDataIndexStatus{
 			Conditions:         []v1alpha1.DataIndexCondition{},

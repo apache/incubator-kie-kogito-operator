@@ -785,12 +785,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 				Description: "KogitoDataIndexSpec defines the desired state of KogitoDataIndex",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"infinispan": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Has the data used by the service to connect to the Infinispan cluster.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties"),
-						},
-					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Replicas is the number of pod replicas that the Data Index Service will create",
@@ -848,10 +842,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 							Format:      "",
 						},
 					},
+					"infinispan": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Has the data used by the service to connect to the Infinispan cluster.",
+							Ref:         ref("./pkg/apis/app/v1alpha1.InfinispanConnectionProperties"),
+						},
+					},
 					"kafka": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Kafka has the data used by the Kogito Data Index to connect to a Kafka cluster",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
+							Description: "Has the data used by the service to connect to the Kafka cluster.",
+							Ref:         ref("./pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
 						},
 					},
 				},

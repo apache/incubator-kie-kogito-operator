@@ -257,8 +257,10 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 									URI: "test-infinispan",
 								},
 							},
-							Kafka: v1alpha1.KafkaConnectionProperties{
-								ExternalURI: "test-kafka",
+							KafkaMeta: v1alpha1.KafkaMeta{
+								KafkaProperties: v1alpha1.KafkaConnectionProperties{
+									ExternalURI: "test-kafka",
+								},
 							},
 						},
 					}},
@@ -274,8 +276,10 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 								URI: "test-infinispan",
 							},
 						},
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							ExternalURI: "test-kafka",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
 						},
 					},
 				},
@@ -314,8 +318,10 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 									URI: "test-infinispan",
 								},
 							},
-							Kafka: v1alpha1.KafkaConnectionProperties{
-								ExternalURI: "test-kafka",
+							KafkaMeta: v1alpha1.KafkaMeta{
+								KafkaProperties: v1alpha1.KafkaConnectionProperties{
+									ExternalURI: "test-kafka",
+								},
 							},
 						},
 					}},
@@ -331,8 +337,10 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 								URI: "test-infinispan",
 							},
 						},
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							ExternalURI: "test-kafka",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
 						},
 					},
 				},
@@ -371,8 +379,10 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 									URI: "test-infinispan",
 								},
 							},
-							Kafka: v1alpha1.KafkaConnectionProperties{
-								ExternalURI: "test-kafka",
+							KafkaMeta: v1alpha1.KafkaMeta{
+								KafkaProperties: v1alpha1.KafkaConnectionProperties{
+									ExternalURI: "test-kafka",
+								},
 							},
 						},
 					}},
@@ -388,8 +398,10 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 								URI: "test-infinispan",
 							},
 						},
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							ExternalURI: "test-kafka",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
 						},
 					},
 				},

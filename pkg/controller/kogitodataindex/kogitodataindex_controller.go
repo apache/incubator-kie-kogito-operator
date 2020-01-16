@@ -223,15 +223,26 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.KogitoDataIndex) (result *reconcile.Result, err error) {
 	log.Debug("Verify if we need to deploy Infinispan")
 
-	if update, requeueAfter, err := infrastructure.DeployInfinispanWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
+	var updateForInfinispan, updateForKafka bool
+	var requeueForInfinispan, requeueForKafka time.Duration
+
+	if updateForInfinispan, requeueForInfinispan, err = infrastructure.DeployInfinispanWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
 		return nil, err
-	} else if update {
+	}
+
+	if updateForKafka, requeueForKafka, err = infrastructure.DeployKafkaWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
+		return nil, err
+	}
+
+	if updateForInfinispan || updateForKafka {
 		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
 			return nil, err
 		}
 		return &reconcile.Result{}, nil
-	} else if requeueAfter > 0 {
-		return &reconcile.Result{RequeueAfter: requeueAfter}, nil
+	} else if requeueForInfinispan > 0 {
+		return &reconcile.Result{RequeueAfter: requeueForInfinispan}, nil
+	} else if requeueForKafka > 0 {
+		return &reconcile.Result{RequeueAfter: requeueForKafka}, nil
 	}
 
 	return nil, nil

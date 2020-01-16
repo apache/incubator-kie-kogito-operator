@@ -17,11 +17,13 @@ package infrastructure
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"strings"
 )
 
@@ -65,7 +67,7 @@ func IsStrimziAvailable(client *client.Client) bool {
 }
 
 // GetKafkaServiceURI fetches for the Kafka service linked with the given Kogito
-//Infra and returns a formatted URI
+// Infra and returns a formatted URI
 func GetKafkaServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri string, err error) {
 	uri = ""
 	err = nil
@@ -100,4 +102,76 @@ func GetKafkaServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri st
 		return "", fmt.Errorf("Kafka port (%d) not found in service %s ", defaultKafkaPort, service.Name)
 	}
 	return
+}
+
+// GetReadyKafkaInstanceName fetches for the Kafka Instance linked with the given Kogito and checks if it is ready
+func GetReadyKafkaInstanceName(cli *client.Client, infra *v1alpha1.KogitoInfra) (kafka string, err error) {
+	kafka = ""
+	err = nil
+	if &infra == nil || &infra.Status == nil || &infra.Status.Kafka == nil || len(infra.Status.Kafka.Name) == 0 {
+		return
+	}
+
+	instance, err := GetKafkaInstanceWithName(infra.Status.Kafka.Name, infra.Namespace, cli)
+	if err != nil {
+		return
+	}
+	if instance != nil {
+		uri := ResolveKafkaServerURI(instance)
+		if len(uri) > 0 {
+			kafka = instance.Name
+		}
+	}
+	return
+}
+
+// ResolveKafkaServerURI returns the uri of the kafka instance
+func ResolveKafkaServerURI(kafka *v1beta1.Kafka) string {
+	if kafka != nil {
+		if len(kafka.Status.Listeners) > 0 {
+			for _, listenerStatus := range kafka.Status.Listeners {
+				if listenerStatus.Type == "plain" && len(listenerStatus.Addresses) > 0 {
+					for _, listenerAddress := range listenerStatus.Addresses {
+						if len(listenerAddress.Host) > 0 && listenerAddress.Port > 0 {
+							return fmt.Sprintf("%s:%d", listenerAddress.Host, listenerAddress.Port)
+						}
+					}
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// ResolveKafkaServerReplicas returns the number of replicas of the kafka instance
+func ResolveKafkaServerReplicas(kafka *v1beta1.Kafka) int32 {
+	if kafka != nil {
+		if kafka.Spec.Kafka.Replicas > 0 {
+			return kafka.Spec.Kafka.Replicas
+		}
+		return 1
+	}
+	return 0
+}
+
+// GetKafkaInstanceWithName fetches the Kafka instance of the given name
+func GetKafkaInstanceWithName(name string, namespace string, client *client.Client) (*v1beta1.Kafka, error) {
+	kafka := &v1beta1.Kafka{}
+	if exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafka); err != nil {
+		return nil, err
+	} else if exists {
+		return kafka, nil
+	}
+	return nil, nil
+}
+
+// GetKafkaInstanceInNamespace fetches one Kafka instance in the given namespace
+func GetKafkaInstanceInNamespace(namespace string, client *client.Client) (*v1beta1.Kafka, error) {
+	kafkaList := &v1beta1.KafkaList{}
+	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, kafkaList); err != nil {
+		return nil, err
+	} else if len(kafkaList.Items) == 1 {
+		return &kafkaList.Items[0], nil
+	}
+	return nil, nil
 }

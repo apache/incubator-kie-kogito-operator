@@ -97,7 +97,7 @@ func createStatefulSet(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResou
 		f.Error = err
 		return f
 	}
-	externalURI, err := getKafkaServerURI(f.KogitoDataIndex.Spec.Kafka, f.KogitoDataIndex.Namespace, f.Client)
+	externalURI, err := getKafkaServerURI(f.KogitoDataIndex.Spec.KafkaProperties, f.KogitoDataIndex.Namespace, f.Client)
 	if err != nil {
 		f.Error = err
 		return f
@@ -128,7 +128,7 @@ func createRoute(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFa
 }
 
 func createKafkaTopic(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
-	kafkaName, kafkaReplicas, err := getKafkaServerReplicas(f.KogitoDataIndex.Spec.Kafka, f.KogitoDataIndex.Namespace, f.Client)
+	kafkaName, kafkaReplicas, err := getKafkaServerReplicas(f.KogitoDataIndex.Spec.KafkaProperties, f.KogitoDataIndex.Namespace, f.Client)
 	if err != nil {
 		f.Error = err
 		return f

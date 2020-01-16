@@ -26,7 +26,6 @@ const KogitoDataIndexCRDName = "kogitodataindices.app.kiegroup.org"
 // KogitoDataIndexSpec defines the desired state of KogitoDataIndex
 // +k8s:openapi-gen=true
 type KogitoDataIndexSpec struct {
-	InfinispanMeta `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Replicas is the number of pod replicas that the Data Index Service will create
@@ -59,20 +58,9 @@ type KogitoDataIndexSpec struct {
 	// CPURequest is the request of CPU for the container
 	CPURequest string `json:"cpuRequest,omitempty"`
 
-	// +optional
-	// Kafka has the data used by the Kogito Data Index to connect to a Kafka cluster
-	Kafka KafkaConnectionProperties `json:"kafka,omitempty"`
-}
+	InfinispanMeta `json:",inline"`
 
-// KafkaConnectionProperties has the data needed to connect to a Kafka cluster
-type KafkaConnectionProperties struct {
-	// +optional
-	// URI is the service URI to connect to the Kafka cluster, for example, my-cluster-kafka-bootstrap:9092
-	ExternalURI string `json:"externalURI,omitempty"`
-
-	// +optional
-	// Instance is the Kafka instance to be used, for example, kogito-kafka
-	Instance string `json:"instance,omitempty"`
+	KafkaMeta `json:",inline"`
 }
 
 // KogitoDataIndexStatus defines the observed state of KogitoDataIndex

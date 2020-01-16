@@ -16,8 +16,8 @@ spec:
   cpuRequest: ""
   # details about the kafka connection
   kafka:
-    # the Kafka service instance to be used. Example: kogito-kafka
-    instance: kogito-kafka
+    # let's leave this burden to KogitoInfra CR to deploy a new Kafka instance for us
+    useKogitoInfra: false
   # details about the connected infinispan
   infinispan:
     # let's leave this burden to KogitoInfra CR to deploy a new Infinispan instance for us

@@ -76,6 +76,7 @@ func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra) (resources map[r
 						"offsets.topic.replication.factor":         defaultReplicas,
 						"transaction.state.log.min.isr":            2,
 						"transaction.state.log.replication.factor": defaultReplicas,
+						"auto.create.topics.enable":                false,
 					},
 				},
 				Zookeeper: kafkabetav1.ZookeeperClusterSpec{

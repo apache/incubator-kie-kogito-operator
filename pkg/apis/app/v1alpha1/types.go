@@ -91,8 +91,8 @@ type InfinispanAware interface {
 	GetInfinispanProperties() InfinispanConnectionProperties
 	// SetInfinispanProperties ...
 	SetInfinispanProperties(props InfinispanConnectionProperties)
-	// ArePropertiesBlank checks if the connection properties have been set
-	ArePropertiesBlank() bool
+	// AreInfinispanPropertiesBlank checks if the connection properties have been set
+	AreInfinispanPropertiesBlank() bool
 }
 
 // InfinispanMeta defines a structure for specs that need InfinispanProperties integration
@@ -112,10 +112,63 @@ func (i *InfinispanMeta) SetInfinispanProperties(props InfinispanConnectionPrope
 	i.InfinispanProperties = props
 }
 
-// ArePropertiesBlank checks if the connection properties have been set
-func (i *InfinispanMeta) ArePropertiesBlank() bool {
+// AreInfinispanPropertiesBlank checks if the connection properties have been set
+func (i *InfinispanMeta) AreInfinispanPropertiesBlank() bool {
 	return &i.InfinispanProperties == nil ||
 		&i.InfinispanProperties.Credentials == nil ||
 		&i.InfinispanProperties.UseKogitoInfra == nil ||
 		len(i.InfinispanProperties.URI) == 0
+}
+
+// KafkaConnectionProperties has the data needed to connect to a Kafka cluster
+type KafkaConnectionProperties struct {
+	// +optional
+	// URI is the service URI to connect to the Kafka cluster, for example, my-cluster-kafka-bootstrap:9092
+	ExternalURI string `json:"externalURI,omitempty"`
+
+	// +optional
+	// Instance is the Kafka instance to be used, for example, kogito-kafka
+	Instance string `json:"instance,omitempty"`
+
+	// +optional
+	// UseKogitoInfra flags if the instance will use a provided infrastructure by KogitoInfra CR.
+	// Setting this to true will configure a KogitoInfra CR to install Kafka via Strimzi Operator.
+	// Strimzi Operator MUST be installed in the namespace for this to work. On OpenShift, OLM should install it for you.
+	// If running on Kubernetes without OLM installed, please install Strimzi Operator first.
+	// Set this to false and fill other properties to provide your own infrastructure
+	UseKogitoInfra bool `json:"useKogitoInfra,omitempty"`
+}
+
+// KafkaAware defines a spec with KafkaProperties awareness
+type KafkaAware interface {
+	// GetKafkaProperties ...
+	GetKafkaProperties() KafkaConnectionProperties
+	// SetKafkaProperties ...
+	SetKafkaProperties(props KafkaConnectionProperties)
+	// AreKafkaPropertiesBlank checks if the connection properties have been set
+	AreKafkaPropertiesBlank() bool
+}
+
+// KafkaMeta defines a structure for specs that need KafkaProperties integration
+type KafkaMeta struct {
+	// +optional
+	// Has the data used by the service to connect to the Kafka cluster.
+	KafkaProperties KafkaConnectionProperties `json:"kafka,omitempty"`
+}
+
+// GetKafkaProperties ...
+func (k *KafkaMeta) GetKafkaProperties() KafkaConnectionProperties {
+	return k.KafkaProperties
+}
+
+// SetKafkaProperties ...
+func (k *KafkaMeta) SetKafkaProperties(props KafkaConnectionProperties) {
+	k.KafkaProperties = props
+}
+
+// AreKafkaPropertiesBlank checks if the connection properties have been set
+func (k *KafkaMeta) AreKafkaPropertiesBlank() bool {
+	return len(k.KafkaProperties.ExternalURI) == 0 &&
+		len(k.KafkaProperties.Instance) == 0 &&
+		!k.KafkaProperties.UseKogitoInfra
 }
