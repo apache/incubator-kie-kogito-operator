@@ -154,10 +154,6 @@ func CreateBuildConfigComparator() func(deployed resource.KubernetesResource, re
 		if !containAllLabels(bcDeployed, bcRequested) {
 			return false
 		}
-		if bcDeployed.Spec.Strategy.SourceStrategy != nil {
-			//This value is generated based on image stream being found in current or openshift project:
-			bcDeployed.Spec.Strategy.SourceStrategy.From.Namespace = bcRequested.Spec.Strategy.SourceStrategy.From.Namespace
-		}
 		if len(bcDeployed.Spec.Triggers) > 0 && len(bcRequested.Spec.Triggers) == 0 {
 			//Triggers are generated based on provided github repo
 			bcDeployed.Spec.Triggers = bcRequested.Spec.Triggers
