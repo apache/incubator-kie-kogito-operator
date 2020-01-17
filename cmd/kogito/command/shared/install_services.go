@@ -32,6 +32,8 @@ type ServicesInstallation interface {
 	InstallDataIndex() ServicesInstallation
 	// InstallOperator installs the Operator.
 	InstallOperator(warnIfInstalled bool, operatorImage string) ServicesInstallation
+	// InstallInfinispan install an infinispan instance.
+	InstallInfinispan() ServicesInstallation
 	// SilentlyInstallOperator installs the operator without a warn if already deployed with the default image
 	SilentlyInstallOperator() ServicesInstallation
 	// GetError return any given error during the installation process
@@ -58,6 +60,13 @@ func (s servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImag
 
 func (s servicesInstallation) SilentlyInstallOperator() ServicesInstallation {
 	return s.InstallOperator(false, "")
+}
+
+func (s servicesInstallation) InstallInfinispan() ServicesInstallation {
+	if s.err == nil {
+		s.err = installInfinispan(s.client, s.namespace)
+	}
+	return s
 }
 
 func (s servicesInstallation) GetError() error {

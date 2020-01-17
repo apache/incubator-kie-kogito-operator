@@ -400,14 +400,9 @@ func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runt
 	log.Debug("Verify if we need to deploy Infinispan")
 	if instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAlways ||
 		(instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAuto && framework.IsPersistenceEnabled(runtimeImage)) {
-		infra, created, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan()
+		infra, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan().Apply()
 		if err != nil {
 			return true, err
-		}
-		if created {
-			// since we just created a new Infra instance, let's wait for it to provision everything before proceeding
-			log.Debug("Returning to reconcile phase to give some time for the Infinispan Operator to deploy")
-			return true, nil
 		}
 		if ready {
 			if err := kogitores.SetInfinispanEnvVars(r.client, infra, instance, requestedDeployment); err != nil {
@@ -425,14 +420,9 @@ func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runt
 func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
 	log.Debug("Verify if we need to deploy Kafka")
 	if instance.Spec.Infra.InstallKafka == v1alpha1.KogitoAppInfraInstallKafkaAlways {
-		infra, created, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithKafka()
+		infra, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithKafka().Apply()
 		if err != nil {
 			return true, err
-		}
-		if created {
-			// since we just created a new Infra instance, let's wait for it to provision everything before proceeding
-			log.Debug("Returning to reconcile phase to give some time for the Kafka Operator to deploy")
-			return true, nil
 		}
 		if ready {
 			if err := kogitores.SetKafkaEnvVars(r.client, infra, instance, requestedDeployment); err != nil {

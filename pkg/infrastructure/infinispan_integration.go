@@ -50,14 +50,9 @@ func DeployInfinispanWithKogitoInfra(instance v1alpha1.InfinispanAware, namespac
 	// Overrides any parameters not set
 	if instance.GetInfinispanProperties().UseKogitoInfra {
 		// ensure infra
-		infra, created, ready, err := EnsureKogitoInfra(namespace, cli).WithInfinispan()
+		infra, ready, err := EnsureKogitoInfra(namespace, cli).WithInfinispan().Apply()
 		if err != nil {
 			return false, 0, err
-		}
-		if created {
-			// since we just created a new Infra instance, let's wait for it to provision everything before proceeding
-			log.Debug("Returning to reconcile phase to give some time for the Infinispan Operator to deploy")
-			return false, time.Second * 10, nil
 		}
 
 		uri, err := GetInfinispanServiceURI(cli, infra)

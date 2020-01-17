@@ -16,13 +16,13 @@ package shared
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	dataindex "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -36,15 +36,11 @@ func installDefaultDataIndex(cli *client.Client, namespace string) error {
 	log := context.GetDefaultLogger()
 
 	// TODO: add Kafka to be auto provisioned when implementing KOGITO-614, then we can delete this kogitoInfra instance
-	kogitoInfra := v1alpha1.KogitoInfra{
-		ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: infrastructure.DefaultKogitoInfraName},
-		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: true,
-			InstallKafka:      true,
-		},
+	if err := installInfinispan(cli, namespace); err != nil {
+		return err
 	}
-	if err := kubernetes.ResourceC(cli).Create(&kogitoInfra); err != nil {
-		return fmt.Errorf(message.KogitoInfraErrCreating, err)
+	if err := installKafka(cli, namespace); err != nil {
+		return err
 	}
 
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{

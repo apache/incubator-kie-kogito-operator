@@ -15,13 +15,15 @@
 package command
 
 import (
+	"io"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/install"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/project"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/remove"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/spf13/cobra"
-	"io"
 )
 
 // DefaultBuildCommands creates a new start command for the Kogito CLI
@@ -36,6 +38,7 @@ func BuildCommands(kubeClient *client.Client, output io.Writer) *cobra.Command {
 	rootCommand := context.NewRootCommand(ctx, output)
 	deploy.BuildCommands(ctx, rootCommand.Command())
 	install.BuildCommands(ctx, rootCommand.Command())
+	remove.BuildCommands(ctx, rootCommand.Command())
 	project.BuildCommands(ctx, rootCommand.Command())
 
 	return rootCommand.Command()

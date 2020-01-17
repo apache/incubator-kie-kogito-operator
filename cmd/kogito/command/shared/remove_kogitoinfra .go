@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package install
+package shared
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/spf13/cobra"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
-// BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
-	installCmd := newInstallCommand(ctx, rootCommand)
-	return []context.KogitoCommand{
-		installCmd,
-		newInstallKogitoOperatorCommand(ctx, installCmd.Command()),
-		newInstallDataIndexCommand(ctx, installCmd.Command()),
-		newInstallJobsServiceCommand(ctx, installCmd.Command()),
-		newInstallInfinispanCommand(ctx, installCmd.Command()),
+func removeInfinispan(cli *client.Client, namespace string) error {
+	log := context.GetDefaultLogger()
+
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutInfinispan().Apply(); err != nil {
+		return err
 	}
+
+	log.Infof(message.InfinispanSuccessfulRemoved, namespace)
+
+	return nil
 }
