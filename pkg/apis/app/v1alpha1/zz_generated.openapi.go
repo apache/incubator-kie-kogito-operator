@@ -998,8 +998,15 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 							Format:      "",
 						},
 					},
+					"installKeycloak": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether or not to install Keycloak using Keycloak Operator. Please note that the Keycloak Operator must be installed manually on environments that doesn't have OLM installed.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
-				Required: []string{"installInfinispan", "installKafka"},
+				Required: []string{"installInfinispan", "installKafka", "installKeycloak"},
 			},
 		},
 	}
@@ -1023,6 +1030,11 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraStatus(ref common.ReferenceCallback
 						},
 					},
 					"kafka": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfraComponentInstallStatusType"),
+						},
+					},
+					"keycloak": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfraComponentInstallStatusType"),
 						},

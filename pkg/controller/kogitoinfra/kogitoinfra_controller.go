@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -64,7 +65,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &infinispanv1.Infinispan{}, &kafkav1beta1.Kafka{}}
+	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &infinispanv1.Infinispan{}, &kafkav1beta1.Kafka{}, &keycloakv1alpha1.Keycloak{}}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &appv1alpha1.KogitoInfra{},
@@ -73,8 +74,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
 		if err != nil {
 			if framework.IsNoKindMatchError(infinispanv1.SchemeGroupVersion.Group, err) ||
-				framework.IsNoKindMatchError(kafkav1beta1.SchemeGroupVersion.Group, err) {
-				log.Warn("Tried to watch Infinispan and Kafka CRD, but failed. Maybe related Operators are not installed?")
+				framework.IsNoKindMatchError(kafkav1beta1.SchemeGroupVersion.Group, err) ||
+				framework.IsNoKindMatchError(keycloakv1alpha1.SchemeGroupVersion.Group, err) {
+				log.Warnf("Tried to watch Infinispan, Kafka and Keycloak CRD, but failed. Maybe related Operators are not installed? Error: %s", err)
 				continue
 			}
 			return err
@@ -121,7 +123,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		return reconcile.Result{}, nil
 	}
 
-	defer r.updateResourceStatus(instance, &result, &resultErr)
+	defer r.updateBaseStatus(instance, &result, &resultErr)
 
 	// Verify Infinispan
 	infinispanAvailable, resultErr := infrastructure.IsInfinispanOperatorAvailable(r.client, instance.Namespace)
@@ -136,6 +138,12 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 	// Verify Kafka
 	if instance.Spec.InstallKafka && !infrastructure.IsStrimziAvailable(r.client) {
 		resultErr = fmt.Errorf("Kafka is not available in the namespace %s, impossible to continue ", instance.Namespace)
+		return
+	}
+
+	// Verify Keycloak
+	if instance.Spec.InstallKeycloak && !infrastructure.IsKeycloakAvailable(r.client) {
+		resultErr = fmt.Errorf("Keycloak is not available in the namespace %s, impossible to continue ", instance.Namespace)
 		return
 	}
 
@@ -182,8 +190,8 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 	return
 }
 
-// updateResourceStatus updates the base status for the KogitoInfra instance
-func (r *ReconcileKogitoInfra) updateResourceStatus(instance *appv1alpha1.KogitoInfra, result *reconcile.Result, err *error) {
+// updateBaseStatus updates the base status for the KogitoInfra instance
+func (r *ReconcileKogitoInfra) updateBaseStatus(instance *appv1alpha1.KogitoInfra, result *reconcile.Result, err *error) {
 	log.Info("Updating Kogito Infra status")
 	result = &reconcile.Result{}
 	if *err != nil {

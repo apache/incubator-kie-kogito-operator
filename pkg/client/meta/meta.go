@@ -16,6 +16,7 @@ package meta
 
 import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 
@@ -131,6 +132,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 		&v1alpha1.KogitoJobsService{}, &v1alpha1.KogitoJobsServiceList{})
 	s.AddKnownTypes(kafkabetav1.SchemeGroupVersion, &kafkabetav1.Kafka{}, &kafkabetav1.KafkaList{}, &kafkabetav1.KafkaTopic{}, &kafkabetav1.KafkaTopicList{})
 	s.AddKnownTypes(infinispanv1.SchemeGroupVersion, &infinispanv1.Infinispan{}, &infinispanv1.InfinispanList{})
+	s.AddKnownTypes(keycloakv1alpha1.SchemeGroupVersion, &keycloakv1alpha1.Keycloak{}, &keycloakv1alpha1.KeycloakList{})
 	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
 	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
 	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
@@ -149,7 +151,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, olmapiv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, olmapiv1alpha1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, monv1.SchemeGroupVersion)
-	metav1.AddToGroupVersion(s, routev1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, routev1.GroupVersion)
 
 	return s
 }

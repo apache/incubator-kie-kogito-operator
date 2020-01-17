@@ -210,6 +210,9 @@ spec:
       - kind: Kafka
         name: ""
         version: kafka.strimzi.io/v1beta1
+      - kind: Keycloak
+        name: ""
+        version: keycloak.org/v1alpha1
       specDescriptors:
       - description: Flag to install a Infinispan instance in the namespace
         displayName: Install Infinispan
@@ -219,6 +222,11 @@ spec:
       - description: Flag to install a Kafka instance in the namespace
         displayName: Install Kafka
         path: installKafka
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Flag to install a Keycloak instance in the namespace
+        displayName: Install Keycloak
+        path: installKeycloak
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       statusDescriptors:
@@ -234,8 +242,12 @@ spec:
       - description: Kafka Service Name
         displayName: Kafka Service
         path: kafka.service
+      - description: Keycloak Service Name
+        displayName: Keycloak Service
+        path: keycloak.service
       version: v1alpha1
     - description: The Kogito Jobs Service infrastructure deployment
+      displayName: Kogito Jobs Service
       kind: KogitoJobsService
       name: kogitojobsservices.app.kiegroup.org
       resources:
@@ -313,6 +325,11 @@ spec:
       kind: KafkaTopic
       name: kafkatopics.kafka.strimzi.io
       version: v1beta1
+    - description: Represents a Keycloak server to provide SSO for Kogito Services
+      displayName: Keycloak
+      kind: Keycloak
+      name: keycloaks.keycloak.org
+      version: v1alpha1
   description: |-
     Kogito Operator is designed to deploy Kogito Runtimes Services from source and every piece of infrastructure that the services might need:
 
@@ -417,6 +434,16 @@ spec:
           resources:
           - kafkas
           - kafkatopics
+          verbs:
+          - get
+          - create
+          - list
+          - delete
+          - watch
+        - apiGroups:
+          - keycloak.org
+          resources:
+          - keycloaks
           verbs:
           - get
           - create

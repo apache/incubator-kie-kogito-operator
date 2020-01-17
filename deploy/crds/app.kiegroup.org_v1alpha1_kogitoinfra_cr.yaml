@@ -8,3 +8,5 @@ spec:
   installInfinispan: false
   # set to true if a Kafka instance should be installed in the namespace via Strimzi Operator
   installKafka: false
+  # set to true if a Keycloak instance should be installed in the namespace via Keycloak Operator
+  installKeycloak: false

@@ -39,9 +39,15 @@ spec:
                 (Kafka Operator). Please note that the Strimzi must be installed manually
                 on environments that doesn't have OLM installed.
               type: boolean
+            installKeycloak:
+              description: Whether or not to install Keycloak using Keycloak Operator.
+                Please note that the Keycloak Operator must be installed manually
+                on environments that doesn't have OLM installed.
+              type: boolean
           required:
           - installInfinispan
           - installKafka
+          - installKeycloak
           type: object
         status:
           description: KogitoInfraStatus defines the observed state of KogitoInfra
@@ -95,6 +101,36 @@ spec:
                   type: string
               type: object
             kafka:
+              description: InfraComponentInstallStatusType is the base structure to
+                define the status for an actor in the infrastructure
+              properties:
+                condition:
+                  items:
+                    description: InstallCondition defines the installation condition
+                      for the infrastructure actor
+                    properties:
+                      lastTransitionTime:
+                        format: date-time
+                        type: string
+                      message:
+                        type: string
+                      status:
+                        type: string
+                      type:
+                        description: InstallConditionType defines the possibles conditions
+                          that a install might have
+                        type: string
+                    required:
+                    - status
+                    - type
+                    type: object
+                  type: array
+                name:
+                  type: string
+                service:
+                  type: string
+              type: object
+            keycloak:
               description: InfraComponentInstallStatusType is the base structure to
                 define the status for an actor in the infrastructure
               properties:

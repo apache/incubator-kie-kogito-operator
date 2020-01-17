@@ -61,6 +61,16 @@ rules:
       - delete
       - watch
   - apiGroups:
+      - keycloak.org
+    resources:
+      - keycloaks
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+      - watch
+  - apiGroups:
       - apps
     resourceNames:
       - kogito-operator

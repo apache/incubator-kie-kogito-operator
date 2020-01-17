@@ -16,6 +16,8 @@ package status
 
 import (
 	"fmt"
+	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
 	"reflect"
 	"time"
 
@@ -79,14 +81,56 @@ func ManageDependenciesStatus(instance *v1alpha1.KogitoInfra, cli *client.Client
 	log.Infof("Updating Kogito Infra status on namespace %s", instance.Namespace)
 	updatedInfinispan, requeueInfinispan := ensureInfinispan(instance, cli)
 	updatedKafka, requeueKafka := ensureKafka(instance, cli)
+	updatedKeycloak, requeueKeycloak := ensureKeycloak(instance, cli)
 
-	if updatedInfinispan || updatedKafka {
+	if updatedInfinispan || updatedKafka || updatedKeycloak {
 		log.Infof("Updating status of Kogito Infra instance %s ", instance.Status)
 		if updatedErr := kubernetes.ResourceC(cli).Update(instance); updatedErr != nil {
 			return false, fmt.Errorf("Error while trying to update instance status: %s ", updatedErr)
 		}
 	}
-	return requeueInfinispan || requeueKafka, nil
+	return requeueInfinispan || requeueKafka || requeueKeycloak, nil
+}
+
+func ensureKeycloak(instance *v1alpha1.KogitoInfra, cli *client.Client) (update, requeue bool) {
+	update = false
+	requeue = false
+	log.Debug("Trying to update Keycloak conditions")
+	if !instance.Spec.InstallKeycloak {
+		if &instance.Status.Keycloak != nil && len(instance.Status.Keycloak.Condition) > 0 {
+			instance.Status.Keycloak = v1alpha1.InfraComponentInstallStatusType{}
+			update = true
+		}
+		return
+	}
+
+	resources, err := keycloak.GetDeployedResources(instance, cli)
+	if err != nil {
+		update = true
+		instance.Status.Keycloak.Condition = pushFailureCondition(instance.Status.Keycloak.Condition, err)
+		return
+	}
+
+	if update, requeue = updateNameStatus(instance.Spec.InstallKeycloak, reflect.TypeOf(keycloakv1alpha1.Keycloak{}), &instance.Status.Keycloak, resources); requeue {
+		return
+	}
+
+	keycloakRes := resources[reflect.TypeOf(keycloakv1alpha1.Keycloak{})]
+	updateSvc := false
+	if len(keycloakRes) > 0 {
+		requeue = true
+		for _, svc := range keycloakRes[0].(*keycloakv1alpha1.Keycloak).Status.SecondaryResources["Service"] {
+			if svc == "keycloak" {
+				updateSvc, requeue =
+					updateServiceStatus(instance, cli, &instance.Status.Keycloak, svc)
+				break
+			}
+		}
+	}
+
+	update = updateSvc || update
+
+	return
 }
 
 func ensureKafka(instance *v1alpha1.KogitoInfra, cli *client.Client) (update, requeue bool) {
