@@ -67,8 +67,8 @@ func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client)
 // Return an empty array if `.Spec.InstallInfinispan` is set to `false`
 func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
 	resources = make(map[reflect.Type][]resource.KubernetesResource, 2)
-	log.Debugf("Creating default resources for Infinispan installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
 	if kogitoInfra.Spec.InstallInfinispan {
+		log.Debugf("Creating default resources for Infinispan installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
 		// ignoring custom secrets for now: https://github.com/infinispan/infinispan-operator/issues/211
 		/*
 			secret := &v1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: kogitoInfra.Namespace, Name: secretName}}

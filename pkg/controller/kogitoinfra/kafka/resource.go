@@ -50,11 +50,10 @@ func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client)
 }
 
 // CreateRequiredResources creates the very basic resources to have Kafka in the namespace
-func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
+func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
 	resources = make(map[reflect.Type][]resource.KubernetesResource, 1)
-	log.Debugf("Creating default resources for Kafka installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
-
 	if kogitoInfra.Spec.InstallKafka {
+		log.Debugf("Creating default resources for Kafka installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
 		kafka := &kafkabetav1.Kafka{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      InstanceName,

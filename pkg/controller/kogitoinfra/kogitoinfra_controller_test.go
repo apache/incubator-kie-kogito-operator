@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,7 @@ func TestReconcileKogitoInfra_Reconcile_AllInstalled(t *testing.T) {
 		Spec: v1alpha1.KogitoInfraSpec{
 			InstallInfinispan: true,
 			InstallKafka:      true,
+			InstallKeycloak:   true,
 		},
 	}
 	client := test.CreateFakeClient([]runtime.Object{
@@ -62,8 +64,40 @@ func TestReconcileKogitoInfra_Reconcile_AllInstalled(t *testing.T) {
 	assert.True(t, exists)
 	assert.Equal(t, infinispan.InstanceName, kogitoInfra.Status.Infinispan.Name)
 	assert.Equal(t, kafka.InstanceName, kogitoInfra.Status.Kafka.Name)
+	assert.Equal(t, keycloak.InstanceName, kogitoInfra.Status.Keycloak.Name)
 	assert.Empty(t, kogitoInfra.Status.Kafka.Service)
 	assert.Empty(t, kogitoInfra.Status.Infinispan.Service)
+	assert.Empty(t, kogitoInfra.Status.Keycloak.Service)
+}
+
+func TestReconcileKogitoInfra_Reconcile_Keycloak(t *testing.T) {
+	kogitoInfra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultKogitoInfraName, Namespace: t.Name()},
+		Spec: v1alpha1.KogitoInfraSpec{
+			InstallKeycloak: true,
+		},
+	}
+	client := test.CreateFakeClient([]runtime.Object{kogitoInfra}, nil, nil)
+	scheme := meta.GetRegisteredSchema()
+	request := reconcile.Request{NamespacedName: types.NamespacedName{Name: kogitoInfra.Name, Namespace: kogitoInfra.Namespace}}
+
+	r := ReconcileKogitoInfra{client: client, scheme: scheme}
+
+	res, err := r.Reconcile(request)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	// we shouldn't have services for kafka nor infinispan, so requeue to give time for the 3rd party operators to create them
+	assert.True(t, res.Requeue)
+
+	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Empty(t, kogitoInfra.Status.Infinispan.Name)
+	assert.Empty(t, kogitoInfra.Status.Kafka.Name)
+	assert.Equal(t, keycloak.InstanceName, kogitoInfra.Status.Keycloak.Name)
+	assert.Empty(t, kogitoInfra.Status.Kafka.Service)
+	assert.Empty(t, kogitoInfra.Status.Infinispan.Service)
+	assert.Empty(t, kogitoInfra.Status.Keycloak.Service)
 }
 
 func createInfinispanOperatorDeployment(namespace string) *appsv1.Deployment {

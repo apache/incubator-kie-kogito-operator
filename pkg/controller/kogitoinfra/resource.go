@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 
 	"reflect"
@@ -35,8 +36,12 @@ func (r *ReconcileKogitoInfra) getDeployedResources(instance *v1alpha1.KogitoInf
 	if err != nil {
 		return
 	}
-	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka))
-	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan)
+	resourcesKeycloak, err := keycloak.GetDeployedResources(instance, r.client)
+	if err != nil {
+		return
+	}
+	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka)+len(resourcesKeycloak))
+	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan, resourcesKeycloak)
 	return
 }
 
@@ -46,12 +51,16 @@ func (r *ReconcileKogitoInfra) createRequiredResources(instance *v1alpha1.Kogito
 	if err != nil {
 		return
 	}
-	resourcesKafka, err := kafka.CreateRequiredResources(instance, r.client)
+	resourcesKafka, err := kafka.CreateRequiredResources(instance)
 	if err != nil {
 		return
 	}
-	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka))
-	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan)
+	resourcesKeycloak, err := keycloak.CreateRequiredResources(instance)
+	if err != nil {
+		return
+	}
+	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka)+len(resourcesKeycloak))
+	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan, resourcesKeycloak)
 	return
 }
 
@@ -60,6 +69,7 @@ func (r *ReconcileKogitoInfra) getComparator() compare.MapComparator {
 	var comparators []framework.Comparator
 	comparators = append(comparators, infinispan.GetComparators()...)
 	comparators = append(comparators, kafka.GetComparators()...)
+	comparators = append(comparators, keycloak.GetComparators()...)
 
 	resourceComparator := compare.DefaultComparator()
 	for _, comparator := range comparators {

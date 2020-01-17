@@ -17,6 +17,7 @@ package apis
 import (
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	oappsv1 "github.com/openshift/api/apps/v1"
@@ -37,5 +38,6 @@ func init() {
 		buildv1.Install,
 		appsv1.AddToScheme,
 		monv1.AddToScheme,
-		infinispanv1.AddToScheme)
+		infinispanv1.AddToScheme,
+		keycloakv1alpha1.SchemeBuilder.AddToScheme)
 }

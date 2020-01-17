@@ -37,6 +37,9 @@ type KogitoInfraSpec struct {
 	// Indicates if Kafka should be installed or not using Strimzi (Kafka Operator).
 	// Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.
 	InstallKafka bool `json:"installKafka"`
+	// Whether or not to install Keycloak using Keycloak Operator.
+	// Please note that the Keycloak Operator must be installed manually on environments that doesn't have OLM installed.
+	InstallKeycloak bool `json:"installKeycloak"`
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra
@@ -45,6 +48,7 @@ type KogitoInfraStatus struct {
 	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
 	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
 	Kafka      InfraComponentInstallStatusType `json:"kafka,omitempty"`
+	Keycloak   InfraComponentInstallStatusType `json:"keycloak,omitempty"`
 }
 
 /*

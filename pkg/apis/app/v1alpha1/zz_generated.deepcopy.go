@@ -745,6 +745,7 @@ func (in *KogitoInfraStatus) DeepCopyInto(out *KogitoInfraStatus) {
 	out.Condition = in.Condition
 	in.Infinispan.DeepCopyInto(&out.Infinispan)
 	in.Kafka.DeepCopyInto(&out.Kafka)
+	in.Keycloak.DeepCopyInto(&out.Keycloak)
 	return
 }
 
