@@ -204,6 +204,7 @@ func EnsureKogitoInfra(namespace string, cli *client.Client) EnsureComponent {
 
 		infinispan: noActionComponentState,
 		kafka:      noActionComponentState,
+		keycloak:   noActionComponentState,
 	}
 	return ensure
 }

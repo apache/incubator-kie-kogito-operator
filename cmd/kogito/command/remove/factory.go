@@ -26,5 +26,6 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []co
 		removeCmd,
 		newRemoveInfinispanCommand(ctx, removeCmd.Command()),
 		newRemoveKeycloakCommand(ctx, removeCmd.Command()),
+		newRemoveKafkaCommand(ctx, removeCmd.Command()),
 	}
 }

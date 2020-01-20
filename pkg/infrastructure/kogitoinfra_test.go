@@ -27,120 +27,129 @@ func Test_EnsureKogitoInfra_NotExists(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.True(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
+	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_NotExists_WithKafka(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKafka().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
 	assert.True(t, infra.Spec.InstallKafka)
 	assert.False(t, infra.Spec.InstallInfinispan)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_NotExists_WithoutKafka(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKafka().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.True(t, ready)
 	assert.False(t, infra.Spec.InstallKafka)
 	assert.False(t, infra.Spec.InstallInfinispan)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_NotExists_WithInfinispan(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
 	assert.True(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_NotExists_WithoutInfinispan(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.True(t, ready)
 	assert.False(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
-func Test_EnsureKogitoInfra_NotExists_WithInfinispanAndKafka(t *testing.T) {
+func Test_EnsureKogitoInfra_NotExists_WithKeycloak(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
-	infra, ready, err := EnsureKogitoInfra(ns, cli).WithInfinispan().WithKafka().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKeycloak().Apply()
+	assertDefaults(t, infra, err)
+	assert.False(t, ready)
+	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKafka)
+	assert.True(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_NotExists_WithoutKeycloak(t *testing.T) {
+	ns := t.Name()
+	cli := test.CreateFakeClient(nil, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKeycloak().Apply()
+	assertDefaults(t, infra, err)
+	assert.True(t, ready)
+	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_NotExists_AddAllComponents(t *testing.T) {
+	ns := t.Name()
+	cli := test.CreateFakeClient(nil, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithInfinispan().WithKafka().WithKeycloak().Apply()
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
 	assert.True(t, infra.Spec.InstallInfinispan)
 	assert.True(t, infra.Spec.InstallKafka)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
+	assert.True(t, infra.Spec.InstallKeycloak)
 }
 
-func Test_EnsureKogitoInfra_NotExists_WithoutInfinispanAndKafka(t *testing.T) {
+func Test_EnsureKogitoInfra_NotExists_RemoveAnyComponents(t *testing.T) {
 	ns := t.Name()
 	cli := test.CreateFakeClient(nil, nil, nil)
-	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutInfinispan().WithoutKafka().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutInfinispan().WithoutKafka().WithoutKeycloak().Apply()
+	assertDefaults(t, infra, err)
 	assert.True(t, ready)
 	assert.False(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_Exists(t *testing.T) {
 	ns := t.Name()
 	infra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
-		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: false,
-			InstallKafka:      false,
-		},
+		Spec:       v1alpha1.KogitoInfraSpec{},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.True(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.False(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_Exists_AddInfinispan(t *testing.T) {
 	ns := t.Name()
 	infra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
-		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: false,
-			InstallKafka:      false,
-		},
+		Spec:       v1alpha1.KogitoInfraSpec{},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.True(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_Exists_RemoveInfinispan(t *testing.T) {
@@ -149,7 +158,6 @@ func Test_EnsureKogitoInfra_Exists_RemoveInfinispan(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
 		Spec: v1alpha1.KogitoInfraSpec{
 			InstallInfinispan: true,
-			InstallKafka:      false,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
 			Infinispan: v1alpha1.InfinispanInstallStatus{
@@ -159,31 +167,26 @@ func Test_EnsureKogitoInfra_Exists_RemoveInfinispan(t *testing.T) {
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.False(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_Exists_AddKafka(t *testing.T) {
 	ns := t.Name()
 	infra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
-		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: false,
-			InstallKafka:      false,
-		},
+		Spec:       v1alpha1.KogitoInfraSpec{},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKafka().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.True(t, infra.Spec.InstallKafka)
 	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_Exists_RemoveKafka(t *testing.T) {
@@ -191,8 +194,7 @@ func Test_EnsureKogitoInfra_Exists_RemoveKafka(t *testing.T) {
 	infra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
 		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: false,
-			InstallKafka:      true,
+			InstallKafka: true,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
 			Kafka: fakeInstalledInfraComponentInstallStatusType(),
@@ -200,56 +202,87 @@ func Test_EnsureKogitoInfra_Exists_RemoveKafka(t *testing.T) {
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKafka().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.False(t, infra.Spec.InstallKafka)
 	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
-func Test_EnsureKogitoInfra_Exists_AddInfinispanAndKafka(t *testing.T) {
+func Test_EnsureKogitoInfra_Exists_AddKeycloak(t *testing.T) {
+	ns := t.Name()
+	infra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
+		Spec:       v1alpha1.KogitoInfraSpec{},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKeycloak().Apply()
+	assertDefaults(t, infra, err)
+	assert.False(t, ready)
+	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKafka)
+	assert.True(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_Exists_RemoveKeycloak(t *testing.T) {
 	ns := t.Name()
 	infra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
 		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: false,
-			InstallKafka:      false,
+			InstallKeycloak: true,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
-	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKafka().WithInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKeycloak().Apply()
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
-	assert.True(t, infra.Spec.InstallInfinispan)
-	assert.True(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
-func Test_EnsureKogitoInfra_Exists_RemoveInfinispanAndKafka(t *testing.T) {
+func Test_EnsureKogitoInfra_Exists_AddAllComponents(t *testing.T) {
+	ns := t.Name()
+	infra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
+		Spec:       v1alpha1.KogitoInfraSpec{},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKafka().WithInfinispan().WithKeycloak().Apply()
+	assertDefaults(t, infra, err)
+	assert.False(t, ready)
+	assert.True(t, infra.Spec.InstallInfinispan)
+	assert.True(t, infra.Spec.InstallKafka)
+	assert.True(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_Exists_RemoveAllComponents(t *testing.T) {
 	ns := t.Name()
 	infra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
 		Spec: v1alpha1.KogitoInfraSpec{
 			InstallInfinispan: true,
 			InstallKafka:      true,
+			InstallKeycloak:   true,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
-	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKafka().WithoutInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKafka().WithoutInfinispan().WithoutKeycloak().Apply()
+	assertDefaults(t, infra, err)
 	assert.False(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.False(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_Exists_WithInfinispanButAlreadyInstalled(t *testing.T) {
@@ -258,7 +291,6 @@ func Test_EnsureKogitoInfra_Exists_WithInfinispanButAlreadyInstalled(t *testing.
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
 		Spec: v1alpha1.KogitoInfraSpec{
 			InstallInfinispan: true,
-			InstallKafka:      false,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
 			Infinispan: v1alpha1.InfinispanInstallStatus{
@@ -268,12 +300,11 @@ func Test_EnsureKogitoInfra_Exists_WithInfinispanButAlreadyInstalled(t *testing.
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.True(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.True(t, infra.Spec.InstallInfinispan)
 	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func Test_EnsureKogitoInfra_Exists_WithKafkaButAlreadyInstalled(t *testing.T) {
@@ -281,8 +312,7 @@ func Test_EnsureKogitoInfra_Exists_WithKafkaButAlreadyInstalled(t *testing.T) {
 	infra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
 		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: false,
-			InstallKafka:      true,
+			InstallKafka: true,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
 			Kafka: fakeInstalledInfraComponentInstallStatusType(),
@@ -290,12 +320,109 @@ func Test_EnsureKogitoInfra_Exists_WithKafkaButAlreadyInstalled(t *testing.T) {
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
 	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKafka().Apply()
-	assert.NoError(t, err)
-	assert.NotNil(t, infra)
+	assertDefaults(t, infra, err)
 	assert.True(t, ready)
-	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 	assert.True(t, infra.Spec.InstallKafka)
 	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_Exists_WithKeycloakButAlreadyInstalled(t *testing.T) {
+	ns := t.Name()
+	infra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
+		Spec: v1alpha1.KogitoInfraSpec{
+			InstallKeycloak: true,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+		},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithKeycloak().Apply()
+	assertDefaults(t, infra, err)
+	assert.True(t, ready)
+	assert.False(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.True(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_Exists_RemoveOnlyKafka(t *testing.T) {
+	ns := t.Name()
+	infra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
+		Spec: v1alpha1.KogitoInfraSpec{
+			InstallInfinispan: true,
+			InstallKafka:      true,
+			InstallKeycloak:   true,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Infinispan: v1alpha1.InfinispanInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
+			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+		},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKafka().Apply()
+	assertDefaults(t, infra, err)
+	assert.False(t, ready)
+	assert.False(t, infra.Spec.InstallKafka)
+	assert.True(t, infra.Spec.InstallInfinispan)
+	assert.True(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_Exists_RemoveOnlyInfinispan(t *testing.T) {
+	ns := t.Name()
+	infra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
+		Spec: v1alpha1.KogitoInfraSpec{
+			InstallInfinispan: true,
+			InstallKafka:      true,
+			InstallKeycloak:   true,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Infinispan: v1alpha1.InfinispanInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
+			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+		},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutInfinispan().Apply()
+	assertDefaults(t, infra, err)
+	assert.False(t, ready)
+	assert.True(t, infra.Spec.InstallKafka)
+	assert.False(t, infra.Spec.InstallInfinispan)
+	assert.True(t, infra.Spec.InstallKeycloak)
+}
+
+func Test_EnsureKogitoInfra_Exists_RemoveOnlyKeycloak(t *testing.T) {
+	ns := t.Name()
+	infra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: ns},
+		Spec: v1alpha1.KogitoInfraSpec{
+			InstallInfinispan: true,
+			InstallKafka:      true,
+			InstallKeycloak:   true,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Infinispan: v1alpha1.InfinispanInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
+			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+		},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
+	infra, ready, err := EnsureKogitoInfra(ns, cli).WithoutKeycloak().Apply()
+	assertDefaults(t, infra, err)
+	assert.False(t, ready)
+	assert.True(t, infra.Spec.InstallKafka)
+	assert.True(t, infra.Spec.InstallInfinispan)
+	assert.False(t, infra.Spec.InstallKeycloak)
 }
 
 func fakeInstalledInfraComponentInstallStatusType() v1alpha1.InfraComponentInstallStatusType {
@@ -307,4 +434,10 @@ func fakeInstalledInfraComponentInstallStatusType() v1alpha1.InfraComponentInsta
 			},
 		},
 	}
+}
+
+func assertDefaults(t *testing.T, infra *v1alpha1.KogitoInfra, err error) {
+	assert.NoError(t, err)
+	assert.NotNil(t, infra)
+	assert.Equal(t, DefaultKogitoInfraName, infra.GetName())
 }

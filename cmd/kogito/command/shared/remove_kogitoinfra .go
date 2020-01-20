@@ -44,3 +44,14 @@ func removeKeycloak(cli *client.Client, namespace string) error {
 
 	return nil
 }
+func removeKafka(cli *client.Client, namespace string) error {
+	log := context.GetDefaultLogger()
+
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutKafka().Apply(); err != nil {
+		return err
+	}
+
+	log.Infof(message.KafkaSuccessfulRemoved, namespace)
+
+	return nil
+}
