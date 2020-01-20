@@ -28,6 +28,8 @@ type servicesRemoval struct {
 type ServicesRemoval interface {
 	// RemoveInfinispan removes the installed infinispan instance.
 	RemoveInfinispan() ServicesRemoval
+	// RemoveKeycloak removes the installed keycloak instance.
+	RemoveKeycloak() ServicesRemoval
 	// GetError return any given error during the installation process
 	GetError() error
 }
@@ -35,6 +37,13 @@ type ServicesRemoval interface {
 func (s servicesRemoval) RemoveInfinispan() ServicesRemoval {
 	if s.err == nil {
 		s.err = removeInfinispan(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s servicesRemoval) RemoveKeycloak() ServicesRemoval {
+	if s.err == nil {
+		s.err = removeKeycloak(s.client, s.namespace)
 	}
 	return s
 }

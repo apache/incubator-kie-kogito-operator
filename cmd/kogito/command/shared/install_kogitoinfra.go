@@ -44,3 +44,15 @@ func installKafka(cli *client.Client, namespace string) error {
 
 	return nil
 }
+
+func installKeycloak(cli *client.Client, namespace string) error {
+	log := context.GetDefaultLogger()
+
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithKeycloak().Apply(); err != nil {
+		return err
+	}
+
+	log.Infof(message.KeycloakSuccessfulInstalled, namespace)
+
+	return nil
+}

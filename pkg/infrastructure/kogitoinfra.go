@@ -44,6 +44,7 @@ type ensureComponent struct {
 
 	infinispan componentState
 	kafka      componentState
+	keycloak   componentState
 }
 
 // EnsureComponent interface to control how to provision an infra with a given component
@@ -52,10 +53,15 @@ type EnsureComponent interface {
 	WithInfinispan() EnsureComponent
 	// WithKafka creates a new instance of KogitoInfra if not exists with a Kafka deployed if not exists. If exists, checks if Kafka is deployed.
 	WithKafka() EnsureComponent
+	// WithKeycloak creates a new instance of KogitoInfra if not exists with a Keycloak deployed if not exists. If exists, checks if Keycloak is deployed.
+	WithKeycloak() EnsureComponent
+
 	// WithoutInfinispan deletes instance of Infinispan if exists.
 	WithoutInfinispan() EnsureComponent
 	// WithoutKafka deletes instance of Infinispan if exists.
 	WithoutKafka() EnsureComponent
+	// WithoutKeycloak deletes instance of Keycloak if exists.
+	WithoutKeycloak() EnsureComponent
 
 	Apply() (infra *v1alpha1.KogitoInfra, ready bool, err error)
 }
@@ -70,6 +76,11 @@ func (k *ensureComponent) WithKafka() EnsureComponent {
 	return k
 }
 
+func (k *ensureComponent) WithKeycloak() EnsureComponent {
+	k.keycloak = installComponentState
+	return k
+}
+
 func (k *ensureComponent) WithoutInfinispan() EnsureComponent {
 	k.infinispan = removeComponentState
 	return k
@@ -77,6 +88,11 @@ func (k *ensureComponent) WithoutInfinispan() EnsureComponent {
 
 func (k *ensureComponent) WithoutKafka() EnsureComponent {
 	k.kafka = removeComponentState
+	return k
+}
+
+func (k *ensureComponent) WithoutKeycloak() EnsureComponent {
+	k.keycloak = removeComponentState
 	return k
 }
 
@@ -97,6 +113,11 @@ func (k *ensureComponent) Apply() (*v1alpha1.KogitoInfra, bool, error) {
 	if deployed := isInfinispanDeployed(infra); k.infinispan == installComponentState && !deployed {
 		ready = false
 	} else if k.infinispan == removeComponentState && deployed {
+		ready = false
+	}
+	if deployed := isKeycloakDeployed(infra); k.keycloak == installComponentState && !deployed {
+		ready = false
+	} else if k.keycloak == removeComponentState && deployed {
 		ready = false
 	}
 
@@ -122,6 +143,7 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 
 		infra.Spec.InstallInfinispan = getStateValue(k.infinispan, infra.Spec.InstallInfinispan)
 		infra.Spec.InstallKafka = getStateValue(k.kafka, infra.Spec.InstallKafka)
+		infra.Spec.InstallKeycloak = getStateValue(k.keycloak, infra.Spec.InstallKeycloak)
 		if err := kubernetes.ResourceC(k.client).Update(infra); err != nil {
 			return nil, err
 		}
@@ -132,6 +154,7 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 			Spec: v1alpha1.KogitoInfraSpec{
 				InstallInfinispan: getStateValue(k.infinispan, false),
 				InstallKafka:      getStateValue(k.kafka, false),
+				InstallKeycloak:   getStateValue(k.keycloak, false),
 			},
 		}
 		log.Debug("We don't have KogitoInfra deployed, trying to create a new one")
@@ -162,6 +185,13 @@ func isInfinispanDeployed(infra *v1alpha1.KogitoInfra) bool {
 func isKafkaDeployed(infra *v1alpha1.KogitoInfra) bool {
 	if &infra.Status != nil && &infra.Status.Kafka != nil {
 		return isInfraComponentDeployed(&infra.Status.Kafka)
+	}
+	return false
+}
+
+func isKeycloakDeployed(infra *v1alpha1.KogitoInfra) bool {
+	if &infra.Status != nil && &infra.Status.Keycloak != nil {
+		return isInfraComponentDeployed(&infra.Status.Keycloak)
 	}
 	return false
 }

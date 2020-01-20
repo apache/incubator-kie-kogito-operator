@@ -28,5 +28,6 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []co
 		newInstallDataIndexCommand(ctx, installCmd.Command()),
 		newInstallJobsServiceCommand(ctx, installCmd.Command()),
 		newInstallInfinispanCommand(ctx, installCmd.Command()),
+		newInstallKeycloakCommand(ctx, installCmd.Command()),
 	}
 }
