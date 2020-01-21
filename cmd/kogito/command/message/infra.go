@@ -17,4 +17,12 @@ package message
 // Messages for Infrastructure components
 const (
 	KogitoInfraErrCreating = "Error while trying to create a new Kogito Infra: %s "
+
+	InfinispanErrInstalling       = "Error while trying to install Infinispan: %s "
+	InfinispanSuccessfulInstalled = "Infinispan has been successfully installed in the Project %s."
+	InfinispanErrRemoving         = "Error while trying to remove Infinispan: %s "
+	InfinispanSuccessfulRemoved   = "Infinispan has been successfully removed from the Project %s."
+
+	KafkaErrInstalling       = "Error while trying to install Kafka: %s "
+	KafkaSuccessfulInstalled = "Kafka has been successfully installed in the Project %s."
 )

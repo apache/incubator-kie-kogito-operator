@@ -516,9 +516,8 @@ func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.True(t, result.Requeue)
 
-	kogitoInfra, created, ready, err := infrastructure.EnsureKogitoInfra(kogitoApp.Namespace, fakeClient).WithInfinispan()
+	kogitoInfra, ready, err := infrastructure.EnsureKogitoInfra(kogitoApp.Namespace, fakeClient).WithInfinispan().Apply()
 	assert.NoError(t, err)
-	assert.False(t, created)      // created in reconciliation phase
 	assert.False(t, ready)        // not ready, we don't have status
 	assert.NotNil(t, kogitoInfra) // must exist a infra
 

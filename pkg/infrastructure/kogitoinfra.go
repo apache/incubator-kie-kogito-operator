@@ -34,89 +34,103 @@ const (
 type componentType string
 
 type ensureComponent struct {
-	infra   *v1alpha1.KogitoInfra
-	created bool
-	err     error
-	client  *client.Client
+	namespace string
+	client    *client.Client
+
+	installInfinispan bool
+	installKafka      bool
 }
 
 // EnsureComponent interface to control how to provision an infra with a given component
 type EnsureComponent interface {
 	// WithInfinispan creates a new instance of KogitoInfra if not exists with an Infinispan deployed if not exists. If exists, checks if Infinispan is deployed.
-	WithInfinispan() (infra *v1alpha1.KogitoInfra, created, ready bool, err error)
+	WithInfinispan() EnsureComponent
 	// WithKafka creates a new instance of KogitoInfra if not exists with a Kafka deployed if not exists. If exists, checks if Kafka is deployed.
-	WithKafka() (infra *v1alpha1.KogitoInfra, created, ready bool, err error)
+	WithKafka() EnsureComponent
+	// WithoutInfinispan deletes instance of Infinispan if exists.
+	WithoutInfinispan() EnsureComponent
+	// WithoutKafka deletes instance of Infinispan if exists.
+	WithoutKafka() EnsureComponent
+
+	Apply() (infra *v1alpha1.KogitoInfra, ready bool, err error)
 }
 
-func (k *ensureComponent) WithInfinispan() (infra *v1alpha1.KogitoInfra, created, ready bool, err error) {
-	return k.withComponent(infinispanComponentType)
+func (k *ensureComponent) WithInfinispan() EnsureComponent {
+	k.installInfinispan = true
+	return k
 }
 
-func (k *ensureComponent) WithKafka() (infra *v1alpha1.KogitoInfra, created, ready bool, err error) {
-	return k.withComponent(kafkaComponentType)
+func (k *ensureComponent) WithKafka() EnsureComponent {
+	k.installKafka = true
+	return k
 }
 
-func (k *ensureComponent) withComponent(component componentType) (*v1alpha1.KogitoInfra, bool, bool, error) {
-	if k.err != nil {
-		return k.infra, k.created, false, k.err
+func (k *ensureComponent) WithoutInfinispan() EnsureComponent {
+	k.installInfinispan = false
+	return k
+}
+
+func (k *ensureComponent) WithoutKafka() EnsureComponent {
+	k.installKafka = false
+	return k
+}
+
+func (k *ensureComponent) Apply() (*v1alpha1.KogitoInfra, bool, error) {
+	// Create or update kogitoinfra
+	infra, err := k.createOrUpdateInfra()
+	if err != nil {
+		return nil, false, err
 	}
-	if k.created {
-		return k.infra, k.created, false, nil
+
+	// Check if ready
+	ready := true
+	if k.installKafka && !isKafkaDeployed(infra) {
+		ready = false
 	}
-	ready := false
-	switch component {
-	case kafkaComponentType:
-		if !k.infra.Spec.InstallKafka {
-			k.infra.Spec.InstallKafka = true
-			k.err = kubernetes.ResourceC(k.client).Update(k.infra)
-			return k.infra, k.created, false, nil
-		}
-		ready = isKafkaDeployed(k.infra)
-	case infinispanComponentType:
-		if !k.infra.Spec.InstallInfinispan {
-			k.infra.Spec.InstallInfinispan = true
-			k.err = kubernetes.ResourceC(k.client).Update(k.infra)
-			return k.infra, k.created, false, nil
-		}
-		ready = isInfinispanDeployed(k.infra)
+	if k.installInfinispan && !isInfinispanDeployed(infra) {
+		ready = false
 	}
 
-	return k.infra, k.created, ready, nil
+	return infra, ready, nil
 }
 
-// createOrFetchInfra will fetch for any reference of KogitoInfra in the given namespace.
+// createOrUpdateInfra will fetch for any reference of KogitoInfra in the given namespace.
 // If not exists, a new one with Infinispan enabled will be created and returned
-func (k *ensureComponent) createOrFetchInfra(namespace string) {
+func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 	log := logger.GetLogger("infrastructure_kogitoinfra")
 	log.Debug("Fetching for KogitoInfra list in namespace")
 	// let's look for the deployed infra
 	infras := &v1alpha1.KogitoInfraList{}
-	k.created = false
-	k.infra = nil
-	if k.err = kubernetes.ResourceC(k.client).ListWithNamespace(namespace, infras); k.err != nil {
-		return
+	if err := kubernetes.ResourceC(k.client).ListWithNamespace(k.namespace, infras); err != nil {
+		return nil, err
 	}
 	log.Debugf("Found KogitoInfras: %s", infras.Items)
+	var infra *v1alpha1.KogitoInfra
 	// let's use the one we've found
 	if len(infras.Items) > 0 {
-		log.Debugf("Using KogitoInfra: %s", &infras.Items[0])
-		k.created = false
-		k.infra = &infras.Items[0]
-		return
+		log.Debugf("Using and updating KogitoInfra: %s", &infras.Items[0])
+		infra = &infras.Items[0]
+
+		infra.Spec.InstallInfinispan = k.installInfinispan
+		infra.Spec.InstallKafka = k.installKafka
+		if err := kubernetes.ResourceC(k.client).Update(infra); err != nil {
+			return nil, err
+		}
+	} else {
+		// found nothing, creating
+		infra = &v1alpha1.KogitoInfra{
+			ObjectMeta: metav1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: k.namespace},
+			Spec: v1alpha1.KogitoInfraSpec{
+				InstallInfinispan: k.installInfinispan,
+				InstallKafka:      k.installKafka,
+			},
+		}
+		log.Debug("We don't have KogitoInfra deployed, trying to create a new one")
+		if err := kubernetes.ResourceC(k.client).Create(infra); err != nil {
+			return nil, err
+		}
 	}
-	// found nothing, creating
-	k.infra = &v1alpha1.KogitoInfra{
-		ObjectMeta: metav1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: namespace},
-		Spec:       v1alpha1.KogitoInfraSpec{InstallInfinispan: false, InstallKafka: false},
-	}
-	log.Debug("We don't have KogitoInfra deployed, trying to create a new one")
-	if k.err = kubernetes.ResourceC(k.client).Create(k.infra); k.err != nil {
-		k.created = false
-		k.infra = nil
-		return
-	}
-	k.created = true
-	return
+	return infra, nil
 }
 
 // isInfraComponentDeployed verifies if the given component is available in the infrastructure
@@ -146,11 +160,11 @@ func isKafkaDeployed(infra *v1alpha1.KogitoInfra) bool {
 // EnsureKogitoInfra will create the KogitoInfra instance with default values if does not exist and return the handle to specify which component should be created
 func EnsureKogitoInfra(namespace string, cli *client.Client) EnsureComponent {
 	ensure := &ensureComponent{
-		infra:   nil,
-		created: false,
-		err:     nil,
-		client:  cli,
+		namespace: namespace,
+		client:    cli,
+
+		installInfinispan: false,
+		installKafka:      false,
 	}
-	ensure.createOrFetchInfra(namespace)
 	return ensure
 }

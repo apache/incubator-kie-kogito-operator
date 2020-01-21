@@ -15,18 +15,24 @@
 package install
 
 import (
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/spf13/cobra"
+	"testing"
+
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+
+	"github.com/stretchr/testify/assert"
+
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
-	installCmd := newInstallCommand(ctx, rootCommand)
-	return []context.KogitoCommand{
-		installCmd,
-		newInstallKogitoOperatorCommand(ctx, installCmd.Command()),
-		newInstallDataIndexCommand(ctx, installCmd.Command()),
-		newInstallJobsServiceCommand(ctx, installCmd.Command()),
-		newInstallInfinispanCommand(ctx, installCmd.Command()),
-	}
+func Test_InstallInfinispan(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install infinispan -p %s", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Infinispan has been successfully installed")
 }

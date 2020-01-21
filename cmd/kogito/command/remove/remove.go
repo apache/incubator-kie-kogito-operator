@@ -12,21 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package install
+package remove
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/spf13/cobra"
 )
 
-// BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
-	installCmd := newInstallCommand(ctx, rootCommand)
-	return []context.KogitoCommand{
-		installCmd,
-		newInstallKogitoOperatorCommand(ctx, installCmd.Command()),
-		newInstallDataIndexCommand(ctx, installCmd.Command()),
-		newInstallJobsServiceCommand(ctx, installCmd.Command()),
-		newInstallInfinispanCommand(ctx, installCmd.Command()),
+type removeCommand struct {
+	context.CommandContext
+	command *cobra.Command
+	Parent  *cobra.Command
+}
+
+func newRemoveCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+	cmd := removeCommand{
+		CommandContext: *ctx,
+		Parent:         parent,
 	}
+	cmd.RegisterHook()
+	cmd.InitHook()
+	return &cmd
+}
+
+func (i *removeCommand) Command() *cobra.Command {
+	return i.command
+}
+
+func (i *removeCommand) RegisterHook() {
+	i.command = &cobra.Command{
+		Use:    "remove",
+		Short:  "remove all sorts of infrastructure components from your Kogito project",
+		PreRun: i.CommonPreRun,
+	}
+}
+
+func (i *removeCommand) InitHook() {
+	i.Parent.AddCommand(i.command)
 }
