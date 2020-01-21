@@ -15,7 +15,4 @@ spec:
       contextDir: jbpm-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
       reference: 0.7.0
-    imageRuntime:
-      imageStreamTag: 0.7.0
-    imageS2I:
-      imageStreamTag: 0.7.0
+    imageVersion: 0.7.0

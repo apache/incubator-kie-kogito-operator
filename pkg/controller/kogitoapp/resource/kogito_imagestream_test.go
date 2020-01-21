@@ -19,14 +19,21 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/version"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
 	imgv1 "github.com/openshift/api/image/v1"
 )
 
 func TestKogitoImageStreamGeneration(t *testing.T) {
-
-	itemsTest := CreateKogitoImageStream("test", version.Version, "", false)
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v1.ObjectMeta{Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: "",
+			Build:   &v1alpha1.KogitoAppBuildObject{Native: false},
+		},
+	}
+	itemsTest := CreateKogitoImageStream(kogitoApp, version.Version)
 	assert.Equal(t, 6, len(itemsTest.Items))
 
 	for _, item := range itemsTest.Items {
@@ -96,21 +103,42 @@ func TestKogitoImageStreamGeneration(t *testing.T) {
 }
 
 func TestQuarkusKogitoImageStreamGenerationNonNative(t *testing.T) {
-	itemsTest := CreateKogitoImageStream("quarkus", version.Version, v1alpha1.QuarkusRuntimeType, false)
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v1.ObjectMeta{Namespace: "quarkus"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build:   &v1alpha1.KogitoAppBuildObject{Native: false},
+		},
+	}
+	itemsTest := CreateKogitoImageStream(kogitoApp, version.Version)
 	assert.Equal(t, 2, len(itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusJVMUbi8Image, itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusUbi8s2iImage, itemsTest.Items))
 }
 
 func TestQuarkusKogitoImageStreamGenerationNative(t *testing.T) {
-	itemsTest := CreateKogitoImageStream("quarkus", version.Version, v1alpha1.QuarkusRuntimeType, true)
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v1.ObjectMeta{Namespace: "quarkus"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build:   &v1alpha1.KogitoAppBuildObject{Native: true},
+		},
+	}
+	itemsTest := CreateKogitoImageStream(kogitoApp, version.Version)
 	assert.Equal(t, 2, len(itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusUbi8s2iImage, itemsTest.Items))
 	assert.True(t, containsIsName(KogitoQuarkusUbi8Image, itemsTest.Items))
 }
 
 func TestSpringbootKogitoImageStreamGenerationNative(t *testing.T) {
-	itemsTest := CreateKogitoImageStream("springboot", version.Version, v1alpha1.SpringbootRuntimeType, false)
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v1.ObjectMeta{Namespace: "springboot"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.SpringbootRuntimeType,
+			Build:   &v1alpha1.KogitoAppBuildObject{Native: false},
+		},
+	}
+	itemsTest := CreateKogitoImageStream(kogitoApp, version.Version)
 	assert.Equal(t, 2, len(itemsTest.Items))
 	assert.True(t, containsIsName(KogitoSpringbootUbi8Image, itemsTest.Items))
 	assert.True(t, containsIsName(KogitoSpringbootUbi8s2iImage, itemsTest.Items))

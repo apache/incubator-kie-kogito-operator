@@ -17,18 +17,20 @@ package resource
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/version"
 )
 
-// BuildType which build can we perform? Supported are s2i and service
-type BuildType string
+// buildType which build can we perform? Supported are s2i and service
+type buildType string
 
 const (
 	// BuildTypeS2I source to image build type will take a source code and transform it into an executable service
-	BuildTypeS2I BuildType = "s2i"
+	BuildTypeS2I buildType = "s2i"
 	// BuildTypeRuntime will create a image with a Kogito Service available
-	BuildTypeRuntime BuildType = "runtime"
+	BuildTypeRuntime buildType = "runtime"
 	// BuildTypeRuntimeJvm will create a image with JRE installed to run the Kogito Service
-	BuildTypeRuntimeJvm BuildType = "runtime-jvm"
+	BuildTypeRuntimeJvm buildType = "runtime-jvm"
 	// LabelKeyBuildType is the label key to identify the build type
 	LabelKeyBuildType = "buildtype"
 )
@@ -36,57 +38,20 @@ const (
 const (
 	kindImageStreamTag = "ImageStreamTag"
 	tagLatest          = "latest"
-	// ImageStreamNamespace default namespace for the ImageStreams
-	ImageStreamNamespace = "openshift"
 )
 
-// BuildImageStreams are the image streams needed to perform the initial builds
-var BuildImageStreams = map[BuildType]map[v1alpha1.RuntimeType]v1alpha1.ImageStream{
-	BuildTypeS2I: {
-		v1alpha1.QuarkusRuntimeType: v1alpha1.ImageStream{
-			ImageStreamName: KogitoQuarkusUbi8s2iImage,
-			ImageStreamTag:  ImageStreamTag,
-		},
-		v1alpha1.SpringbootRuntimeType: v1alpha1.ImageStream{
-			ImageStreamName: KogitoSpringbootUbi8s2iImage,
-			ImageStreamTag:  ImageStreamTag,
-		},
-	},
-	BuildTypeRuntime: {
-		v1alpha1.QuarkusRuntimeType: v1alpha1.ImageStream{
-			ImageStreamName: KogitoQuarkusUbi8Image,
-			ImageStreamTag:  ImageStreamTag,
-		},
-		v1alpha1.SpringbootRuntimeType: v1alpha1.ImageStream{
-			ImageStreamName: KogitoSpringbootUbi8Image,
-			ImageStreamTag:  ImageStreamTag,
-		},
-	},
-	BuildTypeRuntimeJvm: {
-		v1alpha1.QuarkusRuntimeType: v1alpha1.ImageStream{
-			ImageStreamName: KogitoQuarkusJVMUbi8Image,
-			ImageStreamTag:  ImageStreamTag,
-		},
-	},
-}
-
-// ensureImageBuild will check the build image parameters for emptiness and fill then with default values
-func ensureImageBuild(image v1alpha1.ImageStream, defaultImage v1alpha1.ImageStream) v1alpha1.ImageStream {
-	if &image != nil {
-		if len(image.ImageStreamTag) == 0 {
-			image.ImageStreamTag = defaultImage.ImageStreamTag
+func resolveImageStreamTagNameForBuilds(kogitoApp *v1alpha1.KogitoApp, imageTag string, buildType buildType) (imageName string) {
+	imageVersion := kogitoApp.Spec.Build.ImageVersion
+	if len(imageTag) > 0 {
+		_, _, imageName, imageVersion = framework.SplitImageTagWithLatest(imageTag)
+		imageName = resolveCustomImageStreamName(imageName)
+	} else {
+		imageName = BuildImageStreams[buildType][kogitoApp.Spec.Runtime]
+		if len(imageVersion) == 0 {
+			imageVersion = version.Version
 		}
-		if len(image.ImageStreamName) == 0 {
-			image.ImageStreamName = defaultImage.ImageStreamName
-		}
-		if len(image.ImageStreamNamespace) == 0 {
-			image.ImageStreamNamespace = defaultImage.ImageStreamNamespace
-		}
-		return image
 	}
-	return defaultImage
-}
+	imageName = fmt.Sprintf("%s:%s", imageName, imageVersion)
 
-func parseImage(image *v1alpha1.ImageStream) (string, string) {
-	return fmt.Sprintf("%s:%s", image.ImageStreamName, image.ImageStreamTag), image.ImageStreamNamespace
+	return
 }

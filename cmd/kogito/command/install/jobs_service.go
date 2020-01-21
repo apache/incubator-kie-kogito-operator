@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	resjobs "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitojobsservice/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
@@ -202,7 +203,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 			},
 			Replicas: i.flags.Replicas,
 			Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
-			Image:    shared.FromStringToImage(i.flags.image),
+			Image:    framework.ConvertImageTagToImage(i.flags.image),
 			Resources: v1.ResourceRequirements{
 				Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 				Requests: shared.FromStringArrayToResources(i.flags.Requests),

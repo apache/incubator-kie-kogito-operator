@@ -18,70 +18,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"regexp"
 	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 )
-
-const (
-	dockerTagRegx = `(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/)?(?P<namespace>.+/)?(?P<image>[^:]+)(?P<tag>:.+)?`
-)
-
-var (
-	// DockerTagRegxCompiled is the compiled regex to verify docker tag names
-	DockerTagRegxCompiled = *regexp.MustCompile(dockerTagRegx)
-)
-
-// FromStringToImageStream converts a plain string into an ImageStream (ignores domain). For example, see https://regex101.com/r/1YX9rh/1.
-func FromStringToImageStream(imageTag string) v1alpha1.ImageStream {
-	_, ns, name, tag := fromStringToImageArray(imageTag)
-	image := v1alpha1.ImageStream{
-		ImageStreamName:      name,
-		ImageStreamTag:       tag,
-		ImageStreamNamespace: ns,
-	}
-
-	return image
-}
-
-// FromStringToImage converts a plain string into an Image. For example, see https://regex101.com/r/1YX9rh/1.
-func FromStringToImage(imageTag string) v1alpha1.Image {
-	domain, ns, name, tag := fromStringToImageArray(imageTag)
-	image := v1alpha1.Image{
-		Domain:    domain,
-		Namespace: ns,
-		Name:      name,
-		Tag:       tag,
-	}
-
-	return image
-}
-
-func fromStringToImageArray(imageTag string) (domain, namespace, name, tag string) {
-	domain = ""
-	namespace = ""
-	name = ""
-	tag = ""
-	if len(imageTag) > 0 {
-		if strings.HasPrefix(imageTag, ":") {
-			tag = strings.Split(imageTag, ":")[1]
-			return
-		}
-
-		imageMatch := DockerTagRegxCompiled.FindStringSubmatch(imageTag)
-		if len(imageMatch[1]) > 0 {
-			domain = strings.Split(imageMatch[1], "/")[0]
-		}
-		if len(imageMatch[2]) > 0 {
-			namespace = strings.Split(imageMatch[2], "/")[0]
-		}
-		name = imageMatch[3]
-		tag = strings.ReplaceAll(imageMatch[4], ":", "")
-	}
-	return
-}
 
 // FromStringArrayToControllerEnvs converts a string array in the format of key=value pairs to the required type for the KogitoApp controller
 func FromStringArrayToControllerEnvs(strings []string) []v1alpha1.Env {

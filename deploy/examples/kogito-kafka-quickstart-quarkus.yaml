@@ -18,10 +18,7 @@ spec:
     gitSource:
       reference: 0.7.0
       uri: https://github.com/kiegroup/kogito-quickstarts
-    imageRuntime:
-      imageStreamTag: 0.7.0
-    imageS2I:
-      imageStreamTag: 0.7.0
+    imageVersion: 0.7.0
     resources: {}
   env:
   # those blank env is needed until we have Quarkus reading them without explicit definition

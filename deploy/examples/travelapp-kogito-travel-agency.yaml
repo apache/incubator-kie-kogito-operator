@@ -15,12 +15,8 @@ spec:
   build:
     gitSource:
       contextDir: 05-kogito-travel-agency
-      reference: override-bootstrap
-      uri: https://github.com/ricardozanini/kogito-travel-agency-tutorial
-    imageRuntime:
-      imageStreamTag: 0.7.0
-    imageS2I:
-      imageStreamTag: 0.7.0
+      uri: https://github.com/mswiderski/kogito-travel-agency-tutorial/
+    imageVersion: 0.7.0
     env:
       # optional, but will improve your build time quite a lot
       - name: MAVEN_MIRROR_URL

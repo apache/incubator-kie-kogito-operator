@@ -57,6 +57,7 @@ type deployFlags struct {
 	buildRequests     []string
 	installInfinispan string
 	installKafka      string
+	imageVersion      string
 }
 
 type deployCommand struct {
@@ -149,10 +150,11 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().StringSliceVar(&i.flags.buildEnv, "build-env", nil, "Key/pair value environment variables that will be set during the build. For example 'MAVEN_URL=http://myinternalmaven.com'. Can be set more than once.")
 	i.command.Flags().StringSliceVar(&i.flags.buildLimits, "build-limits", nil, "Resource limits for the s2i build pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	i.command.Flags().StringSliceVar(&i.flags.buildRequests, "build-requests", nil, "Resource requests for the s2i build pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
-	i.command.Flags().StringVar(&i.flags.imageS2I, "image-s2i", "", "Image tag (namespace/name:tag) for using during the s2i build, e.g: openshift/kogito-quarkus-ubi8-s2i:latest")
-	i.command.Flags().StringVar(&i.flags.imageRuntime, "image-runtime", "", "Image tag (namespace/name:tag) for using during service runtime, e.g: openshift/kogito-quarkus-ubi8:latest")
+	i.command.Flags().StringVar(&i.flags.imageS2I, "image-s2i", "", "Custom image tag for the s2i build to build the application binaries, e.g: quay.io/mynamespace/myimage:latest")
+	i.command.Flags().StringVar(&i.flags.imageRuntime, "image-runtime", "", "Custom image tag for the s2i build, e.g: quay.io/mynamespace/myimage:latest")
 	i.command.Flags().StringVar(&i.flags.installInfinispan, "install-infinispan", defaultInstallInfinispan, "Infinispan installation mode: \"Always\", \"Never\" or \"Auto\". \"Always\" will install Infinispan in the same namespace no matter what, \"Never\" won't install Infinispan even if the service requires it and \"Auto\" will install only if the service requires persistence.")
 	i.command.Flags().StringVar(&i.flags.installKafka, "install-kafka", defaultInstallKafka, "Kafka installation mode: \"Always\" or \"Never\". \"Always\" will use the Strimzi Operator to install a Kafka cluster. The environment variable 'KAFKA_BOOTSTRAP_SERVERS' will be available for the service during runtime.")
+	i.command.Flags().StringVar(&i.flags.imageVersion, "image-version", "", "Image version for standard Kogito build images. Ignored if a custom image is set for image-s2i or image-runtime.")
 }
 
 func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -198,9 +200,10 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 					ContextDir: i.flags.contextDir,
 					Reference:  i.flags.reference,
 				},
-				ImageS2I:     shared.FromStringToImageStream(i.flags.imageS2I),
-				ImageRuntime: shared.FromStringToImageStream(i.flags.imageRuntime),
-				Native:       i.flags.native,
+				ImageS2ITag:     i.flags.imageS2I,
+				ImageRuntimeTag: i.flags.imageRuntime,
+				ImageVersion:    i.flags.imageVersion,
+				Native:          i.flags.native,
 				Resources: v1alpha1.Resources{
 					Limits:   shared.FromStringArrayToControllerResourceMap(i.flags.buildLimits),
 					Requests: shared.FromStringArrayToControllerResourceMap(i.flags.buildRequests),

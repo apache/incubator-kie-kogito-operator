@@ -33,11 +33,14 @@ const (
 // newBuildConfigRuntime creates a new build configuration for Kogito services builds
 func newBuildConfigRuntime(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.BuildConfig) (buildConfig buildv1.BuildConfig, err error) {
 	if fromBuild == nil {
-		err = errors.New("Impossible to create a runner build configuration without a s2i build definition")
+		err = errors.New("Impossible to create a runner build configuration without a s2i build definition ")
 		return buildConfig, err
 	}
 
-	image, buildType := resolveRuntimeImage(kogitoApp)
+	buildType := BuildTypeRuntime
+	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoApp.Spec.Build.Native {
+		buildType = BuildTypeRuntimeJvm
+	}
 
 	// headers and base information
 	buildConfig = buildv1.BuildConfig{
@@ -50,26 +53,15 @@ func newBuildConfigRuntime(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 		},
 	}
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", kogitoApp.Name, tagLatest)}
-	setBCRuntimeSource(kogitoApp, &buildConfig, fromBuild)
-	setBCRuntimeStrategy(kogitoApp, &buildConfig, &image)
+	setBCRuntimeSource(&buildConfig, fromBuild)
+	setBCRuntimeStrategy(kogitoApp, &buildConfig, buildType)
 	setBCRuntimeTriggers(&buildConfig, fromBuild)
 	meta.SetGroupVersionKind(&buildConfig.TypeMeta, meta.KindBuildConfig)
 	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
 	return buildConfig, err
 }
 
-func resolveRuntimeImage(kogitoApp *v1alpha1.KogitoApp) (v1alpha1.ImageStream, BuildType) {
-	buildType := BuildTypeRuntime
-	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoApp.Spec.Build.Native {
-		buildType = BuildTypeRuntimeJvm
-	}
-
-	image := ensureImageBuild(kogitoApp.Spec.Build.ImageRuntime, BuildImageStreams[buildType][kogitoApp.Spec.Runtime])
-
-	return image, buildType
-}
-
-func setBCRuntimeSource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, fromBuildConfig *buildv1.BuildConfig) {
+func setBCRuntimeSource(buildConfig *buildv1.BuildConfig, fromBuildConfig *buildv1.BuildConfig) {
 	buildConfig.Spec.Source.Type = buildv1.BuildSourceImage
 	buildConfig.Spec.Source.Images = []buildv1.ImageSource{
 		{
@@ -84,13 +76,13 @@ func setBCRuntimeSource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.Buil
 	}
 }
 
-func setBCRuntimeStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, image *v1alpha1.ImageStream) {
-	imageName, imageNamespace := parseImage(image)
+func setBCRuntimeStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, buildType buildType) {
+	imageName := resolveImageStreamTagNameForBuilds(kogitoApp, kogitoApp.Spec.Build.ImageRuntimeTag, buildType)
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
 		From: corev1.ObjectReference{
 			Name:      imageName,
-			Namespace: imageNamespace,
+			Namespace: kogitoApp.Namespace,
 			Kind:      kindImageStreamTag,
 		},
 	}
