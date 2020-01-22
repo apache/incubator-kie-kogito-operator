@@ -17,11 +17,11 @@ spec:
   # details about the kafka connection
   kafka:
     # let's leave this burden to KogitoInfra CR to deploy a new Kafka instance for us
-    useKogitoInfra: false
+    useKogitoInfra: true
   # details about the connected infinispan
   infinispan:
     # let's leave this burden to KogitoInfra CR to deploy a new Infinispan instance for us
-    useKogitoInfra: false
+    useKogitoInfra: true
     # name of the auth realm. "default" is the realm name for 
     #authRealm: ""
     # default to PLAIN

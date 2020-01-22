@@ -93,9 +93,17 @@ func TestIsKafkaServerURIResolved(t *testing.T) {
 			false,
 		},
 		{
-			"AnyInstanceURI",
+			"NoMatchingInstance",
 			args{
-				&v1alpha1.KogitoDataIndex{},
+				&v1alpha1.KogitoDataIndex{
+					Spec: v1alpha1.KogitoDataIndexSpec{
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								Instance: "kafka1",
+							},
+						},
+					},
+				},
 				cli,
 			},
 			false,

@@ -164,14 +164,3 @@ func GetKafkaInstanceWithName(name string, namespace string, client *client.Clie
 	}
 	return nil, nil
 }
-
-// GetKafkaInstanceInNamespace fetches one Kafka instance in the given namespace
-func GetKafkaInstanceInNamespace(namespace string, client *client.Client) (*v1beta1.Kafka, error) {
-	kafkaList := &v1beta1.KafkaList{}
-	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, kafkaList); err != nil {
-		return nil, err
-	} else if len(kafkaList.Items) == 1 {
-		return &kafkaList.Items[0], nil
-	}
-	return nil, nil
-}
