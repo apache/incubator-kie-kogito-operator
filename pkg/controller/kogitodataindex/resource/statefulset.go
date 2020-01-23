@@ -36,7 +36,6 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 	removeManagedEnvVars(instance)
 	// from cr
 	envs := instance.Spec.Env
-	//envs = util.AppendStringMap(envs, infrastructure.FromInfinispanToStringMap(instance.Spec.InfinispanProperties))
 	envs = util.AppendStringMap(envs, fromKafkaToStringMap(externalURI))
 
 	if instance.Spec.Replicas == 0 {
@@ -116,14 +115,12 @@ func mountProtoBufConfigMaps(statefulset *appsv1.StatefulSet, cli *client.Client
 		statefulset.Spec.Template.Spec.Containers[0].VolumeMounts =
 			append(statefulset.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"])})
 	}
+	protoBufEnvs := protoBufEnvsNoVolume
 	if len(statefulset.Spec.Template.Spec.Volumes) > 0 {
-		for k, v := range protoBufEnvs {
-			framework.SetEnvVar(k, v, &statefulset.Spec.Template.Spec.Containers[0])
-		}
-	} else {
-		for _, v := range protoBufKeys {
-			framework.SetEnvVar(v, "", &statefulset.Spec.Template.Spec.Containers[0])
-		}
+		protoBufEnvs = protoBufEnvsVolumeMounted
+	}
+	for k, v := range protoBufEnvs {
+		framework.SetEnvVar(k, v, &statefulset.Spec.Template.Spec.Containers[0])
 	}
 
 	return nil

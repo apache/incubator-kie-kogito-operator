@@ -54,9 +54,14 @@ const (
 	protoBufKeyWatch  string = "KOGITO_PROTOBUF_WATCH"
 )
 
-var protoBufEnvs = map[string]string{
+var protoBufEnvsVolumeMounted = map[string]string{
 	protoBufKeyFolder: defaultProtobufMountPath,
 	protoBufKeyWatch:  "true",
+}
+
+var protoBufEnvsNoVolume = map[string]string{
+	protoBufKeyFolder: "",
+	protoBufKeyWatch:  "false",
 }
 
 // managedEnvKeys are a collection of reserved keys

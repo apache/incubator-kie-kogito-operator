@@ -845,13 +845,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					"infinispan": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Has the data used by the service to connect to the Infinispan cluster.",
-							Ref:         ref("./pkg/apis/app/v1alpha1.InfinispanConnectionProperties"),
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties"),
 						},
 					},
 					"kafka": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Has the data used by the service to connect to the Kafka cluster.",
-							Ref:         ref("./pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
 						},
 					},
 				},
