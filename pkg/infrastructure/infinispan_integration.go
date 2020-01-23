@@ -86,7 +86,7 @@ func DeployInfinispanWithKogitoInfra(instance v1alpha1.InfinispanAware, namespac
 	}
 
 	// Ensure default values
-	if instance.ArePropertiesBlank() {
+	if instance.AreInfinispanPropertiesBlank() {
 		instance.SetInfinispanProperties(v1alpha1.InfinispanConnectionProperties{
 			UseKogitoInfra: true,
 		})

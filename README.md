@@ -25,10 +25,7 @@ Table of Contents
       * [Kogito Data Index Service deployment](#kogito-data-index-service-deployment)
          * [Deploying Infinispan](#deploying-infinispan)
          * [Deploying Strimzi](#deploying-strimzi)
-            * [Kafka](#kafka)
-            * [Kafka Topics](#kafka-topics)
          * [Kogito Data Index Service installation](#kogito-data-index-service-installation)
-            * [Retrieving Kafka internal URLs](#retrieving-kafka-internal-urls)
             * [Installing the Kogito Data Index Service with the Kogito CLI](#installing-the-kogito-data-index-service-with-the-kogito-cli)
             * [Installing the Kogito Data Index Service with the Operator Catalog (OLM)](#installing-the-kogito-data-index-service-with-the-operator-catalog-olm)
             * [Installing the Kogito Data Index Service with the oc client](#installing-the-kogito-data-index-service-with-the-oc-client)
@@ -202,72 +199,25 @@ After you deploy the Infinispan Operator, see [Deploying Strimzi](#deploying-str
 
 ### Deploying Strimzi
 
-#### Kafka
-
-[Strimzi](https://strimzi.io/) Operator should be available in the [OperatorHub](https://operatorhub.io/operator/strimzi-kafka-operator). In the OpenShift Web Console, go to **Catalog** -> **Installed Operators** in the left menu and search for `Strimzi`.
-
-You should see the Strimzi Operator in the **Installed Operators** tab:
-
-![Strimzi Installed](docs/img/strimzi_installed.png?raw=true)
-
-Next, create a Kafka cluster for the Data Index Service to connect. Click the name of the Strimzi Operator, then click the **Kafka** tab and click **Create Kafka**. Accept the default options to create a three-node Kafka cluster. If this is a development environment, consider setting the Zookeeper and Kafka replicas to 1 to conserve resources.
-
-After a few minutes, you should see the pods running and the services available:
-
-```bash
-$ oc get svc -l strimzi.io/cluster=my-cluster
-
-NAME                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-my-cluster-kafka-bootstrap    ClusterIP   172.30.228.90    <none>        9091/TCP,9092/TCP,9093/TCP   9d
-my-cluster-kafka-brokers      ClusterIP   None             <none>        9091/TCP,9092/TCP,9093/TCP   9d
-my-cluster-zookeeper-client   ClusterIP   172.30.241.146   <none>        2181/TCP                     9d
-my-cluster-zookeeper-nodes    ClusterIP   None             <none>        2181/TCP,2888/TCP,3888/TCP   9d
-```
-
-The service that you will use to deploy the Data Index Service is `my-cluster-kafka-bootstrap:9092`.
-
-#### Kafka Topics
-
-If Strimzi Operator is installed in the namespace, the Kogito Operator will create the following `Kafka Topic`s that are required by the Data Index Service: 
-
-- `kogito-processinstances-events`
-- `kogito-usertaskinstances-events`
-- `kogito-processdomain-events`
-- `kogito-usertaskdomain-events`
+When you install the Kogito Operator from OperatorHub, the Strimzi Operator is installed in the same namespace. You can also [manually deploy the Strimzi Operator](https://strimzi.io/docs/master/#getting-started-str).
 
 Now that you have the required infrastructure, you can deploy the Kogito Data Index Service.
 
 ### Kogito Data Index Service installation
 
-#### Retrieving Kafka internal URLs
-
-After you configure the Kafka Operator, you need the Kafka service URI or Kafka instance name to install the Data Index Service.
-
-Run the following command to retrieve the Kafka internal URI:
-
-```bash
-$ oc get svc -l strimzi.io/cluster=my-cluster | grep bootstrap
-
-my-cluster-kafka-bootstrap    ClusterIP   172.30.228.90    <none>        9091/TCP,9092/TCP,9093/TCP   9d
-```
-
-In this case, the Kafka Cluster service is `my-cluster-kafka-bootstrap:9092`.
-
-Or run the following command to retrieve the Kafka instance name:
-```bash
-$ oc get kafka
-
-NAME         AGE
-my-cluster   17s
-``` 
-
-In this case the Kafka instance name is `my-cluster`.
-
-Use this information to create the Kogito Data Index resource.
-
 #### Installing the Kogito Data Index Service with the Kogito CLI
 
-If you have installed the [Kogito CLI](#kogito-cli), run the following command to create the Kogito Data Index resource. Replace the URLs with the URLs you retrieved for your environment:
+Kogito Operator can deploy a Kafka instance for you, please refer to [Kafka For Data Index](#kafka-for-data-index) for the details.
+
+If you have installed the [Kogito CLI](#kogito-cli), run the following command to create the Kogito Data Index resource.
+
+```bash
+$ kogito install data-index -p my-project
+```
+
+You also can manually deploy a Kafka instance via Strimzi, and use the Kafka service URI or Kafka instance name to install the Data Index Service.
+
+Run the following command to create Kogito Data Index resource and replace the URL with the Kafka URL you retrieved for your environment:
 
 ```bash
 $ kogito install data-index -p my-project --kafka-url my-cluster-kafka-bootstrap:9092
@@ -277,7 +227,7 @@ Or run the following command to create the Kogito Data Index resource with the K
 
 ```bash
 $ kogito install data-index -p my-project --kafka-instance my-cluster
-```
+``` 
 
 Infinispan is deployed for you using the Infinispan Operator. Ensure that the Infinispan deployment is running in your project. If the deployment fails, the following error message appears:
 
@@ -301,9 +251,7 @@ spec:
   replicas: 1
   # Image to use for this deployment
   image: "quay.io/kiegroup/kogito-data-index:latest"
-  kafka:
-    # Service name and port for the Kafka cluster, for example, my-kafka-cluster:9092
-    externalURI: my-cluster-kafka-bootstrap:9092
+
 ```
 
 #### Installing the Kogito Data Index Service with the oc client
@@ -775,47 +723,9 @@ Please note that for services with [Quarkus version below 1.1.0](https://github.
 
 ### Kafka For Data Index
 
-Data Index allows you to inform the service name defined by the Kafka cluster deployed in the same namespace.
-You can let `KogitoInfra` to deploy Kafka for you via Strimzi Operator. 
+If you do not provide a service URL to connect to Kafka or the name of a Kafka instance manually deployed via Strimzi, a new Kafka instance will be deployed with `KogitoInfra` via Strimzi.
 
-Just deploy the `KogitoInfra` CR with `installKafka` attribute set to `true`:
-
-```yaml
-apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoInfra
-metadata:
-  name: kogito-infra
-spec:
-  # let's install both since Data Index needs persistence and messaging
-  installInfinispan: true
-  installKafka: true
-```
-
-Then deploy Data Index service CR like:
-
-```yaml
-apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoDataIndex
-metadata:
-  name: kogito-data-index
-spec:
-  replicas: 1
-  image: "quay.io/kiegroup/kogito-data-index:0.6.0"
-  kafka:
-    # default kafka instance deployed by KogitoInfra
-    instance: kogito-kafka
-  infinispan:
-    # reuse the Infinispan deployed by KogitoInfra
-    useKogitoInfra: true
-```
-
-Or use Kogito CLI:
-
-```bash
-kogito install data-index --kafka-instance kogito-kafka
-```
-
-That's it! The information required to connect to Kafka will be automatically set for you by the operator to the Data Index service.
+The information required to connect to Kafka will be automatically set for you by the operator to the Data Index service.
 
 ## Kogito Operator development
 

@@ -63,8 +63,10 @@ func TestIsKafkaServerURIResolved(t *testing.T) {
 			args{
 				&v1alpha1.KogitoDataIndex{
 					Spec: v1alpha1.KogitoDataIndexSpec{
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							ExternalURI: "kafka:9092",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "kafka:9092",
+							},
 						},
 					},
 				},
@@ -78,8 +80,10 @@ func TestIsKafkaServerURIResolved(t *testing.T) {
 			args{
 				&v1alpha1.KogitoDataIndex{
 					Spec: v1alpha1.KogitoDataIndexSpec{
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							Instance: "kafka",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								Instance: "kafka",
+							},
 						},
 					},
 				},
@@ -89,12 +93,20 @@ func TestIsKafkaServerURIResolved(t *testing.T) {
 			false,
 		},
 		{
-			"AnyInstanceURI",
+			"NoMatchingInstance",
 			args{
-				&v1alpha1.KogitoDataIndex{},
+				&v1alpha1.KogitoDataIndex{
+					Spec: v1alpha1.KogitoDataIndexSpec{
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								Instance: "kafka1",
+							},
+						},
+					},
+				},
 				cli,
 			},
-			true,
+			false,
 			false,
 		},
 		{
@@ -203,7 +215,7 @@ func Test_getKafkaInstance(t *testing.T) {
 				ns,
 				cli,
 			},
-			&kafka,
+			nil,
 			false,
 		},
 	}
@@ -216,133 +228,6 @@ func Test_getKafkaInstance(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getKafkaInstance() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_getKafkaInstanceInNamespace(t *testing.T) {
-	ns := t.Name()
-
-	kafka := kafkabetav1.Kafka{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "kafka",
-			Namespace: ns,
-		},
-		Spec: kafkabetav1.KafkaSpec{
-			Kafka: kafkabetav1.KafkaClusterSpec{
-				Replicas: 1,
-			},
-		},
-	}
-
-	kafkaList := &kafkabetav1.KafkaList{
-		Items: []kafkabetav1.Kafka{kafka},
-	}
-
-	cli := test.CreateFakeClient([]runtime.Object{kafkaList}, nil, nil)
-
-	type args struct {
-		namespace string
-		client    *client.Client
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *kafkabetav1.Kafka
-		wantErr bool
-	}{
-		{
-			"KafkaInstanceExists",
-			args{
-				ns,
-				cli,
-			},
-			&kafka,
-			false,
-		},
-		{
-			"KafkaInstanceNotExists",
-			args{
-				ns,
-				test.CreateFakeClient(nil, nil, nil),
-			},
-			nil,
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := getKafkaInstanceInNamespace(tt.args.namespace, tt.args.client)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("getKafkaInstanceInNamespace() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getKafkaInstanceInNamespace() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_getKafkaInstanceWithName(t *testing.T) {
-	ns := t.Name()
-
-	kafka := &kafkabetav1.Kafka{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "kafka",
-			Namespace: ns,
-		},
-		Spec: kafkabetav1.KafkaSpec{
-			Kafka: kafkabetav1.KafkaClusterSpec{
-				Replicas: 1,
-			},
-		},
-	}
-
-	cli := test.CreateFakeClient([]runtime.Object{kafka}, nil, nil)
-
-	type args struct {
-		name      string
-		namespace string
-		client    *client.Client
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *kafkabetav1.Kafka
-		wantErr bool
-	}{
-		{
-			"KafkaInstanceExists",
-			args{
-				"kafka",
-				ns,
-				cli,
-			},
-			kafka,
-			false,
-		},
-		{
-			"KafkaInstanceNotExists",
-			args{
-				"kafka1",
-				ns,
-				cli,
-			},
-			nil,
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := getKafkaInstanceWithName(tt.args.name, tt.args.namespace, tt.args.client)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("getKafkaInstanceWithName() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getKafkaInstanceWithName() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -401,9 +286,9 @@ func Test_getKafkaServerReplicas(t *testing.T) {
 				ns,
 				cli,
 			},
-			"kafka",
-			1,
-			false,
+			"",
+			0,
+			true,
 		},
 		{
 			"NoInstance",
@@ -523,8 +408,8 @@ func Test_getKafkaServerURI(t *testing.T) {
 				ns,
 				cli,
 			},
-			"kafka:9092",
-			false,
+			"",
+			true,
 		},
 		{
 			"NoInstance",
@@ -594,101 +479,6 @@ func Test_newKafkaTopic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := newKafkaTopic(tt.args.topicName, tt.args.kafkaName, tt.args.kafkaReplicas, tt.args.namespace); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("newKafkaTopic() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_resolveKafkaServerReplicas(t *testing.T) {
-	type args struct {
-		kafka *kafkabetav1.Kafka
-	}
-	tests := []struct {
-		name string
-		args args
-		want int32
-	}{
-		{
-			"NoReplicas",
-			args{
-				nil,
-			},
-			0,
-		},
-		{
-			"DefaultReplicas",
-			args{
-				&kafkabetav1.Kafka{},
-			},
-			1,
-		},
-		{
-			"ResolveReplicas",
-			args{
-				&kafkabetav1.Kafka{
-					Spec: kafkabetav1.KafkaSpec{
-						Kafka: kafkabetav1.KafkaClusterSpec{
-							Replicas: 2,
-						},
-					},
-				},
-			},
-			2,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := resolveKafkaServerReplicas(tt.args.kafka); got != tt.want {
-				t.Errorf("resolveKafkaServerReplicas() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_resolveKafkaServerURI(t *testing.T) {
-	type args struct {
-		kafka *kafkabetav1.Kafka
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			"ResolveKafkaServerURI",
-			args{
-				&kafkabetav1.Kafka{
-					Status: kafkabetav1.KafkaStatus{
-						Listeners: []kafkabetav1.ListenerStatus{
-							{
-								Type: "tls",
-								Addresses: []kafkabetav1.ListenerAddress{
-									{
-										Host: "kafka1",
-										Port: 9093,
-									},
-								},
-							},
-							{
-								Type: "plain",
-								Addresses: []kafkabetav1.ListenerAddress{
-									{
-										Host: "kafka",
-										Port: 9092,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"kafka:9092",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := resolveKafkaServerURI(tt.args.kafka); got != tt.want {
-				t.Errorf("resolveKafkaServerURI() = %v, want %v", got, tt.want)
 			}
 		})
 	}

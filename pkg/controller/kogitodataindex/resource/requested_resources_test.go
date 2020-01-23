@@ -35,6 +35,13 @@ func Test_createKafkaTopic(t *testing.T) {
 			Name:      "my-data-index",
 			Namespace: ns,
 		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			KafkaMeta: v1alpha1.KafkaMeta{
+				KafkaProperties: v1alpha1.KafkaConnectionProperties{
+					Instance: "kafka",
+				},
+			},
+		},
 	}
 
 	kafka := kafkabetav1.Kafka{

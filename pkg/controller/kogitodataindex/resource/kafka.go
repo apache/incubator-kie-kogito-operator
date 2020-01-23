@@ -20,11 +20,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -51,11 +49,11 @@ func fromKafkaToStringMap(externalURI string) map[string]string {
 
 // IsKafkaServerURIResolved checks if the URI of the Kafka server is provided or resolvable in the namespace
 func IsKafkaServerURIResolved(instance *v1alpha1.KogitoDataIndex, client *client.Client) (bool, error) {
-	if len(instance.Spec.Kafka.ExternalURI) == 0 {
+	if len(instance.Spec.KafkaProperties.ExternalURI) == 0 {
 		if !infrastructure.IsStrimziAvailable(client) {
 			return false, nil
 		}
-		if kafka, err := getKafkaInstance(instance.Spec.Kafka, instance.Namespace, client); err != nil {
+		if kafka, err := getKafkaInstance(instance.Spec.KafkaProperties, instance.Namespace, client); err != nil {
 			return false, err
 		} else if kafka == nil {
 			return false, nil
@@ -64,7 +62,6 @@ func IsKafkaServerURIResolved(instance *v1alpha1.KogitoDataIndex, client *client
 	return true, nil
 }
 
-// TODO: change to infrastructure.GetKafkaServiceURI once we implement KOGITO-614
 func getKafkaServerURI(kafkaProp v1alpha1.KafkaConnectionProperties, namespace string, client *client.Client) (string, error) {
 	if len(kafkaProp.ExternalURI) > 0 {
 		return kafkaProp.ExternalURI, nil
@@ -72,7 +69,7 @@ func getKafkaServerURI(kafkaProp v1alpha1.KafkaConnectionProperties, namespace s
 		if kafka, err := getKafkaInstance(kafkaProp, namespace, client); err != nil {
 			return "", err
 		} else if kafka != nil {
-			if uri := resolveKafkaServerURI(kafka); len(uri) > 0 {
+			if uri := infrastructure.ResolveKafkaServerURI(kafka); len(uri) > 0 {
 				return uri, nil
 			}
 		}
@@ -85,7 +82,7 @@ func getKafkaServerReplicas(kafkaProp v1alpha1.KafkaConnectionProperties, namesp
 		if kafka, err := getKafkaInstance(kafkaProp, namespace, client); err != nil {
 			return "", 0, err
 		} else if kafka != nil {
-			if replicas := resolveKafkaServerReplicas(kafka); replicas > 0 {
+			if replicas := infrastructure.ResolveKafkaServerReplicas(kafka); replicas > 0 {
 				return kafka.Name, replicas, nil
 			}
 		}
@@ -96,56 +93,9 @@ func getKafkaServerReplicas(kafkaProp v1alpha1.KafkaConnectionProperties, namesp
 	return "", 0, nil
 }
 
-func resolveKafkaServerURI(kafka *kafkabetav1.Kafka) string {
-	if kafka != nil {
-		if len(kafka.Status.Listeners) > 0 {
-			for _, listenerStatus := range kafka.Status.Listeners {
-				if listenerStatus.Type == "plain" && len(listenerStatus.Addresses) > 0 {
-					for _, listenerAddress := range listenerStatus.Addresses {
-						if len(listenerAddress.Host) > 0 && listenerAddress.Port > 0 {
-							return fmt.Sprintf("%s:%d", listenerAddress.Host, listenerAddress.Port)
-						}
-					}
-				}
-			}
-		}
-	}
-	return ""
-}
-
-func resolveKafkaServerReplicas(kafka *kafkabetav1.Kafka) int32 {
-	if kafka != nil {
-		if kafka.Spec.Kafka.Replicas > 0 {
-			return kafka.Spec.Kafka.Replicas
-		}
-		return 1
-	}
-	return 0
-}
-
 func getKafkaInstance(kafka v1alpha1.KafkaConnectionProperties, namespace string, client *client.Client) (*kafkabetav1.Kafka, error) {
 	if len(kafka.Instance) > 0 {
-		return getKafkaInstanceWithName(kafka.Instance, namespace, client)
-	}
-	return getKafkaInstanceInNamespace(namespace, client)
-}
-
-func getKafkaInstanceWithName(name string, namespace string, client *client.Client) (*kafkabetav1.Kafka, error) {
-	kafka := &kafkabetav1.Kafka{}
-	if exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafka); err != nil {
-		return nil, err
-	} else if exists {
-		return kafka, nil
-	}
-	return nil, nil
-}
-
-func getKafkaInstanceInNamespace(namespace string, client *client.Client) (*kafkabetav1.Kafka, error) {
-	kafkaList := &kafkabetav1.KafkaList{}
-	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, kafkaList); err != nil {
-		return nil, err
-	} else if len(kafkaList.Items) == 1 {
-		return &kafkaList.Items[0], nil
+		return infrastructure.GetKafkaInstanceWithName(kafka.Instance, namespace, client)
 	}
 	return nil, nil
 }

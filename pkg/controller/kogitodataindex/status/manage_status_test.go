@@ -44,6 +44,11 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas: 1,
+			KafkaMeta: v1alpha1.KafkaMeta{
+				KafkaProperties: v1alpha1.KafkaConnectionProperties{
+					Instance: "kafka",
+				},
+			},
 		},
 	}
 	kafkaList := &kafkabetav1.KafkaList{
@@ -262,8 +267,10 @@ func TestManageStatus(t *testing.T) {
 								URI: "test-infinispan",
 							},
 						},
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							ExternalURI: "test-kafka",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
 						},
 					},
 				},
@@ -282,8 +289,10 @@ func TestManageStatus(t *testing.T) {
 									URI: "test-infinispan",
 								},
 							},
-							Kafka: v1alpha1.KafkaConnectionProperties{
-								ExternalURI: "test-kafka",
+							KafkaMeta: v1alpha1.KafkaMeta{
+								KafkaProperties: v1alpha1.KafkaConnectionProperties{
+									ExternalURI: "test-kafka",
+								},
 							},
 						},
 					}},
@@ -315,8 +324,10 @@ func TestManageStatus(t *testing.T) {
 								URI: "test-infinispan",
 							},
 						},
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							ExternalURI: "test-kafka",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
 						},
 					},
 				},
@@ -335,8 +346,10 @@ func TestManageStatus(t *testing.T) {
 									URI: "test-infinispan",
 								},
 							},
-							Kafka: v1alpha1.KafkaConnectionProperties{
-								ExternalURI: "test-kafka",
+							KafkaMeta: v1alpha1.KafkaMeta{
+								KafkaProperties: v1alpha1.KafkaConnectionProperties{
+									ExternalURI: "test-kafka",
+								},
 							},
 						},
 					}},
@@ -368,8 +381,10 @@ func TestManageStatus(t *testing.T) {
 								URI: "test-infinispan",
 							},
 						},
-						Kafka: v1alpha1.KafkaConnectionProperties{
-							ExternalURI: "test-kafka",
+						KafkaMeta: v1alpha1.KafkaMeta{
+							KafkaProperties: v1alpha1.KafkaConnectionProperties{
+								ExternalURI: "test-kafka",
+							},
 						},
 					},
 				},
@@ -388,8 +403,10 @@ func TestManageStatus(t *testing.T) {
 									URI: "test-infinispan",
 								},
 							},
-							Kafka: v1alpha1.KafkaConnectionProperties{
-								ExternalURI: "test-kafka",
+							KafkaMeta: v1alpha1.KafkaMeta{
+								KafkaProperties: v1alpha1.KafkaConnectionProperties{
+									ExternalURI: "test-kafka",
+								},
 							},
 						},
 					}},

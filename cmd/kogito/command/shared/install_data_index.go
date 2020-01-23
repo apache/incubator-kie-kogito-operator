@@ -35,20 +35,13 @@ const (
 func installDefaultDataIndex(cli *client.Client, namespace string) error {
 	log := context.GetDefaultLogger()
 
-	// TODO: add Kafka to be auto provisioned when implementing KOGITO-614, then we can delete this kogitoInfra instance
-	if err := installInfinispan(cli, namespace); err != nil {
-		return err
-	}
-	if err := installKafka(cli, namespace); err != nil {
-		return err
-	}
-
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: dataindex.DefaultDataIndexName, Namespace: namespace},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas:       defaultDataIndexReplicas,
 			Image:          dataindex.DefaultImage,
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
+			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true}},
 		},
 		Status: v1alpha1.KogitoDataIndexStatus{
 			Conditions:         []v1alpha1.DataIndexCondition{},
