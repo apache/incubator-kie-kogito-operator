@@ -29,16 +29,21 @@ const (
 
 	kafkaComponentType      componentType = "kafka"
 	infinispanComponentType componentType = "infinispan"
+
+	noActionComponentState componentState = "noaction"
+	installComponentState  componentState = "install"
+	removeComponentState   componentState = "remove"
 )
 
 type componentType string
+type componentState string
 
 type ensureComponent struct {
 	namespace string
 	client    *client.Client
 
-	installInfinispan bool
-	installKafka      bool
+	infinispan componentState
+	kafka      componentState
 }
 
 // EnsureComponent interface to control how to provision an infra with a given component
@@ -56,22 +61,22 @@ type EnsureComponent interface {
 }
 
 func (k *ensureComponent) WithInfinispan() EnsureComponent {
-	k.installInfinispan = true
+	k.infinispan = installComponentState
 	return k
 }
 
 func (k *ensureComponent) WithKafka() EnsureComponent {
-	k.installKafka = true
+	k.kafka = installComponentState
 	return k
 }
 
 func (k *ensureComponent) WithoutInfinispan() EnsureComponent {
-	k.installInfinispan = false
+	k.infinispan = removeComponentState
 	return k
 }
 
 func (k *ensureComponent) WithoutKafka() EnsureComponent {
-	k.installKafka = false
+	k.kafka = removeComponentState
 	return k
 }
 
@@ -84,10 +89,14 @@ func (k *ensureComponent) Apply() (*v1alpha1.KogitoInfra, bool, error) {
 
 	// Check if ready
 	ready := true
-	if k.installKafka && !isKafkaDeployed(infra) {
+	if deployed := isKafkaDeployed(infra); k.kafka == installComponentState && !deployed {
+		ready = false
+	} else if k.kafka == removeComponentState && deployed {
 		ready = false
 	}
-	if k.installInfinispan && !isInfinispanDeployed(infra) {
+	if deployed := isInfinispanDeployed(infra); k.infinispan == installComponentState && !deployed {
+		ready = false
+	} else if k.infinispan == removeComponentState && deployed {
 		ready = false
 	}
 
@@ -111,8 +120,8 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 		log.Debugf("Using and updating KogitoInfra: %s", &infras.Items[0])
 		infra = &infras.Items[0]
 
-		infra.Spec.InstallInfinispan = k.installInfinispan
-		infra.Spec.InstallKafka = k.installKafka
+		infra.Spec.InstallInfinispan = getStateValue(k.infinispan, infra.Spec.InstallInfinispan)
+		infra.Spec.InstallKafka = getStateValue(k.kafka, infra.Spec.InstallKafka)
 		if err := kubernetes.ResourceC(k.client).Update(infra); err != nil {
 			return nil, err
 		}
@@ -121,8 +130,8 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 		infra = &v1alpha1.KogitoInfra{
 			ObjectMeta: metav1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: k.namespace},
 			Spec: v1alpha1.KogitoInfraSpec{
-				InstallInfinispan: k.installInfinispan,
-				InstallKafka:      k.installKafka,
+				InstallInfinispan: getStateValue(k.infinispan, false),
+				InstallKafka:      getStateValue(k.kafka, false),
 			},
 		}
 		log.Debug("We don't have KogitoInfra deployed, trying to create a new one")
@@ -163,8 +172,15 @@ func EnsureKogitoInfra(namespace string, cli *client.Client) EnsureComponent {
 		namespace: namespace,
 		client:    cli,
 
-		installInfinispan: false,
-		installKafka:      false,
+		infinispan: noActionComponentState,
+		kafka:      noActionComponentState,
 	}
 	return ensure
+}
+
+func getStateValue(state componentState, defaultValue bool) bool {
+	if state == noActionComponentState {
+		return defaultValue
+	}
+	return state == installComponentState
 }
