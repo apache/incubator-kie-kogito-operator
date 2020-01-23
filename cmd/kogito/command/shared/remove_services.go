@@ -30,6 +30,8 @@ type ServicesRemoval interface {
 	RemoveInfinispan() ServicesRemoval
 	// RemoveKeycloak removes the installed keycloak instance.
 	RemoveKeycloak() ServicesRemoval
+	// RemoveKafka removes the installed kafka instance.
+	RemoveKafka() ServicesRemoval
 	// GetError return any given error during the installation process
 	GetError() error
 }
@@ -44,6 +46,13 @@ func (s servicesRemoval) RemoveInfinispan() ServicesRemoval {
 func (s servicesRemoval) RemoveKeycloak() ServicesRemoval {
 	if s.err == nil {
 		s.err = removeKeycloak(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s servicesRemoval) RemoveKafka() ServicesRemoval {
+	if s.err == nil {
+		s.err = removeKafka(s.client, s.namespace)
 	}
 	return s
 }

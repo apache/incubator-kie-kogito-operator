@@ -36,6 +36,8 @@ type ServicesInstallation interface {
 	InstallInfinispan() ServicesInstallation
 	// InstallKeycloak install a keycloak instance.
 	InstallKeycloak() ServicesInstallation
+	// InstallKafka install a kafka instance.
+	InstallKafka() ServicesInstallation
 	// SilentlyInstallOperator installs the operator without a warn if already deployed with the default image
 	SilentlyInstallOperator() ServicesInstallation
 	// GetError return any given error during the installation process
@@ -74,6 +76,13 @@ func (s servicesInstallation) InstallInfinispan() ServicesInstallation {
 func (s servicesInstallation) InstallKeycloak() ServicesInstallation {
 	if s.err == nil {
 		s.err = installKeycloak(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s servicesInstallation) InstallKafka() ServicesInstallation {
+	if s.err == nil {
+		s.err = installKafka(s.client, s.namespace)
 	}
 	return s
 }
