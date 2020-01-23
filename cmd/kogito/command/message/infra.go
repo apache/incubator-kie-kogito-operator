@@ -25,4 +25,9 @@ const (
 
 	KafkaErrInstalling       = "Error while trying to install Kafka: %s "
 	KafkaSuccessfulInstalled = "Kafka has been successfully installed in the Project %s."
+
+	KeycloakErrInstalling       = "Error while trying to install Keycloak: %s "
+	KeycloakSuccessfulInstalled = "Keycloak has been successfully installed in the Project %s."
+	KeycloakErrRemoving         = "Error while trying to remove Keycloak: %s "
+	KeycloakSuccessfulRemoved   = "Keycloak has been successfully removed from the Project %s."
 )

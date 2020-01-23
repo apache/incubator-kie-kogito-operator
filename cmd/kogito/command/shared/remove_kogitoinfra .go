@@ -32,3 +32,15 @@ func removeInfinispan(cli *client.Client, namespace string) error {
 
 	return nil
 }
+
+func removeKeycloak(cli *client.Client, namespace string) error {
+	log := context.GetDefaultLogger()
+
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutKeycloak().Apply(); err != nil {
+		return err
+	}
+
+	log.Infof(message.KeycloakSuccessfulRemoved, namespace)
+
+	return nil
+}

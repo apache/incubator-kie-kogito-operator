@@ -34,6 +34,8 @@ type ServicesInstallation interface {
 	InstallOperator(warnIfInstalled bool, operatorImage string) ServicesInstallation
 	// InstallInfinispan install an infinispan instance.
 	InstallInfinispan() ServicesInstallation
+	// InstallKeycloak install a keycloak instance.
+	InstallKeycloak() ServicesInstallation
 	// SilentlyInstallOperator installs the operator without a warn if already deployed with the default image
 	SilentlyInstallOperator() ServicesInstallation
 	// GetError return any given error during the installation process
@@ -65,6 +67,13 @@ func (s servicesInstallation) SilentlyInstallOperator() ServicesInstallation {
 func (s servicesInstallation) InstallInfinispan() ServicesInstallation {
 	if s.err == nil {
 		s.err = installInfinispan(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s servicesInstallation) InstallKeycloak() ServicesInstallation {
+	if s.err == nil {
+		s.err = installKeycloak(s.client, s.namespace)
 	}
 	return s
 }
