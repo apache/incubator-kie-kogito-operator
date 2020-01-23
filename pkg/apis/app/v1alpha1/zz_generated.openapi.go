@@ -1006,7 +1006,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 						},
 					},
 				},
-				Required: []string{"installInfinispan", "installKafka", "installKeycloak"},
 			},
 		},
 	}

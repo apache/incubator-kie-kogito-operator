@@ -66,7 +66,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
-    containerImage: quay.io/kiegroup/kogito-cloud-operator:0.7.0-rc4
+    containerImage: quay.io/kiegroup/kogito-cloud-operator:0.7.0
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito Services.
     repository: https://github.com/kiegroup/kogito-cloud-operator
@@ -74,7 +74,7 @@ metadata:
     tectonic-visibility: ocs
   labels:
     operator-kogitocloud: "true"
-  name: kogito-operator.v0.7.0-rc4
+  name: kogito-operator.v0.7.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -378,7 +378,7 @@ spec:
                       fieldPath: metadata.labels['name']
                 - name: DEBUG
                   value: "false"
-                image: quay.io/kiegroup/kogito-cloud-operator:0.7.0-rc4
+                image: quay.io/kiegroup/kogito-cloud-operator:0.7.0
                 imagePullPolicy: Always
                 name: kogito-cloud-operator
                 resources: {}
@@ -506,7 +506,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: kogito-operator
-    operated-by: kogito-operator.0.7.0-rc4
+    operated-by: kogito-operator.0.7.0
   links:
   - name: Product Page
     url: https://kogito.kie.org/
@@ -521,4 +521,4 @@ spec:
   provider:
     name: Red Hat
   replaces: kogito-operator.v0.6.0
-  version: 0.7.0-rc4
+  version: 0.7.0
