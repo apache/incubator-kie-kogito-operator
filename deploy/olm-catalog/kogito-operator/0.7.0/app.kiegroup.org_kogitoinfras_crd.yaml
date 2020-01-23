@@ -44,10 +44,6 @@ spec:
                 Please note that the Keycloak Operator must be installed manually
                 on environments that doesn't have OLM installed.
               type: boolean
-          required:
-          - installInfinispan
-          - installKafka
-          - installKeycloak
           type: object
         status:
           description: KogitoInfraStatus defines the observed state of KogitoInfra

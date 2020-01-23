@@ -33,13 +33,13 @@ type KogitoInfraSpec struct {
 
 	// Indicates if Infinispan should be installed or not using Infinispan Operator.
 	// Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.
-	InstallInfinispan bool `json:"installInfinispan"`
+	InstallInfinispan bool `json:"installInfinispan,omitempty"`
 	// Indicates if Kafka should be installed or not using Strimzi (Kafka Operator).
 	// Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.
-	InstallKafka bool `json:"installKafka"`
+	InstallKafka bool `json:"installKafka,omitempty"`
 	// Whether or not to install Keycloak using Keycloak Operator.
 	// Please note that the Keycloak Operator must be installed manually on environments that doesn't have OLM installed.
-	InstallKeycloak bool `json:"installKeycloak"`
+	InstallKeycloak bool `json:"installKeycloak,omitempty"`
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra
