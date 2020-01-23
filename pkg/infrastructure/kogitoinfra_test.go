@@ -302,7 +302,7 @@ func fakeInstalledInfraComponentInstallStatusType() v1alpha1.InfraComponentInsta
 	return v1alpha1.InfraComponentInstallStatusType{
 		Service: "test",
 		Condition: []v1alpha1.InstallCondition{
-			v1alpha1.InstallCondition{
+			{
 				Type: v1alpha1.SuccessInstallConditionType,
 			},
 		},
