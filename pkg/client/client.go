@@ -205,6 +205,7 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRoleBinding.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(operatormkt.SchemeGroupVersion.WithKind(meta.KindOperatorSource.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(ocappsv1.GroupVersion.WithKind(meta.KindDeploymentConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(coreappsv1.SchemeGroupVersion.WithKind(meta.KindStatefulSet.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(ocroutev1.GroupVersion.WithKind(meta.KindRoute.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(olmapiv1.SchemeGroupVersion.WithKind(meta.KindOperatorGroup.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(olmapiv1alpha1.SchemeGroupVersion.WithKind(meta.KindSubscription.Name), &restScope{name: apimeta.RESTScopeNameNamespace})

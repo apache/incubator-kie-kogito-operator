@@ -83,15 +83,25 @@ skip_build = "false"
 run-e2e-cli:
 	./hack/run-e2e-cli.sh $(namespace) $(tag) $(native) $(maven_mirror) $(skip_build)
 
-.PHONY: run-smoke
+.PHONY: run-smoke-operator
 deploy_uri=
 operator_image=
 operator_tag=
 maven_mirror=
 feature=
 local=false
-run-smoke:
-	./hack/run-smoke.sh --feature ${feature} --deploy_uri $(deploy_uri) --ope_name $(operator_image) --ope_tag $(operator_tag) --maven_mirror $(maven_mirror) --local ${local}
+run-smoke-operator:
+	./hack/run-smoke.sh ope --feature ${feature} --deploy_uri $(deploy_uri) --ope_name $(operator_image) --ope_tag $(operator_tag) --maven_mirror $(maven_mirror) --local ${local}
+
+.PHONY: run-smoke-cli
+deploy_uri=
+operator_image=
+operator_tag=
+maven_mirror=
+feature=
+local=false
+run-smoke-cli:
+	./hack/run-smoke.sh cli --feature ${feature} --deploy_uri $(deploy_uri) --ope_name $(operator_image) --ope_tag $(operator_tag) --maven_mirror $(maven_mirror) --local ${local}
 
 .PHONY: prepare-olm
 version = ""
