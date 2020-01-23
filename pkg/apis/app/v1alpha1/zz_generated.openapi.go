@@ -547,16 +547,25 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							},
 						},
 					},
-					"imageS2I": {
+					"imageVersion": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ImageS2I is used by build configurations to build the image from source",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ImageStream"),
+							Description: "Image version for the Kogito official images used during the build. E.g.: 0.6.0. Default to current Operator version.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
-					"imageRuntime": {
+					"imageS2ITag": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ImageRuntime is used by build configurations to build a final runtime image based on an S2I configuration",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ImageStream"),
+							Description: "Custom image used by the source to image process to build the Kogito Service binaries. Takes precedence over ImageVersion attribute.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"imageRuntimeTag": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom image used by the source to image process to build the final Kogito Service image. Takes precedence over ImageVersion attribute.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"native": {
@@ -577,7 +586,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ImageStream", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret"},
 	}
 }
 

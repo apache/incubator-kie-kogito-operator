@@ -53,7 +53,7 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "false"})
 	assert.NotContains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "true"})
-	assert.Contains(t, bcRuntime.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType].ImageStreamName)
+	assert.Contains(t, bcRuntime.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType])
 	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
 }
@@ -72,15 +72,9 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 					URI:        &uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
-				ImageS2I: v1alpha1.ImageStream{
-					ImageStreamTag:       "latest",
-					ImageStreamNamespace: "openshift",
-				},
-				ImageRuntime: v1alpha1.ImageStream{
-					ImageStreamName:      "my-image",
-					ImageStreamNamespace: "openshift",
-				},
-				Native: true,
+				ImageVersion:    "latest",
+				ImageRuntimeTag: "quay.io/namespace/my-image:0.2",
+				Native:          true,
 			},
 		},
 	}
@@ -91,7 +85,7 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, bcRuntime)
 
-	assert.Equal(t, "my-image:"+ImageStreamTag, bcRuntime.Spec.Strategy.SourceStrategy.From.Name)
+	assert.Equal(t, "custom-my-image:0.2", bcRuntime.Spec.Strategy.SourceStrategy.From.Name)
 	assert.Equal(t, fmt.Sprintf("%s:%s", KogitoQuarkusUbi8s2iImage, "latest"), bcS2I.Spec.Strategy.SourceStrategy.From.Name)
 }
 
@@ -130,39 +124,4 @@ func Test_buildConfigResource_New(t *testing.T) {
 	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: bcS2I.Spec.Resources.Limits.Memory().ToDec().AsDec().UnscaledBig().String()})
-}
-
-func Test_parseImage(t *testing.T) {
-	type args struct {
-		image *v1alpha1.ImageStream
-	}
-	tests := []struct {
-		name  string
-		args  args
-		want  string
-		want1 string
-	}{
-		{"testParseImage",
-			args{
-				image: &v1alpha1.ImageStream{
-					ImageStreamName:      "testImage",
-					ImageStreamTag:       "vTest",
-					ImageStreamNamespace: "testNamespace",
-				},
-			},
-			"testImage:vTest",
-			"testNamespace",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := parseImage(tt.args.image)
-			if got != tt.want {
-				t.Errorf("parseImage() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("parseImage() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
 }

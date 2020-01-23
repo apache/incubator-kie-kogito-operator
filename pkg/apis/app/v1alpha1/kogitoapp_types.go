@@ -117,10 +117,17 @@ type KogitoAppBuildObject struct {
 	// +listType=map
 	// +listMapKey=type
 	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
-	// ImageS2I is used by build configurations to build the image from source
-	ImageS2I ImageStream `json:"imageS2I,omitempty"`
-	// ImageRuntime is used by build configurations to build a final runtime image based on an S2I configuration
-	ImageRuntime ImageStream `json:"imageRuntime,omitempty"`
+	// + optional
+	// Image version for the Kogito official images used during the build. E.g.: 0.6.0. Default to current Operator version.
+	ImageVersion string `json:"imageVersion,omitempty"`
+	// Custom image used by the source to image process to build the Kogito Service binaries. Takes precedence over ImageVersion attribute.
+	// + optional
+	// +kubebuilder:validation:Pattern=`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))`
+	ImageS2ITag string `json:"imageS2ITag,omitempty"`
+	// Custom image used by the source to image process to build the final Kogito Service image. Takes precedence over ImageVersion attribute.
+	// + optional
+	// +kubebuilder:validation:Pattern=`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))`
+	ImageRuntimeTag string `json:"imageRuntimeTag,omitempty"`
 	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus. For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
 	Native bool `json:"native,omitempty"`
 	// Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.
@@ -233,13 +240,6 @@ const (
 	// SpringbootRuntimeType - The KogitoApp is being provisioned
 	SpringbootRuntimeType RuntimeType = "springboot"
 )
-
-// ImageStream contains the image details
-type ImageStream struct {
-	ImageStreamName      string `json:"imageStreamName,omitempty"`
-	ImageStreamTag       string `json:"imageStreamTag,omitempty"`
-	ImageStreamNamespace string `json:"imageStreamNamespace,omitempty"`
-}
 
 // Deployments ...
 // +k8s:openapi-gen=true

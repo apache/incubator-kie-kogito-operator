@@ -16,6 +16,7 @@ package resource
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/version"
 	v1 "k8s.io/api/core/v1"
 	"strings"
@@ -57,6 +58,26 @@ var (
 	}
 )
 
+// BuildImageStreams are the image streams needed to perform the initial builds
+var BuildImageStreams = map[buildType]map[v1alpha1.RuntimeType]string{
+	BuildTypeS2I: {
+		v1alpha1.QuarkusRuntimeType:    KogitoQuarkusUbi8s2iImage,
+		v1alpha1.SpringbootRuntimeType: KogitoSpringbootUbi8s2iImage,
+	},
+	BuildTypeRuntime: {
+		v1alpha1.QuarkusRuntimeType:    KogitoQuarkusUbi8Image,
+		v1alpha1.SpringbootRuntimeType: KogitoSpringbootUbi8Image,
+	},
+	BuildTypeRuntimeJvm: {
+		v1alpha1.QuarkusRuntimeType: KogitoQuarkusJVMUbi8Image,
+	},
+}
+
+// resolves the custom image stream name
+func resolveCustomImageStreamName(tagImageName string) string {
+	return fmt.Sprintf("custom-%s", tagImageName)
+}
+
 // newImageStream creates a new ImageStreamTag on the OpenShift cluster using the tag reference name.
 // tagRefName refers to a full tag name like kogito-app:latest. If no tag is passed (e.g. kogito-app), "latest" will be used for the tag
 func newImageStream(kogitoApp *v1alpha1.KogitoApp, tagRefName string) *imgv1.ImageStream {
@@ -91,17 +112,47 @@ func newImageStream(kogitoApp *v1alpha1.KogitoApp, tagRefName string) *imgv1.Ima
 	return is
 }
 
-// CreateKogitoImageStream returns the ImageStreamList with all Kogito needed images.
-// It will be used to create the Kogito Images on the cluster in case it is missing.
-func CreateKogitoImageStream(targetNamespace string, targetTag string, runtimeType v1alpha1.RuntimeType, native bool) imgv1.ImageStreamList {
+// CreateCustomKogitoImageStream creates a ImageStreamList based on the given image tag. Breaks down the image tag to extract image name and version number.
+func CreateCustomKogitoImageStream(targetNamespace string, targetImageTag string) (imageList imgv1.ImageStreamList) {
+	_, _, imageName, tagVersion := framework.SplitImageTagWithLatest(targetImageTag)
+	imageName = resolveCustomImageStreamName(imageName)
+	imageStream := imgv1.ImageStream{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      imageName,
+			Namespace: targetNamespace,
+		},
+		Spec: imgv1.ImageStreamSpec{
+			Tags: []imgv1.TagReference{
+				{
+					Name: tagVersion,
+					ReferencePolicy: imgv1.TagReferencePolicy{
+						Type: imgv1.LocalTagReferencePolicy,
+					},
+					From: &v1.ObjectReference{
+						Kind: "DockerImage",
+						Name: targetImageTag,
+					},
+				},
+			},
+		},
+	}
+	imageList = imgv1.ImageStreamList{}
+	imageList.Items = append(imageList.Items, imageStream)
+	return imageList
+}
 
-	var KogitoImageStreamList imgv1.ImageStreamList
+// CreateKogitoImageStream returns the ImageStreamList with all Kogito needed images.
+// targetNamespace namespace where to set the ImageStream
+// targetImageTag full image name for the image. Empty to use Operator default
+// runtimeType Runtime type for this image stream. Ignored if targetImageTag is not empty
+func CreateKogitoImageStream(kogitoApp *v1alpha1.KogitoApp, targetVersion string) imgv1.ImageStreamList {
+	var kogitoImageStreamList imgv1.ImageStreamList
 
 	for _, imageName := range ImageStreamNameList {
 		create := false
 		tagAnnotations := make(map[string]string)
 		tagAnnotations["iconClass"] = "icon-jbpm"
-		tagAnnotations["version"] = targetTag
+		tagAnnotations["version"] = targetVersion
 
 		imageStreamAnnotations := make(map[string]string)
 		imageStreamAnnotations["openshift.io/provider-display-name"] = "Kie Group."
@@ -112,7 +163,7 @@ func CreateKogitoImageStream(targetNamespace string, targetTag string, runtimeTy
 			tagAnnotations["description"] = "Runtime image for Kogito based on Quarkus native image"
 			tagAnnotations["tags"] = "runtime,kogito,quarkus"
 			tagAnnotations["supports"] = "quarkus"
-			if runtimeType == v1alpha1.QuarkusRuntimeType && native {
+			if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && kogitoApp.Spec.Build.Native {
 				create = true
 			}
 
@@ -121,7 +172,7 @@ func CreateKogitoImageStream(targetNamespace string, targetTag string, runtimeTy
 			tagAnnotations["description"] = "Runtime image for Kogito based on Quarkus JVM image"
 			tagAnnotations["tags"] = "runtime,kogito,quarkus,jvm"
 			tagAnnotations["supports"] = "quarkus"
-			if runtimeType == v1alpha1.QuarkusRuntimeType && !native {
+			if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoApp.Spec.Build.Native {
 				create = true
 			}
 
@@ -130,7 +181,7 @@ func CreateKogitoImageStream(targetNamespace string, targetTag string, runtimeTy
 			tagAnnotations["description"] = "Platform for building Kogito based on Quarkus"
 			tagAnnotations["tags"] = "builder,kogito,quarkus"
 			tagAnnotations["supports"] = "quarkus"
-			if runtimeType == v1alpha1.QuarkusRuntimeType {
+			if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 				create = true
 			}
 
@@ -139,7 +190,7 @@ func CreateKogitoImageStream(targetNamespace string, targetTag string, runtimeTy
 			tagAnnotations["description"] = "Runtime image for Kogito based on SpringBoot"
 			tagAnnotations["tags"] = "runtime,kogito,springboot"
 			tagAnnotations["supports"] = "springboot"
-			if runtimeType == v1alpha1.SpringbootRuntimeType {
+			if kogitoApp.Spec.Runtime == v1alpha1.SpringbootRuntimeType {
 				create = true
 			}
 
@@ -148,7 +199,7 @@ func CreateKogitoImageStream(targetNamespace string, targetTag string, runtimeTy
 			tagAnnotations["description"] = "Platform for building Kogito based on SpringBoot"
 			tagAnnotations["tags"] = "builder,kogito,springboot"
 			tagAnnotations["supports"] = "springboot"
-			if runtimeType == v1alpha1.SpringbootRuntimeType {
+			if kogitoApp.Spec.Runtime == v1alpha1.SpringbootRuntimeType {
 				create = true
 			}
 
@@ -156,40 +207,40 @@ func CreateKogitoImageStream(targetNamespace string, targetTag string, runtimeTy
 			imageStreamAnnotations["openshift.io/display-name"] = "Runtime image for the Kogito Data Index Service"
 			tagAnnotations["description"] = "Runtime image for the Kogito Data Index Service"
 			tagAnnotations["tags"] = "kogito,data-index"
-			if runtimeType == "" {
+			if kogitoApp.Spec.Runtime == "" {
 				create = true
 			}
 		}
 
 		// if no build type is provided, add all imagestream
-		if create || runtimeType == "" {
+		if create || kogitoApp.Spec.Runtime == "" {
 			currentImageStream := imgv1.ImageStream{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        imageName,
-					Namespace:   targetNamespace,
+					Namespace:   kogitoApp.Namespace,
 					Annotations: imageStreamAnnotations,
 				},
 				Spec: imgv1.ImageStreamSpec{
 					Tags: []imgv1.TagReference{
 						{
-							Name:        targetTag,
+							Name:        targetVersion,
 							Annotations: tagAnnotations,
 							ReferencePolicy: imgv1.TagReferencePolicy{
 								Type: imgv1.LocalTagReferencePolicy,
 							},
 							From: &v1.ObjectReference{
 								Kind: "DockerImage",
-								Name: fmt.Sprintf("quay.io/kiegroup/%s:%s", imageName, targetTag),
+								Name: fmt.Sprintf("quay.io/kiegroup/%s:%s", imageName, targetVersion),
 							},
 						},
 					},
 				},
 			}
-			KogitoImageStreamList.Items = append(KogitoImageStreamList.Items, currentImageStream)
+			kogitoImageStreamList.Items = append(kogitoImageStreamList.Items, currentImageStream)
 		}
 	}
 
-	return KogitoImageStreamList
+	return kogitoImageStreamList
 }
 
 // GetImageStreamTagFromStream gets an ImageStreamTag reference from an ImageStream using tagName (e.g. 1.0.0) as an index

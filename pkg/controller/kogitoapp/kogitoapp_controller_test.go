@@ -75,9 +75,7 @@ var (
 				},
 			},
 			Build: &v1alpha1.KogitoAppBuildObject{
-				ImageS2I:     v1alpha1.ImageStream{},
-				ImageRuntime: v1alpha1.ImageStream{},
-				Native:       false,
+				Native: false,
 				GitSource: &v1alpha1.GitSource{
 					URI:        &gitURL,
 					ContextDir: "jbpm-quarkus-example",
@@ -89,8 +87,7 @@ var (
 
 func createFakeKogitoApp() *v1alpha1.KogitoApp {
 	kogitoApp := cr.DeepCopy()
-	kogitoApp.Spec.Build.ImageS2I = v1alpha1.ImageStream{ImageStreamTag: "0.4.0"}
-	kogitoApp.Spec.Build.ImageRuntime = v1alpha1.ImageStream{ImageStreamTag: "0.4.0"}
+	kogitoApp.Spec.Build.ImageVersion = "0.4.0"
 
 	return kogitoApp
 }
@@ -557,14 +554,13 @@ func TestReconcileKogitoApp_AddNewImageTag(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 
-	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp.Namespace, version.Version, kogitoApp.Spec.Runtime, kogitoApp.Spec.Build.Native).Items {
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp, version.Version).Items {
 		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, version.Version)
 		assert.NotNil(t, hasIs)
 	}
 
 	v := "0.6.0"
-	kogitoApp.Spec.Build.ImageRuntime.ImageStreamTag = v
-	kogitoApp.Spec.Build.ImageS2I.ImageStreamTag = v
+	kogitoApp.Spec.Build.ImageVersion = v
 
 	err = kubernetes.ResourceC(fakeClient).Update(kogitoApp)
 	assert.NoError(t, err)
@@ -574,15 +570,50 @@ func TestReconcileKogitoApp_AddNewImageTag(t *testing.T) {
 	assert.False(t, result.Requeue)
 
 	// old version stills there
-	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp.Namespace, version.Version, kogitoApp.Spec.Runtime, kogitoApp.Spec.Build.Native).Items {
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp, version.Version).Items {
 		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, version.Version)
 		assert.NotNil(t, hasIs)
 	}
 	// new version deployed
-	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp.Namespace, v, kogitoApp.Spec.Runtime, kogitoApp.Spec.Build.Native).Items {
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp, v).Items {
 		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, v)
 		assert.NotNil(t, hasIs)
 	}
+}
+
+func TestReconcileKogitoApp_CustomVersionAndCustomTag(t *testing.T) {
+	kogitoApp := &cr
+	// standard images will follow this version
+	kogitoApp.Spec.Build.ImageVersion = "0.6.0"
+	// for runtime only we have a custom image
+	kogitoApp.Spec.Build.ImageRuntimeTag = "quay.io/namespace/kogito-quarkus-jvm-ubi8:1.0.0"
+	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp}, nil, []runtime.Object{})
+	fakeCache := &cachev1.FakeInformers{}
+	r := &ReconcileKogitoApp{
+		client: fakeClient,
+		scheme: meta.GetRegisteredSchema(),
+		cache:  fakeCache,
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      kogitoApp.Name,
+			Namespace: kogitoApp.Namespace,
+		},
+	}
+
+	result, err := r.Reconcile(req)
+	assert.NoError(t, err)
+	assert.False(t, result.Requeue)
+
+	exists, err := kubernetes.ResourceC(fakeClient).Fetch(kogitoApp)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+
+	hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: "custom-kogito-quarkus-jvm-ubi8", Namespace: kogitoApp.Namespace}, "1.0.0")
+	assert.NotNil(t, hasIs)
+
+	hasIs, _ = openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: "kogito-quarkus-ubi8-s2i", Namespace: kogitoApp.Namespace}, "0.6.0")
+	assert.NotNil(t, hasIs)
 }
 
 type mockCache struct {

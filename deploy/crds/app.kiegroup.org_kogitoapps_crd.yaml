@@ -62,28 +62,22 @@ spec:
                   required:
                   - uri
                   type: object
-                imageRuntime:
-                  description: ImageRuntime is used by build configurations to build
-                    a final runtime image based on an S2I configuration
-                  properties:
-                    imageStreamName:
-                      type: string
-                    imageStreamNamespace:
-                      type: string
-                    imageStreamTag:
-                      type: string
-                  type: object
-                imageS2I:
-                  description: ImageS2I is used by build configurations to build the
-                    image from source
-                  properties:
-                    imageStreamName:
-                      type: string
-                    imageStreamNamespace:
-                      type: string
-                    imageStreamTag:
-                      type: string
-                  type: object
+                imageRuntimeTag:
+                  description: Custom image used by the source to image process to
+                    build the final Kogito Service image. Takes precedence over ImageVersion
+                    attribute.
+                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
+                  type: string
+                imageS2ITag:
+                  description: Custom image used by the source to image process to
+                    build the Kogito Service binaries. Takes precedence over ImageVersion
+                    attribute.
+                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
+                  type: string
+                imageVersion:
+                  description: 'Image version for the Kogito official images used
+                    during the build. E.g.: 0.6.0. Default to current Operator version.'
+                  type: string
                 incremental:
                   type: boolean
                 native:

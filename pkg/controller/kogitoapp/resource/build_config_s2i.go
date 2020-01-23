@@ -58,8 +58,6 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
 
-	image := resolveS2IImage(kogitoApp)
-
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, BuildS2INameSuffix),
@@ -74,15 +72,11 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	buildConfig.Spec.Resources = shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Build.Resources)
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", buildConfig.Name, tagLatest)}
 	setBCS2ISource(kogitoApp, &buildConfig)
-	setBCS2IStrategy(kogitoApp, &buildConfig, &image)
+	setBCS2IStrategy(kogitoApp, &buildConfig)
 	meta.SetGroupVersionKind(&buildConfig.TypeMeta, meta.KindBuildConfig)
 	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
 
 	return buildConfig, nil
-}
-
-func resolveS2IImage(kogitoApp *v1alpha1.KogitoApp) v1alpha1.ImageStream {
-	return ensureImageBuild(kogitoApp.Spec.Build.ImageS2I, BuildImageStreams[BuildTypeS2I][kogitoApp.Spec.Runtime])
 }
 
 func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig) {
@@ -95,7 +89,7 @@ func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildCon
 	}
 }
 
-func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, image *v1alpha1.ImageStream) {
+func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig) {
 	envs := shared.FromEnvToEnvVar(kogitoApp.Spec.Build.Env)
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
@@ -104,13 +98,13 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitCPUEnvVarKey, Value: limitCPU})
 	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: limitMemory})
 
-	imageName, imageNamespace := parseImage(image)
+	imageName := resolveImageStreamTagNameForBuilds(kogitoApp, kogitoApp.Spec.Build.ImageS2ITag, BuildTypeS2I)
 
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
 		From: corev1.ObjectReference{
 			Name:      imageName,
-			Namespace: imageNamespace,
+			Namespace: kogitoApp.Namespace,
 			Kind:      kindImageStreamTag,
 		},
 		Env:         envs,

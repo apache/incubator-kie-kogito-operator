@@ -47,7 +47,7 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples
 								-v --context-dir drools-quarkus-example --project %s
-								--image-s2i=myimage --image-runtime=myimage:0.2
+								--image-s2i=quay.io/namespace/myimage:latest --image-runtime=quay.io/namespace/myimage:0.2
 								--limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi
 								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi
 								--install-infinispan Always`, ns)
@@ -80,15 +80,14 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.Contains(t, kogitoApp.Spec.Resources.Requests, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "1Gi"})
 	assert.Contains(t, kogitoApp.Spec.Build.Resources.Limits, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"})
 	assert.Contains(t, kogitoApp.Spec.Build.Resources.Requests, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "2Gi"})
-	assert.Equal(t, kogitoApp.Spec.Build.ImageS2I.ImageStreamName, "myimage")
-	assert.Equal(t, kogitoApp.Spec.Build.ImageRuntime.ImageStreamName, "myimage")
-	assert.Equal(t, kogitoApp.Spec.Build.ImageRuntime.ImageStreamTag, "0.2")
+	assert.Equal(t, "quay.io/namespace/myimage:latest", kogitoApp.Spec.Build.ImageS2ITag)
+	assert.Equal(t, "quay.io/namespace/myimage:0.2", kogitoApp.Spec.Build.ImageRuntimeTag)
 	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAlways, kogitoApp.Spec.Infra.InstallInfinispan)
 }
 
 func Test_DeployCmd_CustomImage(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --native=false --context-dir drools-quarkus-example --project %s --image-s2i=openshift/myimage --image-runtime=openshift/myimage:0.2", ns)
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --native=false --context-dir drools-quarkus-example --project %s --image-s2i=quay.io/namespace/myimage:latest --image-runtime=quay.io/namespace/myimage:0.2", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -107,12 +106,8 @@ func Test_DeployCmd_CustomImage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 
-	assert.Equal(t, "openshift", instance.Spec.Build.ImageS2I.ImageStreamNamespace)
-	assert.Equal(t, "myimage", instance.Spec.Build.ImageS2I.ImageStreamName)
-
-	assert.Equal(t, "openshift", instance.Spec.Build.ImageRuntime.ImageStreamNamespace)
-	assert.Equal(t, "myimage", instance.Spec.Build.ImageRuntime.ImageStreamName)
-	assert.Equal(t, "0.2", instance.Spec.Build.ImageRuntime.ImageStreamTag)
+	assert.Equal(t, "quay.io/namespace/myimage:latest", instance.Spec.Build.ImageS2ITag)
+	assert.Equal(t, "quay.io/namespace/myimage:0.2", instance.Spec.Build.ImageRuntimeTag)
 
 	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAuto, instance.Spec.Infra.InstallInfinispan)
 }

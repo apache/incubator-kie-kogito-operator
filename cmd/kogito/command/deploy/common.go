@@ -16,7 +16,7 @@ package deploy
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
 )
@@ -62,8 +62,8 @@ func CheckDeployArgs(flags *CommonFlags) error {
 
 // CheckImageTag checks the given image tag
 func CheckImageTag(image string) error {
-	if len(image) > 0 && !shared.DockerTagRegxCompiled.MatchString(image) {
-		return fmt.Errorf("invalid name for image tag. Valid format is namespace/image-name:tag. Received %s", image)
+	if len(image) > 0 && !framework.DockerTagRegxCompiled.MatchString(image) {
+		return fmt.Errorf("invalid name for image tag. Valid format is domain/namespace/image-name:tag. Received %s", image)
 	}
 	return nil
 }
