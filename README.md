@@ -877,6 +877,7 @@ You can set those optional keys:
 - `operator_tag` is the Operator image tag. Default is the current version.
 - `feature` is a specific feature you want to run. Example: *feature=deploy_quarkus_with_persistence*
 - `local` to be set to true if running tests in local. Default is false.
+- `concurrent` is the number of concurrent tests to be ran. Default is 1.
 
 Logs will be shown on the Terminal.
 
