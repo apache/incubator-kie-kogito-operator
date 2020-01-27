@@ -845,7 +845,7 @@ make run-smoke 2>&1 | tee log.out
 $ make
 $ docker tag quay.io/kiegroup/kogito-cloud-operator:0.7.0 quay.io/{USERNAME}/kogito-cloud-operator:0.7.0 
 $ docker push quay.io/{USERNAME}/kogito-cloud-operator:0.7.0
-$ make run-smoke --ope_name quay.io/{USERNAME}/kogito-cloud-operator
+$ make run-smoke operator_image=quay.io/{USERNAME}/kogito-cloud-operator
 ```
 
 **NOTE:** Replace {USERNAME} with the username/group you want to push to. Docker needs to be logged in to quay.io and be able to push to your username/group.
