@@ -871,11 +871,10 @@ $ make run-smoke [key=value]*
 
 You can set those optional keys:
 
-- `deploy_uri` is the URI where you can find operator deployment yaml files and crds. It can be a URL or a Filesystem absolute path. Default is https://raw.githubusercontent.com/kiegroup/kogito-cloud-operator/master/deploy/.
 - `maven_mirror` is the Maven mirror URL. This is helpful when you need to speed up the build time by referring to a closer Maven repository.
 - `operator_image` is the Operator image full name. Example: *operator_image=quay.io/kiegroup/kogito-cloud-operator*.
 - `operator_tag` is the Operator image tag. Default is the current version.
-- `feature` is a specific feature you want to run. Example: *feature=deploy_quarkus_with_persistence*
+- `feature` is a specific feature you want to run. If you define a relative path, this has to be based on the "test/smoke" folder as the run is happening there. Example: *feature=features/operator/deploy_quarkus_service.feature*
 - `local` to be set to true if running tests in local. Default is false.
 - `concurrent` is the number of concurrent tests to be ran. Default is 1.
 
