@@ -141,20 +141,24 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 		log.Debugf("Using and updating KogitoInfra: %s", &infras.Items[0])
 		infra = &infras.Items[0]
 
-		infra.Spec.InstallInfinispan = getStateValue(k.infinispan, infra.Spec.InstallInfinispan)
-		infra.Spec.InstallKafka = getStateValue(k.kafka, infra.Spec.InstallKafka)
-		infra.Spec.InstallKeycloak = getStateValue(k.keycloak, infra.Spec.InstallKeycloak)
-		if err := kubernetes.ResourceC(k.client).Update(infra); err != nil {
-			return nil, err
+		// Update only if any change
+		infraChanged := false
+		infraChanged = updateInstallValueIfNeeded(k.infinispan, &infra.Spec.InstallInfinispan) || infraChanged
+		infraChanged = updateInstallValueIfNeeded(k.kafka, &infra.Spec.InstallKafka) || infraChanged
+		infraChanged = updateInstallValueIfNeeded(k.keycloak, &infra.Spec.InstallKeycloak) || infraChanged
+		if infraChanged {
+			if err := kubernetes.ResourceC(k.client).Update(infra); err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		// found nothing, creating
 		infra = &v1alpha1.KogitoInfra{
 			ObjectMeta: metav1.ObjectMeta{Name: DefaultKogitoInfraName, Namespace: k.namespace},
 			Spec: v1alpha1.KogitoInfraSpec{
-				InstallInfinispan: getStateValue(k.infinispan, false),
-				InstallKafka:      getStateValue(k.kafka, false),
-				InstallKeycloak:   getStateValue(k.keycloak, false),
+				InstallInfinispan: getInstallValue(k.infinispan),
+				InstallKafka:      getInstallValue(k.kafka),
+				InstallKeycloak:   getInstallValue(k.keycloak),
 			},
 		}
 		log.Debug("We don't have KogitoInfra deployed, trying to create a new one")
@@ -209,9 +213,17 @@ func EnsureKogitoInfra(namespace string, cli *client.Client) EnsureComponent {
 	return ensure
 }
 
-func getStateValue(state componentState, defaultValue bool) bool {
-	if state == noActionComponentState {
-		return defaultValue
+func updateInstallValueIfNeeded(state componentState, installValueToChange *bool) (changed bool) {
+	if state != noActionComponentState {
+		newValue := getInstallValue(state)
+		if *installValueToChange != newValue {
+			*installValueToChange = newValue
+			return true
+		}
 	}
-	return state == installComponentState
+	return false
+}
+
+func getInstallValue(state componentState) bool {
+	return (state == installComponentState)
 }
