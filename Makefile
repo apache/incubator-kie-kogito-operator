@@ -75,8 +75,10 @@ operator_tag=
 maven_mirror=
 feature=
 local=false
+concurrent=1
+tags=
 run-smoke:
-	./hack/run-smoke.sh -c ${concurrent} --feature ${feature} --ope_name $(operator_image) --ope_tag $(operator_tag) --maven_mirror $(maven_mirror) --local ${local}
+	./hack/run-smoke.sh -t "${tags}" -c ${concurrent} -f ${feature} --ope_name $(operator_image) --ope_tag $(operator_tag) --maven_mirror $(maven_mirror) --local ${local}
 
 .PHONY: prepare-olm
 version = ""
