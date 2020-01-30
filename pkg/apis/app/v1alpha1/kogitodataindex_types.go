@@ -28,6 +28,10 @@ const KogitoDataIndexCRDName = "kogitodataindices.app.kiegroup.org"
 type KogitoDataIndexSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
+	// HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.
+	// +optional
+	HTTPPort int32 `json:"httpPort,omitempty"`
+
 	// Replicas is the number of pod replicas that the Data Index Service will create
 	// +kubebuilder:validation:Maximum=100
 	// +kubebuilder:validation:Minimum=0

@@ -41,6 +41,11 @@ spec:
               description: Env is a collection of additional environment variables
                 to add to the Data Index container
               type: object
+            httpPort:
+              description: HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT
+                to define which port data-index service will listen internally.
+              format: int32
+              type: integer
             image:
               description: Image to use for this service
               type: string

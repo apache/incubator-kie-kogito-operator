@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	exposedPort                        = 8080
 	portName                           = "http"
 	annotationKeyImageTriggers         = "image.openshift.io/triggers"
 	annotationValueImageTriggersFormat = "[{\"from\":{\"kind\":\"ImageStreamTag\",\"name\":\"%s\"},\"fieldPath\":\"spec.template.spec.containers[?(@.name==\\\"%s\\\")].image\"}]"
@@ -40,7 +39,7 @@ const (
 
 var defaultProbe = &corev1.Probe{
 	Handler: corev1.Handler{
-		TCPSocket: &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: exposedPort}},
+		TCPSocket: &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: framework.DefaultExposedPort}},
 	},
 	TimeoutSeconds:   int32(1),
 	PeriodSeconds:    int32(10),
@@ -68,7 +67,7 @@ func createRequiredDeployment(jobService *v1alpha1.KogitoJobsService, image *ima
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          portName,
-									ContainerPort: exposedPort,
+									ContainerPort: framework.DefaultExposedPort,
 									Protocol:      corev1.ProtocolTCP,
 								},
 							},

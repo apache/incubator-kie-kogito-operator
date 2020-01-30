@@ -10,7 +10,9 @@ spec:
   # number of pods to be deployed
   replicas: 1
   # image to use for this deploy
-  image: "quay.io/kiegroup/kogito-data-index:0.6.1"
+  image: "quay.io/kiegroup/kogito-data-index:0.7.0"
+  # the http port that the dataindex image will listen internally
+  #httpPort: 9090
   # Limits and requests for the Data Index pod
   #memoryLimit: ""
   #memoryRequest: ""
@@ -24,3 +26,4 @@ spec:
   infinispan:
     # will set this instance to auto provision an infra structure in the namespace and attach Infinispan credentials to it
     useKogitoInfra: true
+

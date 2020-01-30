@@ -23,6 +23,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	resdataindex "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	v1 "k8s.io/api/core/v1"
@@ -40,6 +41,7 @@ const (
 type installDataIndexFlags struct {
 	deploy.CommonFlags
 	image              string
+	httpPort           int32
 	kafka              v1alpha1.KafkaConnectionProperties
 	infinispan         v1alpha1.InfinispanConnectionProperties
 	infinispanSasl     string
@@ -140,6 +142,7 @@ func (i *installDataIndexCommand) InitHook() {
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", resdataindex.DefaultImage, "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
+	i.command.Flags().Int32Var(&i.flags.httpPort, "http-port", framework.DefaultExposedPort, "Default HTTP port which Data Index image will be listening")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
 	i.command.Flags().StringVar(&i.flags.infinispan.URI, "infinispan-url", "", "The Infinispan Server URI, example: infinispan-server:11222")
@@ -211,6 +214,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas:       i.flags.Replicas,
 			Env:            util.FromStringsKeyPairToMap(i.flags.Env),
+			HTTPPort:       i.flags.httpPort,
 			Image:          i.flags.image,
 			MemoryLimit:    shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Limits),
 			MemoryRequest:  shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Requests),

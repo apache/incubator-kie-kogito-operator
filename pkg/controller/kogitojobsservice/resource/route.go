@@ -17,6 +17,7 @@ package resource
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -33,7 +34,7 @@ func createRequiredRoute(instance *v1alpha1.KogitoJobsService, service *corev1.S
 		ObjectMeta: service.ObjectMeta,
 		Spec: routev1.RouteSpec{
 			Port: &routev1.RoutePort{
-				TargetPort: intstr.FromInt(exposedPort),
+				TargetPort: intstr.FromInt(framework.DefaultExposedPort),
 			},
 			To: routev1.RouteTargetReference{
 				Kind: meta.KindService.Name,
