@@ -55,9 +55,6 @@ Table of Contents
       * [Kogito Operator development](#kogito-operator-development)
          * [Building the Kogito Operator](#building-the-kogito-operator)
          * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
-         * [Running End-to-End (E2E) tests](#running-end-to-end-e2e-tests)
-            * [With the Kogito Operator SDK](#with-the-kogito-operator-sdk)
-            * [With the Kogito CLI](#with-the-kogito-cli)
          * [Running Smoke tests](#running-smoke-tests)
             * [Running smoke tests with current branch](#running-smoke-tests-with-current-branch)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
@@ -812,52 +809,6 @@ To verify the operator status, run the following command:
 ```bash
 $ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-marketplace
 ```
-
-### Running End-to-End (E2E) tests
-
-#### With the Kogito Operator SDK
-
-If you have an OpenShift cluster and admin privileges, you can run E2E tests with the following command:
-
-```bash
-$ make run-e2e namespace=<namespace> tag=<tag> maven_mirror=<maven_mirror_url> image=<image_tag> tests=<full|jvm|native>
-```
-
-where:
-
-- `namespace` (required) is a given temporary namespace where the test will run. You do not need to create the namespace because it will be created and deleted after the test runs.
-- `tag` (optional, default is current release) is the image tag for the Kogito image builds, for example, `0.6.0-rc1`. This is helpful in situations where [Kogito S2I images](https://github.com/kiegroup/kogito-cloud/tree/master/s2i) have not been released yet and are under a temporary tag.
-- `maven_mirror` (optional, default is empty) is the Maven mirror URL. This is helpful when you need to speed up the build time by referring to a closer Maven repository.
-- `image` (optional, default is empty) indicates whether the E2E test should be executed against a specified Kogito Operator image. If the value is empty, then the local Operator source code is used for the test execution.
-- `tests` (optional, default is `full`) indicates what types of tests should be executed. Possible values are `full`, `jvm`, and `native`. If you specify `full` or specify no parameter, then both JVM and native tests are executed.
-
-If any errors are detected during this test, a detailed log appears in your command terminal.
-
-To save the test output in a local file for future reference, run the following command:
-
-```bash
-make run-e2e namespace=kogito-e2e  2>&1 | tee log.out
-```
-
-#### With the Kogito CLI
-
-You can run a smoke test using the Kogito CLI during development to make sure that at least the basic use case is covered.
-
-On OpenShift 4.x, before you run this test, install the Kogito Operator in the namespace where the test will run. On OpenShift 3.11, the Kogito CLI installs the Kogito Operator for you.
-
-To run an E2E test using the Kogito CLI, run the following command:
-
- ```bash
- $ make run-e2e-cli namespace=<namespace> tag=<tag> native=<true|false> maven_mirror=<maven_mirror_url> skip_build=<true|false>
- ```
-
-where:
-
-- `namespace` (required) is a given temporary namespace where the test will run.
-- `tag` (optional, default is current release) is the image tag for the Kogito image builds, for example, `0.6.0-rc1`. This is helpful in situations where [Kogito S2I images](https://github.com/kiegroup/kogito-cloud/tree/master/s2i) have not been released yet and are under a temporary tag.
-- `native` (optional, default is `false`) indicates whether the E2E test should use `native` or `jvm` builds. For more information, see [Native X JVM builds](#native-x-jvm-builds).
-- `maven_mirror` (optional, default is empty) is the Maven mirror URL. This is helpful when you need to speed up the build time by referring to a closer Maven repository.
-- `skip_build` (optional, default is `true`) is set to `true` to skip building the CLI before running the test.
 
 ### Running Smoke tests
 
