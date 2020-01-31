@@ -44,8 +44,12 @@ lint:
 	#./hack/yaml-lint.sh
 
 .PHONY: build
+image_registry=
+image_name=
+image_tag=
+image_builder=
 build:
-	./hack/go-build.sh
+	./hack/go-build.sh --image_registry ${image_registry} --image_name ${image_name} --image_tag ${image_tag} --image_builder ${image_builder}
 
 .PHONY: build-cli
 release = false
