@@ -69,24 +69,6 @@ clean:
 addheaders:
 	./hack/addheaders.sh
 
-.PHONY: run-e2e
-namespace = ""
-tag = ""
-maven_mirror = ""
-image = ""
-tests = "full" # Running full test suite by default, for JVM subset use "jvm"
-run-e2e:
-	./hack/run-e2e.sh $(namespace) $(tag) $(maven_mirror) $(image) $(tests)
-
-.PHONY: run-e2e-cli
-namespace = ""
-tag = ""
-native = "false"
-maven_mirror = ""
-skip_build = "false"
-run-e2e-cli:
-	./hack/run-e2e-cli.sh $(namespace) $(tag) $(native) $(maven_mirror) $(skip_build)
-
 .PHONY: run-smoke
 operator_image=
 operator_tag=

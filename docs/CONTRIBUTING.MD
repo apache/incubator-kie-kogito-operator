@@ -28,8 +28,6 @@ For information about Operator SDK testing, see [Unit testing with the Operator 
 
 In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitoapp_controller_test.go`](../pkg/controller/kogitoapp/kogitoapp_controller_test.go) test file.
 
-[End-to-end (E2E) tests](https://github.com/operator-framework/operator-sdk/blob/master/doc/test-framework/writing-e2e-tests.md)  are automated integration tests that run on a local Kubernetes or OpenShift cluster. E2E considerations are in the [Kogito backlog](https://issues.jboss.org/browse/KOGITO-130) for future development.
-
 ### Kogito Operator collaboration and pull requests
 
 Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/kiegroup/kogito-cloud-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.

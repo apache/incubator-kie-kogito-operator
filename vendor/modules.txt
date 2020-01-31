@@ -10,8 +10,8 @@ github.com/Azure/go-autorest/logger
 github.com/Azure/go-autorest/tracing
 github.com/Azure/go-autorest/autorest/date
 # github.com/DATA-DOG/godog v0.7.13
-github.com/DATA-DOG/godog/gherkin
 github.com/DATA-DOG/godog
+github.com/DATA-DOG/godog/gherkin
 github.com/DATA-DOG/godog/colors
 # github.com/PuerkitoBio/purell v1.1.1
 github.com/PuerkitoBio/purell
@@ -93,8 +93,6 @@ github.com/go-openapi/swag
 github.com/go-openapi/validate
 # github.com/gobuffalo/envy v1.7.1
 github.com/gobuffalo/envy
-# github.com/gobuffalo/flect v0.1.5
-github.com/gobuffalo/flect
 # github.com/gobuffalo/logger v1.0.1
 github.com/gobuffalo/logger
 # github.com/gobuffalo/packd v0.3.0
@@ -185,8 +183,6 @@ github.com/magiconair/properties
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
 github.com/mailru/easyjson/buffer
-# github.com/markbates/inflect v1.0.4
-github.com/markbates/inflect
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/go-homedir v1.1.0
@@ -233,15 +229,6 @@ github.com/operator-framework/operator-sdk/pkg/log/zap
 github.com/operator-framework/operator-sdk/pkg/metrics
 github.com/operator-framework/operator-sdk/pkg/restmapper
 github.com/operator-framework/operator-sdk/version
-github.com/operator-framework/operator-sdk/pkg/test
-github.com/operator-framework/operator-sdk/internal/pkg/scaffold
-github.com/operator-framework/operator-sdk/internal/util/k8sutil
-github.com/operator-framework/operator-sdk/internal/util/projutil
-github.com/operator-framework/operator-sdk/internal/util/yamlutil
-github.com/operator-framework/operator-sdk/pkg/test/e2eutil
-github.com/operator-framework/operator-sdk/internal/pkg/scaffold/input
-github.com/operator-framework/operator-sdk/internal/pkg/scaffold/internal/deps
-github.com/operator-framework/operator-sdk/internal/util/fileutil
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.3.0
@@ -348,18 +335,6 @@ golang.org/x/text/unicode/bidi
 golang.org/x/text/width
 # golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0
 golang.org/x/time/rate
-# golang.org/x/tools v0.0.0-20191004055002-72853e10c5a3
-golang.org/x/tools/imports
-golang.org/x/tools/internal/imports
-golang.org/x/tools/go/packages
-golang.org/x/tools/go/ast/astutil
-golang.org/x/tools/internal/gopathwalk
-golang.org/x/tools/internal/module
-golang.org/x/tools/go/gcexportdata
-golang.org/x/tools/go/internal/packagesdriver
-golang.org/x/tools/internal/semver
-golang.org/x/tools/internal/fastwalk
-golang.org/x/tools/go/internal/gcimporter
 # golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
@@ -465,7 +440,6 @@ k8s.io/api/admission/v1beta1
 # k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604 => k8s.io/apiextensions-apiserver v0.0.0-20190409022649-727a075fdec8
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
-k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme
 # k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/api/resource
@@ -510,7 +484,6 @@ k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/pkg/util/framer
 k8s.io/apimachinery/pkg/apis/meta/internalversion
-k8s.io/apimachinery/pkg/api/equality
 # k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 k8s.io/client-go/plugin/pkg/client/auth
 k8s.io/client-go/rest
@@ -542,7 +515,6 @@ k8s.io/client-go/tools/auth
 k8s.io/client-go/tools/clientcmd/api/latest
 k8s.io/client-go/util/homedir
 k8s.io/client-go/util/workqueue
-k8s.io/client-go/discovery/cached
 k8s.io/client-go/tools/record/util
 k8s.io/client-go/tools/reference
 k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1
@@ -590,7 +562,6 @@ k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/tools/clientcmd/api/v1
-k8s.io/client-go/discovery/cached/memory
 k8s.io/client-go/third_party/forked/golang/template
 # k8s.io/klog v0.3.3
 k8s.io/klog
@@ -640,11 +611,5 @@ sigs.k8s.io/controller-runtime/pkg/webhook/internal/certwatcher
 sigs.k8s.io/controller-runtime/pkg/webhook/internal/metrics
 sigs.k8s.io/controller-runtime/pkg/internal/controller/metrics
 sigs.k8s.io/controller-runtime/pkg/controller/controllertest
-# sigs.k8s.io/controller-tools v0.2.0
-sigs.k8s.io/controller-tools/pkg/crd
-sigs.k8s.io/controller-tools/pkg/genall
-sigs.k8s.io/controller-tools/pkg/loader
-sigs.k8s.io/controller-tools/pkg/crd/markers
-sigs.k8s.io/controller-tools/pkg/markers
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml
