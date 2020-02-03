@@ -36,30 +36,44 @@ type KogitoDataIndexSpec struct {
 	// +kubebuilder:validation:Maximum=100
 	// +kubebuilder:validation:Minimum=0
 	// +optional
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
 	Replicas int32 `json:"replicas,omitempty"`
 
 	// +optional
 	//Env is a collection of additional environment variables to add to the Data Index container
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Environment Variables"
 	Env map[string]string `json:"env,omitempty"`
 
 	// +optional
 	// Image to use for this service
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Image"
 	Image string `json:"image,omitempty"`
 
 	// +optional
 	// MemoryLimit is the limit of Memory for the container
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Memory Limit"
 	MemoryLimit string `json:"memoryLimit,omitempty"`
 
 	// +optional
 	// MemoryRequest is the request of Memory for the container
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Memory Request"
 	MemoryRequest string `json:"memoryRequest,omitempty"`
 
 	// +optional
 	// CPULimit is the limit of CPU for the container
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="CPU Limit"
 	CPULimit string `json:"cpuLimit,omitempty"`
 
 	// +optional
 	// CPURequest is the request of CPU for the container
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="CPU Request"
 	CPURequest string `json:"cpuRequest,omitempty"`
 
 	InfinispanMeta `json:",inline"`
@@ -75,9 +89,11 @@ type KogitoDataIndexStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Status of the Data Index Service Deployment created and managed by it
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	DeploymentStatus appsv1.StatefulSetStatus `json:"deploymentStatus,omitempty"`
 
 	// Status of the Data Index Service created and managed by it
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	ServiceStatus corev1.ServiceStatus `json:"serviceStatus,omitempty"`
 
 	// OK when all resources are created successfully
@@ -86,9 +102,12 @@ type KogitoDataIndexStatus struct {
 
 	// All dependencies OK means that everything was found within the namespace
 	// +listType=set
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	DependenciesStatus []DataIndexDependenciesStatus `json:"dependenciesStatus,omitempty"`
 
 	// Route is where the service is exposed
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
 	Route string `json:"route,omitempty"`
 }
 
@@ -128,6 +147,12 @@ const (
 // KogitoDataIndex is the Schema for the kogitodataindices API
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitodataindices,scope=Namespaced
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Data Index"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Statefulsets,apps/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMaps,v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="KafkaTopics,kafka.strimzi.io/v1beta1"
 type KogitoDataIndex struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

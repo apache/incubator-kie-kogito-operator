@@ -33,12 +33,21 @@ type KogitoInfraSpec struct {
 
 	// Indicates if Infinispan should be installed or not using Infinispan Operator.
 	// Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Infinispan"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	InstallInfinispan bool `json:"installInfinispan,omitempty"`
 	// Indicates if Kafka should be installed or not using Strimzi (Kafka Operator).
 	// Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Kafka"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	InstallKafka bool `json:"installKafka,omitempty"`
 	// Whether or not to install Keycloak using Keycloak Operator.
 	// Please note that the Keycloak Operator must be installed manually on environments that doesn't have OLM installed.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Keycloak"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	InstallKeycloak bool `json:"installKeycloak,omitempty"`
 }
 
@@ -105,6 +114,11 @@ const (
 // KogitoInfra is the Schema for the kogitoinfras API
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispans,infinispan.org/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloaks,keycloak.org/v1alpha1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Secrets,v1"
 type KogitoInfra struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -11,8 +11,8 @@ spec:
     gitSource:
       contextDir: jbpm-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
-      reference: 0.7.0-rc4
+      reference: 0.7.0
     # images that don't have a custom tag, will use this version
-    imageVersion: 0.7.0-rc4
+    imageVersion: 0.7.0
     # the image runtime build will use this image
     imageRuntimeTag:  quay.io/ricardozanini/kogito-quarkus-jvm-ubi8:0.7.0-rc1

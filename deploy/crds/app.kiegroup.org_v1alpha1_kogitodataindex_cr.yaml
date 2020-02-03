@@ -39,3 +39,4 @@ spec:
       #usernameKey: ""
       # password key defined in the secret
       #passwordKey: ""
+status: {}

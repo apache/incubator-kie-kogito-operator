@@ -29,6 +29,7 @@ func Test_getKafkaInstanceWithName(t *testing.T) {
 	ns := t.Name()
 
 	kafka := &v1beta1.Kafka{
+		TypeMeta: v1.TypeMeta{Kind: "Kafka", APIVersion: "kafka.strimzi.io/v1beta1"},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "kafka",
 			Namespace: ns,

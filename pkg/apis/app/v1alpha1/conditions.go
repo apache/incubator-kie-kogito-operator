@@ -77,6 +77,8 @@ const maxBufferCondition = 5
 type ConditionsMeta struct {
 	// +listType=atomic
 	// History of conditions for the resource
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	Conditions []Condition `json:"conditions"`
 }
 
