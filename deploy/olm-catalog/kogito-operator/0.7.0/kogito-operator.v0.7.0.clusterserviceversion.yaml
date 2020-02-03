@@ -6,6 +6,16 @@ metadata:
       [
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoJobsService",
+          "metadata": {
+            "name": "jobs-service"
+          },
+          "spec": {
+            "replicas": 1
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoApp",
           "metadata": {
             "name": "example-quarkus"
@@ -50,16 +60,6 @@ metadata:
             "installInfinispan": false,
             "installKafka": false,
             "installKeycloak": false
-          }
-        },
-        {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
-          "kind": "KogitoJobsService",
-          "metadata": {
-            "name": "jobs-service"
-          },
-          "spec": {
-            "replicas": 1
           }
         }
       ]

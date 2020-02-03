@@ -26,16 +26,26 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"path"
+	"strconv"
 )
 
 func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, externalURI string, cli *client.Client) (*appsv1.StatefulSet, error) {
+	// define the http port
+	httpPort := defineDataIndexHTTPPort(instance)
+	log.Debugf("The configured internal Data Index port number is [%i]", httpPort)
+
 	// create a standard probe
 	probe := defaultProbe
-	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.FromInt(defaultExposedPort)}
+	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: httpPort}}
 	// environment variables
 	removeManagedEnvVars(instance)
+
 	// from cr
 	envs := instance.Spec.Env
+	// Add HTTP Port on the envs, it will also override the env if set on CR.
+	httpPortEnvMap := make(map[string]string)
+	httpPortEnvMap[DataIndexEnvKeyHTTPPort] = strconv.FormatInt(int64(httpPort), 10)
+	envs = util.AppendStringMap(envs, httpPortEnvMap)
 	envs = util.AppendStringMap(envs, fromKafkaToStringMap(externalURI))
 
 	if instance.Spec.Replicas == 0 {
@@ -68,7 +78,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "http",
-									ContainerPort: defaultExposedPort,
+									ContainerPort: httpPort,
 									Protocol:      corev1.ProtocolTCP,
 								},
 							},
@@ -124,4 +134,16 @@ func mountProtoBufConfigMaps(statefulset *appsv1.StatefulSet, cli *client.Client
 	}
 
 	return nil
+}
+
+// defineDataIndexHTTPPort will define which port the dataindex should be listening to. To set it use httpPort cr parameter.
+// defaults to 8080
+func defineDataIndexHTTPPort(instance *v1alpha1.KogitoDataIndex) int32 {
+	// port should be greater than 0
+	if instance.Spec.HTTPPort < 1 {
+		log.Debugf("HTTPPort not set, returning default http port.")
+		return framework.DefaultExposedPort
+	}
+	log.Debugf("HTTPPort is set, returning port number %i", int(instance.Spec.HTTPPort))
+	return instance.Spec.HTTPPort
 }

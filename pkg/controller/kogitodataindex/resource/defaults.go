@@ -33,8 +33,6 @@ const (
 	// defaultExposedPort is the default port exposed by the service.
 	// this port can also be found into the docker label openshift.exposed-svc.
 	// since we're aiming for cluster agnostic, the image API is out of question.
-	// TODO: found an agnostic API to fetch the ImageRaw from the docker image and read this value from there.
-	defaultExposedPort       = 8080
 	defaultProtobufMountPath = "/home/kogito/data/protobufs"
 )
 
@@ -52,6 +50,8 @@ const (
 
 	protoBufKeyFolder string = "KOGITO_PROTOBUF_FOLDER"
 	protoBufKeyWatch  string = "KOGITO_PROTOBUF_WATCH"
+
+	DataIndexEnvKeyHTTPPort = "KOGITO_DATA_INDEX_HTTP_PORT"
 )
 
 var protoBufEnvsVolumeMounted = map[string]string{

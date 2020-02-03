@@ -29,6 +29,8 @@ import (
 const (
 	// DefaultExportedPort is the default protocol exposed by inner services specified in image metadata
 	DefaultExportedPort = "http"
+	// DefaultExposedPort TODO: found an agnostic API to fetch the ImageRaw from the docker image and read this value from there.
+	DefaultExposedPort = 8080
 	// LabelKeyOrgKie is the label key for KIE metadata
 	LabelKeyOrgKie = "org.kie" + labelNamespaceSep
 	// LabelKeyOrgKiePersistence is the label key for Persistence metadata

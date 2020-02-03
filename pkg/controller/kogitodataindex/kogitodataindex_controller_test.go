@@ -16,6 +16,7 @@ package kogitodataindex
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
 	"testing"
 
@@ -111,6 +112,111 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 	assert.False(t, ready)  // we don't have status defined since the KogitoInfra controller is not running
 	assert.NotNil(t, infra) // we have a infra instance created during reconciliation phase
 	assert.Equal(t, infrastructure.DefaultKogitoInfraName, infra.GetName())
+}
+
+func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
+	ns := t.Name()
+	envMap := make(map[string]string)
+	envMap[resource.DataIndexEnvKeyHTTPPort] = "3030"
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			HTTPPort: 9090,
+			Env:      envMap,
+			KafkaMeta: v1alpha1.KafkaMeta{
+				KafkaProperties: v1alpha1.KafkaConnectionProperties{
+					UseKogitoInfra: false,
+					ExternalURI:    "my-uri:9022",
+				},
+			},
+			InfinispanMeta: v1alpha1.InfinispanMeta{
+				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+					UseKogitoInfra: false,
+					URI:            "another-uri:11222",
+				},
+			},
+		},
+	}
+
+	client := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	r := &ReconcileKogitoDataIndex{
+		client: client,
+		scheme: meta.GetRegisteredSchema(),
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+	}
+
+	// first reconcile
+	_, err := r.Reconcile(req)
+	assert.NoError(t, err)
+
+	// make sure HTTPPort env was added on the statefulSet
+	statefulset := &appsv1.StatefulSet{}
+	kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, statefulset)
+
+	// make sure that the http port was correctly added.
+	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		Name:  resource.DataIndexEnvKeyHTTPPort,
+		Value: "9090",
+	})
+
+	// TODO when  this jira is fixed https://issues.redhat.com/browse/KOGITO-829 add tests for env, probes and container port
+
+	// update the route
+	// reconcile and test
+	// compare the route http port
+	routeFromResource := &routev1.Route{}
+	routeFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeFromResource)
+	assert.NoError(t, err)
+	assert.True(t, routeFound)
+	// update http port on the given route
+	routeFromResource.Spec.Port.TargetPort.IntVal = 4000
+	err = kubernetes.ResourceC(client).Update(routeFromResource)
+	assert.NoError(t, err)
+	// reconcile
+	_, err = r.Reconcile(req)
+	assert.NoError(t, err)
+	// get the route after reconcile
+	routeAfterReconcile := &routev1.Route{}
+	routeAfterReconcileFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeAfterReconcile)
+	assert.True(t, routeAfterReconcileFound)
+	assert.NoError(t, err)
+	//fmt.Println(routeAfterReconcile)
+	assert.True(t, routeAfterReconcileFound)
+	assert.Equal(t, intstr.IntOrString{Type: 0, IntVal: 9090, StrVal: ""}, routeAfterReconcile.Spec.Port.TargetPort)
+
+	// update the service
+	// reconcile and test
+	// compare the service http and target port
+	serviceFromResource := &corev1.Service{}
+	serviceFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceFromResource)
+	assert.True(t, serviceFound)
+	assert.NoError(t, err)
+	//fmt.Println(serviceFromResource)
+	// update ports
+	serviceFromResource.Spec.Ports[0].Port = 4000
+	serviceFromResource.Spec.Ports[0].TargetPort = intstr.FromString("4000")
+	err = kubernetes.ResourceC(client).Update(serviceFromResource)
+	assert.NoError(t, err)
+	// reconcile
+	_, err = r.Reconcile(req)
+	assert.NoError(t, err)
+	// get the service after reconcile
+	serviceAfterReconcile := &corev1.Service{}
+	servicefterReconcileFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceAfterReconcile)
+	assert.True(t, servicefterReconcileFound)
+	assert.NoError(t, err)
+	//fmt.Println(serviceAfterReconcile)
+	// compare again if the port was updated after reconcile
+	assert.Equal(t, int32(9090), serviceAfterReconcile.Spec.Ports[0].Port)
+	assert.Equal(t, intstr.FromInt(9090), serviceAfterReconcile.Spec.Ports[0].TargetPort)
 }
 
 func Test_getKubernetesResources(t *testing.T) {
@@ -252,6 +358,7 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
+							HTTPPort: 8080,
 							InfinispanMeta: v1alpha1.InfinispanMeta{
 								InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 									URI: "test-infinispan",
@@ -313,6 +420,7 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
+							HTTPPort: 9090,
 							InfinispanMeta: v1alpha1.InfinispanMeta{
 								InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 									URI: "test-infinispan",

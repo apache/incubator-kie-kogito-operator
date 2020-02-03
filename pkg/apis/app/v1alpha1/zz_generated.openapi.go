@@ -794,6 +794,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 				Description: "KogitoDataIndexSpec defines the desired state of KogitoDataIndex",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
+					"httpPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Replicas is the number of pod replicas that the Data Index Service will create",
