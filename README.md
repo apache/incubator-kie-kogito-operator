@@ -822,18 +822,6 @@ $ make run-smoke [key=value]*
 
 You can set those optional keys:
 
-- `maven_mirror` is the Maven mirror URL.  
-  This is helpful when you need to speed up the build time by referring to a closer Maven repository.
-- `operator_image` is the Operator image full name.  
-  Example: *operator_image=quay.io/kiegroup/kogito-cloud-operator*.
-- `operator_tag` is the Operator image tag. Default is the current version.
-- `feature` is a specific feature you want to run.  
-  If you define a relative path, this has to be based on the "test/smoke" folder as the run is happening there.  
-  Example: *feature=features/operator/deploy_quarkus_service.feature*
-- `local` to be set to true if running tests in local.  
-  Default is false.
-- `concurrent` is the number of concurrent tests to be ran.  
-  Default is 1.
 - `tags` to run only specific scenarios. It is using tags filtering.  
   *Scenarios with '@disabled' tag are always ignored.*  
   Expression can be:
@@ -841,6 +829,31 @@ You can set those optional keys:
     - "~@wip": exclude all scenarios with wip tag
     - "@wip && ~@new": run wip scenarios, but exclude new
     - "@wip,@undone": run wip or undone scenarios
+- `concurrent` is the number of concurrent tests to be ran.  
+  *Default is 1.*
+- `feature` is a specific feature you want to run.  
+  If you define a relative path, this has to be based on the "test/smoke" folder as the run is happening there.  
+  *Default are all enabled features from 'test/smoke/features' folder*  
+  Example: feature=features/operator/deploy_quarkus_service.feature
+- `local` to be set to true if running tests in local.  
+  *Default is false.*
+- `operator_image` is the Operator image full name.  
+  *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
+- `operator_tag` is the Operator image tag.  
+  *Default is the current version*.
+- `cli_path` set the built CLI path.  
+  *Default is ./build/_output/bin/kogito*.
+- `deploy_uri` set operator *deploy* folder.  
+  *Default is ./deploy*.
+- `maven_mirror` is the Maven mirror URL.  
+  This is helpful when you need to speed up the build time by referring to a closer Maven repository.
+- `build_image_version` sets the build image version. Default is current operator version.
+- `build_image_tag` sets the build image full tag.
+- `build_s2i_image_tag` sets the build S2I image full tag.
+- `build_runtime_image_tag` sets the build Runtime image full tag.
+- `examples_uri` sets the URI for the kogito-examples repository.  
+  *Default is https://github.com/kiegroup/kogito-examples*.
+- `examples_ref` sets the branch for the kogito-examples repository.
 
 Logs will be shown on the Terminal.
 

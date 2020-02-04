@@ -70,16 +70,38 @@ addheaders:
 	./hack/addheaders.sh
 
 .PHONY: run-smoke
-operator_image=
-operator_tag=
-maven_mirror=
+tags=
+concurrent=1
 feature=
 local=false
+operator_image=
+operator_tag=
+cli_path=
+deploy_uri=
+maven_mirror=
 build_image_version=
-concurrent=1
-tags=
+build_image_tag=
+build_s2i_image_tag=
+build_runtime_image_tag=
+examples_uri=
+examples_ref=
 run-smoke:
-	./hack/run-smoke.sh -t "${tags}" -c ${concurrent} -f ${feature} --ope_name $(operator_image) --ope_tag $(operator_tag) --maven_mirror $(maven_mirror) --local ${local} --build_image_version ${build_image_version}
+	./hack/run-smoke.sh \
+		--tags "${tags}" \
+		--concurrent ${concurrent} \
+		--feature ${feature} \
+		--local ${local} \
+		--operator_image $(operator_image) \
+		--operator_tag $(operator_tag) \
+		--cli_path ${cli_path} \
+		--deploy_uri ${deploy_uri} \
+		--maven_mirror $(maven_mirror) \
+		--build_image_version ${build_image_version} \
+		--build_image_tag ${build_image_tag} \
+		--build_s2i_image_tag ${build_s2i_image_tag} \
+		--build_runtime_image_tag ${build_runtime_image_tag} \
+		--examples_uri ${examples_uri} \
+		--examples_ref ${examples_ref}
 
 .PHONY: prepare-olm
 version = ""
