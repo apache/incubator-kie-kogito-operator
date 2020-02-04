@@ -95,6 +95,7 @@ func TestReconcileKogitoInfra_Reconcile_Keycloak(t *testing.T) {
 	assert.Empty(t, kogitoInfra.Status.Infinispan.Name)
 	assert.Empty(t, kogitoInfra.Status.Kafka.Name)
 	assert.Equal(t, keycloak.InstanceName, kogitoInfra.Status.Keycloak.Name)
+	assert.Equal(t, keycloak.InstanceName, kogitoInfra.Status.Keycloak.RealmStatus.Name)
 	assert.Empty(t, kogitoInfra.Status.Kafka.Service)
 	assert.Empty(t, kogitoInfra.Status.Infinispan.Service)
 	assert.Empty(t, kogitoInfra.Status.Keycloak.Service)

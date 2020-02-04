@@ -492,6 +492,7 @@ spec:
           - keycloak.org
           resources:
           - keycloaks
+          - keycloakrealms
           verbs:
           - get
           - create

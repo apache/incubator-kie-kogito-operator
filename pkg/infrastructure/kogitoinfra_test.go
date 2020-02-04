@@ -150,8 +150,11 @@ func Test_EnsureKogitoInfra_Exists_NoChange(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
-			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: v1alpha1.KeycloakInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+				RealmStatus:                     fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -258,7 +261,10 @@ func Test_EnsureKogitoInfra_Exists_RemoveKeycloak(t *testing.T) {
 			InstallKeycloak: true,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
-			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: v1alpha1.KeycloakInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+				RealmStatus:                     fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -298,8 +304,11 @@ func Test_EnsureKogitoInfra_Exists_RemoveAllComponents(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
-			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: v1alpha1.KeycloakInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+				RealmStatus:                     fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -361,7 +370,10 @@ func Test_EnsureKogitoInfra_Exists_WithKeycloakButAlreadyInstalled(t *testing.T)
 			InstallKeycloak: true,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
-			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: v1alpha1.KeycloakInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+				RealmStatus:                     fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -386,8 +398,11 @@ func Test_EnsureKogitoInfra_Exists_RemoveOnlyKafka(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
-			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: v1alpha1.KeycloakInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+				RealmStatus:                     fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -412,8 +427,11 @@ func Test_EnsureKogitoInfra_Exists_RemoveOnlyInfinispan(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
-			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: v1alpha1.KeycloakInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+				RealmStatus:                     fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -438,8 +456,11 @@ func Test_EnsureKogitoInfra_Exists_RemoveOnlyKeycloak(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
-			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Keycloak: v1alpha1.KeycloakInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+				RealmStatus:                     fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)

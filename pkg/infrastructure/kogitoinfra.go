@@ -195,7 +195,8 @@ func isKafkaDeployed(infra *v1alpha1.KogitoInfra) bool {
 
 func isKeycloakDeployed(infra *v1alpha1.KogitoInfra) bool {
 	if &infra.Status != nil && &infra.Status.Keycloak != nil {
-		return isInfraComponentDeployed(&infra.Status.Keycloak)
+		return isInfraComponentDeployed(&infra.Status.Keycloak.InfraComponentInstallStatusType) &&
+			isInfraComponentDeployed(&infra.Status.Keycloak.RealmStatus)
 	}
 	return false
 }
