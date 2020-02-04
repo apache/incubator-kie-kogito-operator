@@ -32,6 +32,7 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
@@ -62,12 +63,13 @@ var (
 // Client wraps clients functions from controller-runtime, Kube and OpenShift cli for generic API calls to the cluster
 type Client struct {
 	// ControlCli is a reference for the controller-runtime client, normally built by a Manager inside the controller context.
-	ControlCli    controllercli.Client
-	BuildCli      buildv1.BuildV1Interface
-	ImageCli      imagev1.ImageV1Interface
-	Discovery     discovery.DiscoveryInterface
-	PrometheusCli monclientv1.MonitoringV1Interface
-	DeploymentCli appsv1.AppsV1Interface
+	ControlCli             controllercli.Client
+	BuildCli               buildv1.BuildV1Interface
+	ImageCli               imagev1.ImageV1Interface
+	Discovery              discovery.DiscoveryInterface
+	PrometheusCli          monclientv1.MonitoringV1Interface
+	DeploymentCli          appsv1.AppsV1Interface
+	KubernetesExtensionCli kubernetes.Interface
 }
 
 // NewForConsole will create a brand new client using the local machine

@@ -40,3 +40,13 @@ func Resource() ResourceInterface {
 func ResourceC(c *client.Client) ResourceInterface {
 	return newResource(c)
 }
+
+// Pod will fetch the inner API for Kubernetes pod resource with a default client
+func Pod() PodInterface {
+	return newPod(&client.Client{})
+}
+
+// PodC will use a defined client to fetch the Kubernetes pod resources
+func PodC(c *client.Client) PodInterface {
+	return newPod(c)
+}

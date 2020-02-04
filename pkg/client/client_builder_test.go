@@ -46,6 +46,7 @@ func Test_simpleBuild(t *testing.T) {
 	assert.Nil(t, client.ImageCli)
 	assert.Nil(t, client.PrometheusCli)
 	assert.Nil(t, client.DeploymentCli)
+	assert.Nil(t, client.KubernetesExtensionCli)
 
 }
 
@@ -66,6 +67,7 @@ func Test_useControllerClient(t *testing.T) {
 	assert.Nil(t, client.ImageCli)
 	assert.Nil(t, client.PrometheusCli)
 	assert.Nil(t, client.DeploymentCli)
+	assert.Nil(t, client.KubernetesExtensionCli)
 
 }
 
@@ -78,6 +80,7 @@ func Test_WithBuildClient(t *testing.T) {
 	assert.Nil(t, client.ImageCli)
 	assert.Nil(t, client.PrometheusCli)
 	assert.Nil(t, client.DeploymentCli)
+	assert.Nil(t, client.KubernetesExtensionCli)
 }
 
 func Test_WithDiscoveryClient(t *testing.T) {
@@ -89,6 +92,7 @@ func Test_WithDiscoveryClient(t *testing.T) {
 	assert.Nil(t, client.ImageCli)
 	assert.Nil(t, client.PrometheusCli)
 	assert.Nil(t, client.DeploymentCli)
+	assert.Nil(t, client.KubernetesExtensionCli)
 }
 
 func Test_WithImageClient(t *testing.T) {
@@ -100,6 +104,7 @@ func Test_WithImageClient(t *testing.T) {
 	assert.NotNil(t, client.ImageCli)
 	assert.Nil(t, client.PrometheusCli)
 	assert.Nil(t, client.DeploymentCli)
+	assert.Nil(t, client.KubernetesExtensionCli)
 }
 
 func Test_WithPrometheusClient(t *testing.T) {
@@ -111,6 +116,7 @@ func Test_WithPrometheusClient(t *testing.T) {
 	assert.Nil(t, client.ImageCli)
 	assert.NotNil(t, client.PrometheusCli)
 	assert.Nil(t, client.DeploymentCli)
+	assert.Nil(t, client.KubernetesExtensionCli)
 }
 
 func Test_WithDeploymentClient(t *testing.T) {
@@ -122,6 +128,19 @@ func Test_WithDeploymentClient(t *testing.T) {
 	assert.Nil(t, client.ImageCli)
 	assert.Nil(t, client.PrometheusCli)
 	assert.NotNil(t, client.DeploymentCli)
+	assert.Nil(t, client.KubernetesExtensionCli)
+}
+
+func Test_WithKubernetesClient(t *testing.T) {
+	client := build(NewClientBuilder().WithKubernetesExtensionClient())
+
+	assert.NotNil(t, client.ControlCli)
+	assert.Nil(t, client.BuildCli)
+	assert.Nil(t, client.Discovery)
+	assert.Nil(t, client.ImageCli)
+	assert.Nil(t, client.PrometheusCli)
+	assert.Nil(t, client.DeploymentCli)
+	assert.NotNil(t, client.KubernetesExtensionCli)
 }
 
 func Test_WithAllClients(t *testing.T) {
@@ -133,6 +152,7 @@ func Test_WithAllClients(t *testing.T) {
 	assert.NotNil(t, client.ImageCli)
 	assert.NotNil(t, client.PrometheusCli)
 	assert.NotNil(t, client.DeploymentCli)
+	assert.NotNil(t, client.KubernetesExtensionCli)
 }
 
 func build(clientBuilder Builder) *Client {
