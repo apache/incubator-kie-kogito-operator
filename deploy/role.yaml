@@ -64,6 +64,9 @@ rules:
       - keycloak.org
     resources:
       - keycloaks
+      - keycloakrealms
+      - keycloakclients
+      - keycloakusers
     verbs:
       - get
       - create

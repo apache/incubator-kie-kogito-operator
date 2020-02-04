@@ -98,7 +98,7 @@ func ensureKeycloak(instance *v1alpha1.KogitoInfra, cli *client.Client) (update,
 	log.Debug("Trying to update Keycloak conditions")
 	if !instance.Spec.InstallKeycloak {
 		if &instance.Status.Keycloak != nil && len(instance.Status.Keycloak.Condition) > 0 {
-			instance.Status.Keycloak = v1alpha1.InfraComponentInstallStatusType{}
+			instance.Status.Keycloak = v1alpha1.KeycloakInstallStatus{}
 			update = true
 		}
 		return
@@ -111,7 +111,11 @@ func ensureKeycloak(instance *v1alpha1.KogitoInfra, cli *client.Client) (update,
 		return
 	}
 
-	if update, requeue = updateNameStatus(instance.Spec.InstallKeycloak, reflect.TypeOf(keycloakv1alpha1.Keycloak{}), &instance.Status.Keycloak, resources); requeue {
+	updateKeycloak, requeueKeycloak := updateNameStatus(instance.Spec.InstallKeycloak, reflect.TypeOf(keycloakv1alpha1.Keycloak{}), &instance.Status.Keycloak.InfraComponentInstallStatusType, resources)
+	updateKeycloakRealm, requeueKeycloakRealm := updateNameStatus(instance.Spec.InstallKeycloak, reflect.TypeOf(keycloakv1alpha1.KeycloakRealm{}), &instance.Status.Keycloak.RealmStatus, resources)
+	update = updateKeycloak || updateKeycloakRealm
+	requeue = requeueKeycloak || requeueKeycloakRealm
+	if requeue {
 		return
 	}
 
@@ -122,7 +126,7 @@ func ensureKeycloak(instance *v1alpha1.KogitoInfra, cli *client.Client) (update,
 		for _, svc := range keycloakRes[0].(*keycloakv1alpha1.Keycloak).Status.SecondaryResources["Service"] {
 			if svc == "keycloak" {
 				updateSvc, requeue =
-					updateServiceStatus(instance, cli, &instance.Status.Keycloak, svc)
+					updateServiceStatus(instance, cli, &instance.Status.Keycloak.InfraComponentInstallStatusType, svc)
 				break
 			}
 		}

@@ -77,7 +77,7 @@ func EnvOverride(dst []corev1.EnvVar, src ...corev1.EnvVar) []corev1.EnvVar {
 }
 
 // GetEnvVarFromContainer gets the environment variable value from the container
-func GetEnvVarFromContainer(key string, container corev1.Container) string {
+func GetEnvVarFromContainer(key string, container *corev1.Container) string {
 	if &container == nil {
 		return ""
 	}

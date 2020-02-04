@@ -16,6 +16,7 @@ package keycloak
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"reflect"
@@ -23,7 +24,7 @@ import (
 
 // GetComparators gets the comparator for Keycloak resources
 func GetComparators() []framework.Comparator {
-	return []framework.Comparator{createKeycloakComparator()}
+	return []framework.Comparator{createKeycloakComparator(), createKeycloakRealmComparator()}
 }
 
 func createKeycloakComparator() framework.Comparator {
@@ -33,7 +34,26 @@ func createKeycloakComparator() framework.Comparator {
 			keycloakDep := deployed.(*keycloakv1alpha1.Keycloak)
 			keycloakReq := requested.(*keycloakv1alpha1.Keycloak).DeepCopy()
 			// we just care for the instance name, other attributes can be changed at will by the user
-			return reflect.DeepEqual(keycloakDep.Name, keycloakReq.Name)
+			return reflect.DeepEqual(keycloakDep.Name, keycloakReq.Name) && reflect.DeepEqual(keycloakDep.Labels, keycloakReq.Labels)
+		},
+	}
+}
+
+func createKeycloakRealmComparator() framework.Comparator {
+	return framework.Comparator{
+		ResourceType: reflect.TypeOf(keycloakv1alpha1.KeycloakRealm{}),
+		CompFunc: func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+			defaultComparatorFunc := compare.DefaultComparator().GetDefaultComparator()
+
+			keycloakRealmDep := deployed.(*keycloakv1alpha1.KeycloakRealm)
+			keycloakRealmReq := requested.(*keycloakv1alpha1.KeycloakRealm).DeepCopy()
+
+			if !reflect.DeepEqual(keycloakRealmDep.Name, keycloakRealmReq.Name) ||
+				!reflect.DeepEqual(keycloakRealmDep.Labels, keycloakRealmReq.Labels) {
+				return false
+			}
+
+			return defaultComparatorFunc(deployed, requested)
 		},
 	}
 }

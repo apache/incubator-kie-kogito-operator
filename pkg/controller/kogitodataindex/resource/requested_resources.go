@@ -20,8 +20,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	v1 "github.com/openshift/api/image/v1"
 
+	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
+
+	v1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -42,6 +44,10 @@ type KogitoDataIndexResources struct {
 	KafkaTopics []*kafkabetav1.KafkaTopic
 	// ImageStream is the image stream OpenShift resource to manage images (not available on k8s)
 	ImageStream *v1.ImageStream
+	// KeycloakUsers
+	KeycloakUsers []*keycloakv1alpha1.KeycloakUser
+	// KeycloakClients
+	KeycloakClients []*keycloakv1alpha1.KeycloakClient
 }
 
 // KogitoDataIndexResourcesStatus identifies the status of the resource
@@ -86,7 +92,9 @@ func GetRequestedResources(instance *v1alpha1.KogitoDataIndex, client *client.Cl
 		build(createDeployment).
 		build(createService).
 		buildOnOpenshift(createRoute).
-		build(createKafkaTopic)
+		build(createKafkaTopics).
+		build(createKeycloakUsers).
+		build(createKeycloakClients)
 
 	return factory.Resources, factory.Error
 }
@@ -127,7 +135,7 @@ func createRoute(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFa
 	return f
 }
 
-func createKafkaTopic(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
+func createKafkaTopics(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
 	kafkaName, kafkaReplicas, err := getKafkaServerReplicas(f.KogitoDataIndex.Spec.KafkaProperties, f.KogitoDataIndex.Namespace, f.Client)
 	if err != nil {
 		f.Error = err
@@ -146,5 +154,21 @@ func createKafkaTopic(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResour
 
 func createImageStream(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
 	f.Resources.ImageStream = newImage(f.KogitoDataIndex)
+	return f
+}
+
+func createKeycloakUsers(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
+	if f.KogitoDataIndex.Spec.EnableSecurity {
+		keycloakUser := newKeycloakUser(f.KogitoDataIndex.Namespace, f.KogitoDataIndex.Spec.KeycloakProperties.Labels)
+		f.Resources.KeycloakUsers = append(f.Resources.KeycloakUsers, keycloakUser)
+	}
+	return f
+}
+
+func createKeycloakClients(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
+	if f.KogitoDataIndex.Spec.EnableSecurity {
+		keycloakClient := newKeycloakClient(f.KogitoDataIndex.Namespace, f.KogitoDataIndex.Spec.KeycloakProperties.Labels)
+		f.Resources.KeycloakClients = append(f.Resources.KeycloakClients, keycloakClient)
+	}
 	return f
 }

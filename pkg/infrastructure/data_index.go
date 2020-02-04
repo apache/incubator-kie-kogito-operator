@@ -64,8 +64,8 @@ func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) e
 		if len(dc.Spec.Template.Spec.Containers) == 0 {
 			break
 		}
-		updateHTTP := framework.GetEnvVarFromContainer(dataIndexHTTPRouteEnv, dc.Spec.Template.Spec.Containers[0]) != routeHTTP
-		updateWS := framework.GetEnvVarFromContainer(dataIndexWSRouteEnv, dc.Spec.Template.Spec.Containers[0]) != routeWS
+		updateHTTP := framework.GetEnvVarFromContainer(dataIndexHTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != routeHTTP
+		updateWS := framework.GetEnvVarFromContainer(dataIndexWSRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != routeWS
 		if updateHTTP {
 			log.Debugf("Updating dc '%s' to inject route %s ", dc.GetName(), routeHTTP)
 			framework.SetEnvVar(dataIndexHTTPRouteEnv, routeHTTP, &dc.Spec.Template.Spec.Containers[0])

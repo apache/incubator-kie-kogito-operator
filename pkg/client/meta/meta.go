@@ -132,7 +132,11 @@ func GetRegisteredSchema() *runtime.Scheme {
 		&v1alpha1.KogitoJobsService{}, &v1alpha1.KogitoJobsServiceList{})
 	s.AddKnownTypes(kafkabetav1.SchemeGroupVersion, &kafkabetav1.Kafka{}, &kafkabetav1.KafkaList{}, &kafkabetav1.KafkaTopic{}, &kafkabetav1.KafkaTopicList{})
 	s.AddKnownTypes(infinispanv1.SchemeGroupVersion, &infinispanv1.Infinispan{}, &infinispanv1.InfinispanList{})
-	s.AddKnownTypes(keycloakv1alpha1.SchemeGroupVersion, &keycloakv1alpha1.Keycloak{}, &keycloakv1alpha1.KeycloakList{})
+	s.AddKnownTypes(keycloakv1alpha1.SchemeGroupVersion,
+		&keycloakv1alpha1.Keycloak{}, &keycloakv1alpha1.KeycloakList{},
+		&keycloakv1alpha1.KeycloakRealm{}, &keycloakv1alpha1.KeycloakRealmList{},
+		&keycloakv1alpha1.KeycloakUser{}, &keycloakv1alpha1.KeycloakUserList{},
+		&keycloakv1alpha1.KeycloakClient{}, &keycloakv1alpha1.KeycloakClientList{})
 	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
 	s.AddKnownTypes(coreappsv1.SchemeGroupVersion, &coreappsv1.StatefulSet{}, &coreappsv1.StatefulSetList{})
 	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})

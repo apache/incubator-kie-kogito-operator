@@ -17,6 +17,7 @@ package resource
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
+	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -51,6 +52,13 @@ func GetDeployedResources(instance *v1alpha1.KogitoDataIndex, client *client.Cli
 
 	if infrastructure.IsStrimziAvailable(client) {
 		objectTypes = append(objectTypes, &kafkabetav1.KafkaTopicList{})
+	}
+
+	if instance.Spec.EnableSecurity && infrastructure.IsKeycloakAvailable(client) {
+		objectTypes = append(objectTypes,
+			&keycloakv1alpha1.KeycloakUserList{},
+			&keycloakv1alpha1.KeycloakClientList{},
+		)
 	}
 
 	resourceMap, err := reader.ListAll(objectTypes...)

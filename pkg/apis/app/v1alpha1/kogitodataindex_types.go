@@ -79,6 +79,8 @@ type KogitoDataIndexSpec struct {
 	InfinispanMeta `json:",inline"`
 
 	KafkaMeta `json:",inline"`
+
+	KeycloakMeta `json:",inline"`
 }
 
 // KogitoDataIndexStatus defines the observed state of KogitoDataIndex
@@ -119,6 +121,8 @@ const (
 	DataIndexDependenciesStatusOK DataIndexDependenciesStatus = "OK"
 	//DataIndexDependenciesStatusMissingKafka - Kafka is missing
 	DataIndexDependenciesStatusMissingKafka DataIndexDependenciesStatus = "Missing Kafka"
+	//DataIndexDependenciesStatusMissingKeycloak - Keycloak is missing
+	DataIndexDependenciesStatusMissingKeycloak DataIndexDependenciesStatus = "Missing Keycloak"
 	//DataIndexDependenciesStatusMissingInfinispan - Infinispan is missing
 	DataIndexDependenciesStatusMissingInfinispan DataIndexDependenciesStatus = "Missing Infinispan"
 )

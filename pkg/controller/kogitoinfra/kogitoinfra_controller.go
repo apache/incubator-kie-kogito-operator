@@ -65,7 +65,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &infinispanv1.Infinispan{}, &kafkav1beta1.Kafka{}, &keycloakv1alpha1.Keycloak{}}
+	watchOwnedObjects := []runtime.Object{
+		&corev1.Secret{},
+		&infinispanv1.Infinispan{},
+		&kafkav1beta1.Kafka{},
+		&keycloakv1alpha1.Keycloak{},
+		&keycloakv1alpha1.KeycloakRealm{},
+	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &appv1alpha1.KogitoInfra{},

@@ -86,7 +86,7 @@ func Test_createKafkaTopic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := createKafkaTopic(tt.args.f)
+			got := createKafkaTopics(tt.args.f)
 
 			assert.NoError(t, got.Error)
 			assert.Equal(t, len(got.Resources.KafkaTopics), len(kafkaTopicNames))

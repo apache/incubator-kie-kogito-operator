@@ -16,7 +16,6 @@ package kogitodataindex
 
 import (
 	"fmt"
-	imgv1 "github.com/openshift/api/image/v1"
 	"time"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -30,6 +29,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 
+	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
+
+	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -96,6 +98,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&routev1.Route{},
 		&kafkabetav1.KafkaTopic{},
 		&imgv1.ImageStream{},
+		&keycloakv1alpha1.KeycloakUser{},
+		&keycloakv1alpha1.KeycloakClient{},
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -104,7 +108,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	for _, watchObject := range watchOwnedObjects {
 		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
 		if err != nil {
-			if framework.IsNoKindMatchError(kafkabetav1.SchemeGroupVersion.Group, err) {
+			if framework.IsNoKindMatchError(kafkabetav1.SchemeGroupVersion.Group, err) ||
+				framework.IsNoKindMatchError(keycloakv1alpha1.SchemeGroupVersion.Group, err) {
 				log.Warn("Tried to watch Kafka CRD, but failed. Maybe related Operators are not installed?")
 				continue
 			}
@@ -225,8 +230,8 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.KogitoDataIndex) (result *reconcile.Result, err error) {
 	log.Debug("Verify if we need to deploy Infinispan")
 
-	var updateForInfinispan, updateForKafka bool
-	var requeueForInfinispan, requeueForKafka time.Duration
+	var updateForInfinispan, updateForKafka, updateForKeycloak bool
+	var requeueForInfinispan, requeueForKafka, requeueForKeycloak time.Duration
 
 	if updateForInfinispan, requeueForInfinispan, err = infrastructure.DeployInfinispanWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
 		return nil, err
@@ -236,7 +241,13 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 		return nil, err
 	}
 
-	if updateForInfinispan || updateForKafka {
+	if instance.Spec.EnableSecurity {
+		if updateForKeycloak, requeueForKeycloak, err = infrastructure.DeployKeycloakWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
+			return nil, err
+		}
+	}
+
+	if updateForInfinispan || updateForKafka || updateForKeycloak {
 		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
 			return nil, err
 		}
@@ -245,6 +256,8 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 		return &reconcile.Result{RequeueAfter: requeueForInfinispan}, nil
 	} else if requeueForKafka > 0 {
 		return &reconcile.Result{RequeueAfter: requeueForKafka}, nil
+	} else if requeueForKeycloak > 0 {
+		return &reconcile.Result{RequeueAfter: requeueForKeycloak}, nil
 	}
 
 	return nil, nil
@@ -269,6 +282,16 @@ func getKubernetesResources(resources *resource.KogitoDataIndexResources) []util
 	}
 	if resources.ImageStream != nil {
 		k8sRes = append(k8sRes, resources.ImageStream)
+	}
+	if resources.KeycloakUsers != nil && len(resources.KeycloakUsers) > 0 {
+		for _, u := range resources.KeycloakUsers {
+			k8sRes = append(k8sRes, u)
+		}
+	}
+	if resources.KeycloakClients != nil && len(resources.KeycloakClients) > 0 {
+		for _, c := range resources.KeycloakClients {
+			k8sRes = append(k8sRes, c)
+		}
 	}
 
 	return k8sRes

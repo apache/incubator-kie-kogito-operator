@@ -91,6 +91,7 @@ func newDeployment(instance *v1alpha1.KogitoDataIndex, infinispanSecret *corev1.
 	// add configurable environment variables to the container
 	infrastructure.SetInfinispanVariables(instance.Spec.InfinispanProperties, infinispanSecret, &deployment.Spec.Template.Spec.Containers[0])
 	setKafkaVariables(kafkaExternalURI, &deployment.Spec.Template.Spec.Containers[0])
+	infrastructure.SetKeycloakVariables(instance.Spec.KeycloakProperties, clientID, secret, &deployment.Spec.Template.Spec.Containers[0])
 	framework.SetEnvVar(DataIndexEnvKeyHTTPPort, strconv.Itoa(int(httpPort)), &deployment.Spec.Template.Spec.Containers[0])
 
 	// metadata information

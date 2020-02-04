@@ -172,3 +172,55 @@ func (k *KafkaMeta) AreKafkaPropertiesBlank() bool {
 		len(k.KafkaProperties.Instance) == 0 &&
 		!k.KafkaProperties.UseKogitoInfra
 }
+
+// KeycloakConnectionProperties has the data needed to connect to a Keycloak cluster
+type KeycloakConnectionProperties struct {
+	// +optional
+	// Keycloak
+	Keycloak string `json:"keycloak,omitempty"`
+
+	// +optional
+	// KeycloakRealm
+	KeycloakRealm string `json:"keycloakRealm,omitempty"`
+
+	// +optional
+	// AuthServerURL
+	AuthServerURL string `json:"authServerUrl,omitempty"`
+
+	// +optional
+	// RealmName
+	RealmName string `json:"realmName,omitempty"`
+
+	// +optional
+	// Labels
+	Labels map[string]string `json:"labels,omitempty"`
+}
+
+// KeycloakMeta defines a structure for specs that need KeycloakProperties integration
+type KeycloakMeta struct {
+	// +optional
+	// KeycloakProperties has the data used by the service to connect to the Keycloak cluster.
+	KeycloakProperties KeycloakConnectionProperties `json:"keycloak,omitempty"`
+
+	// +optional
+	// EnableSecurity
+	EnableSecurity bool `json:"enableSecurity,omitempty"`
+}
+
+// KeycloakAware defines a spec with KeycloakProperties awareness
+type KeycloakAware interface {
+	// GetKeycloakProperties ...
+	GetKeycloakProperties() KeycloakConnectionProperties
+	// SetKeycloakProperties ...
+	SetKeycloakProperties(props KeycloakConnectionProperties)
+}
+
+// GetKeycloakProperties ...
+func (k *KeycloakMeta) GetKeycloakProperties() KeycloakConnectionProperties {
+	return k.KeycloakProperties
+}
+
+// SetKeycloakProperties ...
+func (k *KeycloakMeta) SetKeycloakProperties(props KeycloakConnectionProperties) {
+	k.KeycloakProperties = props
+}

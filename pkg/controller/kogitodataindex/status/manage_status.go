@@ -171,6 +171,11 @@ func checkDependenciesStatus(instance *v1alpha1.KogitoDataIndex, client *client.
 	if kafka, err := resource.IsKafkaServerURIResolved(instance, client); !kafka || err != nil {
 		deps = append(deps, v1alpha1.DataIndexDependenciesStatusMissingKafka)
 	}
+	if instance.Spec.EnableSecurity {
+		if keycloak, err := resource.IsKeycloakReady(instance, client); !keycloak || err != nil {
+			deps = append(deps, v1alpha1.DataIndexDependenciesStatusMissingKeycloak)
+		}
+	}
 
 	if len(deps) == 0 {
 		deps = append(deps, v1alpha1.DataIndexDependenciesStatusOK)

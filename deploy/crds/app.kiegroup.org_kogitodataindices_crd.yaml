@@ -35,6 +35,9 @@ spec:
             cpuRequest:
               description: CPURequest is the request of CPU for the container
               type: string
+            enableSecurity:
+              description: EnableSecurity
+              type: boolean
             env:
               additionalProperties:
                 type: string
@@ -122,6 +125,28 @@ spec:
                     Set this to false and fill other properties to provide your own
                     infrastructure
                   type: boolean
+              type: object
+            keycloak:
+              description: KeycloakProperties has the data used by the service to
+                connect to the Keycloak cluster.
+              properties:
+                authServerUrl:
+                  description: AuthServerURL
+                  type: string
+                keycloak:
+                  description: Keycloak
+                  type: string
+                keycloakRealm:
+                  description: KeycloakRealm
+                  type: string
+                labels:
+                  additionalProperties:
+                    type: string
+                  description: Labels
+                  type: object
+                realmName:
+                  description: RealmName
+                  type: string
               type: object
             memoryLimit:
               description: MemoryLimit is the limit of Memory for the container

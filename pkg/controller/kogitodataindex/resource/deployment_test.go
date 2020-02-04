@@ -53,8 +53,8 @@ func Test_DeploymentSetShouldHaveProtoBufEnvVars(t *testing.T) {
 	assert.NotNil(t, deployment.Annotations[imgKey])
 	assert.Contains(t, deployment.Annotations[imgKey], "data-index")
 
-	assert.Equal(t, "true", framework.GetEnvVarFromContainer(protoBufKeyWatch, deployment.Spec.Template.Spec.Containers[0]))
-	assert.Equal(t, defaultProtobufMountPath, framework.GetEnvVarFromContainer(protoBufKeyFolder, deployment.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, "true", framework.GetEnvVarFromContainer(protoBufKeyWatch, &deployment.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, defaultProtobufMountPath, framework.GetEnvVarFromContainer(protoBufKeyFolder, &deployment.Spec.Template.Spec.Containers[0]))
 
 	// since we don't have a CM anymore, the deployment should not mount the folder, thus the watch should be set to false
 	err = kubernetes.ResourceC(cli).Delete(cm)
@@ -64,6 +64,6 @@ func Test_DeploymentSetShouldHaveProtoBufEnvVars(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, deployment)
 
-	assert.Equal(t, "false", framework.GetEnvVarFromContainer(protoBufKeyWatch, deployment.Spec.Template.Spec.Containers[0]))
-	assert.Equal(t, "", framework.GetEnvVarFromContainer(protoBufKeyFolder, deployment.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, "false", framework.GetEnvVarFromContainer(protoBufKeyWatch, &deployment.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, "", framework.GetEnvVarFromContainer(protoBufKeyFolder, &deployment.Spec.Template.Spec.Containers[0]))
 }

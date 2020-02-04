@@ -57,7 +57,7 @@ type KogitoInfraStatus struct {
 	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
 	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
 	Kafka      InfraComponentInstallStatusType `json:"kafka,omitempty"`
-	Keycloak   InfraComponentInstallStatusType `json:"keycloak,omitempty"`
+	Keycloak   KeycloakInstallStatus           `json:"keycloak,omitempty"`
 }
 
 /*
@@ -77,6 +77,12 @@ type KogitoInfraCondition struct {
 type InfinispanInstallStatus struct {
 	InfraComponentInstallStatusType `json:",inline"`
 	CredentialSecret                string `json:"credentialSecret,omitempty"`
+}
+
+// KeycloakInstallStatus defines the Keycloak installation status
+type KeycloakInstallStatus struct {
+	InfraComponentInstallStatusType `json:",inline"`
+	RealmStatus                     InfraComponentInstallStatusType `json:"RealmStatus,omitempty"`
 }
 
 // InstallCondition defines the installation condition for the infrastructure actor
