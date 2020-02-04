@@ -10,3 +10,4 @@ spec:
   installKafka: false
   # set to true if a Keycloak instance should be installed in the namespace via Keycloak Operator
   installKeycloak: false
+status: {}

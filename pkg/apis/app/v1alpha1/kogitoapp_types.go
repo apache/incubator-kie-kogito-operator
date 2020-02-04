@@ -107,10 +107,13 @@ type Env struct {
 
 // KogitoAppBuildObject Data to define how to build an application from source
 // +k8s:openapi-gen=true
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Service Build"
 type KogitoAppBuildObject struct {
 	Incremental bool `json:"incremental,omitempty"`
 	// +listType=map
 	// +listMapKey=name
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Env Variables"
 	Env       []Env      `json:"env,omitempty"`
 	GitSource *GitSource `json:"gitSource"`
 	// WebHook secrets for build configs
@@ -118,6 +121,8 @@ type KogitoAppBuildObject struct {
 	// +listMapKey=type
 	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
 	// + optional
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Images Version"
 	// Image version for the Kogito official images used during the build. E.g.: 0.6.0. Default to current Operator version.
 	ImageVersion string `json:"imageVersion,omitempty"`
 	// Custom image used by the source to image process to build the Kogito Service binaries. Takes precedence over ImageVersion attribute.
@@ -129,6 +134,9 @@ type KogitoAppBuildObject struct {
 	// +kubebuilder:validation:Pattern=`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))`
 	ImageRuntimeTag string `json:"imageRuntimeTag,omitempty"`
 	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus. For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Native Build"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	Native bool `json:"native,omitempty"`
 	// Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.
 	Resources Resources `json:"resources,omitempty"`
@@ -143,12 +151,19 @@ type KogitoAppServiceObject struct {
 
 // GitSource Git coordinates to locate the source code to build
 // +k8s:openapi-gen=true
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Git Source"
 type GitSource struct {
 	// Git URI for the s2i source
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="URI"
 	URI *string `json:"uri"`
 	// Branch to use in the Git repository
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Reference"
 	Reference string `json:"reference,omitempty"`
 	// Context/subdirectory where the code is located, relative to the repo root
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Context"
 	ContextDir string `json:"contextDir,omitempty"`
 }
 
@@ -289,6 +304,14 @@ type Builds struct {
 // KogitoApp is the Schema for the kogitoapps API
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoapps,scope=Namespaced
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Service"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="DeploymentConfigs,apps.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStreams,image.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="BuildConfigs,build.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMaps,v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="ServiceMonitors,monitoring.coreos.com/v1"
 type KogitoApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -31,6 +31,7 @@ type KogitoJobsServiceSpec struct {
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:podCount"
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=1
 	Replicas int32 `json:"replicas"`
@@ -38,30 +39,32 @@ type KogitoJobsServiceSpec struct {
 	// +optional
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Envs []corev1.EnvVar `json:"envs,omitempty"`
 
 	// +optional
 	// Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest
 	// Defaults to quay.io/kiegroup/kogito-jobs-service:latest
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Image Image `json:"image,omitempty"`
 
 	// Defined Resources for the Jobs Service
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Resources"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.description="Resources"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// +optional
 	// Retry backOff time in milliseconds between the job execution attempts, in case of execution failure.
 	// Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	BackOffRetryMillis int64 `json:"backOffRetryMillis,omitempty"`
 
 	// +optional
 	// Maximum interval in milliseconds when retrying to execute jobs, in case of failures.
 	// Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	MaxIntervalLimitToRetryMillis int64 `json:"maxIntervalLimitToRetryMillis,omitempty"`
 }
 
@@ -72,10 +75,14 @@ type KogitoJobsServiceStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// DeploymentStatus is the detailed status for the Jobs Service deployment
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	DeploymentStatus appsv1.DeploymentStatus `json:"deploymentStatus,omitempty"`
 	// Image is the resolved image for this service
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	Image string `json:"image,omitempty"`
 	// URI is where the service is exposed
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
 	ExternalURI string `json:"externalURI,omitempty"`
 }
 
@@ -84,6 +91,11 @@ type KogitoJobsServiceStatus struct {
 // KogitoJobsService is the Schema for the kogitojobsservices API
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitojobsservices,scope=Namespaced
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Jobs Services"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStreams,image.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
 type KogitoJobsService struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
