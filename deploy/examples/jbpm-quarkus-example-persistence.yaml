@@ -5,9 +5,6 @@ metadata:
 spec:
   build:
     env:
-      # this value is just an example, set yours (optional)
-      - name: MAVEN_MIRROR_URL
-        value: "http://nexus3.nexus.svc.cluster.local:8081/repository/maven-public/"
      # enable persistence
       - name: MAVEN_ARGS_APPEND
         value: "-Ppersistence"
@@ -16,3 +13,5 @@ spec:
       uri: 'https://github.com/kiegroup/kogito-examples'
       reference: 0.7.0
     imageVersion: 0.7.0
+    # set your maven nexus repository
+    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/

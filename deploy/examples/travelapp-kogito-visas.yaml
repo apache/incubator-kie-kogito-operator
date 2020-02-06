@@ -17,8 +17,5 @@ spec:
       contextDir: 05-kogito-visas
       uri: https://github.com/mswiderski/kogito-travel-agency-tutorial/
     imageVersion: 0.7.0
-    env:
-      # optional, but will improve your build time quite a lot
-      - name: MAVEN_MIRROR_URL
-        # choose your own
-        value: "http://nexus3.nexus.svc.cluster.local:8081/repository/maven-public/"
+    # set your maven nexus repository
+    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/

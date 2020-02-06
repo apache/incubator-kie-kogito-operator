@@ -45,6 +45,7 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 				Resources: v1alpha1.Resources{
 					Limits: DefaultBuildS2IJVMLimits,
 				},
+				MavenMirrorURL: "https://localhost.nexus:8080/public",
 			},
 		},
 	}
@@ -53,6 +54,7 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "false"})
 	assert.NotContains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "true"})
+	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: mavenMirrorURLEnvVar, Value: "https://localhost.nexus:8080/public"})
 	assert.Contains(t, bcRuntime.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType])
 	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
@@ -106,6 +108,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 				Resources: v1alpha1.Resources{
 					Limits: DefaultBuildS2INativeLimits,
 				},
+				MavenMirrorURL: "https://localhost.nexus:8080/public",
 			},
 		},
 	}
@@ -117,6 +120,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 	assert.NotNil(t, bcRuntime)
 
 	assert.Contains(t, bcS2I.Spec.Output.To.Name, BuildS2INameSuffix)
+	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: mavenMirrorURLEnvVar, Value: "https://localhost.nexus:8080/public"})
 	assert.NotContains(t, bcRuntime.Spec.Output.To.Name, BuildS2INameSuffix)
 	assert.Len(t, bcRuntime.Spec.Triggers, 1)
 	assert.Len(t, bcS2I.Spec.Triggers, 0)

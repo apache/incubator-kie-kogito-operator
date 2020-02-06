@@ -8,9 +8,6 @@ spec:
     installKafka: Always
   build:
     env:
-    - name: MAVEN_MIRROR_URL
-      # choose your own
-      value: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
     - name: MAVEN_ARGS_APPEND
       value: -pl kogito-kafka-quickstart-quarkus -am
     - name: ARTIFACT_DIR
@@ -20,6 +17,8 @@ spec:
       uri: https://github.com/kiegroup/kogito-quickstarts
     imageVersion: 0.7.0
     resources: {}
+    # set your maven nexus repository
+    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   env:
   # those blank env is needed until we have Quarkus reading them without explicit definition
   - name: MP_MESSAGING_INCOMING_TRAVELLERS_BOOTSTRAP_SERVERS

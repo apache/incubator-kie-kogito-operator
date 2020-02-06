@@ -80,6 +80,10 @@ spec:
                   type: string
                 incremental:
                   type: boolean
+                mavenMirrorURL:
+                  description: Internal Maven Mirror to be used during source-to-image
+                    builds to considerably increase build speed
+                  type: string
                 native:
                   description: Native indicates if the Kogito Service built should
                     be compiled to run on native mode when Runtime is Quarkus. For

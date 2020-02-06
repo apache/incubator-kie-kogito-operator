@@ -35,6 +35,7 @@ const (
 	nativeBuildEnvVarKey         = "NATIVE"
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
+	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
 )
 
 var (
@@ -94,11 +95,17 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
 	}
+
 	limitCPU, limitMemory := getBCS2ILimitsAsIntString(buildConfig)
 	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitCPUEnvVarKey, Value: limitCPU})
 	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: limitMemory})
 
 	imageName := resolveImageStreamTagNameForBuilds(kogitoApp, kogitoApp.Spec.Build.ImageS2ITag, BuildTypeS2I)
+
+	if len(kogitoApp.Spec.Build.MavenMirrorURL) > 0 {
+		log.Infof("Setting maven mirror url to %s", kogitoApp.Spec.Build.MavenMirrorURL)
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
+	}
 
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
