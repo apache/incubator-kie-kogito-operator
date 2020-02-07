@@ -85,9 +85,9 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 			},
 		},
 	}
-	client := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
 	r := &ReconcileKogitoDataIndex{
-		client: client,
+		client: cli,
 		scheme: meta.GetRegisteredSchema(),
 	}
 	req := reconcile.Request{
@@ -107,7 +107,7 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 	}
 
 	// check infra
-	infra, ready, err := infrastructure.EnsureKogitoInfra(ns, client).WithInfinispan().Apply()
+	infra, ready, err := infrastructure.EnsureKogitoInfra(ns, cli).WithInfinispan().Apply()
 	assert.NoError(t, err)
 	assert.False(t, ready)  // we don't have status defined since the KogitoInfra controller is not running
 	assert.NotNil(t, infra) // we have a infra instance created during reconciliation phase
@@ -141,9 +141,9 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 		},
 	}
 
-	client := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
 	r := &ReconcileKogitoDataIndex{
-		client: client,
+		client: cli,
 		scheme: meta.GetRegisteredSchema(),
 	}
 	req := reconcile.Request{
@@ -157,35 +157,47 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	_, err := r.Reconcile(req)
 	assert.NoError(t, err)
 
-	// make sure HTTPPort env was added on the statefulSet
-	statefulset := &appsv1.StatefulSet{}
-	kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, statefulset)
+	// make sure HTTPPort env was added on the deployment
+	deployment := &appsv1.Deployment{}
+	exists, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
+	assert.True(t, exists)
+	assert.NoError(t, err)
 
 	// make sure that the http port was correctly added.
-	assert.Contains(t, statefulset.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 		Name:  resource.DataIndexEnvKeyHTTPPort,
 		Value: "9090",
 	})
 
-	// TODO when  this jira is fixed https://issues.redhat.com/browse/KOGITO-829 add tests for env, probes and container port
+	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort)
+	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port.IntVal)
+	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port.IntVal)
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace},
+	}
+	exists, err = kubernetes.ResourceC(cli).Fetch(service)
+	assert.True(t, exists)
+	assert.NoError(t, err)
+	assert.Equal(t, int32(9090), service.Spec.Ports[0].TargetPort.IntVal)
 
 	// update the route
 	// reconcile and test
 	// compare the route http port
 	routeFromResource := &routev1.Route{}
-	routeFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeFromResource)
+	routeFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeFromResource)
 	assert.NoError(t, err)
 	assert.True(t, routeFound)
 	// update http port on the given route
 	routeFromResource.Spec.Port.TargetPort.IntVal = 4000
-	err = kubernetes.ResourceC(client).Update(routeFromResource)
+	err = kubernetes.ResourceC(cli).Update(routeFromResource)
 	assert.NoError(t, err)
 	// reconcile
 	_, err = r.Reconcile(req)
 	assert.NoError(t, err)
 	// get the route after reconcile
 	routeAfterReconcile := &routev1.Route{}
-	routeAfterReconcileFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeAfterReconcile)
+	routeAfterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeAfterReconcile)
 	assert.True(t, routeAfterReconcileFound)
 	assert.NoError(t, err)
 	//fmt.Println(routeAfterReconcile)
@@ -196,21 +208,21 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	// reconcile and test
 	// compare the service http and target port
 	serviceFromResource := &corev1.Service{}
-	serviceFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceFromResource)
+	serviceFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceFromResource)
 	assert.True(t, serviceFound)
 	assert.NoError(t, err)
 	//fmt.Println(serviceFromResource)
 	// update ports
 	serviceFromResource.Spec.Ports[0].Port = 4000
 	serviceFromResource.Spec.Ports[0].TargetPort = intstr.FromString("4000")
-	err = kubernetes.ResourceC(client).Update(serviceFromResource)
+	err = kubernetes.ResourceC(cli).Update(serviceFromResource)
 	assert.NoError(t, err)
 	// reconcile
 	_, err = r.Reconcile(req)
 	assert.NoError(t, err)
 	// get the service after reconcile
 	serviceAfterReconcile := &corev1.Service{}
-	servicefterReconcileFound, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceAfterReconcile)
+	servicefterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceAfterReconcile)
 	assert.True(t, servicefterReconcileFound)
 	assert.NoError(t, err)
 	//fmt.Println(serviceAfterReconcile)
@@ -220,7 +232,7 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 }
 
 func Test_getKubernetesResources(t *testing.T) {
-	ss := &appsv1.StatefulSet{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "ss1",
@@ -267,13 +279,13 @@ func Test_getKubernetesResources(t *testing.T) {
 			"GetKubernetesResources",
 			args{
 				&resource.KogitoDataIndexResources{
-					StatefulSet: ss,
+					Deployment:  deployment,
 					Service:     svc,
 					Route:       rt,
 					KafkaTopics: []*kafkabetav1.KafkaTopic{kt1, kt2},
 				},
 			},
-			[]utilsres.KubernetesResource{ss, svc, rt, kt1, kt2},
+			[]utilsres.KubernetesResource{deployment, svc, rt, kt1, kt2},
 		},
 	}
 	for _, tt := range tests {
@@ -286,18 +298,17 @@ func Test_getKubernetesResources(t *testing.T) {
 }
 
 func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
-	ssStatus := appsv1.StatefulSetStatus{
-		Replicas:        1,
-		ReadyReplicas:   1,
-		CurrentRevision: "12345",
+	deploymentStatus := appsv1.DeploymentStatus{
+		Replicas:      1,
+		ReadyReplicas: 1,
 	}
 
-	ss := &appsv1.StatefulSet{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "ss1",
 		},
-		Status: ssStatus,
+		Status: deploymentStatus,
 	}
 
 	svcStatus := corev1.ServiceStatus{
@@ -355,7 +366,7 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 		{
 			"updateStatus",
 			fields{
-				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+				test.CreateFakeClient([]runtime.Object{deployment, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
 							HTTPPort: 8080,
@@ -391,15 +402,15 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 					},
 				},
 				&resource.KogitoDataIndexResources{
-					StatefulSet: ss,
-					Service:     svc,
-					Route:       rt,
+					Deployment: deployment,
+					Service:    svc,
+					Route:      rt,
 				},
 				&resourcesNoUpdate,
 				&noErr,
 			},
 			&v1alpha1.KogitoDataIndexStatus{
-				DeploymentStatus: ssStatus,
+				DeploymentStatus: deploymentStatus,
 				ServiceStatus:    svcStatus,
 				Route:            "http://test",
 				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{
@@ -417,7 +428,7 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 		{
 			"resourceUpdate",
 			fields{
-				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+				test.CreateFakeClient([]runtime.Object{deployment, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
 							HTTPPort: 9090,
@@ -453,15 +464,15 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 					},
 				},
 				&resource.KogitoDataIndexResources{
-					StatefulSet: ss,
-					Service:     svc,
-					Route:       rt,
+					Deployment: deployment,
+					Service:    svc,
+					Route:      rt,
 				},
 				&resourcesUpdate,
 				&noErr,
 			},
 			&v1alpha1.KogitoDataIndexStatus{
-				DeploymentStatus: ssStatus,
+				DeploymentStatus: deploymentStatus,
 				ServiceStatus:    svcStatus,
 				Route:            "http://test",
 				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{
@@ -479,7 +490,7 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 		{
 			"reconcileError",
 			fields{
-				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+				test.CreateFakeClient([]runtime.Object{deployment, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
 							InfinispanMeta: v1alpha1.InfinispanMeta{
@@ -514,15 +525,15 @@ func TestReconcileKogitoDataIndex_updateStatus(t *testing.T) {
 					},
 				},
 				&resource.KogitoDataIndexResources{
-					StatefulSet: ss,
-					Service:     svc,
-					Route:       rt,
+					Deployment: deployment,
+					Service:    svc,
+					Route:      rt,
 				},
 				&resourcesNoUpdate,
 				&err,
 			},
 			&v1alpha1.KogitoDataIndexStatus{
-				DeploymentStatus: ssStatus,
+				DeploymentStatus: deploymentStatus,
 				ServiceStatus:    svcStatus,
 				Route:            "http://test",
 				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{

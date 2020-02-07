@@ -16,6 +16,8 @@ package resource
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
@@ -37,14 +39,12 @@ const (
 	kafkaTopicConfigSegmentValue   string = "1073741824"
 )
 
-func fromKafkaToStringMap(externalURI string) map[string]string {
-	propsmap := map[string]string{}
+func setKafkaVariables(externalURI string, container *corev1.Container) {
 	if len(externalURI) > 0 {
 		for _, envKey := range managedKafkaKeys {
-			propsmap[envKey] = externalURI
+			framework.SetEnvVar(envKey, externalURI, container)
 		}
 	}
-	return propsmap
 }
 
 // IsKafkaServerURIResolved checks if the URI of the Kafka server is provided or resolvable in the namespace

@@ -175,6 +175,9 @@ spec:
       - kind: ConfigMaps
         name: ""
         version: v1
+      - kind: Deployments
+        name: ""
+        version: apps/v1
       - kind: KafkaTopics
         name: ""
         version: kafka.strimzi.io/v1beta1
@@ -184,9 +187,6 @@ spec:
       - kind: Services
         name: ""
         version: v1
-      - kind: Statefulsets
-        name: ""
-        version: apps/v1
       specDescriptors:
       - description: CPULimit is the limit of CPU for the container
         displayName: CPU Limit

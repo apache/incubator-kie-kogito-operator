@@ -52,36 +52,3 @@ func extractResources(instance *v1alpha1.KogitoDataIndex) corev1.ResourceRequire
 
 	return resources
 }
-
-// removeManagyedEnvVars will remove any managed environment variable from KogitoDataIndex.Spec.Env. Users don't supposed to add managed env vars to the dataindex directly.
-func removeManagedEnvVars(instance *v1alpha1.KogitoDataIndex) {
-	for _, key := range managedEnvKeys {
-		delete(instance.Spec.Env, key)
-	}
-}
-
-// extractManagedEnvVars removes managed env vars from a given container and return them
-func extractManagedEnvVars(container *corev1.Container) []corev1.EnvVar {
-	managedEnvs := []corev1.EnvVar{}
-	nonManagedEnvs := []corev1.EnvVar{}
-	isManaged := false
-
-	for _, env := range container.Env {
-		for _, managed := range managedEnvKeys {
-			if managed == env.Name {
-				managedEnvs = append(managedEnvs, env)
-				isManaged = true
-				break
-			}
-		}
-		if !isManaged {
-			nonManagedEnvs = append(nonManagedEnvs, env)
-		} else {
-			isManaged = false
-		}
-	}
-
-	container.Env = nonManagedEnvs
-
-	return managedEnvs
-}

@@ -33,8 +33,8 @@ func TestFromStringToImage(t *testing.T) {
 		{"with registry name", args{"quay.io/openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}},
 		{"full name", args{"openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}},
 		{"namespace empty", args{"myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}},
-		{"tag empty", args{"myimage"}, v1alpha1.Image{Name: "myimage", Tag: "", Namespace: "", Domain: ""}},
-		{"tag empty with a trick", args{"myimage:"}, v1alpha1.Image{Name: "myimage", Tag: "", Namespace: "", Domain: ""}},
+		{"tag empty", args{"myimage"}, v1alpha1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
+		{"tag empty with a trick", args{"myimage:"}, v1alpha1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
 		{"just tag", args{":1.0"}, v1alpha1.Image{Name: "", Tag: "1.0", Namespace: "", Domain: ""}},
 	}
 	for _, tt := range tests {

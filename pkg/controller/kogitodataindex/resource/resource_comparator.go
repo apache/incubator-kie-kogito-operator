@@ -17,7 +17,9 @@ package resource
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
 )
@@ -32,7 +34,7 @@ func GetComparator() compare.MapComparator {
 			WithType(reflect.TypeOf(v1.Service{})).
 			WithCustomComparator(framework.CreateServiceComparator()).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.
@@ -40,7 +42,20 @@ func GetComparator() compare.MapComparator {
 			WithType(reflect.TypeOf(routev1.Route{})).
 			WithCustomComparator(framework.CreateRouteComparator()).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
+
+	resourceComparator.SetComparator(
+		framework.NewComparatorBuilder().
+			WithType(reflect.TypeOf(appsv1.Deployment{})).
+			UseDefaultComparator().
+			Build())
+
+	resourceComparator.SetComparator(
+		framework.NewComparatorBuilder().
+			WithType(reflect.TypeOf(imgv1.ImageStream{})).
+			UseDefaultComparator().
+			WithCustomComparator(framework.CreateImageStreamComparator()).
+			Build())
 
 	return compare.MapComparator{Comparator: resourceComparator}
 }

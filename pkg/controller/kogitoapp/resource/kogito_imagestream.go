@@ -17,7 +17,6 @@ package resource
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/version"
 	v1 "k8s.io/api/core/v1"
 	"strings"
 
@@ -29,24 +28,22 @@ import (
 	imgv1 "github.com/openshift/api/image/v1"
 )
 
-const (
-	// KogitoQuarkusUbi8Image quarkus runtime builder image
-	KogitoQuarkusUbi8Image = "kogito-quarkus-ubi8"
-	// KogitoQuarkusJVMUbi8Image quarkus jvm runtime builder image
-	KogitoQuarkusJVMUbi8Image = "kogito-quarkus-jvm-ubi8"
-	// KogitoQuarkusUbi8s2iImage quarkus s2i builder image
-	KogitoQuarkusUbi8s2iImage = "kogito-quarkus-ubi8-s2i"
-	// KogitoSpringbootUbi8Image springboot runtime builder image
-	KogitoSpringbootUbi8Image = "kogito-springboot-ubi8"
-	// KogitoSpringbootUbi8s2iImage springboot s2i builder image
-	KogitoSpringbootUbi8s2iImage = "kogito-springboot-ubi8-s2i"
-	// KogitoDataIndexImage data index image
-	KogitoDataIndexImage = "kogito-data-index"
-)
+// KogitoQuarkusUbi8Image quarkus runtime builder image
+const KogitoQuarkusUbi8Image = "kogito-quarkus-ubi8"
+
+// KogitoQuarkusJVMUbi8Image quarkus jvm runtime builder image
+const KogitoQuarkusJVMUbi8Image = "kogito-quarkus-jvm-ubi8"
+
+// KogitoQuarkusUbi8s2iImage quarkus s2i builder image
+const KogitoQuarkusUbi8s2iImage = "kogito-quarkus-ubi8-s2i"
+
+// KogitoSpringbootUbi8Image springboot runtime builder image
+const KogitoSpringbootUbi8Image = "kogito-springboot-ubi8"
+
+// KogitoSpringbootUbi8s2iImage springboot s2i builder image
+const KogitoSpringbootUbi8s2iImage = "kogito-springboot-ubi8-s2i"
 
 var (
-	// ImageStreamTag default tag version for the ImageStreams
-	ImageStreamTag = version.Version
 	// ImageStreamNameList holds all kogito images, if one of them does not exists, it will be created
 	ImageStreamNameList = [...]string{
 		KogitoQuarkusUbi8Image,
@@ -54,7 +51,6 @@ var (
 		KogitoQuarkusUbi8s2iImage,
 		KogitoSpringbootUbi8Image,
 		KogitoSpringbootUbi8s2iImage,
-		KogitoDataIndexImage,
 	}
 )
 
@@ -114,7 +110,7 @@ func newImageStream(kogitoApp *v1alpha1.KogitoApp, tagRefName string) *imgv1.Ima
 
 // CreateCustomKogitoImageStream creates a ImageStreamList based on the given image tag. Breaks down the image tag to extract image name and version number.
 func CreateCustomKogitoImageStream(targetNamespace string, targetImageTag string) (imageList imgv1.ImageStreamList) {
-	_, _, imageName, tagVersion := framework.SplitImageTagWithLatest(targetImageTag)
+	_, _, imageName, tagVersion := framework.SplitImageTag(targetImageTag)
 	imageName = resolveCustomImageStreamName(imageName)
 	imageStream := imgv1.ImageStream{
 		ObjectMeta: metav1.ObjectMeta{
@@ -200,14 +196,6 @@ func CreateKogitoImageStream(kogitoApp *v1alpha1.KogitoApp, targetVersion string
 			tagAnnotations["tags"] = "builder,kogito,springboot"
 			tagAnnotations["supports"] = "springboot"
 			if kogitoApp.Spec.Runtime == v1alpha1.SpringbootRuntimeType {
-				create = true
-			}
-
-		case KogitoDataIndexImage:
-			imageStreamAnnotations["openshift.io/display-name"] = "Runtime image for the Kogito Data Index Service"
-			tagAnnotations["description"] = "Runtime image for the Kogito Data Index Service"
-			tagAnnotations["tags"] = "kogito,data-index"
-			if kogitoApp.Spec.Runtime == "" {
 				create = true
 			}
 		}

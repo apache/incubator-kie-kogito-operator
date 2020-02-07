@@ -34,7 +34,7 @@ func TestKogitoImageStreamGeneration(t *testing.T) {
 		},
 	}
 	itemsTest := CreateKogitoImageStream(kogitoApp, version.Version)
-	assert.Equal(t, 6, len(itemsTest.Items))
+	assert.Equal(t, 5, len(itemsTest.Items))
 
 	for _, item := range itemsTest.Items {
 		assert.Equal(t, "test", item.Namespace)
@@ -86,14 +86,6 @@ func TestKogitoImageStreamGeneration(t *testing.T) {
 			assert.Equal(t, "Platform for building Kogito based on SpringBoot", item.Spec.Tags[0].Annotations["description"])
 			assert.Equal(t, "builder,kogito,springboot", item.Spec.Tags[0].Annotations["tags"])
 			assert.Equal(t, "springboot", item.Spec.Tags[0].Annotations["supports"])
-			assert.Equal(t, imgv1.TagReferencePolicy{Type: imgv1.LocalTagReferencePolicy}, item.Spec.Tags[0].ReferencePolicy)
-			assert.Equal(t, "DockerImage", item.Spec.Tags[0].From.Kind)
-			assert.Equal(t, fmt.Sprintf("quay.io/kiegroup/%s:%s", item.Name, version.Version), item.Spec.Tags[0].From.Name)
-
-		case KogitoDataIndexImage:
-			assert.Equal(t, "Runtime image for the Kogito Data Index Service", item.Annotations["openshift.io/display-name"])
-			assert.Equal(t, "Runtime image for the Kogito Data Index Service", item.Spec.Tags[0].Annotations["description"])
-			assert.Equal(t, "kogito,data-index", item.Spec.Tags[0].Annotations["tags"])
 			assert.Equal(t, imgv1.TagReferencePolicy{Type: imgv1.LocalTagReferencePolicy}, item.Spec.Tags[0].ReferencePolicy)
 			assert.Equal(t, "DockerImage", item.Spec.Tags[0].From.Kind)
 			assert.Equal(t, fmt.Sprintf("quay.io/kiegroup/%s:%s", item.Name, version.Version), item.Spec.Tags[0].From.Name)

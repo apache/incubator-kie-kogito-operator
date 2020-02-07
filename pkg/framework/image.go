@@ -42,8 +42,8 @@ func ConvertImageTagToImage(imageTag string) v1alpha1.Image {
 	return image
 }
 
-// SplitImageTag breaks into parts a given tag name. For example, see https://regex101.com/r/1YX9rh/1.
-func SplitImageTag(imageTag string) (domain, namespace, name, tag string) {
+// splitImageTag
+func splitImageTag(imageTag string) (domain, namespace, name, tag string) {
 	domain = ""
 	namespace = ""
 	name = ""
@@ -67,9 +67,12 @@ func SplitImageTag(imageTag string) (domain, namespace, name, tag string) {
 	return
 }
 
-// SplitImageTagWithLatest same as SplitImageTag, but adds "latest" to the tag name if it's empty
-func SplitImageTagWithLatest(imageTag string) (domain, namespace, name, tag string) {
-	domain, namespace, name, tag = SplitImageTag(imageTag)
+// SplitImageTag breaks into parts a given tag name, adds "latest" to the tag name if it's empty. For example, see https://regex101.com/r/1YX9rh/1.
+func SplitImageTag(imageTag string) (domain, namespace, name, tag string) {
+	if len(imageTag) == 0 {
+		return
+	}
+	domain, namespace, name, tag = splitImageTag(imageTag)
 	if len(tag) == 0 {
 		tag = "latest"
 	}

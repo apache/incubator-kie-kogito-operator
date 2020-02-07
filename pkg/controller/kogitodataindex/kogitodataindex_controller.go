@@ -16,6 +16,7 @@ package kogitodataindex
 
 import (
 	"fmt"
+	imgv1 "github.com/openshift/api/image/v1"
 	"time"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -91,9 +92,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	watchOwnedObjects := []runtime.Object{
 		&corev1.Service{},
-		&appsv1.StatefulSet{},
+		&appsv1.Deployment{},
 		&routev1.Route{},
 		&kafkabetav1.KafkaTopic{},
+		&imgv1.ImageStream{},
 	}
 	ownerHandler := &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -251,8 +253,8 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 func getKubernetesResources(resources *resource.KogitoDataIndexResources) []utilsres.KubernetesResource {
 	var k8sRes []utilsres.KubernetesResource
 
-	if resources.StatefulSet != nil {
-		k8sRes = append(k8sRes, resources.StatefulSet)
+	if resources.Deployment != nil {
+		k8sRes = append(k8sRes, resources.Deployment)
 	}
 	if resources.Service != nil {
 		k8sRes = append(k8sRes, resources.Service)
@@ -264,6 +266,9 @@ func getKubernetesResources(resources *resource.KogitoDataIndexResources) []util
 		for _, r := range resources.KafkaTopics {
 			k8sRes = append(k8sRes, r)
 		}
+	}
+	if resources.ImageStream != nil {
+		k8sRes = append(k8sRes, resources.ImageStream)
 	}
 
 	return k8sRes

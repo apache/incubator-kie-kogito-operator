@@ -21,6 +21,7 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,10 +34,19 @@ func GetDeployedResources(instance *v1alpha1.KogitoDataIndex, client *client.Cli
 	map[reflect.Type][]resource.KubernetesResource, error) {
 
 	reader := read.New(client.ControlCli).WithNamespace(instance.Namespace).WithOwnerObject(instance)
-	objectTypes := []runtime.Object{
-		&appsv1.StatefulSetList{},
-		&corev1.ServiceList{},
-		&routev1.RouteList{},
+	var objectTypes []runtime.Object
+	if client.IsOpenshift() {
+		objectTypes = []runtime.Object{
+			&appsv1.DeploymentList{},
+			&corev1.ServiceList{},
+			&routev1.RouteList{},
+			&imgv1.ImageStreamList{},
+		}
+	} else {
+		objectTypes = []runtime.Object{
+			&appsv1.DeploymentList{},
+			&corev1.ServiceList{},
+		}
 	}
 
 	if infrastructure.IsStrimziAvailable(client) {

@@ -41,7 +41,7 @@ func TestCreateRequiredResources_OnOpenShift(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resources)
 	assert.Len(t, resources, 4)
-
+	annotationKeyImageTriggers, _ := framework.ResolveImageStreamTriggerAnnotation("", "")
 	deployment := framework.GetResource(reflect.TypeOf(appsv1.Deployment{}), instance.Name, resources).(*appsv1.Deployment)
 	assert.NotNil(t, deployment)
 	assert.Len(t, deployment.Annotations, 1)

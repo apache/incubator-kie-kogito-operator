@@ -18,7 +18,7 @@ require (
 	github.com/openshift/client-go v0.0.0-20190923180330-3b6373338c9b
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
-	github.com/operator-framework/operator-sdk v0.14.1
+	github.com/operator-framework/operator-sdk v0.15.1
 	github.com/prometheus/common v0.7.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
@@ -64,7 +64,5 @@ replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v12.2.0+inc
 
 // Required by Helm
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
-
-replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.14.1
 
 go 1.13

@@ -18,6 +18,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	imgv1 "github.com/openshift/api/image/v1"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -42,10 +43,8 @@ type ComparatorBuilder interface {
 	WithType(resourceType reflect.Type) ComparatorBuilder
 	// UseDefaultComparator defines if the comparator will delegate the comparision to inner comparators from Operator Utils
 	UseDefaultComparator() ComparatorBuilder
-	// Build creates the Comparator
-	Build() *Comparator
-	// BuildAsFunc creates the Comparator in the form of Operator Utils interface
-	BuildAsFunc() (reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool)
+	// Build creates the Comparator in the form of Operator Utils interface
+	Build() (reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool)
 }
 
 // NewComparatorBuilder creates a new comparator builder for comparision usages
@@ -86,7 +85,7 @@ func (c *comparatorBuilder) UseDefaultComparator() ComparatorBuilder {
 	return c
 }
 
-func (c *comparatorBuilder) Build() *Comparator {
+func (c *comparatorBuilder) Build() (reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool) {
 	c.comparator.CompFunc = func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		equal := true
 		// calls the first comparator defined by the caller
@@ -99,11 +98,6 @@ func (c *comparatorBuilder) Build() *Comparator {
 		}
 		return equal
 	}
-	return c.comparator
-}
-
-func (c *comparatorBuilder) BuildAsFunc() (reflect.Type, func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool) {
-	c.Build()
 	return c.comparator.ResourceType, c.comparator.CompFunc
 }
 
@@ -199,5 +193,20 @@ func CreateConfigMapComparator() func(deployed resource.KubernetesResource, requ
 		}
 
 		return true
+	}
+}
+
+// CreateImageStreamComparator creates a new ImageStream comparator
+func CreateImageStreamComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		img1 := deployed.(*imgv1.ImageStream)
+		img2 := requested.(*imgv1.ImageStream)
+
+		// lets check if the tag is presented in the deployed stream
+		for i := range img1.Spec.Tags {
+			img1.Spec.Tags[i].Generation = nil
+		}
+		// there's no tag!
+		return reflect.DeepEqual(img1.Spec.Tags, img2.Spec.Tags)
 	}
 }

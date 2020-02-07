@@ -44,7 +44,7 @@ var imageStreamTagAnnotations = map[string]string{
 
 var imageStreamAnnotations = map[string]string{
 	"openshift.io/provider-display-name": "Kie Group.",
-	"openshift.io/display-name":          "Runtime image for Kogito based on Quarkus native image",
+	"openshift.io/display-name":          "Kogito Jobs Service image",
 }
 
 // ImageResolver helps resolving image structure
