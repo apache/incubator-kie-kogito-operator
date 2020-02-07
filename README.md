@@ -64,8 +64,8 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ## Kogito Operator requirements
 
-- Go v1.12 is installed.
-- The [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.11.0 is installed.
+- Go v1.13 is installed.
+- The [operator-sdk](https://github.com/operator-framework/operator-sdk/releases) v0.15.1 is installed.
 - OpenShift 3.11 or 4.x is installed. (You can use [CRC](https://github.com/code-ready/crc) for local deployment.)
 
 ## Kogito Operator installation

@@ -27,7 +27,7 @@ import (
 	"testing"
 )
 
-func Test_StatefulSetShouldHaveProtoBufEnvVars(t *testing.T) {
+func Test_DeploymentSetShouldHaveProtoBufEnvVars(t *testing.T) {
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: "kogito-proto", Labels: map[string]string{infrastructure.ConfigMapProtoBufEnabledLabelKey: "true"}},
 		Data:       map[string]string{"myproto.proto": "import whatever; do whatever;"},
@@ -44,21 +44,26 @@ func Test_StatefulSetShouldHaveProtoBufEnvVars(t *testing.T) {
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{cm, dataIndex}, nil, nil)
-	ss, err := newStatefulset(dataIndex, nil, "", cli)
+	is := newImage(dataIndex)
+	deployment, err := newDeployment(dataIndex, nil, "", cli, is)
 	assert.NoError(t, err)
-	assert.NotNil(t, ss)
+	assert.NotNil(t, deployment)
 
-	assert.Equal(t, "true", framework.GetEnvVarFromContainer(protoBufKeyWatch, ss.Spec.Template.Spec.Containers[0]))
-	assert.Equal(t, defaultProtobufMountPath, framework.GetEnvVarFromContainer(protoBufKeyFolder, ss.Spec.Template.Spec.Containers[0]))
+	imgKey, _ := framework.ResolveImageStreamTriggerAnnotation("", "")
+	assert.NotNil(t, deployment.Annotations[imgKey])
+	assert.Contains(t, deployment.Annotations[imgKey], "data-index")
 
-	// since we don't have a CM anymore, the SS should not mount the folder, thus the watch should be set to false
+	assert.Equal(t, "true", framework.GetEnvVarFromContainer(protoBufKeyWatch, deployment.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, defaultProtobufMountPath, framework.GetEnvVarFromContainer(protoBufKeyFolder, deployment.Spec.Template.Spec.Containers[0]))
+
+	// since we don't have a CM anymore, the deployment should not mount the folder, thus the watch should be set to false
 	err = kubernetes.ResourceC(cli).Delete(cm)
 	assert.NoError(t, err)
 
-	ss, err = newStatefulset(dataIndex, nil, "", cli)
+	deployment, err = newDeployment(dataIndex, nil, "", cli, nil)
 	assert.NoError(t, err)
-	assert.NotNil(t, ss)
+	assert.NotNil(t, deployment)
 
-	assert.Equal(t, "false", framework.GetEnvVarFromContainer(protoBufKeyWatch, ss.Spec.Template.Spec.Containers[0]))
-	assert.Equal(t, "", framework.GetEnvVarFromContainer(protoBufKeyFolder, ss.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, "false", framework.GetEnvVarFromContainer(protoBufKeyWatch, deployment.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, "", framework.GetEnvVarFromContainer(protoBufKeyFolder, deployment.Spec.Template.Spec.Containers[0]))
 }

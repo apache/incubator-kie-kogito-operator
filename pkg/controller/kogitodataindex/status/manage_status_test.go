@@ -79,11 +79,11 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 			},
 		},
 	}
-	client := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
-	resources, err := resource.GetRequestedResources(instance, client)
+	cli := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
+	resources, err := resource.GetRequestedResources(instance, cli)
 	assert.NoError(t, err)
 
-	err = ManageStatus(instance, resources, false, false, client)
+	err = ManageStatus(instance, resources, false, false, cli)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.NotNil(t, instance.Status.Conditions)
@@ -92,7 +92,7 @@ func Test_ManageStatus_WhenTheresStatusChange(t *testing.T) {
 
 func Test_checkCurrentCondition(t *testing.T) {
 	type args struct {
-		statefulSet     *appsv1.StatefulSet
+		deployment      *appsv1.Deployment
 		service         *corev1.Service
 		resourcesUpdate bool
 		reconcileError  bool
@@ -105,7 +105,7 @@ func Test_checkCurrentCondition(t *testing.T) {
 		{
 			"ReconcileError",
 			args{
-				&appsv1.StatefulSet{},
+				&appsv1.Deployment{},
 				&corev1.Service{},
 				false,
 				true,
@@ -116,7 +116,7 @@ func Test_checkCurrentCondition(t *testing.T) {
 			},
 		},
 		{
-			"NoStatefulSet",
+			"NoDeployment",
 			args{
 				nil,
 				&corev1.Service{},
@@ -131,7 +131,7 @@ func Test_checkCurrentCondition(t *testing.T) {
 		{
 			"NoService",
 			args{
-				&appsv1.StatefulSet{},
+				&appsv1.Deployment{},
 				nil,
 				false,
 				false,
@@ -144,7 +144,7 @@ func Test_checkCurrentCondition(t *testing.T) {
 		{
 			"ResourcesUpdate",
 			args{
-				&appsv1.StatefulSet{},
+				&appsv1.Deployment{},
 				&corev1.Service{},
 				true,
 				false,
@@ -157,8 +157,8 @@ func Test_checkCurrentCondition(t *testing.T) {
 		{
 			"Provisioning",
 			args{
-				&appsv1.StatefulSet{
-					Status: appsv1.StatefulSetStatus{
+				&appsv1.Deployment{
+					Status: appsv1.DeploymentStatus{
 						ReadyReplicas: 0,
 						Replicas:      1,
 					},
@@ -175,8 +175,8 @@ func Test_checkCurrentCondition(t *testing.T) {
 		{
 			"OK",
 			args{
-				&appsv1.StatefulSet{
-					Status: appsv1.StatefulSetStatus{
+				&appsv1.Deployment{
+					Status: appsv1.DeploymentStatus{
 						ReadyReplicas: 1,
 						Replicas:      1,
 					},
@@ -193,7 +193,7 @@ func Test_checkCurrentCondition(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := checkCurrentCondition(tt.args.statefulSet, tt.args.service, tt.args.resourcesUpdate, tt.args.reconcileError); !reflect.DeepEqual(got.Condition, tt.want.Condition) || !reflect.DeepEqual(got.Message, tt.want.Message) {
+			if got := checkCurrentCondition(tt.args.deployment, tt.args.service, tt.args.resourcesUpdate, tt.args.reconcileError); !reflect.DeepEqual(got.Condition, tt.want.Condition) || !reflect.DeepEqual(got.Message, tt.want.Message) {
 				t.Errorf("checkCurrentCondition() = %v, want %v", got, tt.want)
 			}
 		})
@@ -201,18 +201,17 @@ func Test_checkCurrentCondition(t *testing.T) {
 }
 
 func TestManageStatus(t *testing.T) {
-	ssStatus := appsv1.StatefulSetStatus{
-		Replicas:        1,
-		ReadyReplicas:   1,
-		CurrentRevision: "12345",
+	deploymentStatus := appsv1.DeploymentStatus{
+		Replicas:      1,
+		ReadyReplicas: 1,
 	}
 
-	ss := &appsv1.StatefulSet{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "ss1",
 		},
-		Status: ssStatus,
+		Status: deploymentStatus,
 	}
 
 	svcStatus := corev1.ServiceStatus{
@@ -275,13 +274,13 @@ func TestManageStatus(t *testing.T) {
 					},
 				},
 				&resource.KogitoDataIndexResources{
-					StatefulSet: ss,
-					Service:     svc,
-					Route:       rt,
+					Deployment: deployment,
+					Service:    svc,
+					Route:      rt,
 				},
 				false,
 				false,
-				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+				test.CreateFakeClient([]runtime.Object{deployment, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
 							InfinispanMeta: v1alpha1.InfinispanMeta{
@@ -299,7 +298,7 @@ func TestManageStatus(t *testing.T) {
 					nil, nil),
 			},
 			&v1alpha1.KogitoDataIndexStatus{
-				DeploymentStatus: ssStatus,
+				DeploymentStatus: deploymentStatus,
 				ServiceStatus:    svcStatus,
 				Route:            "http://test",
 				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{
@@ -332,13 +331,13 @@ func TestManageStatus(t *testing.T) {
 					},
 				},
 				&resource.KogitoDataIndexResources{
-					StatefulSet: ss,
-					Service:     svc,
-					Route:       rt,
+					Deployment: deployment,
+					Service:    svc,
+					Route:      rt,
 				},
 				true,
 				false,
-				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+				test.CreateFakeClient([]runtime.Object{deployment, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
 							InfinispanMeta: v1alpha1.InfinispanMeta{
@@ -356,7 +355,7 @@ func TestManageStatus(t *testing.T) {
 					nil, nil),
 			},
 			&v1alpha1.KogitoDataIndexStatus{
-				DeploymentStatus: ssStatus,
+				DeploymentStatus: deploymentStatus,
 				ServiceStatus:    svcStatus,
 				Route:            "http://test",
 				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{
@@ -389,13 +388,13 @@ func TestManageStatus(t *testing.T) {
 					},
 				},
 				&resource.KogitoDataIndexResources{
-					StatefulSet: ss,
-					Service:     svc,
-					Route:       rt,
+					Deployment: deployment,
+					Service:    svc,
+					Route:      rt,
 				},
 				false,
 				true,
-				test.CreateFakeClient([]runtime.Object{ss, svc, rt,
+				test.CreateFakeClient([]runtime.Object{deployment, svc, rt,
 					&v1alpha1.KogitoDataIndex{
 						Spec: v1alpha1.KogitoDataIndexSpec{
 							InfinispanMeta: v1alpha1.InfinispanMeta{
@@ -413,7 +412,7 @@ func TestManageStatus(t *testing.T) {
 					nil, nil),
 			},
 			&v1alpha1.KogitoDataIndexStatus{
-				DeploymentStatus: ssStatus,
+				DeploymentStatus: deploymentStatus,
 				ServiceStatus:    svcStatus,
 				Route:            "http://test",
 				DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{

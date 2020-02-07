@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	// DefaultImage is the default image name for the Kogito Data Index Service
-	DefaultImage = "quay.io/kiegroup/kogito-data-index:latest"
+	// DefaultDataIndexImage is the default image name for the Kogito Data Index Service
+	DefaultDataIndexImage = "quay.io/kiegroup/kogito-data-index:latest"
 	// DefaultDataIndexName is the default name for the Data Index instance service
 	DefaultDataIndexName = "kogito-data-index"
 	// defaultLabelKey is the default label key that should be added to all resources

@@ -56,11 +56,10 @@ import (
 )
 
 var (
-	cpuResource    = v1alpha1.ResourceCPU
-	memoryResource = v1alpha1.ResourceMemory
-	cpuValue       = "1"
-	gitURL         = "https://github.com/kiegroup/kogito-examples/"
-	cr             = v1alpha1.KogitoApp{
+	cpuResource = v1alpha1.ResourceCPU
+	cpuValue    = "1"
+	gitURL      = "https://github.com/kiegroup/kogito-examples/"
+	cr          = v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "test",
@@ -182,19 +181,8 @@ func createFakeImages(kogitoAppName string, runtimeLabels map[string]string) []r
 			},
 		},
 	}
-	image6 := imgv1.ImageStreamTag{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s:%s", kogitores.KogitoDataIndexImage, "0.4.0"),
-			Namespace: "test",
-		},
-		Image: imgv1.Image{
-			DockerImageMetadata: runtime.RawExtension{
-				Raw: dockerImageRaw,
-			},
-		},
-	}
 
-	return []runtime.Object{&isTag, &isTagBuild, &image1, &image2, &image3, &image4, &image5, &image6}
+	return []runtime.Object{&isTag, &isTagBuild, &image1, &image2, &image3, &image4, &image5}
 }
 
 func TestNewContainerWithResource(t *testing.T) {

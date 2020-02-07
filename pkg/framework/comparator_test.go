@@ -155,7 +155,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 					WithType(tt.want).
 					UseDefaultComparator().
 					WithCustomComparator(CreateBuildConfigComparator()).
-					BuildAsFunc()
+					Build()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createBuildConfigComparator() got = %v, want %v", got, tt.want)
 			}
@@ -282,7 +282,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 					WithType(tt.want).
 					UseDefaultComparator().
 					WithCustomComparator(CreateDeploymentConfigComparator()).
-					BuildAsFunc()
+					Build()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createDeploymentConfigComparator() got = %v, want %v", got, tt.want)
 			}
@@ -358,7 +358,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 					WithType(tt.want).
 					UseDefaultComparator().
 					WithCustomComparator(CreateRouteComparator()).
-					BuildAsFunc()
+					Build()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createRouteComparator() got = %v, want %v", got, tt.want)
 			}
@@ -434,7 +434,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 					WithType(tt.want).
 					UseDefaultComparator().
 					WithCustomComparator(CreateServiceComparator()).
-					BuildAsFunc()
+					Build()
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("createServiceComparator() got = %v, want %v", got, tt.want)
 			}

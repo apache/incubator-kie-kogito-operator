@@ -43,7 +43,7 @@ const (
 func resolveImageStreamTagNameForBuilds(kogitoApp *v1alpha1.KogitoApp, imageTag string, buildType buildType) (imageName string) {
 	imageVersion := kogitoApp.Spec.Build.ImageVersion
 	if len(imageTag) > 0 {
-		_, _, imageName, imageVersion = framework.SplitImageTagWithLatest(imageTag)
+		_, _, imageName, imageVersion = framework.SplitImageTag(imageTag)
 		imageName = resolveCustomImageStreamName(imageName)
 	} else {
 		imageName = BuildImageStreams[buildType][kogitoApp.Spec.Runtime]

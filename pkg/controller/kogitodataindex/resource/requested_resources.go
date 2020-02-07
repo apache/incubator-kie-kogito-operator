@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	v1 "github.com/openshift/api/image/v1"
 
 	routev1 "github.com/openshift/api/route/v1"
 
@@ -31,18 +32,16 @@ var log = logger.GetLogger("resources_kogitodataindex")
 
 // KogitoDataIndexResources is the data structure for all resources managed by KogitoDataIndex CR
 type KogitoDataIndexResources struct {
-	// StatefulSet is the resource responsible for the Data Index Service image deployment in the cluster
-	StatefulSet       *appsv1.StatefulSet
-	StatefulSetStatus KogitoDataIndexResourcesStatus
+	// Deployment is the resource responsible for the Data Index Service image deployment in the cluster
+	Deployment *appsv1.Deployment
 	// Service to expose the data index service internally
-	Service       *corev1.Service
-	ServiceStatus KogitoDataIndexResourcesStatus
+	Service *corev1.Service
 	// Route to expose the service in the Ingress. Supported only on OpenShift for now
-	Route       *routev1.Route
-	RouteStatus KogitoDataIndexResourcesStatus
+	Route *routev1.Route
 	// KafkaTopics are the Kafka Topics required by the Data Index Service
-	KafkaTopics      []*kafkabetav1.KafkaTopic
-	KafkaTopicStatus KogitoDataIndexResourcesStatus
+	KafkaTopics []*kafkabetav1.KafkaTopic
+	// ImageStream is the image stream OpenShift resource to manage images (not available on k8s)
+	ImageStream *v1.ImageStream
 }
 
 // KogitoDataIndexResourcesStatus identifies the status of the resource
@@ -83,7 +82,8 @@ func GetRequestedResources(instance *v1alpha1.KogitoDataIndex, client *client.Cl
 	}
 
 	factory.
-		build(createStatefulSet).
+		buildOnOpenshift(createImageStream).
+		build(createDeployment).
 		build(createService).
 		buildOnOpenshift(createRoute).
 		build(createKafkaTopic)
@@ -91,28 +91,28 @@ func GetRequestedResources(instance *v1alpha1.KogitoDataIndex, client *client.Cl
 	return factory.Resources, factory.Error
 }
 
-func createStatefulSet(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
-	secret, err := infrastructure.FetchInfinispanCredentials(&f.KogitoDataIndex.Spec, f.KogitoDataIndex.Namespace, f.Client)
+func createDeployment(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
+	infinispanCredentials, err := infrastructure.FetchInfinispanCredentials(&f.KogitoDataIndex.Spec, f.KogitoDataIndex.Namespace, f.Client)
 	if err != nil {
 		f.Error = err
 		return f
 	}
-	externalURI, err := getKafkaServerURI(f.KogitoDataIndex.Spec.KafkaProperties, f.KogitoDataIndex.Namespace, f.Client)
+	kafkaServerURI, err := getKafkaServerURI(f.KogitoDataIndex.Spec.KafkaProperties, f.KogitoDataIndex.Namespace, f.Client)
 	if err != nil {
 		f.Error = err
 		return f
 	}
-	statefulset, err := newStatefulset(f.KogitoDataIndex, secret, externalURI, f.Client)
+	deployment, err := newDeployment(f.KogitoDataIndex, infinispanCredentials, kafkaServerURI, f.Client, f.Resources.ImageStream)
 	if err != nil {
 		f.Error = err
 		return f
 	}
-	f.Resources.StatefulSet = statefulset
+	f.Resources.Deployment = deployment
 	return f
 }
 
 func createService(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
-	svc := newService(f.KogitoDataIndex, f.Resources.StatefulSet)
+	svc := newService(f.KogitoDataIndex, f.Resources.Deployment)
 	f.Resources.Service = svc
 	return f
 }
@@ -141,5 +141,10 @@ func createKafkaTopic(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResour
 		f.Resources.KafkaTopics = append(f.Resources.KafkaTopics, kafkaTopic)
 	}
 
+	return f
+}
+
+func createImageStream(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
+	f.Resources.ImageStream = newImage(f.KogitoDataIndex)
 	return f
 }

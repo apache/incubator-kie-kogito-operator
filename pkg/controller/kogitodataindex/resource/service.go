@@ -24,11 +24,11 @@ import (
 )
 
 // newService creates a Service resource based on deployment spec. It's expected that the container exposes at least one port to be able to create a valid service
-func newService(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.StatefulSet) *corev1.Service {
-	ports := framework.ExtractPortsFromContainer(&statefulset.Spec.Template.Spec.Containers[0])
+func newService(instance *v1alpha1.KogitoDataIndex, deployment *appsv1.Deployment) *corev1.Service {
+	ports := framework.ExtractPortsFromContainer(&deployment.Spec.Template.Spec.Containers[0])
 	if len(ports) == 0 {
 		// a service without port to expose doesn't exist
-		log.Warnf("The deployment spec '%s' doesn't have any ports exposed. Won't be possible to create a new service.", statefulset.Name)
+		log.Warnf("The deployment spec '%s' doesn't have any ports exposed. Won't be possible to create a new service.", deployment.Name)
 		return nil
 	}
 	svc := corev1.Service{
@@ -38,15 +38,13 @@ func newService(instance *v1alpha1.KogitoDataIndex, statefulset *appsv1.Stateful
 		},
 		Spec: corev1.ServiceSpec{
 			Ports:    ports,
-			Selector: statefulset.Spec.Selector.MatchLabels,
+			Selector: deployment.Spec.Selector.MatchLabels,
 			Type:     corev1.ServiceTypeClusterIP,
 		},
 	}
 
 	addDefaultMetadata(&svc.ObjectMeta, instance)
 	meta.SetGroupVersionKind(&svc.TypeMeta, meta.KindService)
-
-	statefulset.Spec.ServiceName = svc.Name
 
 	return &svc
 }

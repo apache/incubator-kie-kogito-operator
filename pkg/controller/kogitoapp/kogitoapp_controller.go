@@ -436,7 +436,7 @@ func (r *ReconcileKogitoApp) createImageStream(instance *v1alpha1.KogitoApp, ima
 	var kogitoRequiredIS oimagev1.ImageStreamList
 	if len(imageTag) > 0 {
 		kogitoRequiredIS = kogitores.CreateCustomKogitoImageStream(instance.Namespace, imageTag)
-		_, _, _, imageVersion = framework.SplitImageTagWithLatest(imageTag)
+		_, _, _, imageVersion = framework.SplitImageTag(imageTag)
 	} else {
 		imageVersion = instance.Spec.Build.ImageVersion
 		if len(imageVersion) == 0 {

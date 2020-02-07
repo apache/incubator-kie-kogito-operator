@@ -81,38 +81,26 @@ func GetComparator() compare.MapComparator {
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(appsv1.Deployment{})).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(corev1.Service{})).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(routev1.Route{})).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(imgv1.ImageStream{})).
 			UseDefaultComparator().
-			WithCustomComparator(equalImageStreamTag).
-			BuildAsFunc())
+			WithCustomComparator(framework.CreateImageStreamComparator()).
+			Build())
 
 	return compare.MapComparator{Comparator: resourceComparator}
-}
-
-func equalImageStreamTag(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
-	img1 := deployed.(*imgv1.ImageStream)
-	img2 := requested.(*imgv1.ImageStream)
-
-	// lets check if the tag is presented in the deployed stream
-	for i := range img1.Spec.Tags {
-		img1.Spec.Tags[i].Generation = nil
-	}
-	// there's no tag!
-	return reflect.DeepEqual(img1.Spec.Tags, img2.Spec.Tags)
 }

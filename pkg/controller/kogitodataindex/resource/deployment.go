@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
 package resource
 
 import (
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	imgv1 "github.com/openshift/api/image/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +30,7 @@ import (
 	"strconv"
 )
 
-func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, externalURI string, cli *client.Client) (*appsv1.StatefulSet, error) {
+func newDeployment(instance *v1alpha1.KogitoDataIndex, infinispanSecret *corev1.Secret, kafkaExternalURI string, cli *client.Client, imageStream *imgv1.ImageStream) (*appsv1.Deployment, error) {
 	// define the http port
 	httpPort := defineDataIndexHTTPPort(instance)
 	log.Debugf("The configured internal Data Index port number is [%i]", httpPort)
@@ -37,34 +38,24 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 	// create a standard probe
 	probe := defaultProbe
 	probe.Handler.TCPSocket = &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: httpPort}}
-	// environment variables
-	removeManagedEnvVars(instance)
-
-	// from cr
-	envs := instance.Spec.Env
-	// Add HTTP Port on the envs, it will also override the env if set on CR.
-	httpPortEnvMap := make(map[string]string)
-	httpPortEnvMap[DataIndexEnvKeyHTTPPort] = strconv.FormatInt(int64(httpPort), 10)
-	envs = util.AppendStringMap(envs, httpPortEnvMap)
-	envs = util.AppendStringMap(envs, fromKafkaToStringMap(externalURI))
 
 	if instance.Spec.Replicas == 0 {
 		instance.Spec.Replicas = defaultReplicas
 	}
 	if len(instance.Spec.Image) == 0 {
-		instance.Spec.Image = DefaultImage
+		instance.Spec.Image = DefaultDataIndexImage
 	}
 
-	statefulset := &appsv1.StatefulSet{
+	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.Name,
 			Namespace: instance.Namespace,
 		},
-		Spec: appsv1.StatefulSetSpec{
+		Spec: appsv1.DeploymentSpec{
 			Replicas: &instance.Spec.Replicas,
 			Selector: &metav1.LabelSelector{},
-			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
-				Type: appsv1.RollingUpdateStatefulSetStrategyType,
+			Strategy: appsv1.DeploymentStrategy{
+				Type: appsv1.RollingUpdateDeploymentStrategyType,
 			},
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
@@ -72,7 +63,7 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 						{
 							Name:            instance.Name,
 							Image:           instance.Spec.Image,
-							Env:             framework.MapToEnvVar(envs),
+							Env:             framework.MapToEnvVar(instance.Spec.Env),
 							Resources:       extractResources(instance),
 							ImagePullPolicy: corev1.PullAlways,
 							Ports: []corev1.ContainerPort{
@@ -91,28 +82,43 @@ func newStatefulset(instance *v1alpha1.KogitoDataIndex, secret *corev1.Secret, e
 		},
 	}
 
-	if err := mountProtoBufConfigMaps(statefulset, cli); err != nil {
+	// protobuf mounting
+	if err := mountProtoBufConfigMaps(deployment, cli); err != nil {
 		return nil, err
 	}
-	infrastructure.SetInfinispanVariables(instance.Spec.InfinispanProperties, secret, &statefulset.Spec.Template.Spec.Containers[0])
-	meta.SetGroupVersionKind(&statefulset.TypeMeta, meta.KindStatefulSet)
-	addDefaultMetadata(&statefulset.ObjectMeta, instance)
-	addDefaultMetadata(&statefulset.Spec.Template.ObjectMeta, instance)
-	statefulset.Spec.Selector.MatchLabels = statefulset.Labels
 
-	return statefulset, nil
+	// add configurable environment variables to the container
+	infrastructure.SetInfinispanVariables(instance.Spec.InfinispanProperties, infinispanSecret, &deployment.Spec.Template.Spec.Containers[0])
+	setKafkaVariables(kafkaExternalURI, &deployment.Spec.Template.Spec.Containers[0])
+	framework.SetEnvVar(DataIndexEnvKeyHTTPPort, strconv.Itoa(int(httpPort)), &deployment.Spec.Template.Spec.Containers[0])
+
+	// metadata information
+	meta.SetGroupVersionKind(&deployment.TypeMeta, meta.KindDeployment)
+	addDefaultMetadata(&deployment.ObjectMeta, instance)
+	addDefaultMetadata(&deployment.Spec.Template.ObjectMeta, instance)
+	deployment.Spec.Selector.MatchLabels = deployment.Labels
+
+	// Image Stream
+	if imageStream != nil {
+		_, _, name, tag := framework.SplitImageTag(instance.Spec.Image)
+		imageStreamTag := fmt.Sprintf("%s:%s", name, tag)
+		key, value := framework.ResolveImageStreamTriggerAnnotation(imageStreamTag, instance.Name)
+		deployment.Annotations[key] = value
+	}
+
+	return deployment, nil
 }
 
 // mountProtoBufConfigMaps mounts protobuf configMaps from KogitoApps into the given stateful set
-func mountProtoBufConfigMaps(statefulset *appsv1.StatefulSet, cli *client.Client) (err error) {
+func mountProtoBufConfigMaps(deployment *appsv1.Deployment, cli *client.Client) (err error) {
 	var cms *corev1.ConfigMapList
-	if cms, err = infrastructure.GetProtoBufConfigMaps(statefulset.Namespace, cli); err != nil {
+	if cms, err = infrastructure.GetProtoBufConfigMaps(deployment.Namespace, cli); err != nil {
 		return err
 	}
 
 	for _, cm := range cms.Items {
-		statefulset.Spec.Template.Spec.Volumes =
-			append(statefulset.Spec.Template.Spec.Volumes, corev1.Volume{
+		deployment.Spec.Template.Spec.Volumes =
+			append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
 				Name: cm.Name,
 				VolumeSource: corev1.VolumeSource{
 					ConfigMap: &corev1.ConfigMapVolumeSource{
@@ -122,15 +128,15 @@ func mountProtoBufConfigMaps(statefulset *appsv1.StatefulSet, cli *client.Client
 					},
 				},
 			})
-		statefulset.Spec.Template.Spec.Containers[0].VolumeMounts =
-			append(statefulset.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"])})
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
+			append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"])})
 	}
 	protoBufEnvs := protoBufEnvsNoVolume
-	if len(statefulset.Spec.Template.Spec.Volumes) > 0 {
+	if len(deployment.Spec.Template.Spec.Volumes) > 0 {
 		protoBufEnvs = protoBufEnvsVolumeMounted
 	}
 	for k, v := range protoBufEnvs {
-		framework.SetEnvVar(k, v, &statefulset.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(k, v, &deployment.Spec.Template.Spec.Containers[0])
 	}
 
 	return nil

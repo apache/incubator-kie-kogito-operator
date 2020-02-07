@@ -90,7 +90,7 @@ type KogitoDataIndexStatus struct {
 
 	// Status of the Data Index Service Deployment created and managed by it
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	DeploymentStatus appsv1.StatefulSetStatus `json:"deploymentStatus,omitempty"`
+	DeploymentStatus appsv1.DeploymentStatus `json:"deploymentStatus,omitempty"`
 
 	// Status of the Data Index Service created and managed by it
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
@@ -148,7 +148,7 @@ const (
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitodataindices,scope=Namespaced
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Data Index"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Statefulsets,apps/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMaps,v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"

@@ -33,34 +33,34 @@ func GetComparator() compare.MapComparator {
 			WithType(reflect.TypeOf(appsv1.DeploymentConfig{})).
 			WithCustomComparator(framework.CreateDeploymentConfigComparator()).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(buildv1.BuildConfig{})).
 			WithCustomComparator(framework.CreateBuildConfigComparator()).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(v1.Service{})).
 			WithCustomComparator(framework.CreateServiceComparator()).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(routev1.Route{})).
 			WithCustomComparator(framework.CreateRouteComparator()).
 			UseDefaultComparator().
-			BuildAsFunc())
+			Build())
 
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(v1.ConfigMap{})).
 			WithCustomComparator(framework.CreateConfigMapComparator()).
-			BuildAsFunc())
+			Build())
 
 	return compare.MapComparator{Comparator: resourceComparator}
 }

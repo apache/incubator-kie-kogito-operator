@@ -15,7 +15,6 @@
 package resource
 
 import (
-	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -27,14 +26,12 @@ import (
 )
 
 const (
-	portName                           = "http"
-	annotationKeyImageTriggers         = "image.openshift.io/triggers"
-	annotationValueImageTriggersFormat = "[{\"from\":{\"kind\":\"ImageStreamTag\",\"name\":\"%s\"},\"fieldPath\":\"spec.template.spec.containers[?(@.name==\\\"%s\\\")].image\"}]"
-	enablePersistenceEnvKey            = "ENABLE_PERSISTENCE"
-	backOffRetryEnvKey                 = "BACKOFF_RETRY"
-	maxIntervalLimitRetryEnvKey        = "MAX_INTERVAL_LIMIT_RETRY"
-	backOffRetryDefaultValue           = 1000
-	maxIntervalLimitRetryDefaultValue  = 60000
+	portName                          = "http"
+	enablePersistenceEnvKey           = "ENABLE_PERSISTENCE"
+	backOffRetryEnvKey                = "BACKOFF_RETRY"
+	maxIntervalLimitRetryEnvKey       = "MAX_INTERVAL_LIMIT_RETRY"
+	backOffRetryDefaultValue          = 1000
+	maxIntervalLimitRetryDefaultValue = 60000
 )
 
 var defaultProbe = &corev1.Probe{
@@ -84,11 +81,9 @@ func createRequiredDeployment(jobService *v1alpha1.KogitoJobsService, image *ima
 		},
 	}
 
-	// see: https://docs.openshift.com/container-platform/3.11/dev_guide/managing_images.html#image-stream-kubernetes-resources
 	if image.hasImageStream() {
-		deployment.Annotations = map[string]string{
-			annotationKeyImageTriggers: fmt.Sprintf(annotationValueImageTriggersFormat, image.resolveImageNameTag(), jobService.Name),
-		}
+		key, value := framework.ResolveImageStreamTriggerAnnotation(image.resolveImageNameTag(), jobService.Name)
+		deployment.Annotations = map[string]string{key: value}
 	}
 
 	infrastructure.SetInfinispanVariables(jobService.Spec.InfinispanProperties, infinispanSecret, &deployment.Spec.Template.Spec.Containers[0])

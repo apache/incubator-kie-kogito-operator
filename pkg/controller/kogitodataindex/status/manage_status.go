@@ -43,20 +43,20 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	status := v1alpha1.KogitoDataIndexStatus{}
 	currentCondition := v1alpha1.DataIndexCondition{}
 
-	var statefulSet *appsv1.StatefulSet
-	if resources.StatefulSet != nil {
-		statefulSet = &appsv1.StatefulSet{
+	var deployment *appsv1.Deployment
+	if resources.Deployment != nil {
+		deployment = &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      resources.StatefulSet.Name,
-				Namespace: resources.StatefulSet.Namespace,
+				Name:      resources.Deployment.Name,
+				Namespace: resources.Deployment.Namespace,
 			},
 		}
-		if exists, err = kubernetes.ResourceC(client).Fetch(statefulSet); err != nil {
+		if exists, err = kubernetes.ResourceC(client).Fetch(deployment); err != nil {
 			return err
 		} else if exists {
-			status.DeploymentStatus = statefulSet.Status
+			status.DeploymentStatus = deployment.Status
 		} else {
-			statefulSet = nil
+			deployment = nil
 		}
 	}
 
@@ -95,7 +95,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	}
 
 	status.Conditions = instance.Status.Conditions
-	currentCondition = checkCurrentCondition(statefulSet, service, resourcesUpdate, reconcileError)
+	currentCondition = checkCurrentCondition(deployment, service, resourcesUpdate, reconcileError)
 	lastCondition := getLastCondition(instance)
 	if lastCondition == nil || (currentCondition.Condition != lastCondition.Condition || currentCondition.Message != lastCondition.Message) {
 		log.Debugf("Creating new status conditions. Actual conditions: %s. Current condition: %s", instance.Status.Conditions, currentCondition)
@@ -105,7 +105,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 		status.Conditions = append(status.Conditions, currentCondition)
 	}
 
-	if !reflect.DeepEqual(status, instance.Status) {
+	if !reflect.DeepEqual(status.Conditions, instance.Status.Conditions) {
 		log.Info("About to update instance status")
 		instance.Status = status
 		if instance.Status.Conditions == nil {
@@ -122,7 +122,7 @@ func ManageStatus(instance *v1alpha1.KogitoDataIndex, resources *resource.Kogito
 	return nil
 }
 
-func checkCurrentCondition(statefulSet *appsv1.StatefulSet, service *corev1.Service, resourcesUpdate bool, reconcileError bool) v1alpha1.DataIndexCondition {
+func checkCurrentCondition(deployment *appsv1.Deployment, service *corev1.Service, resourcesUpdate bool, reconcileError bool) v1alpha1.DataIndexCondition {
 	if reconcileError {
 		return v1alpha1.DataIndexCondition{
 			Condition:          v1alpha1.ConditionFailed,
@@ -131,7 +131,7 @@ func checkCurrentCondition(statefulSet *appsv1.StatefulSet, service *corev1.Serv
 		}
 	}
 
-	if statefulSet == nil || service == nil {
+	if deployment == nil || service == nil {
 		return v1alpha1.DataIndexCondition{
 			Condition:          v1alpha1.ConditionFailed,
 			Message:            "Deployment Failed",
@@ -147,7 +147,7 @@ func checkCurrentCondition(statefulSet *appsv1.StatefulSet, service *corev1.Serv
 		}
 	}
 
-	if statefulSet.Status.ReadyReplicas < statefulSet.Status.Replicas {
+	if deployment.Status.ReadyReplicas < deployment.Status.Replicas {
 		return v1alpha1.DataIndexCondition{
 			Condition:          v1alpha1.ConditionProvisioning,
 			Message:            "Deployment In Progress",

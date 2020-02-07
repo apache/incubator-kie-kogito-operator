@@ -133,37 +133,6 @@ func TestIsKafkaServerURIResolved(t *testing.T) {
 	}
 }
 
-func Test_fromKafkaToStringMap(t *testing.T) {
-	type args struct {
-		externalURI string
-	}
-	tests := []struct {
-		name string
-		args args
-		want map[string]string
-	}{
-		{
-			"KafkaStringMap",
-			args{
-				"kafka:9092",
-			},
-			map[string]string{
-				kafkaEnvKeyProcessInstancesServer: "kafka:9092",
-				kafkaEnvKeyUserTaskInstanceServer: "kafka:9092",
-				kafkaEnvKeyProcessDomainServer:    "kafka:9092",
-				kafkaEnvKeyUserTaskDomainServer:   "kafka:9092",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := fromKafkaToStringMap(tt.args.externalURI); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("fromKafkaToStringMap() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_getKafkaInstance(t *testing.T) {
 	ns := t.Name()
 
