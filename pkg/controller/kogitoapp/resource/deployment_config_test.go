@@ -15,6 +15,8 @@
 package resource
 
 import (
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -130,6 +132,42 @@ func Test_SetInfinispanEnvVars_QuarkusRuntime(t *testing.T) {
 	assert.True(t, contains(container.Env, envVarInfinispanQuarkus[envVarInfinispanSaslMechanism]))
 }
 
+func Test_IstioEnabled(t *testing.T) {
+	uri := "https://github.com/kiegroup/kogito-examples"
+	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
+	kogitoApp.Spec.EnableIstio = true
+	kogitoApp.Spec.Build.GitSource = &v1alpha1.GitSource{URI: &uri}
+	dockerImage := &dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{
+			Labels: map[string]string{
+				// notice the semicolon
+				openshift.ImageLabelForExposeServices: "8080:http,8181;https",
+				framework.LabelKeyOrgKie + "operator": "kogito",
+				framework.LabelPrometheusPath:         "/metrics",
+				framework.LabelPrometheusPort:         "8080",
+				framework.LabelPrometheusScheme:       "http",
+				framework.LabelPrometheusScrape:       "true",
+			},
+		},
+	}
+	bcS2I, _ := newBuildConfigS2I(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+	assert.NoError(t, err)
+	assert.NotNil(t, dc)
+
+	template := dc.Spec.Template
+	for k, v := range template.Annotations {
+		if strings.Contains(k, "istio") {
+			annotationValue, err := strconv.ParseBool(v)
+			assert.NoError(t, err)
+			assert.True(t, annotationValue)
+			return
+		}
+	}
+	assert.Fail(t, "Should have istio annotation")
+}
+
 func Test_SetInfinispanEnvVars_SpringBootRuntime(t *testing.T) {
 	kogitoApp := createTestKogitoApp(v1alpha1.SpringbootRuntimeType)
 	kogitoInfra := createTestKogitoInfra()
@@ -168,6 +206,7 @@ func createTestKogitoApp(runtime v1alpha1.RuntimeType) *v1alpha1.KogitoApp {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: runtime,
+			Build:   &v1alpha1.KogitoAppBuildObject{},
 		},
 	}
 }

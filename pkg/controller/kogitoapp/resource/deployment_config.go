@@ -163,6 +163,11 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 	addDefaultLabels(&dc.Spec.Selector, kogitoApp)
 	framework.MergeImageMetadataWithDeploymentConfig(dc, dockerImage)
 	framework.DiscoverPortsAndProbesFromImage(dc, dockerImage)
+
+	if kogitoApp.Spec.EnableIstio {
+		framework.AddIstioInjectSidecarAnnotation(&dc.Spec.Template.ObjectMeta)
+	}
+
 	setReplicas(kogitoApp, dc)
 
 	return dc, nil
