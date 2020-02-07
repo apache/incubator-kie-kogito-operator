@@ -16,10 +16,12 @@ package client
 
 import (
 	"fmt"
+
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -47,6 +49,8 @@ type Builder interface {
 	WithPrometheusClient() Builder
 	// WithDeploymentClient tells the builder to create the deployment client
 	WithDeploymentClient() Builder
+	// WithKubernetesClient tells the builder to create the kubernetes extension client
+	WithKubernetesExtensionClient() Builder
 	// WithAllClients is a shortcut to tell the builder to create all clients
 	WithAllClients() Builder
 	// Build build the final client structure
@@ -58,11 +62,12 @@ type builderStruct struct {
 	config        *restclient.Config
 	controllerCli controllercli.Client
 
-	isDiscoveryClient  bool
-	isBuildClient      bool
-	isImageClient      bool
-	isPrometheusClient bool
-	isDeploymentClient bool
+	isDiscoveryClient           bool
+	isBuildClient               bool
+	isImageClient               bool
+	isPrometheusClient          bool
+	isDeploymentClient          bool
+	isKubernetesExtensionClient bool
 }
 
 func (builder *builderStruct) UseConfig(kubeconfig *restclient.Config) Builder {
@@ -100,12 +105,18 @@ func (builder *builderStruct) WithDeploymentClient() Builder {
 	return builder
 }
 
+func (builder *builderStruct) WithKubernetesExtensionClient() Builder {
+	builder.isKubernetesExtensionClient = true
+	return builder
+}
+
 func (builder *builderStruct) WithAllClients() Builder {
 	builder.WithBuildClient()
 	builder.WithDiscoveryClient()
 	builder.WithImageClient()
 	builder.WithPrometheusClient()
 	builder.WithDeploymentClient()
+	builder.WithKubernetesExtensionClient()
 	return builder
 }
 
@@ -158,6 +169,12 @@ func (builder *builderStruct) Build() (*Client, error) {
 		client.DeploymentCli, err = appsv1.NewForConfig(config)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting deployment client: %v", err)
+		}
+	}
+	if builder.isKubernetesExtensionClient {
+		client.KubernetesExtensionCli, err = kubernetes.NewForConfig(config)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting kubernetes client: %v", err)
 		}
 	}
 	return client, nil

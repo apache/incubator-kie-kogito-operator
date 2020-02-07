@@ -9,6 +9,9 @@ pkg/controller/kogitoapp/defaults/packrd
 *-packr.go
 *.tar.gz
 
+# Log Files
+test/smoke/logs
+
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 ### Emacs ###
 # -*- mode: gitignore; -*-
