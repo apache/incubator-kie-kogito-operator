@@ -50,3 +50,23 @@ func Test_InstallOperatorNoNamespace(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Operator successfully deployed")
 	assert.Contains(t, lines, "Kogito Data Index Service successfully installed in the Project")
 }
+
+func Test_InstallOperatorNoNamespaceWithForceFlag(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s --force --image my-cool-image:latest", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Forcing installation of operator with custom image my-cool-image:latest")
+	assert.Contains(t, lines, "Kogito Operator successfully deployed")
+}
+
+func Test_InstallOperatorNoNamespaceWithForceFlagWitNoCustomImage(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s --force", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+	assert.Error(t, err)
+	assert.Contains(t, lines, "Error: force install flag is enabled but the custom operator image is missing")
+}
+
