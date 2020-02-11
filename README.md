@@ -835,6 +835,10 @@ You can set those optional keys:
   If you define a relative path, this has to be based on the "test/smoke" folder as the run is happening there.  
   *Default are all enabled features from 'test/smoke/features' folder*  
   Example: feature=features/operator/deploy_quarkus_service.feature
+- `timeout` sets the timeout in minutes for the overall run.  
+  *Default is 240 minutes.*
+- `debug` to be set to true to activate debug mode.  
+  *Default is false.*
 - `local` to be set to true if running tests in local.  
   *Default is false.*
 - `operator_image` is the Operator image full name.  
@@ -848,7 +852,6 @@ You can set those optional keys:
 - `maven_mirror` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
 - `build_image_version` sets the build image version. Default is current operator version.
-- `build_image_tag` sets the build image full tag.
 - `build_s2i_image_tag` sets the build S2I image full tag.
 - `build_runtime_image_tag` sets the build Runtime image full tag.
 - `examples_uri` sets the URI for the kogito-examples repository.  

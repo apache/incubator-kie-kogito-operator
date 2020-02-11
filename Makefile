@@ -80,11 +80,12 @@ cli_path=
 deploy_uri=
 maven_mirror=
 build_image_version=
-build_image_tag=
 build_s2i_image_tag=
 build_runtime_image_tag=
 examples_uri=
 examples_ref=
+timeout=240
+debug=false
 run-smoke:
 	./hack/run-smoke.sh \
 		--tags "${tags}" \
@@ -97,11 +98,12 @@ run-smoke:
 		--deploy_uri ${deploy_uri} \
 		--maven_mirror $(maven_mirror) \
 		--build_image_version ${build_image_version} \
-		--build_image_tag ${build_image_tag} \
 		--build_s2i_image_tag ${build_s2i_image_tag} \
 		--build_runtime_image_tag ${build_runtime_image_tag} \
 		--examples_uri ${examples_uri} \
-		--examples_ref ${examples_ref}
+		--examples_ref ${examples_ref} \
+		--timeout ${timeout} \
+		--debug ${debug}
 
 .PHONY: prepare-olm
 version = ""
