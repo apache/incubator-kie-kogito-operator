@@ -891,7 +891,7 @@ To run the Kogito Operator locally, change the log level at runtime with the `DE
 ```bash
 $ make mod
 $ make clean
-$ DEBUG=true operator-sdk up local --namespace=<namespace>
+$ DEBUG=true operator-sdk run --local --namespace=<namespace>
 ```
 
 Before submitting a [pull request](https://help.github.com/en/articles/about-pull-requests) to the Kogito Operator repository, review the instructions for [Contributing to the Kogito Operator](docs/CONTRIBUTING.MD).

@@ -52,6 +52,7 @@ func newBuildConfigRuntime(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 			},
 		},
 	}
+
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", kogitoApp.Name, tagLatest)}
 	setBCRuntimeSource(&buildConfig, fromBuild)
 	setBCRuntimeStrategy(kogitoApp, &buildConfig, buildType)

@@ -8,10 +8,8 @@ spec:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/onboarding
     imageVersion: 0.7.0
-    env:
-      # optional, but will improve your build time quite a lot
-      - name: MAVEN_MIRROR_URL
-        value: "<http://yourmavenurl>"
+    # set your maven nexus repository
+    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   service:
     labels:
       onboarding: process
@@ -30,10 +28,8 @@ spec:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/hr
     imageVersion: 0.7.0
-    env:
-      # optional, but will improve your build time quite a lot
-      - name: MAVEN_MIRROR_URL
-        value: "<http://yourmavenurl>"
+    # set your maven nexus repository
+    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   service:
     labels:
       department: process
@@ -51,10 +47,8 @@ spec:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/payroll
     imageVersion: 0.7.0
-    env:
-      # optional, but will improve your build time quite a lot
-      - name: MAVEN_MIRROR_URL
-        value: "<http://yourmavenurl>"
+    # set your maven nexus repository
+    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   service:
     labels:
       taxes/rate: process

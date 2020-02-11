@@ -111,3 +111,41 @@ func Test_DeployCmd_CustomImage(t *testing.T) {
 
 	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAuto, instance.Spec.Infra.InstallInfinispan)
 }
+
+func Test_DeployCmd_CustomDeploymentWithMavenMirrorURL(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project %s --maven-mirror-url https://local.nexus.localhost:8081/group/public`, ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	// Start the test
+	_, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+
+	// This should be created, given the command above
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-drools",
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoApp)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.NotNil(t, kogitoApp)
+	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoApp.Spec.Runtime)
+	assert.Equal(t, "https://local.nexus.localhost:8081/group/public", kogitoApp.Spec.Build.MavenMirrorURL)
+}
+
+func Test_DeployCmd_WithInvalidMavenMirrorURL(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --project %s --maven-mirror-url invalid-url", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	_, _, err := test.ExecuteCli()
+	assert.Error(t, err)
+}

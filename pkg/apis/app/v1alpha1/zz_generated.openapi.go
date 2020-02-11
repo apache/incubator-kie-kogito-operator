@@ -509,8 +509,10 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					"env": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "name",
-								"x-kubernetes-list-type":     "map",
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -532,8 +534,10 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					"webhooks": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "type",
-								"x-kubernetes-list-type":     "map",
+								"x-kubernetes-list-map-keys": []interface{}{
+									"type",
+								},
+								"x-kubernetes-list-type": "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -580,6 +584,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
+						},
+					},
+					"mavenMirrorURL": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 				},
@@ -643,8 +654,10 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					"env": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "name",
-								"x-kubernetes-list-type":     "map",
+								"x-kubernetes-list-map-keys": []interface{}{
+									"name",
+								},
+								"x-kubernetes-list-type": "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -1271,8 +1284,10 @@ func schema_pkg_apis_app_v1alpha1_Resources(ref common.ReferenceCallback) common
 					"limits": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "resource",
-								"x-kubernetes-list-type":     "map",
+								"x-kubernetes-list-map-keys": []interface{}{
+									"resource",
+								},
+								"x-kubernetes-list-type": "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -1289,8 +1304,10 @@ func schema_pkg_apis_app_v1alpha1_Resources(ref common.ReferenceCallback) common
 					"requests": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "resource",
-								"x-kubernetes-list-type":     "map",
+								"x-kubernetes-list-map-keys": []interface{}{
+									"resource",
+								},
+								"x-kubernetes-list-type": "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{

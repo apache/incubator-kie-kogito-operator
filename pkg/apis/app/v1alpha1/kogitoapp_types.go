@@ -140,6 +140,8 @@ type KogitoAppBuildObject struct {
 	Native bool `json:"native,omitempty"`
 	// Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.
 	Resources Resources `json:"resources,omitempty"`
+	// Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed
+	MavenMirrorURL string `json:"mavenMirrorURL,omitempty"`
 }
 
 // KogitoAppServiceObject Data to define the service of the Kogito application

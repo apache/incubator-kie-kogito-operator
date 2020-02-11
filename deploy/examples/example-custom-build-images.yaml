@@ -5,9 +5,9 @@ metadata:
 spec:
   build:
     #env:
-    # this value is just an example, set yours (optional)
-    #- name: MAVEN_MIRROR_URL
-    #  value: "http://nexus3.kogito-tools.svc.cluster.local:8081/repository/maven-public/"
+    # env can be used to set variables during build
+    #- name: MY_CUSTOM_ENV
+    #  value: "my value"
     gitSource:
       contextDir: jbpm-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
@@ -16,3 +16,5 @@ spec:
     imageVersion: 0.7.0
     # the image runtime build will use this image
     imageRuntimeTag:  quay.io/ricardozanini/kogito-quarkus-jvm-ubi8:0.7.0-rc1
+    # set your maven nexus repository
+    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
