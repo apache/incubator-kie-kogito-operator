@@ -55,8 +55,10 @@ Table of Contents
       * [Kogito Operator development](#kogito-operator-development)
          * [Building the Kogito Operator](#building-the-kogito-operator)
          * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
-         * [Running Smoke tests](#running-smoke-tests)
-            * [Running smoke tests with current branch](#running-smoke-tests-with-current-branch)
+         * [Running BDD tests](#running-bdd-tests)
+            * [Running BDD tests with current branch](#running-bdd-tests-with-current-branch)
+            * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
+            * [Running smoke tests](#running-smoke-tests)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
       * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
 
@@ -810,14 +812,14 @@ To verify the operator status, run the following command:
 $ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-marketplace
 ```
 
-### Running Smoke tests
+### Running BDD Tests
 
 **REQUIREMENT:** You need to be authenticated to the cluster before running the tests.
 
-If you have an OpenShift cluster and admin privileges, you can run Smoke tests with the following command:
+If you have an OpenShift cluster and admin privileges, you can run BDD tests with the following command:
 
 ```bash
-$ make run-smoke [key=value]*
+$ make run-tests [key=value]*
 ```
 
 You can set those optional keys:
@@ -832,8 +834,8 @@ You can set those optional keys:
 - `concurrent` is the number of concurrent tests to be ran.  
   *Default is 1.*
 - `feature` is a specific feature you want to run.  
-  If you define a relative path, this has to be based on the "test/smoke" folder as the run is happening there.  
-  *Default are all enabled features from 'test/smoke/features' folder*  
+  If you define a relative path, this has to be based on the "test" folder as the run is happening there.
+  *Default are all enabled features from 'test/features' folder*  
   Example: feature=features/operator/deploy_quarkus_service.feature
 - `timeout` sets the timeout in minutes for the overall run.  
   *Default is 240 minutes.*
@@ -864,29 +866,36 @@ Logs will be shown on the Terminal.
 To save the test output in a local file for future reference, run the following command:
 
 ```bash
-make run-smoke 2>&1 | tee log.out
+make run-tests 2>&1 | tee log.out
 ```
 
-**NOTE:** There is some more environment variables that can be set. Please see [smoke tests configuration](./test/smoke/README.md).
-
-#### Running smoke tests with current branch 
+#### Running BDD tests with current branch 
 
 ```
 $ make
 $ docker tag quay.io/kiegroup/kogito-cloud-operator:0.8.0 quay.io/{USERNAME}/kogito-cloud-operator:0.8.0 
 $ docker push quay.io/{USERNAME}/kogito-cloud-operator:0.8.0
-$ make run-smoke operator_image=quay.io/{USERNAME}/kogito-cloud-operator
-```
-
-#### Running smoke tests with custom Kogito version
-
-```bash
-$ docker tag quay.io/kiegroup/kogito-cloud-operator:0.8.0 quay.io/{USERNAME}/kogito-cloud-operator:0.8.0 
-$ docker push quay.io/{USERNAME}/kogito-cloud-operator:0.8.0
-$ make run-smoke operator_image=quay.io/{USERNAME}/kogito-cloud-operator build_image_version=<kogito_version> maven_mirror=<your_url>
+$ make run-tests operator_image=quay.io/{USERNAME}/kogito-cloud-operator
 ```
 
 **NOTE:** Replace {USERNAME} with the username/group you want to push to. Docker needs to be logged in to quay.io and be able to push to your username/group.
+
+#### Running BDD tests with custom Kogito Build images' version
+
+```bash
+$ make run-tests build_image_version=<kogito_version> 
+```
+
+#### Running smoke tests
+
+The BDD tests do provide some smoke tests for a quick feedback on basics functionality:
+
+```bash
+$ make run-smoke-tests [key=value]*
+```
+
+It will run only tests tagged with `@smoke`.
+All options from BDD tests do also apply here.
 
 ### Running the Kogito Operator locally
 

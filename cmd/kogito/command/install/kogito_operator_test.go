@@ -69,4 +69,3 @@ func Test_InstallOperatorNoNamespaceWithForceFlagWitNoCustomImage(t *testing.T) 
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Error: force install flag is enabled but the custom operator image is missing")
 }
-

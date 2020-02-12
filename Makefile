@@ -69,7 +69,7 @@ clean:
 addheaders:
 	./hack/addheaders.sh
 
-.PHONY: run-smoke
+.PHONY: run-tests
 tags=
 concurrent=1
 feature=
@@ -87,8 +87,9 @@ examples_uri=
 examples_ref=
 timeout=240
 debug=false
-run-smoke:
-	./hack/run-smoke.sh \
+smoke=false
+run-tests:
+	./hack/run-tests.sh \
 		--tags "${tags}" \
 		--concurrent ${concurrent} \
 		--feature ${feature} \
@@ -105,7 +106,12 @@ run-smoke:
 		--examples_uri ${examples_uri} \
 		--examples_ref ${examples_ref} \
 		--timeout ${timeout} \
-		--debug ${debug}
+		--debug ${debug} \
+		--smoke ${smoke}
+
+.PHONY: run-smoke-tests
+run-smoke-tests: 
+	make run-tests smoke=true
 
 .PHONY: prepare-olm
 version = ""
