@@ -78,6 +78,7 @@ operator_image=
 operator_tag=
 cli_path=
 deploy_uri=
+services_image_version=
 maven_mirror=
 build_image_version=
 build_s2i_image_tag=
@@ -96,6 +97,7 @@ run-smoke:
 		--operator_tag $(operator_tag) \
 		--cli_path ${cli_path} \
 		--deploy_uri ${deploy_uri} \
+		--services_image_version ${services_image_version} \
 		--maven_mirror $(maven_mirror) \
 		--build_image_version ${build_image_version} \
 		--build_s2i_image_tag ${build_s2i_image_tag} \

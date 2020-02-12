@@ -16,14 +16,20 @@ package infrastructure
 
 import (
 	"fmt"
+	"net/url"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"net/url"
 )
 
 const (
+	// DefaultDataIndexImage is the default image name for the Kogito Data Index Service
+	DefaultDataIndexImage = "quay.io/kiegroup/kogito-data-index:latest"
+	// DefaultDataIndexName is the default name for the Data Index instance service
+	DefaultDataIndexName = "kogito-data-index"
+
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
 	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
 	webSocketScheme       = "ws"

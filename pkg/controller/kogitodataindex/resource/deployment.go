@@ -16,6 +16,9 @@ package resource
 
 import (
 	"fmt"
+	"path"
+	"strconv"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
@@ -26,8 +29,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"path"
-	"strconv"
 )
 
 func newDeployment(instance *v1alpha1.KogitoDataIndex, infinispanSecret *corev1.Secret, kafkaExternalURI string, cli *client.Client, imageStream *imgv1.ImageStream) (*appsv1.Deployment, error) {
@@ -43,7 +44,7 @@ func newDeployment(instance *v1alpha1.KogitoDataIndex, infinispanSecret *corev1.
 		instance.Spec.Replicas = defaultReplicas
 	}
 	if len(instance.Spec.Image) == 0 {
-		instance.Spec.Image = DefaultDataIndexImage
+		instance.Spec.Image = infrastructure.DefaultDataIndexImage
 	}
 
 	deployment := &appsv1.Deployment{

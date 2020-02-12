@@ -15,9 +15,10 @@
 package framework
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"regexp"
 	"strings"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
 const (
@@ -40,6 +41,22 @@ func ConvertImageTagToImage(imageTag string) v1alpha1.Image {
 	}
 
 	return image
+}
+
+// ConvertImageToImageTag converts an Image into a plain string (domain/namespace/name:tag).
+func ConvertImageToImageTag(image v1alpha1.Image) string {
+	imageTag := ""
+	if len(image.Domain) > 0 {
+		imageTag += image.Domain + "/"
+	}
+	if len(image.Namespace) > 0 {
+		imageTag += image.Namespace + "/"
+	}
+	imageTag += image.Name
+	if len(image.Tag) > 0 {
+		imageTag += ":" + image.Tag
+	}
+	return imageTag
 }
 
 // splitImageTag
