@@ -72,7 +72,7 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
 	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
-	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
+	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
