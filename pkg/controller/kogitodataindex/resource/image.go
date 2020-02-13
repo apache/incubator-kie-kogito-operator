@@ -17,6 +17,7 @@ package resource
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,12 +41,12 @@ var imageStreamTagAnnotations = map[string]string{
 func newImage(instance *v1alpha1.KogitoDataIndex) *imgv1.ImageStream {
 	image := instance.Spec.Image
 	if len(image) == 0 {
-		image = DefaultDataIndexImage
+		image = infrastructure.DefaultDataIndexImage
 	}
 	_, _, _, tag := framework.SplitImageTag(image)
 
 	return &imgv1.ImageStream{
-		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: instance.Namespace, Annotations: imageStreamAnnotations},
+		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: instance.Namespace, Annotations: imageStreamAnnotations},
 		Spec: imgv1.ImageStreamSpec{
 			LookupPolicy: imgv1.ImageLookupPolicy{Local: true},
 			Tags: []imgv1.TagReference{

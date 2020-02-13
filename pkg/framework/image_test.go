@@ -15,9 +15,10 @@
 package framework
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"reflect"
 	"testing"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
 func TestFromStringToImage(t *testing.T) {
@@ -40,6 +41,31 @@ func TestFromStringToImage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ConvertImageTagToImage(tt.args.imageTag); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ConvertImageTagToImage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFromImageToString(t *testing.T) {
+	type args struct {
+		image v1alpha1.Image
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"empty", args{v1alpha1.Image{}}, ""},
+		{"with registry name", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}}, "quay.io/openshift/myimage:1.0"},
+		{"full name", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}}, "openshift/myimage:1.0"},
+		{"namespace empty", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}}, "myimage:1.0"},
+		{"tag empty", args{v1alpha1.Image{Name: "myimage", Tag: "", Namespace: "", Domain: ""}}, "myimage"},
+		{"just tag", args{v1alpha1.Image{Name: "", Tag: "1.0", Namespace: "", Domain: ""}}, ":1.0"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ConvertImageToImageTag(tt.args.image); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ConvertImageTagToImage() = %v, want %v", got, tt.want)
 			}
 		})

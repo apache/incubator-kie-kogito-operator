@@ -15,6 +15,8 @@
 package infrastructure
 
 import (
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -25,7 +27,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"testing"
 )
 
 func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
@@ -38,7 +39,7 @@ func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
 		},
 	}
 	jobs := &v1alpha1.KogitoJobsService{
-		ObjectMeta: metav1.ObjectMeta{Name: "jobs-service", Namespace: t.Name()},
+		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
 		Spec:       v1alpha1.KogitoJobsServiceSpec{Replicas: 1},
 		Status:     v1alpha1.KogitoJobsServiceStatus{ExternalURI: URI},
 	}
@@ -76,7 +77,7 @@ func TestInjectJobsServicesURLIntoKogitoAppsCleanUp(t *testing.T) {
 		},
 	}
 	jobs := &v1alpha1.KogitoJobsService{
-		ObjectMeta: metav1.ObjectMeta{Name: "jobs-service", Namespace: t.Name()},
+		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
 		Spec:       v1alpha1.KogitoJobsServiceSpec{Replicas: 1},
 		Status:     v1alpha1.KogitoJobsServiceStatus{ExternalURI: URI},
 	}

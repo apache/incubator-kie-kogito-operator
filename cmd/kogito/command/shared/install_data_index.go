@@ -22,7 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	dataindex "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -36,10 +36,10 @@ func installDefaultDataIndex(cli *client.Client, namespace string) error {
 	log := context.GetDefaultLogger()
 
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: dataindex.DefaultDataIndexName, Namespace: namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: namespace},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas:       defaultDataIndexReplicas,
-			Image:          dataindex.DefaultDataIndexImage,
+			Image:          infrastructure.DefaultDataIndexImage,
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
 			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true}},
 		},

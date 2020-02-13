@@ -16,12 +16,12 @@ package install
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	resjobs "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitojobsservice/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/spf13/cobra"
@@ -31,7 +31,6 @@ import (
 
 const (
 	defaultJobsServiceInfinispanSecretName = "kogito-jobs-service-infinispan-credentials"
-	defaultJobsServiceName                 = "jobs-service"
 )
 
 type installJobsServiceFlags struct {
@@ -133,7 +132,7 @@ func (i *installJobsServiceCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", resjobs.DefaultImageTagName, "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultJobsServiceImageFullTag, "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
 	i.command.Flags().StringVar(&i.flags.infinispan.URI, "infinispan-url", "", "Set only if enable-persistence is defined. The Infinispan Server URI, example: infinispan-server:11222")
 	i.command.Flags().StringVar(&i.flags.infinispan.AuthRealm, "infinispan-authrealm", "", "Set only if enable-persistence is defined. The Infinispan Server Auth Realm for authentication, example: ApplicationRealm")
 	i.command.Flags().StringVar(&i.flags.infinispanSasl, "infinispan-sasl", "", "Set only if enable-persistence is defined. The Infinispan Server SASL Mechanism, example: PLAIN")
@@ -196,7 +195,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 	}
 
 	kogitoJobsService := v1alpha1.KogitoJobsService{
-		ObjectMeta: metav1.ObjectMeta{Name: defaultJobsServiceName, Namespace: i.flags.Project},
+		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			InfinispanMeta: v1alpha1.InfinispanMeta{
 				InfinispanProperties: i.flags.infinispan,

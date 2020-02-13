@@ -15,21 +15,23 @@
 package resource
 
 import (
+	"reflect"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	imgv1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
-	"testing"
 )
 
 func TestCreateRequiredResources_OnOpenShift(t *testing.T) {
 	instance := &v1alpha1.KogitoJobsService{
-		ObjectMeta: metav1.ObjectMeta{Name: "job-service", Namespace: t.Name()},
+		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			Replicas: int32(2),
 			Image:    v1alpha1.Image{},
@@ -47,14 +49,14 @@ func TestCreateRequiredResources_OnOpenShift(t *testing.T) {
 	assert.Len(t, deployment.Annotations, 1)
 	assert.Contains(t, deployment.Annotations[annotationKeyImageTriggers], instance.Name)
 
-	imageStream := framework.GetResource(reflect.TypeOf(imgv1.ImageStream{}), defaultImageName, resources).(*imgv1.ImageStream)
+	imageStream := framework.GetResource(reflect.TypeOf(imgv1.ImageStream{}), infrastructure.DefaultJobsServiceName, resources).(*imgv1.ImageStream)
 	assert.NotNil(t, imageStream)
 	assert.Contains(t, deployment.Annotations[annotationKeyImageTriggers], imageStream.Name)
 }
 
 func TestCreateRequiredResources_OnKubernetes(t *testing.T) {
 	instance := &v1alpha1.KogitoJobsService{
-		ObjectMeta: metav1.ObjectMeta{Name: "job-service", Namespace: t.Name()},
+		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			Replicas: int32(2),
 			Image:    v1alpha1.Image{},

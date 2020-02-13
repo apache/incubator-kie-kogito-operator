@@ -15,22 +15,23 @@
 package kogitojobsservice
 
 import (
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
 )
 
 func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 	instance := &v1alpha1.KogitoJobsService{
-		ObjectMeta: v1.ObjectMeta{Name: "jobs-service", Namespace: t.Name()},
+		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec:       v1alpha1.KogitoJobsServiceSpec{Replicas: 1},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
@@ -57,7 +58,7 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 
 func TestReconcileKogitoJobsService_Reconcile_WithInfinispan(t *testing.T) {
 	instance := &v1alpha1.KogitoJobsService{
-		ObjectMeta: v1.ObjectMeta{Name: "jobs-service", Namespace: t.Name()},
+		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 				UseKogitoInfra: true,

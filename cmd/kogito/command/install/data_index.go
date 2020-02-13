@@ -16,13 +16,13 @@ package install
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	resdataindex "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	defaultDataIndexInfinispanSecretName = resdataindex.DefaultDataIndexName + "-infinispan-credentials"
+	defaultDataIndexInfinispanSecretName = infrastructure.DefaultDataIndexName + "-infinispan-credentials"
 	defaultInfinispanUsernameKey         = "username"
 	defaultInfinispanPasswordKey         = "password"
 )
@@ -141,7 +141,7 @@ func (i *installDataIndexCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", resdataindex.DefaultDataIndexImage, "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultDataIndexImage, "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().Int32Var(&i.flags.httpPort, "http-port", framework.DefaultExposedPort, "Default HTTP port which Data Index image will be listening")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
@@ -210,7 +210,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	}
 
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: resdataindex.DefaultDataIndexName, Namespace: i.flags.Project},
+		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			Replicas:       i.flags.Replicas,
 			Env:            util.FromStringsKeyPairToMap(i.flags.Env),
