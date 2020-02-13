@@ -15,6 +15,7 @@
 package install
 
 import (
+	"errors"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
@@ -24,6 +25,7 @@ type installKogitoOperatorFlags struct {
 	namespace        string
 	image            string
 	installDataIndex bool
+	force            bool
 }
 
 type installKogitoOperatorCommand struct {
@@ -70,15 +72,23 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
 	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
+	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
+	// if force flag is set, then a custom image is required.
+	if i.flags.force {
+		if i.flags.image == shared.DefaultOperatorImageNameTag {
+			return errors.New("force install flag is enabled but the custom operator image is missing")
+		}
+	}
+
 	if i.flags.namespace, err = shared.EnsureProject(i.Client, i.flags.namespace); err != nil {
 		return err
 	}
 
-	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image)
+	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force)
 	if i.flags.installDataIndex {
 		install.InstallDataIndex()
 	}

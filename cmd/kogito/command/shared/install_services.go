@@ -31,7 +31,7 @@ type ServicesInstallation interface {
 	// InstallDataIndex installs Data Index. Depends on the Operator, install it first.
 	InstallDataIndex() ServicesInstallation
 	// InstallOperator installs the Operator.
-	InstallOperator(warnIfInstalled bool, operatorImage string) ServicesInstallation
+	InstallOperator(warnIfInstalled bool, operatorImage string, force bool) ServicesInstallation
 	// InstallInfinispan install an infinispan instance.
 	InstallInfinispan() ServicesInstallation
 	// InstallKeycloak install a keycloak instance.
@@ -55,15 +55,15 @@ func (s servicesInstallation) InstallDataIndex() ServicesInstallation {
 	return s
 }
 
-func (s servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string) ServicesInstallation {
+func (s servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool) ServicesInstallation {
 	if s.err == nil && !s.operatorInstalled {
-		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled)
+		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force)
 	}
 	return s
 }
 
 func (s servicesInstallation) SilentlyInstallOperator() ServicesInstallation {
-	return s.InstallOperator(false, "")
+	return s.InstallOperator(false, "", false)
 }
 
 func (s servicesInstallation) InstallInfinispan() ServicesInstallation {
