@@ -59,6 +59,7 @@ type deployFlags struct {
 	installKafka      string
 	imageVersion      string
 	mavenMirrorURL    string
+	enableIstio       bool
 }
 
 type deployCommand struct {
@@ -157,6 +158,7 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().StringVar(&i.flags.installKafka, "install-kafka", defaultInstallKafka, "Kafka installation mode: \"Always\" or \"Never\". \"Always\" will use the Strimzi Operator to install a Kafka cluster. The environment variable 'KAFKA_BOOTSTRAP_SERVERS' will be available for the service during runtime.")
 	i.command.Flags().StringVar(&i.flags.imageVersion, "image-version", "", "Image version for standard Kogito build images. Ignored if a custom image is set for image-s2i or image-runtime.")
 	i.command.Flags().StringVar(&i.flags.mavenMirrorURL, "maven-mirror-url", "", "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed, e.g: https://my.internal.nexus/content/group/public")
+	i.command.Flags().BoolVar(&i.flags.enableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
 }
 
 func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -227,7 +229,8 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 				Limits:   shared.FromStringArrayToControllerResourceMap(i.flags.Limits),
 				Requests: shared.FromStringArrayToControllerResourceMap(i.flags.Requests),
 			},
-			Infra: v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanType(i.flags.installInfinispan), InstallKafka: v1alpha1.KogitoAppInfraInstallKafkaType(i.flags.installKafka)},
+			Infra:       v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanType(i.flags.installInfinispan), InstallKafka: v1alpha1.KogitoAppInfraInstallKafkaType(i.flags.installKafka)},
+			EnableIstio: i.flags.enableIstio,
 		},
 		Status: v1alpha1.KogitoAppStatus{
 			ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: make([]v1alpha1.Condition, 0)},

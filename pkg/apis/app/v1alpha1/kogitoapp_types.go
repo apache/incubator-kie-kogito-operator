@@ -50,7 +50,6 @@ type KogitoAppSpec struct {
 
 	// The resources for the deployed pods, like memory and cpu
 	// Default value: nil
-
 	Resources Resources `json:"resources,omitempty"`
 
 	// S2I Build configuration
@@ -63,6 +62,12 @@ type KogitoAppSpec struct {
 
 	// Infrastructure definition
 	Infra KogitoAppInfra `json:"infra,omitempty"`
+
+	// Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Istio"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	EnableIstio bool `json:"enableIstio,omitempty"`
 }
 
 // Resources Data to define Resources needed for each deployed pod

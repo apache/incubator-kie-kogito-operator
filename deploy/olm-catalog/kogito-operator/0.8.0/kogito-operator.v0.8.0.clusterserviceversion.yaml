@@ -133,6 +133,13 @@ spec:
         path: build.native
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Annotates the pods managed by the operator with the required
+          metadata for Istio to setup its sidecars, enabling the mesh. Defaults to
+          false.
+        displayName: Enable Istio
+        path: enableIstio
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: 'Environment variables for the runtime service Default value:
           nil'
         displayName: Environment Variables

@@ -151,6 +151,11 @@ spec:
               required:
               - gitSource
               type: object
+            enableIstio:
+              description: Annotates the pods managed by the operator with the required
+                metadata for Istio to setup its sidecars, enabling the mesh. Defaults
+                to false.
+              type: boolean
             env:
               description: 'Environment variables for the runtime service Default
                 value: nil'
@@ -204,8 +209,8 @@ spec:
               minimum: 0
               type: integer
             resources:
-              description: Resources Data to define Resources needed for each deployed
-                pod
+              description: 'The resources for the deployed pods, like memory and cpu
+                Default value: nil'
               properties:
                 limits:
                   items:

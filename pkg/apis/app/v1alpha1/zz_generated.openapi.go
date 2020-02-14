@@ -674,7 +674,8 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
+							Description: "The resources for the deployed pods, like memory and cpu Default value: nil",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
 						},
 					},
 					"build": {
@@ -693,6 +694,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 						SchemaProps: spec.SchemaProps{
 							Description: "Infrastructure definition",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppInfra"),
+						},
+					},
+					"enableIstio": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.",
+							Type:        []string{"boolean"},
+							Format:      "",
 						},
 					},
 				},
