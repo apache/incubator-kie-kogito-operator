@@ -74,6 +74,7 @@ tags=
 concurrent=1
 feature=
 local=false
+ci=
 operator_image=
 operator_tag=
 cli_path=
@@ -94,6 +95,7 @@ run-tests:
 		--concurrent ${concurrent} \
 		--feature ${feature} \
 		--local ${local} \
+		--ci ${ci} \
 		--operator_image $(operator_image) \
 		--operator_tag $(operator_tag) \
 		--cli_path ${cli_path} \

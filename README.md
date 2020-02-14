@@ -843,6 +843,7 @@ You can set those optional keys:
   *Default is false.*
 - `local` to be set to true if running tests in local.  
   *Default is false.*
+- `ci` to be set if running tests with CI. Give CI name. 
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
 - `operator_tag` is the Operator image tag.  
