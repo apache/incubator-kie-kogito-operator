@@ -75,7 +75,7 @@ type KogitoJobsServiceStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// DeploymentStatus is the detailed status for the Jobs Service deployment
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=false
 	DeploymentStatus appsv1.DeploymentStatus `json:"deploymentStatus,omitempty"`
 	// Image is the resolved image for this service
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
