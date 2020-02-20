@@ -119,3 +119,9 @@ run-smoke-tests:
 version = ""
 prepare-olm:
 	./hack/pr-operatorhub.sh $(version)
+
+.PHONY: bump-version
+old_version = ""
+new_version = ""
+bump-version:
+	./hack/bump-version.sh $(old_version) $(new_version)

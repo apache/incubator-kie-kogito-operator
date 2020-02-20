@@ -115,6 +115,7 @@ type Env struct {
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Service Build"
 type KogitoAppBuildObject struct {
 	Incremental bool `json:"incremental,omitempty"`
+	// Environment variables used during build time
 	// +listType=map
 	// +listMapKey=name
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
@@ -162,15 +163,15 @@ type KogitoAppServiceObject struct {
 type GitSource struct {
 	// Git URI for the s2i source
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="URI"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git URI"
 	URI *string `json:"uri"`
 	// Branch to use in the Git repository
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Reference"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git Reference"
 	Reference string `json:"reference,omitempty"`
 	// Context/subdirectory where the code is located, relative to the repo root
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Context"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git Context"
 	ContextDir string `json:"contextDir,omitempty"`
 }
 

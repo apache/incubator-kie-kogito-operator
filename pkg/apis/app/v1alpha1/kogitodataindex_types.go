@@ -89,11 +89,11 @@ type KogitoDataIndexStatus struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Status of the Data Index Service Deployment created and managed by it
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=false
 	DeploymentStatus appsv1.DeploymentStatus `json:"deploymentStatus,omitempty"`
 
 	// Status of the Data Index Service created and managed by it
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=false
 	ServiceStatus corev1.ServiceStatus `json:"serviceStatus,omitempty"`
 
 	// OK when all resources are created successfully

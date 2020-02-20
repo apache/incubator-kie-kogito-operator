@@ -509,14 +509,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					"env": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"name",
-								},
-								"x-kubernetes-list-type": "map",
+								"x-kubernetes-list-map-keys": "name",
+								"x-kubernetes-list-type":     "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
+							Description: "Environment variables used during build time",
+							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
@@ -534,10 +533,8 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					"webhooks": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"type",
-								},
-								"x-kubernetes-list-type": "map",
+								"x-kubernetes-list-map-keys": "type",
+								"x-kubernetes-list-type":     "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -654,10 +651,8 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					"env": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"name",
-								},
-								"x-kubernetes-list-type": "map",
+								"x-kubernetes-list-map-keys": "name",
+								"x-kubernetes-list-type":     "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -1292,10 +1287,8 @@ func schema_pkg_apis_app_v1alpha1_Resources(ref common.ReferenceCallback) common
 					"limits": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"resource",
-								},
-								"x-kubernetes-list-type": "map",
+								"x-kubernetes-list-map-keys": "resource",
+								"x-kubernetes-list-type":     "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -1312,10 +1305,8 @@ func schema_pkg_apis_app_v1alpha1_Resources(ref common.ReferenceCallback) common
 					"requests": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"resource",
-								},
-								"x-kubernetes-list-type": "map",
+								"x-kubernetes-list-map-keys": "resource",
+								"x-kubernetes-list-type":     "map",
 							},
 						},
 						SchemaProps: spec.SchemaProps{

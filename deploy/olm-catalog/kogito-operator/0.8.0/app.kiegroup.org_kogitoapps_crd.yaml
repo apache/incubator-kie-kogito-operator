@@ -33,6 +33,7 @@ spec:
               description: 'S2I Build configuration Default value: nil'
               properties:
                 env:
+                  description: Environment variables used during build time
                   items:
                     description: Env Data to define environment variables in key-value
                       pair fashion
