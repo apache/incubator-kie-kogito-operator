@@ -17,6 +17,7 @@ package command
 import (
 	"io"
 
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/completion"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/install"
@@ -36,6 +37,7 @@ func BuildCommands(kubeClient *client.Client, output io.Writer) *cobra.Command {
 	ctx := &context.CommandContext{Client: kubeClient}
 
 	rootCommand := context.NewRootCommand(ctx, output)
+	completion.BuildCommands(ctx, rootCommand.Command())
 	deploy.BuildCommands(ctx, rootCommand.Command())
 	install.BuildCommands(ctx, rootCommand.Command())
 	remove.BuildCommands(ctx, rootCommand.Command())

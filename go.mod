@@ -3,7 +3,7 @@ module github.com/kiegroup/kogito-cloud-operator
 require (
 	github.com/RHsyseng/operator-utils v0.0.0-20200108204558-82090ef57586
 	github.com/coreos/prometheus-operator v0.34.0
-	github.com/cucumber/godog v0.8.0
+	github.com/cucumber/godog v0.8.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.4
@@ -29,8 +29,9 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.4.0
 	go.uber.org/zap v1.10.0
-	golang.org/x/crypto v0.0.0-20200204104054-c9f3fb736b72 // indirect
-	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
+	golang.org/x/crypto v0.0.0-20200214034016-1d94cc7ab1c6 // indirect
+	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c // indirect
+	golang.org/x/tools v0.0.0-20200219203042-77adbdfd2c36 // indirect
 	gopkg.in/yaml.v2 v2.2.4
 	k8s.io/api v0.0.0
 	k8s.io/apiextensions-apiserver v0.0.0
@@ -70,5 +71,8 @@ replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v12.2.0+inc
 
 // Required by Helm
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+
+// works around bad dependency
+replace github.com/openshift/api => github.com/openshift/api v0.0.0-20190924102528-32369d4db2ad
 
 go 1.13
