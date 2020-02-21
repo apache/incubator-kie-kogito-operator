@@ -50,3 +50,13 @@ func Pod() PodInterface {
 func PodC(c *client.Client) PodInterface {
 	return newPod(c)
 }
+
+// Event will fetch the inner API for Kubernetes event resource with a default client
+func Event() EventInterface {
+	return newEvent(&client.Client{})
+}
+
+// EventC will use a defined client to fetch the Kubernetes event resources
+func EventC(c *client.Client) EventInterface {
+	return newEvent(c)
+}
