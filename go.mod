@@ -23,6 +23,7 @@ require (
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/operator-framework/operator-sdk v0.15.1
 	github.com/prometheus/common v0.7.0
+	github.com/rdumont/assistdog v0.0.0-20200218102612-cedc9f276cca
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
