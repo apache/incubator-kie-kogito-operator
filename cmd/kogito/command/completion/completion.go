@@ -15,36 +15,36 @@
 package completion
 
 import (
-    "fmt"
-    "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-    "github.com/spf13/cobra"
-    "os"
+	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/spf13/cobra"
+	"os"
 )
 
 type completionCommand struct {
-    context.CommandContext
-    command *cobra.Command
-    Parent  *cobra.Command
+	context.CommandContext
+	command *cobra.Command
+	Parent  *cobra.Command
 }
 
 // newCompletionCommand is the constructor for the completion command
 func newCompletionCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
-    cmd := &completionCommand{CommandContext: *ctx, Parent: parent}
-    cmd.RegisterHook()
-    cmd.InitHook()
-    return cmd
+	cmd := &completionCommand{CommandContext: *ctx, Parent: parent}
+	cmd.RegisterHook()
+	cmd.InitHook()
+	return cmd
 }
 
 func (i *completionCommand) Command() *cobra.Command {
-    return i.command
+	return i.command
 }
 
 func (i *completionCommand) RegisterHook() {
-    i.command = &cobra.Command{
-        Use:     "completion (bash | zsh)",
-        Short:   "Generates a completion script for the given shell (bash or zsh)",
-        Aliases: []string{"comp"},
-        Long: `Description:
+	i.command = &cobra.Command{
+		Use:     "completion (bash | zsh)",
+		Short:   "Generates a completion script for the given shell (bash or zsh)",
+		Aliases: []string{"comp"},
+		Long: `Description:
   Generates a completion script for the given shell (bash or zsh)
 
 Bash:
@@ -67,32 +67,32 @@ Zsh:
   To load in all new sessions for all users:
   kogito completion zsh | sudo tee /usr/share/zsh/site-functions/_kogito
         `,
-        RunE:    i.Exec,
-        // Args validation
-        Args: func(cmd *cobra.Command, args []string) error {
-            if len(args) != 1 {
-                return fmt.Errorf("requires 1 arg, received %v", len(args))
-            }
-            if args[0] != "bash" && args[0] != "zsh" {
-                return fmt.Errorf("argument must be 'bash' or 'zsh', received %s", args[0])
-            }
-            return nil
-        },
-    }
+		RunE: i.Exec,
+		// Args validation
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires 1 arg, received %v", len(args))
+			}
+			if args[0] != "bash" && args[0] != "zsh" {
+				return fmt.Errorf("argument must be 'bash' or 'zsh', received %s", args[0])
+			}
+			return nil
+		},
+	}
 }
 
 func (i *completionCommand) InitHook() {
-    i.Parent.AddCommand(i.command)
+	i.Parent.AddCommand(i.command)
 }
 
 func (i *completionCommand) Exec(cmd *cobra.Command, args []string) error {
-    shell := args[0]
+	shell := args[0]
 
-    if shell == "bash" {
-        cmd.Root().GenBashCompletion(os.Stdout);
-    } else if shell == "zsh" {
-        cmd.Root().GenZshCompletion(os.Stdout);
-    }
+	if shell == "bash" {
+		cmd.Root().GenBashCompletion(os.Stdout)
+	} else if shell == "zsh" {
+		cmd.Root().GenZshCompletion(os.Stdout)
+	}
 
-    return nil
+	return nil
 }

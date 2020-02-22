@@ -63,3 +63,19 @@ func TestDisplayProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
 	assert.NotEmpty(t, o)
 	assert.Contains(t, o, ns)
 }
+
+func TestDisplayProjectCmd_WithJsonOutputFormat(t *testing.T) {
+	config := context.ReadConfig()
+	ns := uuid.New().String()
+	config.Namespace = ns
+	config.Save()
+
+	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
+	test.SetupCliTest(strings.Join([]string{"project", ns, "-o", "json"}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
+	o, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, o)
+	assert.Contains(t, o, "\"level\":\"INFO\"")
+	assert.Contains(t, o, "\"name\":\"kogito-cli\"")
+	assert.Contains(t, o, "\"message\":\"Using project '"+ns+"'\"")
+}

@@ -424,27 +424,57 @@ The `kogito` CLI appears in your path:
 
 ```bash
 $ kogito
-Kogito CLI deploys your Kogito services into an OpenShift cluster
+Kogito CLI deploys your Kogito Services into an OpenShift cluster
 
 Usage:
   kogito [command]
 
 Available Commands:
-  delete-project Deletes a Kogito Project - i.e., the Kubernetes/OpenShift namespace
+  completion     Generates a completion script for the given shell (bash or zsh)
+  delete-project Deletes a Kogito Project - i.e., the Kubernetes/OpenShift project
   delete-service Deletes a Kogito Runtime Service deployed in the namespace/project
   deploy-service Deploys a new Kogito Runtime Service into the given Project
   help           Help about any command
-  install        Install all sort of infrastructure components to your Kogito project
-  new-project    Creates a new Kogito Project for your Kogito services
-  use-project    Sets the Kogito Project where your Kogito service will be deployed
+  install        Install all sorts of infrastructure components to your Kogito project
+  new-project    Creates a new Kogito Project for your Kogito Services
+  project        Display the current used project
+  remove         remove all sorts of infrastructure components from your Kogito project
+  use-project    Sets the Kogito Project where your Kogito Service will be deployed
 
 Flags:
-      --config string   config file (default is $HOME/.kogito.json)
+      --config string   config file (default is $HOME/.kogito/config.yaml)
   -h, --help            help for kogito
+  -o, --output string   output format (when defined, 'json' is supported)
   -v, --verbose         verbose output
       --version         display version
 
 Use "kogito [command] --help" for more information about a command.
+```
+
+#### Kogito CLI output format and environment variables
+
+When the output format is undefined, messages are outputted in simple, human-readable form.
+```bash
+$ kogito project
+Using project 'testns1'
+```
+
+When the output format is defined as 'json', messages are outputted for the purpose of parsing by external programs.
+```bash
+$ kogito project -o json
+{"level":"INFO","time":"2020-02-27T01:37:40.935-0500","name":"kogito-cli","message":"Using project 'testns1'"}
+```
+
+Environment variables can be used to change the keys inside the json message. Setting a key to an empty string will remove the key/value pair from the json message entirely.
+```bash
+$ KOGITO_LOGGER_LEVEL_KEY=Severity KOGITO_LOGGER_TIME_KEY= KOGITO_LOGGER_NAME_KEY= KOGITO_LOGGER_MESSAGE_KEY=Text kogito project -o json
+{"Severity":"INFO","Text":"Using project 'testns1'"}
+```
+
+When the output format is undefined, setting an environment variable to a non-empty string will include its value in the human-readable message.
+```bash
+$ KOGITO_LOGGER_LEVEL_KEY=L kogito project
+INFO    Using project 'testns1'
 ```
 
 ### Deploying a Kogito service from source with the Kogito CLI

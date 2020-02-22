@@ -22,15 +22,30 @@ import (
 
 var (
 	commandOutput io.Writer
+	outputFormat  string
 	logVerbose    bool
 )
 
 // GetDefaultLogger retrieves the default logger
 func GetDefaultLogger() *zap.SugaredLogger {
-	return getDefaultLoggerWithOut(logVerbose, commandOutput)
+	return getDefaultLoggerWithOut(logVerbose, outputFormat, commandOutput)
 }
 
 // GetDefaultLoggerWithOut returns a logger set to a given output
-func getDefaultLoggerWithOut(verbose bool, commandOutput io.Writer) *zap.SugaredLogger {
-	return logger.GetLoggerWithOptions("kogito-cli", &logger.Opts{Output: commandOutput, Verbose: verbose, Console: true})
+func getDefaultLoggerWithOut(verbose bool, outputFormat string, commandOutput io.Writer) *zap.SugaredLogger {
+	var badOutputFormatMsg string
+	if len(outputFormat) > 0 && outputFormat != "json" {
+		badOutputFormatMsg = "'" + outputFormat + "' is not a supported output format"
+		outputFormat = ""
+	}
+	logger := logger.GetLoggerWithOptions("kogito-cli", &logger.Opts{
+		Output:       commandOutput,
+		OutputFormat: outputFormat,
+		Verbose:      verbose,
+		Console:      true,
+	})
+	if len(badOutputFormatMsg) > 0 {
+		logger.Warn(badOutputFormatMsg)
+	}
+	return logger
 }
