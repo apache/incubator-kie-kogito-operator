@@ -23,13 +23,14 @@ import (
 )
 
 const (
-	userName = "kogito-data-index-viewer"
+	keycloakClientName = "data-index-client"
+	keycloakUserName   = "data-index-user"
+
+	userName = "data-index-user"
 	password = "password"
 	userRole = "confidential"
 
-	keycloakClientName      = "kogito-data-index-keycloak-client"
-	keycloakUserName        = "kogito-data-index-keycloak-user"
-	clientID                = "kogito_data_index_service"
+	clientID                = "data-index-client"
 	secret                  = "secret"
 	clientAuthenticatorType = "client-secret"
 )
@@ -120,4 +121,9 @@ func IsKeycloakReady(instance *v1alpha1.KogitoDataIndex, client *client.Client) 
 	}
 
 	return true, nil
+}
+
+// IsKeycloakEnabled checks if Keycloak resources should be deployed
+func IsKeycloakEnabled(instance *v1alpha1.KogitoDataIndex, client *client.Client) bool {
+	return instance.Spec.EnableSecurity && infrastructure.IsKeycloakAvailable(client)
 }

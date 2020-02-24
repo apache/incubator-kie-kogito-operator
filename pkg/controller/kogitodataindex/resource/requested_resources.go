@@ -158,7 +158,7 @@ func createImageStream(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResou
 }
 
 func createKeycloakUsers(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
-	if f.KogitoDataIndex.Spec.EnableSecurity {
+	if IsKeycloakEnabled(f.KogitoDataIndex, f.Client) {
 		keycloakUser := newKeycloakUser(f.KogitoDataIndex.Namespace, f.KogitoDataIndex.Spec.KeycloakProperties.Labels)
 		f.Resources.KeycloakUsers = append(f.Resources.KeycloakUsers, keycloakUser)
 	}
@@ -166,7 +166,7 @@ func createKeycloakUsers(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexRes
 }
 
 func createKeycloakClients(f *kogitoDataIndexResourcesFactory) *kogitoDataIndexResourcesFactory {
-	if f.KogitoDataIndex.Spec.EnableSecurity {
+	if IsKeycloakEnabled(f.KogitoDataIndex, f.Client) {
 		keycloakClient := newKeycloakClient(f.KogitoDataIndex.Namespace, f.KogitoDataIndex.Spec.KeycloakProperties.Labels)
 		f.Resources.KeycloakClients = append(f.Resources.KeycloakClients, keycloakClient)
 	}

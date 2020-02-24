@@ -54,7 +54,7 @@ func GetDeployedResources(instance *v1alpha1.KogitoDataIndex, client *client.Cli
 		objectTypes = append(objectTypes, &kafkabetav1.KafkaTopicList{})
 	}
 
-	if instance.Spec.EnableSecurity && infrastructure.IsKeycloakAvailable(client) {
+	if IsKeycloakEnabled(instance, client) {
 		objectTypes = append(objectTypes,
 			&keycloakv1alpha1.KeycloakUserList{},
 			&keycloakv1alpha1.KeycloakClientList{},

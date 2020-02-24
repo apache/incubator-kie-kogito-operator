@@ -72,10 +72,7 @@ func DeployKeycloakWithKogitoInfra(instance v1alpha1.KeycloakAware, namespace st
 				KeycloakRealm: keycloakRealm,
 				AuthServerURL: keycloakURL,
 				RealmName:     realmName,
-				Labels: map[string]string{
-					keycloakAppLabelKey:      keycloakRealmLabels[keycloakAppLabelKey],
-					keycloakResourceLabelKey: keycloakRealmLabels[keycloakResourceLabelKey],
-				},
+				Labels:        keycloakRealmLabels,
 			})
 
 			return true, 0, nil
@@ -96,11 +93,8 @@ func SetKeycloakVariables(keycloakProps v1alpha1.KeycloakConnectionProperties, c
 			profile = securityProfile
 		}
 		framework.SetEnvVar(profileEnv, profile, container)
-
 		framework.SetEnvVar(authServerEnv, keycloakProps.AuthServerURL+authPath+keycloakProps.RealmName, container)
-
 		framework.SetEnvVar(clientEnv, clientID, container)
-
 		framework.SetEnvVar(secretEnv, secret, container)
 	}
 }

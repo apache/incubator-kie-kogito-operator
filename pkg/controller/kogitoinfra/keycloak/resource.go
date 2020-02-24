@@ -85,7 +85,14 @@ func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra) (resources map[r
 		}
 		resources[reflect.TypeOf(keycloakv1alpha1.Keycloak{})] = []resource.KubernetesResource{keycloak}
 		keycloakRealm := &keycloakv1alpha1.KeycloakRealm{
-			ObjectMeta: v1.ObjectMeta{Namespace: kogitoInfra.Namespace, Name: InstanceName},
+			ObjectMeta: v1.ObjectMeta{
+				Namespace: kogitoInfra.Namespace,
+				Name:      InstanceName,
+				Labels: map[string]string{
+					keycloakAppLabelKey:      keycloakAppLabelValue,
+					keycloakResourceLabelKey: keycloakResourceLabelValue,
+				},
+			},
 			Spec: keycloakv1alpha1.KeycloakRealmSpec{
 				InstanceSelector: &v1.LabelSelector{
 					MatchLabels: map[string]string{

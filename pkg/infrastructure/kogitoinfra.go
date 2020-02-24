@@ -170,10 +170,10 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 }
 
 // isInfraComponentDeployed verifies if the given component is available in the infrastructure
-func isInfraComponentDeployed(status *v1alpha1.InfraComponentInstallStatusType) bool {
+func isInfraComponentDeployed(status *v1alpha1.InfraComponentInstallStatusType, withService bool) bool {
 	if &status != nil &&
 		len(status.Condition) > 0 {
-		return len(status.Service) > 0 &&
+		return (!withService || len(status.Service) > 0) &&
 			status.Condition[len(status.Condition)-1].Type == v1alpha1.SuccessInstallConditionType
 	}
 	return false
@@ -181,22 +181,22 @@ func isInfraComponentDeployed(status *v1alpha1.InfraComponentInstallStatusType) 
 
 func isInfinispanDeployed(infra *v1alpha1.KogitoInfra) bool {
 	if &infra.Status != nil && &infra.Status.Infinispan != nil {
-		return isInfraComponentDeployed(&infra.Status.Infinispan.InfraComponentInstallStatusType)
+		return isInfraComponentDeployed(&infra.Status.Infinispan.InfraComponentInstallStatusType, true)
 	}
 	return false
 }
 
 func isKafkaDeployed(infra *v1alpha1.KogitoInfra) bool {
 	if &infra.Status != nil && &infra.Status.Kafka != nil {
-		return isInfraComponentDeployed(&infra.Status.Kafka)
+		return isInfraComponentDeployed(&infra.Status.Kafka, true)
 	}
 	return false
 }
 
 func isKeycloakDeployed(infra *v1alpha1.KogitoInfra) bool {
 	if &infra.Status != nil && &infra.Status.Keycloak != nil {
-		return isInfraComponentDeployed(&infra.Status.Keycloak.InfraComponentInstallStatusType) &&
-			isInfraComponentDeployed(&infra.Status.Keycloak.RealmStatus)
+		return isInfraComponentDeployed(&infra.Status.Keycloak.InfraComponentInstallStatusType, true) &&
+			isInfraComponentDeployed(&infra.Status.Keycloak.RealmStatus, false)
 	}
 	return false
 }

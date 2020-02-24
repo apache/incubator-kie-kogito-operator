@@ -241,7 +241,7 @@ func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.Kogit
 		return nil, err
 	}
 
-	if instance.Spec.EnableSecurity {
+	if resource.IsKeycloakEnabled(instance, r.client) {
 		if updateForKeycloak, requeueForKeycloak, err = infrastructure.DeployKeycloakWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
 			return nil, err
 		}

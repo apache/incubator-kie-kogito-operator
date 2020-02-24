@@ -40,7 +40,10 @@ func IsKeycloakAvailable(client *client.Client) bool {
 func GetKeycloakProperties(cli *client.Client, infra *v1alpha1.KogitoInfra) (name, URL string, err error) {
 	if keycloak, err := GetKeycloakInstance(infra.Status.Keycloak.Name, infra.Namespace, cli); err != nil {
 		return "", "", err
-	} else if keycloak != nil && keycloak.Status.Ready && len(keycloak.Status.InternalURL) > 0 {
+	} else if keycloak != nil &&
+		keycloak.Status.Ready &&
+		keycloak.Status.Phase == keycloakv1alpha1.PhaseReconciling &&
+		len(keycloak.Status.InternalURL) > 0 {
 		return keycloak.Name, keycloak.Status.InternalURL, nil
 	}
 	return "", "", nil
@@ -50,8 +53,16 @@ func GetKeycloakProperties(cli *client.Client, infra *v1alpha1.KogitoInfra) (nam
 func GetKeycloakRealmProperties(cli *client.Client, infra *v1alpha1.KogitoInfra) (name, realmName string, labels map[string]string, err error) {
 	if keycloakRealm, err := GetKeycloakRealmInstance(infra.Status.Keycloak.RealmStatus.Name, infra.Namespace, cli); err != nil {
 		return "", "", nil, err
-	} else if keycloakRealm != nil && keycloakRealm.Status.Ready {
-		return keycloakRealm.Name, keycloakRealm.Spec.Realm.Realm, keycloakRealm.Labels, nil
+	} else if keycloakRealm != nil &&
+		keycloakRealm.Status.Ready &&
+		keycloakRealm.Status.Phase == keycloakv1alpha1.PhaseReconciling {
+		return keycloakRealm.Name,
+			keycloakRealm.Spec.Realm.Realm,
+			map[string]string{
+				keycloakAppLabelKey:      keycloakRealm.Labels[keycloakAppLabelKey],
+				keycloakResourceLabelKey: keycloakRealm.Labels[keycloakResourceLabelKey],
+			},
+			nil
 	}
 	return "", "", nil, nil
 }
