@@ -39,7 +39,7 @@ Table of Contents
       * [Kogito CLI](#kogito-cli)
          * [Kogito CLI requirements](#kogito-cli-requirements)
          * [Kogito CLI installation](#kogito-cli-installation)
-            * [For Linux](#for-linux)
+            * [For Linux and macOS](#for-linux-and-macos)
             * [For Windows](#for-windows)
             * [Building the Kogito CLI from source](#building-the-kogito-cli-from-source)
          * [Deploying a Kogito service from source with the Kogito CLI](#deploying-a-kogito-service-from-source-with-the-kogito-cli)
@@ -389,7 +389,7 @@ The Kogito CLI tool enables you to deploy new Kogito services from source instea
 
 ### Kogito CLI installation
 
-#### For Linux
+#### For Linux and macOS
 
 1. Download the correct [Kogito distribution](https://github.com/kiegroup/kogito-cloud-operator/releases) for your machine.
 
