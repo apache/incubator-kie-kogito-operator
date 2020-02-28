@@ -44,6 +44,8 @@ type Opts struct {
 	Verbose bool
 	// Output specifies where to log
 	Output io.Writer
+	// Output format
+	OutputFormat string
 	// Console logging doesn't display level nor timestamp and should be readable by humans
 	Console bool
 }
@@ -117,11 +119,23 @@ func zapSugaredLoggerTo(options *Opts) *zap.SugaredLogger {
 
 	if options.Console {
 		encCfg := zap.NewDevelopmentEncoderConfig()
-		encCfg.LevelKey = ""
-		encCfg.TimeKey = ""
-		encCfg.NameKey = ""
-		encCfg.CallerKey = ""
-		enc = zapcore.NewConsoleEncoder(encCfg)
+		if options.OutputFormat == "json" {
+			encCfg.CallerKey = util.GetOSEnv("KOGITO_LOGGER_CALLER_KEY", "caller")
+			encCfg.LevelKey = util.GetOSEnv("KOGITO_LOGGER_LEVEL_KEY", "level")
+			encCfg.MessageKey = util.GetOSEnv("KOGITO_LOGGER_MESSAGE_KEY", "message")
+			encCfg.NameKey = util.GetOSEnv("KOGITO_LOGGER_NAME_KEY", "name")
+			encCfg.StacktraceKey = util.GetOSEnv("KOGITO_LOGGER_STACKTRACE_KEY", "stacktrace")
+			encCfg.TimeKey = util.GetOSEnv("KOGITO_LOGGER_TIME_KEY", "time")
+			enc = zapcore.NewJSONEncoder(encCfg)
+		} else {
+			encCfg.CallerKey = util.GetOSEnv("KOGITO_LOGGER_CALLER_KEY", "")
+			encCfg.LevelKey = util.GetOSEnv("KOGITO_LOGGER_LEVEL_KEY", "")
+			encCfg.MessageKey = util.GetOSEnv("KOGITO_LOGGER_MESSAGE_KEY", encCfg.MessageKey)
+			encCfg.NameKey = util.GetOSEnv("KOGITO_LOGGER_NAME_KEY", "")
+			encCfg.StacktraceKey = util.GetOSEnv("KOGITO_LOGGER_STACKTRACE_KEY", encCfg.StacktraceKey)
+			encCfg.TimeKey = util.GetOSEnv("KOGITO_LOGGER_TIME_KEY", "")
+			enc = zapcore.NewConsoleEncoder(encCfg)
+		}
 		if options.Verbose {
 			lvl = zap.NewAtomicLevelAt(zap.DebugLevel)
 		} else {
