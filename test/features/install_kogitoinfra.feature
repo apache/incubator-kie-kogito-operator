@@ -3,9 +3,9 @@ Feature: Kogito Infra
 
   Background:
     Given Namespace is created
-    And Kogito Operator is deployed with Infinispan, Kafka and Keycloak operators
 
   Scenario Outline: Install/Remove Kogito Infra
+    Given Kogito Operator is deployed with <component> operator
     When "<installer>" install Kogito Infra "<component>"
     Then Kogito Infra "<component>" should be running within <installTimeoutInMinutes> minutes
 

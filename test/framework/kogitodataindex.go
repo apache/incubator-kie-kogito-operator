@@ -36,7 +36,7 @@ func InstallKogitoDataIndexService(namespace string, installerType InstallerType
 	case CRInstallerType:
 		return crInstallKogitoDataIndex(namespace, replicas)
 	default:
-		return fmt.Errorf("InstallKogitoDataIndexService: Unknown installer type %s", installerType.Name)
+		panic(fmt.Errorf("Unknown installer type %s", installerType))
 	}
 }
 

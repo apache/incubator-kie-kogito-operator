@@ -25,7 +25,7 @@ func registerKogitoDataIndexServiceSteps(s *godog.Suite, data *Data) {
 }
 
 func (data *Data) installKogitoDataIndexServiceWithReplicas(installerType string, replicas int) error {
-	return framework.InstallKogitoDataIndexService(data.Namespace, framework.ParseInstallerType(installerType), replicas)
+	return framework.InstallKogitoDataIndexService(data.Namespace, framework.MustParseInstallerType(installerType), replicas)
 }
 
 func (data *Data) kogitoDataIndexHasPodsRunningWithinMinutes(podNb, timeoutInMin int) error {

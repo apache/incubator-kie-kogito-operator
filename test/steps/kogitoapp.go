@@ -19,6 +19,8 @@ import (
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 	"github.com/rdumont/assistdog"
 )
@@ -50,12 +52,12 @@ func registerKogitoAppSteps(s *godog.Suite, data *Data) {
 
 // Deploy service steps
 func (data *Data) deployQuarkusExampleServiceWithNative(installerType, contextDir, native string) error {
-	return framework.DeployExample(data.Namespace, framework.ParseInstallerType(installerType),
+	return framework.DeployExample(data.Namespace, framework.MustParseInstallerType(installerType),
 		framework.KogitoAppDeployment{
 			AppName:     filepath.Base(contextDir),
 			ContextDir:  contextDir,
-			Runtime:     framework.QuarkusKogitoAppDeploymentRuntime,
-			Native:      parseBool(native),
+			Runtime:     v1alpha1.QuarkusRuntimeType,
+			Native:      util.MustParseBool(native),
 			Persistence: false,
 			Events:      false,
 			Labels:      nil,
@@ -67,12 +69,12 @@ func (data *Data) deployQuarkusExampleServiceWithNativeAndLabels(installerType, 
 	if err != nil {
 		return err
 	}
-	return framework.DeployExample(data.Namespace, framework.ParseInstallerType(installerType),
+	return framework.DeployExample(data.Namespace, framework.MustParseInstallerType(installerType),
 		framework.KogitoAppDeployment{
 			AppName:     filepath.Base(contextDir),
 			ContextDir:  contextDir,
-			Runtime:     framework.QuarkusKogitoAppDeploymentRuntime,
-			Native:      parseBool(native),
+			Runtime:     v1alpha1.QuarkusRuntimeType,
+			Native:      util.MustParseBool(native),
 			Persistence: false,
 			Events:      false,
 			Labels:      labels,
@@ -80,12 +82,12 @@ func (data *Data) deployQuarkusExampleServiceWithNativeAndLabels(installerType, 
 }
 
 func (data *Data) deployQuarkusExampleServiceWithNativeAndPersistence(installerType, contextDir, native string) error {
-	return framework.DeployExample(data.Namespace, framework.ParseInstallerType(installerType),
+	return framework.DeployExample(data.Namespace, framework.MustParseInstallerType(installerType),
 		framework.KogitoAppDeployment{
 			AppName:     filepath.Base(contextDir),
 			ContextDir:  contextDir,
-			Runtime:     framework.QuarkusKogitoAppDeploymentRuntime,
-			Native:      parseBool(native),
+			Runtime:     v1alpha1.QuarkusRuntimeType,
+			Native:      util.MustParseBool(native),
 			Persistence: true,
 			Events:      false,
 			Labels:      nil,
@@ -93,12 +95,12 @@ func (data *Data) deployQuarkusExampleServiceWithNativeAndPersistence(installerT
 }
 
 func (data *Data) deployQuarkusExampleServiceWithNativeAndPersistenceAndEvents(installerType, contextDir, native string) error {
-	return framework.DeployExample(data.Namespace, framework.ParseInstallerType(installerType),
+	return framework.DeployExample(data.Namespace, framework.MustParseInstallerType(installerType),
 		framework.KogitoAppDeployment{
 			AppName:     filepath.Base(contextDir),
 			ContextDir:  contextDir,
-			Runtime:     framework.QuarkusKogitoAppDeploymentRuntime,
-			Native:      parseBool(native),
+			Runtime:     v1alpha1.QuarkusRuntimeType,
+			Native:      util.MustParseBool(native),
 			Persistence: true,
 			Events:      true,
 			Labels:      nil,
@@ -106,11 +108,11 @@ func (data *Data) deployQuarkusExampleServiceWithNativeAndPersistenceAndEvents(i
 }
 
 func (data *Data) deploySpringBootExampleService(installerType, contextDir string) error {
-	return framework.DeployExample(data.Namespace, framework.ParseInstallerType(installerType),
+	return framework.DeployExample(data.Namespace, framework.MustParseInstallerType(installerType),
 		framework.KogitoAppDeployment{
 			AppName:     filepath.Base(contextDir),
 			ContextDir:  contextDir,
-			Runtime:     framework.SpringBootKogitoAppDeploymentRuntime,
+			Runtime:     v1alpha1.SpringbootRuntimeType,
 			Native:      false,
 			Persistence: false,
 			Events:      false,
@@ -119,11 +121,11 @@ func (data *Data) deploySpringBootExampleService(installerType, contextDir strin
 }
 
 func (data *Data) deploySpringBootExampleServiceWithPersistence(installerType, contextDir string) error {
-	return framework.DeployExample(data.Namespace, framework.ParseInstallerType(installerType),
+	return framework.DeployExample(data.Namespace, framework.MustParseInstallerType(installerType),
 		framework.KogitoAppDeployment{
 			AppName:     filepath.Base(contextDir),
 			ContextDir:  contextDir,
-			Runtime:     framework.SpringBootKogitoAppDeploymentRuntime,
+			Runtime:     v1alpha1.SpringbootRuntimeType,
 			Native:      false,
 			Persistence: true,
 			Events:      false,

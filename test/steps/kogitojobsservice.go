@@ -28,11 +28,11 @@ func registerKogitoJobsServiceSteps(s *godog.Suite, data *Data) {
 }
 
 func (data *Data) installKogitoJobsServiceWithReplicas(installerType string, replicas int) error {
-	return framework.InstallKogitoJobsService(data.Namespace, framework.ParseInstallerType(installerType), replicas, false)
+	return framework.InstallKogitoJobsService(data.Namespace, framework.MustParseInstallerType(installerType), replicas, false)
 }
 
 func (data *Data) installKogitoJobsServiceWithReplicasAndPersistence(installerType string, replicas int) error {
-	return framework.InstallKogitoJobsService(data.Namespace, framework.ParseInstallerType(installerType), replicas, true)
+	return framework.InstallKogitoJobsService(data.Namespace, framework.MustParseInstallerType(installerType), replicas, true)
 }
 
 func (data *Data) kogitoJobsServiceHasPodsRunningWithinMinutes(pods, timeoutInMin int) error {

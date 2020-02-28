@@ -31,21 +31,11 @@ const (
 	mavenMirrorURLEnvVar  = "MAVEN_MIRROR_URL"
 )
 
-// KogitoAppDeploymentRuntime defines the runtime for a KogitoAppDeployment
-type KogitoAppDeploymentRuntime string
-
-const (
-	// QuarkusKogitoAppDeploymentRuntime is quarkus deployment runtime
-	QuarkusKogitoAppDeploymentRuntime = "quarkus"
-	// SpringBootKogitoAppDeploymentRuntime is spring boot deployment runtime
-	SpringBootKogitoAppDeploymentRuntime = "springboot"
-)
-
 // KogitoAppDeployment defines the elements for the deployment of a kogito application
 type KogitoAppDeployment struct {
 	AppName     string
 	ContextDir  string
-	Runtime     KogitoAppDeploymentRuntime
+	Runtime     v1alpha1.RuntimeType
 	Native      bool
 	Persistence bool
 	Events      bool
@@ -61,18 +51,14 @@ func DeployExample(namespace string, installerType InstallerType, kogitoAppDeplo
 	case CRInstallerType:
 		return crDeployExample(namespace, kogitoAppDeployment)
 	default:
-		return fmt.Errorf("DeployExample: Unknown installer type %s", installerType.Name)
+		panic(fmt.Errorf("Unknown installer type %s", installerType))
 	}
 }
 
 // DeployExample deploys an example
 func crDeployExample(namespace string, kogitoAppDeployment KogitoAppDeployment) error {
 	kogitoApp := getKogitoAppStub(namespace, kogitoAppDeployment.AppName, kogitoAppDeployment.Labels)
-	if kogitoAppDeployment.Runtime == QuarkusKogitoAppDeploymentRuntime {
-		kogitoApp.Spec.Runtime = v1alpha1.QuarkusRuntimeType
-	} else if kogitoAppDeployment.Runtime == SpringBootKogitoAppDeploymentRuntime {
-		kogitoApp.Spec.Runtime = v1alpha1.SpringbootRuntimeType
-	}
+	kogitoApp.Spec.Runtime = kogitoAppDeployment.Runtime
 
 	gitProjectURI := GetConfigExamplesRepositoryURI()
 	kogitoApp.Spec.Build.Native = kogitoAppDeployment.Native
@@ -84,7 +70,7 @@ func crDeployExample(namespace string, kogitoAppDeployment KogitoAppDeployment) 
 	// Can be removed once https://issues.redhat.com/browse/KOGITO-675 is done
 	appendNewEnvToKogitoApp(kogitoApp, "NAMESPACE", namespace)
 
-	profiles := []string{}
+	var profiles []string
 	if kogitoAppDeployment.Persistence {
 		profiles = append(profiles, "persistence")
 		kogitoApp.Spec.Infra.InstallInfinispan = v1alpha1.KogitoAppInfraInstallInfinispanAlways
@@ -124,7 +110,7 @@ func cliDeployExample(namespace string, kogitoAppDeployment KogitoAppDeployment)
 		cmd = append(cmd, "--maven-mirror-url", mavenMirrorURL)
 	}
 
-	profiles := []string{}
+	var profiles []string
 	if kogitoAppDeployment.Persistence {
 		profiles = append(profiles, "persistence")
 		cmd = append(cmd, "--install-infinispan", "Always")

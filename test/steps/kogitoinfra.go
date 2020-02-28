@@ -28,11 +28,11 @@ func registerKogitoInfraSteps(s *godog.Suite, data *Data) {
 }
 
 func (data *Data) installKogitoInfra(installerType, component string) error {
-	return framework.InstallKogitoInfraComponent(data.Namespace, framework.ParseInstallerType(installerType), framework.ParseKogitoInfraComponent(component))
+	return framework.InstallKogitoInfraComponent(data.Namespace, framework.MustParseInstallerType(installerType), framework.ParseKogitoInfraComponent(component))
 }
 
 func (data *Data) removeKogitoInfra(installerType, component string) error {
-	return framework.RemoveKogitoInfraComponent(data.Namespace, framework.ParseInstallerType(installerType), framework.ParseKogitoInfraComponent(component))
+	return framework.RemoveKogitoInfraComponent(data.Namespace, framework.MustParseInstallerType(installerType), framework.ParseKogitoInfraComponent(component))
 }
 
 func (data *Data) kogitoInfraShouldBeRunningWithinMinutes(component string, timeoutInMin int) error {

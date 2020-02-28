@@ -37,7 +37,7 @@ func InstallKogitoJobsService(namespace string, installerType InstallerType, rep
 	case CRInstallerType:
 		return crInstallKogitoJobsService(namespace, replicas, persistence)
 	default:
-		return fmt.Errorf("InstallKogitoJobsService: Unknown installer type %s", installerType.Name)
+		panic(fmt.Errorf("Unknown installer type %s", installerType))
 	}
 }
 

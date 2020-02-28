@@ -106,7 +106,7 @@ func GetScenarioName(s interface{}) string {
 }
 
 // PrintDataMap prints a formatted dataMap using the given writer
-func PrintDataMap(keys []string, dataMaps []map[string]string, writer io.StringWriter) error {
+func PrintDataMap(keys []string, dataMaps []map[string]string, writer io.StringWriter) {
 	// Get size of strings to be written, to be able to format correctly
 	maxStringSizeMap := make(map[string]int)
 	for _, key := range keys {
@@ -136,7 +136,6 @@ func PrintDataMap(keys []string, dataMaps []map[string]string, writer io.StringW
 		}
 		writer.WriteString("\n")
 	}
-	return nil
 }
 
 func getWhitespaceStr(size int) string {

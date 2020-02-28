@@ -58,14 +58,14 @@ func ParseKogitoInfraComponent(component string) KogitoInfraComponent {
 
 // InstallKogitoInfraComponent installs the desired component with the given installer type
 func InstallKogitoInfraComponent(namespace string, installerType InstallerType, component KogitoInfraComponent) error {
-	GetLogger(namespace).Infof("%s install Kogito Infra Component %s", installerType.Name, component.name)
+	GetLogger(namespace).Infof("%s install Kogito Infra Component %s", installerType, component.name)
 	switch installerType {
 	case CLIInstallerType:
 		return cliInstallKogitoInfraComponent(namespace, component)
 	case CRInstallerType:
 		return crInstallKogitoInfraComponent(namespace, component)
 	default:
-		return fmt.Errorf("InstallKogitoInfraComponent: Unknown installer type %s", installerType.Name)
+		panic(fmt.Errorf("Unknown installer type %s", installerType))
 	}
 }
 
@@ -90,14 +90,14 @@ func cliInstallKogitoInfraComponent(namespace string, component KogitoInfraCompo
 
 // RemoveKogitoInfraComponent removes the desired component with the given installer type
 func RemoveKogitoInfraComponent(namespace string, installerType InstallerType, component KogitoInfraComponent) error {
-	GetLogger(namespace).Infof("%s remove Kogito Infra Component %s", installerType.Name, component.name)
+	GetLogger(namespace).Infof("%s remove Kogito Infra Component %s", installerType, component.name)
 	switch installerType {
 	case CLIInstallerType:
 		return cliRemoveKogitoInfraComponent(namespace, component)
 	case CRInstallerType:
 		return crRemoveKogitoInfraComponent(namespace, component)
 	default:
-		return fmt.Errorf("RemoveKogitoInfraComponent: Unknown installer type %s", installerType.Name)
+		panic(fmt.Errorf("Unknown installer type %s", installerType))
 	}
 }
 
