@@ -453,7 +453,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoApp(ref common.ReferenceCallback) common
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoApp is the Schema for the kogitoapps API",
+				Description: "KogitoApp is a project prescription running a Kogito Runtime Service.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -764,7 +764,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndex(ref common.ReferenceCallback) 
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoDataIndex is the Schema for the kogitodataindices API",
+				Description: "KogitoDataIndex defines the Data Index Service infrastructure deployment",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -811,70 +811,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 				Description: "KogitoDataIndexSpec defines the desired state of KogitoDataIndex",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"httpPort": {
-						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"replicas": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Replicas is the number of pod replicas that the Data Index Service will create",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
-					"env": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Env is a collection of additional environment variables to add to the Data Index container",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"image": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Image to use for this service",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"memoryLimit": {
-						SchemaProps: spec.SchemaProps{
-							Description: "MemoryLimit is the limit of Memory for the container",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"memoryRequest": {
-						SchemaProps: spec.SchemaProps{
-							Description: "MemoryRequest is the request of Memory for the container",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"cpuLimit": {
-						SchemaProps: spec.SchemaProps{
-							Description: "CPULimit is the limit of CPU for the container",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"cpuRequest": {
-						SchemaProps: spec.SchemaProps{
-							Description: "CPURequest is the request of CPU for the container",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"infinispan": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Has the data used by the service to connect to the Infinispan cluster.",
@@ -887,11 +823,55 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
 						},
 					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of replicas that the service will have deployed in the cluster Default value: 1",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"envs": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.EnvVar"),
+									},
+								},
+							},
+						},
+					},
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+						},
+					},
+					"resources": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Defined Resources for the Jobs Service",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"httpPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -902,18 +882,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexStatus(ref common.ReferenceCall
 				Description: "KogitoDataIndexStatus defines the observed state of KogitoDataIndex",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"deploymentStatus": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Status of the Data Index Service Deployment created and managed by it",
-							Ref:         ref("k8s.io/api/apps/v1.DeploymentStatus"),
-						},
-					},
-					"serviceStatus": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Status of the Data Index Service created and managed by it",
-							Ref:         ref("k8s.io/api/core/v1.ServiceStatus"),
-						},
-					},
 					"conditions": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
@@ -921,48 +889,50 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexStatus(ref common.ReferenceCall
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "OK when all resources are created successfully",
+							Description: "History of conditions for the resource",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.DataIndexCondition"),
+										Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition"),
 									},
 								},
 							},
 						},
 					},
-					"dependenciesStatus": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-type": "set",
-							},
-						},
+					"deploymentConditions": {
 						SchemaProps: spec.SchemaProps{
-							Description: "All dependencies OK means that everything was found within the namespace",
+							Description: "General conditions for the Kogito Service deployment",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Ref: ref("k8s.io/api/apps/v1.DeploymentCondition"),
 									},
 								},
 							},
 						},
 					},
-					"route": {
+					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Route is where the service is exposed",
+							Description: "Image is the resolved image for this service",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"externalURI": {
+						SchemaProps: spec.SchemaProps{
+							Description: "URI is where the service is exposed",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 				},
+				Required: []string{"conditions"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.DataIndexCondition", "k8s.io/api/apps/v1.DeploymentStatus", "k8s.io/api/core/v1.ServiceStatus"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "k8s.io/api/apps/v1.DeploymentCondition"},
 	}
 }
 
@@ -970,7 +940,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfra(ref common.ReferenceCallback) comm
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoInfra is the Schema for the kogitoinfras API",
+				Description: "KogitoInfra will be managed automatically by the operator, don't need to create it manually. Kogito Infra is responsible to delegate the creation of each infrastructure dependency (such as Infinispan) to a third party operator. It holds the deployment status of each infrastructure dependency and custom resources needed to run Kogito Runtime and Kogito Data Index services.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -1163,7 +1133,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest Defaults to quay.io/kiegroup/kogito-jobs-service:latest On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
 						},
 					},
@@ -1220,10 +1190,17 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref common.ReferenceCa
 							},
 						},
 					},
-					"deploymentStatus": {
+					"deploymentConditions": {
 						SchemaProps: spec.SchemaProps{
-							Description: "DeploymentStatus is the detailed status for the Jobs Service deployment",
-							Ref:         ref("k8s.io/api/apps/v1.DeploymentStatus"),
+							Description: "General conditions for the Kogito Service deployment",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/apps/v1.DeploymentCondition"),
+									},
+								},
+							},
 						},
 					},
 					"image": {
@@ -1245,7 +1222,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "k8s.io/api/apps/v1.DeploymentStatus"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "k8s.io/api/apps/v1.DeploymentCondition"},
 	}
 }
 

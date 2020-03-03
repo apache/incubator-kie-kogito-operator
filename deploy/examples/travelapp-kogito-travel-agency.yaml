@@ -14,8 +14,8 @@ spec:
   - name: MP_MESSAGING_OUTGOING_KOGITO_USERTASKINSTANCES_EVENTS_BOOTSTRAP_SERVERS
   build:
     gitSource:
-      contextDir: 05-kogito-travel-agency
-      uri: https://github.com/mswiderski/kogito-travel-agency-tutorial/
-    imageVersion: 0.7.0
+      contextDir: 06-kogito-travel-agency
+      uri: "https://github.com/kiegroup/kogito-travel-agency-tutorial/"
+    imageVersion: 0.8.0
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/

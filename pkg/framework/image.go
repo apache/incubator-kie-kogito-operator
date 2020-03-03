@@ -30,7 +30,7 @@ var (
 	DockerTagRegxCompiled = *regexp.MustCompile(dockerTagRegx)
 )
 
-// ConvertImageTagToImage converts a plain string into an Image. For example, see https://regex101.com/r/1YX9rh/1.
+// ConvertImageTagToImage converts a plain string into an Image structure. For example, see https://regex101.com/r/1YX9rh/1.
 func ConvertImageTagToImage(imageTag string) v1alpha1.Image {
 	domain, ns, name, tag := SplitImageTag(imageTag)
 	image := v1alpha1.Image{

@@ -52,7 +52,6 @@ func DeployKafkaWithKogitoInfra(instance v1alpha1.KafkaAware, namespace string, 
 				})
 
 				return true, 0, nil
-
 			}
 		}
 		log.Debug("KogitoInfra is not ready, requeue")

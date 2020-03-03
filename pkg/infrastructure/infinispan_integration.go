@@ -144,17 +144,3 @@ func SetInfinispanVariables(infinispanProps v1alpha1.InfinispanConnectionPropert
 		framework.SetEnvVar(infinispanEnvKeyServerList, infinispanProps.URI, container)
 	}
 }
-
-// GetInfinispanEnvVarsKeys gets the collection of Infinispan managed environment variables
-func GetInfinispanEnvVarsKeys() []string {
-	return []string{
-		infinispanEnvKeyUsername,
-		infinispanEnvKeyPassword,
-		infinispanEnvKeyUseAuth,
-		infinispanEnvKeyAuthRealm,
-		infinispanEnvKeySasl,
-		infinispanEnvKeyCredSecret,
-		infinispanEnvKeyQuarkusServerList,
-		infinispanEnvKeyServerList,
-	}
-}

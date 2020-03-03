@@ -27,17 +27,15 @@ metadata:
             "name": "kogito-data-index"
           },
           "spec": {
-            "cpuLimit": "",
-            "cpuRequest": "",
-            "image": "quay.io/kiegroup/kogito-data-index:latest",
+            "image": {
+              "tag": "0.7.0"
+            },
             "infinispan": {
               "useKogitoInfra": true
             },
             "kafka": {
               "useKogitoInfra": true
             },
-            "memoryLimit": "",
-            "memoryRequest": "",
             "replicas": 1
           },
           "status": {}
@@ -83,7 +81,7 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: KogitoApp is the Schema for the kogitoapps API
+    - description: KogitoApp is a project prescription running a Kogito Runtime Service.
       displayName: Kogito Service
       kind: KogitoApp
       name: kogitoapps.app.kiegroup.org
@@ -175,7 +173,7 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
       version: v1alpha1
-    - description: KogitoDataIndex is the Schema for the kogitodataindices API
+    - description: KogitoDataIndex defines the Data Index Service infrastructure deployment
       displayName: Kogito Data Index
       kind: KogitoDataIndex
       name: kogitodataindices.app.kiegroup.org
@@ -196,41 +194,52 @@ spec:
         name: ""
         version: v1
       specDescriptors:
-      - description: CPULimit is the limit of CPU for the container
-        displayName: CPU Limit
-        path: cpuLimit
-      - description: CPURequest is the request of CPU for the container
-        displayName: CPU Request
-        path: cpuRequest
-      - description: Env is a collection of additional environment variables to add
-          to the Data Index container
-        displayName: Environment Variables
-        path: env
-      - description: Image to use for this service
+      - description: Environment variables to be added to the runtime container. Keys
+          must be a C_IDENTIFIER.
+        displayName: Envs
+        path: envs
+      - description: 'Image definition for the service. Example: Domain: quay.io,
+          Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift
+          an ImageStream will be created in the current namespace pointing to the
+          given image.'
         displayName: Image
         path: image
-      - description: MemoryLimit is the limit of Memory for the container
-        displayName: Memory Limit
-        path: memoryLimit
-      - description: MemoryRequest is the request of Memory for the container
-        displayName: Memory Request
-        path: memoryRequest
-      - description: Replicas is the number of pod replicas that the Data Index Service
-          will create
+      - description: 'Number of replicas that the service will have deployed in the
+          cluster Default value: 1'
         displayName: Replicas
         path: replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+      - description: Defined Resources for the Jobs Service
+        displayName: Resources
+        path: resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
       statusDescriptors:
-      - description: All dependencies OK means that everything was found within the
-          namespace
-        displayName: Dependencies Status
-        path: dependenciesStatus
-      - description: Route is where the service is exposed
-        displayName: Route
-        path: route
+      - description: History of conditions for the resource
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      - description: General conditions for the Kogito Service deployment
+        displayName: Deployment Conditions
+        path: deploymentConditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      - description: URI is where the service is exposed
+        displayName: External URI
+        path: externalURI
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
+      - description: Image is the resolved image for this service
+        displayName: Image
+        path: image
       version: v1alpha1
-    - description: KogitoInfra is the Schema for the kogitoinfras API
+    - description: KogitoInfra will be managed automatically by the operator, don't
+        need to create it manually. Kogito Infra is responsible to delegate the creation
+        of each infrastructure dependency (such as Infinispan) to a third party operator.
+        It holds the deployment status of each infrastructure dependency and custom
+        resources needed to run Kogito Runtime and Kogito Data Index services.
       displayName: Kogito Infra
       kind: KogitoInfra
       name: kogitoinfras.app.kiegroup.org
@@ -298,9 +307,9 @@ spec:
         displayName: Envs
         path: envs
       - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest Defaults to
-          quay.io/kiegroup/kogito-jobs-service:latest On OpenShift an ImageStream
-          will be created in the current namespace pointing to the given image.'
+          Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift
+          an ImageStream will be created in the current namespace pointing to the
+          given image.'
         displayName: Image
         path: image
       - description: 'Maximum interval in milliseconds when retrying to execute jobs,
@@ -322,6 +331,11 @@ spec:
       - description: History of conditions for the resource
         displayName: Conditions
         path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      - description: General conditions for the Kogito Service deployment
+        displayName: Deployment Conditions
+        path: deploymentConditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
       - description: URI is where the service is exposed

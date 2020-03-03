@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package version
-
-var (
-	// Version of Kogito CLI
-	Version = "0.8.0"
-)
+// Package services contains the implementation of the Services Definition API to create any Kogito Service within the Kogito Operator like Data Index,
+// Jobs Service, Runtimes and so on.
+package services

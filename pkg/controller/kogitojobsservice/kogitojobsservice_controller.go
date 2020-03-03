@@ -15,18 +15,13 @@
 package kogitojobsservice
 
 import (
-	"fmt"
-	"github.com/RHsyseng/operator-utils/pkg/resource/write"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitojobsservice/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitojobsservice/status"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"time"
-
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	"strconv"
 
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -124,89 +119,44 @@ func (r *ReconcileKogitoJobsService) Reconcile(request reconcile.Request) (resul
 		return reconcile.Result{}, err
 	}
 
-	// Requires only one KogitoJobsService instance in this namespace
 	instances := &appv1alpha1.KogitoJobsServiceList{}
-	if err := kubernetes.ResourceC(r.client).ListWithNamespace(request.Namespace, instances); err != nil {
+	definition := services.ServiceDefinition{
+		DefaultImageName:    infrastructure.DefaultJobsServiceImageName,
+		Request:             request,
+		OnDeploymentCreate:  onDeploymentCreate,
+		SingleReplica:       true,
+		RequiresPersistence: false,
+		RequiresMessaging:   false,
+	}
+	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, instances, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err
-	}
-	if len(instances.Items) > 1 {
-		return reconcile.Result{RequeueAfter: time.Duration(1) * time.Minute},
-			fmt.Errorf("There's more than one KogitoJobsService resource in this namespace, please delete one of them ")
-	} else if len(instances.Items) == 0 {
-		// jobs service being deleted
-		return reconcile.Result{}, nil
-	}
-
-	// Fetch the KogitoJobsService instance
-	instance := &instances.Items[0]
-	result = reconcile.Result{}
-
-	defer r.updateStatus(instance, &resultErr)
-
-	requeueAfter, resultErr := r.deployInfinispanIfNeeded(instance)
-	if resultErr != nil {
-		return
 	} else if requeueAfter > 0 {
-		result.RequeueAfter = requeueAfter
-		result.Requeue = true
-		return
+		return reconcile.Result{RequeueAfter: requeueAfter, Requeue: true}, nil
 	}
 
-	requestedResources, resultErr := resource.CreateRequiredResources(instance, r.client)
-	if resultErr != nil {
-		return
-	}
-
-	deployedResources, resultErr := resource.GetDeployedResources(instance, r.client)
-	if resultErr != nil {
-		return
-	}
-	comparator := resource.GetComparator()
-	deltas := comparator.Compare(deployedResources, requestedResources)
-	writer := write.New(r.client.ControlCli).WithOwnerController(instance, r.scheme)
-	for resourceType, delta := range deltas {
-		if !delta.HasChanges() {
-			continue
-		}
-		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
-		_, resultErr = writer.AddResources(delta.Added)
-		if resultErr != nil {
-			return
-		}
-		_, resultErr = writer.UpdateResources(deployedResources[resourceType], delta.Updated)
-		if resultErr != nil {
-			return
-		}
-		_, resultErr = writer.RemoveResources(delta.Removed)
-		if resultErr != nil {
-			return
-		}
-	}
-	return
+	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileKogitoJobsService) updateStatus(instance *appv1alpha1.KogitoJobsService, err *error) {
-	log.Info("Updating status for Job Service")
-	if statusErr := status.ManageStatus(instance, r.client, *err); statusErr != nil {
-		// this error will return to the operator console
-		err = &statusErr
-	}
-	log.Infof("Successfully reconciled Job Service %s", instance.Name)
-}
+const (
+	backOffRetryEnvKey                = "BACKOFF_RETRY"
+	maxIntervalLimitRetryEnvKey       = "MAX_INTERVAL_LIMIT_RETRY"
+	backOffRetryDefaultValue          = 1000
+	maxIntervalLimitRetryDefaultValue = 60000
+)
 
-func (r *ReconcileKogitoJobsService) deployInfinispanIfNeeded(instance *appv1alpha1.KogitoJobsService) (requeueAfter time.Duration, err error) {
-	requeueAfter = 0
-	if !instance.Spec.InfinispanProperties.UseKogitoInfra {
-		return
-	}
-	update := false
-	if update, requeueAfter, err = infrastructure.DeployInfinispanWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
-		return
-	} else if update {
-		if err = kubernetes.ResourceC(r.client).Update(instance); err != nil {
-			return
+func onDeploymentCreate(deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
+	jobService := service.(*appv1alpha1.KogitoJobsService)
+	if &jobService.Spec.BackOffRetryMillis != nil {
+		if jobService.Spec.BackOffRetryMillis <= 0 {
+			jobService.Spec.BackOffRetryMillis = backOffRetryDefaultValue
 		}
+		framework.SetEnvVar(backOffRetryEnvKey, strconv.FormatInt(jobService.Spec.BackOffRetryMillis, 10), &deployment.Spec.Template.Spec.Containers[0])
 	}
-
-	return
+	if &jobService.Spec.MaxIntervalLimitToRetryMillis != nil {
+		if jobService.Spec.MaxIntervalLimitToRetryMillis <= 0 {
+			jobService.Spec.MaxIntervalLimitToRetryMillis = maxIntervalLimitRetryDefaultValue
+		}
+		framework.SetEnvVar(maxIntervalLimitRetryEnvKey, strconv.FormatInt(jobService.Spec.MaxIntervalLimitToRetryMillis, 10), &deployment.Spec.Template.Spec.Containers[0])
+	}
+	return nil
 }

@@ -15,45 +15,15 @@
 package v1alpha1
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // KogitoJobsServiceSpec defines the desired state of KogitoJobsService
 // +k8s:openapi-gen=true
 type KogitoJobsServiceSpec struct {
-	InfinispanMeta `json:",inline"`
+	InfinispanMeta    `json:",inline"`
+	KogitoServiceSpec `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-
-	// Number of replicas that the service will have deployed in the cluster
-	// Default value: 1
-	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:podCount"
-	// +kubebuilder:validation:Minimum=0
-	// +kubebuilder:validation:Maximum=1
-	Replicas int32 `json:"replicas"`
-
-	// +optional
-	// +listType=atomic
-	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Envs []corev1.EnvVar `json:"envs,omitempty"`
-
-	// +optional
-	// Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest
-	// Defaults to quay.io/kiegroup/kogito-jobs-service:latest
-	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Image Image `json:"image,omitempty"`
-
-	// Defined Resources for the Jobs Service
-	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// +optional
 	// Retry backOff time in milliseconds between the job execution attempts, in case of execution failure.
@@ -71,19 +41,7 @@ type KogitoJobsServiceSpec struct {
 // KogitoJobsServiceStatus defines the observed state of KogitoJobsService
 // +k8s:openapi-gen=true
 type KogitoJobsServiceStatus struct {
-	ConditionsMeta `json:",inline"`
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-
-	// DeploymentStatus is the detailed status for the Jobs Service deployment
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=false
-	DeploymentStatus appsv1.DeploymentStatus `json:"deploymentStatus,omitempty"`
-	// Image is the resolved image for this service
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	Image string `json:"image,omitempty"`
-	// URI is where the service is exposed
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
-	ExternalURI string `json:"externalURI,omitempty"`
+	KogitoServiceStatus `json:",inline"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -104,6 +62,16 @@ type KogitoJobsService struct {
 	Status KogitoJobsServiceStatus `json:"status,omitempty"`
 }
 
+// GetSpec ...
+func (k *KogitoJobsService) GetSpec() KogitoServiceSpecInterface {
+	return &k.Spec
+}
+
+// GetStatus ...
+func (k *KogitoJobsService) GetStatus() KogitoServiceStatusInterface {
+	return &k.Status
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // KogitoJobsServiceList contains a list of KogitoJobsService
@@ -111,6 +79,19 @@ type KogitoJobsServiceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KogitoJobsService `json:"items"`
+}
+
+// GetItemsCount ...
+func (l *KogitoJobsServiceList) GetItemsCount() int {
+	return len(l.Items)
+}
+
+// GetItemAt ...
+func (l *KogitoJobsServiceList) GetItemAt(index int) KogitoService {
+	if len(l.Items) > index {
+		return KogitoService(&l.Items[index])
+	}
+	return nil
 }
 
 func init() {

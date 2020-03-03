@@ -25,7 +25,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -141,7 +140,7 @@ func (i *installDataIndexCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultDataIndexImage, "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultDataIndexImageFullTag, "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().Int32Var(&i.flags.httpPort, "http-port", framework.DefaultExposedPort, "Default HTTP port which Data Index image will be listening")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
@@ -212,20 +211,23 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Replicas:       i.flags.Replicas,
-			Env:            util.FromStringsKeyPairToMap(i.flags.Env),
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: i.flags.Replicas,
+				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Image:    framework.ConvertImageTagToImage(i.flags.image),
+				Resources: v1.ResourceRequirements{
+					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
+					Requests: shared.FromStringArrayToResources(i.flags.Requests),
+				},
+			},
 			HTTPPort:       i.flags.httpPort,
-			Image:          i.flags.image,
-			MemoryLimit:    shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Limits),
-			MemoryRequest:  shared.ExtractResource(v1alpha1.ResourceMemory, i.flags.Requests),
-			CPULimit:       shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Limits),
-			CPURequest:     shared.ExtractResource(v1alpha1.ResourceCPU, i.flags.Requests),
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: i.flags.infinispan},
 			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},
 		},
 		Status: v1alpha1.KogitoDataIndexStatus{
-			Conditions:         []v1alpha1.DataIndexCondition{},
-			DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{},
+			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
+				ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: []v1alpha1.Condition{}},
+			},
 		},
 	}
 

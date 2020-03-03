@@ -39,7 +39,7 @@ func Test_InjectEnvironmentVarsFromExternalServices(t *testing.T) {
 	}
 	dataIndexes := &v1alpha1.KogitoDataIndexList{Items: []v1alpha1.KogitoDataIndex{{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
-		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedRoute}},
+		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute}}},
 	}}
 
 	client := test.CreateFakeClient([]runtime.Object{dc, dataIndexes}, nil, nil)
@@ -77,7 +77,9 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{
-					Route: expectedRoute,
+					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
+						ExternalURI: expectedRoute,
+					},
 				},
 			},
 		},

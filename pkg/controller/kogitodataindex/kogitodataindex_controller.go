@@ -15,22 +15,19 @@
 package kogitodataindex
 
 import (
-	"fmt"
-	imgv1 "github.com/openshift/api/image/v1"
-	"time"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitodataindex/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-
+	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"path"
+	"strconv"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -42,10 +39,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	utilsres "github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 )
 
 var log = logger.GetLogger("controller_kogitodataindex")
@@ -134,157 +127,122 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling KogitoDataIndex")
 
-	// TODO: move to finalizers the exclusion use case
-	// If it's an exclusion, the Data Index won't exist anymore. Routes need to be cleaned.
 	reqLogger.Infof("Injecting Data Index URL into KogitoApps in the namespace '%s'", request.Namespace)
 	if err := infrastructure.InjectDataIndexURLIntoKogitoApps(r.client, request.Namespace); err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Requires only one Data Index.
-	// The request might be coming from another source within this namespace, and since we only have one deployment, we
-	// can safely use this instance during the reconciliation phase
 	instances := &appv1alpha1.KogitoDataIndexList{}
-	if err := kubernetes.ResourceC(r.client).ListWithNamespace(request.Namespace, instances); err != nil {
+	definition := services.ServiceDefinition{
+		DefaultImageName:    infrastructure.DefaultDataIndexImageName,
+		Request:             request,
+		OnDeploymentCreate:  r.onDeploymentCreate,
+		KafkaTopics:         kafkaTopics,
+		RequiresPersistence: true,
+		RequiresMessaging:   true,
+	}
+	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, instances, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err
-	}
-	instancesCount := len(instances.Items)
-	if instancesCount > 1 {
-		return reconcile.Result{RequeueAfter: time.Duration(5) * time.Minute},
-			fmt.Errorf("There's more than one KogitoDataIndex resource in %s namespace, please delete one of them ", request.Namespace)
-	} else if instancesCount == 0 {
-		return reconcile.Result{}, nil
+	} else if requeueAfter > 0 {
+		return reconcile.Result{RequeueAfter: requeueAfter, Requeue: true}, nil
 	}
 
-	// Fetch the KogitoDataIndex instance
-	instance := &instances.Items[0]
-
-	// Deploy infra dependencies
-	if result, err := r.ensureKogitoInfra(instance); err != nil {
-		return reconcile.Result{}, err
-	} else if result != nil {
-		return *result, nil
-	}
-
-	var hasUpdates bool
-
-	// Create our inventory
-	reqLogger.Infof("Ensure Kogito Data Index '%s' resources are created", instance.Name)
-	resources, err := resource.GetRequestedResources(instance, r.client)
-
-	result = reconcile.Result{}
-
-	defer r.updateStatus(&request, instance, resources, &hasUpdates, &resultErr)
-
-	if err != nil {
-		resultErr = err
-		return
-	}
-
-	deployedResources, err := resource.GetDeployedResources(instance, r.client)
-	if err != nil {
-		resultErr = err
-		return
-	}
-
-	requestedResources := compare.NewMapBuilder().Add(getKubernetesResources(resources)...).ResourceMap()
-
-	comparator := resource.GetComparator()
-	deltas := comparator.Compare(deployedResources, requestedResources)
-
-	writer := write.New(r.client.ControlCli).WithOwnerController(instance, r.scheme)
-
-	for resourceType, delta := range deltas {
-		if !delta.HasChanges() {
-			continue
-		}
-		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
-		added, err := writer.AddResources(delta.Added)
-		if err != nil {
-			resultErr = err
-			return
-		}
-		updated, err := writer.UpdateResources(deployedResources[resourceType], delta.Updated)
-		if err != nil {
-			resultErr = err
-			return
-		}
-		removed, err := writer.RemoveResources(delta.Removed)
-		if err != nil {
-			resultErr = err
-			return
-		}
-		hasUpdates = hasUpdates || added || updated || removed
-	}
-
-	return
+	return reconcile.Result{}, nil
 }
 
-// ensureKogitoInfra will deploy a new Kogito Infra if needed based on Data Index instance requirements.
-// returns result not nil if needs reconciliation
-func (r *ReconcileKogitoDataIndex) ensureKogitoInfra(instance *appv1alpha1.KogitoDataIndex) (result *reconcile.Result, err error) {
-	log.Debug("Verify if we need to deploy Infinispan")
+const (
+	defaultProtobufMountPath                  = "/home/kogito/data/protobufs"
+	protoBufKeyFolder                  string = "KOGITO_PROTOBUF_FOLDER"
+	protoBufKeyWatch                   string = "KOGITO_PROTOBUF_WATCH"
+	protoBufConfigMapVolumeDefaultMode int32  = 420
+	dataIndexEnvKeyHTTPPort                   = "KOGITO_DATA_INDEX_HTTP_PORT"
 
-	var updateForInfinispan, updateForKafka bool
-	var requeueForInfinispan, requeueForKafka time.Duration
+	// Collection of kafka topics that should be handled by the Data Index
+	kafkaTopicNameProcessInstances  string = "kogito-processinstances-events"
+	kafkaTopicNameUserTaskInstances string = "kogito-usertaskinstances-events"
+	kafkaTopicNameProcessDomain     string = "kogito-processdomain-events"
+	kafkaTopicNameUserTaskDomain    string = "kogito-usertaskdomain-events"
+	kafkaTopicNameJobsEvents        string = "kogito-jobs-events"
+)
 
-	if updateForInfinispan, requeueForInfinispan, err = infrastructure.DeployInfinispanWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
-		return nil, err
-	}
-
-	if updateForKafka, requeueForKafka, err = infrastructure.DeployKafkaWithKogitoInfra(&instance.Spec, instance.Namespace, r.client); err != nil {
-		return nil, err
-	}
-
-	if updateForInfinispan || updateForKafka {
-		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
-			return nil, err
-		}
-		return &reconcile.Result{}, nil
-	} else if requeueForInfinispan > 0 {
-		return &reconcile.Result{RequeueAfter: requeueForInfinispan}, nil
-	} else if requeueForKafka > 0 {
-		return &reconcile.Result{RequeueAfter: requeueForKafka}, nil
-	}
-
-	return nil, nil
+var kafkaTopics = []services.KafkaTopicDefinition{
+	{TopicName: kafkaTopicNameProcessInstances, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameUserTaskInstances, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameProcessDomain, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameUserTaskDomain, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicIncoming},
 }
 
-func getKubernetesResources(resources *resource.KogitoDataIndexResources) []utilsres.KubernetesResource {
-	var k8sRes []utilsres.KubernetesResource
-
-	if resources.Deployment != nil {
-		k8sRes = append(k8sRes, resources.Deployment)
-	}
-	if resources.Service != nil {
-		k8sRes = append(k8sRes, resources.Service)
-	}
-	if resources.Route != nil {
-		k8sRes = append(k8sRes, resources.Route)
-	}
-	if resources.KafkaTopics != nil && len(resources.KafkaTopics) > 0 {
-		for _, r := range resources.KafkaTopics {
-			k8sRes = append(k8sRes, r)
-		}
-	}
-	if resources.ImageStream != nil {
-		k8sRes = append(k8sRes, resources.ImageStream)
-	}
-
-	return k8sRes
+var protoBufEnvsVolumeMounted = map[string]string{
+	protoBufKeyFolder: defaultProtobufMountPath,
+	protoBufKeyWatch:  "true",
 }
 
-func (r *ReconcileKogitoDataIndex) updateStatus(request *reconcile.Request, instance *appv1alpha1.KogitoDataIndex,
-	resources *resource.KogitoDataIndexResources, resourcesUpdate *bool, err *error) {
-	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+var protoBufEnvsNoVolume = map[string]string{
+	protoBufKeyFolder: "",
+	protoBufKeyWatch:  "false",
+}
 
-	reconcileError := *err != nil
-
-	reqLogger.Infof("Handling Status updates on '%s'", instance.Name)
-	if errStatus := status.ManageStatus(instance, resources, *resourcesUpdate, reconcileError, r.client); errStatus != nil {
-		if !reconcileError {
-			*err = errStatus
+func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
+	if len(deployment.Spec.Template.Spec.Containers) > 0 {
+		httpPort := defineDataIndexHTTPPort(kogitoService.(*appv1alpha1.KogitoDataIndex))
+		framework.SetEnvVar(dataIndexEnvKeyHTTPPort, strconv.Itoa(int(httpPort)), &deployment.Spec.Template.Spec.Containers[0])
+		deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
+		deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
+		deployment.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort = httpPort
+		if err := r.mountProtoBufConfigMaps(deployment); err != nil {
+			return err
 		}
-		return
+	} else {
+		log.Warnf("No container definition for service %s. Skipping applying custom Data Index deployment configuration", kogitoService.GetName())
 	}
+
+	return nil
+}
+
+// mountProtoBufConfigMaps mounts protobuf configMaps from KogitoApps into the given deployment
+func (r *ReconcileKogitoDataIndex) mountProtoBufConfigMaps(deployment *appsv1.Deployment) (err error) {
+	var cms *corev1.ConfigMapList
+	configMapDefaultMode := protoBufConfigMapVolumeDefaultMode
+	if cms, err = infrastructure.GetProtoBufConfigMaps(deployment.Namespace, r.client); err != nil {
+		return err
+	}
+
+	for _, cm := range cms.Items {
+		deployment.Spec.Template.Spec.Volumes =
+			append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
+				Name: cm.Name,
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						DefaultMode: &configMapDefaultMode,
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: cm.Name,
+						},
+					},
+				},
+			})
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
+			append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"])})
+	}
+	protoBufEnvs := protoBufEnvsNoVolume
+	if len(deployment.Spec.Template.Spec.Volumes) > 0 {
+		protoBufEnvs = protoBufEnvsVolumeMounted
+	}
+	for k, v := range protoBufEnvs {
+		framework.SetEnvVar(k, v, &deployment.Spec.Template.Spec.Containers[0])
+	}
+
+	return nil
+}
+
+// defineDataIndexHTTPPort will define which port the dataindex should be listening to. To set it use httpPort cr parameter.
+// defaults to 8080
+func defineDataIndexHTTPPort(instance *v1alpha1.KogitoDataIndex) int32 {
+	// port should be greater than 0
+	if instance.Spec.HTTPPort < 1 {
+		log.Debugf("HTTPPort not set, returning default http port.")
+		return framework.DefaultExposedPort
+	}
+	log.Debugf("HTTPPort is set, returning port number %i", int(instance.Spec.HTTPPort))
+	return instance.Spec.HTTPPort
 }

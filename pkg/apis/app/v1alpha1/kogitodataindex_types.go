@@ -15,8 +15,6 @@
 package v1alpha1
 
 import (
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,125 +24,25 @@ const KogitoDataIndexCRDName = "kogitodataindices.app.kiegroup.org"
 // KogitoDataIndexSpec defines the desired state of KogitoDataIndex
 // +k8s:openapi-gen=true
 type KogitoDataIndexSpec struct {
+	InfinispanMeta    `json:",inline"`
+	KafkaMeta         `json:",inline"`
+	KogitoServiceSpec `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.
 	// +optional
 	HTTPPort int32 `json:"httpPort,omitempty"`
-
-	// Replicas is the number of pod replicas that the Data Index Service will create
-	// +kubebuilder:validation:Maximum=100
-	// +kubebuilder:validation:Minimum=0
-	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
-	Replicas int32 `json:"replicas,omitempty"`
-
-	// +optional
-	//Env is a collection of additional environment variables to add to the Data Index container
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Environment Variables"
-	Env map[string]string `json:"env,omitempty"`
-
-	// +optional
-	// Image to use for this service
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Image"
-	Image string `json:"image,omitempty"`
-
-	// +optional
-	// MemoryLimit is the limit of Memory for the container
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Memory Limit"
-	MemoryLimit string `json:"memoryLimit,omitempty"`
-
-	// +optional
-	// MemoryRequest is the request of Memory for the container
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Memory Request"
-	MemoryRequest string `json:"memoryRequest,omitempty"`
-
-	// +optional
-	// CPULimit is the limit of CPU for the container
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="CPU Limit"
-	CPULimit string `json:"cpuLimit,omitempty"`
-
-	// +optional
-	// CPURequest is the request of CPU for the container
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="CPU Request"
-	CPURequest string `json:"cpuRequest,omitempty"`
-
-	InfinispanMeta `json:",inline"`
-
-	KafkaMeta `json:",inline"`
 }
 
 // KogitoDataIndexStatus defines the observed state of KogitoDataIndex
 // +k8s:openapi-gen=true
 type KogitoDataIndexStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - Define observed state of cluster
-	// IMPORTANT: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-
-	// Status of the Data Index Service Deployment created and managed by it
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=false
-	DeploymentStatus appsv1.DeploymentStatus `json:"deploymentStatus,omitempty"`
-
-	// Status of the Data Index Service created and managed by it
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=false
-	ServiceStatus corev1.ServiceStatus `json:"serviceStatus,omitempty"`
-
-	// OK when all resources are created successfully
-	// +listType=atomic
-	Conditions []DataIndexCondition `json:"conditions,omitempty"`
-
-	// All dependencies OK means that everything was found within the namespace
-	// +listType=set
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	DependenciesStatus []DataIndexDependenciesStatus `json:"dependenciesStatus,omitempty"`
-
-	// Route is where the service is exposed
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
-	Route string `json:"route,omitempty"`
+	KogitoServiceStatus `json:",inline"`
 }
-
-// DataIndexDependenciesStatus indicates all possible statuses that the dependencies can have
-type DataIndexDependenciesStatus string
-
-const (
-	//DataIndexDependenciesStatusOK - All dependencies have been met
-	DataIndexDependenciesStatusOK DataIndexDependenciesStatus = "OK"
-	//DataIndexDependenciesStatusMissingKafka - Kafka is missing
-	DataIndexDependenciesStatusMissingKafka DataIndexDependenciesStatus = "Missing Kafka"
-	//DataIndexDependenciesStatusMissingInfinispan - Infinispan is missing
-	DataIndexDependenciesStatusMissingInfinispan DataIndexDependenciesStatus = "Missing Infinispan"
-)
-
-// DataIndexCondition indicates the possible conditions for the Data Index Service
-type DataIndexCondition struct {
-	Condition          DataIndexConditionType `json:"condition"`
-	Message            string                 `json:"message,omitempty"`
-	LastTransitionTime metav1.Time            `json:"lastTransitionTime,omitempty"`
-}
-
-// DataIndexConditionType indicates the possible status that the resource can have
-type DataIndexConditionType string
-
-const (
-	// ConditionOK - Everything was created successfully
-	ConditionOK DataIndexConditionType = "OK"
-	// ConditionProvisioning - The service is still being deployed
-	ConditionProvisioning DataIndexConditionType = "Provisioning"
-	// ConditionFailed - The service and its dependencies failed to deploy
-	ConditionFailed DataIndexConditionType = "Failed"
-)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoDataIndex is the Schema for the kogitodataindices API
+// KogitoDataIndex defines the Data Index Service infrastructure deployment
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitodataindices,scope=Namespaced
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Data Index"
@@ -161,6 +59,16 @@ type KogitoDataIndex struct {
 	Status KogitoDataIndexStatus `json:"status,omitempty"`
 }
 
+// GetSpec ...
+func (k *KogitoDataIndex) GetSpec() KogitoServiceSpecInterface {
+	return &k.Spec
+}
+
+// GetStatus ...
+func (k *KogitoDataIndex) GetStatus() KogitoServiceStatusInterface {
+	return &k.Status
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // KogitoDataIndexList contains a list of KogitoDataIndex
@@ -169,6 +77,19 @@ type KogitoDataIndexList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// +listType=atomic
 	Items []KogitoDataIndex `json:"items"`
+}
+
+// GetItemsCount ...
+func (l *KogitoDataIndexList) GetItemsCount() int {
+	return len(l.Items)
+}
+
+// GetItemAt ...
+func (l *KogitoDataIndexList) GetItemAt(index int) KogitoService {
+	if len(l.Items) > index {
+		return KogitoService(&l.Items[index])
+	}
+	return nil
 }
 
 func init() {

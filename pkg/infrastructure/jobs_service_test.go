@@ -40,8 +40,10 @@ func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
 	}
 	jobs := &v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoJobsServiceSpec{Replicas: 1},
-		Status:     v1alpha1.KogitoJobsServiceStatus{ExternalURI: URI},
+		Spec: v1alpha1.KogitoJobsServiceSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+		},
+		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &oappsv1.DeploymentConfig{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
@@ -78,8 +80,10 @@ func TestInjectJobsServicesURLIntoKogitoAppsCleanUp(t *testing.T) {
 	}
 	jobs := &v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoJobsServiceSpec{Replicas: 1},
-		Status:     v1alpha1.KogitoJobsServiceStatus{ExternalURI: URI},
+		Spec: v1alpha1.KogitoJobsServiceSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+		},
+		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &oappsv1.DeploymentConfig{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{

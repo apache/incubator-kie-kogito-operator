@@ -27,15 +27,11 @@ const (
 	// We're not attached to this name, but since we're going to create it automagically, it's better to have a standard one.
 	DefaultKogitoInfraName = "kogito-infra"
 
-	kafkaComponentType      componentType = "kafka"
-	infinispanComponentType componentType = "infinispan"
-
 	noActionComponentState componentState = "noaction"
 	installComponentState  componentState = "install"
 	removeComponentState   componentState = "remove"
 )
 
-type componentType string
 type componentState string
 
 type ensureComponent struct {
@@ -225,5 +221,5 @@ func updateInstallValueIfNeeded(state componentState, installValueToChange *bool
 }
 
 func getInstallValue(state componentState) bool {
-	return (state == installComponentState)
+	return state == installComponentState
 }
