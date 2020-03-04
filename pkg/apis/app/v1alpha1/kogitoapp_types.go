@@ -309,7 +309,7 @@ type Builds struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoApp is the Schema for the kogitoapps API
+// KogitoApp is a project prescription running a Kogito Runtime Service.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoapps,scope=Namespaced
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Service"

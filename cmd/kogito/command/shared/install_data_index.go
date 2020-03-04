@@ -38,14 +38,18 @@ func installDefaultDataIndex(cli *client.Client, namespace string) error {
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: namespace},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			Replicas:       defaultDataIndexReplicas,
-			Image:          infrastructure.DefaultDataIndexImage,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: defaultDataIndexReplicas,
+			},
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
 			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true}},
 		},
 		Status: v1alpha1.KogitoDataIndexStatus{
-			Conditions:         []v1alpha1.DataIndexCondition{},
-			DependenciesStatus: []v1alpha1.DataIndexDependenciesStatus{},
+			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
+				ConditionsMeta: v1alpha1.ConditionsMeta{
+					Conditions: []v1alpha1.Condition{},
+				},
+			},
 		},
 	}
 

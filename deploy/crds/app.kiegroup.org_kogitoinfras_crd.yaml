@@ -12,7 +12,11 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KogitoInfra is the Schema for the kogitoinfras API
+      description: KogitoInfra will be managed automatically by the operator, don't
+        need to create it manually. Kogito Infra is responsible to delegate the creation
+        of each infrastructure dependency (such as Infinispan) to a third party operator.
+        It holds the deployment status of each infrastructure dependency and custom
+        resources needed to run Kogito Runtime and Kogito Data Index services.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation

@@ -22,16 +22,10 @@ import (
 )
 
 const (
-	// DefaultJobsServiceImageDomain is the default domain for the Jobs Service image
-	DefaultJobsServiceImageDomain = "quay.io"
-	// DefaultJobsServiceImageNamespace is the default namespace for the Jobs Service image
-	DefaultJobsServiceImageNamespace = "kiegroup"
 	// DefaultJobsServiceImageName is the default image name for the Jobs Service image
 	DefaultJobsServiceImageName = "kogito-jobs-service"
-	// DefaultJobsServiceImageTag is the default image tag for the Jobs Service image
-	DefaultJobsServiceImageTag = "latest"
 	// DefaultJobsServiceImageFullTag is the default full tag name for the Jobs Service image
-	DefaultJobsServiceImageFullTag = DefaultJobsServiceImageDomain + "/" + DefaultJobsServiceImageNamespace + "/" + DefaultJobsServiceImageName + ":" + DefaultJobsServiceImageTag
+	DefaultJobsServiceImageFullTag = "quay.io/kiegroup/" + DefaultJobsServiceImageName + ":latest"
 	// DefaultJobsServiceName is the default name for the Jobs Services instance service
 	DefaultJobsServiceName = DefaultJobsServiceImageName
 

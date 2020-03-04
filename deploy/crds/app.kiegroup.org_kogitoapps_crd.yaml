@@ -12,7 +12,7 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KogitoApp is the Schema for the kogitoapps API
+      description: KogitoApp is a project prescription running a Kogito Runtime Service.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation

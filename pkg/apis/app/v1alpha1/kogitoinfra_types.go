@@ -111,7 +111,11 @@ const (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoInfra is the Schema for the kogitoinfras API
+// KogitoInfra will be managed automatically by the operator, don't need to create it manually.
+// Kogito Infra is responsible to delegate the creation of each
+// infrastructure dependency (such as Infinispan) to a third party operator.
+// It holds the deployment status of each infrastructure dependency and custom
+// resources needed to run Kogito Runtime and Kogito Data Index services.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"

@@ -200,18 +200,22 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 			InfinispanMeta: v1alpha1.InfinispanMeta{
 				InfinispanProperties: i.flags.infinispan,
 			},
-			Replicas: i.flags.Replicas,
-			Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
-			Image:    framework.ConvertImageTagToImage(i.flags.image),
-			Resources: v1.ResourceRequirements{
-				Limits:   shared.FromStringArrayToResources(i.flags.Limits),
-				Requests: shared.FromStringArrayToResources(i.flags.Requests),
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: i.flags.Replicas,
+				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Image:    framework.ConvertImageTagToImage(i.flags.image),
+				Resources: v1.ResourceRequirements{
+					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
+					Requests: shared.FromStringArrayToResources(i.flags.Requests),
+				},
 			},
 			BackOffRetryMillis:            i.flags.backOffRetryMillis,
 			MaxIntervalLimitToRetryMillis: i.flags.maxIntervalLimitToRetryMillis,
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{
-			ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: []v1alpha1.Condition{}},
+			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
+				ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: []v1alpha1.Condition{}},
+			},
 		},
 	}
 

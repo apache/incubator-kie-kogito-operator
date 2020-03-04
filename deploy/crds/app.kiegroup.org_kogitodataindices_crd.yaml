@@ -12,7 +12,7 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KogitoDataIndex is the Schema for the kogitodataindices API
+      description: KogitoDataIndex defines the Data Index Service infrastructure deployment
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -29,26 +29,125 @@ spec:
         spec:
           description: KogitoDataIndexSpec defines the desired state of KogitoDataIndex
           properties:
-            cpuLimit:
-              description: CPULimit is the limit of CPU for the container
-              type: string
-            cpuRequest:
-              description: CPURequest is the request of CPU for the container
-              type: string
-            env:
-              additionalProperties:
-                type: string
-              description: Env is a collection of additional environment variables
-                to add to the Data Index container
-              type: object
+            envs:
+              description: Environment variables to be added to the runtime container.
+                Keys must be a C_IDENTIFIER.
+              items:
+                description: EnvVar represents an environment variable present in
+                  a Container.
+                properties:
+                  name:
+                    description: Name of the environment variable. Must be a C_IDENTIFIER.
+                    type: string
+                  value:
+                    description: 'Variable references $(VAR_NAME) are expanded using
+                      the previous defined environment variables in the container
+                      and any service environment variables. If a variable cannot
+                      be resolved, the reference in the input string will be unchanged.
+                      The $(VAR_NAME) syntax can be escaped with a double $$, ie:
+                      $$(VAR_NAME). Escaped references will never be expanded, regardless
+                      of whether the variable exists or not. Defaults to "".'
+                    type: string
+                  valueFrom:
+                    description: Source for the environment variable's value. Cannot
+                      be used if value is not empty.
+                    properties:
+                      configMapKeyRef:
+                        description: Selects a key of a ConfigMap.
+                        properties:
+                          key:
+                            description: The key to select.
+                            type: string
+                          name:
+                            description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              TODO: Add other useful fields. apiVersion, kind, uid?'
+                            type: string
+                          optional:
+                            description: Specify whether the ConfigMap or its key
+                              must be defined
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                      fieldRef:
+                        description: 'Selects a field of the pod: supports metadata.name,
+                          metadata.namespace, metadata.labels, metadata.annotations,
+                          spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP.'
+                        properties:
+                          apiVersion:
+                            description: Version of the schema the FieldPath is written
+                              in terms of, defaults to "v1".
+                            type: string
+                          fieldPath:
+                            description: Path of the field to select in the specified
+                              API version.
+                            type: string
+                        required:
+                        - fieldPath
+                        type: object
+                      resourceFieldRef:
+                        description: 'Selects a resource of the container: only resources
+                          limits and requests (limits.cpu, limits.memory, limits.ephemeral-storage,
+                          requests.cpu, requests.memory and requests.ephemeral-storage)
+                          are currently supported.'
+                        properties:
+                          containerName:
+                            description: 'Container name: required for volumes, optional
+                              for env vars'
+                            type: string
+                          divisor:
+                            description: Specifies the output format of the exposed
+                              resources, defaults to "1"
+                            type: string
+                          resource:
+                            description: 'Required: resource to select'
+                            type: string
+                        required:
+                        - resource
+                        type: object
+                      secretKeyRef:
+                        description: Selects a key of a secret in the pod's namespace
+                        properties:
+                          key:
+                            description: The key of the secret to select from.  Must
+                              be a valid secret key.
+                            type: string
+                          name:
+                            description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              TODO: Add other useful fields. apiVersion, kind, uid?'
+                            type: string
+                          optional:
+                            description: Specify whether the Secret or its key must
+                              be defined
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                    type: object
+                required:
+                - name
+                type: object
+              type: array
             httpPort:
               description: HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT
                 to define which port data-index service will listen internally.
               format: int32
               type: integer
             image:
-              description: Image to use for this service
-              type: string
+              description: 'Image definition for the service. Example: Domain: quay.io,
+                Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift
+                an ImageStream will be created in the current namespace pointing to
+                the given image.'
+              properties:
+                domain:
+                  type: string
+                name:
+                  type: string
+                namespace:
+                  type: string
+                tag:
+                  type: string
+              type: object
             infinispan:
               description: Has the data used by the service to connect to the Infinispan
                 cluster.
@@ -123,159 +222,98 @@ spec:
                     infrastructure
                   type: boolean
               type: object
-            memoryLimit:
-              description: MemoryLimit is the limit of Memory for the container
-              type: string
-            memoryRequest:
-              description: MemoryRequest is the request of Memory for the container
-              type: string
             replicas:
-              description: Replicas is the number of pod replicas that the Data Index
-                Service will create
+              description: 'Number of replicas that the service will have deployed
+                in the cluster Default value: 1'
               format: int32
-              maximum: 100
               minimum: 0
               type: integer
+            resources:
+              description: Defined Resources for the Jobs Service
+              properties:
+                limits:
+                  additionalProperties:
+                    type: string
+                  description: 'Limits describes the maximum amount of compute resources
+                    allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                  type: object
+                requests:
+                  additionalProperties:
+                    type: string
+                  description: 'Requests describes the minimum amount of compute resources
+                    required. If Requests is omitted for a container, it defaults
+                    to Limits if that is explicitly specified, otherwise to an implementation-defined
+                    value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                  type: object
+              type: object
           type: object
         status:
           description: KogitoDataIndexStatus defines the observed state of KogitoDataIndex
           properties:
             conditions:
-              description: OK when all resources are created successfully
+              description: History of conditions for the resource
               items:
-                description: DataIndexCondition indicates the possible conditions
-                  for the Data Index Service
+                description: Condition is the detailed condition for the resource
                 properties:
-                  condition:
-                    description: DataIndexConditionType indicates the possible status
-                      that the resource can have
-                    type: string
                   lastTransitionTime:
                     format: date-time
                     type: string
                   message:
                     type: string
+                  reason:
+                    description: ReasonType is the type of reason
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    description: ConditionType is the type of condition
+                    type: string
                 required:
-                - condition
+                - status
+                - type
                 type: object
               type: array
-            dependenciesStatus:
-              description: All dependencies OK means that everything was found within
-                the namespace
+            deploymentConditions:
+              description: General conditions for the Kogito Service deployment
               items:
-                description: DataIndexDependenciesStatus indicates all possible statuses
-                  that the dependencies can have
-                type: string
+                description: DeploymentCondition describes the state of a deployment
+                  at a certain point.
+                properties:
+                  lastTransitionTime:
+                    description: Last time the condition transitioned from one status
+                      to another.
+                    format: date-time
+                    type: string
+                  lastUpdateTime:
+                    description: The last time this condition was updated.
+                    format: date-time
+                    type: string
+                  message:
+                    description: A human readable message indicating details about
+                      the transition.
+                    type: string
+                  reason:
+                    description: The reason for the condition's last transition.
+                    type: string
+                  status:
+                    description: Status of the condition, one of True, False, Unknown.
+                    type: string
+                  type:
+                    description: Type of deployment condition.
+                    type: string
+                required:
+                - status
+                - type
+                type: object
               type: array
-            deploymentStatus:
-              description: Status of the Data Index Service Deployment created and
-                managed by it
-              properties:
-                availableReplicas:
-                  description: Total number of available pods (ready for at least
-                    minReadySeconds) targeted by this deployment.
-                  format: int32
-                  type: integer
-                collisionCount:
-                  description: Count of hash collisions for the Deployment. The Deployment
-                    controller uses this field as a collision avoidance mechanism
-                    when it needs to create the name for the newest ReplicaSet.
-                  format: int32
-                  type: integer
-                conditions:
-                  description: Represents the latest available observations of a deployment's
-                    current state.
-                  items:
-                    description: DeploymentCondition describes the state of a deployment
-                      at a certain point.
-                    properties:
-                      lastTransitionTime:
-                        description: Last time the condition transitioned from one
-                          status to another.
-                        format: date-time
-                        type: string
-                      lastUpdateTime:
-                        description: The last time this condition was updated.
-                        format: date-time
-                        type: string
-                      message:
-                        description: A human readable message indicating details about
-                          the transition.
-                        type: string
-                      reason:
-                        description: The reason for the condition's last transition.
-                        type: string
-                      status:
-                        description: Status of the condition, one of True, False,
-                          Unknown.
-                        type: string
-                      type:
-                        description: Type of deployment condition.
-                        type: string
-                    required:
-                    - status
-                    - type
-                    type: object
-                  type: array
-                observedGeneration:
-                  description: The generation observed by the deployment controller.
-                  format: int64
-                  type: integer
-                readyReplicas:
-                  description: Total number of ready pods targeted by this deployment.
-                  format: int32
-                  type: integer
-                replicas:
-                  description: Total number of non-terminated pods targeted by this
-                    deployment (their labels match the selector).
-                  format: int32
-                  type: integer
-                unavailableReplicas:
-                  description: Total number of unavailable pods targeted by this deployment.
-                    This is the total number of pods that are still required for the
-                    deployment to have 100% available capacity. They may either be
-                    pods that are running but not yet available or pods that still
-                    have not been created.
-                  format: int32
-                  type: integer
-                updatedReplicas:
-                  description: Total number of non-terminated pods targeted by this
-                    deployment that have the desired template spec.
-                  format: int32
-                  type: integer
-              type: object
-            route:
-              description: Route is where the service is exposed
+            externalURI:
+              description: URI is where the service is exposed
               type: string
-            serviceStatus:
-              description: Status of the Data Index Service created and managed by
-                it
-              properties:
-                loadBalancer:
-                  description: LoadBalancer contains the current status of the load-balancer,
-                    if one is present.
-                  properties:
-                    ingress:
-                      description: Ingress is a list containing ingress points for
-                        the load-balancer. Traffic intended for the service should
-                        be sent to these ingress points.
-                      items:
-                        description: 'LoadBalancerIngress represents the status of
-                          a load-balancer ingress point: traffic intended for the
-                          service should be sent to an ingress point.'
-                        properties:
-                          hostname:
-                            description: Hostname is set for load-balancer ingress
-                              points that are DNS based (typically AWS load-balancers)
-                            type: string
-                          ip:
-                            description: IP is set for load-balancer ingress points
-                              that are IP based (typically GCE or OpenStack load-balancers)
-                            type: string
-                        type: object
-                      type: array
-                  type: object
-              type: object
+            image:
+              description: Image is the resolved image for this service
+              type: string
+          required:
+          - conditions
           type: object
       type: object
   version: v1alpha1

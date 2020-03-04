@@ -25,8 +25,10 @@ import (
 )
 
 const (
-	// DefaultDataIndexImage is the default image name for the Kogito Data Index Service
-	DefaultDataIndexImage = "quay.io/kiegroup/kogito-data-index:latest"
+	// DefaultDataIndexImageFullTag is the default image name for the Kogito Data Index Service
+	DefaultDataIndexImageFullTag = "quay.io/kiegroup/kogito-data-index:latest"
+	// DefaultDataIndexImageName is just the image name for the Data Index Service
+	DefaultDataIndexImageName = "kogito-data-index"
 	// DefaultDataIndexName is the default name for the Data Index instance service
 	DefaultDataIndexName = "kogito-data-index"
 
@@ -93,7 +95,7 @@ func getKogitoDataIndexRoute(client *client.Client, namespace string) (string, e
 	}
 	if len(dataIndexes.Items) > 0 {
 		// should be only one data index guaranteed by OLM, but still we are looking for the first one
-		route = dataIndexes.Items[0].Status.Route
+		route = dataIndexes.Items[0].Status.ExternalURI
 	}
 	return route, nil
 }

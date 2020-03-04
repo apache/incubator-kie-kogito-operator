@@ -73,6 +73,15 @@ type Condition struct {
 
 const maxBufferCondition = 5
 
+// ConditionMetaInterface defines the base information for kogito services conditions
+type ConditionMetaInterface interface {
+	SetDeployed() bool
+	SetProvisioning() bool
+	SetFailed(reason ReasonType, err error)
+	GetConditions() []Condition
+	SetConditions(conditions []Condition)
+}
+
 // ConditionsMeta definition of a Condition structure
 type ConditionsMeta struct {
 	// +listType=atomic
@@ -80,6 +89,16 @@ type ConditionsMeta struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	Conditions []Condition `json:"conditions"`
+}
+
+// GetConditions returns the conditions history
+func (c *ConditionsMeta) GetConditions() []Condition {
+	return c.Conditions
+}
+
+// SetConditions sets the conditions history
+func (c *ConditionsMeta) SetConditions(conditions []Condition) {
+	c.Conditions = conditions
 }
 
 // SetDeployed Updates the condition with the DeployedCondition and True status

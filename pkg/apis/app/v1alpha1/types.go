@@ -88,7 +88,7 @@ type InfinispanConnectionProperties struct {
 // InfinispanAware defines a spec with InfinispanProperties awareness
 type InfinispanAware interface {
 	// GetInfinispanProperties ...
-	GetInfinispanProperties() InfinispanConnectionProperties
+	GetInfinispanProperties() *InfinispanConnectionProperties
 	// SetInfinispanProperties ...
 	SetInfinispanProperties(props InfinispanConnectionProperties)
 	// AreInfinispanPropertiesBlank checks if the connection properties have been set
@@ -103,8 +103,8 @@ type InfinispanMeta struct {
 }
 
 // GetInfinispanProperties ...
-func (i *InfinispanMeta) GetInfinispanProperties() InfinispanConnectionProperties {
-	return i.InfinispanProperties
+func (i *InfinispanMeta) GetInfinispanProperties() *InfinispanConnectionProperties {
+	return &i.InfinispanProperties
 }
 
 // SetInfinispanProperties ...
@@ -142,7 +142,7 @@ type KafkaConnectionProperties struct {
 // KafkaAware defines a spec with KafkaProperties awareness
 type KafkaAware interface {
 	// GetKafkaProperties ...
-	GetKafkaProperties() KafkaConnectionProperties
+	GetKafkaProperties() *KafkaConnectionProperties
 	// SetKafkaProperties ...
 	SetKafkaProperties(props KafkaConnectionProperties)
 	// AreKafkaPropertiesBlank checks if the connection properties have been set
@@ -157,8 +157,8 @@ type KafkaMeta struct {
 }
 
 // GetKafkaProperties ...
-func (k *KafkaMeta) GetKafkaProperties() KafkaConnectionProperties {
-	return k.KafkaProperties
+func (k *KafkaMeta) GetKafkaProperties() *KafkaConnectionProperties {
+	return &k.KafkaProperties
 }
 
 // SetKafkaProperties ...

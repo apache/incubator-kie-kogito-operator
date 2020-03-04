@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package resource
+package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 const (
@@ -37,48 +34,36 @@ const (
 	kafkaTopicConfigSegmentKey     string = "segment.bytes"
 	kafkaTopicConfigRetentionValue string = "604800000"
 	kafkaTopicConfigSegmentValue   string = "1073741824"
+
+	quarkusTopicBootstrapEnvVar = "MP_MESSAGING_%s_%s_BOOTSTRAP_SERVERS"
+	quarkusBootstrapEnvVar      = "QUARKUS_KAFKA_BOOTSTRAP_SERVERS"
 )
 
-func setKafkaVariables(externalURI string, container *corev1.Container) {
-	if len(externalURI) > 0 {
-		for _, envKey := range managedKafkaKeys {
-			framework.SetEnvVar(envKey, externalURI, container)
-		}
+// fromKafkaTopicToQuarkusEnvVar transforms a given Kafka Topic name into a environment variable to be read by Quarkus Kafka client used by Kogito Services
+func fromKafkaTopicToQuarkusEnvVar(topic KafkaTopicDefinition) string {
+	if &topic != nil && len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
+		return fmt.Sprintf(quarkusTopicBootstrapEnvVar, topic.MessagingType, strings.ToUpper(strings.ReplaceAll(topic.TopicName, "-", "_")))
 	}
-}
-
-// IsKafkaServerURIResolved checks if the URI of the Kafka server is provided or resolvable in the namespace
-func IsKafkaServerURIResolved(instance *v1alpha1.KogitoDataIndex, client *client.Client) (bool, error) {
-	if len(instance.Spec.KafkaProperties.ExternalURI) == 0 {
-		if !infrastructure.IsStrimziAvailable(client) {
-			return false, nil
-		}
-		if kafka, err := getKafkaInstance(instance.Spec.KafkaProperties, instance.Namespace, client); err != nil {
-			return false, err
-		} else if kafka == nil {
-			return false, nil
-		}
-	}
-	return true, nil
+	return ""
 }
 
 func getKafkaServerURI(kafkaProp v1alpha1.KafkaConnectionProperties, namespace string, client *client.Client) (string, error) {
 	if len(kafkaProp.ExternalURI) > 0 {
 		return kafkaProp.ExternalURI, nil
-	} else if infrastructure.IsStrimziAvailable(client) {
-		if kafka, err := getKafkaInstance(kafkaProp, namespace, client); err != nil {
-			return "", err
-		} else if kafka != nil {
-			if uri := infrastructure.ResolveKafkaServerURI(kafka); len(uri) > 0 {
-				return uri, nil
-			}
+	}
+	if kafka, err := getKafkaInstance(kafkaProp, namespace, client); err != nil {
+		return "", err
+	} else if kafka != nil {
+		if uri := infrastructure.ResolveKafkaServerURI(kafka); len(uri) > 0 {
+			return uri, nil
 		}
 	}
+
 	return "", fmt.Errorf(kafkaURINotFoundError)
 }
 
 func getKafkaServerReplicas(kafkaProp v1alpha1.KafkaConnectionProperties, namespace string, client *client.Client) (string, int32, error) {
-	if len(kafkaProp.ExternalURI) <= 0 && infrastructure.IsStrimziAvailable(client) {
+	if len(kafkaProp.ExternalURI) <= 0 {
 		if kafka, err := getKafkaInstance(kafkaProp, namespace, client); err != nil {
 			return "", 0, err
 		} else if kafka != nil {
@@ -102,7 +87,7 @@ func getKafkaInstance(kafka v1alpha1.KafkaConnectionProperties, namespace string
 
 func newKafkaTopic(topicName string, kafkaName string, kafkaReplicas int32, namespace string) *kafkabetav1.KafkaTopic {
 	return &kafkabetav1.KafkaTopic{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      topicName,
 			Namespace: namespace,
 			Labels: map[string]string{

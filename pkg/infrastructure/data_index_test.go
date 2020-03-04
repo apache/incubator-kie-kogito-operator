@@ -40,7 +40,7 @@ func Test_getKogitoDataIndexRoute(t *testing.T) {
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{
-					Route: expectedRoute,
+					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
 				},
 			},
 			{
@@ -49,7 +49,7 @@ func Test_getKogitoDataIndexRoute(t *testing.T) {
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{
-					Route: "",
+					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: ""},
 				},
 			},
 		},
@@ -95,7 +95,7 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{
-					Route: expectedRoute,
+					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
 				},
 			},
 		},
@@ -120,11 +120,11 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	expectedWSSURL := "wss://" + hostname
 	unsecureDI := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
-		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHTTPURL},
+		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPURL}},
 	}
 	secureDI := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
-		Status:     v1alpha1.KogitoDataIndexStatus{Route: expectedHTTPSURL},
+		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
 	}
 	cliUnsecure := test.CreateFakeClient([]runtime.Object{unsecureDI}, nil, nil)
 	cliSecure := test.CreateFakeClient([]runtime.Object{secureDI}, nil, nil)

@@ -8,13 +8,9 @@ spec:
   # number of pods to be deployed
   replicas: 1
   # image to use for this deploy
-  image: "quay.io/kiegroup/kogito-data-index:latest"
+  image:
+    tag: "0.7.0"
   # httpPort: 8080
-  # Limits and requests for the Data Index pod
-  memoryLimit: ""
-  memoryRequest: ""
-  cpuLimit: ""
-  cpuRequest: ""
   # details about the kafka connection
   kafka:
     # let's leave this burden to KogitoInfra CR to deploy a new Kafka instance for us
