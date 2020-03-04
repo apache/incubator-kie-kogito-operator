@@ -151,7 +151,56 @@ By default, the Kogito services are built with traditional `java` compilers to s
 
 Kogito services implemented with [Quarkus](https://quarkus.io/guides/kogito-guide) can be built to native binary. This means very low footprint on runtime (see [performance examples](https://www.graalvm.org/docs/examples/java-performance-examples/)), but a lot of resources during build time. For more information about AOT compilation, see [GraalVM Native Image](https://www.graalvm.org/docs/reference-manual/aot-compilation/).
 
-In Kogito Operator tests, native builds take approximately 10 minutes and the build pod can consume up to 10GB of RAM and 1.5 CPU cores. Ensure that you have these resources available when running native builds.
+In Kogito Operator tests, native builds take approximately 10 minutes and the build pod can consume up to 10GB of RAM and 1.5 CPU cores.
+
+:warning: By default Kogito application doesn't contain resource requests or limits. This may lead to the situation when native build is terminated due to insufficient memory. To prevent this behaviour user can specify at least memory request for Kogito application build, making sure that build pod is allocated on OpenShift node with enough of free memory. The side effect of this configuration is that OpenShift will prioritize the build pod. More informations about pod prioritization based on pod requests and limits can be found on [Quality of Service Tiers page](https://docs.okd.io/3.11/dev_guide/compute_resources.html#quality-of-service-tiers)
+
+Example of memory request configuration:
+```yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: jbpm-quarkus-example
+  namespace: kogito
+spec:
+  build:
+    gitSource:
+      contextDir: jbpm-quarkus-example
+      uri: 'https://github.com/kiegroup/kogito-examples'
+    native: true
+    resources:
+      requests:
+        - resource: memory
+          value: 4Gi
+  runtime: quarkus
+```
+
+:warning: Ensure that you have these resources available on your OpenShift nodes when running native builds. Otherwise the S2I build will fail.
+You can check currently allocated and total resources of your nodes using command `oc describe nodes` invoked by user with admin rights.
+
+User can also limit the maximum heap space for JVM used for native build. The limitation can be done by setting `quarkus.native.native-image-xmx` property in application.properties file. In such case the build pod will require roughly xmx + 2GB of memory. The xmx value depends on the complexity of the application, for example for [jbpm-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/master/jbpm-quarkus-example) the xmx value `2g` is enough, resulting in builder pod consuming just up to 4.2 GB of memory.
+
+User can also set resource limits for native build pod. In that case 80% of memory limit is used for heap space of JVM responsible for native build. If the computed heap space limit for JVM is less than 1024m then all the memory from resource limits is used.
+
+Example of memory limit configuration:
+```yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: jbpm-quarkus-example
+  namespace: kogito
+spec:
+  build:
+    gitSource:
+      contextDir: jbpm-quarkus-example
+      uri: 'https://github.com/kiegroup/kogito-examples'
+    native: true
+    resources:
+      limits:
+        - resource: memory
+          value: 4Gi
+  runtime: quarkus
+```
 
 To deploy a service using native builds, run the `deploy-service` command with the `--native` flag:
 
