@@ -1,7 +1,7 @@
 module github.com/kiegroup/kogito-cloud-operator
 
 require (
-	github.com/RHsyseng/operator-utils v0.0.0-20200108204558-82090ef57586
+	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
 	github.com/coreos/prometheus-operator v0.34.0
 	github.com/cucumber/godog v0.8.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32

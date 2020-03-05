@@ -39,7 +39,7 @@ func (s *serviceDeployer) manageStatus(instance v1alpha1.KogitoService, imageNam
 	}
 	var readyReplicas int32
 	changed := false
-	updateStatus := updateImageStatus(instance, imageName)
+	updateStatus := updateImageStatus(instance, imageName, s.client)
 	if changed, readyReplicas, err = updateDeploymentStatus(instance, s.client); err != nil {
 		return err
 	}
@@ -66,9 +66,13 @@ func (s *serviceDeployer) manageStatus(instance v1alpha1.KogitoService, imageNam
 	return nil
 }
 
-func updateImageStatus(instance v1alpha1.KogitoService, imageName string) bool {
-	image := newImageResolver(instance, imageName).resolveImage()
+func updateImageStatus(instance v1alpha1.KogitoService, imageName string, cli *client.Client) bool {
+	imageHandler := newImageHandler(instance, imageName, cli)
+	image := imageHandler.resolveRegistryImage()
 	if len(image) > 0 && image != instance.GetStatus().GetImage() {
+		if imageHandler.hasImageStream() {
+			image = fmt.Sprintf("%s (Internal Registry)", image)
+		}
 		instance.GetStatus().SetImage(image)
 		return true
 	}

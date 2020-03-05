@@ -16,11 +16,15 @@ package services
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/version"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	imgv1 "github.com/openshift/api/image/v1"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,7 +33,6 @@ const (
 	annotationKeyVersion  = "version"
 	defaultImageDomain    = "quay.io"
 	defaultImageNamespace = "kiegroup"
-	defaultImageTag       = "latest"
 )
 
 var imageStreamTagAnnotations = map[string]string{
@@ -43,14 +46,6 @@ var imageStreamAnnotations = map[string]string{
 	"openshift.io/display-name":          "Kogito Service image",
 }
 
-// newImageResolver creates a new ImageResolver
-func newImageResolver(instance v1alpha1.KogitoService, imageName string) *imageHandler {
-	return &imageHandler{
-		image:            instance.GetSpec().GetImage(),
-		defaultImageName: imageName,
-	}
-}
-
 // imageHandler defines the base structure for images in either OpenShift or Kubernetes clusters
 type imageHandler struct {
 	// imageStream is the created Image Stream for the service, should be nil on Kubernetes
@@ -59,15 +54,48 @@ type imageHandler struct {
 	image *v1alpha1.Image
 	// defaultImageName is the default image name for this service
 	defaultImageName string
+	// client to handle API cluster calls
+	client *client.Client
 }
 
 func (i *imageHandler) hasImageStream() bool {
 	return i.imageStream != nil
 }
 
-// TODO: instead of having this as a public function for status to handle, the final image name should be taken from the ImageStream tags (read the last one and take the name).
-// resolveImage resolves images like "quay.io/kiegroup/kogito-jobs-service:latest"
-func (i *imageHandler) resolveImage() string {
+// resolveImage resolves images like "quay.io/kiegroup/kogito-jobs-service:latest" or "internal-registry/namespace/image:hash".
+// Can be empty if on OpenShift and the ImageStream is not ready.
+func (i *imageHandler) resolveImage() (string, error) {
+	if i.client.IsOpenshift() {
+		is := &imgv1.ImageStream{ObjectMeta: v1.ObjectMeta{Name: i.imageStream.Name, Namespace: i.imageStream.Namespace}}
+		if exists, err := kubernetes.ResourceC(i.client).Fetch(is); err != nil {
+			return "", err
+		} else if !exists {
+			return "", nil
+		}
+		// the image is on an ImageStreamTag object
+		for _, tag := range is.Spec.Tags {
+			if tag.From != nil && tag.From.Name == i.resolveRegistryImage() {
+				ist, err := openshift.ImageStreamC(i.client).FetchTag(
+					types.NamespacedName{
+						Name:      i.defaultImageName,
+						Namespace: i.imageStream.Namespace,
+					}, i.resolveTag())
+				if err != nil {
+					return "", err
+				} else if ist == nil {
+					return "", nil
+				}
+				return ist.Image.DockerImageReference, nil
+			}
+		}
+		return "", nil
+	}
+
+	return i.resolveRegistryImage(), nil
+}
+
+// resolveRegistryImage resolves images like "quay.io/kiegroup/kogito-jobs-service:latest", as informed by user.
+func (i *imageHandler) resolveRegistryImage() string {
 	domain := i.image.Domain
 	if len(domain) == 0 {
 		domain = defaultImageDomain
@@ -76,7 +104,6 @@ func (i *imageHandler) resolveImage() string {
 	if len(ns) == 0 {
 		ns = defaultImageNamespace
 	}
-
 	return fmt.Sprintf("%s/%s/%s", domain, ns, i.resolveImageNameTag())
 }
 
@@ -89,45 +116,44 @@ func (i *imageHandler) resolveImageNameTag() string {
 	return fmt.Sprintf("%s:%s", name, i.resolveTag())
 }
 
-// resolves like "latest"
+// resolves like "latest", 0.8.0, and so on
 func (i *imageHandler) resolveTag() string {
 	if len(i.image.Tag) == 0 {
-		return defaultImageTag
+		return version.Version
 	}
 	return i.image.Tag
 }
 
-func newImageHandler(instance v1alpha1.KogitoService, imageName string, cli *client.Client) *imageHandler {
+func newImageHandler(instance v1alpha1.KogitoService, defaultImageName string, cli *client.Client) *imageHandler {
 	if instance.GetSpec().GetImage() == nil {
 		instance.GetSpec().SetImage(v1alpha1.Image{})
 	}
 	handler := &imageHandler{
 		image:            instance.GetSpec().GetImage(),
 		imageStream:      nil,
-		defaultImageName: imageName,
+		defaultImageName: defaultImageName,
+		client:           cli,
 	}
 
-	if !cli.IsOpenshift() {
-		return handler
-	}
-
-	imageStreamTagAnnotations[annotationKeyVersion] = handler.resolveTag()
-	handler.imageStream = &imgv1.ImageStream{
-		ObjectMeta: v1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace(), Annotations: imageStreamAnnotations},
-		Spec: imgv1.ImageStreamSpec{
-			LookupPolicy: imgv1.ImageLookupPolicy{Local: true},
-			Tags: []imgv1.TagReference{
-				{
-					Name:        handler.resolveTag(),
-					Annotations: imageStreamTagAnnotations,
-					From: &corev1.ObjectReference{
-						Kind: dockerImageKind,
-						Name: handler.resolveImage(),
+	if cli.IsOpenshift() {
+		imageStreamTagAnnotations[annotationKeyVersion] = handler.resolveTag()
+		handler.imageStream = &imgv1.ImageStream{
+			ObjectMeta: v1.ObjectMeta{Name: defaultImageName, Namespace: instance.GetNamespace(), Annotations: imageStreamAnnotations},
+			Spec: imgv1.ImageStreamSpec{
+				LookupPolicy: imgv1.ImageLookupPolicy{Local: true},
+				Tags: []imgv1.TagReference{
+					{
+						Name:        handler.resolveTag(),
+						Annotations: imageStreamTagAnnotations,
+						From: &corev1.ObjectReference{
+							Kind: dockerImageKind,
+							Name: handler.resolveRegistryImage(),
+						},
+						ReferencePolicy: imgv1.TagReferencePolicy{Type: imgv1.LocalTagReferencePolicy},
 					},
-					ReferencePolicy: imgv1.TagReferencePolicy{Type: imgv1.LocalTagReferencePolicy},
 				},
 			},
-		},
+		}
 	}
 
 	return handler
