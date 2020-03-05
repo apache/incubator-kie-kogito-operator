@@ -20,12 +20,14 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 )
@@ -38,38 +40,74 @@ const (
 func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
 	imageHandler := newImageHandler(instance, s.definition.DefaultImageName, s.client)
-	deployment := createRequiredDeployment(instance, imageHandler, s.definition)
-	if s.definition.OnDeploymentCreate != nil {
-		if err = s.definition.OnDeploymentCreate(deployment, instance); err != nil {
-			return
-		}
-	}
-
-	service := createRequiredService(instance, deployment)
-
-	if s.definition.infinispanAware {
-		if err = s.applyInfinispanConfigurations(deployment, instance); err != nil {
-			return
-		}
-	}
-
-	if s.definition.kafkaAware {
-		if err = s.applyKafkaConfigurations(deployment, instance); err != nil {
-			return
-		}
-	}
-
-	resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}
-	resources[reflect.TypeOf(corev1.Service{})] = []resource.KubernetesResource{service}
-
 	if imageHandler.hasImageStream() {
 		resources[reflect.TypeOf(imgv1.ImageStream{})] = []resource.KubernetesResource{imageHandler.imageStream}
 	}
-	if s.client.IsOpenshift() {
-		resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(instance, service)}
+
+	// we only create the rest of the resources once we have a resolvable image
+	// or if the deployment is already there, we don't want to delete it :)
+	if image, err := s.getKogitoServiceImage(imageHandler, instance); err != nil {
+		return resources, err
+	} else if len(image) > 0 {
+		deployment := createRequiredDeployment(instance, image, s.definition)
+		if err = s.applyDeploymentCustomizations(deployment, instance, imageHandler); err != nil {
+			return resources, err
+		}
+
+		service := createRequiredService(instance, deployment)
+
+		if s.definition.infinispanAware {
+			if err = s.applyInfinispanConfigurations(deployment, instance); err != nil {
+				return resources, err
+			}
+		}
+		if s.definition.kafkaAware {
+			if err = s.applyKafkaConfigurations(deployment, instance); err != nil {
+				return resources, err
+			}
+		}
+
+		resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}
+		resources[reflect.TypeOf(corev1.Service{})] = []resource.KubernetesResource{service}
+		if s.client.IsOpenshift() {
+			resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(instance, service)}
+		}
 	}
 
 	return
+}
+
+func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deployment, instance v1alpha1.KogitoService, imageHandler *imageHandler) error {
+	if imageHandler.hasImageStream() {
+		key, value := framework.ResolveImageStreamTriggerAnnotation(imageHandler.resolveImageNameTag(), instance.GetName())
+		deployment.Annotations = map[string]string{key: value}
+	}
+	if s.definition.OnDeploymentCreate != nil {
+		if err := s.definition.OnDeploymentCreate(deployment, instance); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, instance v1alpha1.KogitoService) (string, error) {
+	image, err := imageHandler.resolveImage()
+	if err != nil {
+		return "", err
+	}
+	if len(image) > 0 {
+		return image, nil
+	}
+	deploymentDeployed := &appsv1.Deployment{ObjectMeta: v1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()}}
+	if exists, err := kubernetes.ResourceC(s.client).Fetch(deploymentDeployed); err != nil {
+		return "", err
+	} else if !exists {
+		return "", nil
+	}
+	if len(deploymentDeployed.Spec.Template.Spec.Containers) > 0 {
+		return deploymentDeployed.Spec.Template.Spec.Containers[0].Image, nil
+	}
+	return "", nil
 }
 
 func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {

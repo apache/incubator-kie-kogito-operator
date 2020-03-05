@@ -39,7 +39,7 @@ var defaultProbe = &corev1.Probe{
 	FailureThreshold: int32(3),
 }
 
-func createRequiredDeployment(service v1alpha1.KogitoService, image *imageHandler, definition ServiceDefinition) *appsv1.Deployment {
+func createRequiredDeployment(service v1alpha1.KogitoService, image string, definition ServiceDefinition) *appsv1.Deployment {
 	if definition.SingleReplica && service.GetSpec().GetReplicas() > singleReplica {
 		service.GetSpec().SetReplicas(singleReplica)
 		log.Warnf("%s can't scale vertically, only one replica is allowed.", service.GetName())
@@ -69,18 +69,13 @@ func createRequiredDeployment(service v1alpha1.KogitoService, image *imageHandle
 							LivenessProbe:   defaultProbe,
 							ReadinessProbe:  defaultProbe,
 							ImagePullPolicy: corev1.PullAlways,
-							Image:           image.resolveImage(),
+							Image:           image,
 						},
 					},
 				},
 			},
 			Strategy: appsv1.DeploymentStrategy{Type: appsv1.RollingUpdateDeploymentStrategyType},
 		},
-	}
-
-	if image.hasImageStream() {
-		key, value := framework.ResolveImageStreamTriggerAnnotation(image.resolveImageNameTag(), service.GetName())
-		deployment.Annotations = map[string]string{key: value}
 	}
 
 	return deployment
