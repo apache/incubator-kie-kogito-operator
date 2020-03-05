@@ -173,16 +173,6 @@ var kafkaTopics = []services.KafkaTopicDefinition{
 	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicIncoming},
 }
 
-var protoBufEnvsVolumeMounted = map[string]string{
-	protoBufKeyFolder: defaultProtobufMountPath,
-	protoBufKeyWatch:  "true",
-}
-
-var protoBufEnvsNoVolume = map[string]string{
-	protoBufKeyFolder: "",
-	protoBufKeyWatch:  "false",
-}
-
 func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		httpPort := defineDataIndexHTTPPort(kogitoService.(*appv1alpha1.KogitoDataIndex))
@@ -207,7 +197,6 @@ func (r *ReconcileKogitoDataIndex) mountProtoBufConfigMaps(deployment *appsv1.De
 	if cms, err = infrastructure.GetProtoBufConfigMaps(deployment.Namespace, r.client); err != nil {
 		return err
 	}
-
 	for _, cm := range cms.Items {
 		deployment.Spec.Template.Spec.Volumes =
 			append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
@@ -221,15 +210,19 @@ func (r *ReconcileKogitoDataIndex) mountProtoBufConfigMaps(deployment *appsv1.De
 					},
 				},
 			})
-		deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
-			append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"])})
+		for fileName := range cm.Data {
+			deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
+				append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts,
+					corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"], fileName), SubPath: fileName})
+		}
 	}
-	protoBufEnvs := protoBufEnvsNoVolume
+
 	if len(deployment.Spec.Template.Spec.Volumes) > 0 {
-		protoBufEnvs = protoBufEnvsVolumeMounted
-	}
-	for k, v := range protoBufEnvs {
-		framework.SetEnvVar(k, v, &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(protoBufKeyWatch, "true", &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(protoBufKeyFolder, defaultProtobufMountPath, &deployment.Spec.Template.Spec.Containers[0])
+	} else {
+		framework.SetEnvVar(protoBufKeyWatch, "false", &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(protoBufKeyFolder, "", &deployment.Spec.Template.Spec.Containers[0])
 	}
 
 	return nil

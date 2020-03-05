@@ -54,14 +54,6 @@ func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoServic
 	}
 
 	if s.definition.kafkaAware {
-		if instance.GetSpec().(v1alpha1.KafkaAware).GetKafkaProperties().UseKogitoInfra &&
-			infrastructure.IsStrimziAvailable(s.client) {
-			if topics, err := s.createKafkaTopics(instance); err != nil {
-				return nil, err
-			} else if topics != nil {
-				resources[reflect.TypeOf(kafkabetav1.KafkaTopic{})] = topics
-			}
-		}
 		if err = s.applyKafkaConfigurations(deployment, instance); err != nil {
 			return
 		}
@@ -112,25 +104,6 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 	}
 
 	return nil
-}
-
-func (s *serviceDeployer) createKafkaTopics(instance v1alpha1.KogitoService) (topics []resource.KubernetesResource, err error) {
-	if !infrastructure.IsStrimziAvailable(s.client) {
-		return
-	}
-	kafkaName, kafkaReplicas, err := getKafkaServerReplicas(*instance.GetSpec().(v1alpha1.KafkaAware).GetKafkaProperties(), s.getNamespace(), s.client)
-	if err != nil {
-		return
-	} else if len(kafkaName) <= 0 || kafkaReplicas <= 0 {
-		return
-	}
-
-	for _, topic := range s.definition.KafkaTopics {
-		kafkaTopic := newKafkaTopic(topic.TopicName, kafkaName, kafkaReplicas, s.getNamespace())
-		topics = append(topics, kafkaTopic)
-	}
-
-	return
 }
 
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance

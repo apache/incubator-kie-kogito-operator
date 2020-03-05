@@ -17,6 +17,7 @@ package kogitodataindex
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sort"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -211,4 +212,53 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	// compare again if the port was updated after reconcile
 	assert.Equal(t, int32(9090), serviceAfterReconcile.Spec.Ports[0].Port)
 	assert.Equal(t, intstr.FromInt(9090), serviceAfterReconcile.Spec.Ports[0].TargetPort)
+}
+
+func TestReconcileKogitoDataIndex_mountProtoBufConfigMaps(t *testing.T) {
+	fileName1 := "mydomain.proto"
+	fileName2 := "mydomain2.proto"
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: t.Name(),
+			Name:      "my-domain-protobufs",
+			Labels:    map[string]string{infrastructure.ConfigMapProtoBufEnabledLabelKey: "true"},
+		},
+		Data: map[string]string{
+			fileName1: "This is a protobuf file",
+			fileName2: "This is another file",
+		},
+	}
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{cm}, nil, nil)
+	reconcileDataIndex := ReconcileKogitoDataIndex{
+		client: cli,
+		scheme: meta.GetRegisteredSchema(),
+	}
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: infrastructure.DefaultDataIndexName},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name: "my-container",
+						},
+					},
+				},
+			},
+		},
+	}
+	err := reconcileDataIndex.mountProtoBufConfigMaps(deployment)
+	assert.NoError(t, err)
+	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 1)
+	assert.Contains(t, deployment.Spec.Template.Spec.Volumes[0].Name, cm.Name)
+	assert.Len(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, 2)
+
+	// we need to have them ordered to be able to do the appropriate comparision.
+	sort.Slice(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, func(i, j int) bool {
+		return deployment.Spec.Template.Spec.Containers[0].VolumeMounts[i].SubPath < deployment.Spec.Template.Spec.Containers[0].VolumeMounts[j].SubPath
+	})
+	assert.Equal(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].Name, cm.Name)
+	assert.Equal(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts[1].Name, cm.Name)
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].SubPath, fileName1)
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath, fileName1)
 }

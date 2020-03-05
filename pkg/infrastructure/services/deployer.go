@@ -101,8 +101,11 @@ func (s *serviceDeployer) getServiceName() string { return s.definition.Request.
 
 func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// our services must be singleton instances
-	if reconcile, err := s.ensureSingletonService(); err != nil || reconcile {
+	if reconcile, exists, err := s.ensureSingletonService(); err != nil || reconcile {
 		return reconciliationPeriodAfterSingletonError, err
+	} else if !exists {
+		log.Debugf("Kogito Service '%s' does not exists, aborting deployment", s.definition.Request.Name)
+		return 0, err
 	}
 
 	// we get our service
@@ -179,16 +182,14 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	return
 }
 
-func (s *serviceDeployer) ensureSingletonService() (reconcile bool, err error) {
+func (s *serviceDeployer) ensureSingletonService() (reconcile bool, exists bool, err error) {
 	if err := kubernetes.ResourceC(s.client).ListWithNamespace(s.getNamespace(), s.instanceList); err != nil {
-		return true, err
+		return true, false, err
 	}
 	if s.instanceList.GetItemsCount() > 1 {
-		return true, fmt.Errorf("There's more than one Kogito Service resource in the namespace %s, please delete one of them ", s.getNamespace())
-	} else if s.instanceList.GetItemsCount() == 0 {
-		return true, nil
+		return true, true, fmt.Errorf("There's more than one Kogito Service resource in the namespace %s, please delete one of them ", s.getNamespace())
 	}
-	return false, nil
+	return false, s.instanceList.GetItemsCount() > 0, nil
 }
 
 func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *error) {
