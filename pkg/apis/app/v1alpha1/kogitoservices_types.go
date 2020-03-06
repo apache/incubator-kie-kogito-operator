@@ -120,12 +120,12 @@ type KogitoServiceSpec struct {
 	Envs []corev1.EnvVar `json:"envs,omitempty"`
 
 	// +optional
-	// Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest.
+	// Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest.
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Image Image `json:"image,omitempty"`
 
-	// Defined Resources for the Jobs Service
+	// Defined compute resource requirements for the deployed service
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"

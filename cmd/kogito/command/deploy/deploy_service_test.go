@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"strings"
 	"testing"
 
@@ -76,10 +77,10 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, kogitoApp)
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoApp.Spec.Runtime)
-	assert.Contains(t, kogitoApp.Spec.Resources.Limits, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"})
-	assert.Contains(t, kogitoApp.Spec.Resources.Requests, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "1Gi"})
-	assert.Contains(t, kogitoApp.Spec.Build.Resources.Limits, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "1"})
-	assert.Contains(t, kogitoApp.Spec.Build.Resources.Requests, v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "2Gi"})
+	assert.Equal(t, *kogitoApp.Spec.KogitoServiceSpec.Resources.Limits.Cpu(), resource.MustParse("1"))
+	assert.Equal(t, *kogitoApp.Spec.KogitoServiceSpec.Resources.Requests.Memory(), resource.MustParse("1Gi"))
+	assert.Equal(t, *kogitoApp.Spec.Build.Resources.Limits.Cpu(), resource.MustParse("1"))
+	assert.Equal(t, *kogitoApp.Spec.Build.Resources.Requests.Memory(), resource.MustParse("2Gi"))
 	assert.Equal(t, "quay.io/namespace/myimage:latest", kogitoApp.Spec.Build.ImageS2ITag)
 	assert.Equal(t, "quay.io/namespace/myimage:0.2", kogitoApp.Spec.Build.ImageRuntimeTag)
 	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAlways, kogitoApp.Spec.Infra.InstallInfinispan)

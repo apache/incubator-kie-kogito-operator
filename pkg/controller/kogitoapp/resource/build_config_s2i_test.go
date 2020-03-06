@@ -80,33 +80,21 @@ func TestNewBuildConfigS2I(t *testing.T) {
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
+				Resources: v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("500m"),
+						v1.ResourceMemory: resource.MustParse("128Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("250m"),
+						v1.ResourceMemory: resource.MustParse("64Mi"),
+					},
+				},
 				Incremental: true,
 				GitSource: v1alpha1.GitSource{
 					URI: uri,
 				},
 				Native: true,
-				Resources: v1alpha1.Resources{
-					Limits: []v1alpha1.ResourceMap{
-						{
-							Resource: v1alpha1.ResourceCPU,
-							Value:    "500m",
-						},
-						{
-							Resource: v1alpha1.ResourceMemory,
-							Value:    "128Mi",
-						},
-					},
-					Requests: []v1alpha1.ResourceMap{
-						{
-							Resource: v1alpha1.ResourceCPU,
-							Value:    "250m",
-						},
-						{
-							Resource: v1alpha1.ResourceMemory,
-							Value:    "64Mi",
-						},
-					},
-				},
 			},
 		},
 	}

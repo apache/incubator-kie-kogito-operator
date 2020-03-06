@@ -32,18 +32,106 @@ spec:
             build:
               description: 'S2I Build configuration Default value: nil'
               properties:
-                env:
+                envs:
                   description: Environment variables used during build time
                   items:
-                    description: Env Data to define environment variables in key-value
-                      pair fashion
+                    description: EnvVar represents an environment variable present
+                      in a Container.
                     properties:
                       name:
-                        description: Name of an environment variable
+                        description: Name of the environment variable. Must be a C_IDENTIFIER.
                         type: string
                       value:
-                        description: Value for that environment variable
+                        description: 'Variable references $(VAR_NAME) are expanded
+                          using the previous defined environment variables in the
+                          container and any service environment variables. If a variable
+                          cannot be resolved, the reference in the input string will
+                          be unchanged. The $(VAR_NAME) syntax can be escaped with
+                          a double $$, ie: $$(VAR_NAME). Escaped references will never
+                          be expanded, regardless of whether the variable exists or
+                          not. Defaults to "".'
                         type: string
+                      valueFrom:
+                        description: Source for the environment variable's value.
+                          Cannot be used if value is not empty.
+                        properties:
+                          configMapKeyRef:
+                            description: Selects a key of a ConfigMap.
+                            properties:
+                              key:
+                                description: The key to select.
+                                type: string
+                              name:
+                                description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  TODO: Add other useful fields. apiVersion, kind,
+                                  uid?'
+                                type: string
+                              optional:
+                                description: Specify whether the ConfigMap or its
+                                  key must be defined
+                                type: boolean
+                            required:
+                            - key
+                            type: object
+                          fieldRef:
+                            description: 'Selects a field of the pod: supports metadata.name,
+                              metadata.namespace, metadata.labels, metadata.annotations,
+                              spec.nodeName, spec.serviceAccountName, status.hostIP,
+                              status.podIP.'
+                            properties:
+                              apiVersion:
+                                description: Version of the schema the FieldPath is
+                                  written in terms of, defaults to "v1".
+                                type: string
+                              fieldPath:
+                                description: Path of the field to select in the specified
+                                  API version.
+                                type: string
+                            required:
+                            - fieldPath
+                            type: object
+                          resourceFieldRef:
+                            description: 'Selects a resource of the container: only
+                              resources limits and requests (limits.cpu, limits.memory,
+                              limits.ephemeral-storage, requests.cpu, requests.memory
+                              and requests.ephemeral-storage) are currently supported.'
+                            properties:
+                              containerName:
+                                description: 'Container name: required for volumes,
+                                  optional for env vars'
+                                type: string
+                              divisor:
+                                description: Specifies the output format of the exposed
+                                  resources, defaults to "1"
+                                type: string
+                              resource:
+                                description: 'Required: resource to select'
+                                type: string
+                            required:
+                            - resource
+                            type: object
+                          secretKeyRef:
+                            description: Selects a key of a secret in the pod's namespace
+                            properties:
+                              key:
+                                description: The key of the secret to select from.  Must
+                                  be a valid secret key.
+                                type: string
+                              name:
+                                description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                  TODO: Add other useful fields. apiVersion, kind,
+                                  uid?'
+                                type: string
+                              optional:
+                                description: Specify whether the Secret or its key
+                                  must be defined
+                                type: boolean
+                            required:
+                            - key
+                            type: object
+                        type: object
+                    required:
+                    - name
                     type: object
                   type: array
                 gitSource:
@@ -96,43 +184,19 @@ spec:
                     CPU on JVM and 4GB RAM/1 CPU for native builds.
                   properties:
                     limits:
-                      items:
-                        description: ResourceMap Data to define a list of possible
-                          Resources
-                        properties:
-                          resource:
-                            description: Resource type like CPU and memory
-                            enum:
-                            - cpu
-                            - memory
-                            type: string
-                          value:
-                            description: Value of this resource in Kubernetes format
-                            type: string
-                        required:
-                        - resource
-                        - value
-                        type: object
-                      type: array
+                      additionalProperties:
+                        type: string
+                      description: 'Limits describes the maximum amount of compute
+                        resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                      type: object
                     requests:
-                      items:
-                        description: ResourceMap Data to define a list of possible
-                          Resources
-                        properties:
-                          resource:
-                            description: Resource type like CPU and memory
-                            enum:
-                            - cpu
-                            - memory
-                            type: string
-                          value:
-                            description: Value of this resource in Kubernetes format
-                            type: string
-                        required:
-                        - resource
-                        - value
-                        type: object
-                      type: array
+                      additionalProperties:
+                        type: string
+                      description: 'Requests describes the minimum amount of compute
+                        resources required. If Requests is omitted for a container,
+                        it defaults to Limits if that is explicitly specified, otherwise
+                        to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                      type: object
                   type: object
                 webhooks:
                   description: WebHook secrets for build configs
@@ -156,21 +220,120 @@ spec:
                 metadata for Istio to setup its sidecars, enabling the mesh. Defaults
                 to false.
               type: boolean
-            env:
-              description: 'Environment variables for the runtime service Default
-                value: nil'
+            envs:
+              description: Environment variables to be added to the runtime container.
+                Keys must be a C_IDENTIFIER.
               items:
-                description: Env Data to define environment variables in key-value
-                  pair fashion
+                description: EnvVar represents an environment variable present in
+                  a Container.
                 properties:
                   name:
-                    description: Name of an environment variable
+                    description: Name of the environment variable. Must be a C_IDENTIFIER.
                     type: string
                   value:
-                    description: Value for that environment variable
+                    description: 'Variable references $(VAR_NAME) are expanded using
+                      the previous defined environment variables in the container
+                      and any service environment variables. If a variable cannot
+                      be resolved, the reference in the input string will be unchanged.
+                      The $(VAR_NAME) syntax can be escaped with a double $$, ie:
+                      $$(VAR_NAME). Escaped references will never be expanded, regardless
+                      of whether the variable exists or not. Defaults to "".'
                     type: string
+                  valueFrom:
+                    description: Source for the environment variable's value. Cannot
+                      be used if value is not empty.
+                    properties:
+                      configMapKeyRef:
+                        description: Selects a key of a ConfigMap.
+                        properties:
+                          key:
+                            description: The key to select.
+                            type: string
+                          name:
+                            description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              TODO: Add other useful fields. apiVersion, kind, uid?'
+                            type: string
+                          optional:
+                            description: Specify whether the ConfigMap or its key
+                              must be defined
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                      fieldRef:
+                        description: 'Selects a field of the pod: supports metadata.name,
+                          metadata.namespace, metadata.labels, metadata.annotations,
+                          spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP.'
+                        properties:
+                          apiVersion:
+                            description: Version of the schema the FieldPath is written
+                              in terms of, defaults to "v1".
+                            type: string
+                          fieldPath:
+                            description: Path of the field to select in the specified
+                              API version.
+                            type: string
+                        required:
+                        - fieldPath
+                        type: object
+                      resourceFieldRef:
+                        description: 'Selects a resource of the container: only resources
+                          limits and requests (limits.cpu, limits.memory, limits.ephemeral-storage,
+                          requests.cpu, requests.memory and requests.ephemeral-storage)
+                          are currently supported.'
+                        properties:
+                          containerName:
+                            description: 'Container name: required for volumes, optional
+                              for env vars'
+                            type: string
+                          divisor:
+                            description: Specifies the output format of the exposed
+                              resources, defaults to "1"
+                            type: string
+                          resource:
+                            description: 'Required: resource to select'
+                            type: string
+                        required:
+                        - resource
+                        type: object
+                      secretKeyRef:
+                        description: Selects a key of a secret in the pod's namespace
+                        properties:
+                          key:
+                            description: The key of the secret to select from.  Must
+                              be a valid secret key.
+                            type: string
+                          name:
+                            description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              TODO: Add other useful fields. apiVersion, kind, uid?'
+                            type: string
+                          optional:
+                            description: Specify whether the Secret or its key must
+                              be defined
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                    type: object
+                required:
+                - name
                 type: object
               type: array
+            image:
+              description: 'Image definition for the service. Example: Domain: quay.io,
+                Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
+                an ImageStream will be created in the current namespace pointing to
+                the given image.'
+              properties:
+                domain:
+                  type: string
+                name:
+                  type: string
+                namespace:
+                  type: string
+                tag:
+                  type: string
+              type: object
             infra:
               description: Infrastructure definition
               properties:
@@ -205,49 +368,26 @@ spec:
               description: 'Number of replicas that the service will have deployed
                 in the cluster Default value: 1'
               format: int32
-              maximum: 100
               minimum: 0
               type: integer
             resources:
-              description: 'The resources for the deployed pods, like memory and cpu
-                Default value: nil'
+              description: Defined compute resource requirements for the deployed
+                service
               properties:
                 limits:
-                  items:
-                    description: ResourceMap Data to define a list of possible Resources
-                    properties:
-                      resource:
-                        description: Resource type like CPU and memory
-                        enum:
-                        - cpu
-                        - memory
-                        type: string
-                      value:
-                        description: Value of this resource in Kubernetes format
-                        type: string
-                    required:
-                    - resource
-                    - value
-                    type: object
-                  type: array
+                  additionalProperties:
+                    type: string
+                  description: 'Limits describes the maximum amount of compute resources
+                    allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                  type: object
                 requests:
-                  items:
-                    description: ResourceMap Data to define a list of possible Resources
-                    properties:
-                      resource:
-                        description: Resource type like CPU and memory
-                        enum:
-                        - cpu
-                        - memory
-                        type: string
-                      value:
-                        description: Value of this resource in Kubernetes format
-                        type: string
-                    required:
-                    - resource
-                    - value
-                    type: object
-                  type: array
+                  additionalProperties:
+                    type: string
+                  description: 'Requests describes the minimum amount of compute resources
+                    required. If Requests is omitted for a container, it defaults
+                    to Limits if that is explicitly specified, otherwise to an implementation-defined
+                    value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                  type: object
               type: object
             runtime:
               description: 'The name of the runtime used, either Quarkus or Springboot

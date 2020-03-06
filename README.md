@@ -220,8 +220,7 @@ spec:
     native: true
     resources:
       requests:
-        - resource: memory
-          value: 4Gi
+        memory: "4Gi"
   runtime: quarkus
 ```
 
@@ -247,8 +246,7 @@ spec:
     native: true
     resources:
       limits:
-        - resource: memory
-          value: 4Gi
+        memory: "4Gi"
   runtime: quarkus
 ```
 
@@ -815,7 +813,7 @@ spec:
   infra:
     installKafka: Always
   build:
-    env:
+    envs:
     - name: MAVEN_ARGS_APPEND
       value: -pl kogito-kafka-quickstart-quarkus -am
     - name: ARTIFACT_DIR

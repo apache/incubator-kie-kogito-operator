@@ -17,15 +17,17 @@ package resource
 import (
 	"errors"
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"strconv"
 	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+
 	buildv1 "github.com/openshift/api/build/v1"
+
 	corev1 "k8s.io/api/core/v1"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -36,21 +38,6 @@ const (
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
 	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
-)
-
-var (
-	// DefaultBuildS2IJVMCPULimit is the default CPU limit for JVM s2i builds
-	DefaultBuildS2IJVMCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "2"}
-	// DefaultBuildS2IJVMMemoryLimit is the default Memory limit for JVM s2i builds
-	DefaultBuildS2IJVMMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "2Gi"}
-	// DefaultBuildS2IJVMLimits is the default resource limits for JVM s2i builds
-	DefaultBuildS2IJVMLimits = []v1alpha1.ResourceMap{DefaultBuildS2IJVMCPULimit, DefaultBuildS2IJVMMemoryLimit}
-	// DefaultBuildS2INativeCPULimit is the default CPU limit for Native s2i builds
-	DefaultBuildS2INativeCPULimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceCPU, Value: "2"}
-	// DefaultBuildS2INativeMemoryLimit is the default Memory limit for Native s2i builds
-	DefaultBuildS2INativeMemoryLimit = v1alpha1.ResourceMap{Resource: v1alpha1.ResourceMemory, Value: "10Gi"}
-	// DefaultBuildS2INativeLimits is the default resource limits for Native s2i builds
-	DefaultBuildS2INativeLimits = []v1alpha1.ResourceMap{DefaultBuildS2INativeCPULimit, DefaultBuildS2INativeMemoryLimit}
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -71,7 +58,7 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	}
 
 	buildConfig.Spec.Triggers = []buildv1.BuildTriggerPolicy{}
-	buildConfig.Spec.Resources = shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Build.Resources)
+	buildConfig.Spec.Resources = kogitoApp.Spec.Build.Resources
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", buildConfig.Name, tagLatest)}
 	setBCS2ISource(kogitoApp, &buildConfig)
 	setBCS2IStrategy(kogitoApp, &buildConfig)
@@ -92,7 +79,7 @@ func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildCon
 }
 
 func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig) {
-	envs := shared.FromEnvToEnvVar(kogitoApp.Spec.Build.Env)
+	envs := kogitoApp.Spec.Build.Envs
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
 	}

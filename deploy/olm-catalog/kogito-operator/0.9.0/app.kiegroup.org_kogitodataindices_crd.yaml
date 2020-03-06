@@ -135,7 +135,7 @@ spec:
               type: integer
             image:
               description: 'Image definition for the service. Example: Domain: quay.io,
-                Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift
+                Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
                 an ImageStream will be created in the current namespace pointing to
                 the given image.'
               properties:
@@ -229,7 +229,8 @@ spec:
               minimum: 0
               type: integer
             resources:
-              description: Defined Resources for the Jobs Service
+              description: Defined compute resource requirements for the deployed
+                service
               properties:
                 limits:
                   additionalProperties:

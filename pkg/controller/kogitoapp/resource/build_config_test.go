@@ -36,15 +36,18 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
 				// we'll try to trick the build
-				Env: []v1alpha1.Env{{Name: nativeBuildEnvVarKey, Value: "true"}},
+				Envs: []v1.EnvVar{{Name: nativeBuildEnvVarKey, Value: "true"}},
+				Resources: v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("2"),
+						v1.ResourceMemory: resource.MustParse("2Gi"),
+					},
+				},
 				GitSource: v1alpha1.GitSource{
 					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
-				Native: false,
-				Resources: v1alpha1.Resources{
-					Limits: DefaultBuildS2IJVMLimits,
-				},
+				Native:         false,
 				MavenMirrorURL: "https://localhost.nexus:8080/public",
 			},
 		},
@@ -56,8 +59,8 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 	assert.NotContains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "true"})
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: mavenMirrorURLEnvVar, Value: "https://localhost.nexus:8080/public"})
 	assert.Contains(t, bcRuntime.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType])
-	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
-	assert.Equal(t, resource.MustParse(DefaultBuildS2IJVMMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
+	assert.Equal(t, resource.MustParse("2"), *bcS2I.Spec.Resources.Limits.Cpu())
+	assert.Equal(t, resource.MustParse("2Gi"), *bcS2I.Spec.Resources.Limits.Memory())
 }
 
 func Test_BuildConfig_WithCustomImage(t *testing.T) {
@@ -100,14 +103,17 @@ func Test_buildConfigResource_New(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Build: &v1alpha1.KogitoAppBuildObject{
+				Resources: v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("2"),
+						v1.ResourceMemory: resource.MustParse("10Gi"),
+					},
+				},
 				GitSource: v1alpha1.GitSource{
 					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
-				Native: true,
-				Resources: v1alpha1.Resources{
-					Limits: DefaultBuildS2INativeLimits,
-				},
+				Native:         true,
 				MavenMirrorURL: "https://localhost.nexus:8080/public",
 			},
 		},
@@ -125,7 +131,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 	assert.Len(t, bcRuntime.Spec.Triggers, 1)
 	assert.Len(t, bcS2I.Spec.Triggers, 0)
 	assert.Equal(t, bcRuntime.Spec.Source.Images[0].From, *bcS2I.Spec.Output.To)
-	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeCPULimit.Value), *bcS2I.Spec.Resources.Limits.Cpu())
-	assert.Equal(t, resource.MustParse(DefaultBuildS2INativeMemoryLimit.Value), *bcS2I.Spec.Resources.Limits.Memory())
+	assert.Equal(t, resource.MustParse("2"), *bcS2I.Spec.Resources.Limits.Cpu())
+	assert.Equal(t, resource.MustParse("10Gi"), *bcS2I.Spec.Resources.Limits.Memory())
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: bcS2I.Spec.Resources.Limits.Memory().ToDec().AsDec().UnscaledBig().String()})
 }
