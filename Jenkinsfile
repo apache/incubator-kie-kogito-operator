@@ -18,7 +18,6 @@ pipeline {
         }
         stage('Initialize') {
             steps {
-                sh 'printenv'
                 sh 'oc login --token=\$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --server=https://api.kogito.automation.rhmw.io:6443 --insecure-skip-tls-verify'
             }
         }
