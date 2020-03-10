@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'go'}
     options {
-        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '6')
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 90, unit: 'MINUTES')
     }
     stages {
@@ -50,25 +50,15 @@ pipeline {
             steps {
                   sh """
                   cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
-                  podman tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} quay.io/kiegroup/kogito-cloud-operator-nightly:nightly-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                  podman tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} quay.io/kiegroup/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                   """
             }
         }
         stage('Running Smoke Testing') {
             steps {
                   sh """
-                  cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/ && make run-smoke-tests operator_image=quay.io/kiegroup/kogito-cloud-operator-nightly operator_tag=nightly-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=http://nexus3-kogito-tools.apps.kogito.automation.rhmw.io/repository/maven-public concurrent=3
+                  cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/ && make run-smoke-tests operator_image=quay.io/kiegroup/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=http://nexus3-kogito-tools.apps.kogito.automation.rhmw.io/repository/maven-public concurrent=3
                   """   
-            }
-        }
-        
-        stage('Push to Quay') {
-            steps {
-                withDockerRegistry([ credentialsId: "quay", url: "https://quay.io" ]) {
-                  sh """
-                  podman push quay.io/kiegroup/kogito-cloud-operator-nightly:nightly-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                  """
-                }
             }
         }
     }
