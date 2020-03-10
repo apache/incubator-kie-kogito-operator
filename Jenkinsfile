@@ -18,7 +18,7 @@ pipeline {
         }
         stage('Initialize') {
             steps {
-                sh 'oc login --token=\$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --server=https://api.kogito.automation.rhmw.io:6443 --insecure-skip-tls-verify'
+                sh 'oc login --token=\$(oc whoami -t) --server=https://api.kogito.automation.rhmw.io:6443 --insecure-skip-tls-verify'
             }
         }
         stage('Build Kogito Operator') {
