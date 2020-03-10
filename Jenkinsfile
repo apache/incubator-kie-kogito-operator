@@ -57,8 +57,7 @@ pipeline {
         stage('Running Smoke Testing') {
             steps {
                   sh """
-                  set +e
-                  cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/ && make run-smoke-tests operator_image=quay.io/kiegroup/kogito-cloud-operator-nightly operator_tag=nightly-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=http://nexus3-kogito-tools.apps.kogito.automation.rhmw.io/repository/maven-public concurrent=3 examples_ref=0.7.1 || time
+                  cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/ && make run-smoke-tests operator_image=quay.io/kiegroup/kogito-cloud-operator-nightly operator_tag=nightly-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=http://nexus3-kogito-tools.apps.kogito.automation.rhmw.io/repository/maven-public concurrent=3
                   """   
             }
         }
