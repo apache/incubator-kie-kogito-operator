@@ -49,7 +49,7 @@ pipeline {
         stage('Push Operator Image to Openshift Registry') {
             steps {
                   sh """
-                  podman login -u jenkins -p \$(oc whoami -t) --tls-verify=false  default-route-openshift-image-registry.apps.kogito.automation.rhmw.io
+                  set +x && podman login -u jenkins -p \$(oc whoami -t) --tls-verify=false  default-route-openshift-image-registry.apps.kogito.automation.rhmw.io
                   cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
                   podman tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} default-route-openshift-image-registry.apps.kogito.automation.rhmw.io/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                   podman push  --tls-verify=false docker://default-route-openshift-image-registry.apps.kogito.automation.rhmw.io/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
@@ -59,7 +59,8 @@ pipeline {
         stage('Running Smoke Testing') {
             steps {
                   sh """
-                  cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/ && make run-smoke-tests operator_image=quay.io/kiegroup/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=http://nexus3-kogito-tools.apps.kogito.automation.rhmw.io/repository/maven-public concurrent=3
+                  set +x && podman login -u jenkins -p \$(oc whoami -t) --tls-verify=false  default-route-openshift-image-registry.apps.kogito.automation.rhmw.io
+                  cd /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/ && make run-smoke-tests operator_image=default-route-openshift-image-registry.apps.kogito.automation.rhmw.io/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=http://nexus3-kogito-tools.apps.kogito.automation.rhmw.io/repository/maven-public concurrent=3
                   """   
             }
         }
