@@ -9,16 +9,16 @@ spec:
   replicas: 1
   # image to use for this deploy
   image:
-    tag: "0.7.0"
+    tag: "0.8.0"
   # httpPort: 8080
   # details about the kafka connection
   kafka:
     # let's leave this burden to KogitoInfra CR to deploy a new Kafka instance for us
-    useKogitoInfra: true
+    useKogitoInfra: false
   # details about the connected infinispan
   infinispan:
     # let's leave this burden to KogitoInfra CR to deploy a new Infinispan instance for us
-    useKogitoInfra: true
+    useKogitoInfra: false
     # name of the auth realm. "default" is the realm name for 
     #authRealm: ""
     # default to PLAIN
@@ -35,4 +35,3 @@ spec:
       #usernameKey: ""
       # password key defined in the secret
       #passwordKey: ""
-status: {}

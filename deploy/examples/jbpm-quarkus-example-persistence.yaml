@@ -11,7 +11,7 @@ spec:
     gitSource:
       contextDir: jbpm-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
-      reference: 0.7.0
-    imageVersion: 0.7.0
+      reference: 0.8.0
+    imageVersion: 0.8.0
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/

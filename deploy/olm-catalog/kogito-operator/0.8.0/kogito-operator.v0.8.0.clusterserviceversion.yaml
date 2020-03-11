@@ -28,17 +28,16 @@ metadata:
           },
           "spec": {
             "image": {
-              "tag": "0.7.0"
+              "tag": "0.8.0"
             },
             "infinispan": {
-              "useKogitoInfra": true
+              "useKogitoInfra": false
             },
             "kafka": {
-              "useKogitoInfra": true
+              "useKogitoInfra": false
             },
             "replicas": 1
-          },
-          "status": {}
+          }
         },
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",

@@ -13,9 +13,9 @@ spec:
     - name: ARTIFACT_DIR
       value: kogito-kafka-quickstart-quarkus/target
     gitSource:
-      reference: 0.7.0
+      reference: 0.8.0
       uri: https://github.com/kiegroup/kogito-quickstarts
-    imageVersion: 0.7.0
+    imageVersion: 0.8.0
     resources: {}
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
