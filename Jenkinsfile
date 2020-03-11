@@ -10,12 +10,6 @@ pipeline {
                 sh 'rm -rf /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/'
             }
         }
-        stage('Clone repository') {
-            steps {
-              sh 'mkdir -p /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/'
-              sh 'git clone https://github.com/kiegroup/kogito-cloud-operator.git /home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/'
-            }    
-        }
         stage('Initialize') {
             steps {
                 sh 'set +x && oc login --token=\$(oc whoami -t) --server=https://api.kogito.automation.rhmw.io:6443 --insecure-skip-tls-verify'
