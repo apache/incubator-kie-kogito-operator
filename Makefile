@@ -125,3 +125,7 @@ old_version = ""
 new_version = ""
 bump-version:
 	./hack/bump-version.sh $(old_version) $(new_version)
+
+.PHONY: scorecard
+scorecard:
+	./hack/scorecard.sh

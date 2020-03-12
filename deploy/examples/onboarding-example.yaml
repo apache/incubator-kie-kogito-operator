@@ -7,7 +7,7 @@ spec:
     gitSource:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/onboarding
-    imageVersion: 0.7.0
+    imageVersion: 0.8.0
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   service:
@@ -27,7 +27,7 @@ spec:
     gitSource:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/hr
-    imageVersion: 0.7.0
+    imageVersion: 0.8.0
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   service:
@@ -46,7 +46,7 @@ spec:
     gitSource:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/payroll
-    imageVersion: 0.7.0
+    imageVersion: 0.8.0
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   service:
