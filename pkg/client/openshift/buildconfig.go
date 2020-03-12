@@ -36,7 +36,7 @@ type BuildState struct {
 
 // BuildConfigInterface exposes OpenShift BuildConfig operations
 type BuildConfigInterface interface {
-	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector string) (BuildState, error)
+	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, imageName string) (BuildState, error)
 	TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (bool, error)
 	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error)
 }
@@ -54,15 +54,15 @@ type buildConfig struct {
 
 // EnsureImageBuild checks for the corresponding image for the build and retrieves the status of the builds.
 // Returns a BuildState structure describing it's results. Label selector is used to query for the right bc
-func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector string) (BuildState, error) {
+func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, imageName string) (BuildState, error) {
 	state := BuildState{
 		ImageExists: false,
 	}
-	bcNamed := types.NamespacedName{
-		Name:      bc.Name,
+	imageNamed := types.NamespacedName{
+		Name:      imageName,
 		Namespace: bc.Namespace,
 	}
-	if img, err := ImageStreamC(b.client).FetchDockerImage(bcNamed); err != nil {
+	if img, err := ImageStreamC(b.client).FetchDockerImage(imageNamed); err != nil {
 		return state, err
 	} else if img == nil {
 		log.Debugf("ImageStream not found for build %s", bc.Name)

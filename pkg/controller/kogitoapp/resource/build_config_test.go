@@ -37,8 +37,8 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 			Build: &v1alpha1.KogitoAppBuildObject{
 				// we'll try to trick the build
 				Env: []v1alpha1.Env{{Name: nativeBuildEnvVarKey, Value: "true"}},
-				GitSource: &v1alpha1.GitSource{
-					URI:        &uri,
+				GitSource: v1alpha1.GitSource{
+					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
 				Native: false,
@@ -70,8 +70,8 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
-				GitSource: &v1alpha1.GitSource{
-					URI:        &uri,
+				GitSource: v1alpha1.GitSource{
+					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
 				ImageVersion:    "latest",
@@ -100,8 +100,8 @@ func Test_buildConfigResource_New(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Build: &v1alpha1.KogitoAppBuildObject{
-				GitSource: &v1alpha1.GitSource{
-					URI:        &uri,
+				GitSource: v1alpha1.GitSource{
+					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
 				Native: true,

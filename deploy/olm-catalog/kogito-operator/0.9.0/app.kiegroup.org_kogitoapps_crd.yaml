@@ -47,8 +47,9 @@ spec:
                     type: object
                   type: array
                 gitSource:
-                  description: GitSource Git coordinates to locate the source code
-                    to build
+                  description: Information about the git repository where the Kogito
+                    App source code resides. If set, the operator will use source
+                    to image strategy build.
                   properties:
                     contextDir:
                       description: Context/subdirectory where the code is located,
@@ -149,8 +150,6 @@ spec:
                         type: string
                     type: object
                   type: array
-              required:
-              - gitSource
               type: object
             enableIstio:
               description: Annotates the pods managed by the operator with the required

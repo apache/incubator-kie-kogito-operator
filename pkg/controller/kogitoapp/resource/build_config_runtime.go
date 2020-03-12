@@ -17,9 +17,9 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 
 	v1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,36 +37,12 @@ func newBuildConfigRuntime(kogitoApp *v1alpha1.KogitoApp, fromBuild *buildv1.Bui
 		return buildConfig, err
 	}
 
-	buildType := BuildTypeRuntime
-	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoApp.Spec.Build.Native {
-		buildType = BuildTypeRuntimeJvm
-	}
-
-	// headers and base information
-	buildConfig = buildv1.BuildConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      kogitoApp.Name,
-			Namespace: kogitoApp.Namespace,
-			Labels: map[string]string{
-				LabelKeyBuildType: string(buildType),
-			},
-		},
-	}
-
-	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", kogitoApp.Name, tagLatest)}
-	setBCRuntimeSource(&buildConfig, fromBuild)
-	setBCRuntimeStrategy(kogitoApp, &buildConfig, buildType)
-	setBCRuntimeTriggers(&buildConfig, fromBuild)
-	meta.SetGroupVersionKind(&buildConfig.TypeMeta, meta.KindBuildConfig)
-	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
-	return buildConfig, err
-}
-
-func setBCRuntimeSource(buildConfig *buildv1.BuildConfig, fromBuildConfig *buildv1.BuildConfig) {
+	buildConfig = getBCRuntime(kogitoApp, kogitoApp.Name, BuildVariantSource)
+	// source is the image produced by the s2i BuildConfig
 	buildConfig.Spec.Source.Type = buildv1.BuildSourceImage
 	buildConfig.Spec.Source.Images = []buildv1.ImageSource{
 		{
-			From: *fromBuildConfig.Spec.Output.To,
+			From: *fromBuild.Spec.Output.To,
 			Paths: []buildv1.ImageSourcePath{
 				{
 					DestinationDir: destinationDir,
@@ -75,25 +51,51 @@ func setBCRuntimeSource(buildConfig *buildv1.BuildConfig, fromBuildConfig *build
 			},
 		},
 	}
-}
-
-func setBCRuntimeStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, buildType buildType) {
-	imageName := resolveImageStreamTagNameForBuilds(kogitoApp, kogitoApp.Spec.Build.ImageRuntimeTag, buildType)
-	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
-	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
-		From: corev1.ObjectReference{
-			Name:      imageName,
-			Namespace: kogitoApp.Namespace,
-			Kind:      kindImageStreamTag,
-		},
-	}
-}
-
-func setBCRuntimeTriggers(buildConfig *buildv1.BuildConfig, fromBuildConfig *buildv1.BuildConfig) {
+	// triggers once we have a change in the s2i produced image
 	buildConfig.Spec.Triggers = []buildv1.BuildTriggerPolicy{
 		{
 			Type:        buildv1.ImageChangeBuildTriggerType,
-			ImageChange: &buildv1.ImageChangeTrigger{From: fromBuildConfig.Spec.Output.To},
+			ImageChange: &buildv1.ImageChangeTrigger{From: fromBuild.Spec.Output.To},
 		},
 	}
+
+	return buildConfig, nil
+}
+
+func getBCRuntime(kogitoApp *v1alpha1.KogitoApp, bcName string, variant buildVariant) buildv1.BuildConfig {
+	buildType := BuildTypeRuntime
+	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoApp.Spec.Build.Native {
+		buildType = BuildTypeRuntimeJvm
+	}
+	buildConfig := buildv1.BuildConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bcName,
+			Namespace: kogitoApp.Namespace,
+			Labels: map[string]string{
+				LabelKeyBuildType:    string(buildType),
+				LabelKeyBuildVariant: string(variant),
+			},
+		},
+		Spec: buildv1.BuildConfigSpec{
+			CommonSpec: buildv1.CommonSpec{
+				Output: buildv1.BuildOutput{
+					To: &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", kogitoApp.Name, tagLatest)},
+				},
+				Strategy: buildv1.BuildStrategy{
+					Type: buildv1.SourceBuildStrategyType,
+					SourceStrategy: &buildv1.SourceBuildStrategy{
+						From: corev1.ObjectReference{
+							Kind:      kindImageStreamTag,
+							Namespace: kogitoApp.Namespace,
+							Name:      resolveImageStreamTagNameForBuilds(kogitoApp, kogitoApp.Spec.Build.ImageRuntimeTag, buildType),
+						},
+					},
+				},
+			},
+			RunPolicy: buildv1.BuildRunPolicySerial,
+		},
+	}
+	meta.SetGroupVersionKind(&buildConfig.TypeMeta, meta.KindBuildConfig)
+	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
+	return buildConfig
 }

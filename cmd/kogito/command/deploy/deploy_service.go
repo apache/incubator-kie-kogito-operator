@@ -17,6 +17,7 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -83,12 +84,13 @@ func (i *deployCommand) Command() *cobra.Command {
 
 func (i *deployCommand) RegisterHook() {
 	i.command = &cobra.Command{
-		Use:     "deploy-service NAME SOURCE",
+		Use:     "deploy-service NAME [SOURCE]",
 		Short:   "Deploys a new Kogito Runtime Service into the given Project",
 		Aliases: []string{"deploy"},
-		Long: `deploy-service will create a new Kogito Runtime Service from source in the Project context.
+		Long: `deploy-service will create a new Kogito Runtime Service in the Project context. 
+        If the source is provided, the build will take place on the cluster, otherwise you must upload the application binaries via "oc start-build [NAME-binary] --from-dir=target". 
 		Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
-		To know what's your context, use "kogito use-project". To set a new Project in the context use "kogito use-project NAME".
+		To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
 
 		Please note that this command requires the Kogito Operator installed in the cluster.
 		For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#kogito-operator-installation.
@@ -98,11 +100,13 @@ func (i *deployCommand) RegisterHook() {
 		PostRun: i.CommonPostRun,
 		// Args validation
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 2 {
-				return fmt.Errorf("requires 2 args, received %v", len(args))
+			if len(args) > 2 {
+				return fmt.Errorf("requires 1 arg, received %v", len(args))
 			}
-			if _, err := url.ParseRequestURI(args[1]); err != nil {
-				return fmt.Errorf("source is not a valid URL, received %s", args[1])
+			if len(args) > 1 {
+				if _, err := url.ParseRequestURI(args[1]); err != nil {
+					return fmt.Errorf("source is not a valid URL, received %s", args[1])
+				}
 			}
 			if err := util.ParseStringsForKeyPair(i.flags.buildEnv); err != nil {
 				return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", i.flags.buildEnv)
@@ -161,11 +165,14 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().BoolVar(&i.flags.enableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
 }
 
-func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
+func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
-	i.flags.source = args[1]
-	var err error
+	hasSource := false
+	if len(args) > 1 {
+		i.flags.source = args[1]
+		hasSource = true
+	}
 
 	if len(i.flags.mavenMirrorURL) > 0 {
 		if _, err := url.ParseRequestURI(i.flags.mavenMirrorURL); err != nil {
@@ -204,13 +211,8 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 			Replicas: &i.flags.Replicas,
 			Runtime:  v1alpha1.RuntimeType(i.flags.runtime),
 			Build: &v1alpha1.KogitoAppBuildObject{
-				Incremental: i.flags.incrementalBuild,
-				Env:         shared.FromStringArrayToControllerEnvs(i.flags.buildEnv),
-				GitSource: &v1alpha1.GitSource{
-					URI:        &i.flags.source,
-					ContextDir: i.flags.contextDir,
-					Reference:  i.flags.reference,
-				},
+				Incremental:     i.flags.incrementalBuild,
+				Env:             shared.FromStringArrayToControllerEnvs(i.flags.buildEnv),
 				ImageS2ITag:     i.flags.imageS2I,
 				ImageRuntimeTag: i.flags.imageRuntime,
 				ImageVersion:    i.flags.imageVersion,
@@ -237,16 +239,27 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) error {
 		},
 	}
 
+	if hasSource {
+		kogitoApp.Spec.Build.GitSource = v1alpha1.GitSource{
+			URI:        i.flags.source,
+			ContextDir: i.flags.contextDir,
+			Reference:  i.flags.reference,
+		}
+	}
+
 	log.Debugf("Trying to deploy Kogito Service '%s'", kogitoApp.Name)
 	// Create the Kogito application
 	if err := kubernetes.ResourceC(i.Client).Create(kogitoApp); err != nil {
 		return fmt.Errorf("Error while creating a new KogitoApp in the context: %v ", err)
 	}
 
-	log.Infof("KogitoApp '%s' successfully created on namespace '%s'", kogitoApp.Name, kogitoApp.Namespace)
-	// TODO: We should provide this info with a -f flag
-	log.Infof("You can see the deployment status by using 'oc describe %s %s -n %s'", "kogitoapp", i.flags.name, i.flags.Project)
-	log.Infof("Your Kogito Runtime Service should be deploying. To see its logs, run 'oc logs -f bc/%s-builder -n %s'", i.flags.name, i.flags.Project)
+	log.Infof(message.KogitoAppSuccessfullyCreated, kogitoApp.Name, kogitoApp.Namespace)
+	if hasSource {
+		log.Infof(message.KogitoAppViewDeploymentStatus, i.flags.name, i.flags.Project)
+		log.Infof(message.KogitoAppViewBuildStatus, i.flags.name, i.flags.Project)
+	} else {
+		log.Infof(message.KogitoAppUploadBinariesInstruction, i.flags.name, i.flags.Project)
+	}
 
 	return nil
 }

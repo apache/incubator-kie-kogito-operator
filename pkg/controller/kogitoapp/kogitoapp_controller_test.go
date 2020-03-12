@@ -75,8 +75,8 @@ var (
 			},
 			Build: &v1alpha1.KogitoAppBuildObject{
 				Native: false,
-				GitSource: &v1alpha1.GitSource{
-					URI:        &gitURL,
+				GitSource: v1alpha1.GitSource{
+					URI:        gitURL,
 					ContextDir: "jbpm-quarkus-example",
 				},
 			},

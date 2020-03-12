@@ -1,0 +1,10 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoApp
+metadata:
+  name: example-quarkus-flash
+spec:
+  # you only need to inform the correct image tag if you wish to build from a custom image
+  build:
+    imageVersion: 0.8.0-rc3 # will use it as a reference to create the imagestreams that the Operator uses
+    imageRuntimeTag: quay.io/ricardozanini/kogito-quarkus-jvm-ubi8:0.8.0-rc4 # custom image used by runtime/binary builds
+    # run this from your terminal on your project's root: oc start-build example-quarkus-flash-binary --from-dir=target

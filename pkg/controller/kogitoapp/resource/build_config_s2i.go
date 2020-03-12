@@ -55,7 +55,7 @@ var (
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
 func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.BuildConfig, err error) {
-	if kogitoApp.Spec.Build == nil || kogitoApp.Spec.Build.GitSource == nil {
+	if kogitoApp.Spec.IsGitURIEmpty() {
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
 
@@ -64,7 +64,8 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, BuildS2INameSuffix),
 			Namespace: kogitoApp.Namespace,
 			Labels: map[string]string{
-				LabelKeyBuildType: string(BuildTypeS2I),
+				LabelKeyBuildType:    string(BuildTypeS2I),
+				LabelKeyBuildVariant: string(BuildVariantSource),
 			},
 		},
 	}
@@ -85,7 +86,7 @@ func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildCon
 	// Remove the trailing slash, as it will be removed by openshift
 	buildConfig.Spec.Source.ContextDir = strings.TrimSuffix(kogitoApp.Spec.Build.GitSource.ContextDir, "/")
 	buildConfig.Spec.Source.Git = &buildv1.GitBuildSource{
-		URI: *kogitoApp.Spec.Build.GitSource.URI,
+		URI: kogitoApp.Spec.Build.GitSource.URI,
 		Ref: kogitoApp.Spec.Build.GitSource.Reference,
 	}
 }

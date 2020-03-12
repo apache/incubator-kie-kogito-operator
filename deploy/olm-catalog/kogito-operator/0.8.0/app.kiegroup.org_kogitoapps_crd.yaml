@@ -61,7 +61,7 @@ spec:
                       description: Git URI for the s2i source
                       type: string
                   required:
-                  - uri
+                    - uri
                   type: object
                 imageRuntimeTag:
                   description: Custom image used by the source to image process to
@@ -102,15 +102,15 @@ spec:
                           resource:
                             description: Resource type like CPU and memory
                             enum:
-                            - cpu
-                            - memory
+                              - cpu
+                              - memory
                             type: string
                           value:
                             description: Value of this resource in Kubernetes format
                             type: string
                         required:
-                        - resource
-                        - value
+                          - resource
+                          - value
                         type: object
                       type: array
                     requests:
@@ -121,15 +121,15 @@ spec:
                           resource:
                             description: Resource type like CPU and memory
                             enum:
-                            - cpu
-                            - memory
+                              - cpu
+                              - memory
                             type: string
                           value:
                             description: Value of this resource in Kubernetes format
                             type: string
                         required:
-                        - resource
-                        - value
+                          - resource
+                          - value
                         type: object
                       type: array
                   type: object
@@ -144,13 +144,13 @@ spec:
                       type:
                         description: WebHook type, either GitHub or Generic
                         enum:
-                        - GitHub
-                        - Generic
+                          - GitHub
+                          - Generic
                         type: string
                     type: object
                   type: array
               required:
-              - gitSource
+                - gitSource
               type: object
             enableIstio:
               description: Annotates the pods managed by the operator with the required
@@ -187,9 +187,9 @@ spec:
                     Default to ''Auto'', which means it installs Infinispan if the
                     service requires persistence.'
                   enum:
-                  - Always
-                  - Never
-                  - Auto
+                    - Always
+                    - Never
+                    - Auto
                   type: string
                 installKafka:
                   description: 'Set to ''Always'' to have Kafka installed automatically
@@ -198,8 +198,8 @@ spec:
                     the Kogito Service container via an environment variable named
                     "KAFKA_BOOTSTRAP_SERVERS" e.g.: kafka-kogito:9092 Default to ''Never'''
                   enum:
-                  - Always
-                  - Never
+                    - Always
+                    - Never
                   type: string
               type: object
             replicas:
@@ -220,15 +220,15 @@ spec:
                       resource:
                         description: Resource type like CPU and memory
                         enum:
-                        - cpu
-                        - memory
+                          - cpu
+                          - memory
                         type: string
                       value:
                         description: Value of this resource in Kubernetes format
                         type: string
                     required:
-                    - resource
-                    - value
+                      - resource
+                      - value
                     type: object
                   type: array
                 requests:
@@ -238,15 +238,15 @@ spec:
                       resource:
                         description: Resource type like CPU and memory
                         enum:
-                        - cpu
-                        - memory
+                          - cpu
+                          - memory
                         type: string
                       value:
                         description: Value of this resource in Kubernetes format
                         type: string
                     required:
-                    - resource
-                    - value
+                      - resource
+                      - value
                     type: object
                   type: array
               type: object
@@ -254,8 +254,8 @@ spec:
               description: 'The name of the runtime used, either Quarkus or Springboot
                 Default value: quarkus'
               enum:
-              - quarkus
-              - springboot
+                - quarkus
+                - springboot
               type: string
             service:
               description: 'Kubernetes Service configuration Default value: nil'
@@ -267,7 +267,7 @@ spec:
                   type: object
               type: object
           required:
-          - build
+            - build
           type: object
         status:
           description: KogitoAppStatus defines the observed state of KogitoApp
@@ -330,8 +330,8 @@ spec:
                     description: ConditionType is the type of condition
                     type: string
                 required:
-                - status
-                - type
+                  - status
+                  - type
                 type: object
               type: array
             deployments:
@@ -362,13 +362,13 @@ spec:
               description: External URL for the service
               type: string
           required:
-          - builds
-          - conditions
-          - deployments
+            - builds
+            - conditions
+            - deployments
           type: object
       type: object
   version: v1alpha1
   versions:
-  - name: v1alpha1
-    served: true
-    storage: true
+    - name: v1alpha1
+      served: true
+      storage: true

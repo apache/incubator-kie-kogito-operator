@@ -31,9 +31,9 @@ var log = logger.GetLogger("builder_kogitoapp")
 
 // KogitoAppResources has a reference for every resource needed to deploy the KogitoApp
 type KogitoAppResources struct {
-	KogitoAppResourcesStatus
 	BuildConfigS2I     *buildv1.BuildConfig
 	BuildConfigRuntime *buildv1.BuildConfig
+	BuildConfigBinary  *buildv1.BuildConfig
 	ImageStreamS2I     *imgv1.ImageStream
 	ImageStreamRuntime *imgv1.ImageStream
 	DeploymentConfig   *appsv1.DeploymentConfig
@@ -42,18 +42,4 @@ type KogitoAppResources struct {
 	ServiceMonitor     *monv1.ServiceMonitor
 	RuntimeImage       *dockerv10.DockerImage
 	ProtoBufCM         *corev1.ConfigMap
-}
-
-// KogitoAppResourceStatusKind defines the kind of the resource status in the cluster
-type KogitoAppResourceStatusKind struct {
-	IsNew bool
-}
-
-// KogitoAppResourcesStatus defines the resource status in the cluster
-type KogitoAppResourcesStatus struct {
-	BuildConfigS2IStatus     KogitoAppResourceStatusKind
-	BuildConfigRuntimeStatus KogitoAppResourceStatusKind
-	DeploymentConfigStatus   KogitoAppResourceStatusKind
-	RouteStatus              KogitoAppResourceStatusKind
-	ServiceStatus            KogitoAppResourceStatusKind
 }

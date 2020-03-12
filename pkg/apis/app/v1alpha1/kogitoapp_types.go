@@ -70,6 +70,25 @@ type KogitoAppSpec struct {
 	EnableIstio bool `json:"enableIstio,omitempty"`
 }
 
+// GetBuild ...
+func (k *KogitoAppSpec) GetBuild() *KogitoAppBuildObject {
+	if k == nil {
+		return nil
+	}
+	return k.Build
+}
+
+// IsGitURIEmpty checks if the provided Git URI is empty or not
+func (k *KogitoAppSpec) IsGitURIEmpty() bool {
+	if k == nil {
+		return true
+	}
+	if k.Build == nil || &k.Build.GitSource == nil {
+		return true
+	}
+	return len(k.Build.GitSource.URI) == 0
+}
+
 // Resources Data to define Resources needed for each deployed pod
 // +k8s:openapi-gen=true
 type Resources struct {
@@ -120,8 +139,11 @@ type KogitoAppBuildObject struct {
 	// +listMapKey=name
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Env Variables"
-	Env       []Env      `json:"env,omitempty"`
-	GitSource *GitSource `json:"gitSource"`
+	Env []Env `json:"env,omitempty"`
+	// Information about the git repository where the Kogito App source code resides.
+	// If set, the operator will use source to image strategy build.
+	// +optional
+	GitSource GitSource `json:"gitSource,omitempty"`
 	// WebHook secrets for build configs
 	// +listType=map
 	// +listMapKey=type
@@ -164,7 +186,7 @@ type GitSource struct {
 	// Git URI for the s2i source
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git URI"
-	URI *string `json:"uri"`
+	URI string `json:"uri"`
 	// Branch to use in the Git repository
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git Reference"
