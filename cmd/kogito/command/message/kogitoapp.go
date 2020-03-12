@@ -14,14 +14,10 @@
 
 package message
 
-// Messages for Infrastructure components
+// Messages for KogitoApp deployment
 const (
-	InfinispanSuccessfulInstalled = "Infinispan has been successfully installed in the Project %s."
-	InfinispanSuccessfulRemoved   = "Infinispan has been successfully removed from the Project %s."
-
-	KafkaSuccessfulInstalled = "Kafka has been successfully installed in the Project %s."
-	KafkaSuccessfulRemoved   = "Kafka has been successfully removed from the Project %s."
-
-	KeycloakSuccessfulInstalled = "Keycloak has been successfully installed in the Project %s."
-	KeycloakSuccessfulRemoved   = "Keycloak has been successfully removed from the Project %s."
+	KogitoAppSuccessfullyCreated       = "KogitoApp '%s' successfully created on namespace '%s'"
+	KogitoAppViewDeploymentStatus      = "You can see the deployment status by using 'oc describe kogitoapp %s -n %s'"
+	KogitoAppViewBuildStatus           = "Your Kogito Runtime Service should be deploying. To see its logs, run 'oc logs -f bc/%s-builder -n %s'"
+	KogitoAppUploadBinariesInstruction = "Your Kogito Runtime Service needs the application binaries to proceed. To upload your binaries please run 'oc start-build %s-binary --from-dir=target -n %s' from your project's root"
 )

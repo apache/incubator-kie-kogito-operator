@@ -8,7 +8,6 @@ Table of Contents
 =================
 
    * [Kogito Operator](#kogito-operator)
-   * [Table of Contents](#table-of-contents)
       * [Kogito Operator requirements](#kogito-operator-requirements)
       * [Kogito Operator installation](#kogito-operator-installation)
          * [Deploying to OpenShift 4.x](#deploying-to-openshift-4x)
@@ -18,6 +17,7 @@ Table of Contents
          * [Deploying to OpenShift 3.11](#deploying-to-openshift-311)
       * [Kogito Runtimes service deployment](#kogito-runtimes-service-deployment)
          * [Deploying a new service](#deploying-a-new-service)
+         * [Binary Builds](#binary-builds)
          * [Cleaning up a Kogito service deployment](#cleaning-up-a-kogito-service-deployment)
          * [Native X JVM builds](#native-x-jvm-builds)
          * [Troubleshooting Kogito Runtimes service deployment](#troubleshooting-kogito-runtimes-service-deployment)
@@ -42,6 +42,7 @@ Table of Contents
             * [For Linux and macOS](#for-linux-and-macos)
             * [For Windows](#for-windows)
             * [Building the Kogito CLI from source](#building-the-kogito-cli-from-source)
+            * [Kogito CLI output format and environment variables](#kogito-cli-output-format-and-environment-variables)
          * [Deploying a Kogito service from source with the Kogito CLI](#deploying-a-kogito-service-from-source-with-the-kogito-cli)
       * [Prometheus integration with the Kogito Operator](#prometheus-integration-with-the-kogito-operator)
          * [Prometheus annotations](#prometheus-annotations)
@@ -55,7 +56,7 @@ Table of Contents
       * [Kogito Operator development](#kogito-operator-development)
          * [Building the Kogito Operator](#building-the-kogito-operator)
          * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
-         * [Running BDD tests](#running-bdd-tests)
+         * [Running BDD Tests](#running-bdd-tests)
             * [Running BDD tests with current branch](#running-bdd-tests-with-current-branch)
             * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
             * [Running smoke tests](#running-smoke-tests)
@@ -138,6 +139,55 @@ Alternatively, you can use the [Kogito CLI](#kogito-cli) to deploy your services
 ```bash
 $ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example
 ```
+
+### Binary Builds
+
+Kogito Operator can configure a build for you that will pull and build your application through the source to image (s2i)
+feature (available only on OpenShift).
+
+Instead of using the cluster to build your entire application, you can upload your Kogito Service application binaries to the 
+cluster using **binary builds**. To create a new service without a specific Git URL, run the following command:
+
+```bash
+$ kogito deploy-service example-quarkus
+```
+
+Access your application directory and run the following:
+
+```bash
+$ mvn clean package
+``` 
+
+This command produces a target directory that contains all your binary files:
+
+```bash
+$ ls -l target/
+
+total 372
+drwxrwxr-x. 4 ricferna ricferna   4096 Mar 10 16:01 classes
+-rw-rw-r--. 1 ricferna ricferna  19667 Mar 10 16:01 drools-quarkus-example-8.0.0-SNAPSHOT.jar
+-rw-r--r--. 1 ricferna ricferna 311190 Mar 10 16:01 drools-quarkus-example-8.0.0-SNAPSHOT-runner.jar
+-rw-rw-r--. 1 ricferna ricferna  14168 Mar 10 16:01 drools-quarkus-example-8.0.0-SNAPSHOT-sources.jar
+drwxrwxr-x. 3 ricferna ricferna   4096 Mar 10 16:01 generated-sources
+-rw-rw-r--. 1 ricferna ricferna     24 Mar 10 16:01 image_metadata.json
+drwxrwxr-x. 2 ricferna ricferna  12288 Mar 10 16:01 lib
+drwxrwxr-x. 2 ricferna ricferna   4096 Mar 10 16:01 maven-archiver
+drwxrwxr-x. 3 ricferna ricferna   4096 Mar 10 16:01 maven-status
+```
+
+You can upload the entire directory to the cluster or you might elect only the relevant files:
+
+1. The `jar` runner and the `lib` directory for Quarkus runtime or just the uber jar if you're using Springboot
+2. The `classes/persistence` directory where resides the generated protobuf files. 
+3. The `image_metadata.json` file, which contains the information about the image that will be built by the s2i feature
+
+Use the `oc` client to upload and start the image build:
+
+```bash
+oc start-build example-quarkus-binary --from-dir=target
+``` 
+And that's it. In a couple minutes you should have your Kogito Service application up and running using the same binaries
+built locally.
 
 ### Cleaning up a Kogito service deployment
 

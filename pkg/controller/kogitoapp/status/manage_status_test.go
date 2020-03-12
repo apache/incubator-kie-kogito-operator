@@ -564,8 +564,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "tests2i",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "s2i",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 	}
@@ -575,8 +576,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "testruntime",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "runtime",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 	}
@@ -595,7 +597,7 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 
 	runtimeImage := &imgv1.ImageStreamTag{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "testruntime:latest",
+			Name:      "test:latest",
 			Namespace: "test",
 		},
 		Image: imgv1.Image{
@@ -610,8 +612,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "tests2ibuild",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "s2i",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -624,8 +627,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "testruntimebuild",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "runtime",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -638,8 +642,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "tests2ibuildfail",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "s2i",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -652,8 +657,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "testruntimebuildfail",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "runtime",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -666,8 +672,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "tests2ibuildcomplete",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "s2i",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -680,8 +687,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 			Namespace: "test",
 			Name:      "testruntimebuildcomplete",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "runtime",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -722,8 +730,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "tests2i",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "s2i",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 							},
 						},
 					},
@@ -732,8 +741,20 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "testruntime",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "runtime",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
+							},
+						},
+					},
+					BuildConfigBinary: &obuildv1.BuildConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "test",
+							Name:      "testruntime-binary",
+							Labels: map[string]string{
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantBinary),
 							},
 						},
 					},
@@ -763,8 +784,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "tests2i",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "s2i",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 							},
 						},
 					},
@@ -773,8 +795,20 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "testruntime",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "runtime",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
+							},
+						},
+					},
+					BuildConfigBinary: &obuildv1.BuildConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "test",
+							Name:      "testruntime-binary",
+							Labels: map[string]string{
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantBinary),
 							},
 						},
 					},
@@ -809,8 +843,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "tests2i",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "s2i",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 							},
 						},
 					},
@@ -819,8 +854,20 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "testruntime",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "runtime",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
+							},
+						},
+					},
+					BuildConfigBinary: &obuildv1.BuildConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "test",
+							Name:      "testruntime-binary",
+							Labels: map[string]string{
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantBinary),
 							},
 						},
 					},
@@ -850,8 +897,9 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "tests2i",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "s2i",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 							},
 						},
 					},
@@ -860,8 +908,20 @@ func Test_statusUpdateForImageBuild(t *testing.T) {
 							Namespace: "test",
 							Name:      "testruntime",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "runtime",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
+							},
+						},
+					},
+					BuildConfigBinary: &obuildv1.BuildConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "test",
+							Name:      "testruntime-binary",
+							Labels: map[string]string{
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantBinary),
 							},
 						},
 					},
@@ -912,8 +972,9 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 			Namespace: "test",
 			Name:      "tests2i",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "s2i",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 	}
@@ -923,8 +984,9 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 			Namespace: "test",
 			Name:      "testruntime",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "runtime",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 	}
@@ -943,7 +1005,7 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 
 	runtimeImage := &imgv1.ImageStreamTag{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "testruntime:latest",
+			Name:      "test:latest",
 			Namespace: "test",
 		},
 		Image: imgv1.Image{
@@ -958,8 +1020,9 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 			Namespace: "test",
 			Name:      "tests2ibuild",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "s2i",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -972,8 +1035,9 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 			Namespace: "test",
 			Name:      "testruntimebuild",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "runtime",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -986,8 +1050,9 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 			Namespace: "test",
 			Name:      "tests2ibuildfail",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "s2i",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -1000,8 +1065,9 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 			Namespace: "test",
 			Name:      "testruntimebuildfail",
 			Labels: map[string]string{
-				"app":       "test",
-				"buildtype": "runtime",
+				"app":                         "test",
+				resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+				resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 			},
 		},
 		Status: obuildv1.BuildStatus{
@@ -1038,8 +1104,9 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 							Namespace: "test",
 							Name:      "tests2i",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "s2i",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 							},
 						},
 					},
@@ -1048,8 +1115,20 @@ func Test_ensureApplicationImageExists(t *testing.T) {
 							Namespace: "test",
 							Name:      "testruntime",
 							Labels: map[string]string{
-								"app":       "test",
-								"buildtype": "runtime",
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
+							},
+						},
+					},
+					BuildConfigBinary: &obuildv1.BuildConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Namespace: "test",
+							Name:      "testruntime-binary",
+							Labels: map[string]string{
+								"app":                         "test",
+								resource.LabelKeyBuildType:    string(resource.BuildTypeRuntime),
+								resource.LabelKeyBuildVariant: string(resource.BuildVariantBinary),
 							},
 						},
 					},
@@ -1217,13 +1296,14 @@ func Test_getBCLabelsAsUniqueSelectors(t *testing.T) {
 				&obuildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":       "test",
-							"buildtype": "s2i",
+							"app":                         "test",
+							resource.LabelKeyBuildType:    string(resource.BuildTypeS2I),
+							resource.LabelKeyBuildVariant: string(resource.BuildVariantSource),
 						},
 					},
 				},
 			},
-			"app=test,buildtype=s2i",
+			fmt.Sprintf("app=test,%s=%s,%s=%s", resource.LabelKeyBuildType, resource.BuildTypeS2I, resource.LabelKeyBuildVariant, resource.BuildVariantSource),
 		},
 	}
 	for _, tt := range tests {

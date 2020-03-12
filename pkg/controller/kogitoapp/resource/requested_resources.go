@@ -28,6 +28,8 @@ type builderChain struct {
 	Error     error
 }
 
+// TODO: get rid of this once we have https://issues.redhat.com/browse/KOGITO-952
+
 func (c *builderChain) andBuild(f func(*builderChain) *builderChain) *builderChain {
 	if c.Error == nil {
 		return f(c)
@@ -46,6 +48,7 @@ func GetRequestedResources(kogitoApp *v1alpha1.KogitoApp, client *client.Client)
 	chain.
 		andBuild(buildConfigS2IBuilder).
 		andBuild(buildConfigRuntimeBuilder).
+		andBuild(buildConfigRuntimeBinaryBuilder).
 		andBuild(protoBufConfigMap).
 		andBuild(imageStreamBuilder).
 		andBuild(runtimeImageGetter).
@@ -57,29 +60,36 @@ func GetRequestedResources(kogitoApp *v1alpha1.KogitoApp, client *client.Client)
 }
 
 func buildConfigS2IBuilder(chain *builderChain) *builderChain {
-	bc, err := newBuildConfigS2I(chain.KogitoApp)
-	if err != nil {
-		chain.Error = err
-		return chain
+	if !chain.KogitoApp.Spec.IsGitURIEmpty() {
+		bc, err := newBuildConfigS2I(chain.KogitoApp)
+		if err != nil {
+			chain.Error = err
+			return chain
+		}
+
+		chain.Resources.BuildConfigS2I = &bc
 	}
-
-	chain.Resources.BuildConfigS2I = &bc
-
 	return chain
 }
 
 func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
-	bc, err := newBuildConfigRuntime(
-		chain.KogitoApp,
-		chain.Resources.BuildConfigS2I,
-	)
-	if err != nil {
-		chain.Error = err
-		return chain
+	if !chain.KogitoApp.Spec.IsGitURIEmpty() {
+		bc, err := newBuildConfigRuntime(
+			chain.KogitoApp,
+			chain.Resources.BuildConfigS2I,
+		)
+		if err != nil {
+			chain.Error = err
+			return chain
+		}
+		chain.Resources.BuildConfigRuntime = &bc
 	}
+	return chain
+}
 
-	chain.Resources.BuildConfigRuntime = &bc
-
+func buildConfigRuntimeBinaryBuilder(chain *builderChain) *builderChain {
+	bc := newBuildConfigRuntimeBinary(chain.KogitoApp)
+	chain.Resources.BuildConfigBinary = &bc
 	return chain
 }
 
@@ -90,10 +100,12 @@ func protoBufConfigMap(chain *builderChain) *builderChain {
 }
 
 func imageStreamBuilder(chain *builderChain) *builderChain {
-	isS2I := newImageStream(chain.KogitoApp, chain.Resources.BuildConfigS2I.Name)
-	chain.Resources.ImageStreamS2I = isS2I
+	if chain.Resources.BuildConfigS2I != nil {
+		isS2I := newImageStream(chain.KogitoApp, chain.Resources.BuildConfigS2I.Name)
+		chain.Resources.ImageStreamS2I = isS2I
+	}
 
-	isRuntime := newImageStream(chain.KogitoApp, chain.Resources.BuildConfigRuntime.Name)
+	isRuntime := newImageStream(chain.KogitoApp, chain.KogitoApp.Name)
 	chain.Resources.ImageStreamRuntime = isRuntime
 
 	return chain
@@ -101,11 +113,10 @@ func imageStreamBuilder(chain *builderChain) *builderChain {
 
 func deploymentConfigBuilder(chain *builderChain) *builderChain {
 	chain.Resources.DeploymentConfig = nil
-
 	if chain.Resources.RuntimeImage != nil {
 		dc, err := newDeploymentConfig(
 			chain.KogitoApp,
-			chain.Resources.BuildConfigRuntime,
+			chain.Resources.BuildConfigBinary,
 			chain.Resources.RuntimeImage,
 		)
 		if err != nil {
@@ -158,18 +169,18 @@ func serviceMonitorBuilder(chain *builderChain) *builderChain {
 }
 
 func runtimeImageGetter(chain *builderChain) *builderChain {
-	bcNamespacedName := types.NamespacedName{
-		Namespace: chain.Resources.BuildConfigRuntime.Namespace,
-		Name:      chain.Resources.BuildConfigRuntime.Name,
+	imageStreamName := types.NamespacedName{
+		Namespace: chain.KogitoApp.Namespace,
+		Name:      chain.KogitoApp.Name,
 	}
 	chain.Resources.DeploymentConfig = nil
 
-	if dockerImage, err := openshift.ImageStreamC(chain.Client).FetchDockerImage(bcNamespacedName); err != nil {
+	if dockerImage, err := openshift.ImageStreamC(chain.Client).FetchDockerImage(imageStreamName); err != nil {
 		chain.Error = err
 	} else if dockerImage != nil {
 		chain.Resources.RuntimeImage = dockerImage
 	} else {
-		log.Warnf("Couldn't find an image with name '%s' in the namespace '%s'. The DeploymentConfig will be created once the build is done.", bcNamespacedName.Name, bcNamespacedName.Namespace)
+		log.Warnf("Couldn't find an image with name '%s' in the namespace '%s'. The DeploymentConfig will be created once the build is done.", imageStreamName.Name, imageStreamName.Namespace)
 	}
 
 	return chain

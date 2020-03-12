@@ -23,6 +23,7 @@ import (
 
 // buildType which build can we perform? Supported are s2i and service
 type buildType string
+type buildVariant string
 
 const (
 	// BuildTypeS2I source to image build type will take a source code and transform it into an executable service
@@ -33,6 +34,12 @@ const (
 	BuildTypeRuntimeJvm buildType = "runtime-jvm"
 	// LabelKeyBuildType is the label key to identify the build type
 	LabelKeyBuildType = "buildtype"
+	// BuildVariantSource ...
+	BuildVariantSource buildVariant = "source"
+	// BuildVariantBinary ...
+	BuildVariantBinary buildVariant = "binary"
+	// LabelKeyBuildVariant describes the build variant
+	LabelKeyBuildVariant = "buildvariant"
 )
 
 const (

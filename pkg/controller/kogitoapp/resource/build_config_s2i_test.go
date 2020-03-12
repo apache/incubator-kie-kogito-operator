@@ -81,8 +81,8 @@ func TestNewBuildConfigS2I(t *testing.T) {
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
 				Incremental: true,
-				GitSource: &v1alpha1.GitSource{
-					URI: &uri,
+				GitSource: v1alpha1.GitSource{
+					URI: uri,
 				},
 				Native: true,
 				Resources: v1alpha1.Resources{

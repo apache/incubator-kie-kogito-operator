@@ -46,8 +46,8 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Build: &v1alpha1.KogitoAppBuildObject{
-				GitSource: &v1alpha1.GitSource{
-					URI:        &uri,
+				GitSource: v1alpha1.GitSource{
+					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
 			},
@@ -92,8 +92,8 @@ func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Build: &v1alpha1.KogitoAppBuildObject{
-				GitSource: &v1alpha1.GitSource{
-					URI:        &uri,
+				GitSource: v1alpha1.GitSource{
+					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
 			},
@@ -121,7 +121,8 @@ func Test_SetInfinispanEnvVars_QuarkusRuntime(t *testing.T) {
 
 	objs := []runtime.Object{service, secret}
 	fakeClient := test.CreateFakeClient(objs, nil, []runtime.Object{})
-	SetInfinispanEnvVars(fakeClient, kogitoInfra, kogitoApp, dc)
+	err := SetInfinispanEnvVars(fakeClient, kogitoInfra, kogitoApp, dc)
+	assert.NoError(t, err)
 
 	container := dc.Spec.Template.Spec.Containers[0]
 	assert.Equal(t, 5, len(container.Env))
@@ -136,7 +137,7 @@ func Test_IstioEnabled(t *testing.T) {
 	uri := "https://github.com/kiegroup/kogito-examples"
 	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
 	kogitoApp.Spec.EnableIstio = true
-	kogitoApp.Spec.Build.GitSource = &v1alpha1.GitSource{URI: &uri}
+	kogitoApp.Spec.Build.GitSource = v1alpha1.GitSource{URI: uri}
 	dockerImage := &dockerv10.DockerImage{
 		Config: &dockerv10.DockerConfig{
 			Labels: map[string]string{
@@ -177,7 +178,8 @@ func Test_SetInfinispanEnvVars_SpringBootRuntime(t *testing.T) {
 
 	objs := []runtime.Object{service, secret}
 	fakeClient := test.CreateFakeClient(objs, nil, []runtime.Object{})
-	SetInfinispanEnvVars(fakeClient, kogitoInfra, kogitoApp, dc)
+	err := SetInfinispanEnvVars(fakeClient, kogitoInfra, kogitoApp, dc)
+	assert.NoError(t, err)
 
 	container := dc.Spec.Template.Spec.Containers[0]
 	assert.Equal(t, 5, len(container.Env))

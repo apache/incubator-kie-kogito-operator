@@ -36,8 +36,8 @@ func Test_serviceResource_NewWithAndWithoutDockerImg(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Build: &v1alpha1.KogitoAppBuildObject{
-				GitSource: &v1alpha1.GitSource{
-					URI:        &uri,
+				GitSource: v1alpha1.GitSource{
+					URI:        uri,
 					ContextDir: "jbpm-quarkus-example",
 				},
 			},

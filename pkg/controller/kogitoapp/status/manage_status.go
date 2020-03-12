@@ -262,21 +262,39 @@ func statusUpdateForImageBuild(instance *v1alpha1.KogitoApp, resources *resource
 func ensureApplicationImageExists(instance *v1alpha1.KogitoApp, resources *resource.KogitoAppResources, client *client.Client) (
 	exists bool, running bool, updated bool, runtimeFailed bool, s2iFailed bool, err error) {
 
-	runtimeState, err :=
-		openshift.BuildConfigC(client).EnsureImageBuild(
-			resources.BuildConfigRuntime,
-			getBCLabelsAsUniqueSelectors(resources.BuildConfigRuntime))
-	if err != nil {
-		return false, false, false, false, false, err
+	var runtimeState openshift.BuildState
+
+	if resources.BuildConfigRuntime != nil {
+		runtimeState, err =
+			openshift.BuildConfigC(client).EnsureImageBuild(
+				resources.BuildConfigRuntime,
+				getBCLabelsAsUniqueSelectors(resources.BuildConfigRuntime),
+				instance.Name)
+		if err != nil {
+			return false, false, false, false, false, err
+		}
+	} else {
+		runtimeState, err =
+			openshift.BuildConfigC(client).EnsureImageBuild(
+				resources.BuildConfigBinary,
+				getBCLabelsAsUniqueSelectors(resources.BuildConfigBinary),
+				instance.Name)
+		if err != nil {
+			return false, false, false, false, false, err
+		}
 	}
 
 	// verify service build and image
 	if runtimeState.ImageExists {
 		log.Debugf("Final application image exists there's no need to trigger any build")
 	} else {
+		buildName := resources.BuildConfigBinary.Name
+		if resources.BuildConfigRuntime != nil {
+			buildName = resources.BuildConfigRuntime.Name
+		}
 		log.Warnf("Image not found for %s. The image could being built. Check with 'oc get is/%s -n %s'",
-			resources.BuildConfigRuntime.Name,
-			resources.BuildConfigRuntime.Name,
+			buildName,
+			buildName,
 			instance.Namespace)
 	}
 
@@ -291,44 +309,47 @@ func ensureApplicationImageExists(instance *v1alpha1.KogitoApp, resources *resou
 		log.Infof("Image for '%s' is being pushed to the registry", instance.Name)
 	}
 
-	// verify s2i build and image
-	s2iState, err :=
-		openshift.BuildConfigC(client).EnsureImageBuild(
-			resources.BuildConfigS2I,
-			getBCLabelsAsUniqueSelectors(resources.BuildConfigS2I))
-	if err != nil {
-		return false, runtimeRunning, runtimeUpdated, runtimeError, false, err
+	if resources.BuildConfigS2I != nil {
+		// verify s2i build and image
+		s2iState, err :=
+			openshift.BuildConfigC(client).EnsureImageBuild(
+				resources.BuildConfigS2I,
+				getBCLabelsAsUniqueSelectors(resources.BuildConfigS2I),
+				resources.BuildConfigS2I.Name)
+		if err != nil {
+			return false, runtimeRunning, runtimeUpdated, runtimeError, false, err
+		}
+
+		var s2iUpdated, s2iRunning, s2iError bool
+		if s2iState.Builds == nil {
+			s2iRunning = true
+		} else {
+			s2iUpdated, s2iRunning, s2iError = checkBuildsStatus(s2iState.Builds, &instance.Status.Builds)
+		}
+
+		if s2iRunning {
+			// build is running, nothing to do
+			log.Infof("Application '%s' build is still running. Won't trigger a new build.", instance.Name)
+		} else if !s2iState.ImageExists && !s2iRunning {
+			log.Warnf("There's no image nor build for '%s' running", resources.BuildConfigS2I.Name)
+		}
+
+		if runtimeState.ImageExists && !runtimeRunning && s2iState.ImageExists && !s2iRunning {
+			log.Debugf("There are images for both builds, nothing to do")
+		}
+		if runtimeUpdated || s2iUpdated {
+			instance.Status.Builds.New = append(runtimeState.Builds.New, s2iState.Builds.New...)
+			instance.Status.Builds.Pending = append(runtimeState.Builds.Pending, s2iState.Builds.Pending...)
+			instance.Status.Builds.Running = append(runtimeState.Builds.Running, s2iState.Builds.Running...)
+			instance.Status.Builds.Error = append(runtimeState.Builds.Error, s2iState.Builds.Error...)
+			instance.Status.Builds.Failed = append(runtimeState.Builds.Failed, s2iState.Builds.Failed...)
+			instance.Status.Builds.Cancelled = append(runtimeState.Builds.Cancelled, s2iState.Builds.Cancelled...)
+			instance.Status.Builds.Complete = append(runtimeState.Builds.Complete, s2iState.Builds.Complete...)
+		}
+		return runtimeState.ImageExists && s2iState.ImageExists, runtimeRunning || s2iRunning, runtimeUpdated || s2iUpdated, runtimeError, s2iError, nil
 	}
 
-	var s2iUpdated, s2iRunning, s2iError bool
-	if s2iState.Builds == nil {
-		s2iRunning = true
-	} else {
-		s2iUpdated, s2iRunning, s2iError = checkBuildsStatus(s2iState.Builds, &instance.Status.Builds)
-	}
-
-	if s2iRunning {
-		// build is running, nothing to do
-		log.Infof("Application '%s' build is still running. Won't trigger a new build.", instance.Name)
-	} else if !s2iState.ImageExists && !s2iRunning {
-		log.Warnf("There's no image nor build for '%s' running", resources.BuildConfigS2I.Name)
-	}
-
-	if runtimeState.ImageExists && !runtimeRunning && s2iState.ImageExists && !s2iRunning {
-		log.Debugf("There are images for both builds, nothing to do")
-	}
-
-	if runtimeUpdated || s2iUpdated {
-		instance.Status.Builds.New = append(runtimeState.Builds.New, s2iState.Builds.New...)
-		instance.Status.Builds.Pending = append(runtimeState.Builds.Pending, s2iState.Builds.Pending...)
-		instance.Status.Builds.Running = append(runtimeState.Builds.Running, s2iState.Builds.Running...)
-		instance.Status.Builds.Error = append(runtimeState.Builds.Error, s2iState.Builds.Error...)
-		instance.Status.Builds.Failed = append(runtimeState.Builds.Failed, s2iState.Builds.Failed...)
-		instance.Status.Builds.Cancelled = append(runtimeState.Builds.Cancelled, s2iState.Builds.Cancelled...)
-		instance.Status.Builds.Complete = append(runtimeState.Builds.Complete, s2iState.Builds.Complete...)
-	}
-
-	return runtimeState.ImageExists && s2iState.ImageExists, runtimeRunning || s2iRunning, runtimeUpdated || s2iUpdated, runtimeError, s2iError, nil
+	return runtimeState.ImageExists, runtimeRunning, runtimeUpdated, runtimeError, false, nil
 }
 
 func checkBuildsStatus(state *v1alpha1.Builds, lastState *v1alpha1.Builds) (updated bool, running bool, newFailed bool) {
@@ -354,11 +375,13 @@ func checkBuildsStatus(state *v1alpha1.Builds, lastState *v1alpha1.Builds) (upda
 }
 
 func getBCLabelsAsUniqueSelectors(bc *obuildv1.BuildConfig) string {
-	return fmt.Sprintf("%s=%s,%s=%s",
+	return fmt.Sprintf("%s=%s,%s=%s,%s=%s",
 		resource.LabelKeyAppName,
 		bc.Labels[resource.LabelKeyAppName],
 		resource.LabelKeyBuildType,
 		bc.Labels[resource.LabelKeyBuildType],
+		resource.LabelKeyBuildVariant,
+		bc.Labels[resource.LabelKeyBuildVariant],
 	)
 }
 

@@ -527,7 +527,8 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					},
 					"gitSource": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource"),
+							Description: "Information about the git repository where the Kogito App source code resides. If set, the operator will use source to image strategy build.",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource"),
 						},
 					},
 					"webhooks": {
@@ -591,7 +592,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 						},
 					},
 				},
-				Required: []string{"gitSource"},
 			},
 		},
 		Dependencies: []string{

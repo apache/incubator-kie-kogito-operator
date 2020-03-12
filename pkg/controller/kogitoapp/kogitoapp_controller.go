@@ -298,9 +298,11 @@ func (r *ReconcileKogitoApp) triggerBuilds(instance *v1alpha1.KogitoApp, bcs ...
 		}
 	} else {
 		for _, bc := range bcs {
-			log.Infof("Buildconfigs are created, triggering build %s", bc.GetName())
-			if _, err := openshift.BuildConfigC(r.client).TriggerBuild(bc, instance.Name); err != nil {
-				return err
+			if bc.Labels[kogitores.LabelKeyBuildVariant] == string(kogitores.BuildVariantSource) {
+				log.Infof("Buildconfigs are created, triggering build %s", bc.GetName())
+				if _, err := openshift.BuildConfigC(r.client).TriggerBuild(bc, instance.Name); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -492,6 +494,9 @@ func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.
 	}
 	if kogitoRes.BuildConfigRuntime != nil {
 		k8sRes = append(k8sRes, kogitoRes.BuildConfigRuntime)
+	}
+	if kogitoRes.BuildConfigBinary != nil {
+		k8sRes = append(k8sRes, kogitoRes.BuildConfigBinary)
 	}
 	if kogitoRes.ImageStreamS2I != nil {
 		k8sRes = append(k8sRes, kogitoRes.ImageStreamS2I)

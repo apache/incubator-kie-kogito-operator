@@ -29,7 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Test_DeployCmd_OperatorAutoInstal(t *testing.T) {
+func Test_DeployCmd_OperatorAutoInstall(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project %s", ns)
 	test.SetupCliTest(cli,
@@ -142,6 +142,31 @@ func Test_DeployCmd_CustomDeploymentWithMavenMirrorURL(t *testing.T) {
 func Test_DeployCmd_WithInvalidMavenMirrorURL(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --project %s --maven-mirror-url invalid-url", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	_, _, err := test.ExecuteCli()
+	assert.Error(t, err)
+}
+
+func Test_DeployCmd_WithoutGitURL(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("deploy-service example-drools -p %s", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "example-drools")
+	assert.Contains(t, lines, "-binary")
+	assert.NotContains(t, lines, "deploying")
+}
+
+func Test_DeployCmd_WrongGitURL(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("deploy-service example-drools invalid url -p %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},

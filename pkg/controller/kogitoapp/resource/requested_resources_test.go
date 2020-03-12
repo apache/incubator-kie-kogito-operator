@@ -41,8 +41,8 @@ func createKogitoApp() *v1alpha1.KogitoApp {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			Build: &v1alpha1.KogitoAppBuildObject{
-				GitSource: &v1alpha1.GitSource{
-					URI: &uri,
+				GitSource: v1alpha1.GitSource{
+					URI: uri,
 				},
 			},
 		},
@@ -111,4 +111,25 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 
 	assert.Len(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports, 1)
 	assert.Equal(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, int32(8080))
+}
+
+func Test_buildConfigS2IBuilder(t *testing.T) {
+	blankBuildSpec := &builderChain{
+		KogitoApp: &v1alpha1.KogitoApp{ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: t.Name()}},
+		Resources: &KogitoAppResources{},
+	}
+	gitURLGiven := &builderChain{
+		KogitoApp: &v1alpha1.KogitoApp{
+			ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: t.Name()},
+			Spec:       v1alpha1.KogitoAppSpec{Build: &v1alpha1.KogitoAppBuildObject{GitSource: v1alpha1.GitSource{URI: "http://anything.com"}}}},
+		Resources: &KogitoAppResources{},
+	}
+
+	chain := buildConfigS2IBuilder(blankBuildSpec)
+	assert.NotNil(t, chain)
+	assert.Nil(t, chain.Resources.BuildConfigS2I)
+
+	chain = buildConfigS2IBuilder(gitURLGiven)
+	assert.NotNil(t, chain)
+	assert.NotNil(t, chain.Resources.BuildConfigS2I)
 }
