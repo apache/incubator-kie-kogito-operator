@@ -972,6 +972,7 @@ You can set those optional keys:
 - `local` to be set to true if running tests in local.  
   *Default is false.*
 - `ci` to be set if running tests with CI. Give CI name. 
+- `cr_deployment_only` to be set if you don't have a CLI built. Default will deploy applications via the CLI.
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
 - `operator_tag` is the Operator image tag.  
