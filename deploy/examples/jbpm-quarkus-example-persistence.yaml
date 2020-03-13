@@ -4,7 +4,7 @@ metadata:
   name: example-quarkus
 spec:
   build:
-    env:
+    envs:
      # enable persistence
       - name: MAVEN_ARGS_APPEND
         value: "-Ppersistence"

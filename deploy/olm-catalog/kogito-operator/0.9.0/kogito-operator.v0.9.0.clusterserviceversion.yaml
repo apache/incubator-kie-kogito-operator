@@ -109,7 +109,7 @@ spec:
       specDescriptors:
       - description: Environment variables used during build time
         displayName: Build Env Variables
-        path: build.env
+        path: build.envs
       - description: Context/subdirectory where the code is located, relative to the
           repo root
         displayName: Git Context
@@ -131,6 +131,12 @@ spec:
         path: build.native
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Resources for build pods. Default limits are 1GB RAM/0.5 CPU
+          on JVM and 4GB RAM/1 CPU for native builds.
+        displayName: Resources
+        path: build.resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
       - description: Annotates the pods managed by the operator with the required
           metadata for Istio to setup its sidecars, enabling the mesh. Defaults to
           false.
@@ -138,14 +144,27 @@ spec:
         path: enableIstio
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: 'Environment variables for the runtime service Default value:
-          nil'
-        displayName: Environment Variables
-        path: env
+      - description: Environment variables to be added to the runtime container. Keys
+          must be a C_IDENTIFIER.
+        displayName: Envs
+        path: envs
+      - description: 'Image definition for the service. Example: Domain: quay.io,
+          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
+          ImageStream will be created in the current namespace pointing to the given
+          image.'
+        displayName: Image
+        path: image
       - description: 'Number of replicas that the service will have deployed in the
           cluster Default value: 1'
         displayName: Replicas
         path: replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+      - description: Defined compute resource requirements for the deployed service
+        displayName: Resources
+        path: resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
       - description: 'The name of the runtime used, either Quarkus or Springboot Default
           value: quarkus'
         displayName: Runtime
@@ -198,9 +217,9 @@ spec:
         displayName: Envs
         path: envs
       - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift
-          an ImageStream will be created in the current namespace pointing to the
-          given image.'
+          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
+          ImageStream will be created in the current namespace pointing to the given
+          image.'
         displayName: Image
         path: image
       - description: 'Number of replicas that the service will have deployed in the
@@ -209,7 +228,7 @@ spec:
         path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: Defined Resources for the Jobs Service
+      - description: Defined compute resource requirements for the deployed service
         displayName: Resources
         path: resources
         x-descriptors:
@@ -306,9 +325,9 @@ spec:
         displayName: Envs
         path: envs
       - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift
-          an ImageStream will be created in the current namespace pointing to the
-          given image.'
+          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
+          ImageStream will be created in the current namespace pointing to the given
+          image.'
         displayName: Image
         path: image
       - description: 'Maximum interval in milliseconds when retrying to execute jobs,
@@ -321,7 +340,7 @@ spec:
         path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: Defined Resources for the Jobs Service
+      - description: Defined compute resource requirements for the deployed service
         displayName: Resources
         path: resources
         x-descriptors:

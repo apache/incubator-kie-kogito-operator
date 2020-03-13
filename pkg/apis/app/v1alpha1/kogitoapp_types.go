@@ -15,6 +15,7 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -24,6 +25,8 @@ const KogitoAppCRDName = "kogitoapps.app.kiegroup.org"
 // KogitoAppSpec defines the desired state of KogitoApp
 // +k8s:openapi-gen=true
 type KogitoAppSpec struct {
+	KogitoServiceSpec `json:",inline"`
+
 	// The name of the runtime used, either Quarkus or Springboot
 	// Default value: quarkus
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
@@ -31,26 +34,6 @@ type KogitoAppSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime RuntimeType `json:"runtime,omitempty"`
-
-	// Number of replicas that the service will have deployed in the cluster
-	// Default value: 1
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
-	// +kubebuilder:validation:Minimum=0
-	// +kubebuilder:validation:Maximum=100
-	Replicas *int32 `json:"replicas,omitempty"`
-
-	// Environment variables for the runtime service
-	// Default value: nil
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Environment Variables"
-	// +listType=map
-	// +listMapKey=name
-	Env []Env `json:"env,omitempty"`
-
-	// The resources for the deployed pods, like memory and cpu
-	// Default value: nil
-	Resources Resources `json:"resources,omitempty"`
 
 	// S2I Build configuration
 	// Default value: nil
@@ -89,57 +72,16 @@ func (k *KogitoAppSpec) IsGitURIEmpty() bool {
 	return len(k.Build.GitSource.URI) == 0
 }
 
-// Resources Data to define Resources needed for each deployed pod
-// +k8s:openapi-gen=true
-type Resources struct {
-	// +listType=map
-	// +listMapKey=resource
-	Limits []ResourceMap `json:"limits,omitempty"`
-	// +listType=map
-	// +listMapKey=resource
-	Requests []ResourceMap `json:"requests,omitempty"`
-}
-
-// ResourceKind is the Resource Type accepted for resources
-type ResourceKind string
-
-const (
-	// ResourceCPU is the CPU resource
-	ResourceCPU ResourceKind = "cpu"
-	// ResourceMemory is the Memory resource
-	ResourceMemory ResourceKind = "memory"
-)
-
-// ResourceMap Data to define a list of possible Resources
-// +k8s:openapi-gen=true
-type ResourceMap struct {
-	// Resource type like CPU and memory
-	// +kubebuilder:validation:Enum=cpu;memory
-	Resource ResourceKind `json:"resource"`
-	// Value of this resource in Kubernetes format
-	Value string `json:"value"`
-}
-
-// Env Data to define environment variables in key-value pair fashion
-// +k8s:openapi-gen=true
-type Env struct {
-	// Name of an environment variable
-	Name string `json:"name,omitempty"`
-	// Value for that environment variable
-	Value string `json:"value,omitempty"`
-}
-
 // KogitoAppBuildObject Data to define how to build an application from source
 // +k8s:openapi-gen=true
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Service Build"
 type KogitoAppBuildObject struct {
 	Incremental bool `json:"incremental,omitempty"`
 	// Environment variables used during build time
-	// +listType=map
-	// +listMapKey=name
+	// +listType=atomic
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Env Variables"
-	Env []Env `json:"env,omitempty"`
+	Envs []corev1.EnvVar `json:"envs,omitempty"`
 	// Information about the git repository where the Kogito App source code resides.
 	// If set, the operator will use source to image strategy build.
 	// +optional
@@ -167,7 +109,9 @@ type KogitoAppBuildObject struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	Native bool `json:"native,omitempty"`
 	// Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.
-	Resources Resources `json:"resources,omitempty"`
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed
 	MavenMirrorURL string `json:"mavenMirrorURL,omitempty"`
 }

@@ -29,7 +29,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Builds":                         schema_pkg_apis_app_v1alpha1_Builds(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition":                      schema_pkg_apis_app_v1alpha1_Condition(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments":                    schema_pkg_apis_app_v1alpha1_Deployments(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env":                            schema_pkg_apis_app_v1alpha1_Env(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource":                      schema_pkg_apis_app_v1alpha1_GitSource(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties": schema_pkg_apis_app_v1alpha1_InfinispanConnectionProperties(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoApp":                      schema_pkg_apis_app_v1alpha1_KogitoApp(ref),
@@ -46,8 +45,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsService":              schema_pkg_apis_app_v1alpha1_KogitoJobsService(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsServiceSpec":          schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsServiceStatus":        schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap":                    schema_pkg_apis_app_v1alpha1_ResourceMap(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources":                      schema_pkg_apis_app_v1alpha1_Resources(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":                  schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
 	}
 }
@@ -332,33 +329,6 @@ func schema_pkg_apis_app_v1alpha1_Deployments(ref common.ReferenceCallback) comm
 	}
 }
 
-func schema_pkg_apis_app_v1alpha1_Env(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "Env Data to define environment variables in key-value pair fashion",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Name of an environment variable",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"value": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Value for that environment variable",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func schema_pkg_apis_app_v1alpha1_GitSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -506,11 +476,10 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							Format: "",
 						},
 					},
-					"env": {
+					"envs": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "name",
-								"x-kubernetes-list-type":     "map",
+								"x-kubernetes-list-type": "atomic",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
@@ -519,7 +488,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env"),
+										Ref: ref("k8s.io/api/core/v1.EnvVar"),
 									},
 								},
 							},
@@ -581,7 +550,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources for build pods. Default limits are 1GB RAM/0.5 CPU on JVM and 4GB RAM/1 CPU for native builds.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
 					"mavenMirrorURL": {
@@ -595,7 +564,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.GitSource", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -634,13 +603,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 				Description: "KogitoAppSpec defines the desired state of KogitoApp",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"runtime": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The name of the runtime used, either Quarkus or Springboot Default value: quarkus",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Number of replicas that the service will have deployed in the cluster Default value: 1",
@@ -648,29 +610,41 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 							Format:      "int32",
 						},
 					},
-					"env": {
+					"envs": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "name",
-								"x-kubernetes-list-type":     "map",
+								"x-kubernetes-list-type": "atomic",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Environment variables for the runtime service Default value: nil",
+							Description: "Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env"),
+										Ref: ref("k8s.io/api/core/v1.EnvVar"),
 									},
 								},
 							},
 						},
 					},
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+						},
+					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The resources for the deployed pods, like memory and cpu Default value: nil",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"),
+							Description: "Defined compute resource requirements for the deployed service",
+							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"runtime": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The name of the runtime used, either Quarkus or Springboot Default value: quarkus",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"build": {
@@ -703,7 +677,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Env", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppInfra", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resources"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppInfra", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -850,13 +824,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
 						},
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Defined Resources for the Jobs Service",
+							Description: "Defined compute resource requirements for the deployed service",
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
@@ -1133,13 +1107,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jobs-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
 						},
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Defined Resources for the Jobs Service",
+							Description: "Defined compute resource requirements for the deployed service",
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
@@ -1223,85 +1197,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref common.ReferenceCa
 		},
 		Dependencies: []string{
 			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "k8s.io/api/apps/v1.DeploymentCondition"},
-	}
-}
-
-func schema_pkg_apis_app_v1alpha1_ResourceMap(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "ResourceMap Data to define a list of possible Resources",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"resource": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Resource type like CPU and memory",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"value": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Value of this resource in Kubernetes format",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-				Required: []string{"resource", "value"},
-			},
-		},
-	}
-}
-
-func schema_pkg_apis_app_v1alpha1_Resources(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "Resources Data to define Resources needed for each deployed pod",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"limits": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "resource",
-								"x-kubernetes-list-type":     "map",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap"),
-									},
-								},
-							},
-						},
-					},
-					"requests": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": "resource",
-								"x-kubernetes-list-type":     "map",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.ResourceMap"},
 	}
 }
 

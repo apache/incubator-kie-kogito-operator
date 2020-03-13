@@ -13,7 +13,7 @@ spec:
   service:
     labels:
       onboarding: process
-  env:
+  envs:
     - name: NAMESPACE
       value: "<namespace_where_this_app_is_deployed>"
 

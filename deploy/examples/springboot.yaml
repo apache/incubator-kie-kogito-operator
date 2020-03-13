@@ -4,7 +4,7 @@ metadata:
   name: example-springboot
 spec:
   runtime: springboot
-  env:
+  envs:
     - name: DEBUG
       value: "true"
   build:
@@ -13,6 +13,6 @@ spec:
       contextDir: jbpm-springboot-example
       reference: master
     incremental: true
-    env:
+    envs:
       - name: CI
         value: "true"

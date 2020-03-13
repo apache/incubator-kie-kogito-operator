@@ -57,10 +57,12 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 	kogitoApp := &v1alpha1.KogitoApp{
 		ObjectMeta: v1.ObjectMeta{Name: name, Namespace: ns},
 		Spec: v1alpha1.KogitoAppSpec{
-			Env: []v1alpha1.Env{
-				{
-					Name:  dataIndexHTTPRouteEnv,
-					Value: oldRoute,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Envs: []corev1.EnvVar{
+					{
+						Name:  dataIndexHTTPRouteEnv,
+						Value: oldRoute,
+					},
 				},
 			},
 		},

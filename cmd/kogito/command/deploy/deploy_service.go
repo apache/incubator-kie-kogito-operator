@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/url"
 
@@ -208,28 +209,31 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 			Namespace: i.flags.Project,
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Replicas: &i.flags.Replicas,
-			Runtime:  v1alpha1.RuntimeType(i.flags.runtime),
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: i.flags.Replicas,
+				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Resources: corev1.ResourceRequirements{
+					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
+					Requests: shared.FromStringArrayToResources(i.flags.Requests),
+				},
+			},
+
+			Runtime: v1alpha1.RuntimeType(i.flags.runtime),
 			Build: &v1alpha1.KogitoAppBuildObject{
+				Envs: shared.FromStringArrayToEnvs(i.flags.buildEnv),
+				Resources: corev1.ResourceRequirements{
+					Limits:   shared.FromStringArrayToResources(i.flags.buildLimits),
+					Requests: shared.FromStringArrayToResources(i.flags.buildRequests),
+				},
 				Incremental:     i.flags.incrementalBuild,
-				Env:             shared.FromStringArrayToControllerEnvs(i.flags.buildEnv),
 				ImageS2ITag:     i.flags.imageS2I,
 				ImageRuntimeTag: i.flags.imageRuntime,
 				ImageVersion:    i.flags.imageVersion,
 				Native:          i.flags.native,
-				Resources: v1alpha1.Resources{
-					Limits:   shared.FromStringArrayToControllerResourceMap(i.flags.buildLimits),
-					Requests: shared.FromStringArrayToControllerResourceMap(i.flags.buildRequests),
-				},
-				MavenMirrorURL: i.flags.mavenMirrorURL,
+				MavenMirrorURL:  i.flags.mavenMirrorURL,
 			},
-			Env: shared.FromStringArrayToControllerEnvs(i.flags.Env),
 			Service: v1alpha1.KogitoAppServiceObject{
 				Labels: util.FromStringsKeyPairToMap(i.flags.serviceLabels),
-			},
-			Resources: v1alpha1.Resources{
-				Limits:   shared.FromStringArrayToControllerResourceMap(i.flags.Limits),
-				Requests: shared.FromStringArrayToControllerResourceMap(i.flags.Requests),
 			},
 			Infra:       v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanType(i.flags.installInfinispan), InstallKafka: v1alpha1.KogitoAppInfraInstallKafkaType(i.flags.installKafka)},
 			EnableIstio: i.flags.enableIstio,

@@ -20,7 +20,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -108,9 +107,9 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 						{
 							Name: kogitoApp.Name,
 							// this conversion will be removed in future versions
-							Env: shared.FromEnvToEnvVar(kogitoApp.Spec.Env),
+							Env: kogitoApp.Spec.KogitoServiceSpec.Envs,
 							// this conversion will be removed in future versions
-							Resources:       shared.FromResourcesToResourcesRequirements(kogitoApp.Spec.Resources),
+							Resources:       kogitoApp.Spec.KogitoServiceSpec.Resources,
 							Image:           runnerBC.Spec.Output.To.Name,
 							ImagePullPolicy: corev1.PullAlways,
 							VolumeMounts: []corev1.VolumeMount{
@@ -176,8 +175,8 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 // setReplicas defines the number of container replicas that this DeploymentConfig will have
 func setReplicas(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
 	replicas := defaultReplicas
-	if kogitoApp.Spec.Replicas != nil {
-		replicas = *kogitoApp.Spec.Replicas
+	if kogitoApp.Spec.KogitoServiceSpec.Replicas > 0 {
+		replicas = kogitoApp.Spec.KogitoServiceSpec.Replicas
 	}
 	dc.Spec.Replicas = replicas
 }

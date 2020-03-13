@@ -36,7 +36,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
@@ -56,20 +55,18 @@ import (
 )
 
 var (
-	cpuResource = v1alpha1.ResourceCPU
-	cpuValue    = "1"
-	gitURL      = "https://github.com/kiegroup/kogito-examples/"
-	cr          = v1alpha1.KogitoApp{
+	cpuValue = "1"
+	gitURL   = "https://github.com/kiegroup/kogito-examples/"
+	cr       = v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app",
 			Namespace: "test",
 		},
 		Spec: v1alpha1.KogitoAppSpec{
-			Resources: v1alpha1.Resources{
-				Limits: []v1alpha1.ResourceMap{
-					{
-						Resource: cpuResource,
-						Value:    cpuValue,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Resources: corev1.ResourceRequirements{
+					Limits: corev1.ResourceList{
+						corev1.ResourceCPU: resource.MustParse(cpuValue),
 					},
 				},
 			},
@@ -188,8 +185,8 @@ func createFakeImages(kogitoAppName string, runtimeLabels map[string]string) []r
 func TestNewContainerWithResource(t *testing.T) {
 	container := corev1.Container{
 		Name:            cr.Name,
-		Env:             shared.FromEnvToEnvVar(cr.Spec.Env),
-		Resources:       shared.FromResourcesToResourcesRequirements(cr.Spec.Resources),
+		Env:             cr.Spec.KogitoServiceSpec.Envs,
+		Resources:       cr.Spec.KogitoServiceSpec.Resources,
 		ImagePullPolicy: corev1.PullAlways,
 	}
 	assert.NotNil(t, container)
@@ -211,7 +208,7 @@ func TestKogitoAppWithResource(t *testing.T) {
 		t.Fatalf("Failed to list kogitoapp (%v)", err)
 	}
 	assert.True(t, len(kogitoAppList.Items) > 0)
-	assert.True(t, kogitoAppList.Items[0].Spec.Resources.Limits[0].Resource == cpuResource)
+	assert.Equal(t, int64(1), kogitoAppList.Items[0].Spec.KogitoServiceSpec.Resources.Limits.Cpu().Value())
 	fakeCache := &cachev1.FakeInformers{}
 	// call reconcile object and mock image and build clients
 	r := &ReconcileKogitoApp{
