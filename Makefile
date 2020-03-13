@@ -70,36 +70,57 @@ addheaders:
 	./hack/addheaders.sh
 
 .PHONY: run-tests
+# tests configuration
+feature=
 tags=
 concurrent=1
-feature=
+timeout=240
+debug=false
+smoke=false
+load_factor=1
 local=false
 ci=
+# operator information
 operator_image=
 operator_tag=
-cli_path=
+# files/binaries
 deploy_uri=
+cli_path=
+# runtime
 services_image_version=
+# build
 maven_mirror=
 build_image_version=
 build_s2i_image_tag=
 build_runtime_image_tag=
+# examples repository
 examples_uri=
 examples_ref=
-timeout=240
-debug=false
-smoke=false
+# dev options
+show_scenarios=false
+dry_run=false
+keep_namespace=false
+disabled_crds_update=false
 run-tests:
-	./hack/run-tests.sh \
+	declare -a opts \
+	&& if [ "$${debug}" = "true" ]; then opts+=("--debug"); fi \
+	&& if [ "$${smoke}" = "true" ]; then opts+=("--smoke"); fi \
+	&& if [ "$${local}" = "true" ]; then opts+=("--local"); fi \
+	&& if [ "$${show_scenarios}" = "true" ]; then opts+=("--show_scenarios"); fi \
+	&& if [ "$${dry_run}" = "true" ]; then opts+=("--dry_run"); fi \
+	&& if [ "$${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
+	&& if [ "$${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
+	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
+	&& ./hack/run-tests.sh \
+		--feature ${feature} \
 		--tags "${tags}" \
 		--concurrent ${concurrent} \
-		--feature ${feature} \
-		--local ${local} \
+		--timeout ${timeout} \
 		--ci ${ci} \
 		--operator_image $(operator_image) \
 		--operator_tag $(operator_tag) \
-		--cli_path ${cli_path} \
 		--deploy_uri ${deploy_uri} \
+		--cli_path ${cli_path} \
 		--services_image_version ${services_image_version} \
 		--maven_mirror $(maven_mirror) \
 		--build_image_version ${build_image_version} \
@@ -107,9 +128,8 @@ run-tests:
 		--build_runtime_image_tag ${build_runtime_image_tag} \
 		--examples_uri ${examples_uri} \
 		--examples_ref ${examples_ref} \
-		--timeout ${timeout} \
-		--debug ${debug} \
-		--smoke ${smoke}
+		$${opts_str}
+
 
 .PHONY: run-smoke-tests
 run-smoke-tests: 
