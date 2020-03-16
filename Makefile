@@ -101,6 +101,7 @@ show_scenarios=false
 dry_run=false
 keep_namespace=false
 disabled_crds_update=false
+namespace_name=
 run-tests:
 	declare -a opts \
 	&& if [ "$${debug}" = "true" ]; then opts+=("--debug"); fi \
@@ -128,8 +129,8 @@ run-tests:
 		--build_runtime_image_tag ${build_runtime_image_tag} \
 		--examples_uri ${examples_uri} \
 		--examples_ref ${examples_ref} \
+		--namespace_name ${namespace_name} \
 		$${opts_str}
-
 
 .PHONY: run-smoke-tests
 run-smoke-tests: 
