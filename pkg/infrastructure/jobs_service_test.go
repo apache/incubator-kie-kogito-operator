@@ -31,6 +31,7 @@ import (
 
 func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
 	URI := "http://localhost:8080"
+	replicas := int32(1)
 	app := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
@@ -41,7 +42,7 @@ func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
 	jobs := &v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}
@@ -71,6 +72,7 @@ func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
 
 func TestInjectJobsServicesURLIntoKogitoAppsCleanUp(t *testing.T) {
 	URI := "http://localhost:8080"
+	replicas := int32(1)
 	app := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
@@ -81,7 +83,7 @@ func TestInjectJobsServicesURLIntoKogitoAppsCleanUp(t *testing.T) {
 	jobs := &v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}

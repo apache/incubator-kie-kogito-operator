@@ -74,6 +74,10 @@ const (
 	KafkaTopicOutgoing KafkaTopicMessagingType = "OUTGOING"
 )
 
+const (
+	defaultReplicas = int32(1)
+)
+
 // ServiceDeployer is the API to handle a Kogito Service deployment by Operator SDK controllers
 type ServiceDeployer interface {
 	// Deploy deploys the Kogito Service in the Kubernetes cluster according to a given ServiceDefinition
@@ -111,6 +115,10 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// we get our service
 	service := s.instanceList.GetItemAt(0)
 	reconcileAfter = 0
+
+	if service.GetSpec().GetReplicas() == nil {
+		service.GetSpec().SetReplicas(defaultReplicas)
+	}
 
 	// always update its status
 	defer s.updateStatus(service, &err)

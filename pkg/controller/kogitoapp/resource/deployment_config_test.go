@@ -190,6 +190,43 @@ func Test_SetInfinispanEnvVars_SpringBootRuntime(t *testing.T) {
 	assert.True(t, contains(container.Env, envVarInfinispanSpring[envVarInfinispanSaslMechanism]))
 }
 
+func Test_deploymentConfigReplicas(t *testing.T) {
+	uri := "https://github.com/kiegroup/kogito-examples"
+	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
+	kogitoApp.Spec.Build.GitSource = v1alpha1.GitSource{URI: uri}
+	dockerImage := &dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{
+			Labels: map[string]string{
+				// notice the semicolon
+				openshift.ImageLabelForExposeServices: "8080:http,8181;https",
+				framework.LabelKeyOrgKie + "operator": "kogito",
+				framework.LabelPrometheusPath:         "/metrics",
+				framework.LabelPrometheusPort:         "8080",
+				framework.LabelPrometheusScheme:       "http",
+				framework.LabelPrometheusScrape:       "true",
+			},
+		},
+	}
+	bcS2I, _ := newBuildConfigS2I(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
+
+	{
+		dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+		assert.NoError(t, err)
+		assert.NotNil(t, dc)
+		assert.Equal(t, defaultReplicas, dc.Spec.Replicas)
+	}
+
+	{
+		zeroReplica := int32(0)
+		kogitoApp.Spec.Replicas = &zeroReplica
+		dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+		assert.NoError(t, err)
+		assert.NotNil(t, dc)
+		assert.Equal(t, int32(0), dc.Spec.Replicas)
+	}
+}
+
 func contains(env []v1.EnvVar, key string) bool {
 	for i := range env {
 		envVar := env[i]

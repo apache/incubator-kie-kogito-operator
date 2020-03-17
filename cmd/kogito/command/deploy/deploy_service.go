@@ -210,7 +210,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		},
 		Spec: v1alpha1.KogitoAppSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
-				Replicas: i.flags.Replicas,
+				Replicas: &i.flags.Replicas,
 				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
 				Resources: corev1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),

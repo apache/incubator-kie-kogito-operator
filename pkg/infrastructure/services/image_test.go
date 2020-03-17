@@ -25,13 +25,14 @@ import (
 )
 
 func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.T) {
+	replicas := int32(1)
 	instance := &v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 			InfinispanMeta: v1alpha1.InfinispanMeta{
 				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 					UseKogitoInfra: false,
@@ -50,13 +51,14 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 }
 
 func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T) {
+	replicas := int32(1)
 	instance := &v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 			InfinispanMeta: v1alpha1.InfinispanMeta{
 				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 					UseKogitoInfra: false,
@@ -74,13 +76,14 @@ func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T)
 }
 
 func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
+	replicas := int32(1)
 	instance := &v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 			InfinispanMeta: v1alpha1.InfinispanMeta{
 				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 					UseKogitoInfra: false,

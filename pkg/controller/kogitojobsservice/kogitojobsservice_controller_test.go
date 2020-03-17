@@ -30,10 +30,11 @@ import (
 )
 
 func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
+	replicas := int32(1)
 	instance := &v1alpha1.KogitoJobsService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
@@ -59,13 +60,14 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 }
 
 func TestReconcileKogitoJobsService_Reconcile_WithInfinispan(t *testing.T) {
+	replicas := int32(1)
 	instance := &v1alpha1.KogitoJobsService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
 				UseKogitoInfra: true,
 			}},
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)

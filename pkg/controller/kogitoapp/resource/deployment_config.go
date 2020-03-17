@@ -175,8 +175,8 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 // setReplicas defines the number of container replicas that this DeploymentConfig will have
 func setReplicas(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
 	replicas := defaultReplicas
-	if kogitoApp.Spec.KogitoServiceSpec.Replicas > 0 {
-		replicas = kogitoApp.Spec.KogitoServiceSpec.Replicas
+	if kogitoApp.Spec.KogitoServiceSpec.Replicas != nil {
+		replicas = *kogitoApp.Spec.KogitoServiceSpec.Replicas
 	}
 	dc.Spec.Replicas = replicas
 }
