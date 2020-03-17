@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"sort"
 	"strings"
 	"testing"
 
@@ -174,4 +175,62 @@ func Test_DeployCmd_WrongGitURL(t *testing.T) {
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
 	_, _, err := test.ExecuteCli()
 	assert.Error(t, err)
+}
+
+//see: https://issues.redhat.com/browse/KOGITO-1431
+func Test_DeployCmd_CommasOnSlicesParameters(t *testing.T) {
+	ns := t.Name()
+	cli :=
+		fmt.Sprintf("deploy-service process-example https://github.com/kiegroup/kogito-examples --context-dir jbpm-quarkus-example --build-env MAVEN_ARGS_APPEND=-Ppersistence,events --env JAVA_OPTIONS=-Dvalue1=test1,value2=test2 --project %s", ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "process-example")
+	assert.Contains(t, lines, "successfully created")
+
+	kogitoApp := &v1alpha1.KogitoApp{ObjectMeta: metav1.ObjectMeta{Name: "process-example", Namespace: ns}}
+	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoApp)
+	assert.True(t, exists)
+	assert.NoError(t, err)
+	assert.Len(t, kogitoApp.Spec.Build.Envs, 1)
+	assert.Equal(t, "MAVEN_ARGS_APPEND", kogitoApp.Spec.Build.Envs[0].Name)
+	assert.Equal(t, "-Ppersistence,events", kogitoApp.Spec.Build.Envs[0].Value)
+	assert.Len(t, kogitoApp.Spec.Envs, 1)
+	assert.Equal(t, "JAVA_OPTIONS", kogitoApp.Spec.Envs[0].Name)
+	assert.Equal(t, "-Dvalue1=test1,value2=test2", kogitoApp.Spec.Envs[0].Value)
+}
+
+//see: https://issues.redhat.com/browse/KOGITO-1431
+func Test_DeployCmd_CommasOnMultipleSlicesParameters(t *testing.T) {
+	ns := t.Name()
+	cli :=
+		fmt.Sprintf("deploy-service process-example https://github.com/kiegroup/kogito-examples --context-dir jbpm-quarkus-example --build-env MAVEN_ARGS_APPEND=-Ppersistence,events --build-env DEBUG=true --project %s", ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "process-example")
+	assert.Contains(t, lines, "successfully created")
+
+	kogitoApp := &v1alpha1.KogitoApp{ObjectMeta: metav1.ObjectMeta{Name: "process-example", Namespace: ns}}
+	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoApp)
+	assert.True(t, exists)
+	assert.NoError(t, err)
+	assert.Len(t, kogitoApp.Spec.Build.Envs, 2)
+
+	sort.Slice(kogitoApp.Spec.Build.Envs, func(i, j int) bool {
+		return kogitoApp.Spec.Build.Envs[i].Name < kogitoApp.Spec.Build.Envs[j].Name
+	})
+
+	assert.Equal(t, "DEBUG", kogitoApp.Spec.Build.Envs[0].Name)
+	assert.Equal(t, "true", kogitoApp.Spec.Build.Envs[0].Value)
+	assert.Equal(t, "MAVEN_ARGS_APPEND", kogitoApp.Spec.Build.Envs[1].Name)
+	assert.Equal(t, "-Ppersistence,events", kogitoApp.Spec.Build.Envs[1].Value)
 }
