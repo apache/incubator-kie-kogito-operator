@@ -17,7 +17,6 @@ package kogitodataindex
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -43,6 +42,22 @@ import (
 
 var log = logger.GetLogger("controller_kogitodataindex")
 
+var watchedObjects = []framework.WatchedObjects{
+	{
+		GroupVersion: routev1.GroupVersion,
+		AddToScheme:  routev1.Install,
+		Objects:      []runtime.Object{&routev1.Route{}},
+	},
+	{
+		GroupVersion: imgv1.GroupVersion,
+		AddToScheme:  imgv1.Install,
+		Objects:      []runtime.Object{&imgv1.ImageStream{}},
+	},
+	{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}}},
+}
+
+var controllerWatcher framework.ControllerWatcher
+
 // Add creates a new KogitoDataIndex Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -59,6 +74,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	log.Debug("Adding watched objects for KogitoDataIndex controller")
 	// Create a new controller
 	c, err := controller.New("kogitodataindex-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -83,27 +99,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{
-		&corev1.Service{},
-		&appsv1.Deployment{},
-		&routev1.Route{},
-		&kafkabetav1.KafkaTopic{},
-		&imgv1.ImageStream{},
+	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoDataIndex).client, mgr, c, &appv1alpha1.KogitoDataIndex{})
+	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
+		return err
 	}
-	ownerHandler := &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &v1alpha1.KogitoDataIndex{},
-	}
-	for _, watchObject := range watchOwnedObjects {
-		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
-		if err != nil {
-			if framework.IsNoKindMatchError(kafkabetav1.SchemeGroupVersion.Group, err) {
-				log.Warn("Tried to watch Kafka CRD, but failed. Maybe related Operators are not installed?")
-				continue
-			}
-			return err
-		}
-	}
+
 	return nil
 }
 

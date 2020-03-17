@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/version"
@@ -35,7 +36,6 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
-	"github.com/operator-framework/operator-sdk/pkg/restmapper"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
@@ -98,26 +98,12 @@ func main() {
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          namespace,
-		MapperProvider:     restmapper.NewDynamicRESTMapper,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
-
-	/*
-		// Check for OpenShift cluster
-		isOpenShift, err := openshiftutil.IsOpenShift(mgr.GetConfig())
-		if err != nil {
-			log.Error(err.Error())
-			os.Exit(1)
-		}
-		if !isOpenShift {
-			log.Error("OpenShift not detected, exiting")
-			os.Exit(1)
-		}
-	*/
 
 	log.Info("Registering Components.")
 
@@ -133,7 +119,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = serveCRMetrics(cfg); err != nil {
+	// Add the Metrics Service
+	addMetrics(ctx, cfg, namespace)
+
+	log.Info("Starting the Cmd.")
+
+	// Start the Cmd
+	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
+		log.Error(err, "Manager exited non-zero")
+		os.Exit(1)
+	}
+}
+
+// addMetrics will create the Services and Service Monitors to allow the operator export the metrics by using
+// the Prometheus operator
+func addMetrics(ctx context.Context, cfg *rest.Config, namespace string) {
+	if err := serveCRMetrics(cfg); err != nil {
+		if errors.Is(err, k8sutil.ErrRunLocal) {
+			log.Info("Skipping CR metrics server creation; not running in a cluster.")
+			return
+		}
 		log.Info("Could not generate and serve custom resource metrics", "error", err.Error())
 	}
 
@@ -142,18 +147,24 @@ func main() {
 		{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 		{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: operatorMetricsPort}},
 	}
+
 	// Create Service object to expose the metrics port(s).
-	_, err = metrics.CreateMetricsService(ctx, cfg, servicePorts)
+	service, err := metrics.CreateMetricsService(ctx, cfg, servicePorts)
 	if err != nil {
-		log.Info(err.Error())
+		log.Info("Could not create metrics Service", "error", err.Error())
 	}
 
-	log.Info("Starting the Cmd.")
-
-	// Start the Cmd
-	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
-		log.Error(err, "Manager exited non-zero")
-		os.Exit(1)
+	// CreateServiceMonitors will automatically create the prometheus-operator ServiceMonitor resources
+	// necessary to configure Prometheus to scrape metrics from this operator.
+	services := []*v1.Service{service}
+	_, err = metrics.CreateServiceMonitors(cfg, namespace, services)
+	if err != nil {
+		log.Info("Could not create ServiceMonitor object", "error", err.Error())
+		// If this operator is deployed to a cluster without the prometheus-operator running, it will return
+		// ErrServiceMonitorNotPresent, which can be used to safely skip ServiceMonitor creation.
+		if err == metrics.ErrServiceMonitorNotPresent {
+			log.Info("Install prometheus-operator in your cluster to create ServiceMonitor objects", "error", err.Error())
+		}
 	}
 }
 

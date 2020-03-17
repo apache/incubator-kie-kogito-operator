@@ -40,6 +40,29 @@ import (
 
 var log = logger.GetLogger("kogitoinfra_controller")
 
+var watchedObjects = []framework.WatchedObjects{
+	{
+		GroupVersion: infinispanv1.SchemeGroupVersion,
+		AddToScheme:  infinispanv1.AddToScheme,
+		Objects:      []runtime.Object{&infinispanv1.Infinispan{}},
+	},
+	{
+		GroupVersion: keycloakv1alpha1.SchemeGroupVersion,
+		AddToScheme:  keycloakv1alpha1.SchemeBuilder.AddToScheme,
+		Objects:      []runtime.Object{&keycloakv1alpha1.Keycloak{}},
+	},
+	{
+		GroupVersion: kafkav1beta1.SchemeGroupVersion,
+		AddToScheme:  kafkav1beta1.SchemeBuilder.AddToScheme,
+		Objects:      []runtime.Object{&kafkav1beta1.Kafka{}},
+	},
+	{
+		Objects: []runtime.Object{&corev1.Secret{}},
+	},
+}
+
+var controllerWatcher framework.ControllerWatcher
+
 // Add creates a new KogitoInfra Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -53,6 +76,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	log.Debug("Adding watched objects for KogitoInfra controller")
 	// Create a new controller
 	c, err := controller.New("kogitoinfra-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -65,22 +89,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{&corev1.Secret{}, &infinispanv1.Infinispan{}, &kafkav1beta1.Kafka{}, &keycloakv1alpha1.Keycloak{}}
-	ownerHandler := &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &appv1alpha1.KogitoInfra{},
-	}
-	for _, watchObject := range watchOwnedObjects {
-		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
-		if err != nil {
-			if framework.IsNoKindMatchError(infinispanv1.SchemeGroupVersion.Group, err) ||
-				framework.IsNoKindMatchError(kafkav1beta1.SchemeGroupVersion.Group, err) ||
-				framework.IsNoKindMatchError(keycloakv1alpha1.SchemeGroupVersion.Group, err) {
-				log.Warnf("Tried to watch Infinispan, Kafka and Keycloak CRD, but failed. Maybe related Operators are not installed? Error: %s", err)
-				continue
-			}
-			return err
-		}
+	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoInfra).client, mgr, c, &appv1alpha1.KogitoInfra{})
+	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
+		return err
 	}
 
 	return nil
@@ -121,6 +132,22 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		return reconcile.Result{}, err
 	} else if !exists {
 		return reconcile.Result{}, nil
+	}
+
+	// watcher will be nil on test env
+	if controllerWatcher != nil && !controllerWatcher.AreAllObjectsWatched() {
+		if (instance.Spec.InstallKafka && !controllerWatcher.IsGroupWatched(kafkav1beta1.SchemeGroupVersion.Group)) ||
+			(instance.Spec.InstallInfinispan && !controllerWatcher.IsGroupWatched(infinispanv1.SchemeGroupVersion.Group)) ||
+			(instance.Spec.InstallKeycloak && !controllerWatcher.IsGroupWatched(keycloakv1alpha1.SchemeGroupVersion.Group)) {
+			// try to add them
+			if err := controllerWatcher.Watch(watchedObjects...); err != nil {
+				return reconcile.Result{}, err
+			}
+			if !controllerWatcher.AreAllObjectsWatched() {
+				log.Warn("Dependencies not found for KogitoInfra, please install them.")
+				return reconcile.Result{RequeueAfter: time.Minute * 5}, nil
+			}
+		}
 	}
 
 	defer r.updateBaseStatus(instance, &result, &resultErr)

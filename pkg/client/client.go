@@ -22,8 +22,6 @@ import (
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -79,14 +77,6 @@ func NewForConsole() *Client {
 		panic(err)
 	}
 	return client
-}
-
-// WrapperForManager creates a wrapper around the manager client, useful for small operations that requires the client interface.
-// only creates the ControlCli reference
-func WrapperForManager(mgr manager.Manager) *Client {
-	return &Client{
-		ControlCli: mgr.GetClient(),
-	}
 }
 
 // NewForController creates a new client based on the rest config and the controller client created by Operator SDK

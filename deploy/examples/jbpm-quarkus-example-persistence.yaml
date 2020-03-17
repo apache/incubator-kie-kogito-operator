@@ -3,6 +3,8 @@ kind: KogitoApp
 metadata:
   name: example-quarkus
 spec:
+  infra:
+    installInfinispan: Always
   build:
     envs:
      # enable persistence

@@ -54,6 +54,34 @@ import (
 
 var log = logger.GetLogger("controller_kogitoapp")
 
+var watchedObjects = []framework.WatchedObjects{
+	{
+		GroupVersion: oappsv1.GroupVersion,
+		AddToScheme:  oappsv1.Install,
+		Objects:      []runtime.Object{&oappsv1.DeploymentConfig{}},
+	},
+	{
+		GroupVersion: routev1.GroupVersion,
+		AddToScheme:  routev1.Install,
+		Objects:      []runtime.Object{&routev1.Route{}},
+	},
+	{
+		GroupVersion: oimagev1.GroupVersion,
+		AddToScheme:  oimagev1.Install,
+		Objects:      []runtime.Object{&oimagev1.ImageStream{}},
+	},
+	{
+		GroupVersion: obuildv1.GroupVersion,
+		AddToScheme:  obuildv1.Install,
+		Objects:      []runtime.Object{&obuildv1.BuildConfig{}},
+	},
+	{
+		Objects: []runtime.Object{&corev1.Service{}, &corev1.ConfigMap{}},
+	},
+}
+
+var controllerWatcher framework.ControllerWatcher
+
 // Add creates a new KogitoApp Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -71,6 +99,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	log.Debug("Adding watched objects for KogitoApp controller")
 	// Create a new controller
 	c, err := controller.New("kogitoapp-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -83,29 +112,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = addWatchObjects(c,
-		&handler.EnqueueRequestForOwner{IsController: true, OwnerType: &v1alpha1.KogitoApp{}},
-		&oappsv1.DeploymentConfig{},
-		&corev1.Service{},
-		&routev1.Route{},
-		&obuildv1.BuildConfig{},
-		&oimagev1.ImageStream{},
-		&corev1.ConfigMap{})
-	if err != nil {
+	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoApp).client, mgr, c, &v1alpha1.KogitoApp{})
+	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}
 
-	return nil
-}
-
-// addWatchObjects add an object batch to the watch list
-func addWatchObjects(c controller.Controller, eventHandler handler.EventHandler, objects ...runtime.Object) error {
-	for _, watchObject := range objects {
-		err := c.Watch(&source.Kind{Type: watchObject}, eventHandler)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
