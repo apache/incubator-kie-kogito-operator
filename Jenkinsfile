@@ -5,10 +5,10 @@ pipeline {
         timeout(time: 90, unit: 'MINUTES')
     }
     environment {
+        
         WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
         GOPATH = "/home/jenkins/go"
         GOCACHE = "/home/jenkins/go/.cache/go-build"
-        GOROOT = "go env GOROOT"
     }
     stages {
         stage('Clean Workspace') {
@@ -18,14 +18,9 @@ pipeline {
                 }
             }
         }
-        stage('Clone repository') {
-            steps {
-              sh "mkdir -p ${WORKING_DIR}"
-              sh "git clone https://github.com/kiegroup/kogito-cloud-operator.git ${WORKING_DIR}"
-            }    
-        }
         stage('Initialize') {
             steps {
+                sh "mkdir -p ${WORKING_DIR} && cd ${WORKSPACE} && cp -Rap * ${WORKING_DIR}"
                 sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
             }
         }
@@ -33,6 +28,7 @@ pipeline {
             steps {
                 dir ("${WORKING_DIR}") {
                     sh """
+                        export GOROOT=`go env GOROOT`
                         GO111MODULE=on 
                         go get -u golang.org/x/lint/golint
                         touch /etc/sub{u,g}id
@@ -83,3 +79,4 @@ pipeline {
             }
         }
     }
+}
