@@ -153,8 +153,8 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	})
 
 	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort)
-	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port.IntVal)
-	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port.IntVal)
+	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].LivenessProbe.HTTPGet.Port.IntVal)
+	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet.Port.IntVal)
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace},

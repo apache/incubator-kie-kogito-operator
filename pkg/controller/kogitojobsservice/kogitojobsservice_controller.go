@@ -127,6 +127,7 @@ func (r *ReconcileKogitoJobsService) Reconcile(request reconcile.Request) (resul
 		SingleReplica:       true,
 		RequiresPersistence: false,
 		RequiresMessaging:   false,
+		HealthCheckProbe:    services.QuarkusHealthCheckProbe,
 	}
 	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, instances, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err
