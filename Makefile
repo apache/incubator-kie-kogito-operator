@@ -109,6 +109,7 @@ examples_uri=
 examples_ref=
 # dev options
 show_scenarios=false
+show_steps=false
 dry_run=false
 keep_namespace=false
 disabled_crds_update=false
@@ -121,6 +122,7 @@ run-tests:
 	&& if [ "${local}" = "true" ]; then opts+=("--local"); fi \
 	&& if [ "${cr_deployment_only}" = "true" ]; then opts+=("--cr_deployment_only"); fi \
 	&& if [ "${show_scenarios}" = "true" ]; then opts+=("--show_scenarios"); fi \
+	&& if [ "${show_steps}" = "true" ]; then opts+=("--show_steps"); fi \
 	&& if [ "${dry_run}" = "true" ]; then opts+=("--dry_run"); fi \
 	&& if [ "${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
 	&& if [ "${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
