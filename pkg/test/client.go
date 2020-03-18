@@ -63,23 +63,17 @@ func CreateFakeDiscoveryClient(openshift bool) discovery.DiscoveryInterface {
 	disco := &discfake.FakeDiscovery{
 		Fake: &clienttesting.Fake{
 			Resources: []*metav1.APIResourceList{
-				{
-					GroupVersion: "monitoring.coreos.com/v1alpha1",
-				},
-				{
-					GroupVersion: "infinispan.org/v1",
-				},
-				{
-					GroupVersion: "kafka.strimzi.io/v1beta1",
-				},
-				{
-					GroupVersion: "keycloak.org/v1alpha1",
-				},
+				{GroupVersion: "monitoring.coreos.com/v1alpha1"},
+				{GroupVersion: "infinispan.org/v1"},
+				{GroupVersion: "kafka.strimzi.io/v1beta1"},
+				{GroupVersion: "keycloak.org/v1alpha1"},
 			},
 		},
 	}
 	if openshift {
-		disco.Fake.Resources = append(disco.Fake.Resources, &metav1.APIResourceList{GroupVersion: "openshift.io/v1"})
+		disco.Fake.Resources = append(disco.Fake.Resources,
+			&metav1.APIResourceList{GroupVersion: "openshift.io/v1"},
+			&metav1.APIResourceList{GroupVersion: "build.openshift.io/v1"})
 	}
 	return disco
 }

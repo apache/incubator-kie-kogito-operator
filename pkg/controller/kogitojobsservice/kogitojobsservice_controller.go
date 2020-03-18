@@ -38,6 +38,24 @@ import (
 
 var log = logger.GetLogger("jobsservice_controller")
 
+var watchedObjects = []framework.WatchedObjects{
+	{
+		GroupVersion: routev1.GroupVersion,
+		AddToScheme:  routev1.Install,
+		Objects:      []runtime.Object{&routev1.Route{}},
+	},
+	{
+		GroupVersion: imagev1.GroupVersion,
+		AddToScheme:  imagev1.Install,
+		Objects:      []runtime.Object{&imagev1.ImageStream{}},
+	},
+	{
+		Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}},
+	},
+}
+
+var controllerWatcher framework.ControllerWatcher
+
 // Add creates a new KogitoJobsService Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -51,6 +69,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	log.Debug("Adding watched objects for KogitoJobsService controller")
 	// Create a new controller
 	c, err := controller.New("kogitojobsservice-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -69,29 +88,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	watchOwnedObjects := []runtime.Object{
-		&corev1.Service{},
-		&appsv1.Deployment{},
-		&routev1.Route{},
-		&imagev1.ImageStream{},
+	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoJobsService).client, mgr, c, &appv1alpha1.KogitoJobsService{})
+	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
+		return err
 	}
-	ownerHandler := &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &appv1alpha1.KogitoJobsService{},
-	}
-	for _, watchObject := range watchOwnedObjects {
-		err = c.Watch(&source.Kind{Type: watchObject}, ownerHandler)
-		if err != nil {
-			// Kubernetes clusters doesn't have routes or imageStream APIs
-			if framework.IsNoKindMatchError(routev1.GroupName, err) ||
-				framework.IsNoKindMatchError(imagev1.GroupName, err) {
-				log.Info("Ignoring specific group to be watched, APIs not found in the current cluster")
-				continue
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 
