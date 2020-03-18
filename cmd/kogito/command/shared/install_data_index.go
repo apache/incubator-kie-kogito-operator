@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	defaultDataIndexReplicas = 1
+	defaultDataIndexReplicas = int32(1)
 )
 
 // installDefaultDataIndex shortcut to install the default Data Index in the given namespace.
@@ -35,11 +35,12 @@ const (
 func installDefaultDataIndex(cli *client.Client, namespace string) error {
 	log := context.GetDefaultLogger()
 
+	replicas := defaultDataIndexReplicas
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: namespace},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
-				Replicas: defaultDataIndexReplicas,
+				Replicas: &replicas,
 			},
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
 			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true}},

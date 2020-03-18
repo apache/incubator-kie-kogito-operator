@@ -212,7 +212,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
-				Replicas: i.flags.Replicas,
+				Replicas: &i.flags.Replicas,
 				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
 				Image:    framework.ConvertImageTagToImage(i.flags.image),
 				Resources: v1.ResourceRequirements{

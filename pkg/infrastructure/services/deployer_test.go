@@ -33,6 +33,7 @@ func GetRequest(namespace string) reconcile.Request {
 }
 
 func Test_serviceDeployer_Deploy(t *testing.T) {
+	replicas := int32(1)
 	service := &v1alpha1.KogitoJobsService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
@@ -40,7 +41,7 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			InfinispanMeta:    v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	serviceList := &v1alpha1.KogitoJobsServiceList{}
@@ -57,16 +58,17 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.True(t, len(service.Status.Conditions) == 1)
-	assert.True(t, service.Spec.Replicas == 1)
+	assert.Equal(t, 1, len(service.Status.Conditions))
+	assert.Equal(t, int32(1), *service.Spec.Replicas)
 	assert.Equal(t, v1alpha1.ProvisioningConditionType, service.Status.Conditions[0].Type)
 }
 
 func Test_serviceDeployer_deployInfinispan_dataIndex(t *testing.T) {
+	replicas := int32(1)
 	dataIndex := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: "data-index", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{dataIndex}, nil, nil)
@@ -92,10 +94,11 @@ func Test_serviceDeployer_deployInfinispan_dataIndex(t *testing.T) {
 }
 
 func Test_serviceDeployer_deployInfinispan_dataIndexProvidedInfinispan(t *testing.T) {
+	replicas := int32(1)
 	dataIndex := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: "data-index", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 			InfinispanMeta:    v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{URI: "my-infinispan-instance:5000"}},
 		},
 	}
@@ -121,10 +124,11 @@ func Test_serviceDeployer_deployInfinispan_dataIndexProvidedInfinispan(t *testin
 }
 
 func Test_serviceDeployer_deployInfinispan_jobsService(t *testing.T) {
+	replicas := int32(1)
 	jobsService := &v1alpha1.KogitoJobsService{
 		ObjectMeta: v1.ObjectMeta{Name: "jobs-service", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{jobsService}, nil, nil)
@@ -149,10 +153,11 @@ func Test_serviceDeployer_deployInfinispan_jobsService(t *testing.T) {
 }
 
 func Test_serviceDeployer_deployInfinispan_jobsServiceWithPersistence(t *testing.T) {
+	replicas := int32(1)
 	jobsService := &v1alpha1.KogitoJobsService{
 		ObjectMeta: v1.ObjectMeta{Name: "jobs-service", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 			InfinispanMeta:    v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
 		},
 	}
@@ -180,10 +185,11 @@ func Test_serviceDeployer_deployInfinispan_jobsServiceWithPersistence(t *testing
 }
 
 func Test_serviceDeployer_deployKafka_dataIndex(t *testing.T) {
+	replicas := int32(1)
 	dataIndex := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: "data-index", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{dataIndex}, nil, nil)
@@ -209,10 +215,11 @@ func Test_serviceDeployer_deployKafka_dataIndex(t *testing.T) {
 }
 
 func Test_serviceDeployer_deployKafka_dataIndexProvidedKafka(t *testing.T) {
+	replicas := int32(1)
 	dataIndex := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: "data-index", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: 1},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 			KafkaMeta:         v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{ExternalURI: "my-kafka:9092"}},
 		},
 	}

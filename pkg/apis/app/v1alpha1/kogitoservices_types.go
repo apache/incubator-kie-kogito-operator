@@ -92,7 +92,7 @@ func (k *KogitoServiceStatus) SetExternalURI(uri string) { k.ExternalURI = uri }
 
 // KogitoServiceSpecInterface defines the interface for the Kogito Service specification, it's the basic structure for any Kogito Service
 type KogitoServiceSpecInterface interface {
-	GetReplicas() int32
+	GetReplicas() *int32
 	SetReplicas(replicas int32)
 	GetEnvs() []corev1.EnvVar
 	SetEnvs(envs []corev1.EnvVar)
@@ -111,7 +111,7 @@ type KogitoServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:podCount"
 	// +kubebuilder:validation:Minimum=0
-	Replicas int32 `json:"replicas"`
+	Replicas *int32 `json:"replicas,omitempty"`
 
 	// +optional
 	// +listType=atomic
@@ -133,10 +133,10 @@ type KogitoServiceSpec struct {
 }
 
 // GetReplicas ...
-func (k *KogitoServiceSpec) GetReplicas() int32 { return k.Replicas }
+func (k *KogitoServiceSpec) GetReplicas() *int32 { return k.Replicas }
 
 // SetReplicas ...
-func (k *KogitoServiceSpec) SetReplicas(replicas int32) { k.Replicas = replicas }
+func (k *KogitoServiceSpec) SetReplicas(replicas int32) { k.Replicas = &replicas }
 
 // GetEnvs ...
 func (k *KogitoServiceSpec) GetEnvs() []corev1.EnvVar { return k.Envs }
