@@ -20,7 +20,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -29,22 +28,13 @@ const (
 	singleReplica = int32(1)
 )
 
-var defaultProbe = &corev1.Probe{
-	Handler: corev1.Handler{
-		TCPSocket: &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: framework.DefaultExposedPort}},
-	},
-	TimeoutSeconds:   int32(1),
-	PeriodSeconds:    int32(10),
-	SuccessThreshold: int32(1),
-	FailureThreshold: int32(3),
-}
-
-func createRequiredDeployment(service v1alpha1.KogitoService, image string, definition ServiceDefinition) *appsv1.Deployment {
+func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage string, definition ServiceDefinition) *appsv1.Deployment {
 	if definition.SingleReplica && *service.GetSpec().GetReplicas() > singleReplica {
 		service.GetSpec().SetReplicas(singleReplica)
 		log.Warnf("%s can't scale vertically, only one replica is allowed.", service.GetName())
 	}
 	replicas := service.GetSpec().GetReplicas()
+	probes := getProbeForKogitoService(definition)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: service.GetName(), Namespace: service.GetNamespace(), Labels: map[string]string{labelAppKey: service.GetName()}},
@@ -66,10 +56,10 @@ func createRequiredDeployment(service v1alpha1.KogitoService, image string, defi
 							},
 							Env:             service.GetSpec().GetEnvs(),
 							Resources:       service.GetSpec().GetResources(),
-							LivenessProbe:   defaultProbe,
-							ReadinessProbe:  defaultProbe,
+							LivenessProbe:   probes.liveness,
+							ReadinessProbe:  probes.readiness,
 							ImagePullPolicy: corev1.PullAlways,
-							Image:           image,
+							Image:           resolvedImage,
 						},
 					},
 				},

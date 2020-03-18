@@ -140,6 +140,7 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 		KafkaTopics:         kafkaTopics,
 		RequiresPersistence: true,
 		RequiresMessaging:   true,
+		HealthCheckProbe:    services.QuarkusHealthCheckProbe,
 	}
 	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, instances, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err
@@ -177,9 +178,19 @@ func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deploym
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		httpPort := defineDataIndexHTTPPort(kogitoService.(*appv1alpha1.KogitoDataIndex))
 		framework.SetEnvVar(dataIndexEnvKeyHTTPPort, strconv.Itoa(int(httpPort)), &deployment.Spec.Template.Spec.Containers[0])
-		deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
-		deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
 		deployment.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort = httpPort
+		// TODO: when all services begin to support port customization, this should be implemented by the infrastructure: https://issues.redhat.com/browse/KOGITO-1483
+		if deployment.Spec.Template.Spec.Containers[0].ReadinessProbe != nil &&
+			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket != nil {
+			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
+			deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
+		} else if deployment.Spec.Template.Spec.Containers[0].ReadinessProbe != nil &&
+			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet != nil {
+			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
+			deployment.Spec.Template.Spec.Containers[0].LivenessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
+
+		}
+
 		if err := r.mountProtoBufConfigMaps(deployment); err != nil {
 			return err
 		}

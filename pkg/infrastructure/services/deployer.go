@@ -50,6 +50,8 @@ type ServiceDefinition struct {
 	RequiresMessaging bool
 	// KafkaTopics is a collection of Kafka Topics to be created within the service
 	KafkaTopics []KafkaTopicDefinition
+	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe
+	HealthCheckProbe HealthCheckProbeType
 	// infinispanAware whether or not to handle Infinispan integration in this service (inject variables, deploy if needed, and so on)
 	infinispanAware bool
 	// kafkaAware whether or not to handle Kafka integration in this service (inject variables, deploy if needed, and so on)
