@@ -128,7 +128,7 @@ func (i *deployCommand) RegisterHook() {
 				return fmt.Errorf("install-infinispan not valid. Valid entries are %s. Received %s", installInfinispanValidEntries, i.flags.installInfinispan)
 			}
 			if !util.Contains(i.flags.installKafka, installKafkaValidEntries) {
-				return fmt.Errorf("install-infinispan not valid. Valid entries are %s. Received %s", installInfinispanValidEntries, i.flags.installInfinispan)
+				return fmt.Errorf("install-kafka not valid. Valid entries are %s. Received %s", installKafkaValidEntries, i.flags.installKafka)
 			}
 			if err := CheckImageTag(i.flags.imageRuntime); err != nil {
 				return err
