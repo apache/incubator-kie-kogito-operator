@@ -941,7 +941,9 @@ $ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-m
 
 ### Running BDD Tests
 
-**REQUIREMENT:** You need to be authenticated to the cluster before running the tests.
+**REQUIREMENTS:** 
+* You need to be authenticated to the cluster before running the tests.
+* Native tests need to have node with 4Gi of memory available at least (build resource request).
 
 If you have an OpenShift cluster and admin privileges, you can run BDD tests with the following command:
 
