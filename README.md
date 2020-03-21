@@ -34,7 +34,7 @@ Table of Contents
          * [Kogito Jobs Service installation](#kogito-jobs-service-installation)
             * [Installing the Kogito Jobs Service with the Kogito CLI](#installing-the-kogito-jobs-service-with-the-kogito-cli)
             * [Installing the Kogito Jobs Service with the Operator Catalog (OLM)](#installing-the-kogito-jobs-service-with-the-operator-catalog-olm)
-            * [Installing the Kogito Data Index Service with the oc client](#installing-the-kogito-data-index-service-with-the-oc-client-1)
+            * [Installing the Kogito Jobs Service with the oc client](#installing-the-kogito-jobs-service-with-the-oc-client)
          * [Enabling Persistence with Infinispan](#enabling-persistence-with-infinispan)
       * [Kogito CLI](#kogito-cli)
          * [Kogito CLI requirements](#kogito-cli-requirements)
@@ -75,7 +75,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ### Deploying to OpenShift 4.x
 
-The Kogito operator is a namespaced operator, so you must install it into the namespace where you want your Kogito application to run.
+The Kogito operator is a namespaced operator, so you must install it into the namespace where you want your Kogito application to run in.
 
 (Optional) You can import the Kogito image stream using the `oc client` manually with the following command:
 
@@ -89,7 +89,7 @@ This step is optional because the Kogito Operator creates the required imagestre
 
 The Kogito Operator is available in the OperatorHub as a community operator. To find the Operator, search by the _Kogito_ name.
 
-You can also verify the Operator availability in the catalog by running the following command:
+You can also verify the Operator's availability in the catalog by running the following command:
 
 ```bash
 $ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-marketplace
@@ -158,7 +158,7 @@ Access your application directory and run the following:
 $ mvn clean package
 ``` 
 
-This command produces a target directory that contains all your binary files:
+This command produces a target directory that contains all its binary files:
 
 ```bash
 $ ls -l target/
@@ -175,16 +175,16 @@ drwxrwxr-x. 2 ricferna ricferna   4096 Mar 10 16:01 maven-archiver
 drwxrwxr-x. 3 ricferna ricferna   4096 Mar 10 16:01 maven-status
 ```
 
-You can upload the entire directory to the cluster or you might elect only the relevant files:
+You can upload the entire directory to the cluster or you might select only the relevant files:
 
-1. The `jar` runner and the `lib` directory for Quarkus runtime or just the uber jar if you're using Springboot
-2. The `classes/persistence` directory where resides the generated protobuf files. 
-3. The `image_metadata.json` file, which contains the information about the image that will be built by the s2i feature
+1. The `jar` runner and the `lib` directory for Quarkus runtime or just the uber jar if you're using Springboot.
+2. The `classes/persistence` directory where resides the generated protobuf files.
+3. The `image_metadata.json` file, which contains the information about the image that will be built by the s2i feature.
 
 Use the `oc` client to upload and start the image build:
 
 ```bash
-oc start-build example-quarkus-binary --from-dir=target
+$ oc start-build example-quarkus-binary --from-dir=target
 ``` 
 And that's it. In a couple minutes you should have your Kogito Service application up and running using the same binaries
 built locally.
@@ -199,11 +199,11 @@ $ kogito delete-service example-quarkus
 
 By default, the Kogito services are built with traditional `java` compilers to save time and resources. This means that the final generated artifact is a JAR file with the chosen runtime (default to Quarkus) with its dependencies in the image user's home directory: `/home/kogito/bin/lib`.
 
-Kogito services implemented with [Quarkus](https://quarkus.io/guides/kogito-guide) can be built to native binary. This means very low footprint on runtime (see [performance examples](https://www.graalvm.org/docs/examples/java-performance-examples/)), but a lot of resources during build time. For more information about AOT compilation, see [GraalVM Native Image](https://www.graalvm.org/docs/reference-manual/aot-compilation/).
+Kogito services implemented with [Quarkus](https://quarkus.io/guides/kogito-guide) can be built to native binary. This means very low footprint on runtime (see [performance examples](https://www.graalvm.org/docs/examples/java-performance-examples/)), but a lot of resources are consumed during build time. For more information about AOT compilation, see [GraalVM Native Image](https://www.graalvm.org/docs/reference-manual/aot-compilation/).
 
 In Kogito Operator tests, native builds take approximately 10 minutes and the build pod can consume up to 10GB of RAM and 1.5 CPU cores.
 
-:warning: By default Kogito application doesn't contain resource requests or limits. This may lead to the situation when native build is terminated due to insufficient memory. To prevent this behaviour user can specify at least memory request for Kogito application build, making sure that build pod is allocated on OpenShift node with enough of free memory. The side effect of this configuration is that OpenShift will prioritize the build pod. More informations about pod prioritization based on pod requests and limits can be found on [Quality of Service Tiers page](https://docs.okd.io/3.11/dev_guide/compute_resources.html#quality-of-service-tiers)
+:warning: By default a Kogito application doesn't contain resource requests or limits. This may lead to a situation when the native build is terminated due to insufficient memory. To prevent this behaviour the user can specify a minimum memory request for the Kogito application build, making sure that build pod is allocated on an OpenShift node with enough free memory. The side effect of this configuration is that OpenShift will prioritize the build pod. More informations about pod prioritization based on pod requests and limits can be found on [Quality of Service Tiers page](https://docs.okd.io/3.11/dev_guide/compute_resources.html#quality-of-service-tiers).
 
 Example of memory request configuration:
 ```yaml
@@ -225,11 +225,11 @@ spec:
 ```
 
 :warning: Ensure that you have these resources available on your OpenShift nodes when running native builds. Otherwise the S2I build will fail.
-You can check currently allocated and total resources of your nodes using command `oc describe nodes` invoked by user with admin rights.
+You can check currently allocated and total resources of your nodes using the command `oc describe nodes` invoked by a user with admin rights.
 
-User can also limit the maximum heap space for JVM used for native build. The limitation can be done by setting `quarkus.native.native-image-xmx` property in application.properties file. In such case the build pod will require roughly xmx + 2GB of memory. The xmx value depends on the complexity of the application, for example for [jbpm-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/master/jbpm-quarkus-example) the xmx value `2g` is enough, resulting in builder pod consuming just up to 4.2 GB of memory.
+The user can also limit the maximum heap space for the JVM used for a native build. The limitation can be applied by setting the `quarkus.native.native-image-xmx` property in the application.properties file. In such case the build pod will require roughly xmx + 2 GB of memory. The xmx value depends on the complexity of the application, for example for [jbpm-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/master/jbpm-quarkus-example) the xmx value `2g` is enough, resulting in builder pod consuming just up to 4.2 GB of memory.
 
-User can also set resource limits for native build pod. In that case 80% of memory limit is used for heap space of JVM responsible for native build. If the computed heap space limit for JVM is less than 1024m then all the memory from resource limits is used.
+The user can also set resource limits for a native build pod. In that case 80% of the memory limit is used for heap space in the JVM responsible for native build. If the computed heap space limit for the JVM is less than 1024 MB then all the memory from resource limits is used.
 
 Example of memory limit configuration:
 ```yaml
@@ -271,7 +271,7 @@ NAME                                     READY   STATUS      RESTARTS   AGE
 kogito-operator-6d7b6d4466-9ng8t   1/1     Running     0          26m
 ```
 
-Use the pod name as the input in the following command:
+Use the pod name as input for the following command:
 
 ```bash
 $ oc logs -f kogito-operator-6d7b6d4466-9ng8t
@@ -281,9 +281,9 @@ $ oc logs -f kogito-operator-6d7b6d4466-9ng8t
 
 The Kogito Operator can deploy the [Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) as a [Custom Resource](deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml) (`KogitoDataIndex`).
 
-The Data Index Service depends on Kafka, starting with version 0.6.0, the Kogito Operator deploys an Apache Kafka Cluster (based on [Strimzi](https://strimzi.io/) operator) in the same namespace.
+The Data Index Service depends on Kafka. Starting with version 0.6.0, the Kogito Operator deploys an Apache Kafka Cluster (based on [Strimzi](https://strimzi.io/) operator) in the same namespace.
 
-The Data Index Service also depends on Infinispan, but starting with version 0.6.0 of the Kogito Operator, Infinispan Server is automatically deployed for you.
+The Data Index Service also depends on Infinispan, but starting with version 0.6.0 of the Kogito Operator a Infinispan Server is automatically deployed for you.
 
 ### Deploying Infinispan
 
@@ -305,13 +305,13 @@ Now that you have the required infrastructure, you can deploy the Kogito Data In
 
 Kogito Operator can deploy a Kafka instance for you, please refer to [Kafka For Data Index](#kafka-for-data-index) for the details.
 
-If you have installed the [Kogito CLI](#kogito-cli), run the following command to create the Kogito Data Index resource.
+If you have installed the [Kogito CLI](#kogito-cli), run the following command to create the Kogito Data Index resource:
 
 ```bash
 $ kogito install data-index -p my-project
 ```
 
-You also can manually deploy a Kafka instance via Strimzi, and use the Kafka service URI or Kafka instance name to install the Data Index Service.
+You also can manually deploy a Kafka instance via Strimzi, and use the Kafka service URL or Kafka instance name to install the Data Index Service.
 
 Run the following command to create Kogito Data Index resource and replace the URL with the Kafka URL you retrieved for your environment:
 
@@ -424,7 +424,7 @@ run the following command to create the Kogito Jobs Service resource:
 $ kogito install jobs-service -p my-project
 ```
 
-There's some options to customize the Jobs Service deployment with CLI. 
+There are some options to customize the Jobs Service deployment with CLI. 
 Run `kogito install jobs-service --help` to understand and set them according to your requirements.  
 
 #### Installing the Kogito Jobs Service with the Operator Catalog (OLM)
@@ -442,7 +442,7 @@ spec:
   replicas: 1
 ```
 
-#### Installing the Kogito Data Index Service with the oc client
+#### Installing the Kogito Jobs Service with the oc client
 
 To create the Kogito Jobs Service resource using the oc client, you can use the CR file from the previous example as a reference 
 and create the custom resource from the command line as shown in the following example:
@@ -466,8 +466,7 @@ When doing this Kogito Operator deploys a new Infinispan server using Infinispan
 that you're deploying Jobs Service. It also sets all information regarding server authentication.
 
 For this to work, bear in mind that Infinispan Operator must be installed in the namespace. If the Kogito Operator was installed
-with OLM, it means that the Infinispan Operator would also be installed. If it was installed manually, you will also have to manually
-install the Infinispan Operator.
+with OLM, it means that the Infinispan Operator would also be installed. If it was installed manually, you will also have to manually install the Infinispan Operator.
 
 It's also possible to fine tune the Infinispan integration by setting the properties `spec.infinispan.credentials`, 
 `spec.infinispan.uri` and `spec.infinispan.useKogitoInfra` to `false` in the CR. This way the Infinispan server won't be deployed
@@ -517,7 +516,7 @@ $ cd kogito-cloud-operator
 $ make install-cli
 ```
 
-The `kogito` CLI appears in your path:
+This will install the CLI on `GOPATH/bin` by default. [`go` documentation](https://golang.org/doc/install#tarball) recommeds including this directory in your `PATH`. If you done that then the `kogito` CLI may be executed directly as below:
 
 ```bash
 $ kogito
@@ -702,9 +701,9 @@ For more information about the Prometheus Operator, see the [Prometheus Operator
 
 To help you start and run an Infinispan Server instance in your project, the Kogito Operator has a resource called `KogitoInfra` to handle Infinispan deployment for you.
 
-The `KogitoInfra` resource use the [Infinispan Operator](https://github.com/infinispan/infinispan-operator) to deploy new Infinispan server instances if needed.
+The `KogitoInfra` resource uses the [Infinispan Operator](https://github.com/infinispan/infinispan-operator) to deploy new Infinispan server instances if needed.
 
-You can freely edit and manage the Infinispan instance. Kogito Operator do not manage or handle the Infinispan instances. 
+You can freely edit and manage the Infinispan instance. The Kogito Operator does not manage or handle the Infinispan instances. 
 For example, if you have plans to scale the Infinispan cluster, you can edit the `replicas` field in the [Infinispan CR](https://github.com/infinispan/infinispan-operator/blob/master/pkg/apis/infinispan/v1/infinispan_types.go) to meet your requirements.
 
 By default, the `KogitoInfra` resource creates a secret that holds the user name and password for Infinispan authentication. 
@@ -739,7 +738,7 @@ If this happens, please uninstall DataGrid and install Infinispan manually since
 
 If your Kogito Service depends on the [persistence add-on](https://github.com/kiegroup/kogito-runtimes/wiki/Persistence), 
 Kogito Operator installs Infinispan and inject the connection properties as environment variables into the service. 
-Depending on the runtime, this variables will differ. See the table below:
+Depending on the runtime, these variables will differ. See the table below:
 
 
 |Quarkus Runtime                          |Springboot Runtime              | Description                                       |Example                |
@@ -750,7 +749,7 @@ Depending on the runtime, this variables will differ. See the table below:
 |QUARKUS_INFINISPAN_CLIENT_SASL_MECHANISM |INFINISPAN_REMOTE_SASL_MECHANISM|Default to `PLAIN`                                 |`PLAIN`                |
 
 Just make sure that your Kogito Service can read these properties in runtime. 
-Those variables names are the same as the ones used by Infinispan clients from Quarkus and Springboot.
+These variables names are the same as the ones used by Infinispan clients from Quarkus and Springboot.
 
 [On Quarkus versions below 1.1.0 (Kogito 0.6.0)](https://github.com/quarkusio/quarkus/issues/5708), make sure that your `aplication.properties` file has the properties listed like the example below:
 
@@ -943,7 +942,7 @@ $ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-m
 
 **REQUIREMENTS:** 
 * You need to be authenticated to the cluster before running the tests.
-* Native tests need to have node with 4Gi of memory available at least (build resource request).
+* Native tests need a node with at least 4 GiB of memory available (build resource request).
 
 If you have an OpenShift cluster and admin privileges, you can run BDD tests with the following command:
 
@@ -1018,7 +1017,7 @@ $ make run-tests build_image_version=<kogito_version>
 
 #### Running smoke tests
 
-The BDD tests do provide some smoke tests for a quick feedback on basics functionality:
+The BDD tests do provide some smoke tests for a quick feedback on basic functionality:
 
 ```bash
 $ make run-smoke-tests [key=value]*
