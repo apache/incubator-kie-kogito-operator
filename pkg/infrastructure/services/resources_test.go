@@ -21,6 +21,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	imgv1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -139,4 +141,91 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 	assert.True(t, len(resources) > 1)
 	// we don't have data index set
 	assert.Equal(t, reconcileAfter, dataIndexDependencyReconcileAfter)
+}
+
+func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *testing.T) {
+	name := "kogito-data-index"
+	replicas := int32(1)
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		},
+	}
+	is, tag := test.GetImageStreams("kogito-data-index", instance.Namespace, instance.Name)
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	deployer := serviceDeployer{
+		client:       cli,
+		scheme:       meta.GetRegisteredSchema(),
+		instanceList: &v1alpha1.KogitoDataIndexList{},
+		definition: ServiceDefinition{
+			DefaultImageName: name,
+			Request: reconcile.Request{
+				NamespacedName: types.NamespacedName{Name: name, Namespace: t.Name()},
+			},
+		},
+	}
+	resources, _, err := deployer.createRequiredResources(instance)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, resources)
+
+	assert.Equal(t, 1, len(resources[reflect.TypeOf(corev1.ConfigMap{})]))
+	assert.Equal(t, name+appPropConfigMapSuffix, resources[reflect.TypeOf(corev1.ConfigMap{})][0].GetName())
+
+	assert.Equal(t, 1, len(resources[reflect.TypeOf(appsv1.Deployment{})]))
+	deployment, ok := resources[reflect.TypeOf(appsv1.Deployment{})][0].(*appsv1.Deployment)
+	assert.True(t, ok)
+	_, ok = deployment.Spec.Template.Annotations[AppPropContentHashKey]
+	assert.True(t, ok)
+}
+
+func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *testing.T) {
+	name := "kogito-data-index"
+	replicas := int32(1)
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		},
+	}
+	is, tag := test.GetImageStreams("kogito-data-index", instance.Namespace, instance.Name)
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name + appPropConfigMapSuffix,
+			Namespace: instance.Namespace,
+		},
+		Data: map[string]string{
+			appPropFileName: defaultAppPropContent,
+		},
+	}
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is, cm}, []runtime.Object{tag}, nil)
+	deployer := serviceDeployer{
+		client:       cli,
+		scheme:       meta.GetRegisteredSchema(),
+		instanceList: &v1alpha1.KogitoDataIndexList{},
+		definition: ServiceDefinition{
+			DefaultImageName: name,
+			Request: reconcile.Request{
+				NamespacedName: types.NamespacedName{Name: name, Namespace: t.Name()},
+			},
+		},
+	}
+	resources, _, err := deployer.createRequiredResources(instance)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, resources)
+
+	_, exist := resources[reflect.TypeOf(corev1.ConfigMap{})]
+	assert.False(t, exist)
+
+	assert.Equal(t, 1, len(resources[reflect.TypeOf(appsv1.Deployment{})]))
+	deployment, ok := resources[reflect.TypeOf(appsv1.Deployment{})][0].(*appsv1.Deployment)
+	assert.True(t, ok)
+	_, ok = deployment.Spec.Template.Annotations[AppPropContentHashKey]
+	assert.True(t, ok)
 }

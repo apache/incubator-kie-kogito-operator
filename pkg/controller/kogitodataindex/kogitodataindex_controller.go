@@ -53,7 +53,7 @@ var watchedObjects = []framework.WatchedObjects{
 		AddToScheme:  imgv1.Install,
 		Objects:      []runtime.Object{&imgv1.ImageStream{}},
 	},
-	{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}}},
+	{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
 }
 
 var controllerWatcher framework.ControllerWatcher

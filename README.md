@@ -20,6 +20,7 @@ Table of Contents
          * [Binary Builds](#binary-builds)
          * [Cleaning up a Kogito service deployment](#cleaning-up-a-kogito-service-deployment)
          * [Native X JVM builds](#native-x-jvm-builds)
+         * [Kogito Runtimes properties configuration](#kogito-runtimes-properties-configuration)
          * [Troubleshooting Kogito Runtimes service deployment](#troubleshooting-kogito-runtimes-service-deployment)
             * [No builds are running](#no-builds-are-running)
       * [Kogito Data Index Service deployment](#kogito-data-index-service-deployment)
@@ -30,12 +31,14 @@ Table of Contents
             * [Installing the Kogito Data Index Service with the Operator Catalog (OLM)](#installing-the-kogito-data-index-service-with-the-operator-catalog-olm)
             * [Installing the Kogito Data Index Service with the oc client](#installing-the-kogito-data-index-service-with-the-oc-client)
          * [Kogito Data Index Integration with persistent Kogito Services](#kogito-data-index-integration-with-persistent-kogito-services)
+         * [Kogito Data Index Service properties configuration](#kogito-data-index-service-properties-configuration)
       * [Kogito Jobs Service deployment](#kogito-jobs-service-deployment)
          * [Kogito Jobs Service installation](#kogito-jobs-service-installation)
             * [Installing the Kogito Jobs Service with the Kogito CLI](#installing-the-kogito-jobs-service-with-the-kogito-cli)
             * [Installing the Kogito Jobs Service with the Operator Catalog (OLM)](#installing-the-kogito-jobs-service-with-the-operator-catalog-olm)
             * [Installing the Kogito Jobs Service with the oc client](#installing-the-kogito-jobs-service-with-the-oc-client)
          * [Enabling Persistence with Infinispan](#enabling-persistence-with-infinispan)
+         * [Kogito Jobs Service properties configuration](#kogito-jobs-service-properties-configuration)
       * [Kogito CLI](#kogito-cli)
          * [Kogito CLI requirements](#kogito-cli-requirements)
          * [Kogito CLI installation](#kogito-cli-installation)
@@ -256,6 +259,27 @@ To deploy a service using native builds, run the `deploy-service` command with t
 $ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example --native
 ```
 
+### Kogito Runtimes properties configuration
+
+When a Kogito service is deployed, a `configMap` will be created for the `application.properties` configuration of the Kogito service.
+
+The name of the `configMap` consists of the name of the Kogito service and the suffix `-properties`. For example:
+
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: jbpm-quarkus-example-properties
+data:
+  application.properties : |-
+    dummy1=dummy1
+    dummy2=dummy2
+```    
+
+The data `application.properties` of the `configMap` will be mounted in a volume to the container of the Kogito service. Any runtime properties added to `application.properties` will override the default application configuration properties of the Kogito service.
+
+When there are changes to `application.properties` of the `configMap`, a rolling update will take place to update the deployment and configuration of the Kogito service. 
+
 ### Troubleshooting Kogito Runtimes service deployment
 
 #### No builds are running
@@ -406,6 +430,27 @@ property in your domain data, this data will be reflect automatically in the Dat
 _Please note that removed Kogito Services will remove the protobuf files associated to it as well. This means that you won't
 be able to see the data through the Data Index anymore, although the data still persisted in Infinispan._
 
+### Kogito Data Index Service properties configuration
+
+When Data Index is deployed, a `configMap` will be created for the `application.properties` configuration of Data Index.
+
+The name of the `configMap` consists of the name of the Data Index and the suffix `-properties`. For example:
+
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kogito-data-index-properties
+data:
+  application.properties : |-
+    dummy1=dummy1
+    dummy2=dummy2
+```    
+
+The data `application.properties` of the `configMap` will be mounted in a volume to the container of the Data Index. Any runtime properties added to `application.properties` will override the default application configuration properties of Data Index.
+
+When there are changes to `application.properties` of the `configMap`, a rolling update will take place to update the deployment and configuration of Data Index. 
+
 ## Kogito Jobs Service deployment
 
 Like Data Index, [Jobs Service](https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service) can be deployed via Operator or CLI. 
@@ -473,6 +518,27 @@ It's also possible to fine tune the Infinispan integration by setting the proper
 and the Jobs Service will try to connect to the given URI. Just make sure that your cluster have access to this URI.
 
 This process behaves similarly to the one defined by the [Data Index Service](#deploying-infinispan). 
+
+### Kogito Jobs Service properties configuration
+
+When Jobs Service is deployed, a `configMap` will be created for the `application.properties` configuration of Jobs Service.
+
+The name of the `configMap` consists of the name of the Jobs Service and the suffix `-properties`. For example:
+
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: jobs-service-properties
+data:
+  application.properties : |-
+    dummy1=dummy1
+    dummy2=dummy2
+```    
+
+The data `application.properties` of the `configMap` will be mounted in a volume to the container of the Jobs Service. Any runtime properties added to `application.properties` will override the default application configuration properties of Jobs Service.
+
+When there are changes to `application.properties` of the `configMap`, a rolling update will take place to update the deployment and configuration of Jobs Service. 
 
 ## Kogito CLI
 

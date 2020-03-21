@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -50,6 +51,7 @@ func GetRequestedResources(kogitoApp *v1alpha1.KogitoApp, client *client.Client)
 		andBuild(buildConfigRuntimeBuilder).
 		andBuild(buildConfigRuntimeBinaryBuilder).
 		andBuild(protoBufConfigMap).
+		andBuild(appPropConfigMap).
 		andBuild(imageStreamBuilder).
 		andBuild(runtimeImageGetter).
 		andBuild(deploymentConfigBuilder).
@@ -118,6 +120,7 @@ func deploymentConfigBuilder(chain *builderChain) *builderChain {
 			chain.KogitoApp,
 			chain.Resources.BuildConfigBinary,
 			chain.Resources.RuntimeImage,
+			chain.Resources.AppPropContentHash,
 		)
 		if err != nil {
 			chain.Error = err
@@ -181,6 +184,19 @@ func runtimeImageGetter(chain *builderChain) *builderChain {
 		chain.Resources.RuntimeImage = dockerImage
 	} else {
 		log.Warnf("Couldn't find an image with name '%s' in the namespace '%s'. The DeploymentConfig will be created once the build is done.", imageStreamName.Name, imageStreamName.Namespace)
+	}
+
+	return chain
+}
+
+func appPropConfigMap(chain *builderChain) *builderChain {
+	chain.Error = nil
+
+	if contentHash, configMap, err := services.GetAppPropConfigMapContentHash(chain.KogitoApp.Name, chain.KogitoApp.Namespace, chain.Client); err != nil {
+		chain.Error = err
+	} else {
+		chain.Resources.AppPropContentHash = contentHash
+		chain.Resources.AppPropCM = configMap
 	}
 
 	return chain

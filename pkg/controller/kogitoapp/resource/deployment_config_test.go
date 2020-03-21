@@ -19,17 +19,18 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	appsv1 "github.com/openshift/api/apps/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
 
-	appsv1 "github.com/openshift/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,7 +69,7 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 	}
 	bcS2I, _ := newBuildConfigS2I(kogitoApp)
 	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
-	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage, "abc")
 	assert.Nil(t, err)
 	assert.NotNil(t, dc)
 	// we should have only one port. the 8181 is invalid.
@@ -101,7 +102,7 @@ func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
 	}
 	bcS2I, _ := newBuildConfigS2I(kogitoApp)
 	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
-	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, &dockerv10.DockerImage{})
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, &dockerv10.DockerImage{}, "abc")
 	assert.Nil(t, err)
 	assert.NotNil(t, dc)
 	assert.Len(t, dc.Spec.Selector, 1)
@@ -153,7 +154,7 @@ func Test_IstioEnabled(t *testing.T) {
 	}
 	bcS2I, _ := newBuildConfigS2I(kogitoApp)
 	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
-	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage, "abc")
 	assert.NoError(t, err)
 	assert.NotNil(t, dc)
 
@@ -211,7 +212,7 @@ func Test_deploymentConfigReplicas(t *testing.T) {
 	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
 
 	{
-		dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+		dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage, "abc")
 		assert.NoError(t, err)
 		assert.NotNil(t, dc)
 		assert.Equal(t, defaultReplicas, dc.Spec.Replicas)
@@ -220,7 +221,7 @@ func Test_deploymentConfigReplicas(t *testing.T) {
 	{
 		zeroReplica := int32(0)
 		kogitoApp.Spec.Replicas = &zeroReplica
-		dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage)
+		dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage, "abc")
 		assert.NoError(t, err)
 		assert.NotNil(t, dc)
 		assert.Equal(t, int32(0), dc.Spec.Replicas)
@@ -311,4 +312,50 @@ func createTestSecret(kogitoInfra *v1alpha1.KogitoInfra, username, password stri
 			infrastructure.InfinispanSecretPasswordKey: []byte(password),
 		},
 	}
+}
+
+func Test_applicationProperties(t *testing.T) {
+	uri := "https://github.com/kiegroup/kogito-examples"
+	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
+	kogitoApp.Spec.Build.GitSource = v1alpha1.GitSource{URI: uri}
+	dockerImage := &dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{
+			Labels: map[string]string{
+				// notice the semicolon
+				openshift.ImageLabelForExposeServices: "8080:http,8181;https",
+				framework.LabelKeyOrgKie + "operator": "kogito",
+				framework.LabelPrometheusPath:         "/metrics",
+				framework.LabelPrometheusPort:         "8080",
+				framework.LabelPrometheusScheme:       "http",
+				framework.LabelPrometheusScrape:       "true",
+			},
+		},
+	}
+	bcS2I, _ := newBuildConfigS2I(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
+
+	contentHash := "abc24680"
+
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, dockerImage, contentHash)
+	assert.NoError(t, err)
+	assert.NotNil(t, dc)
+	assert.Equal(t, contentHash, dc.Spec.Template.ObjectMeta.Annotations[services.AppPropContentHashKey])
+
+	foundVolume := false
+	for _, volume := range dc.Spec.Template.Spec.Volumes {
+		if volume.Name == services.AppPropVolumeName {
+			foundVolume = true
+			break
+		}
+	}
+	assert.True(t, foundVolume)
+
+	foundVolumeMount := false
+	for _, volumeMount := range dc.Spec.Template.Spec.Containers[0].VolumeMounts {
+		if volumeMount.Name == services.AppPropVolumeName {
+			foundVolumeMount = true
+			break
+		}
+	}
+	assert.True(t, foundVolumeMount)
 }

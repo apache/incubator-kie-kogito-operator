@@ -28,6 +28,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -109,8 +110,34 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 
 	assert.NotNil(t, resources.ServiceMonitor)
 
+	assert.NotNil(t, resources.AppPropCM)
+
+	assert.True(t, len(resources.AppPropContentHash) > 0)
+
 	assert.Len(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports, 1)
 	assert.Equal(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, int32(8080))
+}
+
+func TestBuildResources_CreateAllWithoutAppPropConfigMap(t *testing.T) {
+	kogitoApp := createKogitoApp()
+	client := test.CreateFakeClient([]runtime.Object{
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test-app-properties",
+				Namespace: "testns",
+			},
+			Data: map[string]string{
+				"application.properties": "",
+			},
+		},
+	},
+		nil, nil)
+	resources, err := GetRequestedResources(kogitoApp, client)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, resources)
+	assert.NotNil(t, resources.AppPropContentHash)
+	assert.Nil(t, resources.AppPropCM)
 }
 
 func Test_buildConfigS2IBuilder(t *testing.T) {

@@ -50,7 +50,7 @@ var watchedObjects = []framework.WatchedObjects{
 		Objects:      []runtime.Object{&imagev1.ImageStream{}},
 	},
 	{
-		Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}},
+		Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}},
 	},
 }
 

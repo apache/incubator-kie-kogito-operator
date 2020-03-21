@@ -23,6 +23,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/prometheus"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
@@ -57,6 +58,8 @@ func GetDeployedResources(instance *v1alpha1.KogitoApp, client *client.Client) (
 		log.Warn("Failed to list deployed objects. ", err)
 		return nil, err
 	}
+
+	services.ExcludeAppPropConfigMapFromResource(instance.GetName(), resourceMap)
 	return resourceMap, nil
 }
 

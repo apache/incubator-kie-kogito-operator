@@ -42,4 +42,6 @@ type KogitoAppResources struct {
 	ServiceMonitor     *monv1.ServiceMonitor
 	RuntimeImage       *dockerv10.DockerImage
 	ProtoBufCM         *corev1.ConfigMap
+	AppPropCM          *corev1.ConfigMap
+	AppPropContentHash string
 }
