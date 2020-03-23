@@ -33,6 +33,8 @@ type WatchedObjects struct {
 	AddToScheme func(scheme *runtime.Scheme) error
 	// Objects list of required objects that should be watched by the controller
 	Objects []runtime.Object
+	// Owner of the object if different from the actual controller
+	Owner runtime.Object
 }
 
 // ControllerWatcher helps to add required objects to the controller watch list given the required runtime objects
@@ -83,18 +85,18 @@ func (c *controllerWatcher) Watch(watchedObjects ...WatchedObjects) (err error) 
 	}
 
 	var addToScheme runtime.SchemeBuilder
-	var objects []runtime.Object
+	var desiredObjects []WatchedObjects
 
 	for _, object := range watchedObjects {
 		// core resources
 		if object.AddToScheme == nil {
-			objects = append(objects, object.Objects...)
+			desiredObjects = append(desiredObjects, object)
 		} else {
 			found := false
 			for _, serverGroup := range serverGroups.Groups {
 				if strings.Contains(serverGroup.Name, object.GroupVersion.Group) {
 					addToScheme = append(addToScheme, object.AddToScheme)
-					objects = append(objects, object.Objects...)
+					desiredObjects = append(desiredObjects, object)
 					found = true
 					delete(c.groupsNotWatched, object.GroupVersion.Group)
 					break
@@ -115,9 +117,19 @@ func (c *controllerWatcher) Watch(watchedObjects ...WatchedObjects) (err error) 
 	}
 
 	ownerHandler := &handler.EnqueueRequestForOwner{IsController: true, OwnerType: c.owner}
-	for _, runtimeObj := range objects {
-		if err = c.controller.Watch(&source.Kind{Type: runtimeObj}, ownerHandler); err != nil {
-			return
+	for _, desiredObject := range desiredObjects {
+		for _, runtimeObj := range desiredObject.Objects {
+			if desiredObject.Owner == nil {
+				if err = c.controller.Watch(&source.Kind{Type: runtimeObj}, ownerHandler); err != nil {
+					return
+				}
+			} else {
+				if err = c.controller.Watch(
+					&source.Kind{Type: runtimeObj},
+					&handler.EnqueueRequestForOwner{IsController: true, OwnerType: desiredObject.Owner}); err != nil {
+					return
+				}
+			}
 		}
 	}
 

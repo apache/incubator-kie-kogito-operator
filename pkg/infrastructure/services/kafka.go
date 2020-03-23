@@ -27,8 +27,9 @@ const (
 	kafkaURINotFoundError string = "there's no Kafka instance URI found in the namespace and Kafka external URI is not specified, cannot deploy Data Index service"
 
 	quarkusTopicBootstrapEnvVar = "MP_MESSAGING_%s_%s_BOOTSTRAP_SERVERS"
-	quarkusBootstrapEnvVar      = "QUARKUS_KAFKA_BOOTSTRAP_SERVERS"
 )
+
+var quarkusBootstrapEnvVars = []string{"KAFKA_BOOTSTRAP_SERVERS", "QUARKUS_KAFKA_BOOTSTRAP_SERVERS"}
 
 // fromKafkaTopicToQuarkusEnvVar transforms a given Kafka Topic name into a environment variable to be read by Quarkus Kafka client used by Kogito Services
 func fromKafkaTopicToQuarkusEnvVar(topic KafkaTopicDefinition) string {

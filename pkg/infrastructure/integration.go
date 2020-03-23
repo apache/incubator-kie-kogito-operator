@@ -21,21 +21,37 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+// ServiceEndpoints represents the endpoints for a deployed Kogito Data Index service
+type ServiceEndpoints struct {
+	// HTTPRouteURI ...
+	HTTPRouteURI string
+	// HTTPRouteEnv name of the environment variable that will hold the HTTP URI
+	HTTPRouteEnv string
+	// WSRouteURI ...
+	WSRouteURI string
+	// WSRouteEnv name of the environment variable that will hold the HTTP URI
+	WSRouteEnv string
+}
+
+func (s ServiceEndpoints) String() string {
+	return s.HTTPRouteURI
+}
+
 // InjectEnvVarsFromExternalServices inject environment variables from external services that the KogitoApp runtime might need
 func InjectEnvVarsFromExternalServices(kogitoApp *v1alpha1.KogitoApp, container *v1.Container, client *client.Client) error {
 	log.Debugf("Querying external routes to inject into KogitoApp: %s", kogitoApp.GetName())
-	dataIndexHTTPURL, dataIndexWSURL, err := getKogitoDataIndexURLs(client, kogitoApp.GetNamespace())
+	dataIndexEndpoints, err := GetKogitoDataIndexEndpoints(client, kogitoApp.GetNamespace())
 	if err != nil {
 		return err
 	}
-	log.Debugf("Data Index route is '%s'", dataIndexHTTPURL)
-	jobsServiceHTTPURL, err := getJobServiceExternalURI(client, kogitoApp.GetNamespace())
+	log.Debugf("Data Index route is '%s'", dataIndexEndpoints.HTTPRouteURI)
+	jobsServiceEndpoints, err := GetJobsServiceEndpoints(client, kogitoApp.GetNamespace())
 	if err != nil {
 		return err
 	}
-	log.Debugf("Jobs Service route is '%s'", jobsServiceHTTPURL)
-	framework.SetEnvVar(dataIndexHTTPRouteEnv, dataIndexHTTPURL, container)
-	framework.SetEnvVar(dataIndexWSRouteEnv, dataIndexWSURL, container)
-	framework.SetEnvVar(jobsServicesHTTPURIEnv, jobsServiceHTTPURL, container)
+	log.Debugf("Jobs Service route is '%s'", jobsServiceEndpoints)
+	framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, container)
+	framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, container)
+	framework.SetEnvVar(jobsServiceEndpoints.HTTPRouteEnv, jobsServiceEndpoints.HTTPRouteURI, container)
 	return nil
 }

@@ -27,6 +27,7 @@ import (
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
+	"time"
 )
 
 func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *testing.T) {
@@ -59,11 +60,12 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 			},
 		},
 	}
-	resources, err := deployer.createRequiredResources(instance)
+	resources, reconcileAfter, err := deployer.createRequiredResources(instance)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 	// we have the Image Stream, so other resources should have been created
 	assert.True(t, len(resources) > 1)
+	assert.Equal(t, reconcileAfter, time.Duration(0))
 }
 
 func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *testing.T) {
@@ -95,10 +97,46 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 			},
 		},
 	}
-	resources, err := deployer.createRequiredResources(instance)
+	resources, reconcileAfter, err := deployer.createRequiredResources(instance)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
+	assert.Equal(t, reconcileAfter, time.Duration(0))
 	// we have the Image Stream, so other resources should have been created
 	assert.True(t, len(resources) == 1)
 	assert.Equal(t, resources[reflect.TypeOf(imgv1.ImageStream{})][0].GetName(), infrastructure.DefaultJobsServiceImageName)
+}
+
+func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T) {
+	name := "kogito-management-console"
+	replicas := int32(1)
+	instance := &v1alpha1.KogitoMgmtConsole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoMgmtConsoleSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		},
+	}
+	is, tag := test.GetImageStreams("kogito-management-console", instance.Namespace, instance.Name)
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	deployer := serviceDeployer{
+		client:       cli,
+		scheme:       meta.GetRegisteredSchema(),
+		instanceList: &v1alpha1.KogitoJobsServiceList{},
+		definition: ServiceDefinition{
+			DefaultImageName:  name,
+			RequiresDataIndex: true,
+			Request: reconcile.Request{
+				NamespacedName: types.NamespacedName{Name: name, Namespace: t.Name()},
+			},
+		},
+	}
+	resources, reconcileAfter, err := deployer.createRequiredResources(instance)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, resources)
+	// we have the Image Stream, so other resources should have been created
+	assert.True(t, len(resources) > 1)
+	// we don't have data index set
+	assert.Equal(t, reconcileAfter, dataIndexDependencyReconcileAfter)
 }

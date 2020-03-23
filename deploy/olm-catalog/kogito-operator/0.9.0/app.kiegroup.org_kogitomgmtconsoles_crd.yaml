@@ -1,19 +1,19 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: kogitojobsservices.app.kiegroup.org
+  name: kogitomgmtconsoles.app.kiegroup.org
 spec:
   group: app.kiegroup.org
   names:
-    kind: KogitoJobsService
-    listKind: KogitoJobsServiceList
-    plural: kogitojobsservices
-    singular: kogitojobsservice
+    kind: KogitoMgmtConsole
+    listKind: KogitoMgmtConsoleList
+    plural: kogitomgmtconsoles
+    singular: kogitomgmtconsole
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KogitoJobsService deploys the Kogito Jobs Service in the given
-        namespace
+      description: KogitoMgmtConsole deploys the Kogito Management Console service
+        in the given namespace
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -28,14 +28,8 @@ spec:
         metadata:
           type: object
         spec:
-          description: KogitoJobsServiceSpec defines the desired state of KogitoJobsService
+          description: KogitoMgmtConsoleSpec defines the desired state of KogitoMgmtConsole
           properties:
-            backOffRetryMillis:
-              description: 'Retry backOff time in milliseconds between the job execution
-                attempts, in case of execution failure. Default to service default,
-                see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-              format: int64
-              type: integer
             envs:
               description: Environment variables to be added to the runtime container.
                 Keys must be a C_IDENTIFIER.
@@ -150,62 +144,6 @@ spec:
                 tag:
                   type: string
               type: object
-            infinispan:
-              description: Has the data used by the service to connect to the Infinispan
-                cluster.
-              properties:
-                authRealm:
-                  description: Name of the Infinispan authentication realm. This sets
-                    the property infinispan.client.hotrod.auth_realm.
-                  type: string
-                credentials:
-                  description: SecretCredentialsType is the data structure for specifying
-                    credentials within a Secret
-                  properties:
-                    passwordKey:
-                      description: PasswordKey is the key pointing to a value in a
-                        Secret holding the password value
-                      type: string
-                    secretName:
-                      description: SecretName is the name of the secret where the
-                        credentials are set
-                      type: string
-                    usernameKey:
-                      description: UsernameKey is the key pointing to a value in a
-                        Secret holding the username value
-                      type: string
-                  type: object
-                saslMechanism:
-                  description: SaslMechanism defined for the authentication. This
-                    sets the property infinispan.client.hotrod.sasl_mechanism.
-                  enum:
-                  - PLAIN
-                  - DIGEST-MD5
-                  type: string
-                uri:
-                  description: URI to connect to the Infinispan cluster (can it be
-                    an internal service or external URI), for example, myinfinispan-cluster:11222
-                  type: string
-                useAuth:
-                  description: UseAuth is set to true if the credentials are set.
-                    This also sets the property infinispan.client.hotrod.use_auth.
-                  type: boolean
-                useKogitoInfra:
-                  description: UseKogitoInfra flags if the instance will use a provided
-                    infrastructure by KogitoInfra CR. Setting this to true will deploy
-                    a new KogitoInfra CR into the namespace that will install Infinispan
-                    via Infinispan Operator. Infinispan Operator MUST be installed
-                    in the namespace for this to work. On OpenShift, OLM should install
-                    it for you. If running on Kubernetes without OLM installed, please
-                    install Infinispan Operator first. Set this to false and fill
-                    all other properties to provide your own infrastructure
-                  type: boolean
-              type: object
-            maxIntervalLimitToRetryMillis:
-              description: 'Maximum interval in milliseconds when retrying to execute
-                jobs, in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-              format: int64
-              type: integer
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster Default value: 1'
@@ -233,7 +171,7 @@ spec:
               type: object
           type: object
         status:
-          description: KogitoJobsServiceStatus defines the observed state of KogitoJobsService
+          description: KogitoMgmtConsoleStatus defines the observed state of KogitoMgmtConsole
           properties:
             conditions:
               description: History of conditions for the resource

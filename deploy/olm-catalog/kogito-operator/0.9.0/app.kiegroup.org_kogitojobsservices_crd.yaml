@@ -12,7 +12,8 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KogitoJobsService is the Schema for the kogitojobsservices API
+      description: KogitoJobsService deploys the Kogito Jobs Service in the given
+        namespace
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation

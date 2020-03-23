@@ -41,23 +41,23 @@ func InjectJobsServicesURLIntoKogitoApps(cli *client.Client, namespace string) e
 	if err != nil {
 		return err
 	}
-	externalURI := ""
+	var endpoint ServiceEndpoints
 	if len(dcs) > 0 {
 		log.Debug("Querying Jobs Service URI to inject into KogitoApps ")
 		var err error
-		externalURI, err = getJobServiceExternalURI(cli, namespace)
+		endpoint, err = GetJobsServiceEndpoints(cli, namespace)
 		if err != nil {
 			return err
 		}
-		log.Debugf("Jobs Services URI is '%s'", externalURI)
+		log.Debugf("Jobs Services URI is '%s'", endpoint.HTTPRouteURI)
 	}
 
 	for _, dc := range dcs {
 		// here we compare the current value to avoid updating the app every time
 		if len(dc.Spec.Template.Spec.Containers) > 0 &&
-			framework.GetEnvVarFromContainer(jobsServicesHTTPURIEnv, dc.Spec.Template.Spec.Containers[0]) != externalURI {
-			log.Debugf("Updating kogitoApp's DC '%s' to inject route %s ", dc.GetName(), externalURI)
-			framework.SetEnvVar(jobsServicesHTTPURIEnv, externalURI, &dc.Spec.Template.Spec.Containers[0])
+			framework.GetEnvVarFromContainer(endpoint.HTTPRouteEnv, dc.Spec.Template.Spec.Containers[0]) != endpoint.HTTPRouteURI {
+			log.Debugf("Updating kogitoApp's DC '%s' to inject route %s ", dc.GetName(), endpoint.HTTPRouteURI)
+			framework.SetEnvVar(endpoint.HTTPRouteEnv, endpoint.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
 			if err := kubernetes.ResourceC(cli).Update(&dc); err != nil {
 				return err
 			}
@@ -66,15 +66,16 @@ func InjectJobsServicesURLIntoKogitoApps(cli *client.Client, namespace string) e
 	return nil
 }
 
-func getJobServiceExternalURI(client *client.Client, namespace string) (string, error) {
-	externalURI := ""
+// GetJobsServiceEndpoints gets Jobs Services published external endpoints
+func GetJobsServiceEndpoints(client *client.Client, namespace string) (ServiceEndpoints, error) {
+	endpoints := ServiceEndpoints{HTTPRouteEnv: jobsServicesHTTPURIEnv}
 	services := &v1alpha1.KogitoJobsServiceList{}
 	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, services); err != nil {
-		return externalURI, err
+		return endpoints, err
 	}
 	if len(services.Items) > 0 {
 		// should be only one data index guaranteed by the controller, but still we are looking for the first one
-		externalURI = services.Items[0].Status.ExternalURI
+		endpoints.HTTPRouteURI = services.Items[0].Status.ExternalURI
 	}
-	return externalURI, nil
+	return endpoints, nil
 }

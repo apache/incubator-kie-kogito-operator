@@ -1,0 +1,6 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoMgmtConsole
+metadata:
+  name: management-console
+spec:
+  replicas: 1
