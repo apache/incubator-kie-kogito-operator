@@ -19,6 +19,7 @@ Feature: Deploy spring boot service
 
     @smoke
     @cli
+    @wip
     Examples: CLI
       | installer |
       | CLI       |
