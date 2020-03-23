@@ -88,6 +88,8 @@ deploy_uri=
 cli_path=
 # runtime
 services_image_version=
+data_index_image_tag=
+jobs_service_image_tag=
 # build
 maven_mirror=
 build_image_version=
@@ -123,6 +125,8 @@ run-tests:
 		--deploy_uri ${deploy_uri} \
 		--cli_path ${cli_path} \
 		--services_image_version ${services_image_version} \
+		--data_index_image_tag ${data_index_image_tag} \
+		--jobs_service_image_tag ${jobs_service_image_tag} \
 		--maven_mirror $(maven_mirror) \
 		--build_image_version ${build_image_version} \
 		--build_s2i_image_tag ${build_s2i_image_tag} \
