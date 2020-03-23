@@ -42,12 +42,15 @@ type ServiceDefinition struct {
 	Request controller.Request
 	// OnDeploymentCreate applies custom deployment configuration in the required Deployment resource
 	OnDeploymentCreate func(deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error
-	// SingleReplica avoids that the service has more than one pod replica
+	// SingleReplica if set to true, avoids that the service has more than one pod replica
 	SingleReplica bool
 	// RequiresPersistence forces the deployer to deploy an Infinispan instance if none is provided
 	RequiresPersistence bool
 	// RequiresMessaging forces the deployer to deploy a Kafka instance if none is provided
 	RequiresMessaging bool
+	// RequiresDataIndex when set to true, the Data Index instance is queried in the given namespace and its Route injected in this service.
+	// The service is not deployed until the data index service is found
+	RequiresDataIndex bool
 	// KafkaTopics is a collection of Kafka Topics to be created within the service
 	KafkaTopics []KafkaTopicDefinition
 	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe
@@ -155,7 +158,7 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	}
 
 	// create our resources
-	requestedResources, err := s.createRequiredResources(service)
+	requestedResources, reconcileAfter, err := s.createRequiredResources(service)
 	if err != nil {
 		return
 	}

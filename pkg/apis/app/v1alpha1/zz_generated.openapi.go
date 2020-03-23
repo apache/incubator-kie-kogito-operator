@@ -45,6 +45,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsService":              schema_pkg_apis_app_v1alpha1_KogitoJobsService(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsServiceSpec":          schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsServiceStatus":        schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsole":              schema_pkg_apis_app_v1alpha1_KogitoMgmtConsole(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":                  schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
 	}
 }
@@ -1027,7 +1028,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsService(ref common.ReferenceCallback
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoJobsService is the Schema for the kogitojobsservices API",
+				Description: "KogitoJobsService deploys the Kogito Jobs Service in the given namespace",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -1197,6 +1198,50 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref common.ReferenceCa
 		},
 		Dependencies: []string{
 			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "k8s.io/api/apps/v1.DeploymentCondition"},
+	}
+}
+
+func schema_pkg_apis_app_v1alpha1_KogitoMgmtConsole(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoMgmtConsole deploys the Kogito Management Console service in the given namespace",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsoleSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsoleStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsoleSpec", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsoleStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 

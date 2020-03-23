@@ -30,6 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
+	"time"
 )
 
 const (
@@ -37,7 +38,8 @@ const (
 )
 
 // createRequiredResources creates the required resources given the KogitoService instance
-func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
+func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, reconcileAfter time.Duration, err error) {
+	reconcileAfter = 0
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
 	imageHandler := newImageHandler(instance, s.definition.DefaultImageName, s.client)
 	if imageHandler.hasImageStream() {
@@ -47,23 +49,29 @@ func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoServic
 	// we only create the rest of the resources once we have a resolvable image
 	// or if the deployment is already there, we don't want to delete it :)
 	if image, err := s.getKogitoServiceImage(imageHandler, instance); err != nil {
-		return resources, err
+		return resources, reconcileAfter, err
 	} else if len(image) > 0 {
 		deployment := createRequiredDeployment(instance, image, s.definition)
 		if err = s.applyDeploymentCustomizations(deployment, instance, imageHandler); err != nil {
-			return resources, err
+			return resources, reconcileAfter, err
+		}
+		if err = s.applyDataIndexRoute(deployment, instance); isRequiresReconciliationError(err) {
+			log.Warn(err)
+			reconcileAfter = err.(requiresReconciliationError).GetReconcileAfter()
+		} else if err != nil {
+			return resources, reconcileAfter, err
 		}
 
 		service := createRequiredService(instance, deployment)
 
 		if s.definition.infinispanAware {
 			if err = s.applyInfinispanConfigurations(deployment, instance); err != nil {
-				return resources, err
+				return resources, reconcileAfter, err
 			}
 		}
 		if s.definition.kafkaAware {
 			if err = s.applyKafkaConfigurations(deployment, instance); err != nil {
-				return resources, err
+				return resources, reconcileAfter, err
 			}
 		}
 
@@ -75,6 +83,24 @@ func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoServic
 	}
 
 	return
+}
+
+func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {
+	if s.definition.RequiresDataIndex {
+		dataIndexEndpoints, err := infrastructure.GetKogitoDataIndexEndpoints(s.client, s.definition.Request.Namespace)
+		if err != nil {
+			return err
+		}
+		framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
+		if len(dataIndexEndpoints.HTTPRouteURI) == 0 {
+			zeroReplicas := int32(0)
+			deployment.Spec.Replicas = &zeroReplicas
+			return newDataIndexNotReadyError(instance.GetNamespace(), instance.GetName())
+		}
+		deployment.Spec.Replicas = instance.GetSpec().GetReplicas()
+	}
+	return nil
 }
 
 func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deployment, instance v1alpha1.KogitoService, imageHandler *imageHandler) error {
@@ -138,7 +164,9 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 		for _, kafkaTopic := range s.definition.KafkaTopics {
 			framework.SetEnvVar(fromKafkaTopicToQuarkusEnvVar(kafkaTopic), URI, &deployment.Spec.Template.Spec.Containers[0])
 		}
-		framework.SetEnvVar(quarkusBootstrapEnvVar, URI, &deployment.Spec.Template.Spec.Containers[0])
+		for _, kafkaEnv := range quarkusBootstrapEnvVars {
+			framework.SetEnvVar(kafkaEnv, URI, &deployment.Spec.Template.Spec.Containers[0])
+		}
 	}
 
 	return nil

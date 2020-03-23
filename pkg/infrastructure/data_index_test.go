@@ -100,12 +100,12 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	client := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes, dc}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes, dc}, nil, nil)
 
-	err := InjectDataIndexURLIntoKogitoApps(client, ns)
+	err := InjectDataIndexURLIntoKogitoApps(cli, ns)
 	assert.NoError(t, err)
 
-	exist, err := kubernetes.ResourceC(client).Fetch(dc)
+	exist, err := kubernetes.ResourceC(cli).Fetch(dc)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: dataIndexHTTPRouteEnv, Value: expectedRoute})
@@ -172,16 +172,16 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotHTTPURL, gotWSURL, err := getKogitoDataIndexURLs(tt.args.client, tt.args.namespace)
+			gotDataIndexEndpoints, err := GetKogitoDataIndexEndpoints(tt.args.client, tt.args.namespace)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getKogitoDataIndexURLs() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetKogitoDataIndexEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotHTTPURL != tt.wantHTTPURL {
-				t.Errorf("getKogitoDataIndexURLs() gotHTTPURL = %v, want %v", gotHTTPURL, tt.wantHTTPURL)
+			if &gotDataIndexEndpoints != nil && gotDataIndexEndpoints.HTTPRouteURI != tt.wantHTTPURL {
+				t.Errorf("GetKogitoDataIndexEndpoints() gotHTTPURL = %v, want %v", gotDataIndexEndpoints.HTTPRouteURI, tt.wantHTTPURL)
 			}
-			if gotWSURL != tt.wantWSURL {
-				t.Errorf("getKogitoDataIndexURLs() gotWSURL = %v, want %v", gotWSURL, tt.wantWSURL)
+			if &gotDataIndexEndpoints != nil && gotDataIndexEndpoints.WSRouteURI != tt.wantWSURL {
+				t.Errorf("GetKogitoDataIndexEndpoints() gotWSURL = %v, want %v", gotDataIndexEndpoints.WSRouteURI, tt.wantWSURL)
 			}
 		})
 	}

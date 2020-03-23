@@ -46,7 +46,7 @@ type KogitoJobsServiceStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoJobsService is the Schema for the kogitojobsservices API
+// KogitoJobsService deploys the Kogito Jobs Service in the given namespace
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitojobsservices,scope=Namespaced
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Jobs Services"
