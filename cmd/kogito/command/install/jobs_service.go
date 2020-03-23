@@ -36,6 +36,7 @@ const (
 type installJobsServiceFlags struct {
 	deploy.CommonFlags
 	image                         string
+	kafka                         v1alpha1.KafkaConnectionProperties
 	infinispan                    v1alpha1.InfinispanConnectionProperties
 	infinispanSasl                string
 	infinispanUser                string
@@ -43,6 +44,7 @@ type installJobsServiceFlags struct {
 	backOffRetryMillis            int64
 	maxIntervalLimitToRetryMillis int64
 	enablePersistence             bool
+	enableEvents	bool
 }
 
 type installJobsServiceCommand struct {
@@ -113,6 +115,19 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 					log.Info("Persistence enabled, Infinispan will be automatically deployed via Infinispan Operator")
 				}
 			}
+			if i.flags.enableEvents {
+				if len(i.flags.kafka.ExternalURI) > 0 {
+					i.flags.kafka.UseKogitoInfra = false
+					log.Infof("kafka-url informed. Kafka will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.kafka.ExternalURI)
+				} else if len(i.flags.kafka.Instance) > 0 {
+					i.flags.kafka.UseKogitoInfra = false
+					log.Infof("kafka-instance informed. Kafka will NOT be provisioned for you. Make sure Kafka instance %s is properly deployed in the project. If the Kafka instance is found, Kafka Topics for Data Index service will be deployed in the project if they don't exist already", i.flags.kafka.Instance)
+				} else {
+					i.flags.kafka.UseKogitoInfra = true
+					log.Info("No Kafka information has been given. A Kafka instance will be automatically deployed via Strimzi Operator in the namespace. Kafka Topics will be created accordingly if they don't exist already")
+				}
+			}
+
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
@@ -133,12 +148,15 @@ func (i *installJobsServiceCommand) InitHook() {
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultJobsServiceImageFullTag, "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
+	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
+	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092. When set, enables events for Jobs Service.")
+	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster. When set, enables events for Jobs Service.")
 	i.command.Flags().StringVar(&i.flags.infinispan.URI, "infinispan-url", "", "Set only if enable-persistence is defined. The Infinispan Server URI, example: infinispan-server:11222")
 	i.command.Flags().StringVar(&i.flags.infinispan.AuthRealm, "infinispan-authrealm", "", "Set only if enable-persistence is defined. The Infinispan Server Auth Realm for authentication, example: ApplicationRealm")
 	i.command.Flags().StringVar(&i.flags.infinispanSasl, "infinispan-sasl", "", "Set only if enable-persistence is defined. The Infinispan Server SASL Mechanism, example: PLAIN")
 	i.command.Flags().StringVar(&i.flags.infinispanUser, "infinispan-user", "", "Set only if enable-persistence is defined. The Infinispan Server username")
 	i.command.Flags().StringVar(&i.flags.infinispanPassword, "infinispan-password", "", "Set only if enable-persistence is defined. The Infinispan Server password")
-	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "Enable persistence using Infinispan. Set also 'infinispan-url' to specify an instance URL. Ifr left in blank the operator will provide one for you")
+	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "Enable persistence using Infinispan. Set also 'infinispan-url' to specify an instance URL. If left in blank the operator will provide one for you")
 	i.command.Flags().Int64Var(&i.flags.backOffRetryMillis, "backoff-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.backoffRetryMillis'")
 	i.command.Flags().Int64Var(&i.flags.maxIntervalLimitToRetryMillis, "max-internal-limit-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.maxIntervalLimitToRetryMillis'")
 }
@@ -200,6 +218,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 			InfinispanMeta: v1alpha1.InfinispanMeta{
 				InfinispanProperties: i.flags.infinispan,
 			},
+			KafkaMeta: v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
 				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),

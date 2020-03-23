@@ -22,6 +22,7 @@ import (
 // +k8s:openapi-gen=true
 type KogitoJobsServiceSpec struct {
 	InfinispanMeta    `json:",inline"`
+	KafkaMeta         `json:",inline"`
 	KogitoServiceSpec `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 

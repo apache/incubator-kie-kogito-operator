@@ -754,6 +754,7 @@ func (in *KogitoJobsServiceList) DeepCopyObject() runtime.Object {
 func (in *KogitoJobsServiceSpec) DeepCopyInto(out *KogitoJobsServiceSpec) {
 	*out = *in
 	out.InfinispanMeta = in.InfinispanMeta
+	out.KafkaMeta = in.KafkaMeta
 	in.KogitoServiceSpec.DeepCopyInto(&out.KogitoServiceSpec)
 	return
 }

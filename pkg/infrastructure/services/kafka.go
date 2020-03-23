@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	kafkaURINotFoundError string = "there's no Kafka instance URI found in the namespace and Kafka external URI is not specified, cannot deploy Data Index service"
-
 	quarkusTopicBootstrapEnvVar = "MP_MESSAGING_%s_%s_BOOTSTRAP_SERVERS"
 )
 
@@ -51,7 +49,7 @@ func getKafkaServerURI(kafkaProp v1alpha1.KafkaConnectionProperties, namespace s
 		}
 	}
 
-	return "", fmt.Errorf(kafkaURINotFoundError)
+	return "", nil
 }
 
 func getKafkaInstance(kafka v1alpha1.KafkaConnectionProperties, namespace string, client *client.Client) (*kafkabetav1.Kafka, error) {
