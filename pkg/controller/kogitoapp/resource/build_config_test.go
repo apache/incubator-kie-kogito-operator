@@ -129,7 +129,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: mavenMirrorURLEnvVar, Value: "https://localhost.nexus:8080/public"})
 	assert.NotContains(t, bcRuntime.Spec.Output.To.Name, BuildS2INameSuffix)
 	assert.Len(t, bcRuntime.Spec.Triggers, 1)
-	assert.Len(t, bcS2I.Spec.Triggers, 0)
+	assert.Len(t, bcS2I.Spec.Triggers, 1)
 	assert.Equal(t, bcRuntime.Spec.Source.Images[0].From, *bcS2I.Spec.Output.To)
 	assert.Equal(t, resource.MustParse("2"), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse("10Gi"), *bcS2I.Spec.Resources.Limits.Memory())
