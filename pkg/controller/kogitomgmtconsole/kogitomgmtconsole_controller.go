@@ -17,6 +17,7 @@ package kogitomgmtconsole
 import (
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	imagev1 "github.com/openshift/api/image/v1"
@@ -62,10 +63,6 @@ var watchedObjects = []framework.WatchedObjects{
 }
 
 var controllerWatcher framework.ControllerWatcher
-
-const (
-	defaultJobsServiceImageName = "kogito-management-console"
-)
 
 // Add creates a new KogitoMgmtConsole Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -119,7 +116,7 @@ type ReconcileKogitoMgmtConsole struct {
 func (r *ReconcileKogitoMgmtConsole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	log.Infof("Reconciling KogitoMgmtConsole for %s in %s", request.Name, request.Namespace)
 	definition := services.ServiceDefinition{
-		DefaultImageName:  defaultJobsServiceImageName,
+		DefaultImageName:  infrastructure.DefaultMgmtConsoleImageName,
 		Request:           request,
 		SingleReplica:     false,
 		RequiresDataIndex: true,
