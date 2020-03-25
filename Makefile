@@ -80,6 +80,7 @@ smoke=false
 load_factor=1
 local=false
 ci=
+cr_deployment_only=false
 # operator information
 operator_image=
 operator_tag=
@@ -109,6 +110,7 @@ run-tests:
 	&& if [ "$${debug}" = "true" ]; then opts+=("--debug"); fi \
 	&& if [ "$${smoke}" = "true" ]; then opts+=("--smoke"); fi \
 	&& if [ "$${local}" = "true" ]; then opts+=("--local"); fi \
+	&& if [ "$${cr_deployment_only}" = "true" ]; then opts+=("--cr_deployment_only"); fi \
 	&& if [ "$${show_scenarios}" = "true" ]; then opts+=("--show_scenarios"); fi \
 	&& if [ "$${dry_run}" = "true" ]; then opts+=("--dry_run"); fi \
 	&& if [ "$${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
