@@ -88,7 +88,7 @@ func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoServic
 
 func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {
 	if s.definition.RequiresDataIndex {
-		dataIndexEndpoints, err := infrastructure.GetKogitoDataIndexEndpoints(s.client, s.definition.Request.Namespace)
+		dataIndexEndpoints, err := infrastructure.GetDataIndexEndpoints(s.client, s.definition.Request.Namespace)
 		if err != nil {
 			return err
 		}

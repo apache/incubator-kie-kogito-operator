@@ -69,13 +69,10 @@ func InjectJobsServicesURLIntoKogitoApps(cli *client.Client, namespace string) e
 // GetJobsServiceEndpoints gets Jobs Services published external endpoints
 func GetJobsServiceEndpoints(client *client.Client, namespace string) (ServiceEndpoints, error) {
 	endpoints := ServiceEndpoints{HTTPRouteEnv: jobsServicesHTTPURIEnv}
-	services := &v1alpha1.KogitoJobsServiceList{}
-	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, services); err != nil {
+	route, err := getSingletonKogitoServiceRoute(client, namespace, &v1alpha1.KogitoJobsServiceList{})
+	if err != nil {
 		return endpoints, err
 	}
-	if len(services.Items) > 0 {
-		// should be only one data index guaranteed by the controller, but still we are looking for the first one
-		endpoints.HTTPRouteURI = services.Items[0].Status.ExternalURI
-	}
+	endpoints.HTTPRouteURI = route
 	return endpoints, nil
 }

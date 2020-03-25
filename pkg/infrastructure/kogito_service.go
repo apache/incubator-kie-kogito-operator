@@ -17,24 +17,16 @@ package infrastructure
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 )
 
-const (
-	// DefaultMgmtConsoleName ...
-	DefaultMgmtConsoleName = "management-console"
-	// DefaultMgmtConsoleImageName ...
-	DefaultMgmtConsoleImageName = "kogito-management-console"
-	// DefaultMgmtConsoleImageFullTag ...
-	DefaultMgmtConsoleImageFullTag = "quay.io/kiegroup/" + DefaultMgmtConsoleImageName + ":latest"
-)
-
-// GetManagementConsoleEndpoint gets the route for the Management Console deployed in the given namespace
-func GetManagementConsoleEndpoint(client *client.Client, namespace string) (ServiceEndpoints, error) {
-	endpoints := ServiceEndpoints{}
-	route, err := getSingletonKogitoServiceRoute(client, namespace, &v1alpha1.KogitoMgmtConsoleList{})
-	if err != nil {
-		return endpoints, err
+// getSingletonKogitoServiceRoute gets the route from a kogito service that's unique in the given namespace
+func getSingletonKogitoServiceRoute(client *client.Client, namespace string, serviceListRef v1alpha1.KogitoServiceList) (string, error) {
+	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, serviceListRef); err != nil {
+		return "", err
 	}
-	endpoints.HTTPRouteURI = route
-	return endpoints, nil
+	if serviceListRef.GetItemsCount() > 0 {
+		return serviceListRef.GetItemAt(0).GetStatus().GetExternalURI(), nil
+	}
+	return "", nil
 }
