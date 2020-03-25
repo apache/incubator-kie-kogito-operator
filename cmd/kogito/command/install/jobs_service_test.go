@@ -18,7 +18,9 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -78,4 +80,47 @@ func Test_DeployJobsServiceCmd_SuccessfulDeployWithInfinispanCredentialsAndSecre
 	assert.NotNil(t, secret)
 	assert.True(t, exists)
 	assert.Contains(t, secret.StringData, defaultInfinispanUsernameKey, defaultInfinispanPasswordKey)
+}
+
+func Test_DeployJobsServiceCmd_SuccessfulDeployWithKafkaURI(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install jobs-service --project %s --kafka-url my-cluster:9092", ns)
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
+
+	jobsService := &v1alpha1.KogitoJobsService{ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns}}
+	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(jobsService)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, "my-cluster:9092", jobsService.Spec.KafkaProperties.ExternalURI)
+	assert.False(t, jobsService.Spec.KafkaProperties.UseKogitoInfra)
+}
+
+func Test_DeployJobsServiceCmd_SuccessfulDeployWithEventsEnabled(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install jobs-service --project %s --enable-events", ns)
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
+
+	jobsService := &v1alpha1.KogitoJobsService{ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns}}
+	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(jobsService)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.True(t, jobsService.Spec.KafkaProperties.UseKogitoInfra)
+}
+
+func Test_DeployJobsServiceCmd_SuccessfulDeployWithKafkaInstance(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install jobs-service --project %s --kafka-instance my-cluster", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
 }

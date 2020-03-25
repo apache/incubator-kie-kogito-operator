@@ -35,6 +35,7 @@ import (
 
 const (
 	enablePersistenceEnvKey = "ENABLE_PERSISTENCE"
+	enableEventsEnvKey      = "ENABLE_EVENTS"
 )
 
 // createRequiredResources creates the required resources given the KogitoService instance
@@ -161,12 +162,15 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 	}
 
 	if len(URI) > 0 {
+		framework.SetEnvVar(enableEventsEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
 		for _, kafkaTopic := range s.definition.KafkaTopics {
 			framework.SetEnvVar(fromKafkaTopicToQuarkusEnvVar(kafkaTopic), URI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 		for _, kafkaEnv := range quarkusBootstrapEnvVars {
 			framework.SetEnvVar(kafkaEnv, URI, &deployment.Spec.Template.Spec.Containers[0])
 		}
+	} else {
+		framework.SetEnvVar(enableEventsEnvKey, "false", &deployment.Spec.Template.Spec.Containers[0])
 	}
 
 	return nil
