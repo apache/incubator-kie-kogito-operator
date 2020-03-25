@@ -45,7 +45,6 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	if kogitoApp.Spec.IsGitURIEmpty() {
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
-
 	buildConfig = buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, BuildS2INameSuffix),
@@ -56,12 +55,21 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 			},
 		},
 	}
-
-	buildConfig.Spec.Triggers = []buildv1.BuildTriggerPolicy{}
+	s2iBaseImage := corev1.ObjectReference{
+		Kind:      kindImageStreamTag,
+		Namespace: kogitoApp.Namespace,
+		Name:      resolveImageStreamTagNameForBuilds(kogitoApp, kogitoApp.Spec.Build.ImageS2ITag, BuildTypeS2I),
+	}
+	buildConfig.Spec.Triggers = []buildv1.BuildTriggerPolicy{
+		{
+			Type:        buildv1.ImageChangeBuildTriggerType,
+			ImageChange: &buildv1.ImageChangeTrigger{From: &s2iBaseImage},
+		},
+	}
 	buildConfig.Spec.Resources = kogitoApp.Spec.Build.Resources
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", buildConfig.Name, tagLatest)}
 	setBCS2ISource(kogitoApp, &buildConfig)
-	setBCS2IStrategy(kogitoApp, &buildConfig)
+	setBCS2IStrategy(kogitoApp, &buildConfig, s2iBaseImage)
 	meta.SetGroupVersionKind(&buildConfig.TypeMeta, meta.KindBuildConfig)
 	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
 
@@ -78,7 +86,7 @@ func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildCon
 	}
 }
 
-func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig) {
+func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, s2iBaseImage corev1.ObjectReference) {
 	envs := kogitoApp.Spec.Build.Envs
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
@@ -88,8 +96,6 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitCPUEnvVarKey, Value: limitCPU})
 	envs = framework.EnvOverride(envs, corev1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: limitMemory})
 
-	imageName := resolveImageStreamTagNameForBuilds(kogitoApp, kogitoApp.Spec.Build.ImageS2ITag, BuildTypeS2I)
-
 	if len(kogitoApp.Spec.Build.MavenMirrorURL) > 0 {
 		log.Infof("Setting maven mirror url to %s", kogitoApp.Spec.Build.MavenMirrorURL)
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
@@ -97,11 +103,7 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType
 	buildConfig.Spec.Strategy.SourceStrategy = &buildv1.SourceBuildStrategy{
-		From: corev1.ObjectReference{
-			Name:      imageName,
-			Namespace: kogitoApp.Namespace,
-			Kind:      kindImageStreamTag,
-		},
+		From:        s2iBaseImage,
 		Env:         envs,
 		Incremental: &kogitoApp.Spec.Build.Incremental,
 	}
