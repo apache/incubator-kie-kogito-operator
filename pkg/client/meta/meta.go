@@ -84,7 +84,7 @@ var (
 	// KindKogitoJobsService for a KogitoJobsService controller
 	KindKogitoJobsService = DefinitionKind{"KogitoJobsService", false, v1alpha1.SchemeGroupVersion}
 	// KindKogitoMgmtConsole ...
-	KindKogitoMgmtConsole = DefinitionKind{"KindKogitoMgmtConsole", false, v1alpha1.SchemeGroupVersion}
+	KindKogitoMgmtConsole = DefinitionKind{"KogitoMgmtConsole", false, v1alpha1.SchemeGroupVersion}
 	// KindKogitoInfra for a KindKogitoInfra controller
 	KindKogitoInfra = DefinitionKind{"KogitoInfra", false, v1alpha1.SchemeGroupVersion}
 	// KindConfigMap for a ConfigMap
