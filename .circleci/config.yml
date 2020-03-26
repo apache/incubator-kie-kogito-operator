@@ -6,8 +6,7 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.13
-        environment:
-          GO111MODULE: on
+        environment: GO111MODULE=on
     environment:
       SONARQUBE_SCANNER_PARAMS: '{"sonar.host.url":"https://sonarcloud.io"}, {"sonar.pullrequest.branch": "pull/$CIRCLE_PR_NUMBER/head"}, {"sonar.pullrequest.key": "$CIRCLE_PR_NUMBER"}'
     working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
