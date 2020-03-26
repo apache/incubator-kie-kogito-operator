@@ -1,0 +1,7 @@
+organization=kiegroup
+projectKey=kogito-cloud-operator
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.6167
+dashboardUrl=https://sonarcloud.io/dashboard?id=kogito-cloud-operator
+ceTaskId=AXEYgCBG4Y4CAPfu7xwg
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AXEYgCBG4Y4CAPfu7xwg
