@@ -27,4 +27,6 @@ workflows:
   main:
     jobs:
       - build:
+          environment:
+            SONARQUBE_SCANNER_PARAMS: '{"sonar.host.url":"https://sonarcloud.io"}, {"sonar.pullrequest.branch": "pull/$CIRCLE_PR_NUMBER/head"}, {"sonar.pullrequest.key": "$CIRCLE_PR_NUMBER"}'
           context: SonarCloud
