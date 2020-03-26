@@ -530,6 +530,9 @@ func getKubernetesResources(kogitoRes *kogitores.KogitoAppResources) []utilsres.
 	if kogitoRes.ProtoBufCM != nil {
 		k8sRes = append(k8sRes, kogitoRes.ProtoBufCM)
 	}
+	if kogitoRes.AppPropCM != nil {
+		k8sRes = append(k8sRes, kogitoRes.AppPropCM)
+	}
 
 	return k8sRes
 }

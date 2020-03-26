@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
@@ -84,7 +85,7 @@ var (
 )
 
 // newDeploymentConfig creates a new DeploymentConfig resource for the KogitoApp based on the BuildConfig runner image
-func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildConfig, dockerImage *dockerv10.DockerImage) (dc *appsv1.DeploymentConfig, err error) {
+func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildConfig, dockerImage *dockerv10.DockerImage, appPropContentHash string) (dc *appsv1.DeploymentConfig, err error) {
 	if runnerBC == nil {
 		return nil, fmt.Errorf("Impossible to create the DeploymentConfig without a reference to a the service BuildConfig")
 	}
@@ -99,9 +100,14 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 				Type: appsv1.DeploymentStrategyTypeRolling,
 			},
 			Template: &corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{
-					downwardAPIProtoBufCMKey: GenerateProtoBufConfigMapName(kogitoApp),
-				}},
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						downwardAPIProtoBufCMKey: GenerateProtoBufConfigMapName(kogitoApp),
+					},
+					Annotations: map[string]string{
+						services.AppPropContentHashKey: appPropContentHash,
+					},
+				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
@@ -117,6 +123,7 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 									Name:      downwardAPIVolumeName,
 									MountPath: downwardAPIVolumeMount,
 								},
+								services.CreateAppPropVolumeMount(),
 							},
 							Lifecycle: &corev1.Lifecycle{
 								PostStart: &corev1.Handler{
@@ -139,6 +146,7 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 								},
 							},
 						},
+						services.CreateAppPropVolume(kogitoApp.Name),
 					},
 				},
 			},

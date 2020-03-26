@@ -65,6 +65,12 @@ func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoServic
 
 		service := createRequiredService(instance, deployment)
 
+		contentHash, configMap, err := GetAppPropConfigMapContentHash(instance.GetName(), instance.GetNamespace(), s.client)
+		if err != nil {
+			return resources, reconcileAfter, err
+		}
+		s.applyApplicationPropertiesConfigurations(contentHash, deployment, instance)
+
 		if s.definition.infinispanAware {
 			if err = s.applyInfinispanConfigurations(deployment, instance); err != nil {
 				return resources, reconcileAfter, err
@@ -80,6 +86,9 @@ func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoServic
 		resources[reflect.TypeOf(corev1.Service{})] = []resource.KubernetesResource{service}
 		if s.client.IsOpenshift() {
 			resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(instance, service)}
+		}
+		if configMap != nil {
+			resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
 		}
 	}
 
@@ -176,6 +185,24 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 	return nil
 }
 
+func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash string, deployment *appsv1.Deployment, instance v1alpha1.KogitoService) {
+	if deployment.Spec.Template.Annotations == nil {
+		deployment.Spec.Template.Annotations = map[string]string{AppPropContentHashKey: contentHash}
+	} else {
+		deployment.Spec.Template.Annotations[AppPropContentHashKey] = contentHash
+	}
+	if deployment.Spec.Template.Spec.Volumes == nil {
+		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{CreateAppPropVolume(instance.GetName())}
+	} else {
+		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, CreateAppPropVolume(instance.GetName()))
+	}
+	if deployment.Spec.Template.Spec.Containers[0].VolumeMounts == nil {
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{CreateAppPropVolumeMount()}
+	} else {
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, CreateAppPropVolumeMount())
+	}
+}
+
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance
 func (s *serviceDeployer) getDeployedResources(instance v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
 	reader := read.New(s.client.ControlCli).WithNamespace(instance.GetNamespace()).WithOwnerObject(instance)
@@ -189,7 +216,14 @@ func (s *serviceDeployer) getDeployedResources(instance v1alpha1.KogitoService) 
 	if infrastructure.IsStrimziAvailable(s.client) {
 		objectTypes = append(objectTypes, &kafkabetav1.KafkaTopicList{})
 	}
-	return reader.ListAll(objectTypes...)
+
+	resources, err = reader.ListAll(objectTypes...)
+	if err != nil {
+		return
+	}
+
+	ExcludeAppPropConfigMapFromResource(instance.GetName(), resources)
+	return
 }
 
 // getComparator gets the comparator for the owned resources

@@ -17,6 +17,7 @@ package resource
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	"reflect"
@@ -197,6 +198,30 @@ func TestGetDeployedResources(t *testing.T) {
 		},
 	}
 
+	cm1 := v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kogito-properties",
+			Namespace: "test",
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					UID: "1234567",
+				},
+			},
+		},
+	}
+
+	cm2 := v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cm2",
+			Namespace: "test",
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					UID: "1234567890",
+				},
+			},
+		},
+	}
+
 	type args struct {
 		instance *v1alpha1.KogitoApp
 		client   *client.Client
@@ -211,7 +236,7 @@ func TestGetDeployedResources(t *testing.T) {
 			args{
 				kogitoApp,
 				&client.Client{
-					ControlCli:    fake.NewFakeClient(&bc1, &bc2, &dc1, &dc2, &is1, &is2, &rt1, &rt2, &svc1, &svc2),
+					ControlCli:    fake.NewFakeClientWithScheme(meta.GetRegisteredSchema(), &bc1, &bc2, &dc1, &dc2, &is1, &is2, &rt1, &rt2, &svc1, &svc2, &cm1, &cm2),
 					PrometheusCli: monfake.NewSimpleClientset(&sm1, &sm2).MonitoringV1(),
 					Discovery:     test.CreateFakeDiscoveryClient(false),
 				},
@@ -226,8 +251,8 @@ func TestGetDeployedResources(t *testing.T) {
 				t.Errorf("GetDeployedResources() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if len(got) != 6 {
-				t.Errorf("GetDeployedResources() got = %v, want %v", got, "6 types of resources")
+			if len(got) != 7 {
+				t.Errorf("GetDeployedResources() got = %v, want %v", got, "7 types of resources")
 			}
 			if len(got[reflect.TypeOf(buildv1.BuildConfig{})]) != 1 ||
 				got[reflect.TypeOf(buildv1.BuildConfig{})][0].GetName() != bc1.GetName() {
@@ -252,6 +277,9 @@ func TestGetDeployedResources(t *testing.T) {
 			if len(got[reflect.TypeOf(monv1.ServiceMonitor{})]) != 1 ||
 				got[reflect.TypeOf(monv1.ServiceMonitor{})][0].GetName() != sm1.GetName() {
 				t.Errorf("getServiceMonitor() gotServiceMonitor = %v, want %v", got, sm1)
+			}
+			if len(got[reflect.TypeOf(v1.ConfigMap{})]) != 0 {
+				t.Errorf("getConfigMap() getConfigMap = %v, want %v", got, nil)
 			}
 		})
 	}
