@@ -183,7 +183,6 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	routeAfterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeAfterReconcile)
 	assert.True(t, routeAfterReconcileFound)
 	assert.NoError(t, err)
-	//fmt.Println(routeAfterReconcile)
 	assert.True(t, routeAfterReconcileFound)
 	assert.Equal(t, intstr.IntOrString{Type: 0, IntVal: 9090, StrVal: ""}, routeAfterReconcile.Spec.Port.TargetPort)
 
@@ -194,7 +193,6 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	serviceFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceFromResource)
 	assert.True(t, serviceFound)
 	assert.NoError(t, err)
-	//fmt.Println(serviceFromResource)
 	// update ports
 	serviceFromResource.Spec.Ports[0].Port = 4000
 	serviceFromResource.Spec.Ports[0].TargetPort = intstr.FromString("4000")
@@ -208,7 +206,6 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	servicefterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceAfterReconcile)
 	assert.True(t, servicefterReconcileFound)
 	assert.NoError(t, err)
-	//fmt.Println(serviceAfterReconcile)
 	// compare again if the port was updated after reconcile
 	assert.Equal(t, int32(9090), serviceAfterReconcile.Spec.Ports[0].Port)
 	assert.Equal(t, intstr.FromInt(9090), serviceAfterReconcile.Spec.Ports[0].TargetPort)
