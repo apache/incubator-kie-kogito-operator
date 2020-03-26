@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'go'}
     options {
-        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '15')
         timeout(time: 120, unit: 'MINUTES')
     }
     environment {
