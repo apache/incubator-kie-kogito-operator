@@ -2,7 +2,7 @@ pipeline {
     agent { label 'go'}
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
-        timeout(time: 90, unit: 'MINUTES')
+        timeout(time: 120, unit: 'MINUTES')
     }
     environment {
         WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
@@ -60,11 +60,11 @@ pipeline {
                 }
             }
         }
-        stage('Running Smoke Testing') {
+        stage('Running Testing') {
             steps {
                 dir ("${WORKING_DIR}") {
                     sh """
-                        make run-smoke-tests operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
+                        make run-tests operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
                     """
                 }
             }
@@ -74,6 +74,16 @@ pipeline {
                         archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
                         junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
                     }
+                }
+            }
+        }
+        stage('Push to Quay') {
+            steps {
+                withDockerRegistry([ credentialsId: "quay", url: "https://quay.io" ]) {
+                  sh """
+                      podman tag ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7) quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
+                      podman push quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
+                  """
                 }
             }
         }
