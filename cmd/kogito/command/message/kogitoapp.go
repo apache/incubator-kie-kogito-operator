@@ -21,8 +21,8 @@ const (
 	KogitoAppViewBuildStatus           = "Your Kogito Runtime Service should be deploying. To see its logs, run 'oc logs -f bc/%s-builder -n %s'"
 	KogitoAppUploadBinariesInstruction = "Your Kogito Runtime Service needs the application binaries to proceed. To upload your binaries please run 'oc start-build %s-binary --from-dir=target -n %s' from your project's root"
 
-	KogitoAppNoMgmtConsole = `No Management Console found in the namespace %s. 
-Consider deploying Data Index and Management Console to be able to manage your deployed process.
-For Data Index use: "kogito install data-index -p %s". And then deploy Management Console with "kogito instal mgmt-console -p %s"`
-	KogitoAppMgmtConsoleEndpoint = `You can manage your deployed process with Management Console via "%s" URL`
+	KogitoAppNoMgmtConsole = `To more easily manage your Kogito Runtime Service install Data Index Service and Process Instance Management. 
+For how to install see: https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-deployment
+and https://github.com/kiegroup/kogito-cloud-operator#kogito-management-console-install`
+	KogitoAppMgmtConsoleEndpoint = `You can manage your process using the management console: %s`
 )

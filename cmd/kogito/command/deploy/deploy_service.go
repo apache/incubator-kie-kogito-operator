@@ -271,7 +271,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 	if endpoint.IsEmpty() {
-		log.Infof(message.KogitoAppNoMgmtConsole, i.flags.Project, i.flags.Project, i.flags.Project)
+		log.Info(message.KogitoAppNoMgmtConsole)
 	} else {
 		log.Infof(message.KogitoAppMgmtConsoleEndpoint, endpoint.HTTPRouteURI)
 	}
