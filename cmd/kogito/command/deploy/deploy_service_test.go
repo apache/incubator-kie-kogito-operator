@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"sort"
 	"strings"
@@ -163,7 +164,7 @@ func Test_DeployCmd_WithoutGitURL(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "example-drools")
 	assert.Contains(t, lines, "-binary")
-	assert.NotContains(t, lines, "deploying")
+	assert.NotContains(t, lines, "You can see the deployment status")
 }
 
 func Test_DeployCmd_WrongGitURL(t *testing.T) {
@@ -233,4 +234,34 @@ func Test_DeployCmd_CommasOnMultipleSlicesParameters(t *testing.T) {
 	assert.Equal(t, "true", kogitoApp.Spec.Build.Envs[0].Value)
 	assert.Equal(t, "MAVEN_ARGS_APPEND", kogitoApp.Spec.Build.Envs[1].Name)
 	assert.Equal(t, "-Ppersistence,events", kogitoApp.Spec.Build.Envs[1].Value)
+}
+
+func Test_NoManagementConsole(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project %s", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "example-drools")
+	assert.Contains(t, lines, "successfully created")
+	assert.Contains(t, lines, "No Management Console found in the namespace")
+}
+
+func Test_WithManagementConsole(t *testing.T) {
+	ns := t.Name()
+	mgmtConsoleURI := "http://mgmtconsole.com"
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project %s", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&v1alpha1.KogitoMgmtConsole{
+			ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: ns},
+			Status:     v1alpha1.KogitoMgmtConsoleStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: mgmtConsoleURI}}})
+
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "example-drools")
+	assert.Contains(t, lines, "successfully created")
+	assert.Contains(t, lines, mgmtConsoleURI)
 }

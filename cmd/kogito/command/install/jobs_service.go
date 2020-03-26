@@ -44,7 +44,7 @@ type installJobsServiceFlags struct {
 	backOffRetryMillis            int64
 	maxIntervalLimitToRetryMillis int64
 	enablePersistence             bool
-	enableEvents	bool
+	enableEvents                  bool
 }
 
 type installJobsServiceCommand struct {

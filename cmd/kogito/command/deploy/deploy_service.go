@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/url"
@@ -263,6 +264,16 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		log.Infof(message.KogitoAppViewBuildStatus, i.flags.name, i.flags.Project)
 	} else {
 		log.Infof(message.KogitoAppUploadBinariesInstruction, i.flags.name, i.flags.Project)
+	}
+
+	endpoint, err := infrastructure.GetManagementConsoleEndpoint(i.Client, i.flags.Project)
+	if err != nil {
+		return err
+	}
+	if endpoint.IsEmpty() {
+		log.Infof(message.KogitoAppNoMgmtConsole, i.flags.Project, i.flags.Project, i.flags.Project)
+	} else {
+		log.Infof(message.KogitoAppMgmtConsoleEndpoint, endpoint.HTTPRouteURI)
 	}
 
 	return nil

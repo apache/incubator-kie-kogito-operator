@@ -21,6 +21,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+const (
+	webSocketScheme       = "ws"
+	webSocketSecureScheme = "wss"
+	httpScheme            = "http"
+)
+
 // ServiceEndpoints represents the endpoints for a deployed Kogito Data Index service
 type ServiceEndpoints struct {
 	// HTTPRouteURI ...
@@ -33,14 +39,19 @@ type ServiceEndpoints struct {
 	WSRouteEnv string
 }
 
-func (s ServiceEndpoints) String() string {
+func (s *ServiceEndpoints) String() string {
 	return s.HTTPRouteURI
+}
+
+// IsEmpty returns true if route URIs are empty
+func (s *ServiceEndpoints) IsEmpty() bool {
+	return len(s.HTTPRouteURI) == 0 && len(s.WSRouteURI) == 0
 }
 
 // InjectEnvVarsFromExternalServices inject environment variables from external services that the KogitoApp runtime might need
 func InjectEnvVarsFromExternalServices(kogitoApp *v1alpha1.KogitoApp, container *v1.Container, client *client.Client) error {
 	log.Debugf("Querying external routes to inject into KogitoApp: %s", kogitoApp.GetName())
-	dataIndexEndpoints, err := GetKogitoDataIndexEndpoints(client, kogitoApp.GetNamespace())
+	dataIndexEndpoints, err := GetDataIndexEndpoints(client, kogitoApp.GetNamespace())
 	if err != nil {
 		return err
 	}

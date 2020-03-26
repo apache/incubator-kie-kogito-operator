@@ -34,9 +34,6 @@ const (
 
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
 	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
-	webSocketScheme       = "ws"
-	webSocketSecureScheme = "wss"
-	httpScheme            = "http"
 )
 
 // InjectDataIndexURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Data Index route to each one
@@ -52,7 +49,7 @@ func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) e
 	var dataIndexEndpoints ServiceEndpoints
 	if len(dcs) > 0 {
 		log.Debug("Querying Data Index route to inject into KogitoApps ")
-		dataIndexEndpoints, err = GetKogitoDataIndexEndpoints(client, namespace)
+		dataIndexEndpoints, err = GetDataIndexEndpoints(client, namespace)
 		if err != nil {
 			return err
 		}
@@ -84,25 +81,11 @@ func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) e
 	return nil
 }
 
-// getKogitoDataIndexRoute gets the deployed data index route
-func getKogitoDataIndexRoute(client *client.Client, namespace string) (string, error) {
-	route := ""
-	dataIndexes := &v1alpha1.KogitoDataIndexList{}
-	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, dataIndexes); err != nil {
-		return route, err
-	}
-	if len(dataIndexes.Items) > 0 {
-		// should be only one data index guaranteed by OLM, but still we are looking for the first one
-		route = dataIndexes.Items[0].Status.ExternalURI
-	}
-	return route, nil
-}
-
-// GetKogitoDataIndexEndpoints queries for the Data Index URIs
-func GetKogitoDataIndexEndpoints(client *client.Client, namespace string) (dataIndexEndpoints ServiceEndpoints, err error) {
+// GetDataIndexEndpoints queries for the Data Index URIs
+func GetDataIndexEndpoints(client *client.Client, namespace string) (dataIndexEndpoints ServiceEndpoints, err error) {
 	route := ""
 	dataIndexEndpoints = ServiceEndpoints{HTTPRouteEnv: dataIndexHTTPRouteEnv, WSRouteEnv: dataIndexWSRouteEnv}
-	route, err = getKogitoDataIndexRoute(client, namespace)
+	route, err = getSingletonKogitoServiceRoute(client, namespace, &v1alpha1.KogitoDataIndexList{})
 	if err != nil {
 		return
 	}
