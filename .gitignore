@@ -1,5 +1,7 @@
 # bin
 bin/*
+# tests output
+*.out
 
 # Temporary Build Files
 build/_output/

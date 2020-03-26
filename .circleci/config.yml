@@ -1,7 +1,7 @@
 # Golang CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-go/ for more details
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -13,8 +13,18 @@ jobs:
       - run: go mod tidy
       - run: go fmt ./...
       - run: go vet ./...
-      - run: CGO_ENABLED=0 go test ./cmd/... -count=1 -p=1
-      - run: CGO_ENABLED=0 go test ./pkg/... -count=1 -p=1
+      - run: CGO_ENABLED=0 go test -coverprofile test-coverage-cmd.out -json > test-report-cmd.out ./cmd/... -count=1 -p=1
+      - run: CGO_ENABLED=0 go test -coverprofile test-coverage-pkg.out -json > test-report-pkg.out ./pkg/... -count=1 -p=1
       - run: git clone https://github.com/bats-core/bats-core.git
       - run: cd bats-core && ./install.sh $HOME
       - run: $HOME/bin/bats hack/*.bats
+      - sonarcloud/scan
+
+orbs:
+  sonarcloud: sonarsource/sonarcloud@1.0.1
+
+workflows:
+  main:
+    jobs:
+      - build:
+          context: SonarCloud
