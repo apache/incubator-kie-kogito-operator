@@ -74,7 +74,7 @@ func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra) (resources map[r
 					Config: map[string]interface{}{
 						"log.message.format.version":               "2.3",
 						"offsets.topic.replication.factor":         defaultReplicas,
-						"transaction.state.log.min.isr":            2,
+						"transaction.state.log.min.isr":            1,
 						"transaction.state.log.replication.factor": defaultReplicas,
 						"auto.create.topics.enable":                true,
 					},
