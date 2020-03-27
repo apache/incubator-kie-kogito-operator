@@ -1163,3 +1163,4 @@ $ make test
 ## Contributing to the Kogito Operator
 
 For information about submitting bug fixes or proposed new features for the Kogito Operator, see [Contributing to the Kogito Operator](docs/CONTRIBUTING.MD).
+
