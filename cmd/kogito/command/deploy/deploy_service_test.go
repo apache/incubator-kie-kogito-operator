@@ -245,7 +245,7 @@ func Test_NoManagementConsole(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "example-drools")
 	assert.Contains(t, lines, "successfully created")
-	assert.Contains(t, lines, "No Management Console found in the namespace")
+	assert.Contains(t, lines, "install Data Index Service and Process Instance Management")
 }
 
 func Test_WithManagementConsole(t *testing.T) {

@@ -39,6 +39,9 @@ Table of Contents
             * [Installing the Kogito Jobs Service with the oc client](#installing-the-kogito-jobs-service-with-the-oc-client)
          * [Enabling Persistence with Infinispan](#enabling-persistence-with-infinispan)
          * [Kogito Jobs Service properties configuration](#kogito-jobs-service-properties-configuration)
+      * [Kogito Management Console Install](#kogito-management-console-install)
+         * [Installing the Management Console with the Kogito CLI](#installing-the-management-console-with-the-kogito-cli)
+         * [Installing the Management Console with the Operator Catalog (OLM)](#installing-the-management-console-with-the-operator-catalog-olm)
       * [Kogito CLI](#kogito-cli)
          * [Kogito CLI requirements](#kogito-cli-requirements)
          * [Kogito CLI installation](#kogito-cli-installation)
@@ -539,6 +542,50 @@ data:
 The data `application.properties` of the `configMap` will be mounted in a volume to the container of the Jobs Service. Any runtime properties added to `application.properties` will override the default application configuration properties of Jobs Service.
 
 When there are changes to `application.properties` of the `configMap`, a rolling update will take place to update the deployment and configuration of Jobs Service. 
+
+## Kogito Management Console Install
+
+| :warning: Management Console only works with Data Index. Make sure to [deploy the Data Index](#kogito-data-index-service-deployment) before trying to deploy this service. |
+| --- |
+
+Like Data Index and Jobs Service, the Management Console can also be installed via CLI or Operator.
+
+### Installing the Management Console with the Kogito CLI
+
+If you have installed the [Kogito CLI](https://github.com/kiegroup/kogito-cloud-operator#kogito-cli), run the following command to create the Kogito Jobs Service resource:
+
+```bash
+$ kogito install mgmt-console -p my-project
+```
+
+There are some options to customize the Management Console deployment with CLI. 
+Run `kogito install mgmt-console --help` to understand and set them according to your requirements.
+
+### Installing the Management Console with the Operator Catalog (OLM)
+
+If you are running on OpenShift 4.x, you can use the OperatorHub user interface to create the Kogito Management Console resource. 
+In the OpenShift Web Console, go to **Installed Operators** -> **Kogito Operator** -> **Kogito Management Console**. 
+Click **Create Kogito Management Console** and create a new resource as shown in the following example:
+
+```yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoMgmtConsole
+metadata:
+  name: management-console
+spec:
+  replicas: 1
+```
+
+You should be able to see the Management Console pod up and running in a couple minutes. To see its deployed URL, run:
+
+```
+$ oc get kogitomgtmconsole
+
+NAME                 REPLICAS   IMAGE                                                                      ENDPOINT
+management-console   1          quay.io/kiegroup/kogito-management-console:0.9.0-rc1 (Internal Registry)   http://management-console-kogito-1445.apps-crc.testing
+```
+
+The `ENDPOINT` column contains the URL that you need to access the application.
 
 ## Kogito CLI
 
