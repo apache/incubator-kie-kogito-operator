@@ -134,6 +134,8 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 	if len(image) > 0 {
 		return image, nil
 	}
+	log.Warnf("Image for the service %s not found yet in the namespace %s. Please make sure that the informed image %s exists in the given registry.",
+		instance.GetName(), instance.GetNamespace(), imageHandler.resolveRegistryImage())
 	deploymentDeployed := &appsv1.Deployment{ObjectMeta: v1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()}}
 	if exists, err := kubernetes.ResourceC(s.client).Fetch(deploymentDeployed); err != nil {
 		return "", err
@@ -141,6 +143,7 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 		return "", nil
 	}
 	if len(deploymentDeployed.Spec.Template.Spec.Containers) > 0 {
+		log.Infof("Returning the image resolved from the Deployment")
 		return deploymentDeployed.Spec.Template.Spec.Containers[0].Image, nil
 	}
 	return "", nil
