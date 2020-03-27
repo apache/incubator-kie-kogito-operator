@@ -31,17 +31,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	defaultDeployRuntime     = string(v1alpha1.QuarkusRuntimeType)
-	defaultInstallInfinispan = string(v1alpha1.KogitoAppInfraInstallInfinispanAuto)
-	defaultInstallKafka      = string(v1alpha1.KogitoAppInfraInstallKafkaNever)
-)
+const defaultDeployRuntime = string(v1alpha1.QuarkusRuntimeType)
 
-var (
-	deployRuntimeValidEntries     = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
-	installInfinispanValidEntries = []string{string(v1alpha1.KogitoAppInfraInstallInfinispanAuto), string(v1alpha1.KogitoAppInfraInstallInfinispanNever), string(v1alpha1.KogitoAppInfraInstallInfinispanAlways)}
-	installKafkaValidEntries      = []string{string(v1alpha1.KogitoAppInfraInstallKafkaNever), string(v1alpha1.KogitoAppInfraInstallKafkaAlways)}
-)
+var deployRuntimeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
 
 type deployFlags struct {
 	CommonFlags
@@ -58,11 +50,11 @@ type deployFlags struct {
 	native            bool
 	buildLimits       []string
 	buildRequests     []string
-	installInfinispan string
-	installKafka      string
 	imageVersion      string
 	mavenMirrorURL    string
 	enableIstio       bool
+	enablePersistence bool
+	enableEvents      bool
 }
 
 type deployCommand struct {
@@ -125,12 +117,6 @@ func (i *deployCommand) RegisterHook() {
 			if !util.Contains(i.flags.runtime, deployRuntimeValidEntries) {
 				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, i.flags.runtime)
 			}
-			if !util.Contains(i.flags.installInfinispan, installInfinispanValidEntries) {
-				return fmt.Errorf("install-infinispan not valid. Valid entries are %s. Received %s", installInfinispanValidEntries, i.flags.installInfinispan)
-			}
-			if !util.Contains(i.flags.installKafka, installKafkaValidEntries) {
-				return fmt.Errorf("install-kafka not valid. Valid entries are %s. Received %s", installKafkaValidEntries, i.flags.installKafka)
-			}
 			if err := CheckImageTag(i.flags.imageRuntime); err != nil {
 				return err
 			}
@@ -160,8 +146,8 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().StringSliceVar(&i.flags.buildRequests, "build-requests", nil, "Resource requests for the s2i build pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	i.command.Flags().StringVar(&i.flags.imageS2I, "image-s2i", "", "Custom image tag for the s2i build to build the application binaries, e.g: quay.io/mynamespace/myimage:latest")
 	i.command.Flags().StringVar(&i.flags.imageRuntime, "image-runtime", "", "Custom image tag for the s2i build, e.g: quay.io/mynamespace/myimage:latest")
-	i.command.Flags().StringVar(&i.flags.installInfinispan, "install-infinispan", defaultInstallInfinispan, "Infinispan installation mode: \"Always\", \"Never\" or \"Auto\". \"Always\" will install Infinispan in the same namespace no matter what, \"Never\" won't install Infinispan even if the service requires it and \"Auto\" will install only if the service requires persistence.")
-	i.command.Flags().StringVar(&i.flags.installKafka, "install-kafka", defaultInstallKafka, "Kafka installation mode: \"Always\" or \"Never\". \"Always\" will use the Strimzi Operator to install a Kafka cluster. The environment variable 'KAFKA_BOOTSTRAP_SERVERS' will be available for the service during runtime.")
+	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set to true will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
+	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set to true will install a Kafka cluster via the Strimzi Operator. The environment variable 'KAFKA_BOOTSTRAP_SERVERS' will be available for the service during runtime.")
 	i.command.Flags().StringVar(&i.flags.imageVersion, "image-version", "", "Image version for standard Kogito build images. Ignored if a custom image is set for image-s2i or image-runtime.")
 	i.command.Flags().StringVar(&i.flags.mavenMirrorURL, "maven-mirror-url", "", "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed, e.g: https://my.internal.nexus/content/group/public")
 	i.command.Flags().BoolVar(&i.flags.enableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
@@ -236,8 +222,9 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 			Service: v1alpha1.KogitoAppServiceObject{
 				Labels: util.FromStringsKeyPairToMap(i.flags.serviceLabels),
 			},
-			Infra:       v1alpha1.KogitoAppInfra{InstallInfinispan: v1alpha1.KogitoAppInfraInstallInfinispanType(i.flags.installInfinispan), InstallKafka: v1alpha1.KogitoAppInfraInstallKafkaType(i.flags.installKafka)},
-			EnableIstio: i.flags.enableIstio,
+			EnablePersistence: i.flags.enablePersistence,
+			EnableEvents:      i.flags.enableEvents,
+			EnableIstio:       i.flags.enableIstio,
 		},
 		Status: v1alpha1.KogitoAppStatus{
 			ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: make([]v1alpha1.Condition, 0)},

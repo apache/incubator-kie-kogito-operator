@@ -43,14 +43,30 @@ type KogitoAppSpec struct {
 	// Default value: nil
 	Service KogitoAppServiceObject `json:"service,omitempty"`
 
-	// Infrastructure definition
-	Infra KogitoAppInfra `json:"infra,omitempty"`
-
 	// Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Istio"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	EnableIstio bool `json:"enableIstio,omitempty"`
+
+	// Set this property to true to tell the operator to deploy an instance of Infinispan via the Infinispan Operator and
+	// configure this service to connect to the deployed server.
+	// For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
+	// More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
+	// Set to false or ignore it if your service does not need persistence or if you are going to configure the persistence infrastructure yourself
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Persistence"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	EnablePersistence bool `json:"enablePersistence,omitempty"`
+
+	// Set this property to true to tell the operator to deploy an instance of Kafka via the Strimzi Operator and configure this service with
+	// the proper information to connect to the Kafka cluster.
+	// The Kafka cluster service endpoint will be injected in the Kogito Service container via an environment variable named "KAFKA_BOOTSTRAP_SERVERS" e.g.: kafka-kogito:9092.
+	// Set to false or ignore it if your service does not need messaging or if you are going to configure the messaging infrastructure yourself
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Events"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	EnableEvents bool `json:"enableEvents,omitempty"`
 }
 
 // GetBuild ...
@@ -181,45 +197,6 @@ type KogitoAppStatus struct {
 	Builds Builds `json:"builds"`
 }
 
-// KogitoAppInfraInstallInfinispanType defines the Infinispan installation mode
-type KogitoAppInfraInstallInfinispanType string
-
-const (
-	// KogitoAppInfraInstallInfinispanAlways - Always installs Infinispan
-	KogitoAppInfraInstallInfinispanAlways KogitoAppInfraInstallInfinispanType = "Always"
-	// KogitoAppInfraInstallInfinispanNever - Never installs Infinispan
-	KogitoAppInfraInstallInfinispanNever KogitoAppInfraInstallInfinispanType = "Never"
-	// KogitoAppInfraInstallInfinispanAuto - The Operator will try to discover if the service needs persistence by scanning the runtime image metadata
-	KogitoAppInfraInstallInfinispanAuto KogitoAppInfraInstallInfinispanType = "Auto"
-)
-
-// KogitoAppInfraInstallKafkaType defines the Kafka	 installation mode
-type KogitoAppInfraInstallKafkaType string
-
-const (
-	// KogitoAppInfraInstallKafkaAlways - Always installs Kafka
-	KogitoAppInfraInstallKafkaAlways KogitoAppInfraInstallKafkaType = "Always"
-	// KogitoAppInfraInstallKafkaNever - Never installs Kafka
-	KogitoAppInfraInstallKafkaNever KogitoAppInfraInstallKafkaType = "Never"
-)
-
-// KogitoAppInfra defines details regarding the Kogito Infrastructure to support the deployed Kogito Service
-type KogitoAppInfra struct {
-	// By default Kogito Operator installs an Infinispan instance in the namespace if the service needs persistence ('Auto').
-	// Set to 'Never' to disable this behavior, e.g. if the service will use another persistence mechanism.
-	// Set to 'Always' to always install Infinispan, even if the service won't need persistence.
-	// For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
-	// More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
-	// Default to 'Auto', which means it installs Infinispan if the service requires persistence.
-	// +kubebuilder:validation:Enum=Always;Never;Auto
-	InstallInfinispan KogitoAppInfraInstallInfinispanType `json:"installInfinispan,omitempty"`
-	// Set to 'Always' to have Kafka installed automatically via Strimzi Operator when deploying the Kogito Service. 'Never' otherwise.
-	// The Kafka cluster service endpoint will be inject in the Kogito Service container via an environment variable named "KAFKA_BOOTSTRAP_SERVERS" e.g.: kafka-kogito:9092
-	// Default to 'Never'
-	// +kubebuilder:validation:Enum=Always;Never
-	InstallKafka KogitoAppInfraInstallKafkaType `json:"installKafka,omitempty"`
-}
-
 // RuntimeType - type of condition
 type RuntimeType string
 
@@ -278,6 +255,12 @@ type Builds struct {
 // KogitoApp is a project prescription running a Kogito Runtime Service.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoapps,scope=Namespaced
+// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
+// +kubebuilder:printcolumn:name="Runtime",type="string",JSONPath=".spec.runtime",description="Runtime used to build the service"
+// +kubebuilder:printcolumn:name="Enable Persistence",type="boolean",JSONPath=".spec.enablePersistence",description="Indicates if persistence is enabled"
+// +kubebuilder:printcolumn:name="Enable Events",type="boolean",JSONPath=".spec.enableEvents",description="Indicates if events is enabled"
+// +kubebuilder:printcolumn:name="Image Version",type="string",JSONPath=".spec.build.imageVersion",description="Build image version"
+// +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.route",description="External URI to access this service"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Service"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="DeploymentConfigs,apps.openshift.io/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStreams,image.openshift.io/v1"

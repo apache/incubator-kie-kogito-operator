@@ -875,12 +875,11 @@ quarkus.infinispan-client.sasl-mechanism=
 
 These properties are replaced by the environment variables in runtime.
 
-You can control the installation method for the Infinispan by using the flag `infinispan-install` in the Kogito CLI or 
-editing the `spec.infra.installInfinispan` in `KogitoApp` custom resource:
+You can control the installation method for the Infinispan by using the flag `enable-persistence` in the Kogito CLI or 
+editing the `spec.enablePersistence` in `KogitoApp` custom resource:
 
-- **`Auto`** - The operator tries to discover if the service needs persistence by scanning the runtime image for the `org.kie/persistence/required` label attribute
-- **`Always`** - Infinispan is installed in the namespace without checking if the service needs persistence or not
-- **`Never`** - Infinispan is not installed, even if the service requires persistence. Use this option only if you intend to deploy your own persistence mechanism and you know how to configure your service to access it
+- **`true`** - Infinispan is installed in the namespace and the connection properties environment variables are injected into the service
+- **`false`** - Infinispan is not installed. Use this option only if you don't need persistence or intend to deploy your own persistence mechanism and you know how to configure your service to access it
   
 
 ### Infinispan for Data Index Service
@@ -910,8 +909,7 @@ If this happens, please uninstall AMQ Streams and install Strimzi manually since
 To enable Kafka installation during deployment of your service, use the following Kogito CLI command:
 
 ```bash
-$ kogito deploy kogito-kafka-quickstart-quarkus https://github.com/mswiderski/kogito-quickstarts --install-kafka Always \
---build-env MAVEN_ARGS_APPEND="-pl kogito-kafka-quickstart-quarkus -am" ARTIFACT_DIR="kogito-kafka-quickstart-quarkus/target"  
+$ kogito deploy jbpm-quarkus-example https://github.com/kiegroup/kogito-examples --context-dir=jbpm-quarkus-example --enable-events"  
 ```
 
 Or using the custom resource (CR) yaml file:
@@ -920,21 +918,19 @@ Or using the custom resource (CR) yaml file:
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoApp
 metadata:
-  name: kogito-kafka-quickstart-quarkus
+  name: jbpm-quarkus-example
 spec:
-  infra:
-    installKafka: Always
+  enableEvents: true
   build:
     envs:
     - name: MAVEN_ARGS_APPEND
-      value: -pl kogito-kafka-quickstart-quarkus -am
-    - name: ARTIFACT_DIR
-      value: kogito-kafka-quickstart-quarkus/target
+      value: -Pevents
     gitSource:
       uri: https://github.com/mswiderski/kogito-quickstarts
+      contextDir: jbpm-quarkus-example
 ```
 
-The flag `--install-kafka Always` in the CLI and the attribute `installKafka: Always` in the CR tells to the operator
+The flag `--enable-events` in the CLI and the attribute `spec.enableEvents: true` in the CR tells to the operator
 to deploy a Kafka cluster in the namespace if no Kafka cluster owned by Kogito Operator is found.
 
 A variable named `KAFKA_BOOTSTRAP_SERVERS` is injected into the service container. For Quarkus runtimes, this works
@@ -949,8 +945,8 @@ Also, if the container has any environment variable with the suffix `_BOOTSTRAP_
 value of `KAFKA_BOOTSTRAP_SERVERS` variable as well. For example, by running:
  
 ```bash
-$ kogito deploy kogito-kafka-quickstart-quarkus https://github.com/mswiderski/kogito-quickstarts --install-kafka Always \
---build-env MAVEN_ARGS_APPEND="-pl kogito-kafka-quickstart-quarkus -am" ARTIFACT_DIR="kogito-kafka-quickstart-quarkus/target \
+$ kogito deploy jbpm-quarkus-example https://github.com/kiegroup/kogito-examples --context-dir=jbpm-quarkus-example --enable-events \
+--build-env MAVEN_ARGS_APPEND="-Pevents" \
 -e MP_MESSAGING_INCOMING_TRAVELLERS_BOOTSTRAP_SERVERS -e MP_MESSAGING_OUTGOING_PROCESSEDTRAVELLERS_BOOTSTRAP_SERVERS"  
 ```
 The variables `MP_MESSAGING_INCOMING_TRAVELLERS_BOOTSTRAP_SERVERS` and `MP_MESSAGING_OUTGOING_PROCESSEDTRAVELLERS_BOOTSTRAP_SERVERS`

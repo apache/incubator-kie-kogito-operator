@@ -50,6 +50,9 @@ type KogitoJobsServiceStatus struct {
 // KogitoJobsService deploys the Kogito Jobs Service in the given namespace
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitojobsservices,scope=Namespaced
+// +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
+// +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
+// +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Jobs Services"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"

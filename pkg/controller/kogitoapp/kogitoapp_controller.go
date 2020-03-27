@@ -151,17 +151,6 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 		instance.Spec.Runtime = v1alpha1.QuarkusRuntimeType
 	}
 
-	// infra defaults
-	if &instance.Spec.Infra == nil {
-		instance.Spec.Infra = v1alpha1.KogitoAppInfra{}
-	}
-	if len(instance.Spec.Infra.InstallKafka) == 0 {
-		instance.Spec.Infra.InstallKafka = v1alpha1.KogitoAppInfraInstallKafkaNever
-	}
-	if len(instance.Spec.Infra.InstallInfinispan) == 0 {
-		instance.Spec.Infra.InstallInfinispan = v1alpha1.KogitoAppInfraInstallInfinispanAuto
-	}
-
 	requeue, err := r.ensureKogitoImageStream(instance)
 	if err != nil {
 		return reconcile.Result{}, err
@@ -174,6 +163,11 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 	log.Infof("Checking if all resources for '%s' are created", instance.Name)
 	// create resources in the cluster that do not exist
 	kogitoResources, err := kogitores.GetRequestedResources(instance, r.client)
+
+	if instance.Spec.Replicas == nil {
+		singleReplica := int32(1)
+		instance.Spec.Replicas = &singleReplica
+	}
 
 	defer r.updateKogitoAppStatus(&request, instance, kogitoResources, updateResourceResult, &result, &resultErr)
 
@@ -361,8 +355,7 @@ func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, run
 
 func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
 	log.Debug("Verify if we need to deploy Infinispan")
-	if instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAlways ||
-		(instance.Spec.Infra.InstallInfinispan == v1alpha1.KogitoAppInfraInstallInfinispanAuto && framework.IsPersistenceEnabled(runtimeImage)) {
+	if instance.Spec.EnablePersistence || framework.IsPersistenceEnabled(runtimeImage) {
 		infra, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan().Apply()
 		if err != nil {
 			return true, err
@@ -382,7 +375,7 @@ func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runt
 
 func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
 	log.Debug("Verify if we need to deploy Kafka")
-	if instance.Spec.Infra.InstallKafka == v1alpha1.KogitoAppInfraInstallKafkaAlways {
+	if instance.Spec.EnableEvents {
 		infra, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithKafka().Apply()
 		if err != nil {
 			return true, err

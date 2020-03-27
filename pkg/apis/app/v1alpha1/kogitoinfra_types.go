@@ -118,6 +118,9 @@ const (
 // resources needed to run Kogito Runtime and Kogito Data Index services.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
+// +kubebuilder:printcolumn:name="Infinispan",type="boolean",JSONPath=".spec.installInfinispan",description="Infinispan should be installed"
+// +kubebuilder:printcolumn:name="Kafka",type="boolean",JSONPath=".spec.installKafka",description="Kafka should be installed"
+// +kubebuilder:printcolumn:name="Keycloak",type="boolean",JSONPath=".spec.installKeycloak",description="Keycloak should be installed"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispans,infinispan.org/v1"

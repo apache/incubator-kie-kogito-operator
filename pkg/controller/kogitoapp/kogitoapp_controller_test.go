@@ -471,7 +471,6 @@ func TestReconcileKogitoApp_updateKogitoAppStatus(t *testing.T) {
 func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 	kogitoApp := createFakeKogitoApp()
 	imgs := createFakeImages(kogitoApp.Name, map[string]string{framework.LabelKeyOrgKiePersistenceRequired: "true"})
-	kogitoApp.Spec.Infra = v1alpha1.KogitoAppInfra{}
 	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp}, imgs, nil)
 	fakeCache := &cachev1.FakeInformers{}
 	// call reconcile object and mock image and build clients
