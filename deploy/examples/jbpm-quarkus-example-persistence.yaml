@@ -3,17 +3,16 @@ kind: KogitoApp
 metadata:
   name: example-quarkus
 spec:
-  infra:
-    installInfinispan: Always
+  enableEvents: true
+  enablePersistence: true
   build:
     envs:
      # enable persistence
       - name: MAVEN_ARGS_APPEND
-        value: "-Ppersistence"
+        value: "-Ppersistence,events"
     gitSource:
       contextDir: jbpm-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
-      reference: 0.8.0
-    imageVersion: 0.8.0
+    imageVersion: 0.9.0-rc1
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/

@@ -3,9 +3,8 @@ kind: KogitoApp
 metadata:
   name: kogito-visas
 spec:
-  infra:
-    installInfinispan: Always
-    installKafka: Always
+  enableEvents: true
+  enablePersistence: true
   envs:
     - name: MP_MESSAGING_INCOMING_VISAAPPLICATIONS_BOOTSTRAP_SERVERS
     - name: MP_MESSAGING_OUTGOING_VISASAPPROVED_BOOTSTRAP_SERVERS

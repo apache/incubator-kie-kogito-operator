@@ -53,7 +53,7 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 								--image-s2i=quay.io/namespace/myimage:latest --image-runtime=quay.io/namespace/myimage:0.2
 								--limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi
 								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi
-								--install-infinispan Always`, ns)
+								--enable-persistence`, ns)
 	// Clean up after the command above
 	cli = strings.Join(strings.Fields(cli), " ")
 	ctx := test.SetupCliTest(cli,
@@ -85,7 +85,7 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.Equal(t, *kogitoApp.Spec.Build.Resources.Requests.Memory(), resource.MustParse("2Gi"))
 	assert.Equal(t, "quay.io/namespace/myimage:latest", kogitoApp.Spec.Build.ImageS2ITag)
 	assert.Equal(t, "quay.io/namespace/myimage:0.2", kogitoApp.Spec.Build.ImageRuntimeTag)
-	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAlways, kogitoApp.Spec.Infra.InstallInfinispan)
+	assert.True(t, kogitoApp.Spec.EnablePersistence)
 }
 
 func Test_DeployCmd_CustomImage(t *testing.T) {
@@ -112,7 +112,7 @@ func Test_DeployCmd_CustomImage(t *testing.T) {
 	assert.Equal(t, "quay.io/namespace/myimage:latest", instance.Spec.Build.ImageS2ITag)
 	assert.Equal(t, "quay.io/namespace/myimage:0.2", instance.Spec.Build.ImageRuntimeTag)
 
-	assert.Equal(t, v1alpha1.KogitoAppInfraInstallInfinispanAuto, instance.Spec.Infra.InstallInfinispan)
+	assert.False(t, instance.Spec.EnablePersistence)
 }
 
 func Test_DeployCmd_CustomDeploymentWithMavenMirrorURL(t *testing.T) {

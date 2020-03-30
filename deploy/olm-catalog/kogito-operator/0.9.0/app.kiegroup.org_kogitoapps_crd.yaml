@@ -3,6 +3,31 @@ kind: CustomResourceDefinition
 metadata:
   name: kogitoapps.app.kiegroup.org
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.replicas
+    description: Number of replicas set for this service
+    name: Replicas
+    type: integer
+  - JSONPath: .spec.runtime
+    description: Runtime used to build the service
+    name: Runtime
+    type: string
+  - JSONPath: .spec.enablePersistence
+    description: Indicates if persistence is enabled
+    name: Enable Persistence
+    type: boolean
+  - JSONPath: .spec.enableEvents
+    description: Indicates if events is enabled
+    name: Enable Events
+    type: boolean
+  - JSONPath: .spec.build.imageVersion
+    description: Build image version
+    name: Image Version
+    type: string
+  - JSONPath: .status.route
+    description: External URI to access this service
+    name: Endpoint
+    type: string
   group: app.kiegroup.org
   names:
     kind: KogitoApp
@@ -10,6 +35,7 @@ spec:
     plural: kogitoapps
     singular: kogitoapp
   scope: Namespaced
+  subresources: {}
   validation:
     openAPIV3Schema:
       description: KogitoApp is a project prescription running a Kogito Runtime Service.
@@ -215,10 +241,30 @@ spec:
                     type: object
                   type: array
               type: object
+            enableEvents:
+              description: 'Set this property to true to tell the operator to deploy
+                an instance of Kafka via the Strimzi Operator and configure this service
+                with the proper information to connect to the Kafka cluster. The Kafka
+                cluster service endpoint will be injected in the Kogito Service container
+                via an environment variable named "KAFKA_BOOTSTRAP_SERVERS" e.g.:
+                kafka-kogito:9092. Set to false or ignore it if your service does
+                not need messaging or if you are going to configure the messaging
+                infrastructure yourself'
+              type: boolean
             enableIstio:
               description: Annotates the pods managed by the operator with the required
                 metadata for Istio to setup its sidecars, enabling the mesh. Defaults
                 to false.
+              type: boolean
+            enablePersistence:
+              description: 'Set this property to true to tell the operator to deploy
+                an instance of Infinispan via the Infinispan Operator and configure
+                this service to connect to the deployed server. For Quarkus runtime,
+                it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring
+                Boot, these variables start with SPRING_INFINISPAN_CLIENT_*. More
+                info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
+                Set to false or ignore it if your service does not need persistence
+                or if you are going to configure the persistence infrastructure yourself'
               type: boolean
             envs:
               description: Environment variables to be added to the runtime container.
@@ -332,36 +378,6 @@ spec:
                 namespace:
                   type: string
                 tag:
-                  type: string
-              type: object
-            infra:
-              description: Infrastructure definition
-              properties:
-                installInfinispan:
-                  description: 'By default Kogito Operator installs an Infinispan
-                    instance in the namespace if the service needs persistence (''Auto'').
-                    Set to ''Never'' to disable this behavior, e.g. if the service
-                    will use another persistence mechanism. Set to ''Always'' to always
-                    install Infinispan, even if the service won''t need persistence.
-                    For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment
-                    variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
-                    More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
-                    Default to ''Auto'', which means it installs Infinispan if the
-                    service requires persistence.'
-                  enum:
-                  - Always
-                  - Never
-                  - Auto
-                  type: string
-                installKafka:
-                  description: 'Set to ''Always'' to have Kafka installed automatically
-                    via Strimzi Operator when deploying the Kogito Service. ''Never''
-                    otherwise. The Kafka cluster service endpoint will be inject in
-                    the Kogito Service container via an environment variable named
-                    "KAFKA_BOOTSTRAP_SERVERS" e.g.: kafka-kogito:9092 Default to ''Never'''
-                  enum:
-                  - Always
-                  - Never
                   type: string
               type: object
             replicas:

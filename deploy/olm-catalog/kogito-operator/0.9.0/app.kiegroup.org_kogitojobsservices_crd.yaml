@@ -3,6 +3,19 @@ kind: CustomResourceDefinition
 metadata:
   name: kogitojobsservices.app.kiegroup.org
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.replicas
+    description: Number of replicas set for this service
+    name: Replicas
+    type: integer
+  - JSONPath: .status.image
+    description: Base image for this service
+    name: Image
+    type: string
+  - JSONPath: .status.externalURI
+    description: External URI to access this service
+    name: Endpoint
+    type: string
   group: app.kiegroup.org
   names:
     kind: KogitoJobsService
@@ -10,6 +23,7 @@ spec:
     plural: kogitojobsservices
     singular: kogitojobsservice
   scope: Namespaced
+  subresources: {}
   validation:
     openAPIV3Schema:
       description: KogitoJobsService deploys the Kogito Jobs Service in the given

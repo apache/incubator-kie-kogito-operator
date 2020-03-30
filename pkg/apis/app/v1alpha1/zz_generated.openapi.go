@@ -660,15 +660,23 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject"),
 						},
 					},
-					"infra": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Infrastructure definition",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppInfra"),
-						},
-					},
 					"enableIstio": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"enablePersistence": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Set this property to true to tell the operator to deploy an instance of Infinispan via the Infinispan Operator and configure this service to connect to the deployed server. For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*. More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services. Set to false or ignore it if your service does not need persistence or if you are going to configure the persistence infrastructure yourself",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"enableEvents": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Set this property to true to tell the operator to deploy an instance of Kafka via the Strimzi Operator and configure this service with the proper information to connect to the Kafka cluster. The Kafka cluster service endpoint will be injected in the Kogito Service container via an environment variable named \"KAFKA_BOOTSTRAP_SERVERS\" e.g.: kafka-kogito:9092. Set to false or ignore it if your service does not need messaging or if you are going to configure the messaging infrastructure yourself",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -678,7 +686,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppInfra", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

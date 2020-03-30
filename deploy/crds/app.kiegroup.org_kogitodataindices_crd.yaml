@@ -3,6 +3,19 @@ kind: CustomResourceDefinition
 metadata:
   name: kogitodataindices.app.kiegroup.org
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.replicas
+    description: Number of replicas set for this service
+    name: Replicas
+    type: integer
+  - JSONPath: .status.image
+    description: Base image for this service
+    name: Image
+    type: string
+  - JSONPath: .status.externalURI
+    description: External URI to access this service
+    name: Endpoint
+    type: string
   group: app.kiegroup.org
   names:
     kind: KogitoDataIndex
@@ -10,6 +23,7 @@ spec:
     plural: kogitodataindices
     singular: kogitodataindex
   scope: Namespaced
+  subresources: {}
   validation:
     openAPIV3Schema:
       description: KogitoDataIndex defines the Data Index Service infrastructure deployment

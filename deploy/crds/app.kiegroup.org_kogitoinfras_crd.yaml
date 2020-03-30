@@ -3,6 +3,19 @@ kind: CustomResourceDefinition
 metadata:
   name: kogitoinfras.app.kiegroup.org
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.installInfinispan
+    description: Infinispan should be installed
+    name: Infinispan
+    type: boolean
+  - JSONPath: .spec.installKafka
+    description: Kafka should be installed
+    name: Kafka
+    type: boolean
+  - JSONPath: .spec.installKeycloak
+    description: Keycloak should be installed
+    name: Keycloak
+    type: boolean
   group: app.kiegroup.org
   names:
     kind: KogitoInfra
@@ -10,6 +23,7 @@ spec:
     plural: kogitoinfras
     singular: kogitoinfra
   scope: Namespaced
+  subresources: {}
   validation:
     openAPIV3Schema:
       description: KogitoInfra will be managed automatically by the operator, don't
