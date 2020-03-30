@@ -47,6 +47,8 @@ import (
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
+
+	apibuildv1 "github.com/openshift/api/build/v1"
 )
 
 const (
@@ -204,6 +206,7 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(olmapiv1alpha1.SchemeGroupVersion.WithKind(meta.KindSubscription.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(monv1.SchemeGroupVersion.WithKind(meta.KindPrometheus.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindPod.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(apibuildv1.SchemeGroupVersion.WithKind(meta.KindBuildConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
