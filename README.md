@@ -1093,6 +1093,7 @@ You can set those optional keys:
 - `services_image_version` sets the services (jobs-service, data-index, ...) image version. Default is current operator version.
 - `data_index_image_tag` sets the Kogito Data Index image tag ('services_image_version' is ignored)
 - `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
+- `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
 - `maven_mirror` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
 - `build_image_version` sets the build image version. Default is current operator version.
