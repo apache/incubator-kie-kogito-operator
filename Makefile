@@ -86,6 +86,7 @@ load_factor=1
 local=false
 ci=
 cr_deployment_only=false
+load_default_config=false
 # operator information
 operator_image=
 operator_tag=
@@ -121,6 +122,7 @@ run-tests:
 	&& if [ "${dry_run}" = "true" ]; then opts+=("--dry_run"); fi \
 	&& if [ "${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
 	&& if [ "${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
+	&& if [ "${load_default_config}" = "true" ]; then opts+=("--load_default_config"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ./hack/run-tests.sh \
 		--feature ${feature} \
