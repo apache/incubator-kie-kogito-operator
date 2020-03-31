@@ -107,14 +107,14 @@ disabled_crds_update=false
 namespace_name=
 run-tests:
 	declare -a opts \
-	&& if [ "$${debug}" = "true" ]; then opts+=("--debug"); fi \
-	&& if [ "$${smoke}" = "true" ]; then opts+=("--smoke"); fi \
-	&& if [ "$${local}" = "true" ]; then opts+=("--local"); fi \
-	&& if [ "$${cr_deployment_only}" = "true" ]; then opts+=("--cr_deployment_only"); fi \
-	&& if [ "$${show_scenarios}" = "true" ]; then opts+=("--show_scenarios"); fi \
-	&& if [ "$${dry_run}" = "true" ]; then opts+=("--dry_run"); fi \
-	&& if [ "$${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
-	&& if [ "$${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
+	&& if [ "${debug}" = "true" ]; then opts+=("--debug"); fi \
+	&& if [ "${smoke}" = "true" ]; then opts+=("--smoke"); fi \
+	&& if [ "${local}" = "true" ]; then opts+=("--local"); fi \
+	&& if [ "${cr_deployment_only}" = "true" ]; then opts+=("--cr_deployment_only"); fi \
+	&& if [ "${show_scenarios}" = "true" ]; then opts+=("--show_scenarios"); fi \
+	&& if [ "${dry_run}" = "true" ]; then opts+=("--dry_run"); fi \
+	&& if [ "${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
+	&& if [ "${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ./hack/run-tests.sh \
 		--feature ${feature} \
