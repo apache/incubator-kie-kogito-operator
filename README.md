@@ -60,6 +60,7 @@ Table of Contents
          * [Kafka for Kogito Services](#kafka-for-kogito-services)
          * [Kafka For Data Index](#kafka-for-data-index)
       * [Kogito Operator development](#kogito-operator-development)
+         * [Requirements](#requirements)
          * [Building the Kogito Operator](#building-the-kogito-operator)
          * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
          * [Running BDD Tests](#running-bdd-tests)
@@ -86,7 +87,7 @@ The Kogito operator is a namespaced operator, so you must install it into the na
 (Optional) You can import the Kogito image stream using the `oc client` manually with the following command:
 
 ```bash
-$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
+$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-images/master/kogito-imagestream.yaml -n openshift
 ```
 
 This step is optional because the Kogito Operator creates the required imagestreams when it installs a new application.
@@ -124,7 +125,7 @@ The OperatorHub catalog is not available by default for OpenShift 3.11, so you m
 
 ```bash
 ## Kogito imagestreams should already be installed and available, for example:
-$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-cloud/master/s2i/kogito-imagestream.yaml -n openshift
+$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-images/master/kogito-imagestream.yaml -n openshift
 $ oc new-project <project-name>
 $ ./hack/3.11deploy.sh
 ```
@@ -316,7 +317,7 @@ The Data Index Service also depends on Infinispan, but starting with version 0.6
 
 If you plan to use the Data Index Service to connect to an Infinispan Server instance deployed within the same namespace, the Kogito Operator can handle this deployment for you.
 
-When you install the Kogito Operator from OperatorHub, the Infinispan Operator is installed in the same namespace. If you do not have access to OperatorHub or OLM in your cluster, you can [manually deploy the Infinispan Operator](https://infinispan.org/infinispan-operator/master/documentation/asciidoc/titles/operator.html#deploying_operator_manually).
+When you install the Kogito Operator from OperatorHub, the Infinispan Operator is installed in the same namespace. If you do not have access to OperatorHub or OLM in your cluster, you can [manually deploy the Infinispan Operator](https://infinispan.org/infinispan-operator/master/operator.html#deploying_operator_manually).
 
 After you deploy the Infinispan Operator, see [Deploying Strimzi](#deploying-strimzi) for next steps.
 
@@ -965,6 +966,14 @@ The information required to connect to Kafka will be automatically set for you b
 
 Before you begin fixing issues or adding new features to the Kogito Operator, see [Contributing to the Kogito Operator](docs/CONTRIBUTING.MD) and [Kogito Operator architecture](docs/ARCHITECTURE.MD).
 
+### Requirements
+
+- [Docker](https://www.docker.com/)
+- [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
+- [Operator SDK](https://github.com/operator-framework/operator-sdk) V0.15.x or later
+- [Go](https://golang.org/) v1.13 is installed.
+- [Golint dependency](golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
+
 ### Building the Kogito Operator
 
 To build the Kogito Operator, use the following command:
@@ -1147,8 +1156,6 @@ $ make mod
 $ make clean
 $ DEBUG=true operator-sdk run --local --namespace=<namespace>
 ```
-
-Before submitting a [pull request](https://help.github.com/en/articles/about-pull-requests) to the Kogito Operator repository, review the instructions for [Contributing to the Kogito Operator](docs/CONTRIBUTING.MD).
 
 You can use the following command to vet, format, lint, and test your code:
 
