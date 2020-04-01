@@ -17,7 +17,7 @@ spec:
       serviceAccountName: kogito-operator
       containers:
         - name: kogito-cloud-operator
-          image: quay.io/kiegroup/kogito-cloud-operator:0.9.0
+          image: quay.io/kiegroup/kogito-cloud-operator:0.9.1
           command:
             - kogito-cloud-operator
           imagePullPolicy: Always

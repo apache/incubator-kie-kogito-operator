@@ -11,7 +11,7 @@ spec:
   replicas: 1
   # image to use for this deploy
   image:
-    tag: "0.9.0-rc1"
+    tag: "0.9.1"
   # the http port that the dataindex image will listen internally
   #httpPort: 9090
   # Limits and requests for the Data Index pod
