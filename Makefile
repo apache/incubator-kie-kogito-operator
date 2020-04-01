@@ -136,6 +136,7 @@ run-tests:
 		--examples_uri ${examples_uri} \
 		--examples_ref ${examples_ref} \
 		--namespace_name ${namespace_name} \
+		--load_factor ${load_factor} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
