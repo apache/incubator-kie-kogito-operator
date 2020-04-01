@@ -51,6 +51,11 @@ image_builder=
 build:
 	./hack/go-build.sh --image_registry ${image_registry} --image_name ${image_name} --image_tag ${image_tag} --image_builder ${image_builder}
 
+.PHONY: deploy-operator-on-ocp
+image=
+deploy-operator-on-ocp:
+	./hack/deploy-operator-on-ocp.sh $(image)
+
 .PHONY: build-cli
 release = false
 version = ""
