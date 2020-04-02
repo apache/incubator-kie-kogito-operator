@@ -7,9 +7,6 @@ spec:
   # env: {}
   # number of pods to be deployed
   replicas: 1
-  # image to use for this deploy
-  image:
-    tag: "0.9.0"
   # httpPort: 8080
   # details about the kafka connection
   kafka:
