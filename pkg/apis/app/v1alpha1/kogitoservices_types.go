@@ -157,3 +157,13 @@ func (k *KogitoServiceSpec) GetResources() corev1.ResourceRequirements { return 
 func (k *KogitoServiceSpec) SetResources(resources corev1.ResourceRequirements) {
 	k.Resources = resources
 }
+
+// AddEnvironmentVariable adds new environment variable to service environment variables
+func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
+	env := corev1.EnvVar{
+		Name:  name,
+		Value: value,
+	}
+	k.Envs = append(k.Envs, env)
+	return
+}
