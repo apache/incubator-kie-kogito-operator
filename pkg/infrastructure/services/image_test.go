@@ -41,7 +41,7 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 			},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	imageHandler := newImageHandler(instance, infrastructure.DefaultJobsServiceImageName, cli)
 	image, err := imageHandler.resolveImage()

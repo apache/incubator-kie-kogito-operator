@@ -16,15 +16,14 @@ package test
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/version"
 	v1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // GetImageStreams creates and gets an ImageStream and its ImageStreamTag for mocking purposes
-func GetImageStreams(imageName, namespace, ownerName string) (*v1.ImageStream, *v1.ImageStreamTag) {
-	image := fmt.Sprintf("quay.io/kiegroup/%s:%s", imageName, version.Version)
+func GetImageStreams(imageName, namespace, ownerName, imageVersion string) (*v1.ImageStream, *v1.ImageStreamTag) {
+	image := fmt.Sprintf("quay.io/kiegroup/%s:%s", imageName, imageVersion)
 	is := &v1.ImageStream{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            imageName,
@@ -35,7 +34,7 @@ func GetImageStreams(imageName, namespace, ownerName string) (*v1.ImageStream, *
 			LookupPolicy: v1.ImageLookupPolicy{Local: true},
 			Tags: []v1.TagReference{
 				{
-					Name: version.Version,
+					Name: imageVersion,
 					From: &corev1.ObjectReference{
 						Kind: "DockerImage",
 						Name: image,
@@ -46,7 +45,7 @@ func GetImageStreams(imageName, namespace, ownerName string) (*v1.ImageStream, *
 		},
 	}
 	tag := &v1.ImageStreamTag{
-		ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s:%s", imageName, version.Version), Namespace: namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s:%s", imageName, imageVersion), Namespace: namespace},
 		Image: v1.Image{
 			DockerImageReference: image,
 		},

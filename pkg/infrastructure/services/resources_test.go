@@ -49,7 +49,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 			},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
@@ -119,7 +119,7 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultMgmtConsoleImageName, instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultMgmtConsoleImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
@@ -153,7 +153,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
@@ -191,7 +191,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *te
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName + appPropConfigMapSuffix,

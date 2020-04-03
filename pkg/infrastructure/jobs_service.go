@@ -24,8 +24,8 @@ import (
 const (
 	// DefaultJobsServiceImageName is the default image name for the Jobs Service image
 	DefaultJobsServiceImageName = "kogito-jobs-service"
-	// DefaultJobsServiceImageFullTag is the default full tag name for the Jobs Service image
-	DefaultJobsServiceImageFullTag = "quay.io/kiegroup/" + DefaultJobsServiceImageName + ":latest"
+	// DefaultJobsServiceImageNoVersion is the default Jobs Service image name without version definition
+	DefaultJobsServiceImageNoVersion = "quay.io/kiegroup/" + DefaultJobsServiceImageName + ":"
 	// DefaultJobsServiceName is the default name for the Jobs Services instance service
 	DefaultJobsServiceName = "jobs-service"
 

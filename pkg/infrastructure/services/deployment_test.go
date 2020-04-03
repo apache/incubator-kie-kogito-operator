@@ -22,12 +22,14 @@ import (
 	"testing"
 )
 
+const defaultDataIndexImageFullTag = infrastructure.DefaultDataIndexImageNoVersion + "latest"
+
 func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 	kogitoService := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{HealthCheckProbe: QuarkusHealthCheckProbe}
-	deployment := createRequiredDeployment(kogitoService, infrastructure.DefaultDataIndexImageFullTag, serviceDef)
+	deployment := createRequiredDeployment(kogitoService, defaultDataIndexImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet)
@@ -42,7 +44,7 @@ func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{}
-	deployment := createRequiredDeployment(kogitoService, infrastructure.DefaultDataIndexImageFullTag, serviceDef)
+	deployment := createRequiredDeployment(kogitoService, defaultDataIndexImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket)

@@ -25,6 +25,8 @@ import (
 )
 
 const (
+	// DefaultDataIndexImageNoVersion is the default Data Index image name without version definition
+	DefaultDataIndexImageNoVersion = "quay.io/kiegroup/kogito-data-index:"
 	// DefaultDataIndexImageName is just the image name for the Data Index Service
 	DefaultDataIndexImageName = "kogito-data-index"
 	// DefaultDataIndexImageFullTag is the default image name for the Kogito Data Index Service
