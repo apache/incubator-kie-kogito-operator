@@ -27,7 +27,7 @@ const (
 	// DefaultJobsServiceImageFullTag is the default full tag name for the Jobs Service image
 	DefaultJobsServiceImageFullTag = "quay.io/kiegroup/" + DefaultJobsServiceImageName + ":latest"
 	// DefaultJobsServiceName is the default name for the Jobs Services instance service
-	DefaultJobsServiceName = DefaultJobsServiceImageName
+	DefaultJobsServiceName = "jobs-service"
 
 	// kogito.jobs-service.url
 	jobsServicesHTTPURIEnv = "KOGITO_JOBS_SERVICE_URL"

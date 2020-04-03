@@ -109,28 +109,27 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 }
 
 func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T) {
-	name := "kogito-management-console"
 	replicas := int32(1)
 	instance := &v1alpha1.KogitoMgmtConsole{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      infrastructure.DefaultMgmtConsoleName,
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoMgmtConsoleSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams("kogito-management-console", instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultMgmtConsoleImageName, instance.Namespace, instance.Name)
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoJobsServiceList{},
 		definition: ServiceDefinition{
-			DefaultImageName:  name,
+			DefaultImageName:  infrastructure.DefaultMgmtConsoleImageName,
 			RequiresDataIndex: true,
 			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: name, Namespace: t.Name()},
+				NamespacedName: types.NamespacedName{Name: infrastructure.DefaultMgmtConsoleName, Namespace: t.Name()},
 			},
 		},
 	}
@@ -144,27 +143,26 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 }
 
 func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *testing.T) {
-	name := "kogito-data-index"
 	replicas := int32(1)
 	instance := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams("kogito-data-index", instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name)
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoDataIndexList{},
 		definition: ServiceDefinition{
-			DefaultImageName: name,
+			DefaultImageName: infrastructure.DefaultDataIndexImageName,
 			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: name, Namespace: t.Name()},
+				NamespacedName: types.NamespacedName{Name: infrastructure.DefaultDataIndexName, Namespace: t.Name()},
 			},
 		},
 	}
@@ -173,7 +171,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	assert.NotEmpty(t, resources)
 
 	assert.Equal(t, 1, len(resources[reflect.TypeOf(corev1.ConfigMap{})]))
-	assert.Equal(t, name+appPropConfigMapSuffix, resources[reflect.TypeOf(corev1.ConfigMap{})][0].GetName())
+	assert.Equal(t, infrastructure.DefaultDataIndexName+appPropConfigMapSuffix, resources[reflect.TypeOf(corev1.ConfigMap{})][0].GetName())
 
 	assert.Equal(t, 1, len(resources[reflect.TypeOf(appsv1.Deployment{})]))
 	deployment, ok := resources[reflect.TypeOf(appsv1.Deployment{})][0].(*appsv1.Deployment)
@@ -183,21 +181,20 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 }
 
 func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *testing.T) {
-	name := "kogito-data-index"
 	replicas := int32(1)
 	instance := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams("kogito-data-index", instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name)
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name + appPropConfigMapSuffix,
+			Name:      infrastructure.DefaultDataIndexName + appPropConfigMapSuffix,
 			Namespace: instance.Namespace,
 		},
 		Data: map[string]string{
@@ -210,9 +207,9 @@ func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *te
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoDataIndexList{},
 		definition: ServiceDefinition{
-			DefaultImageName: name,
+			DefaultImageName: infrastructure.DefaultDataIndexImageName,
 			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: name, Namespace: t.Name()},
+				NamespacedName: types.NamespacedName{Name: infrastructure.DefaultDataIndexName, Namespace: t.Name()},
 			},
 		},
 	}

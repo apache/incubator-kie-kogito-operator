@@ -369,7 +369,7 @@ If you are running on OpenShift 4.x, you can use the OperatorHub user interface 
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoDataIndex
 metadata:
-  name: kogito-data-index
+  name: data-index
 spec:
   # Number of pods to be deployed
   replicas: 1
@@ -395,10 +395,10 @@ $ oc create -f deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml -n 
 You can access the GraphQL interface through the route that was created for you:
 
 ```bash
-$ oc get routes -l app=kogito-data-index
+$ oc get routes -l app=data-index
 
-NAME                HOST/PORT                                                  PATH   SERVICES            PORT   TERMINATION   WILDCARD
-kogito-data-index   kogito-data-index-kogito.apps.mycluster.example.com               kogito-data-index   8080   None
+NAME         HOST/PORT                                        PATH   SERVICES     PORT   TERMINATION   WILDCARD
+data-index   data-index-kogito.apps.mycluster.example.com            data-index   8080   None
 ```
 
 ### Kogito Data Index Integration with persistent Kogito Services
@@ -444,7 +444,7 @@ The name of the `configMap` consists of the name of the Data Index and the suffi
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: kogito-data-index-properties
+  name: data-index-properties
 data:
   application.properties : |-
     dummy1=dummy1
