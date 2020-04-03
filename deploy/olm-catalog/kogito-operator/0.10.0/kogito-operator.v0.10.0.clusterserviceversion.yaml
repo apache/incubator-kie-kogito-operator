@@ -137,8 +137,7 @@ spec:
         path: build.native
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Resources for build pods. Default limits are 1GB RAM/0.5 CPU
-          on JVM and 4GB RAM/1 CPU for native builds.
+      - description: Resources for S2I builder pods.
         displayName: Resources
         path: build.resources
         x-descriptors:
