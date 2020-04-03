@@ -30,7 +30,7 @@ func Test_getKogitoDataIndexRoute(t *testing.T) {
 		Items: []v1alpha1.KogitoDataIndex{
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "kogito-data-index",
+					Name:      DefaultDataIndexName,
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{
@@ -39,7 +39,7 @@ func Test_getKogitoDataIndexRoute(t *testing.T) {
 			},
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "kogito-data-index2",
+					Name:      DefaultDataIndexName + "2",
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{

@@ -25,12 +25,12 @@ import (
 )
 
 const (
-	// DefaultDataIndexImageFullTag is the default image name for the Kogito Data Index Service
-	DefaultDataIndexImageFullTag = "quay.io/kiegroup/kogito-data-index:latest"
 	// DefaultDataIndexImageName is just the image name for the Data Index Service
 	DefaultDataIndexImageName = "kogito-data-index"
+	// DefaultDataIndexImageFullTag is the default image name for the Kogito Data Index Service
+	DefaultDataIndexImageFullTag = "quay.io/kiegroup/" + DefaultDataIndexImageName + ":latest"
 	// DefaultDataIndexName is the default name for the Data Index instance service
-	DefaultDataIndexName = "kogito-data-index"
+	DefaultDataIndexName = "data-index"
 
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
 	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"

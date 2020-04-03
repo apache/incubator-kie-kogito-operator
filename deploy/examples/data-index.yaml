@@ -1,7 +1,7 @@
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoDataIndex
 metadata:
-  name: kogito-data-index
+  name: data-index
 spec:
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
