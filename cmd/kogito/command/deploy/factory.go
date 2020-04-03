@@ -20,9 +20,7 @@ import (
 )
 
 // BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) (commands []context.KogitoCommand) {
-	return []context.KogitoCommand{
-		newDeleteServiceCommand(ctx, rootCommand),
-		newDeployCommand(ctx, rootCommand),
-	}
+func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
+	initDeleteServiceCommand(ctx, rootCommand)
+	initDeployCommand(ctx, rootCommand)
 }

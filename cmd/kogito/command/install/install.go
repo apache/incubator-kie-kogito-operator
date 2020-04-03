@@ -25,7 +25,7 @@ type installCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := installCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

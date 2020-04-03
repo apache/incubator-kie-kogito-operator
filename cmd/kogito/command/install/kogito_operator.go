@@ -35,7 +35,7 @@ type installKogitoOperatorCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallKogitoOperatorCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallKogitoOperatorCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	command := installKogitoOperatorCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

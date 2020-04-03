@@ -25,7 +25,7 @@ type removeCommand struct {
 	Parent  *cobra.Command
 }
 
-func newRemoveCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initRemoveCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := removeCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

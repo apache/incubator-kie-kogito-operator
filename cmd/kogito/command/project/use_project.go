@@ -35,7 +35,7 @@ type useProjectCommand struct {
 	Parent  *cobra.Command
 }
 
-func newUseProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initUseProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := useProjectCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

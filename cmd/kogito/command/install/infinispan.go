@@ -31,7 +31,7 @@ type installInfinispanCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallInfinispanCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallInfinispanCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	command := installInfinispanCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

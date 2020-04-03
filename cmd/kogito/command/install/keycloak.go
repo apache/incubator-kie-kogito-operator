@@ -31,7 +31,7 @@ type installKeycloakCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallKeycloakCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallKeycloakCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	command := installKeycloakCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
