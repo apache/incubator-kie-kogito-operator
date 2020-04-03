@@ -4,5 +4,3 @@ metadata:
   name: management-console
 spec:
   replicas: 1
-  image:
-    tag: 0.9.0-rc1
