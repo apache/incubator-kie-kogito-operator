@@ -54,7 +54,7 @@ type installJobsServiceCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallJobsServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallJobsServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &installJobsServiceCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

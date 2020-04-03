@@ -31,7 +31,7 @@ type removeInfinispanCommand struct {
 	Parent  *cobra.Command
 }
 
-func newRemoveInfinispanCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initRemoveInfinispanCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	command := removeInfinispanCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
@@ -50,7 +50,7 @@ func (i *removeInfinispanCommand) Command() *cobra.Command {
 func (i *removeInfinispanCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:     "infinispan",
-		Short:   "removes installed infinispan instance into the OpenShift/Kubernetes cluster",
+		Short:   "removes installed infinispan instance from the OpenShift/Kubernetes cluster",
 		Example: "remove infinispan -p my-project",
 		Long:    `removes installed infinispan instance via custom Kubernetes resources.`,
 		RunE:    i.Exec,
@@ -65,7 +65,7 @@ func (i *removeInfinispanCommand) RegisterHook() {
 func (i *removeInfinispanCommand) InitHook() {
 	i.flags = removeInfinispanFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where is the Infinispan instance to remove")
 }
 
 func (i *removeInfinispanCommand) Exec(cmd *cobra.Command, args []string) error {

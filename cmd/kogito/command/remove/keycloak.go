@@ -31,7 +31,7 @@ type removeKeycloakCommand struct {
 	Parent  *cobra.Command
 }
 
-func newRemoveKeycloakCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initRemoveKeycloakCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	command := removeKeycloakCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
@@ -50,7 +50,7 @@ func (i *removeKeycloakCommand) Command() *cobra.Command {
 func (i *removeKeycloakCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:     "keycloak",
-		Short:   "removes installed keycloak instance into the OpenShift/Kubernetes cluster",
+		Short:   "removes installed keycloak instance from the OpenShift/Kubernetes cluster",
 		Example: "remove keycloak -p my-project",
 		Long:    `removes installed keycloak instance via custom Kubernetes resources.`,
 		RunE:    i.Exec,
@@ -65,7 +65,7 @@ func (i *removeKeycloakCommand) RegisterHook() {
 func (i *removeKeycloakCommand) InitHook() {
 	i.flags = removeKeycloakFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where is the Keycloak instance to remove")
 }
 
 func (i *removeKeycloakCommand) Exec(cmd *cobra.Command, args []string) error {

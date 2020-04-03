@@ -36,7 +36,7 @@ type deleteProjectCommand struct {
 	Parent  *cobra.Command
 }
 
-func newDeleteProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initDeleteProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := deleteProjectCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

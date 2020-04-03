@@ -39,5 +39,5 @@ type KogitoCommand interface {
 // CommandFactory supports inner commands creation
 type CommandFactory struct {
 	// BuildCommands creates the command hierarchy for a given feature
-	BuildCommands func(ctx *CommandContext, rootCommand *cobra.Command) (commands []KogitoCommand)
+	BuildCommands func(ctx *CommandContext, rootCommand *cobra.Command)
 }

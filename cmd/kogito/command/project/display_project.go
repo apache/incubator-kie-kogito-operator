@@ -30,7 +30,7 @@ type displayProjectCommand struct {
 	Parent  *cobra.Command
 }
 
-func newDisplayProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initDisplayProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := displayProjectCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

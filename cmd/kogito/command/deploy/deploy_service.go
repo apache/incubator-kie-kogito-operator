@@ -64,8 +64,8 @@ type deployCommand struct {
 	Parent  *cobra.Command
 }
 
-// newDeployCommand is the constructor for the deploy command
-func newDeployCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+// initDeployCommand is the constructor for the deploy command
+func initDeployCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &deployCommand{CommandContext: *ctx, Parent: parent}
 	cmd.RegisterHook()
 	cmd.InitHook()
