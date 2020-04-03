@@ -206,8 +206,7 @@ spec:
                     more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
                   type: boolean
                 resources:
-                  description: Resources for build pods. Default limits are 1GB RAM/0.5
-                    CPU on JVM and 4GB RAM/1 CPU for native builds.
+                  description: Resources for S2I builder pods.
                   properties:
                     limits:
                       additionalProperties:
