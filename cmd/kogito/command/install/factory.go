@@ -20,16 +20,13 @@ import (
 )
 
 // BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
-	installCmd := newInstallCommand(ctx, rootCommand)
-	return []context.KogitoCommand{
-		installCmd,
-		newInstallKogitoOperatorCommand(ctx, installCmd.Command()),
-		newInstallDataIndexCommand(ctx, installCmd.Command()),
-		newInstallJobsServiceCommand(ctx, installCmd.Command()),
-		newInstallInfinispanCommand(ctx, installCmd.Command()),
-		newInstallKeycloakCommand(ctx, installCmd.Command()),
-		newInstallKafkaCommand(ctx, installCmd.Command()),
-		newInstallMgmtConsoleCommand(ctx, installCmd.Command()),
-	}
+func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
+	installCmd := initInstallCommand(ctx, rootCommand)
+	initInstallKogitoOperatorCommand(ctx, installCmd.Command())
+	initInstallDataIndexCommand(ctx, installCmd.Command())
+	initInstallJobsServiceCommand(ctx, installCmd.Command())
+	initInstallInfinispanCommand(ctx, installCmd.Command())
+	initInstallKeycloakCommand(ctx, installCmd.Command())
+	initInstallKafkaCommand(ctx, installCmd.Command())
+	initInstallMgmtConsoleCommand(ctx, installCmd.Command())
 }

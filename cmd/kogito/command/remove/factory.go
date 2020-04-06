@@ -20,12 +20,10 @@ import (
 )
 
 // BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
-	removeCmd := newRemoveCommand(ctx, rootCommand)
-	return []context.KogitoCommand{
-		removeCmd,
-		newRemoveInfinispanCommand(ctx, removeCmd.Command()),
-		newRemoveKeycloakCommand(ctx, removeCmd.Command()),
-		newRemoveKafkaCommand(ctx, removeCmd.Command()),
-	}
+func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
+	removeCmd := initRemoveCommand(ctx, rootCommand)
+	initRemoveInfinispanCommand(ctx, removeCmd.Command())
+	initRemoveKeycloakCommand(ctx, removeCmd.Command())
+	initRemoveKafkaCommand(ctx, removeCmd.Command())
+	initRemoveRuntimeServiceCommands(ctx, removeCmd.Command())
 }

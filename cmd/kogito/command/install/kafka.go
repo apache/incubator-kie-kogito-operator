@@ -31,7 +31,7 @@ type installKafkaCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallKafkaCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallKafkaCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	command := installKafkaCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

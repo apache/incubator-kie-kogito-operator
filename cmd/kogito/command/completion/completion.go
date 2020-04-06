@@ -27,8 +27,8 @@ type completionCommand struct {
 	Parent  *cobra.Command
 }
 
-// newCompletionCommand is the constructor for the completion command
-func newCompletionCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+// initCompletionCommand is the constructor for the completion command
+func initCompletionCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &completionCommand{CommandContext: *ctx, Parent: parent}
 	cmd.RegisterHook()
 	cmd.InitHook()

@@ -20,11 +20,9 @@ import (
 )
 
 // BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
-	return []context.KogitoCommand{
-		newDeleteProjectCommand(ctx, rootCommand),
-		newNewProjectCommand(ctx, rootCommand),
-		newUseProjectCommand(ctx, rootCommand),
-		newDisplayProjectCommand(ctx, rootCommand),
-	}
+func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
+	initDeleteProjectCommand(ctx, rootCommand)
+	initNewProjectCommand(ctx, rootCommand)
+	initUseProjectCommand(ctx, rootCommand)
+	initDisplayProjectCommand(ctx, rootCommand)
 }

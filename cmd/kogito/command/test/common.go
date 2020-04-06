@@ -86,12 +86,8 @@ func ExecuteCli() (string, string, error) {
 
 // InitConfigWithTestConfigFile setup CLI Test and init config in context
 func InitConfigWithTestConfigFile() {
-	SetupCliTest("", context.CommandFactory{BuildCommands: buildCommands})
+	SetupCliTest("", context.CommandFactory{BuildCommands: func(ctx *context.CommandContext, rootCommand *cobra.Command) {}})
 	context.InitConfig()
-}
-
-func buildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) []context.KogitoCommand {
-	return []context.KogitoCommand{}
 }
 
 // GetTestConfigFilePath returns the full config file path for tests
