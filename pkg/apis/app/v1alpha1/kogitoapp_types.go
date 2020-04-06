@@ -132,6 +132,16 @@ type KogitoAppBuildObject struct {
 	MavenMirrorURL string `json:"mavenMirrorURL,omitempty"`
 }
 
+// AddEnvironmentVariable adds new environment variable to build environment variables
+func (k *KogitoAppBuildObject) AddEnvironmentVariable(name, value string) {
+	env := corev1.EnvVar{
+		Name:  name,
+		Value: value,
+	}
+	k.Envs = append(k.Envs, env)
+	return
+}
+
 // KogitoAppServiceObject Data to define the service of the Kogito application
 // +k8s:openapi-gen=true
 type KogitoAppServiceObject struct {
