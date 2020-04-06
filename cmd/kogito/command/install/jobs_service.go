@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	defaultJobsServiceInfinispanSecretName = "kogito-jobs-service-infinispan-credentials"
+	defaultJobsServiceInfinispanSecretName = "jobs-service-infinispan-credentials"
 )
 
 type installJobsServiceFlags struct {

@@ -47,7 +47,7 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	serviceList := &v1alpha1.KogitoJobsServiceList{}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{service}, nil, nil)
 	definition := ServiceDefinition{
-		DefaultImageName: "kogito-jobs-service",
+		DefaultImageName: infrastructure.DefaultJobsServiceImageName,
 		Request:          GetRequest(t.Name()),
 	}
 	deployer := NewSingletonServiceDeployer(definition, serviceList, cli, meta.GetRegisteredSchema())
