@@ -41,7 +41,7 @@ type installMgmtConsoleCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallMgmtConsoleCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallMgmtConsoleCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &installMgmtConsoleCommand{
 		CommandContext: *ctx,
 		Parent:         parent,

@@ -20,8 +20,6 @@ import (
 )
 
 // BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) (commands []context.KogitoCommand) {
-	return []context.KogitoCommand{
-		newCompletionCommand(ctx, rootCommand),
-	}
+func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
+	initCompletionCommand(ctx, rootCommand)
 }

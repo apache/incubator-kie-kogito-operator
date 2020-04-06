@@ -30,7 +30,7 @@ type deleteServiceFlags struct {
 	project string
 }
 
-func newDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &deleteServiceCommand{CommandContext: *ctx, Parent: parent}
 	cmd.RegisterHook()
 	cmd.InitHook()

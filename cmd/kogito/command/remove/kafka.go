@@ -31,7 +31,7 @@ type removeKafkaCommand struct {
 	Parent  *cobra.Command
 }
 
-func newRemoveKafkaCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initRemoveKafkaCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	command := removeKafkaCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
@@ -65,7 +65,7 @@ func (i *removeKafkaCommand) RegisterHook() {
 func (i *removeKafkaCommand) InitHook() {
 	i.flags = removeKafkaFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where is the Kafka instance to remove")
 }
 
 func (i *removeKafkaCommand) Exec(cmd *cobra.Command, args []string) error {

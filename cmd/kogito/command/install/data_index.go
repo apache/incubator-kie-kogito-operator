@@ -55,7 +55,7 @@ type installDataIndexCommand struct {
 	Parent  *cobra.Command
 }
 
-func newInstallDataIndexCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+func initInstallDataIndexCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &installDataIndexCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
