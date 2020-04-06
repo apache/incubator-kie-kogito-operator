@@ -38,7 +38,7 @@ func Test_InjectEnvironmentVarsFromExternalServices(t *testing.T) {
 		Spec:       appsv1.DeploymentConfigSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: name}}}}},
 	}
 	dataIndexes := &v1alpha1.KogitoDataIndexList{Items: []v1alpha1.KogitoDataIndex{{
-		ObjectMeta: v1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		ObjectMeta: v1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
 		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute}}},
 	}}
 
@@ -75,7 +75,7 @@ func Test_InjectEnvironmentVarsFromExternalServices_NewRoute(t *testing.T) {
 		Items: []v1alpha1.KogitoDataIndex{
 			{
 				ObjectMeta: v1.ObjectMeta{
-					Name:      "kogito-data-index",
+					Name:      DefaultDataIndexName,
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{

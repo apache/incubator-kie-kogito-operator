@@ -52,7 +52,7 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 		Items: []v1alpha1.KogitoDataIndex{
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "kogito-data-index",
+					Name:      DefaultDataIndexName,
 					Namespace: ns,
 				},
 				Status: v1alpha1.KogitoDataIndexStatus{
@@ -80,11 +80,11 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	expectedHTTPSURL := "https://" + hostname
 	expectedWSSURL := "wss://" + hostname
 	insecureDI := &v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
 		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPURL}},
 	}
 	secureDI := &v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: "kogito-data-index", Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
 		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
 	}
 	cliInsecure := test.CreateFakeClient([]runtime.Object{insecureDI}, nil, nil)

@@ -23,7 +23,7 @@ metadata:
           "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoDataIndex",
           "metadata": {
-            "name": "kogito-data-index"
+            "name": "data-index"
           },
           "spec": {
             "infinispan": {
