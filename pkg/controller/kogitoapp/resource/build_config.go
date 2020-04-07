@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/version"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
 // buildType which build can we perform? Supported are s2i and service
@@ -55,7 +55,7 @@ func resolveImageStreamTagNameForBuilds(kogitoApp *v1alpha1.KogitoApp, imageTag 
 	} else {
 		imageName = BuildImageStreams[buildType][kogitoApp.Spec.Runtime]
 		if len(imageVersion) == 0 {
-			imageVersion = version.Version
+			imageVersion = infrastructure.GetRuntimeImageVersion()
 		}
 	}
 	imageName = fmt.Sprintf("%s:%s", imageName, imageVersion)

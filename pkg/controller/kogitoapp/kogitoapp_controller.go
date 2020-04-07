@@ -16,7 +16,6 @@ package kogitoapp
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/version"
 	"reflect"
 	"time"
 
@@ -446,7 +445,7 @@ func (r *ReconcileKogitoApp) createImageStream(instance *v1alpha1.KogitoApp, ima
 	} else {
 		imageVersion = instance.Spec.Build.ImageVersion
 		if len(imageVersion) == 0 {
-			imageVersion = version.Version
+			imageVersion = infrastructure.GetRuntimeImageVersion()
 		}
 		kogitoRequiredIS = kogitores.CreateKogitoImageStream(instance, imageVersion)
 	}

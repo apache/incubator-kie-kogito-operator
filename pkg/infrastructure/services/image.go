@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/version"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -119,7 +119,7 @@ func (i *imageHandler) resolveImageNameTag() string {
 // resolves like "latest", 0.8.0, and so on
 func (i *imageHandler) resolveTag() string {
 	if len(i.image.Tag) == 0 {
-		return version.Version
+		return infrastructure.GetRuntimeImageVersion()
 	}
 	return i.image.Tag
 }
