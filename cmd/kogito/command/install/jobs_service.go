@@ -147,7 +147,7 @@ func (i *installJobsServiceCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultJobsServiceImageFullTag, "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultJobsServiceImageNoVersion+infrastructure.GetRuntimeImageVersion(), "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092. When set, enables events for Jobs Service.")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster. When set, enables events for Jobs Service.")

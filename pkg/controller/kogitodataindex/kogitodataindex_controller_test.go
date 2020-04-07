@@ -123,7 +123,7 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 			},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name)
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	r := &ReconcileKogitoDataIndex{
 		client: cli,

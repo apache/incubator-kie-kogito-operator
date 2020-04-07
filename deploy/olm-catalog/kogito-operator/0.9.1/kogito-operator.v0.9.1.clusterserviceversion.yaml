@@ -59,9 +59,6 @@ metadata:
             "name": "jobs-service"
           },
           "spec": {
-            "image": {
-              "tag": "0.9.1"
-            },
             "replicas": 1
           }
         },
@@ -72,9 +69,6 @@ metadata:
             "name": "management-console"
           },
           "spec": {
-            "image": {
-              "tag": "0.9.1"
-            },
             "replicas": 1
           }
         }

@@ -24,8 +24,8 @@ const (
 	DefaultMgmtConsoleName = "management-console"
 	// DefaultMgmtConsoleImageName ...
 	DefaultMgmtConsoleImageName = "kogito-management-console"
-	// DefaultMgmtConsoleImageFullTag ...
-	DefaultMgmtConsoleImageFullTag = "quay.io/kiegroup/" + DefaultMgmtConsoleImageName + ":latest"
+	// DefaultMgmtConsoleImageNoVersion is the default Management Console image name without version definition
+	DefaultMgmtConsoleImageNoVersion = "quay.io/kiegroup/" + DefaultMgmtConsoleImageName + ":"
 )
 
 // GetManagementConsoleEndpoint gets the route for the Management Console deployed in the given namespace
