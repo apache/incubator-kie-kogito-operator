@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/version"
 	"reflect"
 	"testing"
 	"time"
@@ -538,8 +537,8 @@ func TestReconcileKogitoApp_AddNewImageTag(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 
-	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp, version.Version).Items {
-		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, version.Version)
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp, infrastructure.GetRuntimeImageVersion()).Items {
+		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, infrastructure.GetRuntimeImageVersion())
 		assert.NotNil(t, hasIs)
 	}
 
@@ -554,8 +553,8 @@ func TestReconcileKogitoApp_AddNewImageTag(t *testing.T) {
 	assert.False(t, result.Requeue)
 
 	// old version stills there
-	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp, version.Version).Items {
-		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, version.Version)
+	for _, is := range kogitores.CreateKogitoImageStream(kogitoApp, infrastructure.GetRuntimeImageVersion()).Items {
+		hasIs, _ := openshift.ImageStreamC(fakeClient).FetchTag(types.NamespacedName{Name: is.Name, Namespace: is.Namespace}, infrastructure.GetRuntimeImageVersion())
 		assert.NotNil(t, hasIs)
 	}
 	// new version deployed
