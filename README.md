@@ -67,6 +67,7 @@ Table of Contents
             * [Running BDD tests with current branch](#running-bdd-tests-with-current-branch)
             * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
             * [Running smoke tests](#running-smoke-tests)
+            * [Running performance tests](#running-performance-tests)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
       * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
 
@@ -1148,6 +1149,20 @@ $ make run-smoke-tests [key=value]*
 
 It will run only tests tagged with `@smoke`.
 All options from BDD tests do also apply here.
+
+#### Running performance tests
+
+The BDD tests also provide performance tests. These tests are ignored unless you
+specifically provide the `@performance` tag or run:
+
+```bash
+$ make run-performance-tests [key=value]*
+```
+
+It will run only tests tagged with `@performance`. 
+All options from BDD tests do also apply here.
+
+**NOTE:** Performance tests should be run without concurrency.
 
 ### Running the Kogito Operator locally
 
