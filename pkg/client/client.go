@@ -48,6 +48,8 @@ import (
 	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 
 	apibuildv1 "github.com/openshift/api/build/v1"
+
+	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 )
 
 var (
@@ -218,6 +220,8 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(monv1.SchemeGroupVersion.WithKind(meta.KindPrometheus.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindPod.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(apibuildv1.SchemeGroupVersion.WithKind(meta.KindBuildConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(infinispanv1.SchemeGroupVersion.WithKind(meta.KindInfinispan.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindSecret.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),

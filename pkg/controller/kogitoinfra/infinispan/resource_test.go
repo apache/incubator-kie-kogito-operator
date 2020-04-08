@@ -70,7 +70,7 @@ func Test_CreateRequiredInfinispanResources_HaveGeneratedSecret(t *testing.T) {
 			Namespace: t.Name(),
 		},
 		Data: map[string][]byte{
-			identityFileName: []byte(yamlFile),
+			IdentityFileName: []byte(yamlFile),
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{kogitoInfra, infinispanSecret}, nil, nil)

@@ -17,10 +17,11 @@ package infinispan
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"math/rand"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	yaml "gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
-	"math/rand"
 )
 
 const (
@@ -96,7 +97,7 @@ func hasKogitoUser(secretFileData []byte) bool {
 
 // getDeveloperCredential will return the credential to be used by internal services
 func getDeveloperCredential(secret *v1.Secret) (*Credential, error) {
-	secretFileData := secret.Data[identityFileName]
+	secretFileData := secret.Data[IdentityFileName]
 	identity := &Identity{}
 	if len(secretFileData) == 0 {
 		// support for DataGrid operator based on Infinispan 0.3.x
