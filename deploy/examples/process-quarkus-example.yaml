@@ -3,15 +3,13 @@ kind: KogitoApp
 metadata:
   name: example-quarkus
 spec:
-  enableEvents: true
-  enablePersistence: true
   build:
-    envs:
-     # enable persistence
-      - name: MAVEN_ARGS_APPEND
-        value: "-Ppersistence,events"
+    #envs:
+    # envs can be used to set variables during build
+    #- name: MY_CUSTOM_ENV
+    #  value: "my value"
     gitSource:
-      contextDir: jbpm-quarkus-example
+      contextDir: process-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/

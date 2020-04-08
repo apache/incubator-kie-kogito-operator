@@ -218,12 +218,12 @@ Example of memory request configuration:
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoApp
 metadata:
-  name: jbpm-quarkus-example
+  name: process-quarkus-example
   namespace: kogito
 spec:
   build:
     gitSource:
-      contextDir: jbpm-quarkus-example
+      contextDir: process-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
     native: true
     resources:
@@ -235,7 +235,7 @@ spec:
 :warning: Ensure that you have these resources available on your OpenShift nodes when running native builds. Otherwise the S2I build will fail.
 You can check currently allocated and total resources of your nodes using the command `oc describe nodes` invoked by a user with admin rights.
 
-The user can also limit the maximum heap space for the JVM used for a native build. The limitation can be applied by setting the `quarkus.native.native-image-xmx` property in the application.properties file. In such case the build pod will require roughly xmx + 2 GB of memory. The xmx value depends on the complexity of the application, for example for [jbpm-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/master/jbpm-quarkus-example) the xmx value `2g` is enough, resulting in builder pod consuming just up to 4.2 GB of memory.
+The user can also limit the maximum heap space for the JVM used for a native build. The limitation can be applied by setting the `quarkus.native.native-image-xmx` property in the application.properties file. In such case the build pod will require roughly xmx + 2 GB of memory. The xmx value depends on the complexity of the application, for example for [process-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/master/process-quarkus-example) the xmx value `2g` is enough, resulting in builder pod consuming just up to 4.2 GB of memory.
 
 The user can also set resource limits for a native build pod. In that case 80% of the memory limit is used for heap space in the JVM responsible for native build. If the computed heap space limit for the JVM is less than 1024 MB then all the memory from resource limits is used.
 
@@ -244,12 +244,12 @@ Example of memory limit configuration:
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoApp
 metadata:
-  name: jbpm-quarkus-example
+  name: process-quarkus-example
   namespace: kogito
 spec:
   build:
     gitSource:
-      contextDir: jbpm-quarkus-example
+      contextDir: process-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
     native: true
     resources:
@@ -274,7 +274,7 @@ The name of the `configMap` consists of the name of the Kogito service and the s
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: jbpm-quarkus-example-properties
+  name: process-quarkus-example-properties
 data:
   application.properties : |-
     dummy1=dummy1
@@ -911,7 +911,7 @@ If this happens, please uninstall AMQ Streams and install Strimzi manually since
 To enable Kafka installation during deployment of your service, use the following Kogito CLI command:
 
 ```bash
-$ kogito deploy jbpm-quarkus-example https://github.com/kiegroup/kogito-examples --context-dir=jbpm-quarkus-example --enable-events"  
+$ kogito deploy process-quarkus-example https://github.com/kiegroup/kogito-examples --context-dir=process-quarkus-example --enable-events"  
 ```
 
 Or using the custom resource (CR) yaml file:
@@ -920,7 +920,7 @@ Or using the custom resource (CR) yaml file:
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoApp
 metadata:
-  name: jbpm-quarkus-example
+  name: process-quarkus-example
 spec:
   enableEvents: true
   build:
@@ -929,7 +929,7 @@ spec:
       value: -Pevents
     gitSource:
       uri: https://github.com/mswiderski/kogito-quickstarts
-      contextDir: jbpm-quarkus-example
+      contextDir: process-quarkus-example
 ```
 
 The flag `--enable-events` in the CLI and the attribute `spec.enableEvents: true` in the CR tells to the operator
@@ -947,7 +947,7 @@ Also, if the container has any environment variable with the suffix `_BOOTSTRAP_
 value of `KAFKA_BOOTSTRAP_SERVERS` variable as well. For example, by running:
  
 ```bash
-$ kogito deploy jbpm-quarkus-example https://github.com/kiegroup/kogito-examples --context-dir=jbpm-quarkus-example --enable-events \
+$ kogito deploy process-quarkus-example https://github.com/kiegroup/kogito-examples --context-dir=process-quarkus-example --enable-events \
 --build-env MAVEN_ARGS_APPEND="-Pevents" \
 -e MP_MESSAGING_INCOMING_TRAVELLERS_BOOTSTRAP_SERVERS -e MP_MESSAGING_OUTGOING_PROCESSEDTRAVELLERS_BOOTSTRAP_SERVERS"  
 ```

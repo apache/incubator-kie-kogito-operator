@@ -40,4 +40,3 @@ func Test_getRuntimeImageVersion(t *testing.T) {
 		})
 	}
 }
-

@@ -182,7 +182,7 @@ func Test_DeployCmd_WrongGitURL(t *testing.T) {
 func Test_DeployCmd_CommasOnSlicesParameters(t *testing.T) {
 	ns := t.Name()
 	cli :=
-		fmt.Sprintf("deploy-service process-example https://github.com/kiegroup/kogito-examples --context-dir jbpm-quarkus-example --build-env MAVEN_ARGS_APPEND=-Ppersistence,events --env JAVA_OPTIONS=-Dvalue1=test1,value2=test2 --project %s", ns)
+		fmt.Sprintf("deploy-service process-example https://github.com/kiegroup/kogito-examples --context-dir process-quarkus-example --build-env MAVEN_ARGS_APPEND=-Ppersistence,events --env JAVA_OPTIONS=-Dvalue1=test1,value2=test2 --project %s", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -209,7 +209,7 @@ func Test_DeployCmd_CommasOnSlicesParameters(t *testing.T) {
 func Test_DeployCmd_CommasOnMultipleSlicesParameters(t *testing.T) {
 	ns := t.Name()
 	cli :=
-		fmt.Sprintf("deploy-service process-example https://github.com/kiegroup/kogito-examples --context-dir jbpm-quarkus-example --build-env MAVEN_ARGS_APPEND=-Ppersistence,events --build-env DEBUG=true --project %s", ns)
+		fmt.Sprintf("deploy-service process-example https://github.com/kiegroup/kogito-examples --context-dir process-quarkus-example --build-env MAVEN_ARGS_APPEND=-Ppersistence,events --build-env DEBUG=true --project %s", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},

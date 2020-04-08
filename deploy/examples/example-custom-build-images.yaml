@@ -9,7 +9,7 @@ spec:
     #- name: MY_CUSTOM_ENV
     #  value: "my value"
     gitSource:
-      contextDir: jbpm-quarkus-example
+      contextDir: process-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
     # images that don't have a custom tag, will use this version (set yours)
     imageVersion: 9.9.9
