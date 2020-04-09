@@ -10,7 +10,7 @@ spec:
   build:
     gitSource:
       uri: https://github.com/kiegroup/kogito-examples
-      contextDir: jbpm-springboot-example
+      contextDir: process-springboot-example
       reference: master
     incremental: true
     envs:

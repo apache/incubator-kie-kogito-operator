@@ -49,7 +49,7 @@ func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: v1alpha1.GitSource{
 					URI:        uri,
-					ContextDir: "jbpm-quarkus-example",
+					ContextDir: "process-quarkus-example",
 				},
 			},
 		},
@@ -95,7 +95,7 @@ func Test_deploymentConfigResource_NewWithInvalidDocker(t *testing.T) {
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: v1alpha1.GitSource{
 					URI:        uri,
-					ContextDir: "jbpm-quarkus-example",
+					ContextDir: "process-quarkus-example",
 				},
 			},
 		},

@@ -45,7 +45,7 @@ func Test_BuidConfig_NonNativeBuild(t *testing.T) {
 				},
 				GitSource: v1alpha1.GitSource{
 					URI:        uri,
-					ContextDir: "jbpm-quarkus-example",
+					ContextDir: "process-quarkus-example",
 				},
 				Native:         false,
 				MavenMirrorURL: "https://localhost.nexus:8080/public",
@@ -75,7 +75,7 @@ func Test_BuildConfig_WithCustomImage(t *testing.T) {
 			Build: &v1alpha1.KogitoAppBuildObject{
 				GitSource: v1alpha1.GitSource{
 					URI:        uri,
-					ContextDir: "jbpm-quarkus-example",
+					ContextDir: "process-quarkus-example",
 				},
 				ImageVersion:    "latest",
 				ImageRuntimeTag: "quay.io/namespace/my-image:0.2",
@@ -111,7 +111,7 @@ func Test_buildConfigResource_New(t *testing.T) {
 				},
 				GitSource: v1alpha1.GitSource{
 					URI:        uri,
-					ContextDir: "jbpm-quarkus-example",
+					ContextDir: "process-quarkus-example",
 				},
 				Native:         true,
 				MavenMirrorURL: "https://localhost.nexus:8080/public",
