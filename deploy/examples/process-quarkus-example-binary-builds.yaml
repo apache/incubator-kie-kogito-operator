@@ -4,6 +4,5 @@ metadata:
   name: example-quarkus-flash
 spec:
   # you only need to inform the correct image tag if you wish to build from a custom image
-  build:
-    imageVersion: 0.9.1 # will use it as a reference to create the imagestreams that the Operator uses
+  build: {}
     # run this from your terminal on your project's root: oc start-build example-quarkus-flash-binary --from-dir=target

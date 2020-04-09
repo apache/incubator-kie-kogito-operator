@@ -15,6 +15,5 @@ spec:
     gitSource:
       contextDir: 06-kogito-travel-agency
       uri: "https://github.com/kiegroup/kogito-travel-agency-tutorial/"
-    imageVersion: 0.8.0
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/

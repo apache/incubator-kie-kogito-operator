@@ -13,10 +13,9 @@ metadata:
           "spec": {
             "build": {
               "gitSource": {
-                "contextDir": "jbpm-quarkus-example",
+                "contextDir": "process-quarkus-example",
                 "uri": "https://github.com/kiegroup/kogito-examples"
-              },
-              "imageVersion": "0.9.1"
+              }
             }
           }
         },
