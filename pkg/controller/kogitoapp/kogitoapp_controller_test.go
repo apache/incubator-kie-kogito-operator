@@ -73,7 +73,7 @@ var (
 				Native: false,
 				GitSource: v1alpha1.GitSource{
 					URI:        gitURL,
-					ContextDir: "jbpm-quarkus-example",
+					ContextDir: "process-quarkus-example",
 				},
 			},
 		},
