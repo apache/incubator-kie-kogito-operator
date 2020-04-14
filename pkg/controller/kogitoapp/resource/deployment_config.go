@@ -55,6 +55,8 @@ const (
 	downwardAPIProtoBufCMKey = "protobufcm"
 
 	postHookPersistenceScript = kogitoHome + "/launch/post-hook-persistence.sh"
+
+	envVarNamespace = "NAMESPACE"
 )
 
 var (
@@ -111,10 +113,8 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name: kogitoApp.Name,
-							// this conversion will be removed in future versions
-							Env: kogitoApp.Spec.KogitoServiceSpec.Envs,
-							// this conversion will be removed in future versions
+							Name:            kogitoApp.Name,
+							Env:             kogitoApp.Spec.KogitoServiceSpec.Envs,
 							Resources:       kogitoApp.Spec.KogitoServiceSpec.Resources,
 							Image:           runnerBC.Spec.Output.To.Name,
 							ImagePullPolicy: corev1.PullAlways,
@@ -176,8 +176,13 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 	}
 
 	setReplicas(kogitoApp, dc)
+	setNamespaceEnvVars(kogitoApp, dc)
 
 	return dc, nil
+}
+
+func setNamespaceEnvVars(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
+	framework.SetEnvVar(envVarNamespace, kogitoApp.Namespace, &dc.Spec.Template.Spec.Containers[0])
 }
 
 // setReplicas defines the number of container replicas that this DeploymentConfig will have
