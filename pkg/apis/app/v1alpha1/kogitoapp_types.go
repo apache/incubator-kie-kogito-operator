@@ -16,6 +16,7 @@ package v1alpha1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -140,6 +141,24 @@ func (k *KogitoAppBuildObject) AddEnvironmentVariable(name, value string) {
 	}
 	k.Envs = append(k.Envs, env)
 	return
+}
+
+// AddResourceRequest adds new resource request. Works also on an uninitialized Requests field.
+func (k *KogitoAppBuildObject) AddResourceRequest(name, value string) {
+	if k.Resources.Requests == nil {
+		k.Resources.Requests = corev1.ResourceList{}
+	}
+
+	k.Resources.Requests[corev1.ResourceName(name)] = resource.MustParse(value)
+}
+
+// AddResourceLimit adds new resource limit. Works also on an uninitialized Limits field.
+func (k *KogitoAppBuildObject) AddResourceLimit(name, value string) {
+	if k.Resources.Limits == nil {
+		k.Resources.Limits = corev1.ResourceList{}
+	}
+
+	k.Resources.Limits[corev1.ResourceName(name)] = resource.MustParse(value)
 }
 
 // KogitoAppServiceObject Data to define the service of the Kogito application

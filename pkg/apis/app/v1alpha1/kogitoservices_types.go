@@ -17,6 +17,7 @@ package v1alpha1
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -166,4 +167,22 @@ func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 	}
 	k.Envs = append(k.Envs, env)
 	return
+}
+
+// AddResourceRequest adds new resource request. Works also on uninitialized Requests field.
+func (k *KogitoServiceSpec) AddResourceRequest(name, value string) {
+	if k.Resources.Requests == nil {
+		k.Resources.Requests = corev1.ResourceList{}
+	}
+
+	k.Resources.Requests[corev1.ResourceName(name)] = resource.MustParse(value)
+}
+
+// AddResourceLimit adds new resource limit. Works also on uninitialized Limits field.
+func (k *KogitoServiceSpec) AddResourceLimit(name, value string) {
+	if k.Resources.Limits == nil {
+		k.Resources.Limits = corev1.ResourceList{}
+	}
+
+	k.Resources.Limits[corev1.ResourceName(name)] = resource.MustParse(value)
 }
