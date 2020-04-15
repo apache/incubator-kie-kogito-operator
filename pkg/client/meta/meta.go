@@ -109,6 +109,8 @@ var (
 	KindPrometheus = DefinitionKind{"Prometheus", false, monv1.SchemeGroupVersion}
 	// KindPod for a Pod
 	KindPod = DefinitionKind{"Pod", false, corev1.SchemeGroupVersion}
+	// KindInfinispan for Infinispan
+	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -156,6 +158,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, olmapiv1alpha1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, monv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, routev1.GroupVersion)
+	metav1.AddToGroupVersion(s, infinispanv1.SchemeGroupVersion)
 
 	return s
 }

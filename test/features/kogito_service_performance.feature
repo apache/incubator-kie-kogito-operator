@@ -1,7 +1,6 @@
 # Commented code will be addressed by further enhancements:
-# https://issues.redhat.com/browse/KOGITO-1699
-# https://issues.redhat.com/browse/KOGITO-1700
 # https://issues.redhat.com/browse/KOGITO-1701
+# https://issues.redhat.com/browse/KOGITO-1888
 
 @performance
 Feature: Kogito Service Performance
@@ -10,11 +9,11 @@ Feature: Kogito Service Performance
     Given Namespace is created
 
   @quarkus
-  Scenario Outline: Quarkus Kogito Service Performance with requests <requests>, native <native> but without persistence
+  Scenario Outline: Quarkus Kogito Service Performance with native <native>, without persistence and with requests <requests>
     Given Kogito Operator is deployed
     And Deploy quarkus example service "process-quarkus-example" with configuration:
       | config      | native       | <native> |
-      | runtime-env | JAVA_OPTIONS | -Xmx8G   |
+      | runtime-env | JAVA_OPTIONS | -Xmx10G   |
     And Kogito application "process-quarkus-example" has 1 pods running within <minutes> minutes
     And HTTP GET request on service "process-quarkus-example" with path "orders" is successful within 3 minutes
 
@@ -38,27 +37,28 @@ Feature: Kogito Service Performance
       | native   | minutes | requests |
       | disabled | 10      | 40000    |
       | disabled | 10      | 80000    |
-#      | disabled | 10      | 160000   |
-#      | disabled | 10      | 320000   |
+      | disabled | 10      | 160000   |
+      | disabled | 10      | 320000   |
 
     @native
     Examples:
       | native  | minutes | requests |
       | enabled | 20      | 40000    |
       | enabled | 20      | 80000    |
-#      | enabled | 20      | 160000   |
-#      | enabled | 20      | 320000   |
+      | enabled | 20      | 160000   |
+      | enabled | 20      | 320000   |
 
 #####
 
   @quarkus
   @persistence
-  Scenario Outline: Quarkus Kogito Service Performance with requests <requests>, native <native> and persistence
+  Scenario Outline: Quarkus Kogito Service Performance with native <native>, with persistence and with requests <requests>
     Given Kogito Operator is deployed with Infinispan operator
     And Deploy quarkus example service "process-quarkus-example" with configuration:
       | config      | native       | <native> |
       | config      | persistence  | enabled  |
-      | runtime-env | JAVA_OPTIONS | -Xmx8G   |
+      | runtime-env | JAVA_OPTIONS | -Xmx10G   |
+    And Infinispan is configured for performance within 5 minute(s)
     And Kogito application "process-quarkus-example" has 1 pods running within <minutes> minutes
     And HTTP GET request on service "process-quarkus-example" with path "orders" is successful within 3 minutes
 
@@ -73,8 +73,8 @@ Feature: Kogito Service Performance
       }
       """
 
-    Then HTTP GET request on service "process-quarkus-example" with path "orders" should return an array of size <requests> within 1 minutes
-    And HTTP GET request on service "process-quarkus-example" with path "orderItems" should return an array of size <requests> within 1 minutes
+    #Then HTTP GET request on service "process-quarkus-example" with path "orders" should return an array of size <requests> within 1 minutes
+    #And HTTP GET request on service "process-quarkus-example" with path "orderItems" should return an array of size <requests> within 1 minutes
     #And All human tasks on path "orderItems" with path task name "Verify_order" are successfully "completed" with timing "true"
 
 
@@ -82,24 +82,24 @@ Feature: Kogito Service Performance
       | native   | minutes | requests |
       | disabled | 10      | 40000    |
       | disabled | 10      | 80000    |
-#      | disabled | 10      | 160000   |
-#      | disabled | 10      | 320000   |
+      | disabled | 10      | 160000   |
+      | disabled | 10      | 320000   |
 
     @native
     Examples:
       | native  | minutes | requests |
       | enabled | 20      | 40000    |
       | enabled | 20      | 80000    |
-#      | enabled | 20      | 160000   |
-#      | enabled | 20      | 320000   |
+      | enabled | 20      | 160000   |
+      | enabled | 20      | 320000   |
 
 #####
 
   @springboot
-  Scenario Outline: Spring Boot Kogito Service Performance with requests <requests> but without persistence
+  Scenario Outline: Spring Boot Kogito Service Performance without persistence and with requests <requests>
     Given Kogito Operator is deployed
     And Deploy springboot example service "process-springboot-example" with configuration:
-      | runtime-env | JAVA_OPTIONS | -Xmx8G |
+      | runtime-env | JAVA_OPTIONS | -Xmx10G |
     And Kogito application "process-springboot-example" has 1 pods running within <minutes> minutes
     And HTTP GET request on service "process-springboot-example" with path "orders" is successful within 3 minutes
 
@@ -122,18 +122,19 @@ Feature: Kogito Service Performance
       | minutes | requests |
       | 10      | 40000    |
       | 10      | 80000    |
-#      | 10      | 160000   |
-#      | 10      | 320000   |
+      | 10      | 160000   |
+      | 10      | 320000   |
 
 #####
 
   @springboot
   @persistence
-  Scenario Outline: Spring Boot Kogito Service Performance with requests <requests> and persistence
+  Scenario Outline: Spring Boot Kogito Service Performance with persistence and with requests <requests>
     Given Kogito Operator is deployed with Infinispan operator
     And Deploy springboot example service "process-springboot-example" with configuration:
       | config      | persistence  | enabled |
-      | runtime-env | JAVA_OPTIONS | -Xmx8G  |
+      | runtime-env | JAVA_OPTIONS | -Xmx10G  |
+    And Infinispan is configured for performance within 5 minute(s)
     And Kogito application "process-springboot-example" has 1 pods running within <minutes> minutes
     And HTTP GET request on service "process-springboot-example" with path "orders" is successful within 3 minutes
 
@@ -148,13 +149,13 @@ Feature: Kogito Service Performance
       }
       """
 
-    Then HTTP GET request on service "process-springboot-example" with path "orders" should return an array of size <requests> within 1 minutes
-    And HTTP GET request on service "process-springboot-example" with path "orderItems" should return an array of size <requests> within 1 minutes
+    #Then HTTP GET request on service "process-springboot-example" with path "orders" should return an array of size <requests> within 1 minutes
+    #And HTTP GET request on service "process-springboot-example" with path "orderItems" should return an array of size <requests> within 1 minutes
     #And All human tasks on path "orderItems" with path task name "Verify_order" are successfully "completed" with timing "true"
 
     Examples:
       | minutes | requests |
       | 10      | 40000    |
       | 10      | 80000    |
-#      | 10      | 160000   |
-#      | 10      | 320000   |
+      | 10      | 160000   |
+      | 10      | 320000   |

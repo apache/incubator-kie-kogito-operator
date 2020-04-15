@@ -202,3 +202,16 @@ func IsCrdAvailable(crdName string) (bool, error) {
 	}
 	return kubernetes.ResourceC(kubeClient).Fetch(crdEntity)
 }
+
+func checkPodContainerHasEnvVariableWithValue(pod *corev1.Pod, containerName, envVarName, envVarValue string) bool {
+	for _, container := range pod.Spec.Containers {
+		if container.Name == containerName {
+			for _, env := range container.Env {
+				if env.Name == envVarName && env.Value == envVarValue {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}

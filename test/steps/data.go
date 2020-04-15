@@ -50,6 +50,7 @@ func (data *Data) RegisterAllSteps(s *godog.Suite) {
 	registerPrometheusSteps(s, data)
 	registerProcessSteps(s, data)
 	registerTaskSteps(s, data)
+	registerInfinispanSteps(s, data)
 }
 
 // BeforeScenario configure the data before a scenario is launched
