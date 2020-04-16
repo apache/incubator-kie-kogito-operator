@@ -15,13 +15,14 @@
 package infrastructure
 
 import (
+	"time"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 const (
@@ -123,8 +124,19 @@ func SetInfinispanVariables(infinispanProps v1alpha1.InfinispanConnectionPropert
 		len(infinispanProps.Credentials.SecretName) > 0 &&
 		secret != nil &&
 		container != nil {
-		framework.SetEnvVarFromSecret(infinispanEnvKeyUsername, InfinispanSecretUsernameKey, secret, container)
-		framework.SetEnvVarFromSecret(infinispanEnvKeyPassword, InfinispanSecretPasswordKey, secret, container)
+
+		usernameValue := InfinispanSecretUsernameKey
+		if len(infinispanProps.Credentials.UsernameKey) > 0 {
+			usernameValue = infinispanProps.Credentials.UsernameKey
+		}
+		framework.SetEnvVarFromSecret(infinispanEnvKeyUsername, usernameValue, secret, container)
+
+		passwordValue := InfinispanSecretPasswordKey
+		if len(infinispanProps.Credentials.PasswordKey) > 0 {
+			passwordValue = infinispanProps.Credentials.PasswordKey
+		}
+		framework.SetEnvVarFromSecret(infinispanEnvKeyPassword, passwordValue, secret, container)
+
 		framework.SetEnvVar(infinispanEnvKeyUseAuth, "true", container)
 		framework.SetEnvVar(infinispanEnvKeyCredSecret, infinispanProps.Credentials.SecretName, container)
 		if len(infinispanProps.SaslMechanism) == 0 {
