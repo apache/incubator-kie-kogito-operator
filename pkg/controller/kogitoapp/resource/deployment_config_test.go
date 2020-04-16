@@ -38,6 +38,92 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+func contains(env []v1.EnvVar, key string) bool {
+	for i := range env {
+		envVar := env[i]
+		if envVar.Name == key {
+			return true
+		}
+	}
+	return false
+}
+
+func createTestKogitoApp(runtime v1alpha1.RuntimeType) *v1alpha1.KogitoApp {
+	return &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: runtime,
+			Build:   &v1alpha1.KogitoAppBuildObject{},
+		},
+	}
+}
+
+func createTestKogitoInfra() *v1alpha1.KogitoInfra {
+	return &v1alpha1.KogitoInfra{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: v1alpha1.KogitoInfraSpec{
+			InstallInfinispan: true,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Infinispan: v1alpha1.InfinispanInstallStatus{
+				InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+					Service: "test",
+				},
+				CredentialSecret: "test",
+			},
+		},
+	}
+}
+
+func createTestDeploymentConfig() *appsv1.DeploymentConfig {
+	return &appsv1.DeploymentConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: appsv1.DeploymentConfigSpec{
+			Template: &v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Env: []v1.EnvVar{},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func createTestService(kogitoInfra *v1alpha1.KogitoInfra, port int) *corev1.Service {
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.Service, Namespace: kogitoInfra.Namespace},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{
+				{
+					TargetPort: intstr.FromInt(port),
+				},
+			},
+		},
+	}
+}
+
+func createTestSecret(kogitoInfra *v1alpha1.KogitoInfra, username, password string) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.CredentialSecret, Namespace: kogitoInfra.Namespace},
+		Data: map[string][]byte{
+			infrastructure.InfinispanSecretUsernameKey: []byte(username),
+			infrastructure.InfinispanSecretPasswordKey: []byte(password),
+		},
+	}
+}
+
 func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
 	uri := "https://github.com/kiegroup/kogito-examples"
 	kogitoApp := &v1alpha1.KogitoApp{
@@ -228,92 +314,6 @@ func Test_deploymentConfigReplicas(t *testing.T) {
 	}
 }
 
-func contains(env []v1.EnvVar, key string) bool {
-	for i := range env {
-		envVar := env[i]
-		if envVar.Name == key {
-			return true
-		}
-	}
-	return false
-}
-
-func createTestKogitoApp(runtime v1alpha1.RuntimeType) *v1alpha1.KogitoApp {
-	return &v1alpha1.KogitoApp{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "test",
-		},
-		Spec: v1alpha1.KogitoAppSpec{
-			Runtime: runtime,
-			Build:   &v1alpha1.KogitoAppBuildObject{},
-		},
-	}
-}
-
-func createTestKogitoInfra() *v1alpha1.KogitoInfra {
-	return &v1alpha1.KogitoInfra{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "test",
-		},
-		Spec: v1alpha1.KogitoInfraSpec{
-			InstallInfinispan: true,
-		},
-		Status: v1alpha1.KogitoInfraStatus{
-			Infinispan: v1alpha1.InfinispanInstallStatus{
-				InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
-					Service: "test",
-				},
-				CredentialSecret: "test",
-			},
-		},
-	}
-}
-
-func createTestDeploymentConfig() *appsv1.DeploymentConfig {
-	return &appsv1.DeploymentConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "test",
-		},
-		Spec: appsv1.DeploymentConfigSpec{
-			Template: &v1.PodTemplateSpec{
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{
-						{
-							Env: []v1.EnvVar{},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func createTestService(kogitoInfra *v1alpha1.KogitoInfra, port int) *corev1.Service {
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.Service, Namespace: kogitoInfra.Namespace},
-		Spec: v1.ServiceSpec{
-			Ports: []v1.ServicePort{
-				{
-					TargetPort: intstr.FromInt(port),
-				},
-			},
-		},
-	}
-}
-
-func createTestSecret(kogitoInfra *v1alpha1.KogitoInfra, username, password string) *corev1.Secret {
-	return &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.CredentialSecret, Namespace: kogitoInfra.Namespace},
-		Data: map[string][]byte{
-			infrastructure.InfinispanSecretUsernameKey: []byte(username),
-			infrastructure.InfinispanSecretPasswordKey: []byte(password),
-		},
-	}
-}
-
 func Test_applicationProperties(t *testing.T) {
 	uri := "https://github.com/kiegroup/kogito-examples"
 	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
@@ -358,4 +358,15 @@ func Test_applicationProperties(t *testing.T) {
 		}
 	}
 	assert.True(t, foundVolumeMount)
+}
+
+func Test_namespaceEnvVarCorrectSet(t *testing.T) {
+	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
+	kogitoApp.Spec.Build.GitSource.URI = "http://example.com"
+	bcS2I, _ := newBuildConfigS2I(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
+	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, nil, "")
+	assert.NoError(t, err)
+	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, envVarNamespace))
+	assert.Equal(t, kogitoApp.Namespace, framework.GetEnvVarFromContainer(envVarNamespace, dc.Spec.Template.Spec.Containers[0]))
 }

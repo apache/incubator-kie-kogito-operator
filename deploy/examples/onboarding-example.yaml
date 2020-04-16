@@ -1,14 +1,20 @@
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoApp
 metadata:
-  name: onboarding-service
+  name: onboarding
 spec:
+  # uncomment to enable persistence
+  #enablePersistence: true
   build:
+    # uncomment to enable persistence
+    #envs:
+    #  - name: MAVEN_ARGS_APPEND
+    #    value: "-Ppersistence"
     gitSource:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/onboarding
-    # set your maven nexus repository
-    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+    # set your maven nexus repository to speed up the build time
+    #mavenMirrorURL:
   service:
     labels:
       onboarding: process
@@ -20,32 +26,32 @@ spec:
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoApp
 metadata:
-  name: hr-service
+  name: hr
 spec:
   build:
     gitSource:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/hr
-    # set your maven nexus repository
-    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+    # set your maven nexus repository to speed up the build time
+    #mavenMirrorURL:
   service:
     labels:
-      department: process
+      department/first: process
       id: process
-      employeeValidation: process
+      employee-validation/first: process
 
 ---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoApp
 metadata:
-  name: payroll-service
+  name: payroll
 spec:
   build:
     gitSource:
       uri: https://github.com/kiegroup/kogito-examples
       contextDir: onboarding-example/payroll
-    # set your maven nexus repository
-    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+    # set your maven nexus repository to speed up the build time
+    #mavenMirrorURL:
   service:
     labels:
       taxes/rate: process
