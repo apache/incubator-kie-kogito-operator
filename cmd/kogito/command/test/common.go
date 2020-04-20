@@ -18,13 +18,11 @@ import (
 	"bytes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/spf13/cobra"
-	"path/filepath"
 	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-
+	clitest "github.com/kiegroup/kogito-cloud-operator/pkg/client/test"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -32,14 +30,6 @@ var (
 	testErr     *bytes.Buffer
 	testOut     *bytes.Buffer
 	rootCommand *cobra.Command
-)
-
-const (
-	// Test constants for config file, based on context
-	defaultConfigPath      = context.DefaultConfigPath
-	defaultConfigFile      = context.DefaultConfigFile + "-test"
-	defaultConfigExt       = context.DefaultConfigExt
-	defaultConfigFinalName = defaultConfigFile + "." + defaultConfigExt
 )
 
 // SetupFakeKubeCli creates a fake kube client for your tests
@@ -59,7 +49,6 @@ func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...run
 	kogitoRootCmd.Command().SetArgs(strings.Split(cli, " "))
 	kogitoRootCmd.Command().SetOut(testOut)
 	kogitoRootCmd.Command().SetErr(testErr)
-	kogitoRootCmd.Command().ParseFlags([]string{"--config", GetTestConfigFilePath()})
 
 	rootCommand = kogitoRootCmd.Command()
 
@@ -84,18 +73,20 @@ func ExecuteCli() (string, string, error) {
 	return testOut.String(), testErr.String(), err
 }
 
-// InitConfigWithTestConfigFile setup CLI Test and init config in context
-func InitConfigWithTestConfigFile() {
-	SetupCliTest("", context.CommandFactory{BuildCommands: func(ctx *context.CommandContext, rootCommand *cobra.Command) {}})
-	context.InitConfig()
+// OverrideKubeConfig overrides the default KUBECONFIG location to a temporary one
+func OverrideKubeConfig() (teardown func()) {
+	_, teardown = clitest.OverrideDefaultKubeConfig()
+	return
 }
 
-// GetTestConfigFilePath returns the full config file path for tests
-func GetTestConfigFilePath() string {
-	return filepath.Join(GetTestConfigPath(), defaultConfigFinalName)
+// OverrideKubeConfigAndCreateContextInNamespace overrides the default KUBECONFIG location to a temporary one and creates a mock context in the given namespace
+func OverrideKubeConfigAndCreateContextInNamespace(namespace string) (teardown func()) {
+	_, teardown = clitest.OverrideDefaultKubeConfigWithNamespace(namespace)
+	return
 }
 
-// GetTestConfigPath returns the full config parent path for tests
-func GetTestConfigPath() string {
-	return filepath.Join(util.GetHomeDir(), defaultConfigPath)
+// OverrideKubeConfigAndCreateDefaultContext initializes the default KUBECONFIG location to a temporary one and creates a mock context in the "default" namespace
+func OverrideKubeConfigAndCreateDefaultContext() (teardown func()) {
+	_, teardown = clitest.OverrideDefaultKubeConfigEmptyContext()
+	return
 }

@@ -25,8 +25,6 @@ import (
 )
 
 func TestEnsureProject(t *testing.T) {
-	// Manually set the init configuration so that you do not rely on the commands that initialize this hook
-	test.InitConfigWithTestConfigFile()
 	ns := t.Name()
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
 		ObjectMeta: v12.ObjectMeta{Name: ns},

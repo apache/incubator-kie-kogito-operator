@@ -35,12 +35,6 @@ type rootCommand struct {
 	flags   rootCommandFlags
 }
 
-func init() {
-	cobra.OnInitialize(func() {
-		InitConfig()
-	})
-}
-
 // NewRootCommand is the constructor for the root command
 func NewRootCommand(commandContext *CommandContext, output io.Writer) KogitoCommand {
 	commandOutput = output
@@ -70,7 +64,6 @@ func (i *rootCommand) RegisterHook() {
 
 func (i *rootCommand) InitHook() {
 	i.flags = rootCommandFlags{}
-	i.command.PersistentFlags().StringVar(&i.flags.cfgFile, "config", "", "config file (default is $HOME/.kogito/config.yaml)")
 	i.command.PersistentFlags().StringVarP(&outputFormat, "output", "o", "", "output format (when defined, 'json' is supported)")
 	i.command.PersistentFlags().BoolVarP(&logVerbose, "verbose", "v", false, "verbose output")
 	i.command.PersistentFlags().Bool("version", false, "display version")

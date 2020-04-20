@@ -16,7 +16,7 @@ package shared
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -27,29 +27,22 @@ import (
 
 // EnsureProject verifies whether the given project is a valid string in the context and whether it exists in the cluster
 func EnsureProject(kubeCli *client.Client, project string) (string, error) {
-	config := context.ReadConfig()
-	var err error
-	if project, err = checkProjectLocally(config, project); err != nil {
-		return project, err
+	projectInContext := GetCurrentNamespaceFromKubeConfig()
+	if len(projectInContext) == 0 {
+		return "", fmt.Errorf(message.ProjectNoContext)
 	}
-	if err = CheckProjectExists(kubeCli, project); err != nil {
-		return project, err
-	}
-	log.Debugf("Using project %s", project)
-	config.Namespace = project
-	config.Save()
-	return project, nil
-}
-
-// checkProjectLocally verifies whether the project/namespace exists in the CLI context
-// This does not fetch the cluster to verify if the project/namespace exists. This is a local validation only.
-func checkProjectLocally(config context.Configuration, project string) (localProject string, err error) {
 	if len(project) == 0 {
-		if len(config.Namespace) == 0 {
-			return "", fmt.Errorf("Couldn't find any Project in the current context. Use 'kogito use-project NAME' to set the Kogito Project where the service will be deployed or pass '--project NAME' flag to this one")
-		}
-		return config.Namespace, nil
+		project = projectInContext
 	}
+	if err := CheckProjectExists(kubeCli, project); err != nil {
+		return project, err
+	}
+	if project != projectInContext {
+		if err := SetCurrentNamespaceToKubeConfig(project); err != nil {
+			return "", err
+		}
+	}
+	log.Debugf(message.ProjectUsingProject, project)
 	return project, nil
 }
 

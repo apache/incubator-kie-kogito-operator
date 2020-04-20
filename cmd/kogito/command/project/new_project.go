@@ -89,9 +89,10 @@ func (i *newProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		config := context.ReadConfig()
-		config.Namespace = ns.Name
-		config.Save()
+		if err := shared.SetCurrentNamespaceToKubeConfig(ns.Name); err != nil {
+			return err
+		}
+
 		log.Infof("Project '%s' created successfully", ns.Name)
 
 		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperator()

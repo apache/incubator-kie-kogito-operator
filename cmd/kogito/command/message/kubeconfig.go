@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package message
 
-import (
-	"io/ioutil"
-	"path/filepath"
-	"testing"
+const (
+	// KubeConfigNoContext format in: expects kube config filepath
+	KubeConfigNoContext = "There's no current context available in the kube config file %s. Please make sure to connect to the cluster first via 'oc/kubectl login' "
+	// KubeConfigErrorWriteFile format in: filename, error
+	KubeConfigErrorWriteFile = "Error while trying to update kube config file %s: %s "
 )
-
-// HelperLoadBytes will load, in bytes, the file with the given name in the testdata dir
-func HelperLoadBytes(t *testing.T, name string) []byte {
-	path := filepath.Join("testdata", name) // relative path
-	bytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return bytes
-}

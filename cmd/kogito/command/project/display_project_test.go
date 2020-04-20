@@ -17,7 +17,6 @@ package project
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"os"
 	"strings"
 	"testing"
 
@@ -30,20 +29,9 @@ import (
 )
 
 func TestDisplayProjectCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
-	path := test.GetTestConfigFilePath()
+	teardown := test.OverrideKubeConfig()
+	defer teardown()
 
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		err := os.Remove(path)
-		assert.NoError(t, err)
-	} else {
-		err := os.MkdirAll(test.GetTestConfigPath(), os.ModePerm)
-		assert.NoError(t, err)
-	}
-
-	// open
-	file, err := os.Create(path)
-	defer file.Close()
-	assert.NoError(t, err)
 	test.SetupCliTest(strings.Join([]string{"project"}, " "), context.CommandFactory{BuildCommands: BuildCommands})
 	o, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
@@ -51,27 +39,25 @@ func TestDisplayProjectCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
 }
 
 func TestDisplayProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
-	config := context.ReadConfig()
 	ns := uuid.New().String()
-	config.Namespace = ns
-	config.Save()
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	test.SetupCliTest(strings.Join([]string{"project", ns}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
 	o, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, o)
-	assert.Contains(t, o, ns)
+	assert.Contains(t, o, "default")
 }
 
 func TestDisplayProjectCmd_WithJsonOutputFormat(t *testing.T) {
-	config := context.ReadConfig()
-	ns := uuid.New().String()
-	config.Namespace = ns
-	config.Save()
+	ns := "default"
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
-	test.SetupCliTest(strings.Join([]string{"project", ns, "-o", "json"}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
+	test.SetupCliTest(strings.Join([]string{"project", "-o", "json"}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
 	o, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, o)

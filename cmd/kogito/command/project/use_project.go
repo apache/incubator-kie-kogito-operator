@@ -17,6 +17,7 @@ package project
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -62,12 +63,12 @@ func (i *useProjectCommand) RegisterHook() {
 			if len(i.flags.project) == 0 {
 				if len(args) == 0 {
 					log := context.GetDefaultLogger()
-					config := context.ReadConfig()
-					if len(config.Namespace) == 0 {
-						return fmt.Errorf("No Project set in the context. Use 'kogito new-project NAME' to create a new Project")
+					namespace := shared.GetCurrentNamespaceFromKubeConfig()
+					if len(namespace) == 0 {
+						return fmt.Errorf(message.ProjectCantIdentifyContext)
 					}
-					log.Debugf("Project in the context is '%s'. Use 'kogito deploy-service NAME SOURCE' to deploy a new Kogito Service.", config.Namespace)
-					i.flags.project = config.Namespace
+					log.Debugf(message.ProjectCurrentContextInfo, namespace)
+					i.flags.project = namespace
 					return nil
 				}
 				i.flags.project = args[0]
@@ -87,13 +88,13 @@ func (i *useProjectCommand) InitHook() {
 func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	if ns, err := kubernetes.NamespaceC(i.Client).Fetch(i.flags.project); err != nil {
-		return fmt.Errorf("Error while trying to look for the project. Are you logged in? %s ", err)
+		return fmt.Errorf(message.ProjectErrorGetProject, err)
 	} else if ns != nil {
-		config := context.ReadConfig()
-		config.Namespace = i.flags.project
-		config.Save()
+		if err := shared.SetCurrentNamespaceToKubeConfig(i.flags.project); err != nil {
+			return err
+		}
 
-		log.Infof("Project set to '%s'", i.flags.project)
+		log.Infof(message.ProjectSet, i.flags.project)
 
 		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperator()
 		if i.flags.installDataIndex {
@@ -102,5 +103,5 @@ func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 		return install.GetError()
 	}
 
-	return fmt.Errorf("Project '%s' not found. Try running 'kogito new-project %s' to create your Project first ", i.flags.project, i.flags.project)
+	return fmt.Errorf(message.ProjectNotFound, i.flags.project, i.flags.project)
 }
