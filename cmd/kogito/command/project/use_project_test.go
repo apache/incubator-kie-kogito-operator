@@ -16,8 +16,8 @@ package project
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"os"
 	"strings"
 	"testing"
 
@@ -30,28 +30,18 @@ import (
 )
 
 func TestUseProjectCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
+	teardown := test.OverrideKubeConfig()
+	defer teardown()
 	ns := uuid.New().String()
-	path := test.GetTestConfigFilePath()
-
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		err := os.Remove(path)
-		assert.NoError(t, err)
-	} else {
-		err := os.MkdirAll(test.GetTestConfigPath(), os.ModePerm)
-		assert.NoError(t, err)
-	}
-
-	// Open the project
-	file, err := os.Create(path)
-	defer file.Close()
-	assert.NoError(t, err)
 	test.SetupCliTest(strings.Join([]string{"use-project", ns}, " "), context.CommandFactory{BuildCommands: BuildCommands})
-	_, _, err = test.ExecuteCli()
+	_, _, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), ns)
 }
 
 func TestUseProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 	ns := uuid.New().String()
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	test.SetupCliTest(strings.Join([]string{"use-project", ns}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
@@ -62,10 +52,8 @@ func TestUseProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
 }
 
 func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
-	test.InitConfigWithTestConfigFile()
-	config := context.ReadConfig()
-	config.Namespace = ""
-	config.Save()
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 	ns := t.Name()
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	// Set the project
@@ -73,17 +61,13 @@ func TestUseProjectCmd_WhenWhatIsTheNamespace_ConfigUpdated(t *testing.T) {
 	o1, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, o1, ns)
-	config = context.ReadConfig()
-	assert.Equal(t, ns, config.Namespace)
+	assert.Equal(t, ns, shared.GetCurrentNamespaceFromKubeConfig())
 }
 
 func TestUseProjectCmd_WhenWhatIsTheNamespace_UseConfigNamespace(t *testing.T) {
-	test.InitConfigWithTestConfigFile()
 	ns := t.Name()
-	// Set the project
-	config := context.ReadConfig()
-	config.Namespace = ns
-	config.Save()
+	teardown := test.OverrideKubeConfigAndCreateContextInNamespace(ns)
+	defer teardown()
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 	test.SetupCliTest("use-project", context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
 	o2, _, err := test.ExecuteCli()

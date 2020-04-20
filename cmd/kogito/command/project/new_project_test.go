@@ -28,6 +28,8 @@ import (
 )
 
 func TestNewProject_WhenNewProjectDoesNotExist(t *testing.T) {
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 	ns := t.Name()
 	cli := fmt.Sprintf("new-project --project %s --install-data-index", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
@@ -49,6 +51,8 @@ func TestNewProject_WhenNewProjectExist(t *testing.T) {
 }
 
 func TestNewProject_WhenTheresNoNamedFlag(t *testing.T) {
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 	ns := t.Name()
 	cli := fmt.Sprintf("new-project %s", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
@@ -67,6 +71,8 @@ func TestNewProject_WhenTheresNoName(t *testing.T) {
 }
 
 func TestNewProject_WithoutDataIndex(t *testing.T) {
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 	ns := t.Name()
 	cli := fmt.Sprintf("new-project -n %s ", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})

@@ -16,6 +16,8 @@ package project
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 
 	"github.com/spf13/cobra"
 )
@@ -64,11 +66,11 @@ func (i *displayProjectCommand) InitHook() {
 
 func (i *displayProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
-	config := context.ReadConfig()
-	if config.Namespace != "" {
-		log.Infof("Using project '%s'", config.Namespace)
+	currentProject := shared.GetCurrentNamespaceFromKubeConfig()
+	if len(currentProject) > 0 {
+		log.Infof(message.ProjectUsingProject, currentProject)
 	} else {
-		log.Infof("No project configured yet...")
+		log.Info(message.ProjectNoProjectConfigured)
 	}
 
 	return nil

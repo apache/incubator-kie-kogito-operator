@@ -18,7 +18,6 @@ require (
 	github.com/keycloak/keycloak-operator v0.0.0-20200110072234-2e9a66d4cae6
 	github.com/machinebox/graphql v0.2.2
 	github.com/matryer/is v1.2.0 // indirect
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/openshift/client-go v0.0.0-20190923180330-3b6373338c9b
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5
@@ -28,7 +27,6 @@ require (
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.5.1
 	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20200214034016-1d94cc7ab1c6 // indirect

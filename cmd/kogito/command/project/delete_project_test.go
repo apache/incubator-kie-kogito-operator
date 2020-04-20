@@ -27,6 +27,8 @@ import (
 )
 
 func Test_DeleteProjectCmd_WhenWeSuccessfullyDelete(t *testing.T) {
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-project %s", ns)
 	test.SetupCliTest(cli,
@@ -38,6 +40,8 @@ func Test_DeleteProjectCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 }
 
 func Test_DeleteProjectCmd_WhenProjectDoesNotExist(t *testing.T) {
+	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
+	defer teardown()
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-project %s", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})

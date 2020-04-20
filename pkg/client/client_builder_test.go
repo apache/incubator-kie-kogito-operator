@@ -16,6 +16,7 @@ package client
 
 import (
 	"fmt"
+	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"testing"
 
@@ -26,11 +27,11 @@ import (
 
 func TestMain(m *testing.M) {
 	// safe backup to not jeopardize user's envs
-	oldEnvVar := util.GetOSEnv(envVarKubeConfig, "")
+	oldEnvVar := util.GetOSEnv(clientcmd.RecommendedConfigPathEnvVar, "")
 	defer func() {
-		os.Setenv(envVarKubeConfig, oldEnvVar)
+		os.Setenv(clientcmd.RecommendedConfigPathEnvVar, oldEnvVar)
 	}()
-	os.Setenv(envVarKubeConfig, "/tmp/config")
+	os.Setenv(clientcmd.RecommendedConfigPathEnvVar, "/tmp/config")
 
 	result := m.Run()
 

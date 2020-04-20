@@ -16,6 +16,7 @@ package client
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -38,8 +39,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-
 	ocappsv1 "github.com/openshift/api/apps/v1"
 	ocroutev1 "github.com/openshift/api/route/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
@@ -51,13 +50,8 @@ import (
 	apibuildv1 "github.com/openshift/api/build/v1"
 )
 
-const (
-	envVarKubeConfig = "KUBECONFIG"
-)
-
 var (
-	log                   = logger.GetLogger("client_api")
-	defaultKubeConfigPath = filepath.Join(".kube", "config")
+	log = logger.GetLogger("client_api")
 )
 
 // Client wraps clients functions from controller-runtime, Kube and OpenShift cli for generic API calls to the cluster
@@ -148,28 +142,45 @@ func newKubeClient(config *restclient.Config) (controllercli.Client, error) {
 }
 
 func buildKubeConnectionConfig() (*restclient.Config, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", getKubeConfigFile())
+	config, err := clientcmd.BuildConfigFromFlags("", GetKubeConfigFile())
 	if err != nil {
 		return nil, err
 	}
 	return config, nil
 }
 
-func getKubeConfigFile() string {
-	kubeconfig := util.GetOSEnv(envVarKubeConfig, "")
-	if len(kubeconfig) > 0 {
-		log.Debugf("Kube config file read from %s environment variable: %s", envVarKubeConfig, kubeconfig)
-		return kubeconfig
+// GetKubeConfigFile gets the .kubeconfig file.
+// Never returns an empty string, fallback to default path if not present in the known locations
+func GetKubeConfigFile() string {
+	filename := clientcmd.NewDefaultPathOptions().GetDefaultFilename()
+	// make sure the path to the file exists
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		dirName := filepath.Dir(filename)
+		if err := os.MkdirAll(dirName, os.ModePerm); err != nil {
+			panic(fmt.Errorf("Error while trying to create kube config directories %s: %s ", filename, err))
+		}
+	} else if err != nil {
+		panic(fmt.Errorf("Error while trying to access the kube config file %s: %s ", filename, err))
 	}
-	log.Debug("Trying to get kube config file from HOME directory")
-	if home := util.GetHomeDir(); home != "" {
-		kubeconfig = filepath.Join(home, defaultKubeConfigPath)
+	if file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0600); err != nil {
+		panic(fmt.Errorf("Error while trying to access the kube config file %s: %s ", filename, err))
 	} else {
-		log.Warn("Can't read HOME environment variable")
-		kubeconfig = defaultKubeConfigPath
+		defer func() {
+			if file != nil {
+				if err := file.Close(); err != nil {
+					panic(fmt.Errorf("Error closing kube config file %s: %s ", filename, err))
+				}
+			}
+		}()
+		if fileInfo, err := file.Stat(); err != nil {
+			panic(fmt.Errorf("Error while trying to access the kube config file %s: %s ", filename, err))
+		} else if fileInfo.Size() == 0 {
+			log.Warnf("Kubernetes local configuration '%s' is empty.", filename)
+			log.Warn("Make sure to login to your cluster with oc/kubectl before using this tool")
+		}
 	}
-	log.Debug("Kube config file read from: ", kubeconfig)
-	return kubeconfig
+
+	return filename
 }
 
 //restScope implementation
