@@ -1071,6 +1071,11 @@ $ make run-tests [key=value]*
 
 You can set those optional keys:
 
+<!--- tests configuration -->
+- `feature` is a specific feature you want to run.  
+  If you define a relative path, this has to be based on the "test" folder as the run is happening there.
+  *Default are all enabled features from 'test/features' folder*  
+  Example: feature=features/operator/deploy_quarkus_service.feature
 - `tags` to run only specific scenarios. It is using tags filtering.  
   *Scenarios with '@disabled' tag are always ignored.*  
   Expression can be:
@@ -1080,39 +1085,54 @@ You can set those optional keys:
     - "@wip,@undone": run wip or undone scenarios
 - `concurrent` is the number of concurrent tests to be ran.  
   *Default is 1.*
-- `feature` is a specific feature you want to run.  
-  If you define a relative path, this has to be based on the "test" folder as the run is happening there.
-  *Default are all enabled features from 'test/features' folder*  
-  Example: feature=features/operator/deploy_quarkus_service.feature
 - `timeout` sets the timeout in minutes for the overall run.  
   *Default is 240 minutes.*
 - `debug` to be set to true to activate debug mode.  
   *Default is false.*
+- `load_factor` sets the tests load factor. Useful for the tests to take into account that the cluster can be overloaded, for example for the calculation of timeouts.  
+  *Default is 1.*
 - `local` to be set to true if running tests in local.  
   *Default is false.*
 - `ci` to be set if running tests with CI. Give CI name. 
 - `cr_deployment_only` to be set if you don't have a CLI built. Default will deploy applications via the CLI.
 - `load_default_config` sets to true if you want to directly use the default test config (from test/.default_config)
+<!--- operator information -->
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
 - `operator_tag` is the Operator image tag.  
   *Default is the current version*.
-- `cli_path` set the built CLI path.  
-  *Default is ./build/_output/bin/kogito*.
+<!--- files/binaries -->
 - `deploy_uri` set operator *deploy* folder.  
   *Default is ./deploy*.
+- `cli_path` set the built CLI path.  
+  *Default is ./build/_output/bin/kogito*.
+<!--- runtime -->
 - `services_image_version` sets the services (jobs-service, data-index, ...) image version. Default is current operator version.
 - `data_index_image_tag` sets the Kogito Data Index image tag ('services_image_version' is ignored)
 - `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
 - `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
+<!--- build -->
 - `maven_mirror` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
 - `build_image_version` sets the build image version. Default is current operator version.
 - `build_s2i_image_tag` sets the build S2I image full tag.
 - `build_runtime_image_tag` sets the build Runtime image full tag.
+<!--- examples repository -->
 - `examples_uri` sets the URI for the kogito-examples repository.  
   *Default is https://github.com/kiegroup/kogito-examples*.
 - `examples_ref` sets the branch for the kogito-examples repository.
+<!--- development options -->
+- `show_scenarios` sets to true to display scenarios which will be executed.  
+  *Default is false.*
+- `show_steps` sets to true to display scenarios and their steps which will be executed.  
+  *Default is false.*
+- `dry_run` sets to true to execute a dry run of the tests, disable crds updates and display the scenarios which will be executed.  
+  *Default is false.*
+- `keep_namespace` sets to true to not delete namespace(s) after scenario run (WARNING: can be resources consuming ...).  
+  *Default is false.*
+- `disabled_crds_update` sets to true to disable the update of CRDs.  
+  *Default is false.*
+- `namespace_name` to specify name of the namespace which will be used for scenario execution (intended for development purposes).
 
 Logs will be shown on the Terminal.
 
