@@ -1,3 +1,3 @@
-tests.build-image-version=0.9.1-rc2
-tests.services-image-version=0.9.1-rc2
+tests.build-image-version=0.9.1
+tests.services-image-version=0.9.1
 tests.examples-ref=0.9.x
