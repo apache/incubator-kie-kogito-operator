@@ -19,7 +19,6 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -152,7 +151,6 @@ func (i *installDataIndexCommand) InitHook() {
 }
 
 func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error {
-	log := context.GetDefaultLogger()
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
@@ -231,12 +229,9 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		},
 	}
 
-	if err := kubernetes.ResourceC(i.Client).Create(&kogitoDataIndex); err != nil {
-		return fmt.Errorf(message.DataIndexErrCreating, err)
-	}
-
-	log.Infof(message.DataIndexSuccessfulInstalled, i.flags.Project)
-	log.Infof(message.DataIndexCheckStatus, kogitoDataIndex.Name, i.flags.Project)
-
-	return nil
+	return shared.
+		ServicesInstallationBuilder(i.Client, i.flags.Project).
+		OperatorInstalled().
+		InstallDataIndex(&kogitoDataIndex).
+		GetError()
 }

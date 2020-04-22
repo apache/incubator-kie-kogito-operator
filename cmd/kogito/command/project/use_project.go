@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message/flags"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -82,7 +83,7 @@ func (i *useProjectCommand) InitHook() {
 	i.flags = useProjectFlags{}
 	i.Parent.AddCommand(i.command)
 	i.command.Flags().StringVarP(&i.flags.project, "project", "n", "", "The project project")
-	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
+	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, flags.InstallDataIndex)
 }
 
 func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -98,7 +99,7 @@ func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 
 		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperator()
 		if i.flags.installDataIndex {
-			install.InstallDataIndex()
+			install.InstallDataIndex(nil)
 		}
 		return install.GetError()
 	}
