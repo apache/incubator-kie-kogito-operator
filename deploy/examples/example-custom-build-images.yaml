@@ -12,8 +12,8 @@ spec:
       contextDir: process-quarkus-example
       uri: 'https://github.com/kiegroup/kogito-examples'
     # images that don't have a custom tag, will use this version
-    imageVersion: 0.8.0
+    imageVersion: 0.9.1
     # the image runtime build will use this image (a pretty different namespace)
-    imageRuntimeTag:  quay.io/customnamespace/kogito-quarkus-jvm-ubi8:0.8.0
+    imageRuntimeTag:  quay.io/customnamespace/kogito-quarkus-jvm-ubi8:0.9.1
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
