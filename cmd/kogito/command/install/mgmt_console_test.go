@@ -34,7 +34,7 @@ func Test_DeployMgmtConsoleCmd(t *testing.T) {
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Management Console successfully installed")
+	assert.Contains(t, lines, "Kogito Management Console Service successfully installed")
 
 	mgmtConsole := &v1alpha1.KogitoMgmtConsole{ObjectMeta: metav1.ObjectMeta{Namespace: ns, Name: infrastructure.DefaultMgmtConsoleName}}
 	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
@@ -50,7 +50,7 @@ func Test_DeployMgmtConsoleCmd_CustomImage(t *testing.T) {
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Management Console successfully installed")
+	assert.Contains(t, lines, "Kogito Management Console Service successfully installed")
 
 	mgmtConsole := &v1alpha1.KogitoMgmtConsole{ObjectMeta: metav1.ObjectMeta{Namespace: ns, Name: infrastructure.DefaultMgmtConsoleName}}
 	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)

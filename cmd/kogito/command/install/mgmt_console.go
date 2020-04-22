@@ -15,13 +15,10 @@
 package install
 
 import (
-	"fmt"
-
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/spf13/cobra"
@@ -95,7 +92,6 @@ func (i *installMgmtConsoleCommand) InitHook() {
 }
 
 func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) error {
-	log := context.GetDefaultLogger()
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
@@ -127,12 +123,9 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 		},
 	}
 
-	if err := kubernetes.ResourceC(i.Client).Create(&kogitoMgmtConsole); err != nil {
-		return fmt.Errorf("Error while trying to create a new Kogito Management Console: %s ", err)
-	}
-
-	log.Infof("Kogito Management Console successfully installed in the Project %s.", i.flags.Project)
-	log.Infof("Check the Service status by running 'oc describe kogitomgmtconsoles/%s -n %s'", kogitoMgmtConsole.Name, i.flags.Project)
-
-	return nil
+	return shared.
+		ServicesInstallationBuilder(i.Client, i.flags.Project).
+		OperatorInstalled().
+		InstallMgmtConsole(&kogitoMgmtConsole).
+		GetError()
 }

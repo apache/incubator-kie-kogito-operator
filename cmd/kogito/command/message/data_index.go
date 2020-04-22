@@ -14,13 +14,21 @@
 
 package message
 
-// TODO: start migrating all message to this package to make it easy for docs to review
-const (
-	DataIndexErrCreating                    = "Error while trying to create a new Kogito Data Index Service: %s "
-	DataIndexSuccessfulInstalled            = "Kogito Data Index Service successfully installed in the Project %s."
-	DataIndexCheckStatus                    = "Check the Service status by running 'oc describe kogitodataindex/%s -n %s'"
-	DataIndexNotInstalledNoOperator         = "Skipping Data Index install since there's no operator available. Use 'kogito install data-index' after installing the operator"
-	DataIndexInfinispanNotAvailable         = "Infinispan is not available in the Project: %s. Please make sure to install the Infinispan Operator before deploying Data Index without infinispan-url provided "
+import "fmt"
+
+var (
+	// DataIndexErrCreating ...
+	DataIndexErrCreating = fmt.Sprintf(serviceErrCreating, "Data Index", "%s")
+	// DataIndexSuccessfulInstalled ...
+	DataIndexSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Data Index", "%s")
+	// DataIndexCheckStatus ...
+	DataIndexCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitodataindex", "%s", "%s")
+	// DataIndexNotInstalledNoOperator ...
+	DataIndexNotInstalledNoOperator = fmt.Sprintf(serviceNotInstalledNoOperator, "Data Index", "data-index")
+	// DataIndexInfinispanNotAvailable ...
+	DataIndexInfinispanNotAvailable = "Infinispan is not available in the Project: %s. Please make sure to install the Infinispan Operator before deploying Data Index without infinispan-url provided "
+	// DataIndexInfinispanOperatorNotAvailable ...
 	DataIndexInfinispanOperatorNotAvailable = "Infinispan CRDs are available in the cluster, but looks like that the Infinispan Operator has not been installed yet. Data Index could take more time to deploy until the Infinispan Operator is ready"
-	DataIndexKafkaNotAvailable              = "Kafka is not available in the Project: %s. Please make sure to install the Strimzi Operator before deploying Data Index without Kafka provided "
+	// DataIndexKafkaNotAvailable ...
+	DataIndexKafkaNotAvailable = "Kafka is not available in the Project: %s. Please make sure to install the Strimzi Operator before deploying Data Index without Kafka provided "
 )

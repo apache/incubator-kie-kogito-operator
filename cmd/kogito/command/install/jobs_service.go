@@ -162,7 +162,6 @@ func (i *installJobsServiceCommand) InitHook() {
 }
 
 func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) error {
-	log := context.GetDefaultLogger()
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
@@ -238,12 +237,9 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 		},
 	}
 
-	if err := kubernetes.ResourceC(i.Client).Create(&kogitoJobsService); err != nil {
-		return fmt.Errorf("Error while trying to create a new Kogito Jobs Service: %s ", err)
-	}
-
-	log.Infof("Kogito Jobs Service successfully installed in the Project %s.", i.flags.Project)
-	log.Infof("Check the Service status by running 'oc describe kogitojobsservice/%s -n %s'", kogitoJobsService.Name, i.flags.Project)
-
-	return nil
+	return shared.
+		ServicesInstallationBuilder(i.Client, i.flags.Project).
+		OperatorInstalled().
+		InstallJobsService(&kogitoJobsService).
+		GetError()
 }
