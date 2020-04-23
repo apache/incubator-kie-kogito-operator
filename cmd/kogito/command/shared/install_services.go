@@ -40,8 +40,8 @@ type ServicesInstallation interface {
 	InstallKeycloak() ServicesInstallation
 	// InstallKafka install a kafka instance.
 	InstallKafka() ServicesInstallation
-	// SilentlyInstallOperator installs the operator without a warn if already deployed with the default image
-	SilentlyInstallOperator() ServicesInstallation
+	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
+	SilentlyInstallOperatorIfNotExists() ServicesInstallation
 	// OperatorInstalled assumes operator is already installed
 	OperatorInstalled() ServicesInstallation
 	// GetError return any given error during the installation process
@@ -75,7 +75,7 @@ func (s servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImag
 	return s
 }
 
-func (s servicesInstallation) SilentlyInstallOperator() ServicesInstallation {
+func (s servicesInstallation) SilentlyInstallOperatorIfNotExists() ServicesInstallation {
 	return s.InstallOperator(false, "", false)
 }
 

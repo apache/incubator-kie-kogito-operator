@@ -97,7 +97,7 @@ func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 
 		log.Infof(message.ProjectSet, i.flags.project)
 
-		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperator()
+		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperatorIfNotExists()
 		if i.flags.installDataIndex {
 			install.InstallDataIndex(nil)
 		}
