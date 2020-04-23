@@ -9,7 +9,7 @@ scorecard:
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoinfra_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitojobsservice_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitomgmtconsole_cr.yaml"
-        csv-path: "deploy/olm-catalog/kogito-operator/0.10.0/kogito-operator.v0.10.0.clusterserviceversion.yaml"
+        csv-path: "deploy/olm-catalog/kogito-operator/0.11.0/kogito-operator.v0.11.0.clusterserviceversion.yaml"
     - olm:
         cr-manifest:
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml"
@@ -17,4 +17,4 @@ scorecard:
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoinfra_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitojobsservice_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitomgmtconsole_cr.yaml"
-        csv-path: "deploy/olm-catalog/kogito-operator/0.10.0/kogito-operator.v0.10.0.clusterserviceversion.yaml"
+        csv-path: "deploy/olm-catalog/kogito-operator/0.11.0/kogito-operator.v0.11.0.clusterserviceversion.yaml"
