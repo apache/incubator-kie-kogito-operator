@@ -16,6 +16,8 @@ package infrastructure
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -24,7 +26,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"strings"
 )
 
 const (
@@ -163,4 +164,39 @@ func GetKafkaInstanceWithName(name string, namespace string, client *client.Clie
 		return kafka, nil
 	}
 	return nil, nil
+}
+
+// GetKafkaDefaultResource returns a Kafka resource with default configuration
+func GetKafkaDefaultResource(name, namespace string, defaultReplicas int32) *v1beta1.Kafka {
+	return &v1beta1.Kafka{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: v1beta1.KafkaSpec{
+			EntityOperator: v1beta1.EntityOperatorSpec{
+				TopicOperator: v1beta1.EntityTopicOperatorSpec{},
+				UserOperator:  v1beta1.EntityUserOperatorSpec{},
+			},
+			Kafka: v1beta1.KafkaClusterSpec{
+				Replicas: defaultReplicas,
+				Storage:  v1beta1.KafkaStorage{StorageType: v1beta1.KafkaEphemeralStorage},
+				Listeners: v1beta1.KafkaListeners{
+					Plain: v1beta1.KafkaListenerPlain{},
+				},
+				JvmOptions: map[string]interface{}{"gcLoggingEnabled": false},
+				Config: map[string]interface{}{
+					"log.message.format.version":               "2.3",
+					"offsets.topic.replication.factor":         defaultReplicas,
+					"transaction.state.log.min.isr":            1,
+					"transaction.state.log.replication.factor": defaultReplicas,
+					"auto.create.topics.enable":                true,
+				},
+			},
+			Zookeeper: v1beta1.ZookeeperClusterSpec{
+				Replicas: defaultReplicas,
+				Storage:  v1beta1.KafkaStorage{StorageType: v1beta1.KafkaEphemeralStorage},
+			},
+		},
+	}
 }

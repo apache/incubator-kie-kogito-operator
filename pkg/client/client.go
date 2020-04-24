@@ -50,6 +50,8 @@ import (
 	apibuildv1 "github.com/openshift/api/build/v1"
 
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 )
 
 var (
@@ -222,6 +224,7 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(apibuildv1.GroupVersion.WithKind(meta.KindBuildConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindSecret.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(infinispanv1.SchemeGroupVersion.WithKind(meta.KindInfinispan.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(kafkabetav1.SchemeGroupVersion.WithKind(meta.KindKafka.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),

@@ -113,6 +113,8 @@ var (
 	KindSecret = DefinitionKind{"Secret", false, corev1.SchemeGroupVersion}
 	// KindInfinispan ...
 	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
+	// KindKafka ...
+	KindKafka = DefinitionKind{"Kafka", false, kafkabetav1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -161,6 +163,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, monv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, routev1.GroupVersion)
 	metav1.AddToGroupVersion(s, infinispanv1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, kafkabetav1.SchemeGroupVersion)
 
 	return s
 }
