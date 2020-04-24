@@ -16,10 +16,10 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -152,7 +152,6 @@ func (i *installDataIndexCommand) InitHook() {
 }
 
 func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error {
-	log := context.GetDefaultLogger()
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
@@ -164,17 +163,24 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		return nil
 	}
 
-	if i.flags.infinispan.UseKogitoInfra {
-		if available, err := infrastructure.IsInfinispanOperatorAvailable(i.Client, i.flags.Project); err != nil {
-			return err
-		} else if !available {
-			return fmt.Errorf("Infinispan Operator is not available in the Project: %s. Please make sure to install it before deploying Data Index without infinispan-url provided ", i.flags.Project)
+	// TODO this will be moved to the ServicesInstallerBuild API on KOGITO-911 PR
+	{
+		logger := context.GetDefaultLogger()
+		if i.flags.infinispan.UseKogitoInfra {
+			if infrastructure.IsInfinispanAvailable(i.Client) {
+				if available, err := infrastructure.IsInfinispanOperatorAvailable(i.Client, i.flags.Project); err != nil {
+					return err
+				} else if !available {
+					logger.Info(message.DataIndexInfinispanOperatorNotAvailable)
+				}
+			} else {
+				logger.Infof(message.DataIndexInfinispanNotAvailable, i.flags.Project)
+			}
 		}
-	}
-
-	if i.flags.kafka.UseKogitoInfra {
-		if available := infrastructure.IsStrimziAvailable(i.Client); !available {
-			return fmt.Errorf("Strimzi Operator is not available in the Project: %s. Please make sure to install it before deploying Data Index without Kafka provided ", i.flags.Project)
+		if i.flags.kafka.UseKogitoInfra {
+			if available := infrastructure.IsStrimziAvailable(i.Client); !available {
+				logger.Infof(message.DataIndexKafkaNotAvailable, i.flags.Project)
+			}
 		}
 	}
 
@@ -231,12 +237,9 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		},
 	}
 
-	if err := kubernetes.ResourceC(i.Client).Create(&kogitoDataIndex); err != nil {
-		return fmt.Errorf(message.DataIndexErrCreating, err)
-	}
-
-	log.Infof(message.DataIndexSuccessfulInstalled, i.flags.Project)
-	log.Infof(message.DataIndexCheckStatus, kogitoDataIndex.Name, i.flags.Project)
-
-	return nil
+	return shared.
+		ServicesInstallationBuilder(i.Client, i.flags.Project).
+		OperatorInstalled().
+		InstallDataIndex(&kogitoDataIndex).
+		GetError()
 }

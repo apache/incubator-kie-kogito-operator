@@ -46,8 +46,8 @@ func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 
-	assert.Error(t, err)
-	assert.Contains(t, lines, "Infinispan Operator is not available in the Project")
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Infinispan Operator has not been installed yet")
 }
 
 func Test_DeployDataIndexCmd_CustomHTTPPort(t *testing.T) {

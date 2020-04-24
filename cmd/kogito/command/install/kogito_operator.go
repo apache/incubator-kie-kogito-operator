@@ -90,7 +90,7 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 
 	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force)
 	if i.flags.installDataIndex {
-		install.InstallDataIndex()
+		install.InstallDataIndex(nil)
 	}
 	return install.GetError()
 }

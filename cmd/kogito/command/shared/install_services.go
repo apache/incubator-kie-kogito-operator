@@ -16,6 +16,7 @@ package shared
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 )
 
@@ -28,8 +29,9 @@ type servicesInstallation struct {
 
 // ServicesInstallation provides an interface for handling infrastructure services installation
 type ServicesInstallation interface {
-	// InstallDataIndex installs Data Index. Depends on the Operator, install it first.
-	InstallDataIndex() ServicesInstallation
+	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
+	// Depends on the Operator, install it first.
+	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
 	// InstallOperator installs the Operator.
 	InstallOperator(warnIfInstalled bool, operatorImage string, force bool) ServicesInstallation
 	// InstallInfinispan install an infinispan instance.
@@ -38,19 +40,30 @@ type ServicesInstallation interface {
 	InstallKeycloak() ServicesInstallation
 	// InstallKafka install a kafka instance.
 	InstallKafka() ServicesInstallation
-	// SilentlyInstallOperator installs the operator without a warn if already deployed with the default image
-	SilentlyInstallOperator() ServicesInstallation
+	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
+	SilentlyInstallOperatorIfNotExists() ServicesInstallation
+	// OperatorInstalled assumes operator is already installed
+	OperatorInstalled() ServicesInstallation
 	// GetError return any given error during the installation process
 	GetError() error
 }
 
-func (s servicesInstallation) InstallDataIndex() ServicesInstallation {
+func (s servicesInstallation) OperatorInstalled() ServicesInstallation {
+	s.operatorInstalled = true
+	return s
+}
+
+func (s servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation {
 	if s.err == nil {
 		if !s.operatorInstalled { // depends on operator
 			log.Info(message.DataIndexNotInstalledNoOperator)
 			return s
 		}
-		s.err = installDefaultDataIndex(s.client, s.namespace)
+		if dataIndex == nil {
+			s.err = installDefaultDataIndex(s.client, s.namespace)
+		} else {
+			s.err = installCustomizedDataIndex(s.client, s.namespace, dataIndex)
+		}
 	}
 	return s
 }
@@ -62,7 +75,7 @@ func (s servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImag
 	return s
 }
 
-func (s servicesInstallation) SilentlyInstallOperator() ServicesInstallation {
+func (s servicesInstallation) SilentlyInstallOperatorIfNotExists() ServicesInstallation {
 	return s.InstallOperator(false, "", false)
 }
 

@@ -33,10 +33,8 @@ const (
 // installDefaultDataIndex shortcut to install the default Data Index in the given namespace.
 // Useful for quick starts, since the Data Index can be updated later to fulfill users needs.
 func installDefaultDataIndex(cli *client.Client, namespace string) error {
-	log := context.GetDefaultLogger()
-
 	replicas := defaultDataIndexReplicas
-	kogitoDataIndex := v1alpha1.KogitoDataIndex{
+	kogitoDataIndex := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: namespace},
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
@@ -54,12 +52,17 @@ func installDefaultDataIndex(cli *client.Client, namespace string) error {
 		},
 	}
 
-	if err := kubernetes.ResourceC(cli).Create(&kogitoDataIndex); err != nil {
+	return installCustomizedDataIndex(cli, namespace, kogitoDataIndex)
+}
+
+func installCustomizedDataIndex(cli *client.Client, namespace string, dataIndex *v1alpha1.KogitoDataIndex) error {
+	log := context.GetDefaultLogger()
+	if err := kubernetes.ResourceC(cli).Create(dataIndex); err != nil {
 		return fmt.Errorf(message.DataIndexErrCreating, err)
 	}
 
 	log.Infof(message.DataIndexSuccessfulInstalled, namespace)
-	log.Infof(message.DataIndexCheckStatus, kogitoDataIndex.Name, namespace)
+	log.Infof(message.DataIndexCheckStatus, dataIndex.Name, namespace)
 
 	return nil
 }
