@@ -16,6 +16,7 @@ package kogitoapp
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/build"
 	"reflect"
 	"time"
 
@@ -287,29 +288,33 @@ func (r *ReconcileKogitoApp) updateKogitoAppStatus(request *reconcile.Request, i
 }
 
 func (r *ReconcileKogitoApp) triggerBuilds(instance *v1alpha1.KogitoApp, bcs ...*obuildv1.BuildConfig) error {
-	bcMap := map[string][]obuildv1.BuildConfig{}
-	for _, bc := range bcs {
-		bcMap[bc.Labels[kogitores.LabelKeyBuildType]] = append(bcMap[bc.Labels[kogitores.LabelKeyBuildType]], *bc)
+	trigger := build.NewTrigger(r.client, instance.Name).
+		SelectOneBuildConfigWithLabel(map[string]string{
+			kogitores.LabelKeyBuildType:    string(kogitores.BuildTypeS2I),
+			kogitores.LabelKeyBuildVariant: string(kogitores.BuildVariantSource),
+		}, bcs...)
+	result, err := trigger.StartNewBuildIfNotRunning()
+	if err != nil {
+		return err
+	}
+	if result.Started {
+		log.Infof("Triggered build named %s for Kogito Application %s", result.BuildName, instance.Name)
 	}
 
-	// Trigger only the S2I builds, they will trigger runtime builds
-	if bcMap[string(kogitores.BuildTypeS2I)] != nil {
-		for _, bc := range bcMap[string(kogitores.BuildTypeS2I)] {
-			log.Infof("Buildconfigs are created, triggering build %s", bc.GetName())
-			if _, err := openshift.BuildConfigC(r.client).TriggerBuild(&bc, instance.Name); err != nil {
-				return err
-			}
+	// we don't have a s2i build, let's trigger the build source from image since it could be changed by an image stream
+	// buildType here's Runtime
+	if !trigger.HasBuildConfiguration() {
+		result, err = trigger.
+			SelectOneBuildConfigWithLabel(map[string]string{kogitores.LabelKeyBuildVariant: string(kogitores.BuildVariantSource)}, bcs...).
+			StartNewBuildIfNotRunning()
+		if err != nil {
+			return err
 		}
-	} else {
-		for _, bc := range bcs {
-			if bc.Labels[kogitores.LabelKeyBuildVariant] == string(kogitores.BuildVariantSource) {
-				log.Infof("Buildconfigs are created, triggering build %s", bc.GetName())
-				if _, err := openshift.BuildConfigC(r.client).TriggerBuild(bc, instance.Name); err != nil {
-					return err
-				}
-			}
+		if result.Started {
+			log.Infof("Triggered build named %s for Kogito Application %s", result.BuildName, instance.Name)
 		}
 	}
+
 	return nil
 }
 
