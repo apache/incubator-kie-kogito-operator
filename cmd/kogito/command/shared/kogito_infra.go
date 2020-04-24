@@ -21,37 +21,49 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
-func removeInfinispan(cli *client.Client, namespace string) error {
-	log := context.GetDefaultLogger()
+func installInfinispan(cli *client.Client, namespace string) error {
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithInfinispan().Apply(); err != nil {
+		return err
+	}
+	context.GetDefaultLogger().Infof(message.InfinispanSuccessfulInstalled, namespace)
+	return nil
+}
 
+func installKafka(cli *client.Client, namespace string) error {
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithKafka().Apply(); err != nil {
+		return err
+	}
+	context.GetDefaultLogger().Infof(message.KafkaSuccessfulInstalled, namespace)
+	return nil
+}
+
+func installKeycloak(cli *client.Client, namespace string) error {
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithKeycloak().Apply(); err != nil {
+		return err
+	}
+	context.GetDefaultLogger().Infof(message.KeycloakSuccessfulInstalled, namespace)
+	return nil
+}
+
+func removeInfinispan(cli *client.Client, namespace string) error {
 	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutInfinispan().Apply(); err != nil {
 		return err
 	}
-
-	log.Infof(message.InfinispanSuccessfulRemoved, namespace)
-
+	context.GetDefaultLogger().Infof(message.InfinispanSuccessfulRemoved, namespace)
 	return nil
 }
 
 func removeKeycloak(cli *client.Client, namespace string) error {
-	log := context.GetDefaultLogger()
-
 	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutKeycloak().Apply(); err != nil {
 		return err
 	}
-
-	log.Infof(message.KeycloakSuccessfulRemoved, namespace)
-
+	context.GetDefaultLogger().Infof(message.KeycloakSuccessfulRemoved, namespace)
 	return nil
 }
 func removeKafka(cli *client.Client, namespace string) error {
-	log := context.GetDefaultLogger()
-
 	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutKafka().Apply(); err != nil {
 		return err
 	}
-
-	log.Infof(message.KafkaSuccessfulRemoved, namespace)
-
+	context.GetDefaultLogger().Infof(message.KafkaSuccessfulRemoved, namespace)
 	return nil
 }

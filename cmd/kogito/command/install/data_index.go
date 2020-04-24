@@ -16,8 +16,6 @@ package install
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
-
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
@@ -157,33 +155,6 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		return err
 	}
 
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
-		return err
-	} else if !installed {
-		return nil
-	}
-
-	// TODO this will be moved to the ServicesInstallerBuild API on KOGITO-911 PR
-	{
-		logger := context.GetDefaultLogger()
-		if i.flags.infinispan.UseKogitoInfra {
-			if infrastructure.IsInfinispanAvailable(i.Client) {
-				if available, err := infrastructure.IsInfinispanOperatorAvailable(i.Client, i.flags.Project); err != nil {
-					return err
-				} else if !available {
-					logger.Info(message.DataIndexInfinispanOperatorNotAvailable)
-				}
-			} else {
-				logger.Infof(message.DataIndexInfinispanNotAvailable, i.flags.Project)
-			}
-		}
-		if i.flags.kafka.UseKogitoInfra {
-			if available := infrastructure.IsStrimziAvailable(i.Client); !available {
-				logger.Infof(message.DataIndexKafkaNotAvailable, i.flags.Project)
-			}
-		}
-	}
-
 	// If user and password are sent, create a secret to hold them and attach them to the CRD
 	if len(i.flags.infinispanUser) > 0 && len(i.flags.infinispanPassword) > 0 {
 		infinispanSecret := v1.Secret{
@@ -239,7 +210,8 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		OperatorInstalled().
+		SilentlyInstallOperatorIfNotExists().
+		WarnIfDependenciesNotReady(i.flags.infinispan.UseKogitoInfra, i.flags.kafka.UseKogitoInfra).
 		InstallDataIndex(&kogitoDataIndex).
 		GetError()
 }

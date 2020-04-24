@@ -167,20 +167,6 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 		return err
 	}
 
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
-		return err
-	} else if !installed {
-		return nil
-	}
-
-	if i.flags.infinispan.UseKogitoInfra {
-		if available, err := infrastructure.IsInfinispanOperatorAvailable(i.Client, i.flags.Project); err != nil {
-			return err
-		} else if !available {
-			return fmt.Errorf("Infinispan Operator is not available in the Project: %s. Please make sure to install it before deploying Jobs Service without infinispan-url provided ", i.flags.Project)
-		}
-	}
-
 	// If user and password are sent, create a secret to hold them and attach them to the CRD
 	if len(i.flags.infinispanUser) > 0 && len(i.flags.infinispanPassword) > 0 {
 		infinispanSecret := v1.Secret{
@@ -239,7 +225,8 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		OperatorInstalled().
+		SilentlyInstallOperatorIfNotExists().
+		WarnIfDependenciesNotReady(i.flags.infinispan.UseKogitoInfra, i.flags.kafka.UseKogitoInfra).
 		InstallJobsService(&kogitoJobsService).
 		GetError()
 }

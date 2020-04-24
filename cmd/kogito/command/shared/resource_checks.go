@@ -16,6 +16,7 @@ package shared
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 
@@ -42,12 +43,13 @@ func EnsureProject(kubeCli *client.Client, project string) (string, error) {
 			return "", err
 		}
 	}
-	log.Debugf(message.ProjectUsingProject, project)
+	context.GetDefaultLogger().Debugf(message.ProjectUsingProject, project)
 	return project, nil
 }
 
 // CheckProjectExists ...
 func CheckProjectExists(kubeCli *client.Client, namespace string) error {
+	log := context.GetDefaultLogger()
 	log.Debugf("Checking if namespace '%s' exists", namespace)
 	if ns, err := kubernetes.NamespaceC(kubeCli).Fetch(namespace); err != nil {
 		return fmt.Errorf("Error while trying to fetch for the application context (namespace): %s ", err)
@@ -60,6 +62,7 @@ func CheckProjectExists(kubeCli *client.Client, namespace string) error {
 
 // CheckKogitoAppNotExists returns an error if the KogitoApp exists
 func CheckKogitoAppNotExists(kubeCli *client.Client, name string, namespace string) error {
+	log := context.GetDefaultLogger()
 	log.Debugf("Checking if Kogito Service '%s' was deployed before on namespace %s", name, namespace)
 	kogitoapp := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
@@ -78,6 +81,7 @@ func CheckKogitoAppNotExists(kubeCli *client.Client, name string, namespace stri
 
 // CheckKogitoAppExists returns an error if the Kogito Service does not exist in the project/namespace
 func CheckKogitoAppExists(kubeCli *client.Client, name string, project string) error {
+	log := context.GetDefaultLogger()
 	log.Debugf("Checking if Kogito Service '%s' was deployed before on project %s", name, project)
 	kogitoapp := &v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{

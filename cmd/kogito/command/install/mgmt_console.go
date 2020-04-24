@@ -97,12 +97,6 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 		return err
 	}
 
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
-		return err
-	} else if !installed {
-		return nil
-	}
-
 	kogitoMgmtConsole := v1alpha1.KogitoMgmtConsole{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoMgmtConsoleSpec{
@@ -125,7 +119,7 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		OperatorInstalled().
+		SilentlyInstallOperatorIfNotExists().
 		InstallMgmtConsole(&kogitoMgmtConsole).
 		GetError()
 }

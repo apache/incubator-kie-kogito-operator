@@ -16,9 +16,9 @@ package shared
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"reflect"
 
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -32,11 +32,11 @@ var defaultServiceStatus = v1alpha1.KogitoServiceStatus{ConditionsMeta: v1alpha1
 var defaultServiceSpec = v1alpha1.KogitoServiceSpec{Replicas: &defaultReplicas}
 
 type serviceInfoMessages struct {
-	errCreating            string
-	installed              string
-	checkStatus            string
-	notInstalledNoOperator string
-	serviceExists          string
+	errCreating                  string
+	installed                    string
+	checkStatus                  string
+	notInstalledNoKogitoOperator string
+	serviceExists                string
 }
 
 type servicesInstallation struct {
@@ -67,8 +67,8 @@ type ServicesInstallation interface {
 	InstallKafka() ServicesInstallation
 	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
 	SilentlyInstallOperatorIfNotExists() ServicesInstallation
-	// OperatorInstalled assumes operator is already installed
-	OperatorInstalled() ServicesInstallation
+	// WarnIfDependenciesNotReady checks if the given dependencies are installed, warn if they are not ready
+	WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation
 	// GetError return any given error during the installation process
 	GetError() error
 }
@@ -82,8 +82,24 @@ func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) Ser
 	}
 }
 
-func (s *servicesInstallation) OperatorInstalled() ServicesInstallation {
-	s.operatorInstalled = true
+func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation {
+	log := context.GetDefaultLogger()
+	if infinispan {
+		if infrastructure.IsInfinispanAvailable(s.client) {
+			if available, err := infrastructure.IsInfinispanOperatorAvailable(s.client, s.namespace); err != nil {
+				s.err = err
+			} else if !available {
+				log.Info(message.ServiceInfinispanOperatorNotAvailable)
+			}
+		} else {
+			log.Infof(message.ServiceInfinispanNotAvailable, s.namespace)
+		}
+	}
+	if kafka {
+		if available := infrastructure.IsStrimziAvailable(s.client); !available {
+			log.Infof(message.ServiceKafkaNotAvailable, s.namespace)
+		}
+	}
 	return s
 }
 
@@ -91,10 +107,10 @@ func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIn
 	if s.err == nil {
 		s.err = s.installKogitoService(dataIndex, s.getDefaultDataIndex,
 			serviceInfoMessages{
-				errCreating:            message.DataIndexErrCreating,
-				installed:              message.DataIndexSuccessfulInstalled,
-				checkStatus:            message.DataIndexCheckStatus,
-				notInstalledNoOperator: message.DataIndexNotInstalledNoOperator,
+				errCreating:                  message.DataIndexErrCreating,
+				installed:                    message.DataIndexSuccessfulInstalled,
+				checkStatus:                  message.DataIndexCheckStatus,
+				notInstalledNoKogitoOperator: message.DataIndexNotInstalledNoKogitoOperator,
 			})
 	}
 	return s
@@ -104,10 +120,10 @@ func (s *servicesInstallation) InstallJobsService(jobsService *v1alpha1.KogitoJo
 	if s.err == nil {
 		s.err = s.installKogitoService(jobsService, s.getDefaultJobsService,
 			serviceInfoMessages{
-				errCreating:            message.JobsServiceErrCreating,
-				installed:              message.JobsServiceSuccessfulInstalled,
-				checkStatus:            message.JobsServiceCheckStatus,
-				notInstalledNoOperator: message.JobsServiceNotInstalledNoOperator,
+				errCreating:                  message.JobsServiceErrCreating,
+				installed:                    message.JobsServiceSuccessfulInstalled,
+				checkStatus:                  message.JobsServiceCheckStatus,
+				notInstalledNoKogitoOperator: message.JobsServiceNotInstalledNoKogitoOperator,
 			})
 	}
 	return s
@@ -117,10 +133,10 @@ func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMg
 	if s.err == nil {
 		s.err = s.installKogitoService(mgmtConsole, s.getDefaultMgmtConsole,
 			serviceInfoMessages{
-				errCreating:            message.MgmtConsoleErrCreating,
-				installed:              message.MgmtConsoleSuccessfulInstalled,
-				checkStatus:            message.MgmtConsoleCheckStatus,
-				notInstalledNoOperator: message.MgmtConsoleNotInstalledNoOperator,
+				errCreating:                  message.MgmtConsoleErrCreating,
+				installed:                    message.MgmtConsoleSuccessfulInstalled,
+				checkStatus:                  message.MgmtConsoleCheckStatus,
+				notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
 			})
 	}
 	return s
@@ -164,14 +180,14 @@ func (s *servicesInstallation) GetError() error {
 
 func (s *servicesInstallation) installKogitoService(service v1alpha1.KogitoService, getService func() v1alpha1.KogitoService, messages serviceInfoMessages) error {
 	if s.err == nil {
+		log := context.GetDefaultLogger()
 		if !s.operatorInstalled { // depends on operator
-			log.Info(messages.notInstalledNoOperator)
+			log.Info(messages.notInstalledNoKogitoOperator)
 			return nil
 		}
 		if service == nil || reflect.ValueOf(service).IsNil() {
 			service = getService()
 		}
-		log := context.GetDefaultLogger()
 		if err := kubernetes.ResourceC(s.client).Create(service); err != nil {
 			return fmt.Errorf(messages.errCreating, err)
 		}
