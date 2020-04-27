@@ -27,6 +27,7 @@ type installKogitoOperatorFlags struct {
 	installDataIndex   bool
 	installJobsService bool
 	installMgmtConsole bool
+	installAllServices bool
 	force              bool
 }
 
@@ -76,6 +77,7 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVar(&i.flags.installJobsService, "install-jobs-service", false, "Installs the default instance of Jobs Service being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVar(&i.flags.installMgmtConsole, "install-mgmt-console", false, "Installs the default instance of Management Console being provisioned by the Kogito Operator in the project")
+	i.command.Flags().BoolVar(&i.flags.installAllServices, "install-all-services", false, "Installs the default instance of every Kogito Support services (Data Index, Jobs Service, etc.) being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
 }
 
@@ -93,13 +95,13 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 	}
 
 	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force)
-	if i.flags.installDataIndex {
+	if i.flags.installDataIndex || i.flags.installAllServices {
 		install.InstallDataIndex(nil)
 	}
-	if i.flags.installJobsService {
+	if i.flags.installJobsService || i.flags.installAllServices {
 		install.InstallJobsService(nil)
 	}
-	if i.flags.installMgmtConsole {
+	if i.flags.installMgmtConsole || i.flags.installAllServices {
 		install.InstallMgmtConsole(nil)
 	}
 	return install.GetError()
