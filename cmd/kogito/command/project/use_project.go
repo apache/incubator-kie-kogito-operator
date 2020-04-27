@@ -16,23 +16,18 @@ package project
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message/flags"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/spf13/cobra"
 )
 
-type useProjectFlags struct {
-	project          string
-	installDataIndex bool
-}
-
 type useProjectCommand struct {
 	context.CommandContext
-	flags   useProjectFlags
+	flags   projectFlags
 	command *cobra.Command
 	Parent  *cobra.Command
 }
@@ -80,10 +75,9 @@ func (i *useProjectCommand) RegisterHook() {
 }
 
 func (i *useProjectCommand) InitHook() {
-	i.flags = useProjectFlags{}
+	i.flags = projectFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.project, "project", "n", "", "The project project")
-	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, flags.InstallDataIndex)
+	addProjectFlagsToCommand(i.command, &i.flags)
 }
 
 func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -97,11 +91,7 @@ func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 
 		log.Infof(message.ProjectSet, i.flags.project)
 
-		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperatorIfNotExists()
-		if i.flags.installDataIndex {
-			install.InstallDataIndex(nil)
-		}
-		return install.GetError()
+		return handleServicesInstallation(&i.flags, i.Client)
 	}
 
 	return fmt.Errorf(message.ProjectNotFound, i.flags.project, i.flags.project)

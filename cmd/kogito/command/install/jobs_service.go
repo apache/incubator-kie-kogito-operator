@@ -147,7 +147,7 @@ func (i *installJobsServiceCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultJobsServiceImageNoVersion+infrastructure.GetRuntimeImageVersion(), "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092. When set, enables events for Jobs Service.")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster. When set, enables events for Jobs Service.")
@@ -162,24 +162,9 @@ func (i *installJobsServiceCommand) InitHook() {
 }
 
 func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) error {
-	log := context.GetDefaultLogger()
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
-	}
-
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
-		return err
-	} else if !installed {
-		return nil
-	}
-
-	if i.flags.infinispan.UseKogitoInfra {
-		if available, err := infrastructure.IsInfinispanOperatorAvailable(i.Client, i.flags.Project); err != nil {
-			return err
-		} else if !available {
-			return fmt.Errorf("Infinispan Operator is not available in the Project: %s. Please make sure to install it before deploying Jobs Service without infinispan-url provided ", i.flags.Project)
-		}
 	}
 
 	// If user and password are sent, create a secret to hold them and attach them to the CRD
@@ -238,12 +223,10 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 		},
 	}
 
-	if err := kubernetes.ResourceC(i.Client).Create(&kogitoJobsService); err != nil {
-		return fmt.Errorf("Error while trying to create a new Kogito Jobs Service: %s ", err)
-	}
-
-	log.Infof("Kogito Jobs Service successfully installed in the Project %s.", i.flags.Project)
-	log.Infof("Check the Service status by running 'oc describe kogitojobsservice/%s -n %s'", kogitoJobsService.Name, i.flags.Project)
-
-	return nil
+	return shared.
+		ServicesInstallationBuilder(i.Client, i.flags.Project).
+		SilentlyInstallOperatorIfNotExists().
+		WarnIfDependenciesNotReady(i.flags.infinispan.UseKogitoInfra, i.flags.kafka.UseKogitoInfra).
+		InstallJobsService(&kogitoJobsService).
+		GetError()
 }

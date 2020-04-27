@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@ package message
 import "fmt"
 
 var (
-	// DataIndexErrCreating ...
-	DataIndexErrCreating = fmt.Sprintf(serviceErrCreating, "Data Index", "%s")
-	// DataIndexSuccessfulInstalled ...
-	DataIndexSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Data Index", "%s")
-	// DataIndexCheckStatus ...
-	DataIndexCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitodataindex", "%s", "%s")
-	// DataIndexNotInstalledNoKogitoOperator ...
-	DataIndexNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Data Index", "data-index")
+	// JobsServiceErrCreating ...
+	JobsServiceErrCreating = fmt.Sprintf(serviceErrCreating, "Jobs", "%s")
+	// JobsServiceSuccessfulInstalled ...
+	JobsServiceSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Jobs", "%s")
+	// JobsServiceCheckStatus ...
+	JobsServiceCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitojobsservice", "%s", "%s")
+	// JobsServiceNotInstalledNoKogitoOperator ...
+	JobsServiceNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Jobs Service", "jobs-service")
 )

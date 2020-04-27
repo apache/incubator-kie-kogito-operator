@@ -31,4 +31,8 @@ const (
 	ProjectCantIdentifyContext = "Can't identify the current context "
 	// ProjectCurrentContextInfo in: current context
 	ProjectCurrentContextInfo = "Project in the context is '%s'. Use 'kogito deploy-service NAME SOURCE' to deploy a new Kogito Service."
+	// ProjectAlreadyExists in: project's name
+	ProjectAlreadyExists = "Project '%s' already exists"
+	// ProjectCreatedSuccessfully in: project's name
+	ProjectCreatedSuccessfully = "Project '%s' created successfully"
 )

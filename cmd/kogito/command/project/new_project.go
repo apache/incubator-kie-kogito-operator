@@ -16,21 +16,17 @@ package project
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message/flags"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/spf13/cobra"
 )
 
-type newProjectFlags struct {
-	project          string
-	installDataIndex bool
-}
-
 type newProjectCommand struct {
 	context.CommandContext
-	flags   newProjectFlags
+	flags   projectFlags
 	command *cobra.Command
 	Parent  *cobra.Command
 }
@@ -72,10 +68,9 @@ func (i *newProjectCommand) RegisterHook() {
 }
 
 func (i *newProjectCommand) InitHook() {
-	i.flags = newProjectFlags{}
+	i.flags = projectFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.project, "project", "n", "", "The project project")
-	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, flags.InstallDataIndex)
+	addProjectFlagsToCommand(i.command, &i.flags)
 }
 
 func (i *newProjectCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -94,14 +89,11 @@ func (i *newProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		log.Infof("Project '%s' created successfully", ns.Name)
+		log.Infof(message.ProjectCreatedSuccessfully, ns.Name)
 
-		install := shared.ServicesInstallationBuilder(i.Client, ns.Name).SilentlyInstallOperatorIfNotExists()
-		if i.flags.installDataIndex {
-			install.InstallDataIndex(nil)
-		}
-		return install.GetError()
+		return handleServicesInstallation(&i.flags, i.Client)
 	}
-	log.Infof("Project '%s' already exists", i.flags.project)
+
+	log.Infof(message.ProjectAlreadyExists, i.flags.project)
 	return nil
 }
