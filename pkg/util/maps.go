@@ -27,9 +27,7 @@ const (
 
 // MapContainsMap returns true only if source contains expected map
 func MapContainsMap(source, expected map[string]string) bool {
-	if len(source) == 0 && len(expected) == 0 ||
-		len(source) > 0 && len(expected) == 0 ||
-		len(source) == 0 && len(expected) > 0 {
+	if len(source) == 0 || len(expected) == 0 {
 		return false
 	}
 	for k, v := range expected {

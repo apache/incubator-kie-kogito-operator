@@ -249,9 +249,6 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 		bcDelta := deltas[reflect.TypeOf(obuildv1.BuildConfig{})]
 		if bcDelta.HasChanges() {
 			var bcs []*obuildv1.BuildConfig
-			for _, bc := range bcDelta.Added {
-				bcs = append(bcs, bc.(*obuildv1.BuildConfig))
-			}
 			for _, bc := range bcDelta.Updated {
 				bcs = append(bcs, bc.(*obuildv1.BuildConfig))
 			}

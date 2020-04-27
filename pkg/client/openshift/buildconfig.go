@@ -154,9 +154,9 @@ func (b *buildConfig) checkBuildConfigExists(bc *buildv1.BuildConfig) (bool, err
 }
 
 // newBuildRequest creates a new BuildRequest for the build
-func newBuildRequest(triggedby string, bc *buildv1.BuildConfig) buildv1.BuildRequest {
+func newBuildRequest(triggeredBy string, bc *buildv1.BuildConfig) buildv1.BuildRequest {
 	buildRequest := buildv1.BuildRequest{ObjectMeta: metav1.ObjectMeta{Name: bc.Name}}
-	buildRequest.TriggeredBy = []buildv1.BuildTriggerCause{{Message: fmt.Sprintf("Triggered by %s operator", triggedby)}}
+	buildRequest.TriggeredBy = []buildv1.BuildTriggerCause{{Message: fmt.Sprintf("Triggered by %s operator", triggeredBy)}}
 	meta.SetGroupVersionKind(&buildRequest.TypeMeta, meta.KindBuildRequest)
 	return buildRequest
 }
