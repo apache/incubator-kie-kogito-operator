@@ -47,10 +47,9 @@ type TriggerResult struct {
 }
 
 type trigger struct {
-	triggeredBy   string
-	labelSelector map[string]string
-	client        *client.Client
-	buildConfig   *buildv1.BuildConfig
+	triggeredBy string
+	client      *client.Client
+	buildConfig *buildv1.BuildConfig
 }
 
 func (t *trigger) HasBuildConfiguration() bool {
@@ -85,7 +84,7 @@ func (t *trigger) StartNewBuildIfNotRunning() (result TriggerResult, err error) 
 	if err != nil {
 		return
 	}
-	if !t.isBuildRunning(builds) {
+	if !isBuildRunning(builds) {
 		if _, err = openshift.BuildConfigC(t.client).TriggerBuild(t.buildConfig, t.triggeredBy); err != nil {
 			return
 		}
@@ -94,16 +93,15 @@ func (t *trigger) StartNewBuildIfNotRunning() (result TriggerResult, err error) 
 	return
 }
 
-func (t *trigger) isBuildRunning(builds *v1alpha1.Builds) bool {
+func isBuildRunning(builds *v1alpha1.Builds) bool {
 	return builds != nil && (len(builds.Running) > 0 || len(builds.Pending) > 0 || len(builds.New) > 0)
 }
 
 // NewTrigger creates a new build Trigger
 func NewTrigger(client *client.Client, triggeredBy string) Trigger {
 	return &trigger{
-		triggeredBy:   triggeredBy,
-		labelSelector: nil,
-		client:        client,
-		buildConfig:   nil,
+		triggeredBy: triggeredBy,
+		client:      client,
+		buildConfig: nil,
 	}
 }

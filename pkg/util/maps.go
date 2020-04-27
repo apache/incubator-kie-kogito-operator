@@ -27,13 +27,9 @@ const (
 
 // MapContainsMap returns true only if source contains expected map
 func MapContainsMap(source, expected map[string]string) bool {
-	if len(source) == 0 && len(expected) == 0 {
-		return false
-	}
-	if len(source) > 0 && len(expected) == 0 {
-		return false
-	}
-	if len(source) == 0 && len(expected) > 0 {
+	if len(source) == 0 && len(expected) == 0 ||
+		len(source) > 0 && len(expected) == 0 ||
+		len(source) == 0 && len(expected) > 0 {
 		return false
 	}
 	for k, v := range expected {
@@ -61,9 +57,6 @@ func FromStringsKeyPairToMap(array []string) map[string]string {
 	keyPairMap := map[string]string{}
 	for _, item := range array {
 		keyPair := strings.SplitN(item, keyPairSeparator, 2)
-		if len(keyPair) == 0 {
-			break
-		}
 
 		if len(keyPair[0]) == 0 {
 			break
