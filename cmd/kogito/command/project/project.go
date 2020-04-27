@@ -41,7 +41,7 @@ func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error 
 	install := shared.
 		ServicesInstallationBuilder(cli, pFlags.project).
 		SilentlyInstallOperatorIfNotExists().
-		WarnIfDependenciesNotReady(pFlags.installDataIndex, pFlags.installDataIndex && pFlags.installJobsService)
+		WarnIfDependenciesNotReady(pFlags.installDataIndex, pFlags.installDataIndex)
 
 	if pFlags.installAll || pFlags.installDataIndex {
 		install.InstallDataIndex(nil)

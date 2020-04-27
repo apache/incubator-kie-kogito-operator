@@ -88,7 +88,7 @@ func (i *installMgmtConsoleCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", infrastructure.DefaultMgmtConsoleImageNoVersion+infrastructure.GetRuntimeImageVersion(), "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
+	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
 }
 
 func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) error {

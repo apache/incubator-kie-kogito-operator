@@ -69,3 +69,14 @@ func Test_InstallOperatorNoNamespaceWithForceFlagWitNoCustomImage(t *testing.T) 
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Error: force install flag is enabled but the custom operator image is missing")
 }
+
+func TestInstallOperatorWithSupportServices(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s --install-data-index --install-jobs-service --install-mgmt-console", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Data Index")
+	assert.Contains(t, lines, "Jobs Service")
+	assert.Contains(t, lines, "Management Console")
+}

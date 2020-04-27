@@ -40,7 +40,7 @@ func Test_DeployMgmtConsoleCmd(t *testing.T) {
 	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
 	assert.NoError(t, err)
 	assert.True(t, exits)
-	assert.Equal(t, mgmtConsole.Spec.Image.Name, infrastructure.DefaultMgmtConsoleImageName)
+	assert.Equal(t, mgmtConsole.Spec.Image.Name, "")
 }
 
 func Test_DeployMgmtConsoleCmd_CustomImage(t *testing.T) {

@@ -217,7 +217,7 @@ func (s *servicesInstallation) getDefaultJobsService() v1alpha1.KogitoService {
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: defaultServiceSpec,
 			InfinispanMeta:    v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: false}},
-			KafkaMeta:         v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true}},
+			KafkaMeta:         v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: false}},
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: defaultServiceStatus},
 	}
