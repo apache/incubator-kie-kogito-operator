@@ -15,6 +15,8 @@
 package infinispan
 
 import (
+	"reflect"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
@@ -23,7 +25,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"reflect"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,9 +32,10 @@ import (
 
 const (
 	// InstanceName is the default name for the Infinispan provisioned instance
-	InstanceName     = "kogito-infinispan"
-	secretName       = "kogito-infinispan-credential"
-	identityFileName = "identities.yaml"
+	InstanceName = "kogito-infinispan"
+	secretName   = "kogito-infinispan-credential"
+	// IdentityFileName is the name of YAML file containing list of Infinispan credentials
+	IdentityFileName = "identities.yaml"
 	annotationKeyMD5 = "org.kie.kogito/infraInfinispanCredentialsFileHash"
 	replicasSize     = 1
 )
@@ -137,7 +139,7 @@ func newInfinispanCredentials(kogitoInfra *v1alpha1.KogitoInfra) (*v1.Secret, er
 		},
 		Type: v1.SecretTypeOpaque,
 		StringData: map[string]string{
-			identityFileName: credentialsFileData,
+			IdentityFileName: credentialsFileData,
 		},
 	}
 	return secret, nil
