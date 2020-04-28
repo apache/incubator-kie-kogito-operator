@@ -43,8 +43,8 @@ Feature: Kogito Service Performance
     @native
     Examples:
       | native  | minutes | requests |
-#      | enabled | 20      | 40000    |
-#      | enabled | 20      | 80000    |
+      | enabled | 20      | 40000    |
+      | enabled | 20      | 80000    |
       | enabled | 20      | 160000   |
       | enabled | 20      | 320000   |
 
