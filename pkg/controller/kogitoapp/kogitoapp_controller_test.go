@@ -599,6 +599,37 @@ func TestReconcileKogitoApp_CustomVersionAndCustomTag(t *testing.T) {
 	assert.NotNil(t, hasIs)
 }
 
+func TestReconcileKogitoApp_BinaryBuilds(t *testing.T) {
+	kogitoApp := createFakeKogitoApp()
+	kogitoApp.Spec.Build.GitSource = v1alpha1.GitSource{}
+	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp}, nil, []runtime.Object{})
+	fakeCache := &cachev1.FakeInformers{}
+	r := &ReconcileKogitoApp{
+		client: fakeClient,
+		scheme: meta.GetRegisteredSchema(),
+		cache:  fakeCache,
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      kogitoApp.Name,
+			Namespace: kogitoApp.Namespace,
+		},
+	}
+
+	result, err := r.Reconcile(req)
+	assert.NoError(t, err)
+	assert.False(t, result.Requeue)
+
+	exists, err := kubernetes.ResourceC(fakeClient).Fetch(kogitoApp)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+
+	bc := &buildv1.BuildConfig{ObjectMeta: metav1.ObjectMeta{Name: kogitoApp.Name + "-binary", Namespace: kogitoApp.Namespace}}
+	exists, err = kubernetes.ResourceC(fakeClient).Fetch(bc)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+}
+
 type mockCache struct {
 	cache.Cache
 	kogitoApp *v1alpha1.KogitoApp

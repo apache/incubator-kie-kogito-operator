@@ -37,11 +37,3 @@ func GetOSEnv(key, fallback string) string {
 	}
 	return value
 }
-
-// GetHomeDir gets the user home directory
-func GetHomeDir() string {
-	if h := os.Getenv("HOME"); h != "" {
-		return h
-	}
-	return os.Getenv("USERPROFILE") // windows
-}
