@@ -1107,14 +1107,18 @@ You can set those optional keys:
 - `cli_path` set the built CLI path.  
   *Default is ./build/_output/bin/kogito*.
 <!--- runtime -->
-- `services_image_version` sets the services (jobs-service, data-index, ...) image version. Default is current operator version.
+- `services_image_version` sets the services (jobs-service, data-index, ...) image version.
+- `services_image_namespace` sets the services (jobs-service, data-index, ...) image namespace.
+- `services_image_registry` sets the services (jobs-service, data-index, ...) image registry.
 - `data_index_image_tag` sets the Kogito Data Index image tag ('services_image_version' is ignored)
 - `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
 - `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
 <!--- build -->
 - `maven_mirror` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
-- `build_image_version` sets the build image version. Default is current operator version.
+- `build_image_version` sets the build image version.
+- `build_image_namespace` sets the build image namespace.
+- `build_image_registry` sets the build image registry.
 - `build_s2i_image_tag` sets the build S2I image full tag.
 - `build_runtime_image_tag` sets the build Runtime image full tag.
 <!--- examples repository -->

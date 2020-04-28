@@ -16,14 +16,19 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/version"
 	"strings"
+
+	"github.com/kiegroup/kogito-cloud-operator/version"
 )
 
 const (
 	versionSeparator = "."
 	// LatestTag the default name for latest image tag
 	LatestTag = "latest"
+	// DefaultImageRegistry the default services image repository
+	DefaultImageRegistry = "quay.io"
+	// DefaultImageNamespace the default services image namespace
+	DefaultImageNamespace = "kiegroup"
 )
 
 // GetRuntimeImageVersion gets the Kogito Runtime latest micro version based on the Operator current version
