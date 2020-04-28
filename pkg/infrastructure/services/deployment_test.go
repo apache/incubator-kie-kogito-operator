@@ -15,14 +15,15 @@
 package services
 
 import (
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const defaultDataIndexImageFullTag = infrastructure.DefaultDataIndexImageNoVersion + "latest"
+var defaultDataIndexImageFullTag = infrastructure.GetRuntimeImageVersion() + ":latest"
 
 func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 	kogitoService := &v1alpha1.KogitoDataIndex{

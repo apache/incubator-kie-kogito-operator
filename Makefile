@@ -96,12 +96,16 @@ deploy_uri=
 cli_path=
 # runtime
 services_image_version=
+services_image_namespace=
+services_image_registry=
 data_index_image_tag=
 jobs_service_image_tag=
 management_console_image_tag=
 # build
 maven_mirror=
 build_image_version=
+build_image_namespace=
+build_image_registry=
 build_s2i_image_tag=
 build_runtime_image_tag=
 # examples repository
@@ -139,11 +143,15 @@ run-tests:
 		--deploy_uri ${deploy_uri} \
 		--cli_path ${cli_path} \
 		--services_image_version ${services_image_version} \
+		--services_image_namespace ${services_image_namespace} \
+		--services_image_registry ${services_image_registry} \
 		--data_index_image_tag ${data_index_image_tag} \
 		--jobs_service_image_tag ${jobs_service_image_tag} \
 		--management_console_image_tag ${management_console_image_tag} \
 		--maven_mirror $(maven_mirror) \
 		--build_image_version ${build_image_version} \
+		--build_image_namespace ${build_image_namespace} \
+		--build_image_registry ${build_image_registry} \
 		--build_s2i_image_tag ${build_s2i_image_tag} \
 		--build_runtime_image_tag ${build_runtime_image_tag} \
 		--examples_uri ${examples_uri} \
