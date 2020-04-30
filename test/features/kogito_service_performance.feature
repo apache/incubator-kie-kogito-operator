@@ -80,10 +80,10 @@ Feature: Kogito Service Performance
 
     Examples:
       | native   | minutes | requests |
-#      | disabled | 10      | 40000    |
-#      | disabled | 10      | 80000    |
+      | disabled | 10      | 40000    |
+      | disabled | 10      | 80000    |
 #      | disabled | 10      | 160000   |
-      | disabled | 10      | 320000   |
+#      | disabled | 10      | 320000   |
 
     @native
     Examples:
