@@ -83,7 +83,7 @@ dlv test --headless --listen=:2345 --log --api-version=2 -- -godog.tags="" featu
 The program will wait until you launch the Debug mode from VS Code (next step).
 
 | It must run in the /test folder
-| Any arguments must be passed after the "--" token, for example: "-- -godog.tags="" -tests.services-image-version=0.9.0-rc2"
+| Any arguments must be passed after the "--" token, for example: "-- -godog.tags="" -tests.services-image-version=0.10.0"
 
 - Launch Debug from VS Code
 

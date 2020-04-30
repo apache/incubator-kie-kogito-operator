@@ -584,7 +584,7 @@ You should be able to see the Management Console pod up and running in a couple 
 $ oc get kogitomgtmconsole
 
 NAME                 REPLICAS   IMAGE                                                                      ENDPOINT
-management-console   1          quay.io/kiegroup/kogito-management-console:0.10.0-rc1 (Internal Registry)   http://management-console-kogito-1445.apps-crc.testing
+management-console   1          quay.io/kiegroup/kogito-management-console:0.10.0 (Internal Registry)   http://management-console-kogito-1445.apps-crc.testing
 ```
 
 The `ENDPOINT` column contains the URL that you need to access the application.
