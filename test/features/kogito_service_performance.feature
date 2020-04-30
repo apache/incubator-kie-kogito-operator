@@ -13,7 +13,7 @@ Feature: Kogito Service Performance
     Given Kogito Operator is deployed
     And Deploy quarkus example service "process-quarkus-example" with configuration:
       | config      | native       | <native> |
-      | runtime-env | JAVA_OPTIONS | -Xmx12G   |
+      | runtime-env | JAVA_OPTIONS | -Xmx16G   |
     And Kogito application "process-quarkus-example" has 1 pods running within <minutes> minutes
     And HTTP GET request on service "process-quarkus-example" with path "orders" is successful within 3 minutes
 
