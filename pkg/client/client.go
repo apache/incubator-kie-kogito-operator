@@ -219,9 +219,9 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(olmapiv1alpha1.SchemeGroupVersion.WithKind(meta.KindSubscription.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(monv1.SchemeGroupVersion.WithKind(meta.KindPrometheus.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindPod.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(apibuildv1.SchemeGroupVersion.WithKind(meta.KindBuildConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(infinispanv1.SchemeGroupVersion.WithKind(meta.KindInfinispan.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(apibuildv1.GroupVersion.WithKind(meta.KindBuildConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindSecret.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(infinispanv1.SchemeGroupVersion.WithKind(meta.KindInfinispan.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
