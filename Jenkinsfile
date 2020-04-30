@@ -1,8 +1,13 @@
 pipeline {
     agent { label 'go'}
+
+    parameters {
+        booleanParam(name: 'NIGHTLY_BUILD', defaultValue: false, description: 'If nightly build')
+    }
+
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
-        timeout(time: 90, unit: 'MINUTES')
+        // timeout(time: 90, unit: 'MINUTES')
     }
     environment {
         WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
@@ -60,12 +65,16 @@ pipeline {
                 }
             }
         }
-        stage('Running Smoke Testing') {
+        stage('Running Testing') {
             steps {
                 dir ("${WORKING_DIR}") {
-                    sh """
-                        make run-smoke-tests load_default_config=true operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
-                    """
+                    test_params = "load_default_config=true operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3"
+
+                    if (params.NIGHTLY_BUILD) {
+                        sh "make run-tests ${test_params}"
+                    } else {
+                        sh "make run-smoke-tests ${test_params}"
+                    }
                 }
             }
             post {
@@ -74,6 +83,21 @@ pipeline {
                         archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
                         junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
                     }
+                }
+            }
+        }
+        stage('Push to Quay') {
+            when {
+                expression {
+                    return params.NIGHTLY_BUILD;
+                }
+            }
+            steps {
+                withDockerRegistry([ credentialsId: "quay", url: "https://quay.io" ]) {
+                  sh """
+                      podman tag ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7) quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
+                      podman push quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
+                  """
                 }
             }
         }
