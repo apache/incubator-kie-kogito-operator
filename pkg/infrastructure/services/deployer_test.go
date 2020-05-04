@@ -214,7 +214,7 @@ func Test_serviceDeployer_deployKafka_dataIndex(t *testing.T) {
 	assert.True(t, kogitoInfra.Spec.InstallKafka)
 }
 
-func Test_serviceDeployer_deployKafka_dataIndexProvidedKafka(t *testing.T) {
+func Test_serviceDeployer_deployKafka_dataIndexProvidedKafkaExternalURI(t *testing.T) {
 	replicas := int32(1)
 	dataIndex := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: v1.ObjectMeta{Name: "data-index", Namespace: t.Name()},
@@ -235,6 +235,35 @@ func Test_serviceDeployer_deployKafka_dataIndexProvidedKafka(t *testing.T) {
 	requeueAfter, err := deployer.deployKafka(dataIndex)
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter == 0, "Should NOT have deployed Kafka for us since the service requires messaging, but the user just pointed the URI")
+
+	kogitoInfra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Namespace: t.Name(), Name: infrastructure.DefaultKogitoInfraName},
+	}
+	exists, err := kubernetes.ResourceC(cli).Fetch(kogitoInfra)
+	assert.NoError(t, err)
+	assert.False(t, exists)
+}
+func Test_serviceDeployer_deployKafka_dataIndexProvidedKafkaInstance(t *testing.T) {
+	replicas := int32(1)
+	dataIndex := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: v1.ObjectMeta{Name: "data-index", Namespace: t.Name()},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+			KafkaMeta:         v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{Instance: "my-external-kafka"}},
+		},
+	}
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{dataIndex}, nil, nil)
+	deployer := serviceDeployer{
+		definition: ServiceDefinition{
+			Request:           GetRequest(dataIndex.Namespace),
+			RequiresMessaging: true,
+		},
+		client: cli,
+		scheme: meta.GetRegisteredSchema(),
+	}
+	requeueAfter, err := deployer.deployKafka(dataIndex)
+	assert.NoError(t, err)
+	assert.True(t, requeueAfter == 0, "Should NOT have deployed Kafka for us since the service requires messaging, but the user just gave the kafka instance")
 
 	kogitoInfra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Namespace: t.Name(), Name: infrastructure.DefaultKogitoInfraName},

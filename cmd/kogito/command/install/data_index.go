@@ -112,8 +112,10 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 				i.flags.infinispan.UseKogitoInfra = false
 			}
 			if len(i.flags.kafka.ExternalURI) > 0 {
+				i.flags.kafka.UseKogitoInfra = false
 				log.Infof("kafka-url informed. Kafka will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.kafka.ExternalURI)
 			} else if len(i.flags.kafka.Instance) > 0 {
+				i.flags.kafka.UseKogitoInfra = false
 				log.Infof("kafka-instance informed. Kafka will NOT be provisioned for you. Make sure Kafka instance %s is properly deployed in the project. If the Kafka instance is found, Kafka Topics for Data Index service will be deployed in the project if they don't exist already", i.flags.kafka.Instance)
 			} else {
 				i.flags.kafka.UseKogitoInfra = true
