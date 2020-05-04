@@ -260,8 +260,9 @@ func (s *serviceDeployer) deployKafka(instance v1alpha1.KogitoService) (requeueA
 	}
 	if s.definition.RequiresMessaging &&
 		!kafkaAware.GetKafkaProperties().UseKogitoInfra &&
-		len(kafkaAware.GetKafkaProperties().ExternalURI) == 0 {
-		log.Debugf("Service %s requires messaging and Kafka URL is empty, deploying Kogito Infrastructure", instance.GetName())
+		len(kafkaAware.GetKafkaProperties().ExternalURI) == 0 &&
+		len(kafkaAware.GetKafkaProperties().Instance) == 0 {
+		log.Debugf("Service %s requires messaging and Kafka URL is empty and kafka instance is not provided, deploying Kogito Infrastructure", instance.GetName())
 		kafkaAware.GetKafkaProperties().UseKogitoInfra = true
 	} else if !kafkaAware.GetKafkaProperties().UseKogitoInfra {
 		return
