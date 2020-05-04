@@ -1,14 +1,24 @@
 pipeline {
-    agent { label 'go'}
+    agent { label 'operator-slave'}
+    
+    triggers{
+        pollSCM(
+            scmpoll_spec: '@midnight', 
+            ignorePostCommitHooks: true
+        )
+    }
+
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
-        timeout(time: 120, unit: 'MINUTES')
+        timeout(time: 360, unit: 'MINUTES')
     }
+
     environment {
         WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
         GOPATH = "/home/jenkins/go"
         GOCACHE = "/home/jenkins/go/.cache/go-build"
     }
+    
     stages {
         stage('Clean Workspace') {
             steps {
@@ -35,7 +45,7 @@ pipeline {
                         usermod --add-subgids 10000-75535 \$(whoami)
                         cat /etc/subuid
                         cat /etc/subgid
-                        make image_builder=podman
+                        make image_builder=buildah
                     """
                 }
             }
@@ -52,10 +62,10 @@ pipeline {
             steps {
                 dir ("${WORKING_DIR}") {
                     sh """
-                        set +x && podman login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
+                        set +x && buildah login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
                         cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
-                        podman tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                        podman push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                        buildah tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                        buildah push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                     """
                 }
             }
@@ -81,8 +91,8 @@ pipeline {
             steps {
                 withDockerRegistry([ credentialsId: "quay", url: "https://quay.io" ]) {
                   sh """
-                      podman tag ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7) quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
-                      podman push quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
+                      buildah tag ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7) quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
+                      buildah push quay.io/kiegroup/kogito-cloud-operator-nightly:\$(echo \${GIT_COMMIT} | cut -c1-7)
                   """
                 }
             }
