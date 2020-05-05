@@ -23,8 +23,10 @@ import (
 )
 
 func registerOperatorSteps(s *godog.Suite, data *Data) {
-	s.Step(`^Kogito operator should be installed with dependencies$`, data.kogitoOperatorShouldBeInstalledWithDependencies)
+	s.Step(`^Kogito Operator should be installed with dependencies$`, data.kogitoOperatorShouldBeInstalledWithDependencies)
+	s.Step(`^Kogito Operator should be installed from subscription with dependencies$`, data.kogitoOperatorShouldBeInstalledFromSubscriptionWithDependencies)
 	s.Step(`^Kogito Operator is deployed$`, data.kogitoOperatorIsDeployed)
+	s.Step(`^Kogito Operator is deployed from subscription using channel "([^"]*)"$`, data.kogitoOperatorIsDeployedFromSubscriptionAndChannel)
 	s.Step(`^Kogito Operator is deployed with ((?:Infinispan|Kafka|Keycloak|, | and )+) (?:operator|operators)$`, data.kogitoOperatorIsDeployedWithDependencies)
 
 	s.Step(`^CLI install Kogito operator$`, data.cliInstallKogitoOperator)
@@ -32,6 +34,10 @@ func registerOperatorSteps(s *godog.Suite, data *Data) {
 
 func (data *Data) kogitoOperatorShouldBeInstalledWithDependencies() error {
 	return framework.WaitForKogitoOperatorRunningWithDependencies(data.Namespace)
+}
+
+func (data *Data) kogitoOperatorShouldBeInstalledFromSubscriptionWithDependencies() error {
+	return framework.WaitForKogitoOperatorRunningFromSubscriptionWithDependencies(data.Namespace)
 }
 
 func (data *Data) kogitoOperatorIsDeployed() error {
@@ -84,6 +90,10 @@ func (data *Data) kogitoOperatorIsDeployedWithDependencies(dependencies string) 
 	}
 
 	return nil
+}
+
+func (data *Data) kogitoOperatorIsDeployedFromSubscriptionAndChannel(channel string) error {
+	return framework.DeployKogitoOperatorFromSubscription(data.Namespace, channel)
 }
 
 func (data *Data) cliInstallKogitoOperator() error {

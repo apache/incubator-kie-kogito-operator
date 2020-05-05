@@ -128,6 +128,18 @@
     [[ "${output}" != *"--tests.performance"* ]]
 }
 
+@test "invoke run-tests with release" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --release --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.release" ]]
+}
+
+@test "invoke run-tests without release" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.release"* ]]
+}
+
 @test "invoke run-tests with load_factor" {
     run ${BATS_TEST_DIRNAME}/run-tests.sh --load_factor 3 --dry_run
     [ "$status" -eq 0 ]

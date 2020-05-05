@@ -173,6 +173,10 @@ case $1 in
     addParam "--tests.performance"
     shift
   ;;
+  --release)
+    addParam "--tests.release"
+    shift
+  ;;
   --load_factor)
     shift
     if addParamKeyValueIfAccepted "--tests.load-factor" ${1}; then shift; fi

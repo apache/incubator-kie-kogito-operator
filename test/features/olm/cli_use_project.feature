@@ -10,7 +10,7 @@ Feature: CLI: Project
   Scenario: CLI use project
     When CLI use namespace
 
-    Then Kogito operator should be installed with dependencies
+    Then Kogito Operator should be installed with dependencies
 
 #####
 

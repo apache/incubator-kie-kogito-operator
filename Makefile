@@ -83,6 +83,7 @@ timeout=240
 debug=false
 smoke=false
 performance=false
+release=false
 load_factor=1
 local=false
 ci=
@@ -123,6 +124,7 @@ run-tests:
 	&& if [ "${debug}" = "true" ]; then opts+=("--debug"); fi \
 	&& if [ "${smoke}" = "true" ]; then opts+=("--smoke"); fi \
 	&& if [ "${performance}" = "true" ]; then opts+=("--performance"); fi \
+	&& if [ "${release}" = "true" ]; then opts+=("--release"); fi \
 	&& if [ "${local}" = "true" ]; then opts+=("--local"); fi \
 	&& if [ "${cr_deployment_only}" = "true" ]; then opts+=("--cr_deployment_only"); fi \
 	&& if [ "${show_scenarios}" = "true" ]; then opts+=("--show_scenarios"); fi \
@@ -167,6 +169,10 @@ run-smoke-tests:
 .PHONY: run-performance-tests
 run-performance-tests:
 	make run-tests performance=true
+
+.PHONY: run-release-tests
+run-release-tests:
+	make run-tests release=true
 
 .PHONY: prepare-olm
 version = ""

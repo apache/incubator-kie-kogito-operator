@@ -108,6 +108,11 @@ func DeployKogitoOperatorFromYaml(namespace string) error {
 	return nil
 }
 
+// DeployKogitoOperatorFromSubscription Deploy Kogito Operator from Operator Hub
+func DeployKogitoOperatorFromSubscription(namespace, channel string) error {
+	return InstallCommunityOperator(namespace, operator.Name, channel)
+}
+
 // IsKogitoOperatorRunning returns whether Kogito operator is running
 func IsKogitoOperatorRunning(namespace string) (bool, error) {
 	exists, err := infra.CheckKogitoOperatorExists(kubeClient, namespace)
@@ -160,6 +165,19 @@ func WaitForKogitoOperatorRunningWithDependencies(namespace string) error {
 		return err
 	}
 
+	return waitForKogitoOperatorDependencies(namespace)
+}
+
+// WaitForKogitoOperatorRunningFromSubscriptionWithDependencies waits for Kogito operator running and information matches with subscription as well as other dependent operators
+func WaitForKogitoOperatorRunningFromSubscriptionWithDependencies(namespace string) error {
+	if err := WaitForOperatorRunning(namespace, operator.Name, communityCatalog, kogitoOperatorTimeoutInMin); err != nil {
+		return err
+	}
+
+	return waitForKogitoOperatorDependencies(namespace)
+}
+
+func waitForKogitoOperatorDependencies(namespace string) error {
 	for dependentOperator := range KogitoOperatorCommunityDependencies {
 		if err := WaitForKogitoOperatorDependencyRunning(namespace, dependentOperator); err != nil {
 			return err

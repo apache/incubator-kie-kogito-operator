@@ -10,7 +10,7 @@ Feature: CLI: Install Kogito Operator
   Scenario: CLI install Kogito operator
     When CLI install Kogito operator
 
-    Then Kogito operator should be installed with dependencies
+    Then Kogito Operator should be installed with dependencies
 
 #####
 

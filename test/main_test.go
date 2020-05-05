@@ -33,11 +33,21 @@ import (
 )
 
 const (
-	disabledTag    = "@disabled"
-	cliTag         = "@cli"
-	smokeTag       = "@smoke"
-	performanceTag = "@performance"
+	disabledTag = "@disabled"
+	cliTag      = "@cli"
 )
+
+var customTags = []customTag{
+	{Name: "@performance", IsEnabled: config.IsPerformanceTests, IgnoreIfDisabled: true},
+	{Name: "@release", IsEnabled: config.IsReleaseTests, IgnoreIfDisabled: true},
+	{Name: "@smoke", IsEnabled: config.IsSmokeTests, IgnoreIfDisabled: false},
+}
+
+type customTag struct {
+	Name             string
+	IsEnabled        func() bool
+	IgnoreIfDisabled bool
+}
 
 var opt = godog.Options{
 	Output:    colors.Colored(os.Stdout),
@@ -89,16 +99,15 @@ func TestMain(m *testing.M) {
 }
 
 func configureTags() {
-	if config.IsSmokeTests() {
-		// Filter with smoke tag
-		appendTag(smokeTag)
-	} else if !strings.Contains(opt.Tags, performanceTag) {
-		if config.IsPerformanceTests() {
-			// Turn on performance tests
-			appendTag(performanceTag)
-		} else {
-			// Turn off performance tests
-			appendTag("~" + performanceTag)
+	for _, customTag := range customTags {
+		if !strings.Contains(opt.Tags, customTag.Name) {
+			if customTag.IsEnabled() {
+				// Turn on custom tag tests
+				appendTag(customTag.Name)
+			} else if customTag.IgnoreIfDisabled {
+				// Turn off custom tag tests
+				appendTag("~" + customTag.Name)
+			}
 		}
 	}
 
