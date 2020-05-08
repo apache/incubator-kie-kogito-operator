@@ -135,7 +135,7 @@ func (c *ConditionsMeta) SetProvisioning() bool {
 func (c *ConditionsMeta) SetFailed(reason ReasonType, err error) {
 	condition := Condition{
 		Type:               FailedConditionType,
-		Status:             corev1.ConditionTrue,
+		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             reason,
 		Message:            err.Error(),

@@ -16,10 +16,11 @@ package v1alpha1
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func TestSetDeployed(t *testing.T) {
@@ -95,4 +96,19 @@ func TestBuffer(t *testing.T) {
 	size := len(conditionsMeta.Conditions)
 	assert.Equal(t, maxBufferCondition, size)
 	assert.Equal(t, "error 6", conditionsMeta.Conditions[size-1].Message)
+}
+
+func TestSetFailed(t *testing.T) {
+	conditionsMeta := ConditionsMeta{}
+	failureMessage := "Unknown error occurs"
+
+	conditionsMeta.SetFailed(UnknownReason, fmt.Errorf(failureMessage))
+
+	assert.NotEmpty(t, conditionsMeta.Conditions)
+	assert.Equal(t, 1, len(conditionsMeta.Conditions))
+	condition := conditionsMeta.Conditions[0]
+	assert.Equal(t, FailedConditionType, condition.Type)
+	assert.Equal(t, corev1.ConditionFalse, condition.Status)
+	assert.Equal(t, UnknownReason, condition.Reason)
+	assert.Equal(t, failureMessage, condition.Message)
 }
