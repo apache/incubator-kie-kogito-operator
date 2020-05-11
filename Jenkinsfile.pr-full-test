@@ -10,8 +10,6 @@ pipeline {
         WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
         GOPATH = "/home/jenkins/go"
         GOCACHE = "/home/jenkins/go/.cache/go-build"
-        TAG_BUILD_OPERATOR =  sh(script:"""cd ${WORKING_DIR}version/ && grep -m 1 'Version =' version.go | tr -d 'Version =' | tr -d '"' """, returnStdout: true).trim()
-        TAG = sh(script:"""echo pr-${GIT_COMMIT} | cut -c1-10 """, returnStdout: true).trim()
     }
     stages {
         stage('Clean Workspace') {
@@ -32,7 +30,7 @@ pipeline {
                 dir ("${WORKING_DIR}") {
                     script {
                         operatorImageNotExistsInOpenshift = sh (
-                            script: "set +x && oc get istag -n openshift kogito-cloud-operator:${TAG}",
+                            script: "set +x && oc get istag -n openshift kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)",
                             returnStatus: true
                         ) != 0
 
@@ -84,8 +82,9 @@ pipeline {
                 dir ("${WORKING_DIR}") {
                     sh """
                         set +x && buildah login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
-                        buildah tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_BUILD_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:${TAG}
-                        buildah push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:${TAG}
+                        cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
+                        buildah tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                        buildah push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                     """
                 }
             }
@@ -94,7 +93,7 @@ pipeline {
             steps {
                 dir ("${WORKING_DIR}") {
                     sh """
-                        make run-tests load_factor=3 load_default_config=true operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=${TAG} maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
+                        make run-tests load_factor=3 load_default_config=true operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
                     """
                 }
             }
