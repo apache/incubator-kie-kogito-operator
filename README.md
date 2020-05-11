@@ -68,6 +68,7 @@ Table of Contents
             * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
             * [Running smoke tests](#running-smoke-tests)
             * [Running performance tests](#running-performance-tests)
+            * [List of test tags](#list-of-test-tags)
          * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
       * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
 
@@ -1083,6 +1084,8 @@ You can set those optional keys:
     - "~@wip": exclude all scenarios with wip tag
     - "@wip && ~@new": run wip scenarios, but exclude new
     - "@wip,@undone": run wip or undone scenarios
+
+  Complete list of supported tags and descriptions can be found in [List of test tags](#list-of-test-tags)
 - `concurrent` is the number of concurrent tests to be ran.  
   *Default is 1.*
 - `timeout` sets the timeout in minutes for the overall run.  
@@ -1187,6 +1190,39 @@ It will run only tests tagged with `@performance`.
 All options from BDD tests do also apply here.
 
 **NOTE:** Performance tests should be run without concurrency.
+
+#### List of test tags
+
+| Tag name           | Tag meaning                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| @smoke             | Smoke tests verifying basic functionality                                          |
+| @performance       | Performance tests                                                                  |
+| @olm               | OLM integration tests                                                              |
+| @travelagency      | Travel agency tests                                                                |
+|                    |                                                                                    |
+| @disabled          | Disabled tests, usually with comment describing reasons                            |
+| @cli               | Tests to be executed only using Kogito CLI                                         |
+|                    |                                                                                    |
+| @springboot        | SpringBoot tests                                                                   |
+| @quarkus           | Quarkus tests                                                                      |
+|                    |                                                                                    |
+| @dataindex         | Tests including DataIndex                                                          |
+| @jobsservice       | Tests including Jobs service                                                       |
+| @managementconsole | Tests including Management console                                                 |
+| @infra             | Tests checking KogitoInfra functionality                                           |
+|                    |                                                                                    |
+| @binary            | Tests using Kogito applications built locally and uploaded to OCP as a binary file |
+| @native            | Tests using native build                                                           |
+| @persistence       | Tests verifying persistence capabilities                                           |
+| @events            | Tests verifying eventing capabilities                                              |
+| @discovery         | Tests checking service discovery functionality                                     |
+| @usertasks         | Tests interacting with user tasks to check authentication/authorization            |
+|                    |                                                                                    |
+| @resources         | Tests checking resource requests and limits                                        |
+|                    |                                                                                    |
+| @externalcomponent | Tests checking externally deployed component                                       |
+| @infinispan        | Tests checking external infinispan component                                       |
+| @kafka             | Tests checking external kafka component                                            |
 
 ### Running the Kogito Operator locally
 
