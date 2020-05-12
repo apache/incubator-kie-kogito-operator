@@ -278,8 +278,9 @@ func TestGetDeployedResources(t *testing.T) {
 				got[reflect.TypeOf(monv1.ServiceMonitor{})][0].GetName() != sm1.GetName() {
 				t.Errorf("getServiceMonitor() gotServiceMonitor = %v, want %v", got, sm1)
 			}
-			if len(got[reflect.TypeOf(v1.ConfigMap{})]) != 0 {
-				t.Errorf("getConfigMap() getConfigMap = %v, want %v", got, nil)
+			if len(got[reflect.TypeOf(v1.ConfigMap{})]) != 1 ||
+				got[reflect.TypeOf(v1.ConfigMap{})][0].GetName() != cm1.GetName() {
+				t.Errorf("getConfigMap() getConfigMap = %v, want %v", got, cm1)
 			}
 		})
 	}

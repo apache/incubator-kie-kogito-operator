@@ -25,6 +25,7 @@ import (
 type builderChain struct {
 	Client    *client.Client
 	KogitoApp *v1alpha1.KogitoApp
+	AppProps  map[string]string
 	Resources *KogitoAppResources
 	Error     error
 }
@@ -40,10 +41,11 @@ func (c *builderChain) andBuild(f func(*builderChain) *builderChain) *builderCha
 }
 
 // GetRequestedResources will fetch for all the kubernetes resources requested by the KogitoApp
-func GetRequestedResources(kogitoApp *v1alpha1.KogitoApp, client *client.Client) (*KogitoAppResources, error) {
+func GetRequestedResources(kogitoApp *v1alpha1.KogitoApp, appProps map[string]string, client *client.Client) (*KogitoAppResources, error) {
 	chain := &builderChain{
 		Client:    client,
 		KogitoApp: kogitoApp,
+		AppProps:  appProps,
 		Resources: &KogitoAppResources{},
 	}
 	chain.
@@ -207,7 +209,7 @@ func runtimeImageGetter(chain *builderChain) *builderChain {
 func appPropConfigMap(chain *builderChain) *builderChain {
 	chain.Error = nil
 
-	if contentHash, configMap, err := services.GetAppPropConfigMapContentHash(chain.KogitoApp.Name, chain.KogitoApp.Namespace, chain.Client); err != nil {
+	if contentHash, configMap, err := services.GetAppPropConfigMapContentHash(chain.KogitoApp.Name, chain.KogitoApp.Namespace, chain.AppProps, chain.Client); err != nil {
 		chain.Error = err
 	} else {
 		chain.Resources.AppPropContentHash = contentHash

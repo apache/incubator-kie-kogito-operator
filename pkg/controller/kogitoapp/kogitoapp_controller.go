@@ -16,7 +16,6 @@ package kogitoapp
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/build"
 	"reflect"
 	"time"
 
@@ -28,6 +27,7 @@ import (
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/build"
 	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -50,6 +50,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	"github.com/imdario/mergo"
 )
 
 var log = logger.GetLogger("controller_kogitoapp")
@@ -157,9 +159,20 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 
 	updateResourceResult := &status.UpdateResourcesResult{ErrorReason: v1alpha1.ReasonType("")}
 
+	appProps := map[string]string{}
+	if requeue, err = r.ensureKogitoInfra(instance, appProps); err != nil {
+		updateResourceResult.Err = err
+		updateResourceResult.ErrorReason = v1alpha1.DeployKogitoInfraFailedReason
+		return
+	} else if requeue {
+		result.Requeue = true
+		result.RequeueAfter = 5 * time.Second
+		return
+	}
+
 	log.Infof("Checking if all resources for '%s' are created", instance.Name)
 	// create resources in the cluster that do not exist
-	kogitoResources, err := kogitores.GetRequestedResources(instance, r.client)
+	kogitoResources, err := kogitores.GetRequestedResources(instance, appProps, r.client)
 
 	if instance.Spec.Replicas == nil {
 		singleReplica := int32(1)
@@ -182,16 +195,6 @@ func (r *ReconcileKogitoApp) Reconcile(request reconcile.Request) (result reconc
 	}
 
 	if len(deployedRes) > 0 {
-		if requeue, err = r.ensureKogitoInfra(instance, kogitoResources.RuntimeImage, kogitoResources.DeploymentConfig); err != nil {
-			updateResourceResult.Err = err
-			updateResourceResult.ErrorReason = v1alpha1.DeployKogitoInfraFailedReason
-			return
-		} else if requeue {
-			result.Requeue = true
-			result.RequeueAfter = 5 * time.Second
-			return
-		}
-
 		if err = r.injectExternalVariables(instance, kogitoResources.DeploymentConfig); err != nil {
 			updateResourceResult.Err = err
 			updateResourceResult.ErrorReason = v1alpha1.ServicesIntegrationFailedReason
@@ -337,13 +340,22 @@ func (r *ReconcileKogitoApp) ensureKogitoImageStream(instance *v1alpha1.KogitoAp
 	return r.createImageStream(instance, "")
 }
 
-func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
-	requeueInfinispan, err := r.ensureInfinispan(instance, runtimeImage, requestedDeployment)
+func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, appProps map[string]string) (requeue bool, err error) {
+	imageStreamName := types.NamespacedName{
+		Namespace: instance.Namespace,
+		Name:      instance.Name,
+	}
+	dockerImage, err := openshift.ImageStreamC(r.client).FetchDockerImage(imageStreamName)
 	if err != nil {
 		return false, err
 	}
 
-	requeueKafka, err := r.ensureKafka(instance, requestedDeployment)
+	requeueInfinispan, err := r.ensureInfinispan(instance, dockerImage, appProps)
+	if err != nil {
+		return false, err
+	}
+
+	requeueKafka, err := r.ensureKafka(instance, appProps)
 	if err != nil {
 		return false, err
 	}
@@ -351,7 +363,7 @@ func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, run
 	return requeueInfinispan || requeueKafka, nil
 }
 
-func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
+func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, appProps map[string]string) (requeue bool, err error) {
 	log.Debug("Verify if we need to deploy Infinispan")
 	if instance.Spec.EnablePersistence || framework.IsPersistenceEnabled(runtimeImage) {
 		infra, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithInfinispan().Apply()
@@ -359,7 +371,12 @@ func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runt
 			return true, err
 		}
 		if ready {
-			if err := kogitores.SetInfinispanEnvVars(r.client, infra, instance, requestedDeployment); err != nil {
+			envs, aps, err := kogitores.CreateInfinispanProperties(r.client, infra, instance)
+			if err != nil {
+				return true, err
+			}
+			instance.Spec.Envs = framework.EnvOverride(instance.Spec.Envs, envs...)
+			if err = mergo.Merge(&appProps, aps, mergo.WithOverride); err != nil {
 				return true, err
 			}
 			log.Debug("KogitoInfra is ready, proceed!")
@@ -371,7 +388,7 @@ func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runt
 	return false, nil
 }
 
-func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, requestedDeployment *oappsv1.DeploymentConfig) (requeue bool, err error) {
+func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, appProps map[string]string) (requeue bool, err error) {
 	log.Debug("Verify if we need to deploy Kafka")
 	if instance.Spec.EnableEvents {
 		infra, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithKafka().Apply()
@@ -379,7 +396,12 @@ func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, requested
 			return true, err
 		}
 		if ready {
-			if err := kogitores.SetKafkaEnvVars(r.client, infra, instance, requestedDeployment); err != nil {
+			envs, aps, err := kogitores.CreateKafkaProperties(r.client, infra, instance)
+			if err != nil {
+				return true, err
+			}
+			instance.Spec.Envs = framework.EnvOverride(instance.Spec.Envs, envs...)
+			if err = mergo.Merge(&appProps, aps, mergo.WithOverride); err != nil {
 				return true, err
 			}
 			log.Debug("KogitoInfra is ready, proceed!")

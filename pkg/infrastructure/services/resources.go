@@ -65,25 +65,27 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 
 		service := createRequiredService(s.instance, deployment)
 
+		appProps := map[string]string{}
+
+		if s.definition.infinispanAware {
+			if err = s.applyInfinispanConfigurations(deployment, appProps, s.instance); err != nil {
+				return resources, reconcileAfter, err
+			}
+		}
+		if s.definition.kafkaAware {
+			if err = s.applyKafkaConfigurations(deployment, appProps, s.instance); err != nil {
+				return resources, reconcileAfter, err
+			}
+		}
+
 		// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998
-		contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), s.client)
+		contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), appProps, s.client)
 		if err != nil {
 			return resources, reconcileAfter, err
 		}
 		s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
 		if configMap != nil {
 			resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
-		}
-
-		if s.definition.infinispanAware {
-			if err = s.applyInfinispanConfigurations(deployment, s.instance); err != nil {
-				return resources, reconcileAfter, err
-			}
-		}
-		if s.definition.kafkaAware {
-			if err = s.applyKafkaConfigurations(deployment, s.instance); err != nil {
-				return resources, reconcileAfter, err
-			}
 		}
 
 		resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}
@@ -169,7 +171,7 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 	return "", nil
 }
 
-func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {
+func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deployment, appProps map[string]string, instance v1alpha1.KogitoService) error {
 	var infinispanSecret *corev1.Secret
 	infinispanAware := instance.GetSpec().(v1alpha1.InfinispanAware)
 	infinispanSecret, err := fetchInfinispanCredentials(infinispanAware, instance.GetNamespace(), s.client)
@@ -180,7 +182,8 @@ func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deplo
 		s.instance.GetSpec().GetRuntime(),
 		*infinispanAware.GetInfinispanProperties(),
 		infinispanSecret,
-		&deployment.Spec.Template.Spec.Containers[0])
+		&deployment.Spec.Template.Spec.Containers[0],
+		appProps)
 
 	if infinispanAware.GetInfinispanProperties().UseKogitoInfra || len(infinispanAware.GetInfinispanProperties().URI) > 0 {
 		framework.SetEnvVar(enablePersistenceEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
@@ -188,7 +191,7 @@ func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deplo
 	return nil
 }
 
-func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {
+func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment, appProps map[string]string, instance v1alpha1.KogitoService) error {
 	URI, err := getKafkaServerURI(*instance.GetSpec().(v1alpha1.KafkaAware).GetKafkaProperties(), s.getNamespace(), s.client)
 	if err != nil {
 		return err
@@ -196,11 +199,14 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 
 	if len(URI) > 0 {
 		framework.SetEnvVar(enableEventsEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
-		for _, kafkaTopic := range s.definition.KafkaTopics {
-			framework.SetEnvVar(fromKafkaTopicToQuarkusEnvVar(kafkaTopic), URI, &deployment.Spec.Template.Spec.Containers[0])
-		}
-		for _, kafkaEnv := range quarkusBootstrapEnvVars {
-			framework.SetEnvVar(kafkaEnv, URI, &deployment.Spec.Template.Spec.Containers[0])
+		if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringbootRuntimeType {
+			appProps[SpringBootstrapAppProp] = URI
+		} else {
+			for _, kafkaTopic := range s.definition.KafkaTopics {
+				appProps[fromKafkaTopicToQuarkusAppProp(kafkaTopic)] = URI
+			}
+			appProps[QuarkusBootstrapAppProp] = URI
+			framework.SetEnvVar(quarkusBootstrapEnvVar, URI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 	} else {
 		framework.SetEnvVar(enableEventsEnvKey, "false", &deployment.Spec.Template.Spec.Containers[0])
@@ -232,9 +238,9 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 	reader := read.New(s.client.ControlCli).WithNamespace(s.instance.GetNamespace()).WithOwnerObject(s.instance)
 	var objectTypes []runtime.Object
 	if s.client.IsOpenshift() {
-		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}
+		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}
 	} else {
-		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}}
+		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}}
 	}
 
 	if infrastructure.IsStrimziAvailable(s.client) {
@@ -250,7 +256,6 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 		return
 	}
 
-	ExcludeAppPropConfigMapFromResource(s.instance.GetName(), resources)
 	return
 }
 

@@ -18,8 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"reflect"
 	"testing"
 	"time"
@@ -36,6 +34,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/status"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	corev1 "k8s.io/api/core/v1"
@@ -43,6 +43,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -469,6 +470,8 @@ func TestReconcileKogitoApp_updateKogitoAppStatus(t *testing.T) {
 
 func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 	kogitoApp := createFakeKogitoApp()
+	kogitoApp.Spec.EnablePersistence = true
+	kogitoApp.Spec.EnableEvents = true
 	imgs := createFakeImages(kogitoApp.Name, map[string]string{framework.LabelKeyOrgKiePersistenceRequired: "true"})
 	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp}, imgs, nil)
 	fakeCache := &cachev1.FakeInformers{}
@@ -484,22 +487,45 @@ func TestReconcileKogitoApp_PersistenceEnabledWithInfra(t *testing.T) {
 			Namespace: kogitoApp.Namespace,
 		},
 	}
-	// first reconcile to create the objects
-	result, err := r.Reconcile(req)
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.False(t, result.Requeue)
 
-	// second reconcile should create infra
-	result, err = r.Reconcile(req)
+	// first reconcile should create infra
+	result, err := r.Reconcile(req)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.True(t, result.Requeue)
 
-	kogitoInfra, ready, err := infrastructure.EnsureKogitoInfra(kogitoApp.Namespace, fakeClient).WithInfinispan().Apply()
+	// verify infinispan and kafka requested
+	kogitoInfra, _, err := infrastructure.EnsureKogitoInfra(kogitoApp.Namespace, fakeClient).WithInfinispan().Apply()
 	assert.NoError(t, err)
-	assert.False(t, ready)        // not ready, we don't have status
 	assert.NotNil(t, kogitoInfra) // must exist a infra
+	assert.True(t, kogitoInfra.Spec.InstallInfinispan)
+	assert.True(t, kogitoInfra.Spec.InstallKafka)
+
+	// Mock the execution of reconcile for KogitoInfra
+	kogitoInfra.Status = v1alpha1.KogitoInfraStatus{
+		Infinispan: v1alpha1.InfinispanInstallStatus{
+			InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+				Service: "test-infinispan",
+				Condition: []v1alpha1.InstallCondition{
+					{Type: v1alpha1.SuccessInstallConditionType},
+				},
+			},
+		},
+		Kafka: v1alpha1.InfraComponentInstallStatusType{
+			Service: "test-kafka",
+			Condition: []v1alpha1.InstallCondition{
+				{Type: v1alpha1.SuccessInstallConditionType},
+			},
+		},
+	}
+	err = kubernetes.ResourceC(fakeClient).UpdateStatus(kogitoInfra)
+	assert.NoError(t, err)
+
+	// second reconcile to create the objects
+	result, err = r.Reconcile(req)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.False(t, result.Requeue)
 
 	dc := &appsv1.DeploymentConfig{ObjectMeta: metav1.ObjectMeta{Name: kogitoApp.Name, Namespace: kogitoApp.Namespace}}
 	exists, err := kubernetes.ResourceC(fakeClient).Fetch(dc)
@@ -640,4 +666,199 @@ func (c mockCache) Get(ctx context.Context, key client.ObjectKey, obj runtime.Ob
 	app.Spec = c.kogitoApp.Spec
 	app.Status = c.kogitoApp.Status
 	return nil
+}
+
+func TestReconcileKogitoApp_ensureInfinispan(t *testing.T) {
+	kogitoApp := createFakeKogitoApp()
+	kogitoApp.Spec.EnablePersistence = true
+	kogitoApp.Spec.Envs = []corev1.EnvVar{
+		{
+			Name:  "test1",
+			Value: "test1",
+		},
+		{
+			Name:  "test2",
+			Value: "test2",
+		},
+	}
+	image := &dockerv10.DockerImage{
+		Config: &dockerv10.DockerConfig{
+			Labels: map[string]string{framework.LabelKeyOrgKiePersistenceRequired: "true"},
+		},
+	}
+	infinispanServiceName := "test-infinispan"
+	infinispanSecret := "test-secret"
+	kogitoInfra := &v1alpha1.KogitoInfra{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kogitoApp.Name,
+			Namespace: kogitoApp.Namespace,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Infinispan: v1alpha1.InfinispanInstallStatus{
+				InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+					Service: infinispanServiceName,
+					Condition: []v1alpha1.InstallCondition{
+						{Type: v1alpha1.SuccessInstallConditionType},
+					},
+				},
+				CredentialSecret: infinispanSecret,
+			},
+		},
+	}
+	serviceInfinispan := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      infinispanServiceName,
+			Namespace: kogitoApp.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Port:       11222,
+					TargetPort: intstr.IntOrString{IntVal: 11222},
+				},
+			},
+		},
+	}
+	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp, kogitoInfra, serviceInfinispan}, nil, nil)
+	fakeCache := &cachev1.FakeInformers{}
+	r := &ReconcileKogitoApp{
+		client: fakeClient,
+		scheme: meta.GetRegisteredSchema(),
+		cache:  fakeCache,
+	}
+
+	appProps := map[string]string{
+		"test1":                              "test1",
+		"test2":                              "test2",
+		"quarkus.infinispan-client.use-auth": "false",
+	}
+	requeue, err := r.ensureInfinispan(kogitoApp, image, appProps)
+	assert.NoError(t, err)
+	assert.False(t, requeue)
+
+	assert.Equal(t, map[string]string{
+		"test1":                                 "test1",
+		"test2":                                 "test2",
+		"quarkus.infinispan-client.use-auth":    "true",
+		"quarkus.infinispan-client.server-list": "test-infinispan:11222",
+		"quarkus.infinispan-client.sasl-mechanism": "PLAIN",
+	}, appProps)
+
+	assert.Equal(t, []corev1.EnvVar{
+		{
+			Name:  "test1",
+			Value: "test1",
+		},
+		{
+			Name:  "test2",
+			Value: "test2",
+		},
+		{
+			Name: "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					Key: "username",
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: infinispanSecret,
+					},
+				},
+			},
+		},
+		{
+			Name: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					Key: "password",
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: infinispanSecret,
+					},
+				},
+			},
+		},
+	}, kogitoApp.Spec.Envs)
+}
+
+func TestReconcileKogitoApp_ensureKafka(t *testing.T) {
+	kogitoApp := createFakeKogitoApp()
+	kogitoApp.Spec.EnableEvents = true
+	kogitoApp.Spec.Envs = []corev1.EnvVar{
+		{
+			Name:  "test1",
+			Value: "test1",
+		},
+		{
+			Name:  "test2",
+			Value: "test2",
+		},
+		{
+			Name:  "TEST_BOOTSTRAP_SERVERS",
+			Value: "123",
+		},
+	}
+	kafkaServiceName := "test-kafka"
+	kogitoInfra := &v1alpha1.KogitoInfra{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kogitoApp.Name,
+			Namespace: kogitoApp.Namespace,
+		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Kafka: v1alpha1.InfraComponentInstallStatusType{
+				Service: kafkaServiceName,
+				Condition: []v1alpha1.InstallCondition{
+					{Type: v1alpha1.SuccessInstallConditionType},
+				},
+			},
+		},
+	}
+	serviceKafka := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kafkaServiceName,
+			Namespace: kogitoApp.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Port:       9092,
+					TargetPort: intstr.IntOrString{IntVal: 9092},
+				},
+			},
+		},
+	}
+	fakeClient := test.CreateFakeClient([]runtime.Object{kogitoApp, kogitoInfra, serviceKafka}, nil, nil)
+	fakeCache := &cachev1.FakeInformers{}
+	r := &ReconcileKogitoApp{
+		client: fakeClient,
+		scheme: meta.GetRegisteredSchema(),
+		cache:  fakeCache,
+	}
+
+	appProps := map[string]string{
+		"test1":                   "test1",
+		"test2":                   "test2",
+		"kafka.bootstrap.servers": "test-kafka",
+	}
+	requeue, err := r.ensureKafka(kogitoApp, appProps)
+	assert.NoError(t, err)
+	assert.False(t, requeue)
+
+	assert.Equal(t, map[string]string{
+		"test1":                   "test1",
+		"test2":                   "test2",
+		"kafka.bootstrap.servers": "test-kafka:9092",
+	}, appProps)
+
+	assert.Equal(t, []corev1.EnvVar{
+		{
+			Name:  "test1",
+			Value: "test1",
+		},
+		{
+			Name:  "test2",
+			Value: "test2",
+		},
+		{
+			Name:  "TEST_BOOTSTRAP_SERVERS",
+			Value: "test-kafka:9092",
+		},
+	}, kogitoApp.Spec.Envs)
 }

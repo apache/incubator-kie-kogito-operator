@@ -1,0 +1,103 @@
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package resource
+
+import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"testing"
+)
+
+func createInfinispanTestService(kogitoInfra *v1alpha1.KogitoInfra, port int) *corev1.Service {
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.Service, Namespace: kogitoInfra.Namespace},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					TargetPort: intstr.FromInt(port),
+				},
+			},
+		},
+	}
+}
+
+func createTestSecret(kogitoInfra *v1alpha1.KogitoInfra, username, password string) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoInfra.Status.Infinispan.CredentialSecret, Namespace: kogitoInfra.Namespace},
+		Data: map[string][]byte{
+			infrastructure.InfinispanSecretUsernameKey: []byte(username),
+			infrastructure.InfinispanSecretPasswordKey: []byte(password),
+		},
+	}
+}
+
+func Test_CreateInfinispanProperties_QuarkusRuntime(t *testing.T) {
+	kogitoApp := createTestKogitoApp(v1alpha1.QuarkusRuntimeType)
+	kogitoInfra := createTestKogitoInfra()
+	service := createInfinispanTestService(kogitoInfra, 11222)
+	secret := createTestSecret(kogitoInfra, "test", "test")
+
+	objs := []runtime.Object{service, secret}
+	fakeClient := test.CreateFakeClient(objs, nil, []runtime.Object{})
+	envs, appProps, err := CreateInfinispanProperties(fakeClient, kogitoInfra, kogitoApp)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(envs))
+	for _, v := range envs {
+		assert.True(t, v.Name == services.PropertiesInfinispanQuarkus[services.EnvVarInfinispanUser] ||
+			v.Name == services.PropertiesInfinispanQuarkus[services.EnvVarInfinispanPassword])
+	}
+
+	assert.Equal(t, 3, len(appProps))
+	_, ok := appProps[services.PropertiesInfinispanQuarkus[services.AppPropInfinispanServerList]]
+	assert.True(t, ok)
+	_, ok = appProps[services.PropertiesInfinispanQuarkus[services.AppPropInfinispanUseAuth]]
+	assert.True(t, ok)
+	_, ok = appProps[services.PropertiesInfinispanQuarkus[services.AppPropInfinispanSaslMechanism]]
+	assert.True(t, ok)
+}
+
+func Test_CreateInfinispanProperties_SpringBootRuntime(t *testing.T) {
+	kogitoApp := createTestKogitoApp(v1alpha1.SpringbootRuntimeType)
+	kogitoInfra := createTestKogitoInfra()
+	service := createInfinispanTestService(kogitoInfra, 11222)
+	secret := createTestSecret(kogitoInfra, "test", "test")
+
+	objs := []runtime.Object{service, secret}
+	fakeClient := test.CreateFakeClient(objs, nil, []runtime.Object{})
+	envs, appProps, err := CreateInfinispanProperties(fakeClient, kogitoInfra, kogitoApp)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(envs))
+	for _, v := range envs {
+		assert.True(t, v.Name == services.PropertiesInfinispanSpring[services.EnvVarInfinispanUser] ||
+			v.Name == services.PropertiesInfinispanSpring[services.EnvVarInfinispanPassword])
+	}
+
+	assert.Equal(t, 3, len(appProps))
+	_, ok := appProps[services.PropertiesInfinispanSpring[services.AppPropInfinispanServerList]]
+	assert.True(t, ok)
+	_, ok = appProps[services.PropertiesInfinispanSpring[services.AppPropInfinispanUseAuth]]
+	assert.True(t, ok)
+	_, ok = appProps[services.PropertiesInfinispanSpring[services.AppPropInfinispanSaslMechanism]]
+	assert.True(t, ok)
+}

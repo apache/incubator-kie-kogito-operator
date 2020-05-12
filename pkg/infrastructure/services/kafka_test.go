@@ -25,15 +25,15 @@ func Test_fromKafkaTopicToQuarkusEnvVar(t *testing.T) {
 		args args
 		want string
 	}{
-		{"Incoming Topic", args{topic: KafkaTopicDefinition{TopicName: "kogito-processinstances-events", MessagingType: KafkaTopicIncoming}}, "MP_MESSAGING_INCOMING_KOGITO_PROCESSINSTANCES_EVENTS_BOOTSTRAP_SERVERS"},
-		{"Outgoing Topic", args{topic: KafkaTopicDefinition{TopicName: "kogito-job-service-job-status-events", MessagingType: KafkaTopicOutgoing}}, "MP_MESSAGING_OUTGOING_KOGITO_JOB_SERVICE_JOB_STATUS_EVENTS_BOOTSTRAP_SERVERS"},
+		{"Incoming Topic", args{topic: KafkaTopicDefinition{TopicName: "kogito-processinstances-events", MessagingType: KafkaTopicIncoming}}, "mp.messaging.incoming.kogito-processinstances-events.bootstrap.servers"},
+		{"Outgoing Topic", args{topic: KafkaTopicDefinition{TopicName: "kogito-job-service-job-status-events", MessagingType: KafkaTopicOutgoing}}, "mp.messaging.outgoing.kogito-job-service-job-status-events.bootstrap.servers"},
 		{"Blank", args{topic: KafkaTopicDefinition{TopicName: "", MessagingType: ""}}, ""},
 		{"Nil", args{}, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := fromKafkaTopicToQuarkusEnvVar(tt.args.topic); got != tt.want {
-				t.Errorf("fromKafkaTopicToQuarkusEnvVar() = %v, want %v", got, tt.want)
+			if got := fromKafkaTopicToQuarkusAppProp(tt.args.topic); got != tt.want {
+				t.Errorf("fromKafkaTopicToQuarkusAppProp() = %v, want %v", got, tt.want)
 			}
 		})
 	}
