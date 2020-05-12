@@ -1,0 +1,252 @@
+pipeline {
+    agent { label 'operator-slave'}
+
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
+        timeout(time: 360, unit: 'MINUTES')
+    }
+
+    environment {
+        OPERATOR_IMAGE_NAME="kogito-cloud-operator"
+
+        WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
+        GOPATH = "/home/jenkins/go"
+        GOCACHE = "/home/jenkins/go/.cache/go-build"
+
+        TEMP_TAG="""pr-${sh(
+                returnStdout: true,
+                script: 'echo \${GIT_COMMIT} | cut -c1-7'
+            ).trim()}"""
+
+        // Keep commented. It is for documentation only
+        // Cannot define here as an env variable defined here is immutable ...
+        // TEST_PARAMS = parameters which will be set in `configure testing` stage
+    }
+
+    parameters {
+        string(name: 'IMAGE_REGISTRY_CREDENTIALS', defaultValue: '', description: 'Image registry credentials to use to deploy images. Will be ignored if no IMAGE_REGISTRY is given')
+        string(name: 'IMAGE_REGISTRY', defaultValue: '', description: 'Image registry to use to deploy images')
+        string(name: 'IMAGE_NAMESPACE', defaultValue: 'kiegroup', description: 'Image namespace to use to deploy images')
+        string(name: 'IMAGE_NAME_SUFFIX', defaultValue: '', description: 'Image name suffix to use to deploy images. In case you need to change the final image name, you can add a suffix to it.')
+        string(name: 'IMAGE_TAG', defaultValue: '', description: 'Image tag to use to deploy images')
+
+        // To define if needed. If not, default config will apply
+        booleanParam(name: 'KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY', defaultValue: false, description: 'Set to true if kogito images for tests are in internal Openshift registry.In this case, KOGITO_IMAGES_REGISTRY and KOGITO_IMAGES_NAMESPACE parameters will be ignored')
+        string(name: 'KOGITO_IMAGES_REGISTRY', defaultValue: '', description: 'Test images registry')
+        string(name: 'KOGITO_IMAGES_NAMESPACE', defaultValue: '', description: 'Test images namespace')
+        string(name: 'KOGITO_IMAGES_NAME_SUFFIX', defaultValue: '', description: 'Test images name suffix')
+        string(name: 'KOGITO_IMAGES_TAG', defaultValue: '', description: 'Test images tag')
+        string(name: 'EXAMPLES_REF', defaultValue: '', description: 'Test image registry')
+        
+    }
+    
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                dir ("${WORKING_DIR}") {
+                    deleteDir()
+                }
+            }
+        }
+        stage('Initialize') {
+            steps {
+                script {
+                    sh "mkdir -p ${WORKING_DIR} && cd ${WORKSPACE} && cp -Rap * ${WORKING_DIR}"
+                    sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
+                    
+                    setupImageEnvVarsFromParams("","DEPLOY")
+                }
+            }
+        }
+        stage('Build Kogito Operator') {
+            steps {
+                dir ("${WORKING_DIR}") {
+                    sh """
+                        export GOROOT=`go env GOROOT`
+                        go get -u golang.org/x/lint/golint
+                        touch /etc/sub{u,g}id
+                        usermod --add-subuids 10000-75535 \$(whoami)
+                        usermod --add-subgids 10000-75535 \$(whoami)
+                        cat /etc/subuid
+                        cat /etc/subgid
+                        make image_builder=buildah
+                    """
+                }
+            }
+            
+        }
+        stage('Build Kogito CLI') {
+            steps {
+                dir ("${WORKING_DIR}") {
+                    sh "make build-cli"
+                }
+            }
+        }
+        stage('Push Operator Image to Openshift Registry') {
+            steps {
+                dir ("${WORKING_DIR}") {
+                    loginOpenshiftRegistry()
+                    sh """
+                        buildah tag quay.io/kiegroup/${OPERATOR_IMAGE_NAME}:${getOperatorVersion()} ${buildTempOpenshiftImageFullName()}
+                        buildah push --tls-verify=false docker://${buildTempOpenshiftImageFullName()}
+                    """
+                }
+            }
+        }
+        stage("Configure Testing") {
+            steps {
+                script {
+                    env.TEST_PARAMS = ""
+                    addTestParamFromValue("operator_image", getTempOpenshiftImageName())
+                    addTestParamFromValue("operator_tag", env.TEMP_TAG)
+                    addTestParamFromValue("maven_mirror", env.MAVEN_MIRROR_REPOSITORY)
+
+                    if (params.KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY) {
+                        addTestParamFromValue("build_image_registry", env.OPENSHIFT_REGISTRY)
+                        addTestParamFromValue("services_image_registry", env.OPENSHIFT_REGISTRY)
+                        addTestParamFromValue("build_image_namespace", "openshift")
+                        addTestParamFromValue("services_image_namespace", "openshift")
+                    } else {
+                        if(params.KOGITO_IMAGES_REGISTRY != ''){
+                            addTestParamFromValue("build_image_registry", params.KOGITO_IMAGES_REGISTRY)
+                            addTestParamFromValue("services_image_registry", params.KOGITO_IMAGES_REGISTRY)
+                        }
+                        if(params.KOGITO_IMAGES_NAMESPACE != ''){
+                            addTestParamFromValue("build_image_namespace", params.KOGITO_IMAGES_NAMESPACE)
+                            addTestParamFromValue("services_image_namespace", params.KOGITO_IMAGES_NAMESPACE)
+                        }
+                    }
+                    if(params.KOGITO_IMAGES_TAG != ''){
+                        addTestParamFromValue("build_image_version", params.KOGITO_IMAGES_TAG)
+                        addTestParamFromValue("services_image_version", params.KOGITO_IMAGES_TAG)
+                    }
+                    if(params.KOGITO_IMAGES_NAME_SUFFIX != ''){
+                        addTestParamFromValue("build_image_name_suffix", params.KOGITO_IMAGES_NAME_SUFFIX)
+                        addTestParamFromValue("services_image_name_suffix", params.KOGITO_IMAGES_NAME_SUFFIX)
+                    }
+                    if(params.EXAMPLES_REF != ''){
+                        addTestParamFromValue("examples_ref",params.EXAMPLES_REF)
+                    }
+
+                    echo "Test parameters = ${TEST_PARAMS}"
+                }
+            }
+        }
+        stage('Run Testing') {
+            steps {
+                dir ("${WORKING_DIR}") {
+                    sh """
+                        make run-smoke-tests load_factor=3 concurrent=3 load_default_config=true ${TEST_PARAMS}
+                    """
+                }
+            }
+            post {
+                always {
+                    dir("${WORKING_DIR}") {
+                        archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                        junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                    }
+                }
+            }
+        }
+        stage('Push to registry') {
+            steps {
+                script {
+                    if (env.DEPLOY_IMAGE_USE_OPENSHIFT == "true") {
+                        loginOpenshiftRegistry()
+                        tagImage()
+                        pushImage()
+                    }else if (env.DEPLOY_IMAGE_REGISTRY_CREDENTIALS != ''){
+                        withDockerRegistry([ credentialsId: "${DEPLOY_IMAGE_REGISTRY_CREDENTIALS}", url: "https://${IMAGE_REGISTRY}" ]){        
+                            tagImage()
+                            pushImage()
+                        }
+                    } else {
+                        tagImage()
+                        pushImage()
+                    }
+                }
+            }
+        }
+        // TODO archive CLI as artifact
+    }
+}
+
+String getOperatorVersion(){
+    return sh(script: "cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '\"') && echo \${TAG_OPERATOR}", returnStdout: true).trim()
+}
+
+void tagImage(){
+    sh "buildah tag ${buildTempOpenshiftImageFullName()} ${buildFinalImageFullName()}"
+}
+
+void pushImage(){
+    sh "buildah push --tls-verify=false docker://${buildFinalImageFullName()}"
+}
+
+String buildTempOpenshiftImageFullName(){
+    return "${getTempOpenshiftImageName()}:${TEMP_TAG}"
+}
+String getTempOpenshiftImageName(){
+    return "${OPENSHIFT_REGISTRY}/openshift/${OPERATOR_IMAGE_NAME}"
+}
+
+String buildFinalImageFullName(){
+    String finalImageName = env.OPERATOR_IMAGE_NAME
+    if(env.DEPLOY_IMAGE_NAME_SUFFIX != null && env.DEPLOY_IMAGE_NAME_SUFFIX != ''){
+        finalImageName += "-" + env.DEPLOY_IMAGE_NAME_SUFFIX
+    }
+    return "${DEPLOY_IMAGE_REGISTRY}/${DEPLOY_IMAGE_NAMESPACE}/${finalImageName}:${DEPLOY_IMAGE_TAG}"
+}
+
+void loginOpenshiftRegistry(){
+    sh "set +x && buildah login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}"
+}
+
+void addTestParamFromValue(String key, String value) {
+    env.TEST_PARAMS += " ${key}=\"${value}\""
+}
+
+/**
+    Setup env variables for image registry/namesapce/tag, depending on parameters
+*/
+void setupImageEnvVarsFromParams(String prefixParam, String prefixEnv) {
+    if(getParam(prefixParam, "IMAGE_REGISTRY") == '') {
+        setEnv(prefixEnv, "IMAGE_REGISTRY", env.OPENSHIFT_REGISTRY)
+        setEnv(prefixEnv, "IMAGE_NAMESPACE", "openshift")
+        setEnv(prefixEnv, "IMAGE_USE_OPENSHIFT", "true")
+    } else {
+        setEnvFromParam("IMAGE_REGISTRY_CREDENTIALS", prefixEnv, prefixParam)
+        setEnvFromParam("IMAGE_REGISTRY", prefixEnv, prefixParam)
+        setEnvFromParam("IMAGE_NAMESPACE", prefixEnv, prefixParam)
+        setEnv(prefixEnv, "IMAGE_USE_OPENSHIFT", "false")
+    }
+    if (getParam(prefixParam, "IMAGE_TAG") != '') {
+        setEnvFromParam("IMAGE_TAG", prefixEnv, prefixParam)
+    } else {
+        setEnv(prefixEnv, "IMAGE_TAG", sh(script: "echo ${GIT_COMMIT} | cut -c1-7", returnStdout: true).trim())
+    }
+    if(getParam(prefixParam, "IMAGE_NAME_SUFFIX") != '') {
+        setEnvFromParam("IMAGE_NAME_SUFFIX", prefixEnv, prefixParam)
+    }
+}
+
+String getKey(String prefix, String envVarName) {
+    if (prefix == '') {
+        return envVarName
+    }
+    return "${prefix}_${envVarName}"
+}
+
+void setEnv(String keyPrefix, String keyId, String value){
+    echo "setEnv ${getKey(keyPrefix, keyId)} = ${value}"
+    env."${getKey(keyPrefix, keyId)}" = value
+}
+
+void setEnvFromParam(String keyId, String prefixEnv, String prefixParam){
+    setEnv(prefixEnv, keyId, getParam(prefixParam, keyId))
+}
+
+String getParam(String keyPrefix, String keyId){
+    return params."${getKey(keyPrefix, keyId)}"
+}

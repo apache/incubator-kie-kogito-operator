@@ -1119,9 +1119,10 @@ You can set those optional keys:
 <!--- build -->
 - `maven_mirror` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
-- `build_image_version` sets the build image version.
-- `build_image_namespace` sets the build image namespace.
 - `build_image_registry` sets the build image registry.
+- `build_image_namespace` sets the build image namespace.
+- `build_image_name_suffix` sets the build image name suffix to append to usual image names.
+- `build_image_version` sets the build image version
 - `build_s2i_image_tag` sets the build S2I image full tag.
 - `build_runtime_image_tag` sets the build Runtime image full tag.
 <!--- examples repository -->
