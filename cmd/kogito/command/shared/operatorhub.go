@@ -30,10 +30,9 @@ import (
 )
 
 const (
-	defaultOperatorPackageName   = "kogito-operator"
-	defaultOperatorChannelName   = "alpha"
-	communityOperatorSource      = "community-operators"
-	operatorMarketplaceNamespace = "openshift-marketplace"
+	DefaultOperatorPackageName   = "kogito-operator"
+	CommunityOperatorSource      = "community-operators"
+	OperatorMarketplaceNamespace = "openshift-marketplace"
 )
 
 // isOperatorAvailableInOperatorHub will check if the Kogito Operator is available in OperatorHub (on OpenShift)
@@ -42,8 +41,8 @@ func isOperatorAvailableInOperatorHub(kubeCli *client.Client) (bool, error) {
 	log.Debug("Trying to find if Kogito Operator is available in the OperatorHub")
 	operatorSource := &v1.OperatorSource{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      communityOperatorSource,
-			Namespace: operatorMarketplaceNamespace,
+			Name:      CommunityOperatorSource,
+			Namespace: OperatorMarketplaceNamespace,
 		},
 	}
 	exists, err := kubernetes.ResourceC(kubeCli).Fetch(operatorSource)
@@ -51,27 +50,27 @@ func isOperatorAvailableInOperatorHub(kubeCli *client.Client) (bool, error) {
 		return false, err
 	}
 
-	log.Debugf("Finishing fetch the OperatorHub for Kogito Operator in namespace %s", operatorMarketplaceNamespace)
+	log.Debugf("Finishing fetch the OperatorHub for Kogito Operator in namespace %s", OperatorMarketplaceNamespace)
 	log.Debugf("OperatorSource named as %s created at %s", operatorSource.Name, operatorSource.CreationTimestamp)
 	log.Debugf("OperatorSource %s has the following packages: %s", operatorSource.Name, operatorSource.Status.Packages)
 	if !exists {
 		return false, nil
 	}
 
-	return strings.Contains(operatorSource.Status.Packages, defaultOperatorPackageName), nil
+	return strings.Contains(operatorSource.Status.Packages, DefaultOperatorPackageName), nil
 }
 
 // installOperatorWithOperatorHub installs the Kogito Operator via OperatorHub custom resources, works for OCP 4.x
 // checks if a subscription to the given Kogito Operator package already exists. Doesn't create if one is in place.
 // see: https://docs.openshift.com/container-platform/4.2/operators/olm-adding-operators-to-cluster.html#olm-installing-operator-from-operatorhub-using-cli_olm-adding-operators-to-a-cluster
-func installOperatorWithOperatorHub(namespace string, cli *client.Client) error {
+func installOperatorWithOperatorHub(namespace string, cli *client.Client, channel KogitoChannelType) error {
 	log := context.GetDefaultLogger()
 	log.Debug("Trying to install Kogito Operator via Subscription to the OperatorHub")
 	if err := createOperatorGroupIfNotExists(namespace, cli); err != nil {
 		return err
 	}
 
-	if sub, err := framework.GetSubscription(cli, namespace, defaultOperatorPackageName, communityOperatorSource); err != nil {
+	if sub, err := framework.GetSubscription(cli, namespace, DefaultOperatorPackageName, CommunityOperatorSource); err != nil {
 		return err
 	} else if sub != nil {
 		log.Warnf("Found subscription %s with package %s and catalog source %s. Won't create a new one",
@@ -81,20 +80,21 @@ func installOperatorWithOperatorHub(namespace string, cli *client.Client) error 
 
 	subscription := &olmapiv1alpha1.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      defaultOperatorPackageName,
+			Name:      DefaultOperatorPackageName,
 			Namespace: namespace,
 		},
 		Spec: &olmapiv1alpha1.SubscriptionSpec{
-			Package:                defaultOperatorPackageName,
-			CatalogSource:          communityOperatorSource,
-			CatalogSourceNamespace: operatorMarketplaceNamespace,
-			Channel:                defaultOperatorChannelName,
+			Package:                DefaultOperatorPackageName,
+			CatalogSource:          CommunityOperatorSource,
+			CatalogSourceNamespace: OperatorMarketplaceNamespace,
+			Channel:                channel.String(),
 		},
 	}
 	log.Debug("About to create a new subscription for the Kogito Operator")
 	if err := kubernetes.ResourceC(cli).Create(subscription); err != nil {
 		return err
 	}
+	log.Infof("Kogito Operator successfully subscribed in '%s' namespace", namespace)
 
 	return nil
 }

@@ -55,13 +55,13 @@ var (
 
 // SilentlyInstallOperatorIfNotExists attempts to install the operator and does not log a message if it is installed
 func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client) (installed bool, err error) {
-	return InstallOperatorIfNotExists(namespace, operatorImage, client, false, false)
+	return InstallOperatorIfNotExists(namespace, operatorImage, client, false, false, AlphaChannel)
 }
 
 // InstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files, if the operator deployment is not in the given namespace.
 // If the operator is available at the OperatorHub in OpenShift installations and not installed, tries to install the Operator via OLM Subscriptions.
 // operatorImage can be an empty string. In this case, the empty string is the default value.
-func InstallOperatorIfNotExists(namespace string, operatorImage string, cli *client.Client, warnIfInstalled bool, force bool) (installed bool, err error) {
+func InstallOperatorIfNotExists(namespace string, operatorImage string, cli *client.Client, warnIfInstalled bool, force bool, channel KogitoChannelType) (installed bool, err error) {
 	log := context.GetDefaultLogger()
 
 	if util.GetBoolOSEnv(skipOperatorInstallEnv) {
@@ -85,7 +85,7 @@ func InstallOperatorIfNotExists(namespace string, operatorImage string, cli *cli
 	if available, err := isOperatorAvailableInOperatorHub(cli); err != nil {
 		log.Warnf("Couldn't find if the Kogito Operator is available in the cluster: %s ", err)
 	} else if available && !force {
-		if err := installOperatorWithOperatorHub(namespace, cli); err != nil {
+		if err := installOperatorWithOperatorHub(namespace, cli, channel); err != nil {
 			log.Warnf("Couldn't install Kogito Operator via OperatorHub: %s ", err)
 			return false, err
 		}
