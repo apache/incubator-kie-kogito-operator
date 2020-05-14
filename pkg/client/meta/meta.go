@@ -107,12 +107,12 @@ var (
 	KindSubscription = DefinitionKind{"Subscription", false, olmapiv1alpha1.SchemeGroupVersion}
 	// KindPrometheus ...
 	KindPrometheus = DefinitionKind{"Prometheus", false, monv1.SchemeGroupVersion}
-	// KindInfinispan ...
-	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
 	// KindPod for a Pod
 	KindPod = DefinitionKind{"Pod", false, corev1.SchemeGroupVersion}
 	// KindSecret ...
 	KindSecret = DefinitionKind{"Secret", false, corev1.SchemeGroupVersion}
+	// KindInfinispan ...
+	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource

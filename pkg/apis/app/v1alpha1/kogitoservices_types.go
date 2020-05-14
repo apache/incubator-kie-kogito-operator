@@ -169,6 +169,23 @@ func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 	return
 }
 
+// AddEnvironmentVariableFromSecret adds a new environment variable from the secret under the key
+func (k *KogitoServiceSpec) AddEnvironmentVariableFromSecret(variableName, secretName, secretKey string) {
+	env := corev1.EnvVar{
+		Name: variableName,
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: secretName,
+				},
+				Key: secretKey,
+			},
+		},
+	}
+	k.Envs = append(k.Envs, env)
+	return
+}
+
 // AddResourceRequest adds new resource request. Works also on uninitialized Requests field.
 func (k *KogitoServiceSpec) AddResourceRequest(name, value string) {
 	if k.Resources.Requests == nil {
