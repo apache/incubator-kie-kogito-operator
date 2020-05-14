@@ -26,15 +26,15 @@ const (
 	DevPreviewChannel KogitoChannelType = "dev-preview"
 )
 
-func (s *KogitoChannelType) Set(val string) error {
-	*s = KogitoChannelType(val)
+func (ch *KogitoChannelType) Set(val string) error {
+	*ch = KogitoChannelType(val)
 	return nil
 }
-func (s *KogitoChannelType) Type() string {
+func (ch *KogitoChannelType) Type() string {
 	return "string"
 }
 
-func (s *KogitoChannelType) String() string { return string(*s) }
+func (ch *KogitoChannelType) String() string { return string(*ch) }
 
 func (ch KogitoChannelType) IsValid() error {
 	switch ch {

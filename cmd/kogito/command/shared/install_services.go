@@ -58,7 +58,7 @@ type ServicesInstallation interface {
 	// Depends on the Operator, install it first.
 	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
 	// InstallOperator installs the Operator.
-	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, channel KogitoChannelType) ServicesInstallation
+	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation
 	// InstallInfinispan install an infinispan instance.
 	InstallInfinispan() ServicesInstallation
 	// InstallKeycloak install a keycloak instance.
@@ -142,9 +142,9 @@ func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMg
 	return s
 }
 
-func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool, channel KogitoChannelType) ServicesInstallation {
+func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation {
 	if s.err == nil && !s.operatorInstalled {
-		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force, channel)
+		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force, ch)
 	}
 	return s
 }
