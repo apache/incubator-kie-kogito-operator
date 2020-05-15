@@ -1,6 +1,7 @@
 # Commented code will be addressed by further enhancements:
+# https://issues.redhat.com/browse/KOGITO-1699
+# https://issues.redhat.com/browse/KOGITO-1700
 # https://issues.redhat.com/browse/KOGITO-1701
-# https://issues.redhat.com/browse/KOGITO-1888
 
 @performance
 Feature: Kogito Service Performance
@@ -9,11 +10,11 @@ Feature: Kogito Service Performance
     Given Namespace is created
 
   @quarkus
-  Scenario Outline: Quarkus Kogito Service Performance with native <native>, without persistence and with requests <requests>
+  Scenario Outline: Quarkus Kogito Service Performance with requests <requests>, native <native> but without persistence
     Given Kogito Operator is deployed
     And Deploy quarkus example service "process-quarkus-example" with configuration:
       | config      | native       | <native> |
-      | runtime-env | JAVA_OPTIONS | -Xmx10G  |
+      | runtime-env | JAVA_OPTIONS | -Xmx8G   |
     And Kogito application "process-quarkus-example" has 1 pods running within <minutes> minutes
     And Service "process-quarkus-example" with process name "orders" is available within 3 minutes
 
@@ -52,17 +53,12 @@ Feature: Kogito Service Performance
 
   @quarkus
   @persistence
-  Scenario Outline: Quarkus Kogito Service Performance with native <native>, with persistence and with requests <requests>
+  Scenario Outline: Quarkus Kogito Service Performance with requests <requests>, native <native> and persistence
     Given Kogito Operator is deployed with Infinispan operator
-    And Infinispan instance "external-infinispan" is deployed for performance within 5 minute(s) with configuration:
-      | username | developer |
-      | password | mypass    |
     And Deploy quarkus example service "process-quarkus-example" with configuration:
-      | config      | native       | <native>                  |
-      | runtime-env | JAVA_OPTIONS | -Xmx10G                   |
-      | infinispan  | username     | developer                 |
-      | infinispan  | password     | mypass                    |
-      | infinispan  | uri          | external-infinispan:11222 |
+      | config      | native       | <native> |
+      | config      | persistence  | enabled  |
+      | runtime-env | JAVA_OPTIONS | -Xmx8G   |
     And Kogito application "process-quarkus-example" has 1 pods running within <minutes> minutes
     And Service "process-quarkus-example" with process name "orders" is available within 3 minutes
 
@@ -77,8 +73,8 @@ Feature: Kogito Service Performance
       }
       """
 
-    #Then Service "process-quarkus-example" contains <requests> instances of process with name "orders" within 1 minutes
-    #And Service "process-quarkus-example" contains <requests> instances of process with name "orderItems" within 1 minutes
+    Then Service "process-quarkus-example" contains <requests> instances of process with name "orders" within 1 minutes
+    And Service "process-quarkus-example" contains <requests> instances of process with name "orderItems" within 1 minutes
     #And All human tasks on path "orderItems" with path task name "Verify_order" are successfully "completed" with timing "true"
 
 
@@ -100,10 +96,10 @@ Feature: Kogito Service Performance
 #####
 
   @springboot
-  Scenario Outline: Spring Boot Kogito Service Performance without persistence and with requests <requests>
+  Scenario Outline: Spring Boot Kogito Service Performance with requests <requests> but without persistence
     Given Kogito Operator is deployed
     And Deploy springboot example service "process-springboot-example" with configuration:
-      | runtime-env | JAVA_OPTIONS | -Xmx10G |
+      | runtime-env | JAVA_OPTIONS | -Xmx8G |
     And Kogito application "process-springboot-example" has 1 pods running within <minutes> minutes
     And Service "process-springboot-example" with process name "orders" is available within 3 minutes
 
@@ -133,16 +129,11 @@ Feature: Kogito Service Performance
 
   @springboot
   @persistence
-  Scenario Outline: Spring Boot Kogito Service Performance with persistence and with requests <requests>
+  Scenario Outline: Spring Boot Kogito Service Performance with requests <requests> and persistence
     Given Kogito Operator is deployed with Infinispan operator
-    And Infinispan instance "external-infinispan" is deployed for performance within 5 minute(s) with configuration:
-      | username | developer |
-      | password | mypass    |
     And Deploy springboot example service "process-springboot-example" with configuration:
-      | runtime-env | JAVA_OPTIONS | -Xmx10G                   |
-      | infinispan  | username     | developer                 |
-      | infinispan  | password     | mypass                    |
-      | infinispan  | uri          | external-infinispan:11222 |
+      | config      | persistence  | enabled |
+      | runtime-env | JAVA_OPTIONS | -Xmx8G  |
     And Kogito application "process-springboot-example" has 1 pods running within <minutes> minutes
     And Service "process-springboot-example" with process name "orders" is available within 3 minutes
 
@@ -157,8 +148,8 @@ Feature: Kogito Service Performance
       }
       """
 
-    #Then Service "process-springboot-example" contains <requests> instances of process with name "orders" within 1 minutes
-    #And Service "process-springboot-example" contains <requests> instances of process with name "orderItems" within 1 minutes
+    Then Service "process-springboot-example" contains <requests> instances of process with name "orders" within 1 minutes
+    And Service "process-springboot-example" contains <requests> instances of process with name "orderItems" within 1 minutes
     #And All human tasks on path "orderItems" with path task name "Verify_order" are successfully "completed" with timing "true"
 
     Examples:
