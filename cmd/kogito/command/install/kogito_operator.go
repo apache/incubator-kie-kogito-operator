@@ -29,7 +29,7 @@ type installKogitoOperatorFlags struct {
 	installMgmtConsole bool
 	installAllServices bool
 	force              bool
-	channel            shared.KogitoChannelType
+	channel            string
 }
 
 type installKogitoOperatorCommand struct {
@@ -65,6 +65,9 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
+			if err := shared.IsValidChannel(i.flags.channel); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -80,7 +83,7 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().BoolVar(&i.flags.installMgmtConsole, "install-mgmt-console", false, "Installs the default instance of Management Console being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVar(&i.flags.installAllServices, "install-all-services", false, "Installs the default instance of every Kogito Support services (Data Index, Jobs Service, etc.) being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
-	i.command.Flags().VarP(newChannelValue(shared.AlphaChannel, &i.flags.channel), "channel", "c", "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
+	i.command.Flags().StringVarP(&i.flags.channel, "channel", "c", string(shared.AlphaChannel), "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
 }
 
 func newChannelValue(val shared.KogitoChannelType, p *shared.KogitoChannelType) *shared.KogitoChannelType {
@@ -101,11 +104,7 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 		return err
 	}
 
-	installationChannel := i.flags.channel
-	if err := installationChannel.IsValid(); err != nil {
-		return err
-	}
-
+	installationChannel := shared.KogitoChannelType(i.flags.channel)
 	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force, installationChannel)
 	if i.flags.installDataIndex || i.flags.installAllServices {
 		install.InstallDataIndex(nil)

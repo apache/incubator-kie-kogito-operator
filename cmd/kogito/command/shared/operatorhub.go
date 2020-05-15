@@ -87,7 +87,7 @@ func installOperatorWithOperatorHub(namespace string, cli *client.Client, channe
 			Package:                DefaultOperatorPackageName,
 			CatalogSource:          CommunityOperatorSource,
 			CatalogSourceNamespace: OperatorMarketplaceNamespace,
-			Channel:                channel.String(),
+			Channel:                string(channel),
 		},
 	}
 	log.Debug("About to create a new subscription for the Kogito Operator")

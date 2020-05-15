@@ -26,18 +26,9 @@ const (
 	DevPreviewChannel KogitoChannelType = "dev-preview"
 )
 
-func (ch *KogitoChannelType) Set(val string) error {
-	*ch = KogitoChannelType(val)
-	return nil
-}
-func (ch *KogitoChannelType) Type() string {
-	return "string"
-}
-
-func (ch *KogitoChannelType) String() string { return string(*ch) }
-
-func (ch KogitoChannelType) IsValid() error {
-	switch ch {
+func IsValidChannel(ch string) error {
+	inputChannel := KogitoChannelType(ch)
+	switch inputChannel {
 	case AlphaChannel, DevPreviewChannel:
 		return nil
 	}
