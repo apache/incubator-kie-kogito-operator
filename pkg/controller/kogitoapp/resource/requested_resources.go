@@ -62,30 +62,43 @@ func GetRequestedResources(kogitoApp *v1alpha1.KogitoApp, client *client.Client)
 }
 
 func buildConfigS2IBuilder(chain *builderChain) *builderChain {
+	// if there is gitURI create a s2i build config.
 	if !chain.KogitoApp.Spec.IsGitURIEmpty() {
 		bc, err := newBuildConfigS2I(chain.KogitoApp)
 		if err != nil {
 			chain.Error = err
 			return chain
 		}
+		chain.Resources.BuildConfigS2I = &bc
 
+		// otherwise create a s2i build from file
+	} else {
+		bc, err := newBuildConfigS2IFromFile(chain.KogitoApp)
+		if err != nil {
+			chain.Error = err
+			return chain
+		}
 		chain.Resources.BuildConfigS2I = &bc
 	}
 	return chain
 }
 
 func buildConfigRuntimeBuilder(chain *builderChain) *builderChain {
-	if !chain.KogitoApp.Spec.IsGitURIEmpty() {
-		bc, err := newBuildConfigRuntime(
-			chain.KogitoApp,
-			chain.Resources.BuildConfigS2I,
-		)
-		if err != nil {
-			chain.Error = err
-			return chain
-		}
-		chain.Resources.BuildConfigRuntime = &bc
+	bc, err := newBuildConfigRuntime(
+		chain.KogitoApp,
+		chain.Resources.BuildConfigS2I,
+	)
+	if err != nil {
+		chain.Error = err
+		return chain
 	}
+
+	// if gitURI is empty, instantiate a s2i binary build
+	if chain.KogitoApp.Spec.IsGitURIEmpty() {
+		chain.Resources.BuildConfigBinary = &bc
+	}
+	chain.Resources.BuildConfigRuntime = &bc
+
 	return chain
 }
 
@@ -141,6 +154,7 @@ func serviceBuilder(chain *builderChain) *builderChain {
 			chain.Resources.Service = svc
 		}
 	}
+
 	return chain
 }
 
@@ -155,6 +169,7 @@ func routeBuilder(chain *builderChain) *builderChain {
 
 		chain.Resources.Route = route
 	}
+
 	return chain
 }
 

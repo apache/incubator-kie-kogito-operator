@@ -140,9 +140,15 @@ func TestBuildResources_CreateAllWithoutAppPropConfigMap(t *testing.T) {
 	assert.Nil(t, resources.AppPropCM)
 }
 
-func Test_buildConfigS2IBuilder(t *testing.T) {
+func Test_buildConfigS2IBuilderWithGitUrl(t *testing.T) {
 	blankBuildSpec := &builderChain{
-		KogitoApp: &v1alpha1.KogitoApp{ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: t.Name()}},
+		KogitoApp: &v1alpha1.KogitoApp{
+			Spec: v1alpha1.KogitoAppSpec{
+				Build: &v1alpha1.KogitoAppBuildObject{ImageS2ITag: tagLatest},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test", Namespace: t.Name()},
+		},
 		Resources: &KogitoAppResources{},
 	}
 	gitURLGiven := &builderChain{
@@ -154,7 +160,34 @@ func Test_buildConfigS2IBuilder(t *testing.T) {
 
 	chain := buildConfigS2IBuilder(blankBuildSpec)
 	assert.NotNil(t, chain)
-	assert.Nil(t, chain.Resources.BuildConfigS2I)
+	assert.NotNil(t, chain.Resources.BuildConfigS2I)
+
+	chain = buildConfigS2IBuilder(gitURLGiven)
+	assert.NotNil(t, chain)
+	assert.NotNil(t, chain.Resources.BuildConfigS2I)
+}
+
+func Test_buildConfigS2IBuilderWithoutGitUrl(t *testing.T) {
+	blankBuildSpec := &builderChain{
+		KogitoApp: &v1alpha1.KogitoApp{
+			Spec: v1alpha1.KogitoAppSpec{
+				Build: &v1alpha1.KogitoAppBuildObject{ImageS2ITag: tagLatest},
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test", Namespace: t.Name()},
+		},
+		Resources: &KogitoAppResources{},
+	}
+	gitURLGiven := &builderChain{
+		KogitoApp: &v1alpha1.KogitoApp{
+			ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: t.Name()},
+			Spec:       v1alpha1.KogitoAppSpec{Build: &v1alpha1.KogitoAppBuildObject{}}},
+		Resources: &KogitoAppResources{},
+	}
+
+	chain := buildConfigS2IBuilder(blankBuildSpec)
+	assert.NotNil(t, chain)
+	assert.NotNil(t, chain.Resources.BuildConfigS2I)
 
 	chain = buildConfigS2IBuilder(gitURLGiven)
 	assert.NotNil(t, chain)

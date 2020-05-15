@@ -20,7 +20,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"log"
+	"net/url"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -176,6 +180,68 @@ func Test_DeployCmd_WrongGitURL(t *testing.T) {
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
 	_, _, err := test.ExecuteCli()
 	assert.Error(t, err)
+}
+
+func Test_DeployCmd_WithSingleKogitoResourceFileWithInvalidFile(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("deploy-service example-from-file my-file.dmn -p %s", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	lines, _, err := test.ExecuteCli()
+	assert.Error(t, err)
+	assert.Contains(t, lines, "Error: stat my-file.dmn: no such file or directory")
+}
+
+func Test_DeployCmd_WithSingleKogitoResourceFileWithValidFileFromUrl(t *testing.T) {
+	ns := t.Name()
+	fileLocation, _ := url.Parse("https://raw.githubusercontent.com/kiegroup/kogito-examples/master/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn")
+	cli := fmt.Sprintf("deploy-service example-from-file %s -p %s", fileLocation, ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	lines, _, err := test.ExecuteCli()
+	assert.Contains(t, lines, "successfully deployed")
+	assert.Contains(t, lines, "successfully created")
+	// expect error at this point as there is no valid cluster to do a post request. (connect: no route to host)
+	assert.Error(t, err)
+	assert.NotContains(t, lines, "Error: stat TrafficViolation.dmn: no such file or directory")
+}
+
+func Test_DeployCmd_WithSingleKogitoResourceFileWithInvalidFileFromUrl(t *testing.T) {
+	ns := t.Name()
+	fileLocation, _ := url.Parse("https:ss//raw.githubusercontent.com/kiegroup/kogito-examples/master/dmn-quarkus-example/src/main/resources/Traffic Violation.dmnsd")
+	cli := fmt.Sprintf("deploy-service example-from-file %s -p %s", fileLocation, ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	lines, _, err := test.ExecuteCli()
+	assert.NotContains(t, lines, "successfully deployed")
+	assert.NotContains(t, lines, "successfully created")
+	// expect error at this point as there is no valid cluster to do a post request. (connect: no route to host)
+	assert.Error(t, err)
+	assert.NotContains(t, lines, "Error:  https:ss//raw.githubusercontent.com/kiegroup/kogito-examples/master/dmn-quarkus-example/src/main/resources/Traffic Violation.dmnsd")
+}
+
+func Test_DeployCmd_WithSingleKogitoResourceFileWithInvalidFileType(t *testing.T) {
+	ns := t.Name()
+	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalidFile.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer invalidFile.Close()
+	cli := fmt.Sprintf("deploy-service example-from-file %s -p %s", invalidFile.Name(), ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	lines, _, err := test.ExecuteCli()
+	assert.Error(t, err)
+	assert.Contains(t, lines, "unable to process the requested file "+invalidFile.Name())
+	os.Remove(invalidFile.Name())
 }
 
 //see: https://issues.redhat.com/browse/KOGITO-1431

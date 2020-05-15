@@ -18,6 +18,7 @@ Table of Contents
       * [Kogito Runtimes service deployment](#kogito-runtimes-service-deployment)
          * [Deploying a new service](#deploying-a-new-service)
          * [Binary Builds](#binary-builds)
+         * [Build From File](#build-from-file)
          * [Cleaning up a Kogito service deployment](#cleaning-up-a-kogito-service-deployment)
          * [Native X JVM builds](#native-x-jvm-builds)
          * [Kogito Runtimes properties configuration](#kogito-runtimes-properties-configuration)
@@ -146,7 +147,7 @@ kogitoapp.app.kiegroup.org/example-quarkus created
 Alternatively, you can use the [Kogito CLI](#kogito-cli) to deploy your services:
 
 ```bash
-$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example
+$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=rules-quarkus-helloworld
 ```
 
 ### Binary Builds
@@ -197,6 +198,85 @@ $ oc start-build example-quarkus-binary --from-dir=target
 ``` 
 And that's it. In a couple minutes you should have your Kogito Service application up and running using the same binaries
 built locally.
+
+### Build From File
+
+Kogito Operator can configure a build for you that will pull and build your application through the source to image (s2i)
+feature (available only on OpenShift). This kind of build consists to upload a Kogito service file, e.g. a dmn or a bpmn file
+to the OpenShift Cluster and trigger a new Source to Image build automatically.
+
+You can provide a single dmn, drl, bpmn, bpmn2 and properties files, the standalone file can be locally on the filesystem or on a Web Site, like GitHub:
+
+```bash
+# from filesystem
+$ kogito deploy-service example-dmn-quarkus /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn"
+File found /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn.
+...
+The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/example-dmn-quarkus-builder -n kogito'
+```
+
+While checking OpenShift build logs with this command **oc logs -f bc/example-dmn-quarkus-builder -n kogito** you can see on the beginning ot the build log:
+```
+Receiving source from STDIN as file TrafficViolation.dmn
+Using docker-registry.default.svc:5000/openshift/kogito-quarkus-ubi8-s2i@sha256:729e158710dedba50a49943ba188d8f31d09568634896de9b903838fc4e34e94 as the s2i builder image
+```
+
+```bash
+# from a git repository
+$ kogito deploy-service example-dmn-quarkus https://raw.githubusercontent.com/kiegroup/kogito-examples/master/dmn-quarkus-example/src/main/resources/Traffic%20Violation.dmn
+Asset found: TrafficViolation.dmn.
+...
+The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/example-dmn-quarkus-builder -n kogito'
+```
+
+If you check the logs, we can also see the dmn file being used to build the Kogito service.
+
+Sometimes we also need to provide more than one Kogito resource file, e.g. a drl and a bpmn. In that case, 
+all we need to do is to specify a whole directory. If any valid file is found in the given directory, the CLI will 
+compress these files and upload to the OpenShift cluster. To upload more than one file, put all the desired files in a 
+directory and specify it as parameter. 
+Note that if you have other unsupported files in this directory, they will not be copied. For such complex cases you can use
+either [build from source](#deploying-a-new-service) or a [binary build](#binary-builds).
+
+After a build is created and for some reason we need to update the Kogito Assets we can do it with the `oc start-build`
+command, but keep in mind that a s2i build is not able to identify what files has been changed and update only this one,
+All files must be provided again. Suppose we have create a Kogito Application with the following command:
+
+```bash
+$ kogito deploy-service example-dmn-quarkus-builder /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn"
+Uploading file "/tmp/kogito-examples/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn" as binary input for the build ...
+.
+Uploading finished
+build.build.openshift.io/example-dmn-quarkus-builder-2 started
+
+```
+
+We can provide the files again, after we're done updating it, to do this use the following command:
+
+```bash
+$ oc start-build example-dmn-quarkus-builder --from-file /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn"
+```
+
+If a directory was provided, just update the `--from-file` flag to `--from-dir`.
+
+
+```bash
+kogito deploy-service test /home/user/development/kogito-test/
+```
+
+As output of the cli command above, we will have something similar to:
+
+```bash
+The provided source is a dir, packing files.
+File(s) found: [/home/user/development/kogito-test/Traffic Violation.dmn /home/user/development/kogito-test/application.properties].
+...
+The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/test-builder -n kogito'
+```
+
+If for some reason the build fails, pass the env [BUILD_LOGLEVEL](https://docs.openshift.com/container-platform/4.3/builds/basic-build-operations.html#builds-basic-access-build-verbosity_basic-build-operations) with the desired level, e.g. 9 as a build-env parameter:
+```bash
+kogito --verbose deploy-service test /home/user/development/kogito-test/  --build-env BUILD_LOGLEVEL=5
+```
 
 ### Cleaning up a Kogito service deployment
 
