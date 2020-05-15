@@ -82,6 +82,7 @@ pipeline {
                     dir("${WORKING_DIR}") {
                         archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
                         junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                        sh "cd test && go run scripts/prune_namespaces.go"
                     }
                 }
             }
