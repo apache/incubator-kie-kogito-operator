@@ -86,11 +86,6 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().StringVarP(&i.flags.channel, "channel", "c", string(shared.AlphaChannel), "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
 }
 
-func newChannelValue(val shared.KogitoChannelType, p *shared.KogitoChannelType) *shared.KogitoChannelType {
-	*p = val
-	return p
-}
-
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
 	// if force flag is set, then a custom image is required.
