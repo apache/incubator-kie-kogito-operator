@@ -16,6 +16,7 @@ package install
 
 import (
 	"errors"
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
@@ -65,8 +66,9 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := shared.IsValidChannel(i.flags.channel); err != nil {
-				return err
+			ch := i.flags.channel
+			if !shared.IsChannelValid(ch) {
+				return fmt.Errorf("Invalid Kogito channel type : %s ", ch)
 			}
 			return nil
 		},

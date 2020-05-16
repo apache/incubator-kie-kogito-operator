@@ -14,8 +14,6 @@
 
 package shared
 
-import "fmt"
-
 type KogitoChannelType string
 
 const (
@@ -26,11 +24,11 @@ const (
 	DevPreviewChannel KogitoChannelType = "dev-preview"
 )
 
-func IsValidChannel(ch string) error {
+func IsChannelValid(ch string) bool {
 	inputChannel := KogitoChannelType(ch)
 	switch inputChannel {
 	case AlphaChannel, DevPreviewChannel:
-		return nil
+		return true
 	}
-	return fmt.Errorf("Invalid Kogito channel type : %s ", ch)
+	return false
 }

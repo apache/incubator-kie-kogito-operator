@@ -5,15 +5,20 @@ import (
 	"testing"
 )
 
-func Test_IsValidChannel(t *testing.T) {
+func Test_IsChannelValidForAlphaChannel(t *testing.T) {
 	ch := "alpha"
-	err := IsValidChannel(ch)
-	assert.NoError(t, err)
+	isValid := IsChannelValid(ch)
+	assert.True(t, isValid)
 }
 
-func Test_IsValidChannelForInvalidInput(t *testing.T) {
+func Test_IsChannelValidForDevPreviewChannel(t *testing.T) {
+	ch := "dev-preview"
+	isValid := IsChannelValid(ch)
+	assert.True(t, isValid)
+}
+
+func Test_IsChannelValidForInvalidInput(t *testing.T) {
 	ch := "testChannel"
-	err := IsValidChannel(ch)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Invalid Kogito channel type : testChannel")
+	isValid := IsChannelValid(ch)
+	assert.False(t, isValid)
 }
