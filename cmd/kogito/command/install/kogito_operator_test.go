@@ -72,7 +72,7 @@ func Test_InstallOperatorNoNamespaceWithForceFlagWitNoCustomImage(t *testing.T) 
 	assert.Contains(t, lines, "Error: force install flag is enabled but the custom operator image is missing")
 }
 
-func TestInstallOperatorWithSupportServices(t *testing.T) {
+func Test_InstallOperatorWithSupportServices(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install operator -p %s --install-data-index --install-jobs-service --install-mgmt-console", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
@@ -83,7 +83,7 @@ func TestInstallOperatorWithSupportServices(t *testing.T) {
 	assert.Contains(t, lines, "Management Console")
 }
 
-func TestInstallOperatorWithDefaultChannel(t *testing.T) {
+func Test_InstallOperatorWithDefaultChannel(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install operator -p %s -c %s", ns, shared.AlphaChannel)
 	test.SetupCliTest(cli,
@@ -103,7 +103,7 @@ func TestInstallOperatorWithDefaultChannel(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Operator successfully subscribed")
 }
 
-func TestInstallOperatorWithInvalidChannel(t *testing.T) {
+func Test_InstallOperatorWithInvalidChannel(t *testing.T) {
 	ns := t.Name()
 	invalidChannel := "testChannel"
 	cli := fmt.Sprintf("install operator -p %s -c %s", ns, invalidChannel)

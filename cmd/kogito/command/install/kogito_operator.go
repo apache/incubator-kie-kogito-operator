@@ -68,7 +68,7 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 		Args: func(cmd *cobra.Command, args []string) error {
 			ch := i.flags.channel
 			if !shared.IsChannelValid(ch) {
-				return fmt.Errorf("Invalid Kogito channel type : %s ", ch)
+				return fmt.Errorf("Invalid Kogito channel type %s, only alpha/dev-preview channels are allowed ", ch)
 			}
 			return nil
 		},
