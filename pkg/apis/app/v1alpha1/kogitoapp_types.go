@@ -119,11 +119,11 @@ type KogitoAppBuildObject struct {
 	ImageVersion string `json:"imageVersion,omitempty"`
 	// Custom image used by the source to image process to build the Kogito Service binaries. Takes precedence over ImageVersion attribute.
 	// + optional
-	// +kubebuilder:validation:Pattern=`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))`
+	// +kubebuilder:validation:Pattern=`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))`
 	ImageS2ITag string `json:"imageS2ITag,omitempty"`
 	// Custom image used by the source to image process to build the final Kogito Service image. Takes precedence over ImageVersion attribute.
 	// + optional
-	// +kubebuilder:validation:Pattern=`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))`
+	// +kubebuilder:validation:Pattern=`(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))`
 	ImageRuntimeTag string `json:"imageRuntimeTag,omitempty"`
 	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus. For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true

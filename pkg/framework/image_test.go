@@ -32,6 +32,7 @@ func TestFromStringToImage(t *testing.T) {
 	}{
 		{"empty", args{""}, v1alpha1.Image{}},
 		{"with registry name", args{"quay.io/openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}},
+		{"with registry name and port", args{"quay.io:5000/openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io:5000"}},
 		{"full name", args{"openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}},
 		{"namespace empty", args{"myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}},
 		{"tag empty", args{"myimage"}, v1alpha1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
@@ -58,6 +59,7 @@ func TestFromImageToString(t *testing.T) {
 	}{
 		{"empty", args{v1alpha1.Image{}}, ""},
 		{"with registry name", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}}, "quay.io/openshift/myimage:1.0"},
+		{"with registry name and port", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io:5000"}}, "quay.io:5000/openshift/myimage:1.0"},
 		{"full name", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}}, "openshift/myimage:1.0"},
 		{"namespace empty", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}}, "myimage:1.0"},
 		{"tag empty", args{v1alpha1.Image{Name: "myimage", Tag: "", Namespace: "", Domain: ""}}, "myimage"},
