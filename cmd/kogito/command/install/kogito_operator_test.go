@@ -121,5 +121,5 @@ func Test_InstallOperatorWithInvalidChannel(t *testing.T) {
 		})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
-	assert.Contains(t, lines, "Invalid Kogito channel type : "+invalidChannel)
+	assert.Contains(t, lines, "Invalid Kogito channel type testChannel, only alpha/dev-preview channels are allowed")
 }
