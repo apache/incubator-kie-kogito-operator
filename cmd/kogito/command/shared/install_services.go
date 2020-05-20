@@ -150,7 +150,7 @@ func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorIma
 }
 
 func (s servicesInstallation) SilentlyInstallOperatorIfNotExists() ServicesInstallation {
-	return s.InstallOperator(false, "", false, AlphaChannel)
+	return s.InstallOperator(false, "", false, GetDefaultChannel())
 }
 
 func (s *servicesInstallation) InstallInfinispan() ServicesInstallation {

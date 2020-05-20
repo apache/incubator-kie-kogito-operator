@@ -98,7 +98,7 @@ func TestMustInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 	}
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, operatorSource)
 	// Operator is there in the hub and not exists in the given namespace, let's check if there's no error
-	installed, err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, AlphaChannel)
+	installed, err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel())
 	assert.NoError(t, err)
 	assert.True(t, installed)
 
@@ -139,7 +139,7 @@ func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: OperatorMarketplaceNamespace}},
 	)
 	// Operator is not in the hub. Install with yaml files.
-	installed, err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, AlphaChannel)
+	installed, err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel())
 	assert.NoError(t, err)
 	assert.True(t, installed)
 	// Operator is now in the hub, but no pods are running because this is a controlled test environment

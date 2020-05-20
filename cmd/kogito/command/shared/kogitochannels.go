@@ -24,6 +24,7 @@ const (
 	DevPreviewChannel KogitoChannelType = "dev-preview"
 )
 
+// Validate user provide channel value is among valid channel. If channel is value then return true else false
 func IsChannelValid(ch string) bool {
 	inputChannel := KogitoChannelType(ch)
 	switch inputChannel {
@@ -31,4 +32,9 @@ func IsChannelValid(ch string) bool {
 		return true
 	}
 	return false
+}
+
+// Provide default chanel
+func GetDefaultChannel() KogitoChannelType {
+	return AlphaChannel
 }

@@ -85,7 +85,27 @@ func Test_InstallOperatorWithSupportServices(t *testing.T) {
 
 func Test_InstallOperatorWithDefaultChannel(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install operator -p %s -c %s", ns, shared.AlphaChannel)
+	cli := fmt.Sprintf("install operator -p %s", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&operatorMarketplace.OperatorSource{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      shared.CommunityOperatorSource,
+				Namespace: shared.OperatorMarketplaceNamespace,
+			},
+			Status: operatorMarketplace.OperatorSourceStatus{
+				Packages: shared.DefaultOperatorPackageName,
+			},
+		})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Operator successfully subscribed")
+}
+
+func Test_InstallOperatorWithValidChannel(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s -c %s", ns, shared.DevPreviewChannel)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
