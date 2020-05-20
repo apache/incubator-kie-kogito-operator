@@ -7,7 +7,7 @@ FROM quay.io/kiegroup/kogito-quarkus-jvm-ubi8:latest
 # 4. Build the image: docker build --tag quay.io/<yournamespace>/process-quarkus-example:latest -f quarkus-jvm.Dockerfile .
 #   4.1 Optionally test the image locally: docker run --rm -it -p 8080:8080 quay.io/<yournamespace>/process-quarkus-example:latest
 # 5. Push it: docker push quay.io/<yournamespace>/process-quarkus-example:latest
-# 6. Deploy it on OCP with the kogito operator, as a reference use process-quarkus-example-runtime.yaml
+# 6. Deploy it on Kubernetes with the kogito operator, as a reference use process-quarkus-example-runtime.yaml
 
 COPY target/*-runner.jar $KOGITO_HOME/bin
 COPY target/lib $KOGITO_HOME/bin/lib
