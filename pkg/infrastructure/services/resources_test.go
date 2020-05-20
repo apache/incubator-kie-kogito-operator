@@ -55,6 +55,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoJobsServiceList{},
+		instance:     instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultJobsServiceImageName,
 			Request: reconcile.Request{
@@ -62,7 +63,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 			},
 		},
 	}
-	resources, reconcileAfter, err := deployer.createRequiredResources(instance)
+	resources, reconcileAfter, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 	// we have the Image Stream, so other resources should have been created
@@ -92,6 +93,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoJobsServiceList{},
+		instance:     instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultJobsServiceImageName,
 			Request: reconcile.Request{
@@ -99,7 +101,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 			},
 		},
 	}
-	resources, reconcileAfter, err := deployer.createRequiredResources(instance)
+	resources, reconcileAfter, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 	assert.Equal(t, reconcileAfter, time.Duration(0))
@@ -125,6 +127,7 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoJobsServiceList{},
+		instance:     instance,
 		definition: ServiceDefinition{
 			DefaultImageName:  infrastructure.DefaultMgmtConsoleImageName,
 			RequiresDataIndex: true,
@@ -133,7 +136,7 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 			},
 		},
 	}
-	resources, reconcileAfter, err := deployer.createRequiredResources(instance)
+	resources, reconcileAfter, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 	// we have the Image Stream, so other resources should have been created
@@ -159,6 +162,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoDataIndexList{},
+		instance:     instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultDataIndexImageName,
 			Request: reconcile.Request{
@@ -166,7 +170,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 			},
 		},
 	}
-	resources, _, err := deployer.createRequiredResources(instance)
+	resources, _, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 
@@ -206,6 +210,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *te
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
 		instanceList: &v1alpha1.KogitoDataIndexList{},
+		instance:     instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultDataIndexImageName,
 			Request: reconcile.Request{
@@ -213,7 +218,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *te
 			},
 		},
 	}
-	resources, _, err := deployer.createRequiredResources(instance)
+	resources, _, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 

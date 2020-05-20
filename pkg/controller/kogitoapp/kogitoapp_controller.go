@@ -54,34 +54,6 @@ import (
 
 var log = logger.GetLogger("controller_kogitoapp")
 
-var watchedObjects = []framework.WatchedObjects{
-	{
-		GroupVersion: oappsv1.GroupVersion,
-		AddToScheme:  oappsv1.Install,
-		Objects:      []runtime.Object{&oappsv1.DeploymentConfig{}},
-	},
-	{
-		GroupVersion: routev1.GroupVersion,
-		AddToScheme:  routev1.Install,
-		Objects:      []runtime.Object{&routev1.Route{}},
-	},
-	{
-		GroupVersion: oimagev1.GroupVersion,
-		AddToScheme:  oimagev1.Install,
-		Objects:      []runtime.Object{&oimagev1.ImageStream{}},
-	},
-	{
-		GroupVersion: obuildv1.GroupVersion,
-		AddToScheme:  obuildv1.Install,
-		Objects:      []runtime.Object{&obuildv1.BuildConfig{}},
-	},
-	{
-		Objects: []runtime.Object{&corev1.Service{}, &corev1.ConfigMap{}},
-	},
-}
-
-var controllerWatcher framework.ControllerWatcher
-
 // Add creates a new KogitoApp Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -112,7 +84,32 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoApp).client, mgr, c, &v1alpha1.KogitoApp{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoApp).client, mgr, c, &v1alpha1.KogitoApp{})
+	watchedObjects := []framework.WatchedObjects{
+		{
+			GroupVersion: oappsv1.GroupVersion,
+			AddToScheme:  oappsv1.Install,
+			Objects:      []runtime.Object{&oappsv1.DeploymentConfig{}},
+		},
+		{
+			GroupVersion: routev1.GroupVersion,
+			AddToScheme:  routev1.Install,
+			Objects:      []runtime.Object{&routev1.Route{}},
+		},
+		{
+			GroupVersion: oimagev1.GroupVersion,
+			AddToScheme:  oimagev1.Install,
+			Objects:      []runtime.Object{&oimagev1.ImageStream{}},
+		},
+		{
+			GroupVersion: obuildv1.GroupVersion,
+			AddToScheme:  obuildv1.Install,
+			Objects:      []runtime.Object{&obuildv1.BuildConfig{}},
+		},
+		{
+			Objects: []runtime.Object{&corev1.Service{}, &corev1.ConfigMap{}},
+		},
+	}
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}

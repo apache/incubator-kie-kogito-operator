@@ -39,6 +39,11 @@ type KogitoJobsServiceSpec struct {
 	MaxIntervalLimitToRetryMillis int64 `json:"maxIntervalLimitToRetryMillis,omitempty"`
 }
 
+// GetRuntime ...
+func (j *KogitoJobsServiceSpec) GetRuntime() RuntimeType {
+	return QuarkusRuntimeType
+}
+
 // KogitoJobsServiceStatus defines the observed state of KogitoJobsService
 // +k8s:openapi-gen=true
 type KogitoJobsServiceStatus struct {

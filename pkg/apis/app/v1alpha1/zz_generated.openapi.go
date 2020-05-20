@@ -46,6 +46,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsServiceSpec":          schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsServiceStatus":        schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsole":              schema_pkg_apis_app_v1alpha1_KogitoMgmtConsole(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoRuntime":                  schema_pkg_apis_app_v1alpha1_KogitoRuntime(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":                  schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
 	}
 }
@@ -641,6 +642,36 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
+					"deploymentLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Additional labels to be added to the Deployment and Pods managed by the operator",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"serviceLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Additional labels to be added to the Service managed by the operator",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"runtime": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The name of the runtime used, either Quarkus or Springboot Default value: quarkus",
@@ -841,6 +872,36 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 						SchemaProps: spec.SchemaProps{
 							Description: "Defined compute resource requirements for the deployed service",
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"deploymentLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Additional labels to be added to the Deployment and Pods managed by the operator",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"serviceLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Additional labels to be added to the Service managed by the operator",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 					"httpPort": {
@@ -1132,6 +1193,36 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
+					"deploymentLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Additional labels to be added to the Deployment and Pods managed by the operator",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"serviceLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Additional labels to be added to the Service managed by the operator",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"backOffRetryMillis": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Retry backOff time in milliseconds between the job execution attempts, in case of execution failure. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties",
@@ -1256,6 +1347,50 @@ func schema_pkg_apis_app_v1alpha1_KogitoMgmtConsole(ref common.ReferenceCallback
 		},
 		Dependencies: []string{
 			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsoleSpec", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsoleStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_app_v1alpha1_KogitoRuntime(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoRuntime is a custom Kogito Runtime Service",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoRuntimeSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoRuntimeStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoRuntimeSpec", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoRuntimeStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 

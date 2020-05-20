@@ -1,7 +1,7 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: kogitojobsservices.app.kiegroup.org
+  name: kogitoruntimes.app.kiegroup.org
 spec:
   additionalPrinterColumns:
   - JSONPath: .spec.replicas
@@ -9,7 +9,7 @@ spec:
     name: Replicas
     type: integer
   - JSONPath: .status.image
-    description: Base image for this service
+    description: Image of this service
     name: Image
     type: string
   - JSONPath: .status.externalURI
@@ -18,16 +18,15 @@ spec:
     type: string
   group: app.kiegroup.org
   names:
-    kind: KogitoJobsService
-    listKind: KogitoJobsServiceList
-    plural: kogitojobsservices
-    singular: kogitojobsservice
+    kind: KogitoRuntime
+    listKind: KogitoRuntimeList
+    plural: kogitoruntimes
+    singular: kogitoruntime
   scope: Namespaced
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: KogitoJobsService deploys the Kogito Jobs Service in the given
-        namespace
+      description: KogitoRuntime is a custom Kogito Runtime Service
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -42,20 +41,19 @@ spec:
         metadata:
           type: object
         spec:
-          description: KogitoJobsServiceSpec defines the desired state of KogitoJobsService
+          description: KogitoRuntimeSpec defines the desired state of KogitoRuntime
           properties:
-            backOffRetryMillis:
-              description: 'Retry backOff time in milliseconds between the job execution
-                attempts, in case of execution failure. Default to service default,
-                see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-              format: int64
-              type: integer
             deploymentLabels:
               additionalProperties:
                 type: string
               description: Additional labels to be added to the Deployment and Pods
                 managed by the operator
               type: object
+            enableIstio:
+              description: Annotates the pods managed by the operator with the required
+                metadata for Istio to setup its sidecars, enabling the mesh. Defaults
+                to false.
+              type: boolean
             envs:
               description: Environment variables to be added to the runtime container.
                 Keys must be a C_IDENTIFIER.
@@ -244,11 +242,6 @@ spec:
                     infrastructure
                   type: boolean
               type: object
-            maxIntervalLimitToRetryMillis:
-              description: 'Maximum interval in milliseconds when retrying to execute
-                jobs, in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-              format: int64
-              type: integer
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster Default value: 1'
@@ -274,6 +267,13 @@ spec:
                     value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
               type: object
+            runtime:
+              description: 'The name of the runtime used, either Quarkus or Springboot
+                Default value: quarkus'
+              enum:
+              - quarkus
+              - springboot
+              type: string
             serviceLabels:
               additionalProperties:
                 type: string
@@ -282,7 +282,7 @@ spec:
               type: object
           type: object
         status:
-          description: KogitoJobsServiceStatus defines the observed state of KogitoJobsService
+          description: KogitoRuntimeStatus defines the observed state of KogitoRuntime
           properties:
             conditions:
               description: History of conditions for the resource

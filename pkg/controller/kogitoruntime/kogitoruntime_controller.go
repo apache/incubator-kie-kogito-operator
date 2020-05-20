@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitomgmtconsole
+package kogitoruntime
 
 import (
+	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -23,8 +24,6 @@ import (
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
-
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -34,9 +33,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logger.GetLogger("mgmtconsole_controller")
+var log = logger.GetLogger("kogitoruntime_controller")
 
-// Add creates a new KogitoMgmtConsole Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new KogitoRuntime Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
@@ -44,20 +43,20 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileKogitoMgmtConsole{client: kogitocli.NewForController(mgr.GetConfig(), mgr.GetClient()), scheme: mgr.GetScheme()}
+	return &ReconcileKogitoRuntime{client: kogitocli.NewForController(mgr.GetConfig(), mgr.GetClient()), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	log.Debug("Adding watched objects for KogitoMgmtConsole controller")
+	log.Debug("Adding watched objects for KogitoRuntime controller")
 	// Create a new controller
-	c, err := controller.New("kogitomgmtconsole-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("kogitoruntime-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to primary resource KogitoMgmtConsole
-	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoMgmtConsole{}}, &handler.EnqueueRequestForObject{})
+	// Watch for changes to primary resource KogitoRuntime
+	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoRuntime{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -74,51 +73,40 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			Objects:      []runtime.Object{&imagev1.ImageStream{}},
 		},
 		{
-			Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}},
-		},
-		{
-			GroupVersion: routev1.GroupVersion,
-			AddToScheme:  routev1.Install,
-			Objects:      []runtime.Object{&routev1.Route{}},
-			Owner:        &appv1alpha1.KogitoDataIndex{},
-		},
-		{
-			Objects: []runtime.Object{&corev1.Service{}},
-			Owner:   &appv1alpha1.KogitoDataIndex{},
+			Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}},
 		},
 	}
-	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoMgmtConsole).client, mgr, c, &appv1alpha1.KogitoMgmtConsole{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoRuntime).client, mgr, c, &appv1alpha1.KogitoRuntime{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}
 	return nil
 }
 
-// blank assignment to verify that ReconcileKogitoMgmtConsole implements reconcile.Reconciler
-var _ reconcile.Reconciler = &ReconcileKogitoMgmtConsole{}
+// blank assignment to verify that ReconcileKogitoRuntime implements reconcile.Reconciler
+var _ reconcile.Reconciler = &ReconcileKogitoRuntime{}
 
-// ReconcileKogitoMgmtConsole reconciles a KogitoMgmtConsole object
-type ReconcileKogitoMgmtConsole struct {
+// ReconcileKogitoRuntime reconciles a KogitoRuntime object
+type ReconcileKogitoRuntime struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client *kogitocli.Client
 	scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a KogitoMgmtConsole object and makes changes based on the state read
-// and what is in the KogitoMgmtConsole.Spec
-// Note:
-// The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileKogitoMgmtConsole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	log.Infof("Reconciling KogitoMgmtConsole for %s in %s", request.Name, request.Namespace)
+// Reconcile reads that state of the cluster for a KogitoRuntime object and makes changes based on the state read
+// and what is in the KogitoRuntime.Spec
+func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+	log.Infof("Reconciling KogitoRuntime for %s in %s", request.Name, request.Namespace)
 	definition := services.ServiceDefinition{
-		DefaultImageName:  infrastructure.DefaultMgmtConsoleImageName,
-		Request:           request,
-		SingleReplica:     false,
-		RequiresDataIndex: true,
+		Request:            request,
+		DefaultImageTag:    infrastructure.LatestTag,
+		SingleReplica:      false,
+		OnDeploymentCreate: onDeploymentCreate,
+		OnObjectsCreate:    onObjectsCreate,
+		OnGetComparators:   onGetComparators,
 	}
-	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, &appv1alpha1.KogitoMgmtConsoleList{}, r.client, r.scheme).Deploy(); err != nil {
+	if requeueAfter, err := services.NewServiceDeployer(definition, &appv1alpha1.KogitoRuntime{}, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err
 	} else if requeueAfter > 0 {
 		return reconcile.Result{RequeueAfter: requeueAfter, Requeue: true}, nil

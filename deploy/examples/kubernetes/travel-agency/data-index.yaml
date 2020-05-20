@@ -1,0 +1,13 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoDataIndex
+metadata:
+  name: data-index
+spec:
+  replicas: 1
+  image:
+    tag: "0.10"
+  kafka:
+    useKogitoInfra: true
+  infinispan:
+    useKogitoInfra: true
+

@@ -77,10 +77,11 @@ func Test_serviceDeployer_deployInfinispan_dataIndex(t *testing.T) {
 			Request:             GetRequest(dataIndex.Namespace),
 			RequiresPersistence: true,
 		},
-		client: cli,
-		scheme: meta.GetRegisteredSchema(),
+		client:   cli,
+		instance: dataIndex,
+		scheme:   meta.GetRegisteredSchema(),
 	}
-	requeueAfter, err := deployer.deployInfinispan(dataIndex)
+	requeueAfter, err := deployer.deployInfinispan()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter > 0, "Should have deployed Infinispan for us since the service requires persistence and is Infinispan aware")
 
@@ -108,10 +109,11 @@ func Test_serviceDeployer_deployInfinispan_dataIndexProvidedInfinispan(t *testin
 			Request:             GetRequest(dataIndex.Namespace),
 			RequiresPersistence: true,
 		},
-		client: cli,
-		scheme: meta.GetRegisteredSchema(),
+		client:   cli,
+		scheme:   meta.GetRegisteredSchema(),
+		instance: dataIndex,
 	}
-	requeueAfter, err := deployer.deployInfinispan(dataIndex)
+	requeueAfter, err := deployer.deployInfinispan()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter == 0, "Should NOT have deployed Infinispan for us since the service requires persistence, but the user just pointed the URI")
 
@@ -137,10 +139,11 @@ func Test_serviceDeployer_deployInfinispan_jobsService(t *testing.T) {
 			Request:             GetRequest(jobsService.Namespace),
 			RequiresPersistence: false,
 		},
-		client: cli,
-		scheme: meta.GetRegisteredSchema(),
+		client:   cli,
+		instance: jobsService,
+		scheme:   meta.GetRegisteredSchema(),
 	}
-	requeueAfter, err := deployer.deployInfinispan(jobsService)
+	requeueAfter, err := deployer.deployInfinispan()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter == 0, "Should NOT have deployed Infinispan for us since the service DOES NOT require persistence and is Infinispan aware")
 
@@ -168,10 +171,11 @@ func Test_serviceDeployer_deployInfinispan_jobsServiceWithPersistence(t *testing
 			// does not require persistence, but if the user set in the CR, will deploy Infinispan anyway
 			RequiresPersistence: false,
 		},
-		client: cli,
-		scheme: meta.GetRegisteredSchema(),
+		client:   cli,
+		instance: jobsService,
+		scheme:   meta.GetRegisteredSchema(),
 	}
-	requeueAfter, err := deployer.deployInfinispan(jobsService)
+	requeueAfter, err := deployer.deployInfinispan()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter > 0, "Should have deployed Infinispan for us since the service DOES NOT require persistence, is Infinispan aware and user sets to use Kogito Infra")
 
@@ -198,10 +202,11 @@ func Test_serviceDeployer_deployKafka_dataIndex(t *testing.T) {
 			Request:           GetRequest(dataIndex.Namespace),
 			RequiresMessaging: true,
 		},
-		client: cli,
-		scheme: meta.GetRegisteredSchema(),
+		instance: dataIndex,
+		client:   cli,
+		scheme:   meta.GetRegisteredSchema(),
 	}
-	requeueAfter, err := deployer.deployKafka(dataIndex)
+	requeueAfter, err := deployer.deployKafka()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter > 0, "Should have deployed Kafka for us since the service requires messaging and it is Kafka aware")
 
@@ -229,10 +234,11 @@ func Test_serviceDeployer_deployKafka_dataIndexProvidedKafkaExternalURI(t *testi
 			Request:           GetRequest(dataIndex.Namespace),
 			RequiresMessaging: true,
 		},
-		client: cli,
-		scheme: meta.GetRegisteredSchema(),
+		client:   cli,
+		instance: dataIndex,
+		scheme:   meta.GetRegisteredSchema(),
 	}
-	requeueAfter, err := deployer.deployKafka(dataIndex)
+	requeueAfter, err := deployer.deployKafka()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter == 0, "Should NOT have deployed Kafka for us since the service requires messaging, but the user just pointed the URI")
 
@@ -258,10 +264,11 @@ func Test_serviceDeployer_deployKafka_dataIndexProvidedKafkaInstance(t *testing.
 			Request:           GetRequest(dataIndex.Namespace),
 			RequiresMessaging: true,
 		},
-		client: cli,
-		scheme: meta.GetRegisteredSchema(),
+		instance: dataIndex,
+		client:   cli,
+		scheme:   meta.GetRegisteredSchema(),
 	}
-	requeueAfter, err := deployer.deployKafka(dataIndex)
+	requeueAfter, err := deployer.deployKafka()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter == 0, "Should NOT have deployed Kafka for us since the service requires messaging, but the user just gave the kafka instance")
 

@@ -38,24 +38,6 @@ import (
 
 var log = logger.GetLogger("jobsservice_controller")
 
-var watchedObjects = []framework.WatchedObjects{
-	{
-		GroupVersion: routev1.GroupVersion,
-		AddToScheme:  routev1.Install,
-		Objects:      []runtime.Object{&routev1.Route{}},
-	},
-	{
-		GroupVersion: imagev1.GroupVersion,
-		AddToScheme:  imagev1.Install,
-		Objects:      []runtime.Object{&imagev1.ImageStream{}},
-	},
-	{
-		Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}},
-	},
-}
-
-var controllerWatcher framework.ControllerWatcher
-
 // Add creates a new KogitoJobsService Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -88,7 +70,22 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoJobsService).client, mgr, c, &appv1alpha1.KogitoJobsService{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoJobsService).client, mgr, c, &appv1alpha1.KogitoJobsService{})
+	watchedObjects := []framework.WatchedObjects{
+		{
+			GroupVersion: routev1.GroupVersion,
+			AddToScheme:  routev1.Install,
+			Objects:      []runtime.Object{&routev1.Route{}},
+		},
+		{
+			GroupVersion: imagev1.GroupVersion,
+			AddToScheme:  imagev1.Install,
+			Objects:      []runtime.Object{&imagev1.ImageStream{}},
+		},
+		{
+			Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}},
+		},
+	}
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}

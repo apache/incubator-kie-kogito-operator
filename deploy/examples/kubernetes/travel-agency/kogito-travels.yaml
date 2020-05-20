@@ -1,0 +1,19 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: kogito-travels
+spec:
+  envs:
+    - name: KOGITO_DATAINDEX_HTTP_URL
+      value: http://data-index.kogito
+    - name: KOGITO_DATAINDEX_WS_URL
+      value: ws://data-index.kogito
+  replicas: 1
+  image:
+    domain: quay.io
+    namespace: ricardozanini
+    name: kogito-travels
+  kafka:
+    useKogitoInfra: true
+  infinispan:
+    useKogitoInfra: true

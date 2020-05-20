@@ -25,6 +25,10 @@ import (
 	"reflect"
 )
 
+/*
+TODO: review those functions/vars. Should all be private when fixing https://issues.redhat.com/browse/KOGITO-1998
+*/
+
 const (
 	appPropConfigMapSuffix = "-properties"
 	appPropContentKey      = "application.properties"

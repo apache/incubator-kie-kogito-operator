@@ -39,45 +39,49 @@ const (
 )
 
 // createRequiredResources creates the required resources given the KogitoService instance
-func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, reconcileAfter time.Duration, err error) {
+func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type][]resource.KubernetesResource, reconcileAfter time.Duration, err error) {
 	reconcileAfter = 0
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
-	imageHandler := newImageHandler(instance, s.definition.DefaultImageName, s.client)
+	imageHandler := newImageHandler(s.instance, s.definition.DefaultImageName, s.definition.DefaultImageTag, s.client)
 	if imageHandler.hasImageStream() {
 		resources[reflect.TypeOf(imgv1.ImageStream{})] = []resource.KubernetesResource{imageHandler.imageStream}
 	}
 
 	// we only create the rest of the resources once we have a resolvable image
 	// or if the deployment is already there, we don't want to delete it :)
-	if image, err := s.getKogitoServiceImage(imageHandler, instance); err != nil {
+	if image, err := s.getKogitoServiceImage(imageHandler, s.instance); err != nil {
 		return resources, reconcileAfter, err
 	} else if len(image) > 0 {
-		deployment := createRequiredDeployment(instance, image, s.definition)
-		if err = s.applyDeploymentCustomizations(deployment, instance, imageHandler); err != nil {
+		deployment := createRequiredDeployment(s.instance, image, s.definition)
+		if err = s.applyDeploymentCustomizations(deployment, imageHandler); err != nil {
 			return resources, reconcileAfter, err
 		}
-		if err = s.applyDataIndexRoute(deployment, instance); isRequiresReconciliationError(err) {
+		if err = s.applyDataIndexRoute(deployment, s.instance); isRequiresReconciliationError(err) {
 			log.Warn(err)
 			reconcileAfter = err.(requiresReconciliationError).GetReconcileAfter()
 		} else if err != nil {
 			return resources, reconcileAfter, err
 		}
 
-		service := createRequiredService(instance, deployment)
+		service := createRequiredService(s.instance, deployment)
 
-		contentHash, configMap, err := GetAppPropConfigMapContentHash(instance.GetName(), instance.GetNamespace(), s.client)
+		// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998
+		contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), s.client)
 		if err != nil {
 			return resources, reconcileAfter, err
 		}
-		s.applyApplicationPropertiesConfigurations(contentHash, deployment, instance)
+		s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
+		if configMap != nil {
+			resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
+		}
 
 		if s.definition.infinispanAware {
-			if err = s.applyInfinispanConfigurations(deployment, instance); err != nil {
+			if err = s.applyInfinispanConfigurations(deployment, s.instance); err != nil {
 				return resources, reconcileAfter, err
 			}
 		}
 		if s.definition.kafkaAware {
-			if err = s.applyKafkaConfigurations(deployment, instance); err != nil {
+			if err = s.applyKafkaConfigurations(deployment, s.instance); err != nil {
 				return resources, reconcileAfter, err
 			}
 		}
@@ -85,10 +89,10 @@ func (s *serviceDeployer) createRequiredResources(instance v1alpha1.KogitoServic
 		resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}
 		resources[reflect.TypeOf(corev1.Service{})] = []resource.KubernetesResource{service}
 		if s.client.IsOpenshift() {
-			resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(instance, service)}
+			resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(s.instance, service)}
 		}
-		if configMap != nil {
-			resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
+		if err := s.createAdditionalObjects(resources); err != nil {
+			return resources, reconcileAfter, err
 		}
 	}
 
@@ -113,14 +117,30 @@ func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, ins
 	return nil
 }
 
-func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deployment, instance v1alpha1.KogitoService, imageHandler *imageHandler) error {
+func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deployment, imageHandler *imageHandler) error {
 	if imageHandler.hasImageStream() {
-		key, value := framework.ResolveImageStreamTriggerAnnotation(imageHandler.resolveImageNameTag(), instance.GetName())
+		key, value := framework.ResolveImageStreamTriggerAnnotation(imageHandler.resolveImageNameTag(), s.instance.GetName())
 		deployment.Annotations = map[string]string{key: value}
 	}
 	if s.definition.OnDeploymentCreate != nil {
-		if err := s.definition.OnDeploymentCreate(deployment, instance); err != nil {
+		if err := s.definition.OnDeploymentCreate(deployment, s.instance); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// createAdditionalObjects calls the OnObjectsCreate hook for clients to add their custom objects/logic to the service
+func (s *serviceDeployer) createAdditionalObjects(resources map[reflect.Type][]resource.KubernetesResource) error {
+	if s.definition.OnObjectsCreate != nil {
+		var additionalRes map[reflect.Type][]resource.KubernetesResource
+		var err error
+		additionalRes, s.definition.extraManagedObjectLists, err = s.definition.OnObjectsCreate(s.instance)
+		if err != nil {
+			return err
+		}
+		for resType, res := range additionalRes {
+			resources[resType] = append(resources[resType], res...)
 		}
 	}
 	return nil
@@ -152,11 +172,12 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {
 	var infinispanSecret *corev1.Secret
 	infinispanAware := instance.GetSpec().(v1alpha1.InfinispanAware)
-	infinispanSecret, err := infrastructure.FetchInfinispanCredentials(infinispanAware, instance.GetNamespace(), s.client)
+	infinispanSecret, err := fetchInfinispanCredentials(infinispanAware, instance.GetNamespace(), s.client)
 	if err != nil {
 		return err
 	}
-	infrastructure.SetInfinispanVariables(
+	setInfinispanVariables(
+		s.instance.GetSpec().GetRuntime(),
 		*infinispanAware.GetInfinispanProperties(),
 		infinispanSecret,
 		&deployment.Spec.Template.Spec.Containers[0])
@@ -207,8 +228,8 @@ func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash s
 }
 
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance
-func (s *serviceDeployer) getDeployedResources(instance v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	reader := read.New(s.client.ControlCli).WithNamespace(instance.GetNamespace()).WithOwnerObject(instance)
+func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]resource.KubernetesResource, err error) {
+	reader := read.New(s.client.ControlCli).WithNamespace(s.instance.GetNamespace()).WithOwnerObject(s.instance)
 	var objectTypes []runtime.Object
 	if s.client.IsOpenshift() {
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}
@@ -220,12 +241,16 @@ func (s *serviceDeployer) getDeployedResources(instance v1alpha1.KogitoService) 
 		objectTypes = append(objectTypes, &kafkabetav1.KafkaTopicList{})
 	}
 
+	if len(s.definition.extraManagedObjectLists) > 0 {
+		objectTypes = append(objectTypes, s.definition.extraManagedObjectLists...)
+	}
+
 	resources, err = reader.ListAll(objectTypes...)
 	if err != nil {
 		return
 	}
 
-	ExcludeAppPropConfigMapFromResource(instance.GetName(), resources)
+	ExcludeAppPropConfigMapFromResource(s.instance.GetName(), resources)
 	return
 }
 
@@ -258,6 +283,10 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 			UseDefaultComparator().
 			WithCustomComparator(framework.CreateImageStreamComparator()).
 			Build())
+
+	if s.definition.OnGetComparators != nil {
+		s.definition.OnGetComparators(resourceComparator)
+	}
 
 	return compare.MapComparator{Comparator: resourceComparator}
 }

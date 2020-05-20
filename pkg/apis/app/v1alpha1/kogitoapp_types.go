@@ -70,6 +70,11 @@ type KogitoAppSpec struct {
 	EnableEvents bool `json:"enableEvents,omitempty"`
 }
 
+// GetRuntime ...
+func (k *KogitoAppSpec) GetRuntime() RuntimeType {
+	return k.Runtime
+}
+
 // GetBuild ...
 func (k *KogitoAppSpec) GetBuild() *KogitoAppBuildObject {
 	if k == nil {
