@@ -22,3 +22,8 @@ func Test_IsChannelValidForInvalidInput(t *testing.T) {
 	isValid := IsChannelValid(ch)
 	assert.False(t, isValid)
 }
+
+func Test_GetDefaultChannel(t *testing.T) {
+	ch := GetDefaultChannel()
+	assert.Equal(t, AlphaChannel, ch)
+}
