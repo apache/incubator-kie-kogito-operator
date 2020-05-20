@@ -17,3 +17,5 @@ spec:
     imageRuntimeTag:  quay.io/customnamespace/kogito-quarkus-jvm-ubi8:9.9.9
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+    # enable to print maven transfer logs in console
+    #maven-download-output: true
