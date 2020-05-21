@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	buildv1 "github.com/openshift/api/build/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func Test_getBCS2ILimitsAsIntString(t *testing.T) {
@@ -139,4 +140,54 @@ func TestNewBuildConfigS2IFromFile(t *testing.T) {
 		Name:  buildS2IlimitCPUEnvVarKey,
 		Value: "500m",
 	})
+}
+
+func Test_setBCS2IStrategy_mavenDownloadOutputEnable(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				MavenDownloadOutput: true,
+			},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	for _, buildEnv := range envs {
+		if buildEnv.Name == mavenDownloadOutput {
+			assert.Equal(t, "true", buildEnv.Value)
+		}
+	}
+}
+
+func Test_setBCS2IStrategy_mavenDownloadOutputDisable(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				MavenDownloadOutput: false,
+			},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	for _, buildEnv := range envs {
+		if buildEnv.Name == mavenDownloadOutput {
+			assert.Fail(t, "Env variable "+mavenDownloadOutput+" should not set.")
+		}
+	}
 }
