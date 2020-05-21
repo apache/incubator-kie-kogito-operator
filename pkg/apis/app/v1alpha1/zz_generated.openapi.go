@@ -561,6 +561,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"mavenDownloadOutput": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Suppress the logs of downloading/uploading maven dependencies",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},

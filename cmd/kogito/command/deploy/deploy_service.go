@@ -47,14 +47,14 @@ var (
 
 type deployFlags struct {
 	CommonFlags
-	name               	string
-	runtime            	string
-	serviceLabels      	[]string
-	incrementalBuild   	bool
-	buildEnv           	[]string
-	reference          	string
-	contextDir         	string
-	source             	string
+	name                string
+	runtime             string
+	serviceLabels       []string
+	incrementalBuild    bool
+	buildEnv            []string
+	reference           string
+	contextDir          string
+	source              string
 	imageS2I            string
 	imageRuntime        string
 	native              bool

@@ -36,7 +36,7 @@ const (
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
 	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
-	mavenDownloadOutput     	 = "MAVEN_DOWNLOAD_OUTPUT"
+	mavenDownloadOutput          = "MAVEN_DOWNLOAD_OUTPUT"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
