@@ -17,15 +17,24 @@ package openshift
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"io"
+	"k8s.io/apimachinery/pkg/runtime"
 	"strings"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	buildv1 "github.com/openshift/api/build/v1"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+)
+
+const (
+	checkBcRetries         = 4
+	checkBcRetriesInterval = 2 * time.Second
 )
 
 // BuildState describes the state of the build
@@ -38,6 +47,7 @@ type BuildState struct {
 type BuildConfigInterface interface {
 	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, imageName string) (BuildState, error)
 	TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (bool, error)
+	TriggerBuildFromFile(namespace string, r io.Reader, options *buildv1.BinaryBuildRequestOptions) (*buildv1.Build, error)
 	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error)
 }
 
@@ -101,6 +111,37 @@ func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (b
 	return true, nil
 }
 
+// TriggerBuildFromFile will be called by kogito-cli when a build from file is performed.
+// When called a new build will be triggered with the request kogito resource or a tgz file.
+func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader, options *buildv1.BinaryBuildRequestOptions) (*buildv1.Build, error) {
+
+	result := &buildv1.Build{}
+	buildName := fmt.Sprintf("%s%s", options.Name, "-builder")
+
+	// before upload the file, make sure that the build exist
+	err := b.waitForBuildConfig(checkBcRetries, checkBcRetriesInterval, func() (err error) {
+		if targetBuildConfig, err := b.client.BuildCli.BuildConfigs(namespace).Get(buildName, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
+			log.Debugf("BuildConfig %s not found in the %s namespace", targetBuildConfig.Name, targetBuildConfig.Namespace)
+			return err
+		}
+		return
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	errPost := b.client.BuildCli.RESTClient().Post().
+		Namespace(namespace).
+		Resource("buildconfigs").
+		Name(buildName).
+		SubResource("instantiatebinary").
+		Body(bodyPost).
+		VersionedParams(options, runtime.NewParameterCodec(meta.GetRegisteredSchema())).
+		Do().
+		Into(result)
+	return result, errPost
+}
+
 // GetBuildsStatus checks the status of the builds for the BuildConfig
 func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error) {
 	if exists, err := b.checkBuildConfigExists(bc); !exists {
@@ -159,4 +200,20 @@ func newBuildRequest(triggeredBy string, bc *buildv1.BuildConfig) buildv1.BuildR
 	buildRequest.TriggeredBy = []buildv1.BuildTriggerCause{{Message: fmt.Sprintf("Triggered by %s operator", triggeredBy)}}
 	meta.SetGroupVersionKind(&buildRequest.TypeMeta, meta.KindBuildRequest)
 	return buildRequest
+}
+
+func (b *buildConfig) waitForBuildConfig(retries int, retryInterval time.Duration, f func() error) (err error) {
+	for i := 0; ; i++ {
+		err = f()
+		if err == nil {
+			return
+		}
+
+		if i >= (retries - 1) {
+			break
+		}
+		time.Sleep(retryInterval)
+		log.Debug("retrying after error:", err)
+	}
+	return fmt.Errorf("after %d attempts, last error: %v", retries, err)
 }

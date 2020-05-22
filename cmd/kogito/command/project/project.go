@@ -29,6 +29,8 @@ type projectFlags struct {
 	installJobsService       bool
 	installManagementConsole bool
 	installAll               bool
+	enablePersistence        bool
+	enableEvents             bool
 }
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
@@ -38,6 +40,8 @@ func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
 	command.Flags().BoolVar(&pFlags.installJobsService, "install-jobs-service", false, flags.InstallJobsService)
 	command.Flags().BoolVar(&pFlags.installManagementConsole, "install-mgmt-console", false, flags.InstallMgmtConsole)
 	command.Flags().BoolVar(&pFlags.installAll, "install-all", false, flags.InstallAllServices)
+	command.Flags().BoolVar(&pFlags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
+	command.Flags().BoolVar(&pFlags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
 }
 
 func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error {
@@ -47,13 +51,16 @@ func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error 
 		WarnIfDependenciesNotReady(pFlags.installDataIndex, pFlags.installDataIndex)
 
 	if pFlags.installAll || pFlags.installDataIndex {
-		install.InstallDataIndex(nil)
+		dataIndex := shared.GetDefaultDataIndex(pFlags.project)
+		install.InstallDataIndex(&dataIndex)
 	}
 	if pFlags.installAll || pFlags.installJobsService {
-		install.InstallJobsService(nil)
+		jobsService := shared.GetDefaultJobsService(pFlags.project, pFlags.enablePersistence, pFlags.enableEvents)
+		install.InstallJobsService(&jobsService)
 	}
 	if pFlags.installAll || pFlags.installManagementConsole {
-		install.InstallMgmtConsole(nil)
+		mgmtConsole := shared.GetDefaultMgmtConsole(pFlags.project)
+		install.InstallMgmtConsole(&mgmtConsole)
 	}
 	return install.GetError()
 }

@@ -22,7 +22,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"reflect"
 )
@@ -54,37 +53,7 @@ func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra) (resources map[r
 	resources = make(map[reflect.Type][]resource.KubernetesResource, 1)
 	if kogitoInfra.Spec.InstallKafka {
 		log.Debugf("Creating default resources for Kafka installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
-		kafka := &kafkabetav1.Kafka{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      InstanceName,
-				Namespace: kogitoInfra.Namespace,
-			},
-			Spec: kafkabetav1.KafkaSpec{
-				EntityOperator: kafkabetav1.EntityOperatorSpec{
-					TopicOperator: kafkabetav1.EntityTopicOperatorSpec{},
-					UserOperator:  kafkabetav1.EntityUserOperatorSpec{},
-				},
-				Kafka: kafkabetav1.KafkaClusterSpec{
-					Replicas: defaultReplicas,
-					Storage:  kafkabetav1.KafkaStorage{StorageType: kafkabetav1.KafkaEphemeralStorage},
-					Listeners: kafkabetav1.KafkaListeners{
-						Plain: kafkabetav1.KafkaListenerPlain{},
-					},
-					JvmOptions: map[string]interface{}{"gcLoggingEnabled": false},
-					Config: map[string]interface{}{
-						"log.message.format.version":               "2.3",
-						"offsets.topic.replication.factor":         defaultReplicas,
-						"transaction.state.log.min.isr":            1,
-						"transaction.state.log.replication.factor": defaultReplicas,
-						"auto.create.topics.enable":                true,
-					},
-				},
-				Zookeeper: kafkabetav1.ZookeeperClusterSpec{
-					Replicas: defaultReplicas,
-					Storage:  kafkabetav1.KafkaStorage{StorageType: kafkabetav1.KafkaEphemeralStorage},
-				},
-			},
-		}
+		kafka := infrastructure.GetKafkaDefaultResource(InstanceName, kogitoInfra.Namespace, defaultReplicas)
 		resources[reflect.TypeOf(kafkabetav1.Kafka{})] = []resource.KubernetesResource{kafka}
 		log.Debugf("Requested objects created as %s", resources)
 	}

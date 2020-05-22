@@ -41,3 +41,5 @@ Feature: Kogito Data Index
       }
     }
     """
+
+# External Kafka testing is covered in deploy_quarkus_service and deploy_springboot_service as it checks integration between Data index and KogitoApp

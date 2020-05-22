@@ -124,9 +124,12 @@ func (i *imageHandler) resolveTag() string {
 	return i.image.Tag
 }
 
-func newImageHandler(instance v1alpha1.KogitoService, defaultImageName string, cli *client.Client) *imageHandler {
+func newImageHandler(instance v1alpha1.KogitoService, defaultImageName string, defaultImageTag string, cli *client.Client) *imageHandler {
 	if instance.GetSpec().GetImage() == nil {
 		instance.GetSpec().SetImage(v1alpha1.Image{})
+	}
+	if len(instance.GetSpec().GetImage().Tag) == 0 && len(defaultImageTag) > 0 {
+		instance.GetSpec().GetImage().Tag = defaultImageTag
 	}
 	handler := &imageHandler{
 		image:            instance.GetSpec().GetImage(),

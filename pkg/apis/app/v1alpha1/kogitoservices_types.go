@@ -101,6 +101,11 @@ type KogitoServiceSpecInterface interface {
 	SetImage(image Image)
 	GetResources() corev1.ResourceRequirements
 	SetResources(resources corev1.ResourceRequirements)
+	GetDeploymentLabels() map[string]string
+	SetDeploymentLabels(labels map[string]string)
+	GetServiceLabels() map[string]string
+	SetServiceLabels(labels map[string]string)
+	GetRuntime() RuntimeType
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification
@@ -131,6 +136,18 @@ type KogitoServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// Additional labels to be added to the Deployment and Pods managed by the operator
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Additional Deployment Labels"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	DeploymentLabels map[string]string `json:"deploymentLabels,omitempty"`
+
+	// Additional labels to be added to the Service managed by the operator
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Additional Service Labels"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	ServiceLabels map[string]string `json:"serviceLabels,omitempty"`
 }
 
 // GetReplicas ...
@@ -169,6 +186,23 @@ func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 	return
 }
 
+// AddEnvironmentVariableFromSecret adds a new environment variable from the secret under the key
+func (k *KogitoServiceSpec) AddEnvironmentVariableFromSecret(variableName, secretName, secretKey string) {
+	env := corev1.EnvVar{
+		Name: variableName,
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: secretName,
+				},
+				Key: secretKey,
+			},
+		},
+	}
+	k.Envs = append(k.Envs, env)
+	return
+}
+
 // AddResourceRequest adds new resource request. Works also on uninitialized Requests field.
 func (k *KogitoServiceSpec) AddResourceRequest(name, value string) {
 	if k.Resources.Requests == nil {
@@ -186,3 +220,15 @@ func (k *KogitoServiceSpec) AddResourceLimit(name, value string) {
 
 	k.Resources.Limits[corev1.ResourceName(name)] = resource.MustParse(value)
 }
+
+// GetDeploymentLabels ...
+func (k *KogitoServiceSpec) GetDeploymentLabels() map[string]string { return k.DeploymentLabels }
+
+// SetDeploymentLabels ...
+func (k *KogitoServiceSpec) SetDeploymentLabels(labels map[string]string) { k.DeploymentLabels = labels }
+
+// GetServiceLabels ...
+func (k *KogitoServiceSpec) GetServiceLabels() map[string]string { return k.ServiceLabels }
+
+// SetServiceLabels ...
+func (k *KogitoServiceSpec) SetServiceLabels(labels map[string]string) { k.ServiceLabels = labels }

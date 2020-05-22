@@ -44,6 +44,12 @@ spec:
         spec:
           description: KogitoMgmtConsoleSpec defines the desired state of KogitoMgmtConsole
           properties:
+            deploymentLabels:
+              additionalProperties:
+                type: string
+              description: Additional labels to be added to the Deployment and Pods
+                managed by the operator
+              type: object
             envs:
               description: Environment variables to be added to the runtime container.
                 Keys must be a C_IDENTIFIER.
@@ -182,6 +188,12 @@ spec:
                     to Limits if that is explicitly specified, otherwise to an implementation-defined
                     value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
+              type: object
+            serviceLabels:
+              additionalProperties:
+                type: string
+              description: Additional labels to be added to the Service managed by
+                the operator
               type: object
           type: object
         status:

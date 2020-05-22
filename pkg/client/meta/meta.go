@@ -85,6 +85,8 @@ var (
 	KindKogitoJobsService = DefinitionKind{"KogitoJobsService", false, v1alpha1.SchemeGroupVersion}
 	// KindKogitoMgmtConsole ...
 	KindKogitoMgmtConsole = DefinitionKind{"KogitoMgmtConsole", false, v1alpha1.SchemeGroupVersion}
+	// KindKogitoRuntime ...
+	KindKogitoRuntime = DefinitionKind{"KogitoRuntime", false, v1alpha1.SchemeGroupVersion}
 	// KindKogitoInfra for a KindKogitoInfra controller
 	KindKogitoInfra = DefinitionKind{"KogitoInfra", false, v1alpha1.SchemeGroupVersion}
 	// KindConfigMap for a ConfigMap
@@ -107,12 +109,14 @@ var (
 	KindSubscription = DefinitionKind{"Subscription", false, olmapiv1alpha1.SchemeGroupVersion}
 	// KindPrometheus ...
 	KindPrometheus = DefinitionKind{"Prometheus", false, monv1.SchemeGroupVersion}
-	// KindInfinispan ...
-	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
 	// KindPod for a Pod
 	KindPod = DefinitionKind{"Pod", false, corev1.SchemeGroupVersion}
 	// KindSecret ...
 	KindSecret = DefinitionKind{"Secret", false, corev1.SchemeGroupVersion}
+	// KindInfinispan ...
+	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
+	// KindKafka ...
+	KindKafka = DefinitionKind{"Kafka", false, kafkabetav1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -136,13 +140,14 @@ func GetRegisteredSchema() *runtime.Scheme {
 		&v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{},
 		&v1alpha1.KogitoInfra{}, &v1alpha1.KogitoInfraList{},
 		&v1alpha1.KogitoJobsService{}, &v1alpha1.KogitoJobsServiceList{},
-		&v1alpha1.KogitoMgmtConsole{}, &v1alpha1.KogitoMgmtConsoleList{})
+		&v1alpha1.KogitoMgmtConsole{}, &v1alpha1.KogitoMgmtConsoleList{},
+		&v1alpha1.KogitoRuntime{}, &v1alpha1.KogitoRuntimeList{})
 	s.AddKnownTypes(kafkabetav1.SchemeGroupVersion, &kafkabetav1.Kafka{}, &kafkabetav1.KafkaList{}, &kafkabetav1.KafkaTopic{}, &kafkabetav1.KafkaTopicList{})
 	s.AddKnownTypes(infinispanv1.SchemeGroupVersion, &infinispanv1.Infinispan{}, &infinispanv1.InfinispanList{})
 	s.AddKnownTypes(keycloakv1alpha1.SchemeGroupVersion, &keycloakv1alpha1.Keycloak{}, &keycloakv1alpha1.KeycloakList{})
 	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
 	s.AddKnownTypes(coreappsv1.SchemeGroupVersion, &coreappsv1.StatefulSet{}, &coreappsv1.StatefulSetList{})
-	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BuildConfigList{})
+	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BinaryBuildRequestOptions{}, &buildv1.BuildConfigList{})
 	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
 	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
 	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &operatormkt.OperatorSource{}, &operatormkt.OperatorSourceList{})
@@ -161,6 +166,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, monv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, routev1.GroupVersion)
 	metav1.AddToGroupVersion(s, infinispanv1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, kafkabetav1.SchemeGroupVersion)
 
 	return s
 }

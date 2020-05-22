@@ -76,7 +76,7 @@ func Test_getBCS2ILimitsAsIntString(t *testing.T) {
 func TestNewBuildConfigS2I(t *testing.T) {
 	uri := "http://example.git"
 	kogitoApp := &v1alpha1.KogitoApp{
-		ObjectMeta: v12.ObjectMeta{Name: "test"},
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
@@ -101,6 +101,40 @@ func TestNewBuildConfigS2I(t *testing.T) {
 
 	bc, err := newBuildConfigS2I(kogitoApp)
 	assert.NoError(t, err)
+	assert.Equal(t, bc.Namespace, "test")
+	assert.Equal(t, bc.Name, "test-builder")
+	assert.Contains(t, bc.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{
+		Name:  buildS2IlimitCPUEnvVarKey,
+		Value: "500m",
+	})
+}
+
+func TestNewBuildConfigS2IFromFile(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				Resources: v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("500m"),
+						v1.ResourceMemory: resource.MustParse("128Mi"),
+					},
+					Requests: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("250m"),
+						v1.ResourceMemory: resource.MustParse("64Mi"),
+					},
+				},
+				Incremental: true,
+				Native:      true,
+			},
+		},
+	}
+
+	bc, err := newBuildConfigS2IFromFile(kogitoApp)
+	assert.NoError(t, err)
+	assert.Equal(t, bc.Namespace, "test")
+	assert.Equal(t, bc.Name, "test-builder")
 	assert.Contains(t, bc.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{
 		Name:  buildS2IlimitCPUEnvVarKey,
 		Value: "500m",

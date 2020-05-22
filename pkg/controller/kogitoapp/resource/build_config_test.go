@@ -16,6 +16,7 @@ package resource
 
 import (
 	"fmt"
+	buildv1 "github.com/openshift/api/build/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"testing"
@@ -134,4 +135,39 @@ func Test_buildConfigResource_New(t *testing.T) {
 	assert.Equal(t, resource.MustParse("2"), *bcS2I.Spec.Resources.Limits.Cpu())
 	assert.Equal(t, resource.MustParse("10Gi"), *bcS2I.Spec.Resources.Limits.Memory())
 	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: buildS2IlimitMemoryEnvVarKey, Value: bcS2I.Spec.Resources.Limits.Memory().ToDec().AsDec().UnscaledBig().String()})
+}
+
+func Test_BuidConfig_BuildFromFile(t *testing.T) {
+
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "test",
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				Resources: v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU:    resource.MustParse("2"),
+						v1.ResourceMemory: resource.MustParse("2Gi"),
+					},
+				},
+				Native:         false,
+				MavenMirrorURL: "https://localhost.nexus:8080/public",
+			},
+		},
+	}
+	bcS2I, _ := newBuildConfigS2IFromFile(kogitoApp)
+	bcRuntime, _ := newBuildConfigRuntime(kogitoApp, &bcS2I)
+
+	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: nativeBuildEnvVarKey, Value: "false"})
+	assert.Contains(t, bcS2I.Spec.Strategy.SourceStrategy.Env, v1.EnvVar{Name: mavenMirrorURLEnvVar, Value: "https://localhost.nexus:8080/public"})
+	assert.Equal(t, "s2i", bcS2I.Labels["buildtype"])
+	assert.Equal(t, "binary", bcS2I.Labels["buildvariant"])
+	assert.Equal(t, buildv1.BuildSourceBinary, bcS2I.Spec.Source.Type)
+	assert.Contains(t, bcRuntime.Spec.Strategy.SourceStrategy.From.Name, BuildImageStreams[BuildTypeRuntimeJvm][v1alpha1.QuarkusRuntimeType])
+	assert.Equal(t, buildv1.BuildSourceImage, bcRuntime.Spec.Source.Type)
+	assert.Equal(t, resource.MustParse("2"), *bcS2I.Spec.Resources.Limits.Cpu())
+	assert.Equal(t, resource.MustParse("2Gi"), *bcS2I.Spec.Resources.Limits.Memory())
 }

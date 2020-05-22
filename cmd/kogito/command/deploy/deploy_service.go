@@ -16,25 +16,36 @@ package deploy
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	kogitoerror "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/error"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/url"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 
 	"github.com/spf13/cobra"
 )
 
 const defaultDeployRuntime = string(v1alpha1.QuarkusRuntimeType)
 
-var deployRuntimeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
+var (
+	deployRuntimeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
+)
 
 type deployFlags struct {
 	CommonFlags
@@ -84,12 +95,14 @@ func (i *deployCommand) RegisterHook() {
 		Short:   "Deploys a new Kogito Runtime Service into the given Project",
 		Aliases: []string{"deploy"},
 		Long: `deploy-service will create a new Kogito Runtime Service in the Project context. 
-        If the source is provided, the build will take place on the cluster, otherwise you must upload the application binaries via "oc start-build [NAME-binary] --from-dir=target". 
-		Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
-		To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
-
-		Please note that this command requires the Kogito Operator installed in the cluster.
-		For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#kogito-operator-installation.
+	If the [SOURCE] is provided, the build will take place on the cluster.
+	If not, you can also provide a dmn/drl/bpmn/bpmn2 file or a directory containing one or more of those files, using the --from-file
+	Or you can also later upload directly the application binaries via "oc start-build [NAME-binary] --from-dir=target
+			
+	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
+	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
+	Please note that this command requires the Kogito Operator installed in the cluster.
+	For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#kogito-operator-installation.
 		`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
@@ -99,10 +112,8 @@ func (i *deployCommand) RegisterHook() {
 			if len(args) > 2 {
 				return fmt.Errorf("requires 1 arg, received %v", len(args))
 			}
-			if len(args) > 1 {
-				if _, err := url.ParseRequestURI(args[1]); err != nil {
-					return fmt.Errorf("source is not a valid URL, received %s", args[1])
-				}
+			if len(args) == 0 {
+				return fmt.Errorf("the service requires a name ")
 			}
 			if err := util.ParseStringsForKeyPair(i.flags.buildEnv); err != nil {
 				return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", i.flags.buildEnv)
@@ -167,9 +178,33 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	hasSource := false
+	options := &buildv1.BinaryBuildRequestOptions{}
+	var userProvidedFile io.Reader
+
 	if len(args) > 1 {
-		i.flags.source = args[1]
-		hasSource = true
+		userProvidedFile, options, err = matchKogitoResources(args[1])
+		if err != nil {
+			switch t := err.(type) {
+			case *os.PathError:
+				return t
+
+			case *kogitoerror.KogitoAssetFileBuildError:
+				return t
+
+			case *url.Error:
+				return t
+
+			default:
+				log.Warnf(message.KogitoAppAssetNotSupported, args[1])
+			}
+
+		}
+		// if the parameter does not match the expected input to perform a build from file, try a build from source instead
+		if userProvidedFile == nil {
+			log.Info("Trying to perform a build from source...")
+			i.flags.source = args[1]
+			hasSource = true
+		}
 	}
 
 	if len(i.flags.mavenMirrorURL) > 0 {
@@ -260,6 +295,21 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	if hasSource {
 		log.Infof(message.KogitoAppViewDeploymentStatus, i.flags.name, i.flags.Project)
 		log.Infof(message.KogitoAppViewBuildStatus, i.flags.name, i.flags.Project)
+
+	} else if userProvidedFile != nil {
+
+		options.Name = kogitoApp.Name
+		cli, err := client.NewClientBuilder().WithBuildClient().Build()
+		if err != nil {
+			return err
+		}
+
+		_, err = openshift.BuildConfigC(cli).TriggerBuildFromFile(i.flags.Project, userProvidedFile, options)
+		if err != nil {
+			return err
+		}
+
+		log.Infof(message.KogitoAppSuccessfullyUploadedFile, i.flags.name, i.flags.Project)
 	} else {
 		log.Infof(message.KogitoAppUploadBinariesInstruction, i.flags.name, i.flags.Project)
 	}
@@ -275,4 +325,70 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return nil
+}
+
+// matchKogitoResources will verify if the given parameter matches one of the allowed extensions
+// Accepted values are, supported file extensions as it is, directory or url
+// See supportedExtensions env
+// returns the file content as io.Reader if the provided file or url is valid.
+func matchKogitoResources(resource string) (io.Reader, *buildv1.BinaryBuildRequestOptions, error) {
+	log := context.GetDefaultLogger()
+	options := &buildv1.BinaryBuildRequestOptions{}
+	var fileName string
+	// from url, do only basic check, for example, if the url has the suffix that's match the allowed ones
+	switch {
+	case strings.HasPrefix(resource, "http"):
+		parsedURL, err := url.ParseRequestURI(resource)
+		if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+			return nil, nil, &url.Error{
+				URL: resource,
+				Err: err,
+			}
+		}
+
+		ff := strings.Split(parsedURL.Path, "/")
+		fileName = strings.Join(strings.Fields(ff[len(ff)-1]), "")
+
+		if buildutil.IsSuffixSupported(fileName) {
+			response, err := http.Get(resource)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to download %s, error message: %s", resource, err.Error())
+			}
+			options.AsFile = fileName
+			log.Infof(message.KogitoAppFoundAsset, fileName)
+			return response.Body, options, nil
+		}
+		return nil, nil, nil
+
+	// handle single file, files on dir.
+	default:
+		fileInfo, err := os.Stat(resource)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if fileInfo.Mode().IsRegular() {
+			if buildutil.IsSuffixSupported(resource) {
+				log.Infof(message.KogitoAppFoundFile, resource)
+				ff := strings.Split(resource, "/")
+				fileName = strings.Join(strings.Fields(ff[len(ff)-1]), "")
+				fileReader, err := os.Open(resource)
+				if err != nil {
+					return nil, nil, err
+				}
+				options.AsFile = fileName
+				return fileReader, options, nil
+			}
+
+		} else if fileInfo.Mode().IsDir() {
+			log.Info(message.KogitoAppProvidedFileIsDir)
+
+			ioTgzR, err := buildutil.ProduceTGZfile(resource)
+			if err != nil {
+				return nil, nil, err
+			}
+			return ioTgzR, options, nil
+		}
+		return nil, nil, &kogitoerror.KogitoAssetFileBuildError{Asset: resource}
+	}
 }

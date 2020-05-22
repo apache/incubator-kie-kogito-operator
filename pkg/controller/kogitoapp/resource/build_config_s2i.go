@@ -27,12 +27,10 @@ import (
 	buildv1 "github.com/openshift/api/build/v1"
 
 	corev1 "k8s.io/api/core/v1"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogio Service Runtime
+	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogito Service Runtime
 	BuildS2INameSuffix           = "-builder"
 	nativeBuildEnvVarKey         = "NATIVE"
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
@@ -45,16 +43,32 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 	if kogitoApp.Spec.IsGitURIEmpty() {
 		return buildConfig, errors.New("GitSource in the Kogito App Spec is required to create new build configurations")
 	}
-	buildConfig = buildv1.BuildConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s%s", kogitoApp.Name, BuildS2INameSuffix),
-			Namespace: kogitoApp.Namespace,
-			Labels: map[string]string{
-				LabelKeyBuildType:    string(BuildTypeS2I),
-				LabelKeyBuildVariant: string(BuildVariantSource),
-			},
-		},
+
+	buildConfig = defaultBuildConfigS2I(kogitoApp, false)
+	buildConfig.Labels = map[string]string{
+		LabelKeyBuildType:    string(BuildTypeS2I),
+		LabelKeyBuildVariant: string(BuildVariantSource),
 	}
+
+	setBCS2ISource(kogitoApp, &buildConfig)
+	return buildConfig, nil
+}
+
+// newBuildConfigS2IFromFile creates a new build configuration for source to image (s2i) builds having Kogito assets as input
+func newBuildConfigS2IFromFile(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.BuildConfig, err error) {
+	buildConfig = defaultBuildConfigS2I(kogitoApp, true)
+	buildConfig.Labels = map[string]string{
+		LabelKeyBuildType:    string(BuildTypeS2I),
+		LabelKeyBuildVariant: string(BuildVariantBinary),
+	}
+	return buildConfig, nil
+}
+
+// defaultBuildConfigS2I returns the default configuration used in a build from source or build from file
+func defaultBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp, buildFromAsset bool) (buildConfig buildv1.BuildConfig) {
+	buildConfig.Namespace = kogitoApp.Namespace
+	buildConfig.Name = fmt.Sprintf("%s%s", kogitoApp.Name, BuildS2INameSuffix)
+
 	s2iBaseImage := corev1.ObjectReference{
 		Kind:      kindImageStreamTag,
 		Namespace: kogitoApp.Namespace,
@@ -66,14 +80,16 @@ func newBuildConfigS2I(kogitoApp *v1alpha1.KogitoApp) (buildConfig buildv1.Build
 			ImageChange: &buildv1.ImageChangeTrigger{From: &s2iBaseImage},
 		},
 	}
+
 	buildConfig.Spec.Resources = kogitoApp.Spec.Build.Resources
 	buildConfig.Spec.Output.To = &corev1.ObjectReference{Kind: kindImageStreamTag, Name: fmt.Sprintf("%s:%s", buildConfig.Name, tagLatest)}
-	setBCS2ISource(kogitoApp, &buildConfig)
-	setBCS2IStrategy(kogitoApp, &buildConfig, s2iBaseImage)
+
+	setBCS2IStrategy(kogitoApp, &buildConfig, s2iBaseImage, buildFromAsset)
+
 	meta.SetGroupVersionKind(&buildConfig.TypeMeta, meta.KindBuildConfig)
 	addDefaultMeta(&buildConfig.ObjectMeta, kogitoApp)
 
-	return buildConfig, nil
+	return buildConfig
 }
 
 func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig) {
@@ -86,7 +102,7 @@ func setBCS2ISource(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildCon
 	}
 }
 
-func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, s2iBaseImage corev1.ObjectReference) {
+func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildConfig, s2iBaseImage corev1.ObjectReference, buildFromAsset bool) {
 	envs := kogitoApp.Spec.Build.Envs
 	if kogitoApp.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(kogitoApp.Spec.Build.Native)})
@@ -99,6 +115,16 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	if len(kogitoApp.Spec.Build.MavenMirrorURL) > 0 {
 		log.Infof("Setting maven mirror url to %s", kogitoApp.Spec.Build.MavenMirrorURL)
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
+	}
+
+	// if user has provided a file, binary build should be used instead.
+	if buildFromAsset {
+		buildConfig.Spec.Source.Type = buildv1.BuildSourceBinary
+		// The comparator hits reconciliation if this are not set to empty values. TODO: fix on the operator-utils project
+		buildConfig.Spec.Source.Binary = &buildv1.BinaryBuildSource{AsFile: ""}
+		buildConfig.Spec.RunPolicy = buildv1.BuildRunPolicySerial
+		// set it to an empty state, in this case we don't want OCP triggering the build for us.
+		buildConfig.Spec.Triggers = []buildv1.BuildTriggerPolicy{}
 	}
 
 	buildConfig.Spec.Strategy.Type = buildv1.SourceBuildStrategyType

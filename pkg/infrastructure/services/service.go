@@ -33,6 +33,7 @@ func createRequiredService(instance v1alpha1.KogitoService, deployment *appsv1.D
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.GetName(),
 			Namespace: instance.GetNamespace(),
+			Labels:    instance.GetSpec().GetServiceLabels(),
 		},
 		Spec: corev1.ServiceSpec{
 			Ports:    ports,

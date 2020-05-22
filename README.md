@@ -18,6 +18,7 @@ Table of Contents
       * [Kogito Runtimes service deployment](#kogito-runtimes-service-deployment)
          * [Deploying a new service](#deploying-a-new-service)
          * [Binary Builds](#binary-builds)
+         * [Build From File](#build-from-file)
          * [Cleaning up a Kogito service deployment](#cleaning-up-a-kogito-service-deployment)
          * [Native X JVM builds](#native-x-jvm-builds)
          * [Kogito Runtimes properties configuration](#kogito-runtimes-properties-configuration)
@@ -89,14 +90,16 @@ The Kogito operator is a namespaced operator, so you must install it into the na
 (Optional) You can import the Kogito image stream using the `oc client` manually with the following command:
 
 ```bash
-$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-images/master/kogito-imagestream.yaml -n openshift
+$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-images/<version>/kogito-imagestream.yaml -n openshift
 ```
 
-This step is optional because the Kogito Operator creates the required imagestreams when it installs a new application.
+Replace `<version>` with the appropriate [Kogito Images version](https://github.com/kiegroup/kogito-images/releases).
+
+This step is optional because the Kogito Operator creates the required `ImageStreams` when it installs a new application.
 
 #### Automatically in OperatorHub
 
-The Kogito Operator is available in the OperatorHub as a community operator. To find the Operator, search by the _Kogito_ name.
+The Kogito Operator is available in the OperatorHub as a community operator. To find the Operator, [search by the _Kogito_ name](https://docs.openshift.com/container-platform/4.4/operators/olm-adding-operators-to-cluster.html).
 
 You can also verify the Operator's availability in the catalog by running the following command:
 
@@ -106,6 +109,8 @@ $ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-m
 Follow the OpenShift Web Console instructions in the **Catalog** -> **OperatorHub** section in the left menu to install it in any namespace in the cluster.
 
 ![Kogito Operator in the Catalog](docs/img/catalog-kogito-operator.png?raw=true)
+
+Find more information about installing an Operator on OpenShift in the [official documentation](https://docs.openshift.com/container-platform/4.4/operators/olm-adding-operators-to-cluster.html).
 
 #### Manually in OperatorHub
 
@@ -117,26 +122,31 @@ $ oc create -f deploy/olm-catalog/kogito-operator/kogito-operator-operatorsource
 
 After several minutes, the Operator appears under the **Catalog** -> **OperatorHub** section in the OpenShift Web Console. To find the Operator, search by the _Kogito_ name. You can then install the Operator as described in the [Automatically in OperatorHub](#automatically-in-operatorhub) section.
 
+Use this option only if you're building the operator yourself and need to add a custom version of the Kogito Operator in your cluster catalog.
+
 #### Locally on your system
 
 You can also [run the Kogito Operator locally](#running-the-kogito-operator-locally) if you have the [requirements](#kogito-operator-requirements) configured on your local system.
 
-### Deploying to OpenShift 3.11
+### Deploying to OpenShift 3.11 or Kubernetes 1.14+
 
-The OperatorHub catalog is not available by default for OpenShift 3.11, so you must manually install the Kogito Operator on OpenShift 3.11.
+The OperatorHub catalog is not available by default for OpenShift 3.11 and Kubernetes, so you must manually install the Kogito Operator on these platforms.
 
 ```bash
-## Kogito imagestreams should already be installed and available, for example:
-$ oc apply -f https://raw.githubusercontent.com/kiegroup/kogito-images/master/kogito-imagestream.yaml -n openshift
 $ oc new-project <project-name>
 $ ./hack/3.11deploy.sh
 ```
+
+Please also note that if you need persistence and messaging and [are relying on Kogito Operator to [deploy Infinispan](#infinispan-integration) and/or [Kafka](#kafka-integration) for you, the respective operators (Infinispan Operator and Strimzi) also have to be manually installed. 
+Please refer to their documentation about how to proper install them on OpenShift 3.11 or Kubernetes.
+
+For reference, [we have an example of how to manually install](deploy/examples/kubernetes/travel-agency/deploy.sh) Kogito Operator and the dependant operators. 
 
 ## Kogito Runtimes service deployment
 
 ### Deploying a new service
 
-Use the OLM console to subscribe to the `kogito` Operator Catalog Source within your namespace. After you subscribe, use the console to `Create KogitoApp` or create one manually as shown in the following example:
+[Use the OLM console to subscribe to the `kogito` Operator Catalog Source](#automatically-in-operatorhub) within your namespace. After you subscribe, use the console to `Create KogitoApp` or create one manually as shown in the following example: 
 
 ```bash
 $ oc create -f deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml
@@ -146,8 +156,10 @@ kogitoapp.app.kiegroup.org/example-quarkus created
 Alternatively, you can use the [Kogito CLI](#kogito-cli) to deploy your services:
 
 ```bash
-$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=drools-quarkus-example
+$ kogito deploy-service example-quarkus https://github.com/kiegroup/kogito-examples/ --context-dir=rules-quarkus-helloworld
 ```
+
+In both approaches the Kogito Operator will set up a build configuration for you in the OpenShift cluster to build the service from source, from a file or from a binary. From version 0.11.0 onward, we introduce a new way of deploying a Kogito Service that's from a built image. See more details in the section [Kubernetes Support](#kubernetes-support).
 
 ### Binary Builds
 
@@ -184,9 +196,9 @@ drwxrwxr-x. 2 ricferna ricferna   4096 Mar 10 16:01 maven-archiver
 drwxrwxr-x. 3 ricferna ricferna   4096 Mar 10 16:01 maven-status
 ```
 
-You can upload the entire directory to the cluster or you might select only the relevant files:
+You can upload the entire directory to the cluster, or you might select only the relevant files:
 
-1. The `jar` runner and the `lib` directory for Quarkus runtime or just the uber jar if you're using Springboot.
+1. The `jar` runner and the `lib` directory for Quarkus runtime or just the uber jar if you're using Spring Boot.
 2. The `classes/persistence` directory where resides the generated protobuf files.
 3. The `image_metadata.json` file, which contains the information about the image that will be built by the s2i feature.
 
@@ -195,8 +207,87 @@ Use the `oc` client to upload and start the image build:
 ```bash
 $ oc start-build example-quarkus-binary --from-dir=target
 ``` 
-And that's it. In a couple minutes you should have your Kogito Service application up and running using the same binaries
+
+That's it. In a couple minutes you should have your Kogito Service application up and running using the same binaries
 built locally.
+
+### Build From File
+
+Kogito Operator can configure a build for you that will pull and build your application through the source to image (s2i)
+feature (available only on OpenShift). This kind of build consists of uploading a Kogito service file, e.g. a DMN or a BPMN file to the OpenShift Cluster and trigger a new Source to Image build automatically.
+
+You can provide a single DMN, DRL, BPMN, BPMN2 and properties files, the standalone file can be locally on the filesystem or on a Web Site, like GitHub:
+
+```bash
+# from filesystem
+$ kogito deploy-service example-dmn-quarkus /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn"
+File found /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn.
+...
+The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/example-dmn-quarkus-builder -n kogito'
+```
+
+While checking OpenShift build logs with the command `oc logs -f bc/example-dmn-quarkus-builder -n kogito`, you can see on the beginning of the build log:
+```
+Receiving source from STDIN as file TrafficViolation.dmn
+Using docker-registry.default.svc:5000/openshift/kogito-quarkus-ubi8-s2i@sha256:729e158710dedba50a49943ba188d8f31d09568634896de9b903838fc4e34e94 as the s2i builder image
+```
+
+```bash
+# from a git repository
+$ kogito deploy-service example-dmn-quarkus https://raw.githubusercontent.com/kiegroup/kogito-examples/master/dmn-quarkus-example/src/main/resources/Traffic%20Violation.dmn
+Asset found: TrafficViolation.dmn.
+...
+The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/example-dmn-quarkus-builder -n kogito'
+```
+
+If you check the logs, you can also see the DMN file being used to build the Kogito service.
+
+Sometimes we also need to provide more than one Kogito resource file, e.g. a DRL and a BPMN. In that case, 
+all we need to do is to specify a whole directory. If any valid file is found in the given directory, the CLI will 
+compress these files and upload to the OpenShift cluster. To upload more than one file, put all the desired files in a 
+directory and specify it as parameter. 
+
+Note that if you have other unsupported files in this directory, they will not be copied. For such complex cases you can use
+either [build from source](#deploying-a-new-service) or a [binary build](#binary-builds).
+
+After a build is created and for some reason we need to update the Kogito assets we can do it with the `oc start-build`
+command, but keep in mind that a s2i build is not able to identify what files have been changed and updated only this one,
+All files must be provided again. Suppose we have create a Kogito Application with the following command:
+
+```bash
+$ kogito deploy-service example-dmn-quarkus-builder /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn"
+Uploading file "/tmp/kogito-examples/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn" as binary input for the build ...
+.
+Uploading finished
+build.build.openshift.io/example-dmn-quarkus-builder-2 started
+
+```
+
+We can provide the files again, after we're done updating it, to do this use the following command:
+
+```bash
+$ oc start-build example-dmn-quarkus-builder --from-file /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn"
+```
+
+If a directory was provided, just update the `--from-file` flag to `--from-dir`.
+
+```bash
+kogito deploy-service test /home/user/development/kogito-test/
+```
+
+As output of the cli command above, we will have something similar to:
+
+```bash
+The provided source is a dir, packing files.
+File(s) found: [/home/user/development/kogito-test/Traffic Violation.dmn /home/user/development/kogito-test/application.properties].
+...
+The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/test-builder -n kogito'
+```
+
+If for some reason the build fails, pass the env [BUILD_LOGLEVEL](https://docs.openshift.com/container-platform/4.3/builds/basic-build-operations.html#builds-basic-access-build-verbosity_basic-build-operations) with the desired level, e.g. 9 as a build-env parameter:
+```bash
+kogito --verbose deploy-service test /home/user/development/kogito-test/  --build-env BUILD_LOGLEVEL=5
+``` 
 
 ### Cleaning up a Kogito service deployment
 
@@ -306,6 +397,54 @@ Use the pod name as input for the following command:
 ```bash
 $ oc logs -f kogito-operator-6d7b6d4466-9ng8t
 ```
+ 
+
+## Kubernetes Support
+
+From version 0.11.0 onward, we provide a new CR (Custom Resource) called `KogitoRuntime` that enables Kubernetes deployment with the Kogito Operator.
+
+This new resource **does not require** to build the images in the cluster. Instead, you can just pass the Kogito service image you wish to deploy, and the Kogito Operator will do the heavy lift for you.
+
+For this to work, we assume that you have built your own Kogito service image and pushed it to an internal or third party registry such as [Quay.io](https://quay.io).
+
+### Building a Kogito Runtime Service Image
+
+Assuming you already have a Quarkus Kogito project in place (see the [examples](https://github.com/kiegroup/kogito-examples/)) and is ready to publish it in a Kubernetes or OpenShift cluster, follow these steps:
+
+1. Copy the example file [`quarkus-jvm.Dockerfile`](deploy/examples/quarkus-jvm.Dockerfile) to your project's root
+2. Build your project like you would normally do. For example: `mvn clean package`
+3. Build the image: `podman build --tag quay.io/<yournamespace>/<project-name>:latest -f quarkus-jvm.Dockerfile .`
+4. Test the image locally with: `podman run --rm -it -p 8080:8080 quay.io/<yournamespace>/<project-name>:latest`
+5. Push it to the registry: `podman push quay.io/<yournamespace>/<project-name>:latest`
+
+### Deploying a Kogito Runtime Service in Kubernetes
+
+Once you have the image ready, just create a CR like the example below:
+
+```shell
+cat << EOF > kogito-service.yaml
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: process-quarkus-example
+spec:
+  replicas: 1
+  image:
+    domain: quay.io
+    namespace: your-namespace
+    name: your-image-name
+EOF
+```
+
+Assuming you already have the Kogito Operator installed, now you can create the resource in the cluster:
+
+```shell script
+kubectl apply -f kogito-service.yaml
+```
+
+In a few moments, you will see your service successfully deployed. All the configuration, persistence and messaging integration referenced in this documentation can also be applied to the `KogitoRuntime` resource.
+
+For a more complex deployment that enables persistence and messaging to the Kogito service, please refer to the [`travel-agency` directory in the examples section](deploy/examples/kubernetes/travel-agency).
 
 ## Kogito Data Index Service deployment
 

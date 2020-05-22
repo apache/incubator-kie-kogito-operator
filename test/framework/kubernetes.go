@@ -51,46 +51,6 @@ func InitKubeClient() error {
 	return nil
 }
 
-// CreateNamespace creates a new namespace
-func CreateNamespace(namespace string) error {
-	GetLogger(namespace).Infof("Create namespace %s", namespace)
-	_, err := kubernetes.NamespaceC(kubeClient).Create(namespace)
-	if err != nil {
-		return fmt.Errorf("Cannot create namespace %s: %v", namespace, err)
-	}
-	return nil
-}
-
-// DeleteNamespace deletes a namespace
-func DeleteNamespace(namespace string) error {
-	ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
-	GetLogger(namespace).Infof("Delete namespace %s", namespace)
-	err := kubernetes.ResourceC(kubeClient).Delete(ns)
-	if err != nil {
-		return fmt.Errorf("Cannot delete namespace %s: %v", namespace, err)
-	}
-	return nil
-}
-
-// IsNamespace checks wherher a namespace exists
-func IsNamespace(namespace string) (bool, error) {
-	ns, err := kubernetes.NamespaceC(kubeClient).Fetch(namespace)
-	if err != nil {
-		return false, fmt.Errorf("Cannot create namespace %s: %v", namespace, err)
-	}
-	return ns != nil, nil
-}
-
-// OperateOnNamespaceIfExists do some operations on the namespace if that one exists
-func OperateOnNamespaceIfExists(namespace string, operate func(namespace string) error) error {
-	if ok, er := IsNamespace(namespace); er != nil {
-		return fmt.Errorf("Error while checking namespace: %v", er)
-	} else if ok {
-		return operate(namespace)
-	}
-	return nil
-}
-
 // WaitForPodsWithLabel waits for pods with specific label to be available and running
 func WaitForPodsWithLabel(namespace, labelName, labelValue string, numberOfPods, timeoutInMin int) error {
 	return WaitForOnOpenshift(namespace, fmt.Sprintf("Pods with label name '%s' and value '%s' available and running", labelName, labelValue), timeoutInMin,
@@ -100,7 +60,7 @@ func WaitForPodsWithLabel(namespace, labelName, labelValue string, numberOfPods,
 				return false, err
 			}
 
-			return CheckPodsAreRunning(pods), nil
+			return CheckPodsAreReady(pods), nil
 		}, CheckPodsWithLabelInError(namespace, labelName, labelValue))
 }
 
@@ -127,10 +87,10 @@ func GetPodsWithLabels(namespace string, labels map[string]string) (*corev1.PodL
 	return pods, nil
 }
 
-// CheckPodsAreRunning returns true if all pods are running
-func CheckPodsAreRunning(pods *corev1.PodList) bool {
+// CheckPodsAreReady returns true if all pods are ready
+func CheckPodsAreReady(pods *corev1.PodList) bool {
 	for _, pod := range pods.Items {
-		if !IsPodRunning(&pod) {
+		if !IsPodStatusConditionReady(&pod) {
 			return false
 		}
 	}
@@ -140,6 +100,16 @@ func CheckPodsAreRunning(pods *corev1.PodList) bool {
 // IsPodRunning returns true if pod is running
 func IsPodRunning(pod *corev1.Pod) bool {
 	return pod.Status.Phase == corev1.PodRunning
+}
+
+// IsPodStatusConditionReady returns true if all pod's containers are ready (really running)
+func IsPodStatusConditionReady(pod *corev1.Pod) bool {
+	for _, condition := range pod.Status.Conditions {
+		if condition.Type == corev1.ContainersReady {
+			return condition.Status == corev1.ConditionTrue
+		}
+	}
+	return false
 }
 
 // GetDeployment retrieves deployment with specified name in namespace
@@ -281,4 +251,17 @@ func isPodInError(pod *corev1.Pod) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func checkPodContainerHasEnvVariableWithValue(pod *corev1.Pod, containerName, envVarName, envVarValue string) bool {
+	for _, container := range pod.Spec.Containers {
+		if container.Name == containerName {
+			for _, env := range container.Env {
+				if env.Name == envVarName {
+					return env.Value == envVarValue
+				}
+			}
+		}
+	}
+	return false
 }

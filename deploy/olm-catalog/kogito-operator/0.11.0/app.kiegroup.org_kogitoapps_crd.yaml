@@ -240,6 +240,12 @@ spec:
                     type: object
                   type: array
               type: object
+            deploymentLabels:
+              additionalProperties:
+                type: string
+              description: Additional labels to be added to the Deployment and Pods
+                managed by the operator
+              type: object
             enableEvents:
               description: 'Set this property to true to tell the operator to deploy
                 an instance of Kafka via the Strimzi Operator and configure this service
@@ -419,6 +425,12 @@ spec:
                     type: string
                   description: Labels for the application service
                   type: object
+              type: object
+            serviceLabels:
+              additionalProperties:
+                type: string
+              description: Additional labels to be added to the Service managed by
+                the operator
               type: object
           required:
           - build

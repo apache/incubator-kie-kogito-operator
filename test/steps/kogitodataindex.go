@@ -23,14 +23,32 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 )
 
-const (
-	//DataTable first column
-	infinispanKey = "infinispan"
+/*
+	DataTable for Data Index:
+	| infinispan      | username    | developer                 |
+	| infinispan      | password    | mypass                    |
+	| infinispan      | uri         | external-infinispan:11222 |
+	| kafka           | externalURI | kafka-bootstrap:9092      |
+	| kafka           | instance    | external-kafka            |
+	| runtime-request | cpu/memory  | value                     |
+	| runtime-limit   | cpu/memory  | value                     |
+	| runtime-env     | varName     | varValue                  |
+*/
 
-	//DataTable second column
+const (
+	// DataTable first column
+	dataIndexInfinispanKey     = "infinispan"
+	dataIndexKafkaKey          = "kafka"
+	dataIndexRuntimeRequestKey = "runtime-request"
+	dataIndexRuntimeLimitKey   = "runtime-limit"
+	dataIndexRuntimeEnvKey     = "runtime-env"
+
+	// DataTable second column
 	dataIndexInfinispanUsernameKey = "username"
 	dataIndexInfinispanPasswordKey = "password"
-	uriKey                         = "uri"
+	dataIndexInfinispanURIKey      = "uri"
+	dataIndexKafkaExternalURIKey   = "externalURI"
+	dataIndexKafkaInstanceKey      = "instance"
 )
 
 func registerKogitoDataIndexServiceSteps(s *godog.Suite, data *Data) {
@@ -55,12 +73,8 @@ func (data *Data) installKogitoDataIndexServiceWithReplicasWithConfiguration(rep
 
 	if dataIndex.IsInfinispanUsernameSpecified() && framework.GetDefaultInstallerType() == framework.CRInstallerType {
 		// If Infinispan authentication is set and CR installer is used, the Secret holding Infinispan credentials needs to be created and passed to Data index CR.
-		secretName := "kogito-external-infinispan-secret"
-		usernameSecretKey := "user"
-		passwordSecretKey := "pass"
-
-		framework.CreateSecret(data.Namespace, secretName, map[string]string{usernameSecretKey: dataIndex.Infinispan.Username, passwordSecretKey: dataIndex.Infinispan.Password})
-		dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.InfinispanProperties.Credentials.SecretName = secretName
+		framework.CreateSecret(data.Namespace, kogitoExternalInfinispanSecret, map[string]string{usernameSecretKey: dataIndex.Infinispan.Username, passwordSecretKey: dataIndex.Infinispan.Password})
+		dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.InfinispanProperties.Credentials.SecretName = kogitoExternalInfinispanSecret
 		dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.InfinispanProperties.Credentials.UsernameKey = usernameSecretKey
 		dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.InfinispanProperties.Credentials.PasswordKey = passwordSecretKey
 	}
@@ -86,16 +100,19 @@ func configureDataIndexFromTable(table *messages.PickleStepArgument_PickleTable,
 	for _, row := range table.Rows {
 		firstColumn := getFirstColumn(row)
 		switch firstColumn {
-		case infinispanKey:
+		case dataIndexInfinispanKey:
 			parseDataIndexInfinispanRow(row, dataIndex)
 
-		case runtimeEnvKey:
+		case dataIndexKafkaKey:
+			parseDataIndexKafkaRow(row, dataIndex)
+
+		case dataIndexRuntimeEnvKey:
 			dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.AddEnvironmentVariable(getSecondColumn(row), getThirdColumn(row))
 
-		case runtimeRequestKey:
+		case dataIndexRuntimeRequestKey:
 			dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.AddResourceRequest(getSecondColumn(row), getThirdColumn(row))
 
-		case runtimeLimitKey:
+		case dataIndexRuntimeLimitKey:
 			dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.AddResourceLimit(getSecondColumn(row), getThirdColumn(row))
 
 		default:
@@ -116,7 +133,19 @@ func parseDataIndexInfinispanRow(row *messages.PickleStepArgument_PickleTable_Pi
 	case dataIndexInfinispanPasswordKey:
 		dataIndex.Infinispan.Password = getThirdColumn(row)
 
-	case uriKey:
+	case dataIndexInfinispanURIKey:
 		dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.InfinispanProperties.URI = getThirdColumn(row)
+	}
+}
+
+func parseDataIndexKafkaRow(row *messages.PickleStepArgument_PickleTable_PickleTableRow, dataIndex *framework.KogitoServiceHolder) {
+	secondColumn := getSecondColumn(row)
+
+	switch secondColumn {
+	case dataIndexKafkaExternalURIKey:
+		dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.KafkaProperties.ExternalURI = getThirdColumn(row)
+
+	case dataIndexKafkaInstanceKey:
+		dataIndex.KogitoService.(*v1alpha1.KogitoDataIndex).Spec.KafkaProperties.Instance = getThirdColumn(row)
 	}
 }

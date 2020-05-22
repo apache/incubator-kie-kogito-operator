@@ -20,9 +20,13 @@ const (
 	KogitoAppViewDeploymentStatus      = "You can see the deployment status by using 'oc describe kogitoapp %s -n %s'"
 	KogitoAppViewBuildStatus           = "Your Kogito Runtime Service should be deploying. To see its logs, run 'oc logs -f bc/%s-builder -n %s'"
 	KogitoAppUploadBinariesInstruction = "Your Kogito Runtime Service needs the application binaries to proceed. To upload your binaries please run 'oc start-build %s-binary --from-dir=target -n %s' from your project's root"
-
-	KogitoAppNoMgmtConsole = `To more easily manage your Kogito Runtime Service install Data Index Service and Process Instance Management. 
+	KogitoAppNoMgmtConsole             = `To more easily manage your Kogito Runtime Service install Data Index Service and Process Instance Management. 
 For how to install see: https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-deployment
 and https://github.com/kiegroup/kogito-cloud-operator#kogito-management-console-install`
-	KogitoAppMgmtConsoleEndpoint = `You can manage your process using the management console: %s`
+	KogitoAppMgmtConsoleEndpoint      = `You can manage your process using the management console: %s`
+	KogitoAppSuccessfullyUploadedFile = "The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/%s-builder -n %s'"
+	KogitoAppAssetNotSupported        = "The provided resource is not a standalone Kogito asset."
+	KogitoAppFoundFile                = "File(s) found: %s."
+	KogitoAppFoundAsset               = "Asset found: %s."
+	KogitoAppProvidedFileIsDir        = "The provided source is a directory, packing files."
 )
