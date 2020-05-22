@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
@@ -35,6 +36,7 @@ const (
 
 type installJobsServiceFlags struct {
 	deploy.CommonFlags
+	common.ChannelFlags
 	image                         string
 	kafka                         v1alpha1.KafkaConnectionProperties
 	infinispan                    v1alpha1.InfinispanConnectionProperties
@@ -134,6 +136,9 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 			if err := deploy.CheckImageTag(i.flags.image); err != nil {
 				return err
 			}
+			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -141,11 +146,13 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 
 func (i *installJobsServiceCommand) InitHook() {
 	i.flags = installJobsServiceFlags{
-		CommonFlags: deploy.CommonFlags{},
-		infinispan:  v1alpha1.InfinispanConnectionProperties{},
+		CommonFlags:  deploy.CommonFlags{},
+		infinispan:   v1alpha1.InfinispanConnectionProperties{},
+		ChannelFlags: common.ChannelFlags{},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
+	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
@@ -225,7 +232,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		SilentlyInstallOperatorIfNotExists().
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		WarnIfDependenciesNotReady(i.flags.infinispan.UseKogitoInfra, i.flags.kafka.UseKogitoInfra).
 		InstallJobsService(&kogitoJobsService).
 		GetError()

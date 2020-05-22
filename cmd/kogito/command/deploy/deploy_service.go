@@ -16,6 +16,7 @@ package deploy
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
@@ -37,6 +38,7 @@ var deployRuntimeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), st
 
 type deployFlags struct {
 	CommonFlags
+	common.ChannelFlags
 	name              string
 	runtime           string
 	serviceLabels     []string
@@ -126,15 +128,23 @@ func (i *deployCommand) RegisterHook() {
 			if err := CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
+			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
 }
 
 func (i *deployCommand) InitHook() {
-	i.flags = deployFlags{CommonFlags: CommonFlags{}}
+	i.flags = deployFlags{
+		CommonFlags:  CommonFlags{},
+		ChannelFlags: common.ChannelFlags{},
+	}
 	i.Parent.AddCommand(i.command)
 	AddDeployFlags(i.command, &i.flags.CommonFlags)
+	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
+
 	i.command.Flags().StringVarP(&i.flags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	i.command.Flags().StringVarP(&i.flags.reference, "branch", "b", "", "Git branch to use in the git repository")
 	i.command.Flags().StringVarP(&i.flags.contextDir, "context-dir", "c", "", "Context/subdirectory where the code is located, relatively to repository root")
@@ -172,7 +182,8 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
+	installationChannel := shared.KogitoChannelType(i.flags.Channel)
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client, installationChannel); err != nil {
 		return err
 	} else if !installed {
 		return nil

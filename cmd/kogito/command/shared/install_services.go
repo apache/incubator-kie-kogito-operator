@@ -66,7 +66,7 @@ type ServicesInstallation interface {
 	// InstallKafka install a kafka instance.
 	InstallKafka() ServicesInstallation
 	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
-	SilentlyInstallOperatorIfNotExists() ServicesInstallation
+	SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation
 	// WarnIfDependenciesNotReady checks if the given dependencies are installed, warn if they are not ready
 	WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation
 	// GetError return any given error during the installation process
@@ -149,8 +149,8 @@ func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorIma
 	return s
 }
 
-func (s servicesInstallation) SilentlyInstallOperatorIfNotExists() ServicesInstallation {
-	return s.InstallOperator(false, "", false, GetDefaultChannel())
+func (s servicesInstallation) SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation {
+	return s.InstallOperator(false, "", false, ch)
 }
 
 func (s *servicesInstallation) InstallInfinispan() ServicesInstallation {

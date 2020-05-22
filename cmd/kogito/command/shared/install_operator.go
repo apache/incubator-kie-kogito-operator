@@ -54,8 +54,8 @@ var (
 )
 
 // SilentlyInstallOperatorIfNotExists attempts to install the operator and does not log a message if it is installed
-func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client) (installed bool, err error) {
-	return InstallOperatorIfNotExists(namespace, operatorImage, client, false, false, GetDefaultChannel())
+func SilentlyInstallOperatorIfNotExists(namespace string, operatorImage string, client *client.Client, ch KogitoChannelType) (installed bool, err error) {
+	return InstallOperatorIfNotExists(namespace, operatorImage, client, false, false, ch)
 }
 
 // InstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files, if the operator deployment is not in the given namespace.

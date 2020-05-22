@@ -105,7 +105,7 @@ func Test_InstallOperatorWithDefaultChannel(t *testing.T) {
 
 func Test_InstallOperatorWithValidChannel(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install operator -p %s -c %s", ns, shared.DevPreviewChannel)
+	cli := fmt.Sprintf("install operator -p %s --channel %s", ns, shared.DevPreviewChannel)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -126,7 +126,7 @@ func Test_InstallOperatorWithValidChannel(t *testing.T) {
 func Test_InstallOperatorWithInvalidChannel(t *testing.T) {
 	ns := t.Name()
 	invalidChannel := "testChannel"
-	cli := fmt.Sprintf("install operator -p %s -c %s", ns, invalidChannel)
+	cli := fmt.Sprintf("install operator -p %s --channel %s", ns, invalidChannel)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},

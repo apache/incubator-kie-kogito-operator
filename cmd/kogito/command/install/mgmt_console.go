@@ -15,6 +15,7 @@
 package install
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
@@ -28,6 +29,7 @@ import (
 
 type installMgmtConsoleFlags struct {
 	deploy.CommonFlags
+	common.ChannelFlags
 	image string
 }
 
@@ -76,6 +78,9 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 			if err := deploy.CheckImageTag(i.flags.image); err != nil {
 				return err
 			}
+			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -83,10 +88,12 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 
 func (i *installMgmtConsoleCommand) InitHook() {
 	i.flags = installMgmtConsoleFlags{
-		CommonFlags: deploy.CommonFlags{},
+		CommonFlags:  deploy.CommonFlags{},
+		ChannelFlags: common.ChannelFlags{},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
+	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
 }
@@ -119,7 +126,7 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		SilentlyInstallOperatorIfNotExists().
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		InstallMgmtConsole(&kogitoMgmtConsole).
 		GetError()
 }

@@ -16,13 +16,14 @@ package install
 
 import (
 	"errors"
-	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 )
 
 type installKogitoOperatorFlags struct {
+	common.ChannelFlags
 	namespace          string
 	image              string
 	installDataIndex   bool
@@ -30,7 +31,6 @@ type installKogitoOperatorFlags struct {
 	installMgmtConsole bool
 	installAllServices bool
 	force              bool
-	channel            string
 }
 
 type installKogitoOperatorCommand struct {
@@ -66,9 +66,8 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			ch := i.flags.channel
-			if !shared.IsChannelValid(ch) {
-				return fmt.Errorf("Invalid Kogito channel type %s, only alpha/dev-preview channels are allowed ", ch)
+			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
+				return err
 			}
 			return nil
 		},
@@ -76,8 +75,12 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 }
 
 func (i *installKogitoOperatorCommand) InitHook() {
-	i.flags = installKogitoOperatorFlags{}
+	i.flags = installKogitoOperatorFlags{
+		ChannelFlags: common.ChannelFlags{},
+	}
 	i.Parent.AddCommand(i.command)
+	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
+
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
 	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
@@ -85,7 +88,6 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().BoolVar(&i.flags.installMgmtConsole, "install-mgmt-console", false, "Installs the default instance of Management Console being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVar(&i.flags.installAllServices, "install-all-services", false, "Installs the default instance of every Kogito Support services (Data Index, Jobs Service, etc.) being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
-	i.command.Flags().StringVarP(&i.flags.channel, "channel", "c", string(shared.GetDefaultChannel()), "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -101,7 +103,7 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 		return err
 	}
 
-	installationChannel := shared.KogitoChannelType(i.flags.channel)
+	installationChannel := shared.KogitoChannelType(i.flags.Channel)
 	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force, installationChannel)
 	if i.flags.installDataIndex || i.flags.installAllServices {
 		install.InstallDataIndex(nil)

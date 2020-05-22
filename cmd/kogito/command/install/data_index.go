@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
@@ -38,6 +39,7 @@ const (
 
 type installDataIndexFlags struct {
 	deploy.CommonFlags
+	common.ChannelFlags
 	image              string
 	httpPort           int32
 	kafka              v1alpha1.KafkaConnectionProperties
@@ -127,6 +129,9 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 			if err := deploy.CheckImageTag(i.flags.image); err != nil {
 				return err
 			}
+			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -134,12 +139,14 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 
 func (i *installDataIndexCommand) InitHook() {
 	i.flags = installDataIndexFlags{
-		CommonFlags: deploy.CommonFlags{},
-		kafka:       v1alpha1.KafkaConnectionProperties{},
-		infinispan:  v1alpha1.InfinispanConnectionProperties{},
+		CommonFlags:  deploy.CommonFlags{},
+		kafka:        v1alpha1.KafkaConnectionProperties{},
+		infinispan:   v1alpha1.InfinispanConnectionProperties{},
+		ChannelFlags: common.ChannelFlags{},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
+	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().Int32Var(&i.flags.httpPort, "http-port", framework.DefaultExposedPort, "Default HTTP port which Data Index image will be listening")
@@ -213,7 +220,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		SilentlyInstallOperatorIfNotExists().
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		WarnIfDependenciesNotReady(i.flags.infinispan.UseKogitoInfra, i.flags.kafka.UseKogitoInfra).
 		InstallDataIndex(&kogitoDataIndex).
 		GetError()
