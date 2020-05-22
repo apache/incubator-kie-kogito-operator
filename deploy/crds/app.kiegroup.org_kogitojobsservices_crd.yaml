@@ -117,13 +117,9 @@ spec:
                               for env vars'
                             type: string
                           divisor:
-                            anyOf:
-                            - type: integer
-                            - type: string
                             description: Specifies the output format of the exposed
                               resources, defaults to "1"
-                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                            x-kubernetes-int-or-string: true
+                            type: string
                           resource:
                             description: 'Required: resource to select'
                             type: string
@@ -153,7 +149,6 @@ spec:
                 - name
                 type: object
               type: array
-              x-kubernetes-list-type: atomic
             image:
               description: 'Image definition for the service. Example: Domain: quay.io,
                 Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
@@ -260,21 +255,13 @@ spec:
               properties:
                 limits:
                   additionalProperties:
-                    anyOf:
-                    - type: integer
-                    - type: string
-                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                    x-kubernetes-int-or-string: true
+                    type: string
                   description: 'Limits describes the maximum amount of compute resources
                     allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
                 requests:
                   additionalProperties:
-                    anyOf:
-                    - type: integer
-                    - type: string
-                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                    x-kubernetes-int-or-string: true
+                    type: string
                   description: 'Requests describes the minimum amount of compute resources
                     required. If Requests is omitted for a container, it defaults
                     to Limits if that is explicitly specified, otherwise to an implementation-defined
@@ -308,7 +295,6 @@ spec:
                 - type
                 type: object
               type: array
-              x-kubernetes-list-type: atomic
             deploymentConditions:
               description: General conditions for the Kogito Service deployment
               items:

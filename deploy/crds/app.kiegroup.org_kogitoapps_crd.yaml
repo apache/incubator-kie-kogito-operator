@@ -127,13 +127,9 @@ spec:
                                   optional for env vars'
                                 type: string
                               divisor:
-                                anyOf:
-                                - type: integer
-                                - type: string
                                 description: Specifies the output format of the exposed
                                   resources, defaults to "1"
-                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                x-kubernetes-int-or-string: true
+                                type: string
                               resource:
                                 description: 'Required: resource to select'
                                 type: string
@@ -164,7 +160,6 @@ spec:
                     - name
                     type: object
                   type: array
-                  x-kubernetes-list-type: atomic
                 gitSource:
                   description: Information about the git repository where the Kogito
                     App source code resides. If set, the operator will use source
@@ -218,21 +213,13 @@ spec:
                   properties:
                     limits:
                       additionalProperties:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
+                        type: string
                       description: 'Limits describes the maximum amount of compute
                         resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                       type: object
                     requests:
                       additionalProperties:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
+                        type: string
                       description: 'Requests describes the minimum amount of compute
                         resources required. If Requests is omitted for a container,
                         it defaults to Limits if that is explicitly specified, otherwise
@@ -255,9 +242,6 @@ spec:
                         type: string
                     type: object
                   type: array
-                  x-kubernetes-list-map-keys:
-                  - type
-                  x-kubernetes-list-type: map
               type: object
             enableEvents:
               description: 'Set this property to true to tell the operator to deploy
@@ -351,13 +335,9 @@ spec:
                               for env vars'
                             type: string
                           divisor:
-                            anyOf:
-                            - type: integer
-                            - type: string
                             description: Specifies the output format of the exposed
                               resources, defaults to "1"
-                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                            x-kubernetes-int-or-string: true
+                            type: string
                           resource:
                             description: 'Required: resource to select'
                             type: string
@@ -387,7 +367,6 @@ spec:
                 - name
                 type: object
               type: array
-              x-kubernetes-list-type: atomic
             image:
               description: 'Image definition for the service. Example: Domain: quay.io,
                 Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
@@ -415,21 +394,13 @@ spec:
               properties:
                 limits:
                   additionalProperties:
-                    anyOf:
-                    - type: integer
-                    - type: string
-                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                    x-kubernetes-int-or-string: true
+                    type: string
                   description: 'Limits describes the maximum amount of compute resources
                     allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
                 requests:
                   additionalProperties:
-                    anyOf:
-                    - type: integer
-                    - type: string
-                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                    x-kubernetes-int-or-string: true
+                    type: string
                   description: 'Requests describes the minimum amount of compute resources
                     required. If Requests is omitted for a container, it defaults
                     to Limits if that is explicitly specified, otherwise to an implementation-defined
@@ -466,43 +437,36 @@ spec:
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 complete:
                   description: Builds have executed and succeeded
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 error:
                   description: Builds have been prevented from executing by an error
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 failed:
                   description: Builds have executed and failed
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 new:
                   description: Builds are being created
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 pending:
                   description: Builds are about to start running
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 running:
                   description: Builds are running
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
               type: object
             conditions:
               description: History of conditions for the resource
@@ -527,7 +491,6 @@ spec:
                 - type
                 type: object
               type: array
-              x-kubernetes-list-type: atomic
             deployments:
               description: History of service deployments status
               properties:
@@ -536,25 +499,21 @@ spec:
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 ready:
                   description: Deployments are ready to serve requests
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 starting:
                   description: Deployments are starting
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
                 stopped:
                   description: Deployments are not starting and the next step is unclear
                   items:
                     type: string
                   type: array
-                  x-kubernetes-list-type: set
               type: object
             route:
               description: External URL for the service
