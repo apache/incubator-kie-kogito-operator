@@ -34,6 +34,11 @@ type KogitoDataIndexSpec struct {
 	HTTPPort int32 `json:"httpPort,omitempty"`
 }
 
+// GetRuntime ...
+func (d *KogitoDataIndexSpec) GetRuntime() RuntimeType {
+	return QuarkusRuntimeType
+}
+
 // KogitoDataIndexStatus defines the observed state of KogitoDataIndex
 // +k8s:openapi-gen=true
 type KogitoDataIndexStatus struct {

@@ -192,7 +192,7 @@ func CreateConfigMapComparator() func(deployed resource.KubernetesResource, requ
 			return false
 		}
 
-		return true
+		return reflect.DeepEqual(cmDeployed.Data, cmRequested.Data)
 	}
 }
 

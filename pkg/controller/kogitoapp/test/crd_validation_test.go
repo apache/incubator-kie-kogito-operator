@@ -37,21 +37,6 @@ func TestSampleCustomResources(t *testing.T) {
 	}
 }
 
-func TestExampleCustomResources(t *testing.T) {
-	schema := getSchema(t)
-	box := packr.New("deploy/examples", "../../../../deploy/examples")
-	for _, file := range box.List() {
-		yamlString, err := box.FindString(file)
-		assert.NoError(t, err, "Error reading %v CR yaml", file)
-		var input map[string]interface{}
-		assert.NoError(t, yaml.Unmarshal([]byte(yamlString), &input))
-		// only validates KogitoApp. TODO: add support for others CRDs
-		if input["kind"] == "KogitoApp" {
-			assert.NoError(t, schema.Validate(input), "File %v does not validate against the CRD schema", file)
-		}
-	}
-}
-
 func TestTrialEnvMinimum(t *testing.T) {
 	var inputYaml = `
 apiVersion: app.kiegroup.org/v1alpha1

@@ -24,7 +24,6 @@ import (
 
 const (
 	portName      = "http"
-	labelAppKey   = "app"
 	singleReplica = int32(1)
 )
 
@@ -35,14 +34,19 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 	}
 	replicas := service.GetSpec().GetReplicas()
 	probes := getProbeForKogitoService(definition)
+	labels := service.GetSpec().GetDeploymentLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	labels[framework.LabelAppKey] = service.GetName()
 
 	deployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{Name: service.GetName(), Namespace: service.GetNamespace(), Labels: map[string]string{labelAppKey: service.GetName()}},
+		ObjectMeta: metav1.ObjectMeta{Name: service.GetName(), Namespace: service.GetNamespace(), Labels: labels},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: replicas,
-			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{labelAppKey: service.GetName()}},
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{framework.LabelAppKey: service.GetName()}},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{labelAppKey: service.GetName()}},
+				ObjectMeta: metav1.ObjectMeta{Labels: labels},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{

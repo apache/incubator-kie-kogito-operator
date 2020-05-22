@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogio Service Runtime
+	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogito Service Runtime
 	BuildS2INameSuffix           = "-builder"
 	nativeBuildEnvVarKey         = "NATIVE"
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"

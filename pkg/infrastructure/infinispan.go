@@ -29,6 +29,10 @@ const (
 	InfinispanOperatorName = "infinispan-operator"
 	infinispanServerGroup  = "infinispan.org"
 	defaultInfinispanPort  = 11222
+	// InfinispanSecretUsernameKey is the secret username key set in the linked secret
+	InfinispanSecretUsernameKey = "username"
+	// InfinispanSecretPasswordKey is the secret password key set in the linked secret
+	InfinispanSecretPasswordKey = "password"
 )
 
 // IsInfinispanAvailable checks whether Infinispan CRD is available or not

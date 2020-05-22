@@ -16,6 +16,12 @@ package deploy
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	kogitoerror "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/error"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
@@ -28,13 +34,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	buildv1 "github.com/openshift/api/build/v1"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/http"
-	"net/url"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -109,6 +110,9 @@ func (i *deployCommand) RegisterHook() {
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 2 {
 				return fmt.Errorf("requires 1 arg, received %v", len(args))
+			}
+			if len(args) == 0 {
+				return fmt.Errorf("the service requires a name ")
 			}
 			if err := util.ParseStringsForKeyPair(i.flags.buildEnv); err != nil {
 				return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", i.flags.buildEnv)

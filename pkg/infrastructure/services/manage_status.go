@@ -27,10 +27,10 @@ import (
 )
 
 // manageStatus handle status update for the Kogito Service
-func (s *serviceDeployer) manageStatus(instance v1alpha1.KogitoService, imageName string, errCondition error) (err error) {
+func (s *serviceDeployer) manageStatus(imageName string, imageTag string, errCondition error) (err error) {
 	if errCondition != nil {
-		instance.GetStatus().SetFailed(v1alpha1.UnknownReason, errCondition)
-		if err := s.update(instance); err != nil {
+		s.instance.GetStatus().SetFailed(v1alpha1.UnknownReason, errCondition)
+		if err := s.update(); err != nil {
 			log.Errorf("Error while trying to set condition to error: %s", err)
 			return err
 		}
@@ -39,25 +39,25 @@ func (s *serviceDeployer) manageStatus(instance v1alpha1.KogitoService, imageNam
 	}
 	var readyReplicas int32
 	changed := false
-	updateStatus := updateImageStatus(instance, imageName, s.client)
-	if changed, readyReplicas, err = updateDeploymentStatus(instance, s.client); err != nil {
+	updateStatus := updateImageStatus(s.instance, imageName, imageTag, s.client)
+	if changed, readyReplicas, err = updateDeploymentStatus(s.instance, s.client); err != nil {
 		return err
 	}
 	updateStatus = changed || updateStatus
 
-	if changed, err = updateRouteStatus(instance, s.client); err != nil {
+	if changed, err = updateRouteStatus(s.instance, s.client); err != nil {
 		return err
 	}
 	updateStatus = changed || updateStatus
 
-	if readyReplicas == *instance.GetSpec().GetReplicas() && readyReplicas > 0 {
-		updateStatus = instance.GetStatus().SetDeployed() || updateStatus
+	if readyReplicas == *s.instance.GetSpec().GetReplicas() && readyReplicas > 0 {
+		updateStatus = s.instance.GetStatus().SetDeployed() || updateStatus
 	} else {
-		updateStatus = instance.GetStatus().SetProvisioning() || updateStatus
+		updateStatus = s.instance.GetStatus().SetProvisioning() || updateStatus
 	}
 
 	if updateStatus {
-		if err := s.update(instance); err != nil {
+		if err := s.update(); err != nil {
 			log.Errorf("Error while trying to update status: %s", err)
 			return err
 		}
@@ -66,8 +66,8 @@ func (s *serviceDeployer) manageStatus(instance v1alpha1.KogitoService, imageNam
 	return nil
 }
 
-func updateImageStatus(instance v1alpha1.KogitoService, imageName string, cli *client.Client) bool {
-	imageHandler := newImageHandler(instance, imageName, cli)
+func updateImageStatus(instance v1alpha1.KogitoService, imageName string, imageTag string, cli *client.Client) bool {
+	imageHandler := newImageHandler(instance, imageName, imageTag, cli)
 	image := imageHandler.resolveRegistryImage()
 	if len(image) > 0 && image != instance.GetStatus().GetImage() {
 		if imageHandler.hasImageStream() {
