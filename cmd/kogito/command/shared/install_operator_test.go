@@ -126,7 +126,7 @@ func TestTryToInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 	}
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, operatorSource)
 	// Operator is in the hub but does not exist in the given namespace. Don't raise an error.
-	installed, err := SilentlyInstallOperatorIfNotExists(ns, defaultOperatorImageName, client)
+	installed, err := SilentlyInstallOperatorIfNotExists(ns, defaultOperatorImageName, client, AlphaChannel)
 	assert.NoError(t, err)
 	assert.True(t, installed)
 }
