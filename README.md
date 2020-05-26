@@ -226,6 +226,11 @@ File found /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/Traffic V
 The requested file(s) was successfully uploaded to OpenShift, a build with this file(s) should now be running. To see the logs, run 'oc logs -f bc/example-dmn-quarkus-builder -n kogito'
 ```
 
+Upon build, these assets will be copied to a generated maven project and built with Maven to produce a runnable binary. Default value of group id is "com.company", artifact id is "project" and version is "1.0-SNAPSHOT". To provide custom value we need to set the **project-group-id**, **project-artifact-id** and **project-version**.
+```bash
+$ kogito deploy-service example-dmn-quarkus /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn" --project-group-id=com.mycompany --project-artifact-id=testproject --project-version=2.0-SNAPSHOT
+```
+
 While checking OpenShift build logs with the command `oc logs -f bc/example-dmn-quarkus-builder -n kogito`, you can see on the beginning of the build log:
 ```
 Receiving source from STDIN as file TrafficViolation.dmn
