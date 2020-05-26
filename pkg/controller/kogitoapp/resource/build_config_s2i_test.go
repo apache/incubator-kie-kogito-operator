@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	buildv1 "github.com/openshift/api/build/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func Test_getBCS2ILimitsAsIntString(t *testing.T) {
@@ -139,4 +140,80 @@ func TestNewBuildConfigS2IFromFile(t *testing.T) {
 		Name:  buildS2IlimitCPUEnvVarKey,
 		Value: "500m",
 	})
+}
+
+func Test_setBCS2IStrategy_withCustomArtifactDetails(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				Artifact: v1alpha1.Artifact{
+					GroupId:    "com.mycompany",
+					ArtifactId: "testproject",
+					Version:    "2.0-SNAPSHOT",
+				},
+			},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	{
+		contains, envVarValue := getBuildEnvVariable(projectGroupId, envs)
+		assert.True(t, contains)
+		assert.Equal(t, "com.mycompany", envVarValue)
+	}
+
+	{
+		contains, envVarValue := getBuildEnvVariable(projectArtifactId, envs)
+		assert.True(t, contains)
+		assert.Equal(t, "testproject", envVarValue)
+	}
+
+	{
+		contains, envVarValue := getBuildEnvVariable(projectVersion, envs)
+		assert.True(t, contains)
+		assert.Equal(t, "2.0-SNAPSHOT", envVarValue)
+	}
+}
+
+func Test_setBCS2IStrategy_withDefaultArtifactDetails(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build:   &v1alpha1.KogitoAppBuildObject{},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	containsGroupId, _ := getBuildEnvVariable(projectGroupId, envs)
+	assert.False(t, containsGroupId)
+
+	containsArtifactId, _ := getBuildEnvVariable(projectArtifactId, envs)
+	assert.False(t, containsArtifactId)
+
+	containsVersion, _ := getBuildEnvVariable(projectVersion, envs)
+	assert.False(t, containsVersion)
+}
+
+func getBuildEnvVariable(envVarName string, envs []corev1.EnvVar) (contains bool, envVarValue string) {
+	for _, buildEnv := range envs {
+		if buildEnv.Name == envVarName {
+			return true, buildEnv.Value
+		}
+	}
+	return false, ""
 }

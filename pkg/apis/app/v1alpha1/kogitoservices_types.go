@@ -225,7 +225,9 @@ func (k *KogitoServiceSpec) AddResourceLimit(name, value string) {
 func (k *KogitoServiceSpec) GetDeploymentLabels() map[string]string { return k.DeploymentLabels }
 
 // SetDeploymentLabels ...
-func (k *KogitoServiceSpec) SetDeploymentLabels(labels map[string]string) { k.DeploymentLabels = labels }
+func (k *KogitoServiceSpec) SetDeploymentLabels(labels map[string]string) {
+	k.DeploymentLabels = labels
+}
 
 // GetServiceLabels ...
 func (k *KogitoServiceSpec) GetServiceLabels() map[string]string { return k.ServiceLabels }

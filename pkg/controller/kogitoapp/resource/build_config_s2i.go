@@ -36,6 +36,9 @@ const (
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
 	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
+	projectGroupId               = "PROJECT_GROUP_ID"
+	projectArtifactId            = "PROJECT_ARTIFACT_ID"
+	projectVersion               = "PROJECT_VERSION"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -115,6 +118,21 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	if len(kogitoApp.Spec.Build.MavenMirrorURL) > 0 {
 		log.Infof("Setting maven mirror url to %s", kogitoApp.Spec.Build.MavenMirrorURL)
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
+	}
+
+	if len(kogitoApp.Spec.Build.Artifact.GroupId) > 0 {
+		log.Infof("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupId)
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: projectGroupId, Value: kogitoApp.Spec.Build.Artifact.GroupId})
+	}
+
+	if len(kogitoApp.Spec.Build.Artifact.ArtifactId) > 0 {
+		log.Infof("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactId)
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: projectArtifactId, Value: kogitoApp.Spec.Build.Artifact.ArtifactId})
+	}
+
+	if len(kogitoApp.Spec.Build.Artifact.Version) > 0 {
+		log.Infof("Setting final generated artifact version %s", kogitoApp.Spec.Build.Artifact.Version)
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: projectVersion, Value: kogitoApp.Spec.Build.Artifact.Version})
 	}
 
 	// if user has provided a file, binary build should be used instead.
