@@ -227,7 +227,7 @@ The requested file(s) was successfully uploaded to OpenShift, a build with this 
 ```
 
 Upon build, these assets will be copied to a generated maven project and built with Maven to produce a runnable binary. Default value of group id is "com.company", artifact id is "project" and version is "1.0-SNAPSHOT". To provide custom value we need to set the **project-group-id**, **project-artifact-id** and **project-version**.
-```bash
+```bash 
 $ kogito deploy-service example-dmn-quarkus /tmp/kogito-examples/dmn-quarkus-example/src/main/resources/"Traffic Violation.dmn" --project-group-id=com.mycompany --project-artifact-id=testproject --project-version=2.0-SNAPSHOT
 ```
 
