@@ -337,8 +337,7 @@ func Test_DeployCmd_WithCustomArtifactDetails(t *testing.T) {
 	groupId := "com.mycompany"
 	artifactId := "testproject"
 	version := "2.0-SNAPSHOT"
-	fileLocation := "testdata/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn"
-	cli := fmt.Sprintf("deploy-service example-from-file %s -p %s --project-group-id %s --project-artifact-id %s --project-version %s", fileLocation, ns, groupId, artifactId, version)
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project %s --project-group-id %s --project-artifact-id %s --project-version %s", ns, groupId, artifactId, version)
 
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
@@ -371,8 +370,7 @@ func Test_DeployCmd_WithDefaultArtifactDetails(t *testing.T) {
 	groupId := "com.company"
 	artifactId := "project"
 	version := "1.0-SNAPSHOT"
-	fileLocation := "testdata/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn"
-	cli := fmt.Sprintf("deploy-service example-from-file %s -p %s", fileLocation, ns)
+	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project %s", ns)
 
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
