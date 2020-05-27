@@ -22,7 +22,7 @@ import (
 )
 
 type installKeycloakFlags struct {
-	common.ChannelFlags
+	common.OperatorFlags
 	namespace string
 }
 
@@ -59,7 +59,7 @@ func (i *installKeycloakCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
+			if err := common.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
 				return err
 			}
 			return nil
@@ -69,10 +69,10 @@ func (i *installKeycloakCommand) RegisterHook() {
 
 func (i *installKeycloakCommand) InitHook() {
 	i.flags = installKeycloakFlags{
-		ChannelFlags: common.ChannelFlags{},
+		OperatorFlags: common.OperatorFlags{},
 	}
 	i.Parent.AddCommand(i.command)
-	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
+	common.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 }
@@ -83,8 +83,7 @@ func (i *installKeycloakCommand) Exec(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	installationChannel := shared.KogitoChannelType(i.flags.Channel)
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.namespace, "", i.Client, installationChannel); err != nil {
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.namespace, "", i.Client, shared.KogitoChannelType(i.flags.Channel)); err != nil {
 		return err
 	} else if !installed {
 		return nil

@@ -86,11 +86,11 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 }
 
 func TestMustInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
-	ns := OperatorMarketplaceNamespace
+	ns := operatorMarketplaceNamespace
 	operatorSource := &operatormkt.OperatorSource{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      CommunityOperatorSource,
-			Namespace: OperatorMarketplaceNamespace,
+			Name:      communityOperatorSource,
+			Namespace: operatorMarketplaceNamespace,
 		},
 		Status: operatormkt.OperatorSourceStatus{
 			Packages: "cert-utils-operator,spark-gcp,metering,spinnaker-operator,apicurito,kubefed,prometheus,hawtio-operator,t8c,hazelcast-enterprise,opsmx-spinnaker-operator,ibmcloud-operator,openebs,iot-simulator,submariner,microcks,enmasse,teiid,federation,aqua,eclipse-che,3scale-community-operator,jaeger,openshift-pipelines-operator,awss3-operator-registry,service-binding-operator,node-network-operator,myvirtualdirectory,triggermesh,namespace-configuration-operator,maistraoperator,camel-k,federatorai,knative-serving-operator,syndesis,knative-kafka-operator,postgresql,event-streams-topic,planetscale,kiali,ripsaw,esindex-operator,halkyon,quay,kogito-operator,seldon-operator,cockroachdb,atlasmap-operator,strimzi-kafka-operator,knative-camel-operator,lightbend-console-operator,descheduler,node-problem-detector,opendatahub-operator,radanalytics-spark,hco-operatorhub,smartgateway-operator,etcd,knative-eventing-operator,postgresql-operator-dev4devs-com,twistlock,microsegmentation-operator,open-liberty,akka-cluster-operator,grafana-operator,kubeturbo,appsody-community-operator,infinispan",
@@ -107,18 +107,18 @@ func TestMustInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, groups.Items[0].Name, ns)
 
-	subs := &v1alpha1.Subscription{ObjectMeta: metav1.ObjectMeta{Name: DefaultOperatorPackageName, Namespace: ns}}
+	subs := &v1alpha1.Subscription{ObjectMeta: metav1.ObjectMeta{Name: defaultOperatorPackageName, Namespace: ns}}
 	exists, err := kubernetes.ResourceC(client).Fetch(subs)
 	assert.NoError(t, err)
 	assert.True(t, exists)
 }
 
 func TestTryToInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
-	ns := OperatorMarketplaceNamespace
+	ns := operatorMarketplaceNamespace
 	operatorSource := &operatormkt.OperatorSource{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      CommunityOperatorSource,
-			Namespace: OperatorMarketplaceNamespace,
+			Name:      communityOperatorSource,
+			Namespace: operatorMarketplaceNamespace,
 		},
 		Status: operatormkt.OperatorSourceStatus{
 			Packages: "cert-utils-operator,spark-gcp,metering,spinnaker-operator,apicurito,kubefed,prometheus,hawtio-operator,t8c,hazelcast-enterprise,opsmx-spinnaker-operator,ibmcloud-operator,openebs,iot-simulator,submariner,microcks,enmasse,teiid,federation,aqua,eclipse-che,3scale-community-operator,jaeger,openshift-pipelines-operator,awss3-operator-registry,service-binding-operator,node-network-operator,myvirtualdirectory,triggermesh,namespace-configuration-operator,maistraoperator,camel-k,federatorai,knative-serving-operator,syndesis,knative-kafka-operator,postgresql,event-streams-topic,planetscale,kiali,ripsaw,esindex-operator,halkyon,quay,kogito-operator,seldon-operator,cockroachdb,atlasmap-operator,strimzi-kafka-operator,knative-camel-operator,lightbend-console-operator,descheduler,node-problem-detector,opendatahub-operator,radanalytics-spark,hco-operatorhub,smartgateway-operator,etcd,knative-eventing-operator,postgresql-operator-dev4devs-com,twistlock,microsegmentation-operator,open-liberty,akka-cluster-operator,grafana-operator,kubeturbo,appsody-community-operator,infinispan",
@@ -136,7 +136,7 @@ func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {
 
 	client := test.SetupFakeKubeCli(
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: OperatorMarketplaceNamespace}},
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: operatorMarketplaceNamespace}},
 	)
 	// Operator is not in the hub. Install with yaml files.
 	installed, err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel())

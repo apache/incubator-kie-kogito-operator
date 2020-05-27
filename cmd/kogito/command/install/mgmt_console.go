@@ -29,7 +29,6 @@ import (
 
 type installMgmtConsoleFlags struct {
 	deploy.CommonFlags
-	common.ChannelFlags
 	image string
 }
 
@@ -78,9 +77,6 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 			if err := deploy.CheckImageTag(i.flags.image); err != nil {
 				return err
 			}
-			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -88,12 +84,12 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 
 func (i *installMgmtConsoleCommand) InitHook() {
 	i.flags = installMgmtConsoleFlags{
-		CommonFlags:  deploy.CommonFlags{},
-		ChannelFlags: common.ChannelFlags{},
+		CommonFlags: deploy.CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
-	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
 }

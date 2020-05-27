@@ -20,16 +20,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type ChannelFlags struct {
+type OperatorFlags struct {
 	Channel string
 }
 
-func AddChannelFlags(command *cobra.Command, cFlags *ChannelFlags) {
-	command.Flags().StringVar(&cFlags.Channel, "channel", string(shared.GetDefaultChannel()), "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
+func AddOperatorFlags(command *cobra.Command, oFlags *OperatorFlags) {
+	command.Flags().StringVar(&oFlags.Channel, "channel", string(shared.GetDefaultChannel()), "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
 }
 
-func CheckChannelArgs(flags *ChannelFlags) error {
-	ch := flags.Channel
+func CheckOperatorArgs(oFlags *OperatorFlags) error {
+	ch := oFlags.Channel
 	if !shared.IsChannelValid(ch) {
 		return fmt.Errorf("Invalid Kogito channel type %s, only alpha/dev-preview channels are allowed ", ch)
 	}

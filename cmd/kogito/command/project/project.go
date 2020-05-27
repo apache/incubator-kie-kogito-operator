@@ -23,7 +23,7 @@ import (
 )
 
 type projectFlags struct {
-	common.ChannelFlags
+	common.OperatorFlags
 	project                  string
 	installDataIndex         bool
 	installJobsService       bool
@@ -34,7 +34,7 @@ type projectFlags struct {
 }
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
-	common.AddChannelFlags(command, &pFlags.ChannelFlags)
+	common.AddOperatorFlags(command, &pFlags.OperatorFlags)
 	command.Flags().StringVarP(&pFlags.project, "project", "n", "", flags.ProjectCurrentContext)
 	command.Flags().BoolVar(&pFlags.installDataIndex, "install-data-index", false, flags.InstallDataIndex)
 	command.Flags().BoolVar(&pFlags.installJobsService, "install-jobs-service", false, flags.InstallJobsService)

@@ -39,7 +39,6 @@ const (
 
 type installDataIndexFlags struct {
 	deploy.CommonFlags
-	common.ChannelFlags
 	image              string
 	httpPort           int32
 	kafka              v1alpha1.KafkaConnectionProperties
@@ -129,9 +128,6 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 			if err := deploy.CheckImageTag(i.flags.image); err != nil {
 				return err
 			}
-			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -139,14 +135,14 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 
 func (i *installDataIndexCommand) InitHook() {
 	i.flags = installDataIndexFlags{
-		CommonFlags:  deploy.CommonFlags{},
-		kafka:        v1alpha1.KafkaConnectionProperties{},
-		infinispan:   v1alpha1.InfinispanConnectionProperties{},
-		ChannelFlags: common.ChannelFlags{},
+		CommonFlags: deploy.CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
+		kafka:      v1alpha1.KafkaConnectionProperties{},
+		infinispan: v1alpha1.InfinispanConnectionProperties{},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
-	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().Int32Var(&i.flags.httpPort, "http-port", framework.DefaultExposedPort, "Default HTTP port which Data Index image will be listening")

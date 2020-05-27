@@ -49,7 +49,6 @@ var (
 
 type deployFlags struct {
 	CommonFlags
-	common.ChannelFlags
 	name              string
 	runtime           string
 	serviceLabels     []string
@@ -139,9 +138,6 @@ func (i *deployCommand) RegisterHook() {
 			if err := CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
-			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -149,12 +145,12 @@ func (i *deployCommand) RegisterHook() {
 
 func (i *deployCommand) InitHook() {
 	i.flags = deployFlags{
-		CommonFlags:  CommonFlags{},
-		ChannelFlags: common.ChannelFlags{},
+		CommonFlags: CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
 	}
 	i.Parent.AddCommand(i.command)
 	AddDeployFlags(i.command, &i.flags.CommonFlags)
-	common.AddChannelFlags(i.command, &i.flags.ChannelFlags)
 
 	i.command.Flags().StringVarP(&i.flags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	i.command.Flags().StringVarP(&i.flags.reference, "branch", "b", "", "Git branch to use in the git repository")
@@ -217,8 +213,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	installationChannel := shared.KogitoChannelType(i.flags.Channel)
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client, installationChannel); err != nil {
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client, shared.KogitoChannelType(i.flags.Channel)); err != nil {
 		return err
 	} else if !installed {
 		return nil

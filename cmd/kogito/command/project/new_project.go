@@ -63,7 +63,7 @@ func (i *newProjectCommand) RegisterHook() {
 				}
 				i.flags.project = args[0]
 			}
-			if err := common.CheckChannelArgs(&i.flags.ChannelFlags); err != nil {
+			if err := common.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
 				return err
 			}
 			return nil
@@ -73,7 +73,7 @@ func (i *newProjectCommand) RegisterHook() {
 
 func (i *newProjectCommand) InitHook() {
 	i.flags = projectFlags{
-		ChannelFlags: common.ChannelFlags{},
+		OperatorFlags: common.OperatorFlags{},
 	}
 	i.Parent.AddCommand(i.command)
 	addProjectFlagsToCommand(i.command, &i.flags)

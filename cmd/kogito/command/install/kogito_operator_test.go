@@ -91,11 +91,11 @@ func Test_InstallOperatorWithDefaultChannel(t *testing.T) {
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&operatorMarketplace.OperatorSource{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      shared.CommunityOperatorSource,
-				Namespace: shared.OperatorMarketplaceNamespace,
+				Name:      communityOperatorSource,
+				Namespace: operatorMarketplaceNamespace,
 			},
 			Status: operatorMarketplace.OperatorSourceStatus{
-				Packages: shared.DefaultOperatorPackageName,
+				Packages: defaultOperatorPackageName,
 			},
 		})
 	lines, _, err := test.ExecuteCli()
@@ -111,11 +111,11 @@ func Test_InstallOperatorWithValidChannel(t *testing.T) {
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&operatorMarketplace.OperatorSource{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      shared.CommunityOperatorSource,
-				Namespace: shared.OperatorMarketplaceNamespace,
+				Name:      communityOperatorSource,
+				Namespace: operatorMarketplaceNamespace,
 			},
 			Status: operatorMarketplace.OperatorSourceStatus{
-				Packages: shared.DefaultOperatorPackageName,
+				Packages: defaultOperatorPackageName,
 			},
 		})
 	lines, _, err := test.ExecuteCli()
@@ -132,14 +132,20 @@ func Test_InstallOperatorWithInvalidChannel(t *testing.T) {
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&operatorMarketplace.OperatorSource{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      shared.CommunityOperatorSource,
-				Namespace: shared.OperatorMarketplaceNamespace,
+				Name:      communityOperatorSource,
+				Namespace: operatorMarketplaceNamespace,
 			},
 			Status: operatorMarketplace.OperatorSourceStatus{
-				Packages: shared.DefaultOperatorPackageName,
+				Packages: defaultOperatorPackageName,
 			},
 		})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Invalid Kogito channel type testChannel, only alpha/dev-preview channels are allowed")
 }
+
+const (
+	defaultOperatorPackageName   = "kogito-operator"
+	communityOperatorSource      = "community-operators"
+	operatorMarketplaceNamespace = "openshift-marketplace"
+)

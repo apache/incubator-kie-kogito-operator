@@ -30,9 +30,9 @@ import (
 )
 
 const (
-	DefaultOperatorPackageName   = "kogito-operator"
-	CommunityOperatorSource      = "community-operators"
-	OperatorMarketplaceNamespace = "openshift-marketplace"
+	defaultOperatorPackageName   = "kogito-operator"
+	communityOperatorSource      = "community-operators"
+	operatorMarketplaceNamespace = "openshift-marketplace"
 )
 
 // isOperatorAvailableInOperatorHub will check if the Kogito Operator is available in OperatorHub (on OpenShift)
@@ -41,8 +41,8 @@ func isOperatorAvailableInOperatorHub(kubeCli *client.Client) (bool, error) {
 	log.Debug("Trying to find if Kogito Operator is available in the OperatorHub")
 	operatorSource := &v1.OperatorSource{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      CommunityOperatorSource,
-			Namespace: OperatorMarketplaceNamespace,
+			Name:      communityOperatorSource,
+			Namespace: operatorMarketplaceNamespace,
 		},
 	}
 	exists, err := kubernetes.ResourceC(kubeCli).Fetch(operatorSource)
@@ -50,14 +50,14 @@ func isOperatorAvailableInOperatorHub(kubeCli *client.Client) (bool, error) {
 		return false, err
 	}
 
-	log.Debugf("Finishing fetch the OperatorHub for Kogito Operator in namespace %s", OperatorMarketplaceNamespace)
+	log.Debugf("Finishing fetch the OperatorHub for Kogito Operator in namespace %s", operatorMarketplaceNamespace)
 	log.Debugf("OperatorSource named as %s created at %s", operatorSource.Name, operatorSource.CreationTimestamp)
 	log.Debugf("OperatorSource %s has the following packages: %s", operatorSource.Name, operatorSource.Status.Packages)
 	if !exists {
 		return false, nil
 	}
 
-	return strings.Contains(operatorSource.Status.Packages, DefaultOperatorPackageName), nil
+	return strings.Contains(operatorSource.Status.Packages, defaultOperatorPackageName), nil
 }
 
 // installOperatorWithOperatorHub installs the Kogito Operator via OperatorHub custom resources, works for OCP 4.x
@@ -70,7 +70,7 @@ func installOperatorWithOperatorHub(namespace string, cli *client.Client, channe
 		return err
 	}
 
-	if sub, err := framework.GetSubscription(cli, namespace, DefaultOperatorPackageName, CommunityOperatorSource); err != nil {
+	if sub, err := framework.GetSubscription(cli, namespace, defaultOperatorPackageName, communityOperatorSource); err != nil {
 		return err
 	} else if sub != nil {
 		log.Warnf("Found subscription %s with package %s and catalog source %s. Won't create a new one",
@@ -80,13 +80,13 @@ func installOperatorWithOperatorHub(namespace string, cli *client.Client, channe
 
 	subscription := &olmapiv1alpha1.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      DefaultOperatorPackageName,
+			Name:      defaultOperatorPackageName,
 			Namespace: namespace,
 		},
 		Spec: &olmapiv1alpha1.SubscriptionSpec{
-			Package:                DefaultOperatorPackageName,
-			CatalogSource:          CommunityOperatorSource,
-			CatalogSourceNamespace: OperatorMarketplaceNamespace,
+			Package:                defaultOperatorPackageName,
+			CatalogSource:          communityOperatorSource,
+			CatalogSourceNamespace: operatorMarketplaceNamespace,
 			Channel:                string(channel),
 		},
 	}
