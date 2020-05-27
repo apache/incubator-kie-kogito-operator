@@ -1359,9 +1359,8 @@ All options from BDD tests do also apply here.
 |                    |                                                                                    |
 | @resources         | Tests checking resource requests and limits                                        |
 |                    |                                                                                    |
-| @externalcomponent | Tests checking externally deployed component                                       |
-| @infinispan        | Tests checking external infinispan component                                       |
-| @kafka             | Tests checking external kafka component                                            |
+| @infinispan        | Tests using the infinispan operator                                                |
+| @kafka             | Tests using the kafka operator                                                     |
 
 ### Running the Kogito Operator locally
 
