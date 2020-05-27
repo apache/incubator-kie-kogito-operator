@@ -161,7 +161,7 @@ func Test_setBCS2IStrategy_withCustomArtifactDetails(t *testing.T) {
 
 	s2iBaseImage := corev1.ObjectReference{}
 
-	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, true)
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
 	{
@@ -196,7 +196,7 @@ func Test_setBCS2IStrategy_withDefaultArtifactDetails(t *testing.T) {
 
 	s2iBaseImage := corev1.ObjectReference{}
 
-	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, true)
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
 	containsGroupId, _ := getBuildEnvVariable(mavenGroupIdEnvVar, envs)

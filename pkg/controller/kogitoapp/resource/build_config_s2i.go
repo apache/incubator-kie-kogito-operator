@@ -120,23 +120,24 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
 	}
 
-	if len(kogitoApp.Spec.Build.Artifact.GroupId) > 0 {
-		log.Debugf("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupId)
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.GroupId})
-	}
-
-	if len(kogitoApp.Spec.Build.Artifact.ArtifactId) > 0 {
-		log.Debugf("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactId)
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.ArtifactId})
-	}
-
-	if len(kogitoApp.Spec.Build.Artifact.Version) > 0 {
-		log.Debugf("Setting final generated artifact version %s", kogitoApp.Spec.Build.Artifact.Version)
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactVersionEnvVar, Value: kogitoApp.Spec.Build.Artifact.Version})
-	}
-
 	// if user has provided a file, binary build should be used instead.
 	if buildFromAsset {
+
+		if len(kogitoApp.Spec.Build.Artifact.GroupId) > 0 {
+			log.Debugf("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupId)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.GroupId})
+		}
+
+		if len(kogitoApp.Spec.Build.Artifact.ArtifactId) > 0 {
+			log.Debugf("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactId)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.ArtifactId})
+		}
+
+		if len(kogitoApp.Spec.Build.Artifact.Version) > 0 {
+			log.Debugf("Setting final generated artifact version %s", kogitoApp.Spec.Build.Artifact.Version)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactVersionEnvVar, Value: kogitoApp.Spec.Build.Artifact.Version})
+		}
+
 		buildConfig.Spec.Source.Type = buildv1.BuildSourceBinary
 		// The comparator hits reconciliation if this are not set to empty values. TODO: fix on the operator-utils project
 		buildConfig.Spec.Source.Binary = &buildv1.BinaryBuildSource{AsFile: ""}
