@@ -36,7 +36,7 @@ const (
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
 	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
-	mavenDownloadOutput          = "MAVEN_DOWNLOAD_OUTPUT"
+	mavenDownloadOutputEnvVar    = "MAVEN_DOWNLOAD_OUTPUT"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -120,7 +120,7 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 
 	if kogitoApp.Spec.Build.EnableMavenDownloadOutput {
 		log.Infof("Enable logging for transfer progress of downloading/uploading maven dependencies")
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenDownloadOutput, Value: strconv.FormatBool(kogitoApp.Spec.Build.EnableMavenDownloadOutput)})
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenDownloadOutputEnvVar, Value: strconv.FormatBool(kogitoApp.Spec.Build.EnableMavenDownloadOutput)})
 	}
 
 	// if user has provided a file, binary build should be used instead.

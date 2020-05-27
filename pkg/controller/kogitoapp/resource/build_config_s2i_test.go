@@ -161,7 +161,7 @@ func Test_setBCS2IStrategy_mavenDownloadOutputEnable(t *testing.T) {
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
 	for _, buildEnv := range envs {
-		if buildEnv.Name == mavenDownloadOutput {
+		if buildEnv.Name == mavenDownloadOutputEnvVar {
 			assert.Equal(t, "true", buildEnv.Value)
 		}
 	}
@@ -186,8 +186,8 @@ func Test_setBCS2IStrategy_mavenDownloadOutputDisable(t *testing.T) {
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
 	for _, buildEnv := range envs {
-		if buildEnv.Name == mavenDownloadOutput {
-			assert.Fail(t, "Env variable "+mavenDownloadOutput+" should not set.")
+		if buildEnv.Name == mavenDownloadOutputEnvVar {
+			assert.Fail(t, "Env variable "+mavenDownloadOutputEnvVar+" should not set.")
 		}
 	}
 }
