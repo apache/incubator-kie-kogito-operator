@@ -131,8 +131,11 @@ type KogitoAppBuildObject struct {
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed
 	MavenMirrorURL string `json:"mavenMirrorURL,omitempty"`
-	// Suppress the logs of downloading/uploading maven dependencies
-	MavenDownloadOutput bool `json:"mavenDownloadOutput,omitempty"`
+	// If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false
+	// + optional
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	EnableMavenDownloadOutput bool `json:"enableMavenDownloadOutput,omitempty"`
 }
 
 // AddEnvironmentVariable adds new environment variable to build environment variables

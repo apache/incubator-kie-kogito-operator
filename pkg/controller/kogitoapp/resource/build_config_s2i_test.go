@@ -148,7 +148,7 @@ func Test_setBCS2IStrategy_mavenDownloadOutputEnable(t *testing.T) {
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
-				MavenDownloadOutput: true,
+				EnableMavenDownloadOutput: true,
 			},
 		},
 	}
@@ -173,7 +173,7 @@ func Test_setBCS2IStrategy_mavenDownloadOutputDisable(t *testing.T) {
 		Spec: v1alpha1.KogitoAppSpec{
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
-				MavenDownloadOutput: false,
+				EnableMavenDownloadOutput: false,
 			},
 		},
 	}

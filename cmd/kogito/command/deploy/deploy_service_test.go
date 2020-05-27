@@ -334,7 +334,7 @@ func Test_WithManagementConsole(t *testing.T) {
 
 func Test_DeployCmd_MavenDownloadOutputEnabled(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project %s --maven-download-output`, ns)
+	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project %s --enable-maven-download-output`, ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -356,7 +356,7 @@ func Test_DeployCmd_MavenDownloadOutputEnabled(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, kogitoApp)
-	assert.Equal(t, true, kogitoApp.Spec.Build.MavenDownloadOutput)
+	assert.Equal(t, true, kogitoApp.Spec.Build.EnableMavenDownloadOutput)
 }
 
 func Test_DeployCmd_MavenDownloadOutputDisabled(t *testing.T) {
@@ -383,5 +383,5 @@ func Test_DeployCmd_MavenDownloadOutputDisabled(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, kogitoApp)
-	assert.Equal(t, false, kogitoApp.Spec.Build.MavenDownloadOutput)
+	assert.Equal(t, false, kogitoApp.Spec.Build.EnableMavenDownloadOutput)
 }

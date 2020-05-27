@@ -118,9 +118,9 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
 	}
 
-	if kogitoApp.Spec.Build.MavenDownloadOutput {
+	if kogitoApp.Spec.Build.EnableMavenDownloadOutput {
 		log.Infof("Enable logging for transfer progress of downloading/uploading maven dependencies")
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenDownloadOutput, Value: strconv.FormatBool(kogitoApp.Spec.Build.MavenDownloadOutput)})
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenDownloadOutput, Value: strconv.FormatBool(kogitoApp.Spec.Build.EnableMavenDownloadOutput)})
 	}
 
 	// if user has provided a file, binary build should be used instead.

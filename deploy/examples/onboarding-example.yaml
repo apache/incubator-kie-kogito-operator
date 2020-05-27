@@ -16,7 +16,7 @@ spec:
     # set your maven nexus repository to speed up the build time
     #mavenMirrorURL:
     # enable to print maven transfer logs in console
-    #maven-download-output: true
+    #enableMavenDownloadOutput: true
   service:
     labels:
       onboarding: process
@@ -37,7 +37,7 @@ spec:
     # set your maven nexus repository to speed up the build time
     #mavenMirrorURL:
     # enable to print maven transfer logs in console
-    #maven-download-output: true
+    #enableMavenDownloadOutput: true
   service:
     labels:
       department/first: process
@@ -57,7 +57,7 @@ spec:
     # set your maven nexus repository to speed up the build time
     #mavenMirrorURL:
     # enable to print maven transfer logs in console
-    #maven-download-output: true
+    #enableMavenDownloadOutput: true
   service:
     labels:
       taxes/rate: process

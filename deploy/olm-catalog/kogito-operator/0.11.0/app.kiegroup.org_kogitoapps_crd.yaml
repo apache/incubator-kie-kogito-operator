@@ -58,6 +58,10 @@ spec:
             build:
               description: 'S2I Build configuration Default value: nil'
               properties:
+                enableMavenDownloadOutput:
+                  description: If set to true will print the logs for downloading/uploading
+                    of maven dependencies. Defaults to false
+                  type: boolean
                 envs:
                   description: Environment variables used during build time
                   items:
@@ -195,9 +199,6 @@ spec:
                     during the build. E.g.: 0.6.0. Default to current Operator version.'
                   type: string
                 incremental:
-                  type: boolean
-                mavenDownloadOutput:
-                  description: Suppress the logs of downloading/uploading maven dependencies
                   type: boolean
                 mavenMirrorURL:
                   description: Internal Maven Mirror to be used during source-to-image

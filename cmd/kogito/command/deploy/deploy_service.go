@@ -47,25 +47,25 @@ var (
 
 type deployFlags struct {
 	CommonFlags
-	name                string
-	runtime             string
-	serviceLabels       []string
-	incrementalBuild    bool
-	buildEnv            []string
-	reference           string
-	contextDir          string
-	source              string
-	imageS2I            string
-	imageRuntime        string
-	native              bool
-	buildLimits         []string
-	buildRequests       []string
-	imageVersion        string
-	mavenMirrorURL      string
-	enableIstio         bool
-	enablePersistence   bool
-	enableEvents        bool
-	mavenDownloadOutput bool
+	name                      string
+	runtime                   string
+	serviceLabels             []string
+	incrementalBuild          bool
+	buildEnv                  []string
+	reference                 string
+	contextDir                string
+	source                    string
+	imageS2I                  string
+	imageRuntime              string
+	native                    bool
+	buildLimits               []string
+	buildRequests             []string
+	imageVersion              string
+	mavenMirrorURL            string
+	enableIstio               bool
+	enablePersistence         bool
+	enableEvents              bool
+	enableMavenDownloadOutput bool
 }
 
 type deployCommand struct {
@@ -160,7 +160,7 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().StringVar(&i.flags.imageVersion, "image-version", "", "Image version for standard Kogito build images. Ignored if a custom image is set for image-s2i or image-runtime.")
 	i.command.Flags().StringVar(&i.flags.mavenMirrorURL, "maven-mirror-url", "", "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed, e.g: https://my.internal.nexus/content/group/public")
 	i.command.Flags().BoolVar(&i.flags.enableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
-	i.command.Flags().BoolVar(&i.flags.mavenDownloadOutput, "maven-download-output", false, "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false")
+	i.command.Flags().BoolVar(&i.flags.enableMavenDownloadOutput, "enable-maven-download-output", false, "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false")
 }
 
 func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
@@ -246,13 +246,13 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 					Limits:   shared.FromStringArrayToResources(i.flags.buildLimits),
 					Requests: shared.FromStringArrayToResources(i.flags.buildRequests),
 				},
-				Incremental:         i.flags.incrementalBuild,
-				ImageS2ITag:         i.flags.imageS2I,
-				ImageRuntimeTag:     i.flags.imageRuntime,
-				ImageVersion:        i.flags.imageVersion,
-				Native:              i.flags.native,
-				MavenMirrorURL:      i.flags.mavenMirrorURL,
-				MavenDownloadOutput: i.flags.mavenDownloadOutput,
+				Incremental:               i.flags.incrementalBuild,
+				ImageS2ITag:               i.flags.imageS2I,
+				ImageRuntimeTag:           i.flags.imageRuntime,
+				ImageVersion:              i.flags.imageVersion,
+				Native:                    i.flags.native,
+				MavenMirrorURL:            i.flags.mavenMirrorURL,
+				EnableMavenDownloadOutput: i.flags.enableMavenDownloadOutput,
 			},
 			Service: v1alpha1.KogitoAppServiceObject{
 				Labels: util.FromStringsKeyPairToMap(i.flags.serviceLabels),
