@@ -102,6 +102,8 @@ services_image_version=
 data_index_image_tag=
 jobs_service_image_tag=
 management_console_image_tag=
+runtime_application_image_registry=
+runtime_application_image_namespace=
 # build
 maven_mirror=
 build_image_registry=
@@ -151,6 +153,8 @@ run-tests:
 		--data_index_image_tag ${data_index_image_tag} \
 		--jobs_service_image_tag ${jobs_service_image_tag} \
 		--management_console_image_tag ${management_console_image_tag} \
+		--runtime_application_image_registry ${runtime_application_image_registry} \
+		--runtime_application_image_namespace ${runtime_application_image_namespace} \
 		--maven_mirror $(maven_mirror) \
 		--build_image_registry ${build_image_registry} \
 		--build_image_namespace ${build_image_namespace} \

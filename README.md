@@ -1268,6 +1268,9 @@ You can set those optional keys:
 - `examples_uri` sets the URI for the kogito-examples repository.  
   *Default is https://github.com/kiegroup/kogito-examples*.
 - `examples_ref` sets the branch for the kogito-examples repository.
+<!--- build runtime applications -->
+- `runtime_application_image_registry` sets the registry for built runtime applications.
+- `runtime_application_image_namespace` sets the namespace for built runtime applications.
 <!--- development options -->
 - `show_scenarios` sets to true to display scenarios which will be executed.  
   *Default is false.*
