@@ -15,12 +15,14 @@
 package install
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 )
 
 type installKafkaFlags struct {
+	common.OperatorFlags
 	namespace string
 }
 
@@ -57,14 +59,21 @@ func (i *installKafkaCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
+			if err := common.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
 }
 
 func (i *installKafkaCommand) InitHook() {
-	i.flags = installKafkaFlags{}
+	i.flags = installKafkaFlags{
+		OperatorFlags: common.OperatorFlags{},
+	}
 	i.Parent.AddCommand(i.command)
+	common.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
+
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 }
 
@@ -74,7 +83,7 @@ func (i *installKafkaCommand) Exec(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.namespace, "", i.Client); err != nil {
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.namespace, "", i.Client, shared.KogitoChannelType(i.flags.Channel)); err != nil {
 		return err
 	} else if !installed {
 		return nil

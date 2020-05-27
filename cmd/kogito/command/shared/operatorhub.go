@@ -31,7 +31,6 @@ import (
 
 const (
 	defaultOperatorPackageName   = "kogito-operator"
-	defaultOperatorChannelName   = "alpha"
 	communityOperatorSource      = "community-operators"
 	operatorMarketplaceNamespace = "openshift-marketplace"
 )
@@ -64,7 +63,7 @@ func isOperatorAvailableInOperatorHub(kubeCli *client.Client) (bool, error) {
 // installOperatorWithOperatorHub installs the Kogito Operator via OperatorHub custom resources, works for OCP 4.x
 // checks if a subscription to the given Kogito Operator package already exists. Doesn't create if one is in place.
 // see: https://docs.openshift.com/container-platform/4.2/operators/olm-adding-operators-to-cluster.html#olm-installing-operator-from-operatorhub-using-cli_olm-adding-operators-to-a-cluster
-func installOperatorWithOperatorHub(namespace string, cli *client.Client) error {
+func installOperatorWithOperatorHub(namespace string, cli *client.Client, channel KogitoChannelType) error {
 	log := context.GetDefaultLogger()
 	log.Debug("Trying to install Kogito Operator via Subscription to the OperatorHub")
 	if err := createOperatorGroupIfNotExists(namespace, cli); err != nil {
@@ -88,13 +87,14 @@ func installOperatorWithOperatorHub(namespace string, cli *client.Client) error 
 			Package:                defaultOperatorPackageName,
 			CatalogSource:          communityOperatorSource,
 			CatalogSourceNamespace: operatorMarketplaceNamespace,
-			Channel:                defaultOperatorChannelName,
+			Channel:                string(channel),
 		},
 	}
 	log.Debug("About to create a new subscription for the Kogito Operator")
 	if err := kubernetes.ResourceC(cli).Create(subscription); err != nil {
 		return err
 	}
+	log.Infof("Kogito Operator successfully subscribed in '%s' namespace", namespace)
 
 	return nil
 }

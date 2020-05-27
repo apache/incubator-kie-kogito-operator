@@ -16,12 +16,14 @@ package install
 
 import (
 	"errors"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 )
 
 type installKogitoOperatorFlags struct {
+	common.OperatorFlags
 	namespace          string
 	image              string
 	installDataIndex   bool
@@ -66,14 +68,21 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
+			if err := common.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
 }
 
 func (i *installKogitoOperatorCommand) InitHook() {
-	i.flags = installKogitoOperatorFlags{}
+	i.flags = installKogitoOperatorFlags{
+		OperatorFlags: common.OperatorFlags{},
+	}
 	i.Parent.AddCommand(i.command)
+	common.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
+
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
 	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
@@ -98,7 +107,7 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 		return err
 	}
 
-	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force)
+	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force, shared.KogitoChannelType(i.flags.Channel))
 	if i.flags.installDataIndex || i.flags.installAllServices {
 		dataIndex := shared.GetDefaultDataIndex(i.flags.namespace)
 		install.InstallDataIndex(&dataIndex)

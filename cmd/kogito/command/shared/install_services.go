@@ -55,7 +55,7 @@ type ServicesInstallation interface {
 	// Depends on the Operator, install it first.
 	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
 	// InstallOperator installs the Operator.
-	InstallOperator(warnIfInstalled bool, operatorImage string, force bool) ServicesInstallation
+	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation
 	// InstallInfinispan install an infinispan instance.
 	InstallInfinispan() ServicesInstallation
 	// InstallKeycloak install a keycloak instance.
@@ -63,7 +63,7 @@ type ServicesInstallation interface {
 	// InstallKafka install a kafka instance.
 	InstallKafka() ServicesInstallation
 	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
-	SilentlyInstallOperatorIfNotExists() ServicesInstallation
+	SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation
 	// WarnIfDependenciesNotReady checks if the given dependencies are installed, warn if they are not ready
 	WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation
 	// GetError return any given error during the installation process
@@ -139,15 +139,15 @@ func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMg
 	return s
 }
 
-func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool) ServicesInstallation {
+func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation {
 	if s.err == nil && !s.operatorInstalled {
-		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force)
+		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force, ch)
 	}
 	return s
 }
 
-func (s servicesInstallation) SilentlyInstallOperatorIfNotExists() ServicesInstallation {
-	return s.InstallOperator(false, "", false)
+func (s servicesInstallation) SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation {
+	return s.InstallOperator(false, "", false, ch)
 }
 
 func (s *servicesInstallation) InstallInfinispan() ServicesInstallation {

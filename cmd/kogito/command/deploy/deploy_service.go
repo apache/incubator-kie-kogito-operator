@@ -22,6 +22,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	kogitoerror "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/error"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
@@ -99,7 +100,6 @@ func (i *deployCommand) RegisterHook() {
 			
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
-
 	Please note that this command requires the Kogito Operator installed in the cluster.
 	For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#kogito-operator-installation.
 		`,
@@ -144,9 +144,14 @@ func (i *deployCommand) RegisterHook() {
 }
 
 func (i *deployCommand) InitHook() {
-	i.flags = deployFlags{CommonFlags: CommonFlags{}}
+	i.flags = deployFlags{
+		CommonFlags: CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
+	}
 	i.Parent.AddCommand(i.command)
 	AddDeployFlags(i.command, &i.flags.CommonFlags)
+
 	i.command.Flags().StringVarP(&i.flags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	i.command.Flags().StringVarP(&i.flags.reference, "branch", "b", "", "Git branch to use in the git repository")
 	i.command.Flags().StringVarP(&i.flags.contextDir, "context-dir", "c", "", "Context/subdirectory where the code is located, relatively to repository root")
@@ -208,7 +213,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client, shared.KogitoChannelType(i.flags.Channel)); err != nil {
 		return err
 	} else if !installed {
 		return nil
