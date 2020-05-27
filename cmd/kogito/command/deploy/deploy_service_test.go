@@ -367,9 +367,6 @@ func Test_DeployCmd_WithCustomArtifactDetails(t *testing.T) {
 
 func Test_DeployCmd_WithDefaultArtifactDetails(t *testing.T) {
 	ns := t.Name()
-	groupId := "com.company"
-	artifactId := "project"
-	version := "1.0-SNAPSHOT"
 	cli := fmt.Sprintf("deploy-service example-drools https://github.com/kiegroup/kogito-examples --context-dir drools-quarkus-example --project %s", ns)
 
 	ctx := test.SetupCliTest(cli,
@@ -393,7 +390,7 @@ func Test_DeployCmd_WithDefaultArtifactDetails(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, kogitoApp)
-	assert.Equal(t, groupId, kogitoApp.Spec.Build.Artifact.GroupId)
-	assert.Equal(t, artifactId, kogitoApp.Spec.Build.Artifact.ArtifactId)
-	assert.Equal(t, version, kogitoApp.Spec.Build.Artifact.Version)
+	assert.Equal(t, "", kogitoApp.Spec.Build.Artifact.GroupId)
+	assert.Equal(t, "", kogitoApp.Spec.Build.Artifact.ArtifactId)
+	assert.Equal(t, "", kogitoApp.Spec.Build.Artifact.Version)
 }
