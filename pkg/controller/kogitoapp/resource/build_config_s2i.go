@@ -36,9 +36,9 @@ const (
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
 	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
-	projectGroupId               = "PROJECT_GROUP_ID"
-	projectArtifactId            = "PROJECT_ARTIFACT_ID"
-	projectVersion               = "PROJECT_VERSION"
+	mavenGroupIdEnvVar           = "PROJECT_GROUP_ID"
+	mavenArtifactIdEnvVar        = "PROJECT_ARTIFACT_ID"
+	mavenArtifactVersionEnvVar   = "PROJECT_VERSION"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -121,18 +121,18 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	}
 
 	if len(kogitoApp.Spec.Build.Artifact.GroupId) > 0 {
-		log.Infof("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupId)
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: projectGroupId, Value: kogitoApp.Spec.Build.Artifact.GroupId})
+		log.Debugf("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupId)
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.GroupId})
 	}
 
 	if len(kogitoApp.Spec.Build.Artifact.ArtifactId) > 0 {
-		log.Infof("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactId)
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: projectArtifactId, Value: kogitoApp.Spec.Build.Artifact.ArtifactId})
+		log.Debugf("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactId)
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.ArtifactId})
 	}
 
 	if len(kogitoApp.Spec.Build.Artifact.Version) > 0 {
-		log.Infof("Setting final generated artifact version %s", kogitoApp.Spec.Build.Artifact.Version)
-		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: projectVersion, Value: kogitoApp.Spec.Build.Artifact.Version})
+		log.Debugf("Setting final generated artifact version %s", kogitoApp.Spec.Build.Artifact.Version)
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactVersionEnvVar, Value: kogitoApp.Spec.Build.Artifact.Version})
 	}
 
 	// if user has provided a file, binary build should be used instead.

@@ -337,7 +337,7 @@ func Test_DeployCmd_WithCustomArtifactDetails(t *testing.T) {
 	groupId := "com.mycompany"
 	artifactId := "testproject"
 	version := "2.0-SNAPSHOT"
-	fileLocation, _ := url.Parse("https://raw.githubusercontent.com/kiegroup/kogito-examples/master/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn")
+	fileLocation := "testdata/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn"
 	cli := fmt.Sprintf("deploy-service example-from-file %s -p %s --project-group-id %s --project-artifact-id %s --project-version %s", fileLocation, ns, groupId, artifactId, version)
 
 	ctx := test.SetupCliTest(cli,
@@ -371,7 +371,7 @@ func Test_DeployCmd_WithDefaultArtifactDetails(t *testing.T) {
 	groupId := "com.company"
 	artifactId := "project"
 	version := "1.0-SNAPSHOT"
-	fileLocation, _ := url.Parse("https:ss//raw.githubusercontent.com/kiegroup/kogito-examples/master/dmn-quarkus-example/src/main/resources/Traffic Violation.dmnsd")
+	fileLocation := "testdata/dmn-quarkus-example/src/main/resources/Traffic Violation.dmn"
 	cli := fmt.Sprintf("deploy-service example-from-file %s -p %s", fileLocation, ns)
 
 	ctx := test.SetupCliTest(cli,

@@ -59,7 +59,8 @@ spec:
               description: 'S2I Build configuration Default value: nil'
               properties:
                 artifact:
-                  description: Artifact contains final generated project artifact
+                  description: Artifact contains override information for building
+                    the Maven artifact
                   properties:
                     artifactId:
                       description: Indicates the unique base name of the primary artifact

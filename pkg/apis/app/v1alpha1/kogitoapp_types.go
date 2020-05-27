@@ -136,8 +136,10 @@ type KogitoAppBuildObject struct {
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	// Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed
 	MavenMirrorURL string `json:"mavenMirrorURL,omitempty"`
-	//Artifact contains final generated project artifact
+	// Artifact contains override information for building the Maven artifact
 	// + optional
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Final Artifact"
 	Artifact Artifact `json:"artifact,omitempty"`
 }
 

@@ -165,19 +165,19 @@ func Test_setBCS2IStrategy_withCustomArtifactDetails(t *testing.T) {
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
 	{
-		contains, envVarValue := getBuildEnvVariable(projectGroupId, envs)
+		contains, envVarValue := getBuildEnvVariable(mavenGroupIdEnvVar, envs)
 		assert.True(t, contains)
 		assert.Equal(t, "com.mycompany", envVarValue)
 	}
 
 	{
-		contains, envVarValue := getBuildEnvVariable(projectArtifactId, envs)
+		contains, envVarValue := getBuildEnvVariable(mavenArtifactIdEnvVar, envs)
 		assert.True(t, contains)
 		assert.Equal(t, "testproject", envVarValue)
 	}
 
 	{
-		contains, envVarValue := getBuildEnvVariable(projectVersion, envs)
+		contains, envVarValue := getBuildEnvVariable(mavenArtifactVersionEnvVar, envs)
 		assert.True(t, contains)
 		assert.Equal(t, "2.0-SNAPSHOT", envVarValue)
 	}
@@ -199,13 +199,13 @@ func Test_setBCS2IStrategy_withDefaultArtifactDetails(t *testing.T) {
 	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
-	containsGroupId, _ := getBuildEnvVariable(projectGroupId, envs)
+	containsGroupId, _ := getBuildEnvVariable(mavenGroupIdEnvVar, envs)
 	assert.False(t, containsGroupId)
 
-	containsArtifactId, _ := getBuildEnvVariable(projectArtifactId, envs)
+	containsArtifactId, _ := getBuildEnvVariable(mavenArtifactIdEnvVar, envs)
 	assert.False(t, containsArtifactId)
 
-	containsVersion, _ := getBuildEnvVariable(projectVersion, envs)
+	containsVersion, _ := getBuildEnvVariable(mavenArtifactVersionEnvVar, envs)
 	assert.False(t, containsVersion)
 }
 

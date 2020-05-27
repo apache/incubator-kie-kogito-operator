@@ -564,7 +564,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					},
 					"artifact": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Artifact contains final generated project artifact",
+							Description: "Artifact contains override information for building the Maven artifact",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Artifact"),
 						},
 					},
