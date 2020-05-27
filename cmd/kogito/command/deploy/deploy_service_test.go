@@ -378,7 +378,6 @@ func Test_DeployCmd_MavenDownloadOutputDisabled(t *testing.T) {
 			Namespace: ns,
 		},
 	}
-
 	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoApp)
 	assert.NoError(t, err)
 	assert.True(t, exist)
