@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	dockerTagRegx = `(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/)?(?P<namespace>.+/)?(?P<image>[^:]+)(?P<tag>:.+)?`
+	dockerTagRegx = `(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/)?(?P<namespace>[a-z0-9-]+/)?(?P<image>[a-z0-9-]+)(?P<tag>:[a-z0-9\.-]+)?`
 )
 
 var (

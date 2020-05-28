@@ -199,13 +199,13 @@ spec:
                   description: Custom image used by the source to image process to
                     build the final Kogito Service image. Takes precedence over ImageVersion
                     attribute.
-                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
+                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
                   type: string
                 imageS2ITag:
                   description: Custom image used by the source to image process to
                     build the Kogito Service binaries. Takes precedence over ImageVersion
                     attribute.
-                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
+                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
                   type: string
                 imageVersion:
                   description: 'Image version for the Kogito official images used
