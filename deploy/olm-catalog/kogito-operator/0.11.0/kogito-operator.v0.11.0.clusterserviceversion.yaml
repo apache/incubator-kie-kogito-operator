@@ -128,6 +128,10 @@ spec:
         name: ""
         version: v1
       specDescriptors:
+      - description: Artifact contains override information for building the Maven
+          artifact
+        displayName: Final Artifact
+        path: build.artifact
       - description: Environment variables used during build time
         displayName: Build Env Variables
         path: build.envs

@@ -58,6 +58,23 @@ spec:
             build:
               description: 'S2I Build configuration Default value: nil'
               properties:
+                artifact:
+                  description: Artifact contains override information for building
+                    the Maven artifact
+                  properties:
+                    artifactId:
+                      description: Indicates the unique base name of the primary artifact
+                        being generated
+                      type: string
+                    groupId:
+                      description: Indicates the unique identifier of the organization
+                        or group that created the project
+                      type: string
+                    version:
+                      description: Indicates the version of the artifact generated
+                        by the project.
+                      type: string
+                  type: object
                 envs:
                   description: Environment variables used during build time
                   items:
