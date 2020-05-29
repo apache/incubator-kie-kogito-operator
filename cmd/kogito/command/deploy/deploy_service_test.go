@@ -447,4 +447,3 @@ func Test_DeployCmd_MavenDownloadOutputDisabled(t *testing.T) {
 	assert.NotNil(t, kogitoApp)
 	assert.Equal(t, false, kogitoApp.Spec.Build.EnableMavenDownloadOutput)
 }
-

@@ -562,15 +562,17 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"artifact": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Artifact contains override information for building the Maven artifact",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Artifact"),
+						},
+					},
 					"enableMavenDownloadOutput": {
 						SchemaProps: spec.SchemaProps{
 							Description: "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false",
 							Type:        []string{"boolean"},
 							Format:      "",
-					"artifact": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Artifact contains override information for building the Maven artifact",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Artifact"),
 						},
 					},
 				},

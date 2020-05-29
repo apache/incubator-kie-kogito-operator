@@ -39,7 +39,7 @@ const (
 	mavenGroupIdEnvVar           = "PROJECT_GROUP_ID"
 	mavenArtifactIdEnvVar        = "PROJECT_ARTIFACT_ID"
 	mavenArtifactVersionEnvVar   = "PROJECT_VERSION"
-  mavenDownloadOutputEnvVar    = "MAVEN_DOWNLOAD_OUTPUT"
+	mavenDownloadOutputEnvVar    = "MAVEN_DOWNLOAD_OUTPUT"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds

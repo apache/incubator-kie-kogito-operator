@@ -128,16 +128,16 @@ spec:
         name: ""
         version: v1
       specDescriptors:
+      - description: Artifact contains override information for building the Maven
+          artifact
+        displayName: Final Artifact
+        path: build.artifact
       - description: If set to true will print the logs for downloading/uploading
           of maven dependencies. Defaults to false
         displayName: Enable Maven Download Output
         path: build.enableMavenDownloadOutput
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Artifact contains override information for building the Maven
-          artifact
-        displayName: Final Artifact
-        path: build.artifact
       - description: Environment variables used during build time
         displayName: Build Env Variables
         path: build.envs

@@ -141,7 +141,7 @@ type KogitoAppBuildObject struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Final Artifact"
 	Artifact Artifact `json:"artifact,omitempty"`
-  // If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false
+	// If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false
 	// + optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
