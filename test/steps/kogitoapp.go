@@ -41,6 +41,7 @@ import (
 	| infinispan      | username    | developer                 |
 	| infinispan      | password    | mypass                    |
 	| infinispan      | uri         | external-infinispan:11222 |
+	| kafka           | externalURI | external-kafka:9092       |
 */
 
 const (
@@ -57,16 +58,20 @@ const (
 	kogitoAppRuntimeRequestKey = "runtime-request"
 	kogitoAppRuntimeLimitKey   = "runtime-limit"
 	kogitoAppInfinispanKey     = "infinispan"
+	kogitoAppKafkaKey          = "kafka"
 
 	// DataTable Config second column
-	kogitoAppNativeKey             = "native"
-	kogitoAppPersistenceKey        = "persistence"
-	kogitoAppEventsKey             = "events"
+	kogitoAppNativeKey      = "native"
+	kogitoAppPersistenceKey = "persistence"
+	kogitoAppEventsKey      = "events"
 
 	// DataTable Infinispan second column
 	kogitoAppInfinispanUsernameKey = "username"
 	kogitoAppInfinispanPasswordKey = "password"
 	kogitoAppURIKey                = "uri"
+
+	// DataTable Kafka second column
+	kogitoAppKafkaExternalURIKey = "externalURI"
 
 	// Infinispan environment variables
 	// Quarkus
@@ -81,6 +86,9 @@ const (
 	springBootEnvVarInfinispanUser          = "INFINISPAN_REMOTE_AUTH_USERNAME"
 	springBootEnvVarInfinispanPassword      = "INFINISPAN_REMOTE_AUTH_PASSWORD"
 	springBootEnvVarInfinispanSaslMechanism = "INFINISPAN_REMOTE_SASL_MECHANISM"
+
+	// Kafka environment variables
+	envVarKafkaBootstrapServers = "KAFKA_BOOTSTRAP_SERVERS"
 )
 
 func registerKogitoAppSteps(s *godog.Suite, data *Data) {
@@ -171,6 +179,7 @@ func (data *Data) scaleKogitoApplicationToPodsWithinMinutes(name string, nbPods,
 	if err != nil {
 		return err
 	}
+
 	return framework.WaitForDeploymentConfigRunning(data.Namespace, name, nbPods, timeoutInMin)
 }
 
@@ -259,6 +268,9 @@ func configureKogitoAppFromTable(table *messages.PickleStepArgument_PickleTable,
 		case kogitoAppInfinispanKey:
 			parseKogitoAppInfinispanRow(row, kogitoApp, &profiles)
 
+		case kogitoAppKafkaKey:
+			parseKogitoAppKafkaRow(row, kogitoApp, &profiles)
+
 		default:
 			return fmt.Errorf("Unrecognized configuration option: %s", firstColumn)
 		}
@@ -268,7 +280,7 @@ func configureKogitoAppFromTable(table *messages.PickleStepArgument_PickleTable,
 		kogitoApp.Spec.Build.AddEnvironmentVariable(mavenArgsAppendEnvVar, "-P"+strings.Join(profiles, ","))
 	}
 
-	addDefaultJavaOptionsIfNotProvided(kogitoApp)
+	addDefaultJavaOptionsIfNotProvided(kogitoApp.Spec.KogitoServiceSpec)
 
 	return nil
 }
@@ -321,16 +333,12 @@ func parseKogitoAppInfinispanRow(row *messages.PickleStepArgument_PickleTable_Pi
 	}
 }
 
-func addDefaultJavaOptionsIfNotProvided(kogitoApp *framework.KogitoAppHolder) {
-	javaOptionsProvided := false
-	for _, env := range kogitoApp.Spec.Envs {
-		if env.Name == javaOptionsEnvVar {
-			javaOptionsProvided = true
-			break
-		}
-	}
+func parseKogitoAppKafkaRow(row *messages.PickleStepArgument_PickleTable_PickleTableRow, kogitoApp *framework.KogitoAppHolder, profilesPtr *[]string) {
+	secondColumn := getSecondColumn(row)
 
-	if !javaOptionsProvided {
-		kogitoApp.Spec.AddEnvironmentVariable(javaOptionsEnvVar, "-Xmx2G")
+	switch secondColumn {
+	case kogitoAppKafkaExternalURIKey:
+		kogitoApp.Spec.AddEnvironmentVariable(envVarKafkaBootstrapServers, getThirdColumn(row))
+		*profilesPtr = append(*profilesPtr, "events")
 	}
 }

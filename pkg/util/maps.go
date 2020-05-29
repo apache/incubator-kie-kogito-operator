@@ -17,6 +17,7 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -41,8 +42,13 @@ func MapContainsMap(source, expected map[string]string) bool {
 // FromMapToString converts a map into a string format such as key1=value1,key2=value2
 func FromMapToString(labels map[string]string) string {
 	b := new(bytes.Buffer)
-	for k, v := range labels {
-		fmt.Fprintf(b, "%s=%s%s", k, v, pairSeparator)
+	var keys []string
+	for k := range labels {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		fmt.Fprintf(b, "%s=%s%s", k, labels[k], pairSeparator)
 	}
 	return strings.TrimSuffix(b.String(), pairSeparator)
 }
@@ -84,4 +90,11 @@ func ParseStringsForKeyPair(array []string) error {
 		}
 	}
 	return nil
+}
+
+// AppendToStringMap appends source into dest. If keys are equal, value is overridden
+func AppendToStringMap(source map[string]string, dest map[string]string) {
+	for k, v := range source {
+		dest[k] = v
+	}
 }

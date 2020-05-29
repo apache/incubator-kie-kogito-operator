@@ -42,22 +42,6 @@ import (
 
 var log = logger.GetLogger("controller_kogitodataindex")
 
-var watchedObjects = []framework.WatchedObjects{
-	{
-		GroupVersion: routev1.GroupVersion,
-		AddToScheme:  routev1.Install,
-		Objects:      []runtime.Object{&routev1.Route{}},
-	},
-	{
-		GroupVersion: imgv1.GroupVersion,
-		AddToScheme:  imgv1.Install,
-		Objects:      []runtime.Object{&imgv1.ImageStream{}},
-	},
-	{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
-}
-
-var controllerWatcher framework.ControllerWatcher
-
 // Add creates a new KogitoDataIndex Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -99,7 +83,20 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoDataIndex).client, mgr, c, &appv1alpha1.KogitoDataIndex{})
+	watchedObjects := []framework.WatchedObjects{
+		{
+			GroupVersion: routev1.GroupVersion,
+			AddToScheme:  routev1.Install,
+			Objects:      []runtime.Object{&routev1.Route{}},
+		},
+		{
+			GroupVersion: imgv1.GroupVersion,
+			AddToScheme:  imgv1.Install,
+			Objects:      []runtime.Object{&imgv1.ImageStream{}},
+		},
+		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
+	}
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoDataIndex).client, mgr, c, &appv1alpha1.KogitoDataIndex{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}

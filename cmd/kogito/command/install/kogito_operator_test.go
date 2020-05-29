@@ -17,12 +17,14 @@ package install
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 
 	"github.com/stretchr/testify/assert"
 
+	operatorMarketplace "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -70,7 +72,7 @@ func Test_InstallOperatorNoNamespaceWithForceFlagWitNoCustomImage(t *testing.T) 
 	assert.Contains(t, lines, "Error: force install flag is enabled but the custom operator image is missing")
 }
 
-func TestInstallOperatorWithSupportServices(t *testing.T) {
+func Test_InstallOperatorWithSupportServices(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install operator -p %s --install-data-index --install-jobs-service --install-mgmt-console", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
@@ -80,3 +82,70 @@ func TestInstallOperatorWithSupportServices(t *testing.T) {
 	assert.Contains(t, lines, "Jobs Service")
 	assert.Contains(t, lines, "Management Console")
 }
+
+func Test_InstallOperatorWithDefaultChannel(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s", ns)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&operatorMarketplace.OperatorSource{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      communityOperatorSource,
+				Namespace: operatorMarketplaceNamespace,
+			},
+			Status: operatorMarketplace.OperatorSourceStatus{
+				Packages: defaultOperatorPackageName,
+			},
+		})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Operator successfully subscribed")
+}
+
+func Test_InstallOperatorWithValidChannel(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install operator -p %s --channel %s", ns, shared.DevPreviewChannel)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&operatorMarketplace.OperatorSource{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      communityOperatorSource,
+				Namespace: operatorMarketplaceNamespace,
+			},
+			Status: operatorMarketplace.OperatorSourceStatus{
+				Packages: defaultOperatorPackageName,
+			},
+		})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Operator successfully subscribed")
+}
+
+func Test_InstallOperatorWithInvalidChannel(t *testing.T) {
+	ns := t.Name()
+	invalidChannel := "testChannel"
+	cli := fmt.Sprintf("install operator -p %s --channel %s", ns, invalidChannel)
+	test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&operatorMarketplace.OperatorSource{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      communityOperatorSource,
+				Namespace: operatorMarketplaceNamespace,
+			},
+			Status: operatorMarketplace.OperatorSourceStatus{
+				Packages: defaultOperatorPackageName,
+			},
+		})
+	lines, _, err := test.ExecuteCli()
+	assert.Error(t, err)
+	assert.Contains(t, lines, "Invalid Kogito channel type testChannel, only alpha/dev-preview channels are allowed")
+}
+
+const (
+	defaultOperatorPackageName   = "kogito-operator"
+	communityOperatorSource      = "community-operators"
+	operatorMarketplaceNamespace = "openshift-marketplace"
+)

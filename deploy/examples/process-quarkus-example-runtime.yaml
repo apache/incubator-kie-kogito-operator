@@ -1,0 +1,10 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: process-quarkus-example
+spec:
+  replicas: 1
+  image:
+    domain: quay.io
+    namespace: kiegroup
+    name: process-quarkus-example

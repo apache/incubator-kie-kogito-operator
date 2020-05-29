@@ -16,6 +16,11 @@ package services
 
 import (
 	"fmt"
+	"reflect"
+	"time"
+
+	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -25,7 +30,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 var log = logger.GetLogger("services_definition")
@@ -37,11 +41,23 @@ const (
 // ServiceDefinition defines the structure for a Kogito Service
 type ServiceDefinition struct {
 	// DefaultImageName is the name of the default image distributed for Kogito, e.g. kogito-jobs-service, kogito-data-index and so on
+	// can be empty, in this case Request.Name will be used as image name
 	DefaultImageName string
+	// DefaultImageTag is the default image tag to use for this service. If left empty, will use the minor version of the operator, e.g. 0.11
+	DefaultImageTag string
 	// Request made for the service
 	Request controller.Request
 	// OnDeploymentCreate applies custom deployment configuration in the required Deployment resource
 	OnDeploymentCreate func(deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error
+	// OnObjectsCreate applies custom object creation in the service deployment logic.
+	// E.g. if you need an additional Kubernetes resource, just create your own map that the API will append to its managed resources.
+	// The "objectLists" array is the List object reference of the types created.
+	// For example: if a ConfigMap is created, then ConfigMapList empty reference should be added to this list
+	OnObjectsCreate func(kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
+	// OnGetComparators is called during the deployment phase to compare the deployed resources against the created ones
+	// Use this hook to add your comparators to override a specific comparator or to add your own if you have created extra objects via OnObjectsCreate
+	// Use framework.NewComparatorBuilder() to build your own
+	OnGetComparators func(comparator compare.ResourceComparator)
 	// SingleReplica if set to true, avoids that the service has more than one pod replica
 	SingleReplica bool
 	// RequiresPersistence forces the deployer to deploy an Infinispan instance if none is provided
@@ -59,6 +75,8 @@ type ServiceDefinition struct {
 	infinispanAware bool
 	// kafkaAware whether or not to handle Kafka integration in this service (inject variables, deploy if needed, and so on)
 	kafkaAware bool
+	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
+	extraManagedObjectLists []runtime.Object
 }
 
 // KafkaTopicDefinition ...
@@ -80,7 +98,8 @@ const (
 )
 
 const (
-	defaultReplicas = int32(1)
+	defaultReplicas             = int32(1)
+	serviceDoesNotExistsMessage = "Kogito Service '%s' does not exists, aborting deployment"
 )
 
 // ServiceDeployer is the API to handle a Kogito Service deployment by Operator SDK controllers
@@ -91,15 +110,27 @@ type ServiceDeployer interface {
 
 // NewSingletonServiceDeployer creates a new ServiceDeployer to handle Singleton Kogito Services instances and to be handled by Operator SDK controller
 func NewSingletonServiceDeployer(definition ServiceDefinition, serviceList v1alpha1.KogitoServiceList, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
+	builderCheck(definition)
+	return &serviceDeployer{definition: definition, instanceList: serviceList, client: cli, scheme: scheme, singleton: true}
+}
+
+// NewServiceDeployer creates a new ServiceDeployer to handle a Kogito Service instance and to be handled by Operator SDK controller
+func NewServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
+	builderCheck(definition)
+	return &serviceDeployer{definition: definition, instance: serviceType, client: cli, scheme: scheme, singleton: false}
+}
+
+func builderCheck(definition ServiceDefinition) {
 	if &definition.Request == nil {
 		panic("No Request provided for the Service Deployer")
 	}
-	return &serviceDeployer{definition: definition, instanceList: serviceList, client: cli, scheme: scheme}
 }
 
 type serviceDeployer struct {
 	definition   ServiceDefinition
 	instanceList v1alpha1.KogitoServiceList
+	instance     v1alpha1.KogitoService
+	singleton    bool
 	client       *client.Client
 	scheme       *runtime.Scheme
 }
@@ -109,37 +140,32 @@ func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Na
 func (s *serviceDeployer) getServiceName() string { return s.definition.Request.Name }
 
 func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
-	// our services must be singleton instances
-	if reconcile, exists, err := s.ensureSingletonService(); err != nil || reconcile {
-		return reconciliationPeriodAfterSingletonError, err
-	} else if !exists {
-		log.Debugf("Kogito Service '%s' does not exists, aborting deployment", s.definition.Request.Name)
-		return 0, err
+	found, reconcileAfter, err := s.getService()
+	if err != nil || !found {
+		return reconcileAfter, err
 	}
-
-	// we get our service
-	service := s.instanceList.GetItemAt(0)
-	reconcileAfter = 0
-
-	if service.GetSpec().GetReplicas() == nil {
-		service.GetSpec().SetReplicas(defaultReplicas)
+	if s.instance.GetSpec().GetReplicas() == nil {
+		s.instance.GetSpec().SetReplicas(defaultReplicas)
+	}
+	if len(s.definition.DefaultImageName) == 0 {
+		s.definition.DefaultImageName = s.definition.Request.Name
 	}
 
 	// always update its status
-	defer s.updateStatus(service, &err)
+	defer s.updateStatus(s.instance, &err)
 
-	if _, isInfinispan := service.GetSpec().(v1alpha1.InfinispanAware); isInfinispan {
-		log.Debugf("Kogito Service %s depends on Infinispan", service.GetName())
+	if _, isInfinispan := s.instance.GetSpec().(v1alpha1.InfinispanAware); isInfinispan {
+		log.Debugf("Kogito Service %s supports Infinispan", s.instance.GetName())
 		s.definition.infinispanAware = true
 	}
-	if _, isKafka := service.GetSpec().(v1alpha1.KafkaAware); isKafka {
-		log.Debugf("Kogito Service %s depends on Kafka", service.GetName())
+	if _, isKafka := s.instance.GetSpec().(v1alpha1.KafkaAware); isKafka {
+		log.Debugf("Kogito Service %s supports Kafka", s.instance.GetName())
 		s.definition.kafkaAware = true
 	}
 
 	// deploy Infinispan
 	if s.definition.infinispanAware {
-		reconcileAfter, err = s.deployInfinispan(service)
+		reconcileAfter, err = s.deployInfinispan()
 		if err != nil {
 			return
 		} else if reconcileAfter > 0 {
@@ -149,7 +175,7 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 
 	// deploy Kafka
 	if s.definition.kafkaAware {
-		reconcileAfter, err = s.deployKafka(service)
+		reconcileAfter, err = s.deployKafka()
 		if err != nil {
 			return
 		} else if reconcileAfter > 0 {
@@ -158,13 +184,13 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	}
 
 	// create our resources
-	requestedResources, reconcileAfter, err := s.createRequiredResources(service)
+	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
 		return
 	}
 
 	// get the deployed ones
-	deployedResources, err := s.getDeployedResources(service)
+	deployedResources, err := s.getDeployedResources()
 	if err != nil {
 		return
 	}
@@ -172,7 +198,7 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
 	comparator := s.getComparator()
 	deltas := comparator.Compare(deployedResources, requestedResources)
-	writer := write.New(s.client.ControlCli).WithOwnerController(service, s.scheme)
+	writer := write.New(s.client.ControlCli).WithOwnerController(s.instance, s.scheme)
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
 			continue
@@ -195,28 +221,51 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	return
 }
 
-func (s *serviceDeployer) ensureSingletonService() (reconcile bool, exists bool, err error) {
+func (s *serviceDeployer) getService() (found bool, reconcileAfter time.Duration, err error) {
+	reconcileAfter = 0
+	if s.singleton {
+		// our services must be singleton instances
+		if exists, err := s.ensureSingletonService(); err != nil {
+			return false, reconciliationPeriodAfterSingletonError, err
+		} else if !exists {
+			log.Debugf(serviceDoesNotExistsMessage, s.definition.Request.Name)
+			return false, reconcileAfter, err
+		}
+		// we get our service
+		s.instance = s.instanceList.GetItemAt(0)
+	} else {
+		if exists, err := kubernetes.ResourceC(s.client).FetchWithKey(s.definition.Request.NamespacedName, s.instance); err != nil {
+			return false, reconcileAfter, err
+		} else if !exists {
+			log.Debugf(serviceDoesNotExistsMessage, s.definition.Request.Name)
+			return false, reconcileAfter, nil
+		}
+	}
+	return true, reconcileAfter, nil
+}
+
+func (s *serviceDeployer) ensureSingletonService() (exists bool, err error) {
 	if err := kubernetes.ResourceC(s.client).ListWithNamespace(s.getNamespace(), s.instanceList); err != nil {
-		return true, false, err
+		return false, err
 	}
 	if s.instanceList.GetItemsCount() > 1 {
-		return true, true, fmt.Errorf("There's more than one Kogito Service resource in the namespace %s, please delete one of them ", s.getNamespace())
+		return true, fmt.Errorf("There's more than one Kogito Service resource in the namespace %s, please delete one of them ", s.getNamespace())
 	}
-	return false, s.instanceList.GetItemsCount() > 0, nil
+	return s.instanceList.GetItemsCount() > 0, nil
 }
 
 func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *error) {
 	log.Infof("Updating status for Kogito Service %s", instance.GetName())
-	if statusErr := s.manageStatus(instance, s.definition.DefaultImageName, *err); statusErr != nil {
+	if statusErr := s.manageStatus(s.definition.DefaultImageName, s.definition.DefaultImageTag, *err); statusErr != nil {
 		// this error will return to the operator console
 		err = &statusErr
 	}
 	log.Infof("Successfully reconciled Kogito Service %s", instance.GetName())
 }
 
-func (s *serviceDeployer) deployInfinispan(instance v1alpha1.KogitoService) (requeueAfter time.Duration, err error) {
+func (s *serviceDeployer) deployInfinispan() (requeueAfter time.Duration, err error) {
 	requeueAfter = 0
-	infinispanAware := instance.GetSpec().(v1alpha1.InfinispanAware)
+	infinispanAware := s.instance.GetSpec().(v1alpha1.InfinispanAware)
 	if infinispanAware.GetInfinispanProperties() == nil {
 		if s.definition.RequiresPersistence {
 			infinispanAware.SetInfinispanProperties(v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true})
@@ -227,30 +276,30 @@ func (s *serviceDeployer) deployInfinispan(instance v1alpha1.KogitoService) (req
 	if s.definition.RequiresPersistence &&
 		!infinispanAware.GetInfinispanProperties().UseKogitoInfra &&
 		len(infinispanAware.GetInfinispanProperties().URI) == 0 {
-		log.Debugf("Service %s requires persistence and Infinispan URL is empty, deploying Kogito Infrastructure", instance.GetName())
+		log.Debugf("Service %s requires persistence and Infinispan URL is empty, deploying Kogito Infrastructure", s.instance.GetName())
 		infinispanAware.GetInfinispanProperties().UseKogitoInfra = true
 	} else if !infinispanAware.GetInfinispanProperties().UseKogitoInfra {
 		return
 	}
 	if !infrastructure.IsInfinispanAvailable(s.client) {
-		log.Warnf("Looks like that the service %s requires Infinispan, but there's no Infinispan CRD in the namespace %s. Aborting installation.", instance.GetName(), instance.GetNamespace())
+		log.Warnf("Looks like that the service %s requires Infinispan, but there's no Infinispan CRD in the namespace %s. Aborting installation.", s.instance.GetName(), s.instance.GetNamespace())
 		return
 	}
 	needUpdate := false
 	if needUpdate, requeueAfter, err =
-		infrastructure.DeployInfinispanWithKogitoInfra(infinispanAware, instance.GetNamespace(), s.client); err != nil {
+		deployInfinispanWithKogitoInfra(infinispanAware, s.instance.GetNamespace(), s.client); err != nil {
 		return
 	} else if needUpdate {
-		if err = s.update(instance); err != nil {
+		if err = s.update(); err != nil {
 			return
 		}
 	}
 	return
 }
 
-func (s *serviceDeployer) deployKafka(instance v1alpha1.KogitoService) (requeueAfter time.Duration, err error) {
+func (s *serviceDeployer) deployKafka() (requeueAfter time.Duration, err error) {
 	requeueAfter = 0
-	kafkaAware := instance.GetSpec().(v1alpha1.KafkaAware)
+	kafkaAware := s.instance.GetSpec().(v1alpha1.KafkaAware)
 	if kafkaAware.GetKafkaProperties() == nil {
 		if s.definition.RequiresMessaging {
 			kafkaAware.SetKafkaProperties(v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true})
@@ -262,34 +311,34 @@ func (s *serviceDeployer) deployKafka(instance v1alpha1.KogitoService) (requeueA
 		!kafkaAware.GetKafkaProperties().UseKogitoInfra &&
 		len(kafkaAware.GetKafkaProperties().ExternalURI) == 0 &&
 		len(kafkaAware.GetKafkaProperties().Instance) == 0 {
-		log.Debugf("Service %s requires messaging and Kafka URL is empty and kafka instance is not provided, deploying Kogito Infrastructure", instance.GetName())
+		log.Debugf("Service %s requires messaging and Kafka URL is empty and kafka instance is not provided, deploying Kogito Infrastructure", s.instance.GetName())
 		kafkaAware.GetKafkaProperties().UseKogitoInfra = true
 	} else if !kafkaAware.GetKafkaProperties().UseKogitoInfra {
 		return
 	}
 	if !infrastructure.IsStrimziAvailable(s.client) {
-		log.Warnf("Looks like that the service %s requires Kafka, but there's no Kafka CRD in the namespace %s. Aborting installation.", instance.GetName(), instance.GetNamespace())
+		log.Warnf("Looks like that the service %s requires Kafka, but there's no Kafka CRD in the namespace %s. Aborting installation.", s.instance.GetName(), s.instance.GetNamespace())
 		return
 	}
 
 	needUpdate := false
 	if needUpdate, requeueAfter, err =
-		infrastructure.DeployKafkaWithKogitoInfra(kafkaAware, instance.GetNamespace(), s.client); err != nil {
+		infrastructure.DeployKafkaWithKogitoInfra(kafkaAware, s.instance.GetNamespace(), s.client); err != nil {
 		return
 	} else if needUpdate {
-		if err = s.update(instance); err != nil {
+		if err = s.update(); err != nil {
 			return
 		}
 	}
 	return
 }
 
-func (s *serviceDeployer) update(instance v1alpha1.KogitoService) error {
+func (s *serviceDeployer) update() error {
 	// Sanity check since the Status CR needs a reference for the object
-	if instance.GetStatus() != nil && instance.GetStatus().GetConditions() == nil {
-		instance.GetStatus().SetConditions([]v1alpha1.Condition{})
+	if s.instance.GetStatus() != nil && s.instance.GetStatus().GetConditions() == nil {
+		s.instance.GetStatus().SetConditions([]v1alpha1.Condition{})
 	}
-	err := kubernetes.ResourceC(s.client).Update(instance)
+	err := kubernetes.ResourceC(s.client).Update(s.instance)
 	if err != nil {
 		return err
 	}

@@ -23,6 +23,11 @@ type KogitoMgmtConsoleSpec struct {
 	KogitoServiceSpec `json:",inline"`
 }
 
+// GetRuntime ...
+func (m *KogitoMgmtConsoleSpec) GetRuntime() RuntimeType {
+	return QuarkusRuntimeType
+}
+
 // KogitoMgmtConsoleStatus defines the observed state of KogitoMgmtConsole
 type KogitoMgmtConsoleStatus struct {
 	KogitoServiceStatus `json:",inline"`

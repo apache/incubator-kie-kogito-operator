@@ -39,9 +39,11 @@ func (data *Data) RegisterAllSteps(s *godog.Suite) {
 	registerGitSteps(s, data)
 	registerGraphQLSteps(s, data)
 	registerHTTPSteps(s, data)
+	registerImageRegistrySteps(s, data)
 	registerInfinispanSteps(s, data)
 	registerKafkaSteps(s, data)
 	registerKogitoAppSteps(s, data)
+	registerKogitoRuntimeSteps(s, data)
 	registerKogitoDataIndexServiceSteps(s, data)
 	registerKogitoInfraSteps(s, data)
 	registerKogitoJobsServiceSteps(s, data)
@@ -53,6 +55,7 @@ func (data *Data) RegisterAllSteps(s *godog.Suite) {
 	registerPrometheusSteps(s, data)
 	registerProcessSteps(s, data)
 	registerTaskSteps(s, data)
+	registerKogitoDeployFilesSteps(s, data)
 }
 
 // BeforeScenario configure the data before a scenario is launched

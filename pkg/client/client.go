@@ -210,6 +210,7 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoJobsService.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoInfra.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoMgmtConsole.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoRuntime.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(coreappsv1.SchemeGroupVersion.WithKind(meta.KindDeployment.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRole.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRoleBinding.Name), &restScope{name: apimeta.RESTScopeNameNamespace})

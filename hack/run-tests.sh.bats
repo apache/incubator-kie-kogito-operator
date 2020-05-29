@@ -278,22 +278,22 @@
 
 # runtime
 
-@test "invoke run-tests with services_image_version" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_version version --dry_run
+@test "invoke run-tests with services_image_registry" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_registry registry --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "--tests.services-image-version=version" ]]
+    [[ "${output}" =~ "--tests.services-image-registry=registry" ]]
 }
 
-@test "invoke run-tests with services_image_version missing value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_version --dry_run
+@test "invoke run-tests with services_image_registry missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_registry --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.services-image-version"* ]]
+    [[ "${output}" != *"--tests.services-image-registry"* ]]
 }
 
-@test "invoke run-tests with services_image_version empty value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_version "" --dry_run
+@test "invoke run-tests with services_image_registry empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_registry "" --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.services-image-version"* ]]
+    [[ "${output}" != *"--tests.services-image-registry"* ]]
 }
 
 @test "invoke run-tests with services_image_namespace" {
@@ -314,22 +314,40 @@
     [[ "${output}" != *"--tests.services-image-namespace"* ]]
 }
 
-@test "invoke run-tests with services_image_registry" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_registry registry --dry_run
+@test "invoke run-tests with services_image_name_suffix" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_name_suffix suffix --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "--tests.services-image-registry=registry" ]]
+    [[ "${output}" =~ "--tests.services-image-name-suffix=suffix" ]]
 }
 
-@test "invoke run-tests with services_image_registry missing value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_registry --dry_run
+@test "invoke run-tests with services_image_name_suffix missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_name_suffix --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.services-image-registry"* ]]
+    [[ "${output}" != *"--tests.services-image-name-suffix"* ]]
 }
 
-@test "invoke run-tests with services_image_registry empty value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_registry "" --dry_run
+@test "invoke run-tests with services_image_name_suffix empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_name_suffix "" --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.services-image-registry"* ]]
+    [[ "${output}" != *"--tests.services-image-name-suffix"* ]]
+}
+
+@test "invoke run-tests with services_image_version" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_version version --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.services-image-version=version" ]]
+}
+
+@test "invoke run-tests with services_image_version missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_version --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.services-image-version"* ]]
+}
+
+@test "invoke run-tests with services_image_version empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --services_image_version "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.services-image-version"* ]]
 }
 
 @test "invoke run-tests with data_index_image_tag" {
@@ -386,6 +404,42 @@
     [[ "${output}" != *"--tests.management-console-image-tag"* ]]
 }
 
+@test "invoke run-tests with runtime_application_image_registry" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --runtime_application_image_registry registry --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.runtime-application-image-registry=registry" ]]
+}
+
+@test "invoke run-tests with runtime_application_image_registry missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --runtime_application_image_registry --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.runtime-application-image-registry"* ]]
+}
+
+@test "invoke run-tests with runtime_application_image_registry empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --runtime_application_image_registry "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.runtime-application-image-registry"* ]]
+}
+
+@test "invoke run-tests with runtime_application_image_namespace" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --runtime_application_image_namespace namespace --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.runtime-application-image-namespace=namespace" ]]
+}
+
+@test "invoke run-tests with runtime_application_image_namespace missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --runtime_application_image_namespace --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.runtime-application-image-namespace"* ]]
+}
+
+@test "invoke run-tests with runtime_application_image_namespace empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --runtime_application_image_namespace "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.runtime-application-image-namespace"* ]]
+}
+
 # build
 
 @test "invoke run-tests with maven_mirror" {
@@ -406,22 +460,22 @@
     [[ "${output}" != *"--tests.maven-mirror-url"* ]]
 }
 
-@test "invoke run-tests with build_image_version" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_version version --dry_run
+@test "invoke run-tests with build_image_registry" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_registry registry --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "--tests.build-image-version=version" ]]
+    [[ "${output}" =~ "--tests.build-image-registry=registry" ]]
 }
 
-@test "invoke run-tests with build_image_version missing value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_version --dry_run
+@test "invoke run-tests with build_image_registry missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_registry --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.build-image-version"* ]]
+    [[ "${output}" != *"--tests.build-image-registry"* ]]
 }
 
-@test "invoke run-tests with build_image_version empty value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_version "" --dry_run
+@test "invoke run-tests with build_image_registry empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_registry "" --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.build-image-version"* ]]
+    [[ "${output}" != *"--tests.build-image-registry"* ]]
 }
 
 @test "invoke run-tests with build_image_namespace" {
@@ -442,22 +496,40 @@
     [[ "${output}" != *"--tests.build-image-namespace"* ]]
 }
 
-@test "invoke run-tests with build_image_registry" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_registry registry --dry_run
+@test "invoke run-tests with build_image_name_suffix" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_name_suffix suffix --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "--tests.build-image-registry=registry" ]]
+    [[ "${output}" =~ "--tests.build-image-name-suffix=suffix" ]]
 }
 
-@test "invoke run-tests with build_image_registry missing value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_registry --dry_run
+@test "invoke run-tests with build_image_name_suffix missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_name_suffix --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.build-image-registry"* ]]
+    [[ "${output}" != *"--tests.build-image-name-suffix"* ]]
 }
 
-@test "invoke run-tests with build_image_registry empty value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_registry "" --dry_run
+@test "invoke run-tests with build_image_name_suffix empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_name_suffix "" --dry_run
     [ "$status" -eq 0 ]
-    [[ "${output}" != *"--tests.build-image-registry"* ]]
+    [[ "${output}" != *"--tests.build-image-name-suffix"* ]]
+}
+
+@test "invoke run-tests with build_image_version" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_version version --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.build-image-version=version" ]]
+}
+
+@test "invoke run-tests with build_image_version missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_version --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.build-image-version"* ]]
+}
+
+@test "invoke run-tests with build_image_version empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --build_image_version "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.build-image-version"* ]]
 }
 
 @test "invoke run-tests with build_s2i_image_tag" {

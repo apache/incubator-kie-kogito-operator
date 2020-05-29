@@ -30,13 +30,16 @@ import (
 )
 
 const (
-	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogio Service Runtime
+	// BuildS2INameSuffix is the suffix added to the build s2i builds for the Kogito Service Runtime
 	BuildS2INameSuffix           = "-builder"
 	nativeBuildEnvVarKey         = "NATIVE"
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
 	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
-	mavenDownloadOutputEnvVar    = "MAVEN_DOWNLOAD_OUTPUT"
+	mavenGroupIdEnvVar           = "PROJECT_GROUP_ID"
+	mavenArtifactIdEnvVar        = "PROJECT_ARTIFACT_ID"
+	mavenArtifactVersionEnvVar   = "PROJECT_VERSION"
+  mavenDownloadOutputEnvVar    = "MAVEN_DOWNLOAD_OUTPUT"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -125,6 +128,22 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 
 	// if user has provided a file, binary build should be used instead.
 	if buildFromAsset {
+
+		if len(kogitoApp.Spec.Build.Artifact.GroupId) > 0 {
+			log.Debugf("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupId)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.GroupId})
+		}
+
+		if len(kogitoApp.Spec.Build.Artifact.ArtifactId) > 0 {
+			log.Debugf("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactId)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.ArtifactId})
+		}
+
+		if len(kogitoApp.Spec.Build.Artifact.Version) > 0 {
+			log.Debugf("Setting final generated artifact version %s", kogitoApp.Spec.Build.Artifact.Version)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactVersionEnvVar, Value: kogitoApp.Spec.Build.Artifact.Version})
+		}
+
 		buildConfig.Spec.Source.Type = buildv1.BuildSourceBinary
 		// The comparator hits reconciliation if this are not set to empty values. TODO: fix on the operator-utils project
 		buildConfig.Spec.Source.Binary = &buildv1.BinaryBuildSource{AsFile: ""}

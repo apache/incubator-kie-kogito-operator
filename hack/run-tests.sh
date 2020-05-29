@@ -57,18 +57,23 @@ function usage(){
   printf "\n--cli_path {PATH}\n\tPath to built CLI to test. Default is local built one."
 
   # runtime
-  printf "\n--services_image_version {VERSION}\n\tSet the services image version."
-  printf "\n--services_image_namespace {NAMESPACE}\n\tSet the services image namespace."
+
   printf "\n--services_image_registry {REGISTRY}\n\tSet the services image registry."
+  printf "\n--services_image_namespace {NAMESPACE}\n\tSet the services image namespace."
+  printf "\n--services_image_name_suffix {NAMESPACE}\n\tSet the build image name suffix to append to usual image names."
+  printf "\n--services_image_version {VERSION}\n\tSet the services image version."
   printf "\n--data_index_image_tag {IMAGE_TAG}\n\tSet the Kogito Data Index image tag ('services_image_version' is ignored)"
   printf "\n--jobs_service_image_tag {IMAGE_TAG}\n\tSet the Kogito Jobs Service image tag ('services_image_version' is ignored)"
   printf "\n--management_console_image_tag {IMAGE_TAG}\n\tSet the Kogito Management Console image tag ('services_image_version' is ignored)"
+  printf "\n--runtime_application_image_registry {REGISTRY}\n\tSet the registry for built runtime applications."
+  printf "\n--runtime_application_image_namespace {NAMESPACE}\n\tSet the namespace for built runtime applications."
 
   # build
   printf "\n--maven_mirror {URI}\n\tMaven mirror url to be used when building app in the tests."
-  printf "\n--build_image_version {VERSION}\n\tSet the build image version."
-  printf "\n--build_image_namespace {NAMESPACE}\n\tSet the build image namespace."
   printf "\n--build_image_registry {REGISTRY}\n\tSet the build image registry."
+  printf "\n--build_image_namespace {NAMESPACE}\n\tSet the build image namespace."
+  printf "\n--build_image_name_suffix {NAMESPACE}\n\tSet the build image name suffix to append to usual image names."
+  printf "\n--build_image_version {VERSION}\n\tSet the build image version."
   printf "\n--build_image_tag {TAG}\n\tSet the build image full tag."
   printf "\n--build_s2i_image_tag {TAG}\n\tSet the S2I build image full tag."
   printf "\n--build_runtime_image_tag {NAME}\n\tSet the Runtime build image full tag."
@@ -216,17 +221,21 @@ case $1 in
   ;;
 
   # runtime
-  --services_image_version)
+  --services_image_registry)
     shift
-    if addParamKeyValueIfAccepted "--tests.services-image-version" ${1}; then shift; fi
+    if addParamKeyValueIfAccepted "--tests.services-image-registry" ${1}; then shift; fi
   ;;
   --services_image_namespace)
     shift
     if addParamKeyValueIfAccepted "--tests.services-image-namespace" ${1}; then shift; fi
   ;;
-  --services_image_registry)
+  --services_image_name_suffix)
     shift
-    if addParamKeyValueIfAccepted "--tests.services-image-registry" ${1}; then shift; fi
+    if addParamKeyValueIfAccepted "--tests.services-image-name-suffix" ${1}; then shift; fi
+  ;;
+  --services_image_version)
+    shift
+    if addParamKeyValueIfAccepted "--tests.services-image-version" ${1}; then shift; fi
   ;;
   --data_index_image_tag)
     shift
@@ -240,23 +249,35 @@ case $1 in
     shift
     if addParamKeyValueIfAccepted "--tests.management-console-image-tag" ${1}; then shift; fi
   ;;
+  --runtime_application_image_registry)
+    shift
+    if addParamKeyValueIfAccepted "--tests.runtime-application-image-registry" ${1}; then shift; fi
+  ;;
+  --runtime_application_image_namespace)
+    shift
+    if addParamKeyValueIfAccepted "--tests.runtime-application-image-namespace" ${1}; then shift; fi
+  ;;
 
   # build
   --maven_mirror)
     shift
     if addParamKeyValueIfAccepted "--tests.maven-mirror-url" ${1}; then shift; fi
   ;;
-  --build_image_version)
+  --build_image_registry)
     shift
-    if addParamKeyValueIfAccepted "--tests.build-image-version" ${1}; then shift; fi
+    if addParamKeyValueIfAccepted "--tests.build-image-registry" ${1}; then shift; fi
   ;;
   --build_image_namespace)
     shift
     if addParamKeyValueIfAccepted "--tests.build-image-namespace" ${1}; then shift; fi
   ;;
-  --build_image_registry)
+  --build_image_name_suffix)
     shift
-    if addParamKeyValueIfAccepted "--tests.build-image-registry" ${1}; then shift; fi
+    if addParamKeyValueIfAccepted "--tests.build-image-name-suffix" ${1}; then shift; fi
+  ;;
+  --build_image_version)
+    shift
+    if addParamKeyValueIfAccepted "--tests.build-image-version" ${1}; then shift; fi
   ;;
   --build_s2i_image_tag)
     shift

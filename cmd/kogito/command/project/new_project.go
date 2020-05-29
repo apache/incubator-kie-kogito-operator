@@ -16,6 +16,7 @@ package project
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
@@ -62,13 +63,18 @@ func (i *newProjectCommand) RegisterHook() {
 				}
 				i.flags.project = args[0]
 			}
+			if err := common.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
 }
 
 func (i *newProjectCommand) InitHook() {
-	i.flags = projectFlags{}
+	i.flags = projectFlags{
+		OperatorFlags: common.OperatorFlags{},
+	}
 	i.Parent.AddCommand(i.command)
 	addProjectFlagsToCommand(i.command, &i.flags)
 }

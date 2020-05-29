@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package infrastructure
+package services
 
 import (
-	"testing"
-
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func Test_SetInfinispanVariables(t *testing.T) {
 	type args struct {
+		runtime              v1alpha1.RuntimeType
 		connectionProperties v1alpha1.InfinispanConnectionProperties
 		secret               *corev1.Secret
 	}
@@ -42,6 +42,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 			},
 			[]corev1.EnvVar{
 				{Name: infinispanEnvKeyUseAuth, Value: "false"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
 			},
 		},
 		{
@@ -54,7 +55,8 @@ func Test_SetInfinispanVariables(t *testing.T) {
 			},
 			[]corev1.EnvVar{
 				{Name: infinispanEnvKeyUseAuth, Value: "false"},
-				{Name: infinispanEnvKeyQuarkusServerList, Value: "custom-uri:123"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanServerList], Value: "custom-uri:123"},
 				{Name: infinispanEnvKeyServerList, Value: "custom-uri:123"},
 			},
 		},
@@ -68,7 +70,9 @@ func Test_SetInfinispanVariables(t *testing.T) {
 			},
 			[]corev1.EnvVar{
 				{Name: infinispanEnvKeyUseAuth, Value: "false"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
 				{Name: infinispanEnvKeyAuthRealm, Value: "custom-realm"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanAuthRealm], Value: "custom-realm"},
 			},
 		},
 		{
@@ -81,7 +85,9 @@ func Test_SetInfinispanVariables(t *testing.T) {
 			},
 			[]corev1.EnvVar{
 				{Name: infinispanEnvKeyUseAuth, Value: "false"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
 				{Name: infinispanEnvKeySasl, Value: "DIGEST-MD5"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanSaslMechanism], Value: "DIGEST-MD5"},
 			},
 		},
 		{
@@ -98,8 +104,8 @@ func Test_SetInfinispanVariables(t *testing.T) {
 						Namespace: t.Name(),
 					},
 					StringData: map[string]string{
-						InfinispanSecretUsernameKey: "user1",
-						InfinispanSecretPasswordKey: "pass1",
+						infrastructure.InfinispanSecretUsernameKey: "user1",
+						infrastructure.InfinispanSecretPasswordKey: "pass1",
 					},
 				},
 			},
@@ -109,7 +115,16 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  InfinispanSecretUsernameKey,
+							Key:                  infrastructure.InfinispanSecretUsernameKey,
+						},
+					},
+				},
+				{
+					Name: envVarInfinispanQuarkus[envVarInfinispanUser],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  infrastructure.InfinispanSecretUsernameKey,
 						},
 					},
 				},
@@ -118,13 +133,24 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  InfinispanSecretPasswordKey,
+							Key:                  infrastructure.InfinispanSecretPasswordKey,
+						},
+					},
+				},
+				{
+					Name: envVarInfinispanQuarkus[envVarInfinispanPassword],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  infrastructure.InfinispanSecretPasswordKey,
 						},
 					},
 				},
 				{Name: infinispanEnvKeyCredSecret, Value: "custom-secret"},
 				{Name: infinispanEnvKeyUseAuth, Value: "true"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "true"},
 				{Name: infinispanEnvKeySasl, Value: string(v1alpha1.SASLPlain)},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanSaslMechanism], Value: string(v1alpha1.SASLPlain)},
 			},
 		},
 		{
@@ -159,7 +185,25 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{
+					Name: envVarInfinispanQuarkus[envVarInfinispanUser],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  "custom-username",
+						},
+					},
+				},
+				{
 					Name: infinispanEnvKeyPassword,
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  "custom-password",
+						},
+					},
+				},
+				{
+					Name: envVarInfinispanQuarkus[envVarInfinispanPassword],
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
@@ -169,7 +213,9 @@ func Test_SetInfinispanVariables(t *testing.T) {
 				},
 				{Name: infinispanEnvKeyCredSecret, Value: "custom-secret"},
 				{Name: infinispanEnvKeyUseAuth, Value: "true"},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "true"},
 				{Name: infinispanEnvKeySasl, Value: string(v1alpha1.SASLPlain)},
+				{Name: envVarInfinispanQuarkus[envVarInfinispanSaslMechanism], Value: string(v1alpha1.SASLPlain)},
 			},
 		},
 	}
@@ -177,7 +223,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			container := &corev1.Container{}
 
-			SetInfinispanVariables(tt.args.connectionProperties, tt.args.secret, container)
+			setInfinispanVariables(tt.args.runtime, tt.args.connectionProperties, tt.args.secret, container)
 
 			assert.Equal(t, len(tt.expectedEnvVars), len(container.Env))
 			for _, expectedEnvVar := range tt.expectedEnvVars {

@@ -78,6 +78,11 @@ func GetPodsByDeploymentConfig(namespace string, dcName string) (*corev1.PodList
 	return GetPodsWithLabels(namespace, map[string]string{"deploymentconfig": dcName})
 }
 
+// GetPodsByDeploymentConfigAndVersion retrieves pods with a deploymentconfig label set to <dcName> and version <version>
+func GetPodsByDeploymentConfigAndVersion(namespace string, dcName string, version int64) (*corev1.PodList, error) {
+	return GetPodsWithLabels(namespace, map[string]string{"deploymentconfig": dcName, "deployment": fmt.Sprintf("%s-%d", dcName, version)})
+}
+
 // GetPodsWithLabels retrieves pods based on label name and value
 func GetPodsWithLabels(namespace string, labels map[string]string) (*corev1.PodList, error) {
 	pods := &corev1.PodList{}
@@ -110,6 +115,21 @@ func IsPodStatusConditionReady(pod *corev1.Pod) bool {
 		}
 	}
 	return false
+}
+
+// WaitForDeploymentRunning waits for a deployment to be running, with a specific number of pod
+func WaitForDeploymentRunning(namespace, dName string, podNb int, timeoutInMin int) error {
+	return WaitForOnOpenshift(namespace, fmt.Sprintf("Deployment %s running", dName), timeoutInMin,
+		func() (bool, error) {
+			if dc, err := GetDeployment(namespace, dName); err != nil {
+				return false, err
+			} else if dc == nil {
+				return false, nil
+			} else {
+				GetLogger(namespace).Debugf("Deployment has %d available replicas\n", dc.Status.AvailableReplicas)
+				return dc.Status.AvailableReplicas == int32(podNb), nil
+			}
+		})
 }
 
 // GetDeployment retrieves deployment with specified name in namespace

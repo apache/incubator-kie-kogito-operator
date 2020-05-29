@@ -16,6 +16,13 @@ package deploy
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	kogitoerror "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/error"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
@@ -28,13 +35,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	buildv1 "github.com/openshift/api/build/v1"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/http"
-	"net/url"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -47,25 +49,28 @@ var (
 
 type deployFlags struct {
 	CommonFlags
-	name                      string
-	runtime                   string
-	serviceLabels             []string
-	incrementalBuild          bool
-	buildEnv                  []string
-	reference                 string
-	contextDir                string
-	source                    string
-	imageS2I                  string
-	imageRuntime              string
-	native                    bool
-	buildLimits               []string
-	buildRequests             []string
-	imageVersion              string
-	mavenMirrorURL            string
-	enableIstio               bool
-	enablePersistence         bool
-	enableEvents              bool
-	enableMavenDownloadOutput bool
+	name              string
+	runtime           string
+	serviceLabels     []string
+	incrementalBuild  bool
+	buildEnv          []string
+	reference         string
+	contextDir        string
+	source            string
+	imageS2I          string
+	imageRuntime      string
+	native            bool
+	buildLimits       []string
+	buildRequests     []string
+	imageVersion      string
+	mavenMirrorURL    string
+	enableIstio       bool
+	enablePersistence bool
+	enableEvents      bool
+	projectGroupId    string
+	projectArtifactId string
+	projectVersion    string
+  enableMavenDownloadOutput bool
 }
 
 type deployCommand struct {
@@ -99,7 +104,6 @@ func (i *deployCommand) RegisterHook() {
 			
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
-
 	Please note that this command requires the Kogito Operator installed in the cluster.
 	For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#kogito-operator-installation.
 		`,
@@ -110,6 +114,9 @@ func (i *deployCommand) RegisterHook() {
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 2 {
 				return fmt.Errorf("requires 1 arg, received %v", len(args))
+			}
+			if len(args) == 0 {
+				return fmt.Errorf("the service requires a name ")
 			}
 			if err := util.ParseStringsForKeyPair(i.flags.buildEnv); err != nil {
 				return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", i.flags.buildEnv)
@@ -141,9 +148,14 @@ func (i *deployCommand) RegisterHook() {
 }
 
 func (i *deployCommand) InitHook() {
-	i.flags = deployFlags{CommonFlags: CommonFlags{}}
+	i.flags = deployFlags{
+		CommonFlags: CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
+	}
 	i.Parent.AddCommand(i.command)
 	AddDeployFlags(i.command, &i.flags.CommonFlags)
+
 	i.command.Flags().StringVarP(&i.flags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	i.command.Flags().StringVarP(&i.flags.reference, "branch", "b", "", "Git branch to use in the git repository")
 	i.command.Flags().StringVarP(&i.flags.contextDir, "context-dir", "c", "", "Context/subdirectory where the code is located, relatively to repository root")
@@ -160,7 +172,10 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().StringVar(&i.flags.imageVersion, "image-version", "", "Image version for standard Kogito build images. Ignored if a custom image is set for image-s2i or image-runtime.")
 	i.command.Flags().StringVar(&i.flags.mavenMirrorURL, "maven-mirror-url", "", "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed, e.g: https://my.internal.nexus/content/group/public")
 	i.command.Flags().BoolVar(&i.flags.enableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
-	i.command.Flags().BoolVar(&i.flags.enableMavenDownloadOutput, "enable-maven-download-output", false, "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false")
+	i.command.Flags().StringVar(&i.flags.projectGroupId, "project-group-id", "", "Indicates the unique identifier of the organization or group that created the project, e.g: 'com.company'")
+	i.command.Flags().StringVar(&i.flags.projectArtifactId, "project-artifact-id", "", "Indicates the unique base name of the primary artifact being generated, e.g: 'project'")
+	i.command.Flags().StringVar(&i.flags.projectVersion, "project-version", "", "Indicates the version of the artifact generated by the project, e.g: '1.0-SNAPSHOT'")
+  i.command.Flags().BoolVar(&i.flags.enableMavenDownloadOutput, "enable-maven-download-output", false, "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false")
 }
 
 func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
@@ -206,7 +221,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client); err != nil {
+	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.Project, "", i.Client, shared.KogitoChannelType(i.flags.Channel)); err != nil {
 		return err
 	} else if !installed {
 		return nil
@@ -246,13 +261,18 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 					Limits:   shared.FromStringArrayToResources(i.flags.buildLimits),
 					Requests: shared.FromStringArrayToResources(i.flags.buildRequests),
 				},
-				Incremental:               i.flags.incrementalBuild,
-				ImageS2ITag:               i.flags.imageS2I,
-				ImageRuntimeTag:           i.flags.imageRuntime,
-				ImageVersion:              i.flags.imageVersion,
-				Native:                    i.flags.native,
-				MavenMirrorURL:            i.flags.mavenMirrorURL,
-				EnableMavenDownloadOutput: i.flags.enableMavenDownloadOutput,
+				Incremental:     i.flags.incrementalBuild,
+				ImageS2ITag:     i.flags.imageS2I,
+				ImageRuntimeTag: i.flags.imageRuntime,
+				ImageVersion:    i.flags.imageVersion,
+				Native:          i.flags.native,
+				MavenMirrorURL:  i.flags.mavenMirrorURL,
+				Artifact: v1alpha1.Artifact{
+					GroupId:    i.flags.projectGroupId,
+					ArtifactId: i.flags.projectArtifactId,
+					Version:    i.flags.projectVersion,
+				},
+        EnableMavenDownloadOutput: i.flags.enableMavenDownloadOutput,
 			},
 			Service: v1alpha1.KogitoAppServiceObject{
 				Labels: util.FromStringsKeyPairToMap(i.flags.serviceLabels),

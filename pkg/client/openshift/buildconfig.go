@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	checkBcRetries         = 4
+	checkBcRetries         = 30
 	checkBcRetriesInterval = 2 * time.Second
 )
 

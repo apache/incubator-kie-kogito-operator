@@ -17,14 +17,11 @@ package shared
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"reflect"
-
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var defaultReplicas = int32(1)
@@ -58,7 +55,7 @@ type ServicesInstallation interface {
 	// Depends on the Operator, install it first.
 	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
 	// InstallOperator installs the Operator.
-	InstallOperator(warnIfInstalled bool, operatorImage string, force bool) ServicesInstallation
+	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation
 	// InstallInfinispan install an infinispan instance.
 	InstallInfinispan() ServicesInstallation
 	// InstallKeycloak install a keycloak instance.
@@ -66,7 +63,7 @@ type ServicesInstallation interface {
 	// InstallKafka install a kafka instance.
 	InstallKafka() ServicesInstallation
 	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
-	SilentlyInstallOperatorIfNotExists() ServicesInstallation
+	SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation
 	// WarnIfDependenciesNotReady checks if the given dependencies are installed, warn if they are not ready
 	WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation
 	// GetError return any given error during the installation process
@@ -105,7 +102,7 @@ func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool
 
 func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(dataIndex, s.getDefaultDataIndex,
+		s.err = s.installKogitoService(dataIndex,
 			serviceInfoMessages{
 				errCreating:                  message.DataIndexErrCreating,
 				installed:                    message.DataIndexSuccessfulInstalled,
@@ -118,7 +115,7 @@ func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIn
 
 func (s *servicesInstallation) InstallJobsService(jobsService *v1alpha1.KogitoJobsService) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(jobsService, s.getDefaultJobsService,
+		s.err = s.installKogitoService(jobsService,
 			serviceInfoMessages{
 				errCreating:                  message.JobsServiceErrCreating,
 				installed:                    message.JobsServiceSuccessfulInstalled,
@@ -131,7 +128,7 @@ func (s *servicesInstallation) InstallJobsService(jobsService *v1alpha1.KogitoJo
 
 func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(mgmtConsole, s.getDefaultMgmtConsole,
+		s.err = s.installKogitoService(mgmtConsole,
 			serviceInfoMessages{
 				errCreating:                  message.MgmtConsoleErrCreating,
 				installed:                    message.MgmtConsoleSuccessfulInstalled,
@@ -142,15 +139,15 @@ func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMg
 	return s
 }
 
-func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool) ServicesInstallation {
+func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation {
 	if s.err == nil && !s.operatorInstalled {
-		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force)
+		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force, ch)
 	}
 	return s
 }
 
-func (s servicesInstallation) SilentlyInstallOperatorIfNotExists() ServicesInstallation {
-	return s.InstallOperator(false, "", false)
+func (s servicesInstallation) SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation {
+	return s.InstallOperator(false, "", false, ch)
 }
 
 func (s *servicesInstallation) InstallInfinispan() ServicesInstallation {
@@ -178,15 +175,12 @@ func (s *servicesInstallation) GetError() error {
 	return s.err
 }
 
-func (s *servicesInstallation) installKogitoService(service v1alpha1.KogitoService, getService func() v1alpha1.KogitoService, messages serviceInfoMessages) error {
+func (s *servicesInstallation) installKogitoService(service v1alpha1.KogitoService, messages serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
 		if !s.operatorInstalled { // depends on operator
 			log.Info(messages.notInstalledNoKogitoOperator)
 			return nil
-		}
-		if service == nil || reflect.ValueOf(service).IsNil() {
-			service = getService()
 		}
 		if err := kubernetes.ResourceC(s.client).Create(service); err != nil {
 			return fmt.Errorf(messages.errCreating, err)
@@ -195,39 +189,4 @@ func (s *servicesInstallation) installKogitoService(service v1alpha1.KogitoServi
 		log.Infof(messages.checkStatus, service.GetName(), s.namespace)
 	}
 	return nil
-}
-
-// getDefaultDataIndex gets the default Data Index instance
-func (s *servicesInstallation) getDefaultDataIndex() v1alpha1.KogitoService {
-	return &v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: s.namespace},
-		Spec: v1alpha1.KogitoDataIndexSpec{
-			KogitoServiceSpec: defaultServiceSpec,
-			InfinispanMeta:    v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true}},
-			KafkaMeta:         v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true}},
-		},
-		Status: v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: defaultServiceStatus},
-	}
-}
-
-// getDefaultJobsService gets the default Jobs Service instance
-func (s *servicesInstallation) getDefaultJobsService() v1alpha1.KogitoService {
-	return &v1alpha1.KogitoJobsService{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: s.namespace},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
-			KogitoServiceSpec: defaultServiceSpec,
-			InfinispanMeta:    v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: false}},
-			KafkaMeta:         v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: false}},
-		},
-		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: defaultServiceStatus},
-	}
-}
-
-// getDefaultMgmtConsole gets the default Management Console instance
-func (s *servicesInstallation) getDefaultMgmtConsole() v1alpha1.KogitoService {
-	return &v1alpha1.KogitoMgmtConsole{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: s.namespace},
-		Spec:       v1alpha1.KogitoMgmtConsoleSpec{KogitoServiceSpec: defaultServiceSpec},
-		Status:     v1alpha1.KogitoMgmtConsoleStatus{KogitoServiceStatus: defaultServiceStatus},
-	}
 }

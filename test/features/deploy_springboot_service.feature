@@ -16,6 +16,7 @@ Feature: Deploy spring boot service
 #####
 
   @persistence
+  @infinispan
   Scenario: Deploy process-springboot-example service with persistence
     Given Kogito Operator is deployed with Infinispan operator
     And Deploy springboot example service "process-springboot-example" with configuration:
@@ -62,6 +63,8 @@ Feature: Deploy spring boot service
 #####
 
   @events
+  @kafka
+  @infinispan
   Scenario: Data Index retrieves Spring Boot process' events
     Given Kogito Operator is deployed with Infinispan and Kafka operators
     And Install Kogito Data Index with 1 replicas
@@ -82,6 +85,8 @@ Feature: Deploy spring boot service
       """
 
     Then GraphQL request on Data Index service returns ProcessInstances processName "orders" within 2 minutes
+
+#####
 
   @usertasks
   Scenario: Deploy process-springboot-example service to complete user tasks
@@ -109,3 +114,61 @@ Feature: Deploy spring boot service
 
     Then Service "process-springboot-example" contains 0 instance of process with name "orders"
     And Service "process-springboot-example" contains 0 instance of process with name "orderItems"
+
+#####
+
+  @persistence
+  @infinispan
+  Scenario: Deploy process-springboot-example service with persistence using external Infinispan
+    Given Kogito Operator is deployed with Infinispan operator
+    And Infinispan instance "external-infinispan" is deployed with configuration:
+      | username | developer |
+      | password | mypass    |
+    And Deploy springboot example service "process-springboot-example" with configuration:
+      | infinispan | username    | developer                 |
+      | infinispan | password    | mypass                    |
+      | infinispan | uri         | external-infinispan:11222 |
+    And Kogito application "process-springboot-example" has 1 pods running within 10 minutes
+    And Start "orders" process on service "process-springboot-example" within 3 minutes with body:
+      """json
+      {
+        "approver" : "john", 
+        "order" : {
+          "orderNumber" : "12345", 
+          "shipped" : false
+        }
+      }
+      """
+    And Service "process-springboot-example" contains 1 instances of process with name "orders"
+
+    When Scale Kogito application "process-springboot-example" to 0 pods within 2 minutes
+    And Scale Kogito application "process-springboot-example" to 1 pods within 2 minutes
+
+    Then Service "process-springboot-example" contains 1 instances of process with name "orders" within 2 minutes
+
+#####
+
+  @events
+  @kafka
+  @infinispan
+  Scenario: Data Index retrieves SpringBoot process events using external Kafka
+    Given Kogito Operator is deployed with Infinispan and Kafka operators
+    And Kafka instance "external-kafka" is deployed
+    And Install Kogito Data Index with 1 replicas with configuration:
+      | kafka | externalURI | external-kafka-kafka-bootstrap:9092 |
+    And Deploy springboot example service "process-springboot-example" with configuration:
+      | kafka | externalURI | external-kafka-kafka-bootstrap:9092 |
+    And Kogito application "process-springboot-example" has 1 pods running within 10 minutes
+
+    When Start "orders" process on service "process-springboot-example" within 3 minutes with body:
+      """json
+      {
+        "approver" : "john", 
+        "order" : {
+          "orderNumber" : "12345", 
+          "shipped" : false
+        }
+      }
+      """
+
+    Then GraphQL request on Data Index service returns ProcessInstances processName "orders" within 2 minutes

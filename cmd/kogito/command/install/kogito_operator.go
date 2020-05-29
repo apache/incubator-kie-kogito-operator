@@ -16,12 +16,14 @@ package install
 
 import (
 	"errors"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 )
 
 type installKogitoOperatorFlags struct {
+	common.OperatorFlags
 	namespace          string
 	image              string
 	installDataIndex   bool
@@ -29,6 +31,8 @@ type installKogitoOperatorFlags struct {
 	installMgmtConsole bool
 	installAllServices bool
 	force              bool
+	enablePersistence  bool
+	enableEvents       bool
 }
 
 type installKogitoOperatorCommand struct {
@@ -64,14 +68,21 @@ func (i *installKogitoOperatorCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
+			if err := common.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
 }
 
 func (i *installKogitoOperatorCommand) InitHook() {
-	i.flags = installKogitoOperatorFlags{}
+	i.flags = installKogitoOperatorFlags{
+		OperatorFlags: common.OperatorFlags{},
+	}
 	i.Parent.AddCommand(i.command)
+	common.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
+
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
 	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
@@ -79,6 +90,8 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().BoolVar(&i.flags.installMgmtConsole, "install-mgmt-console", false, "Installs the default instance of Management Console being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVar(&i.flags.installAllServices, "install-all-services", false, "Installs the default instance of every Kogito Support services (Data Index, Jobs Service, etc.) being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
+	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
+	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -94,15 +107,18 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 		return err
 	}
 
-	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force)
+	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force, shared.KogitoChannelType(i.flags.Channel))
 	if i.flags.installDataIndex || i.flags.installAllServices {
-		install.InstallDataIndex(nil)
+		dataIndex := shared.GetDefaultDataIndex(i.flags.namespace)
+		install.InstallDataIndex(&dataIndex)
 	}
 	if i.flags.installJobsService || i.flags.installAllServices {
-		install.InstallJobsService(nil)
+		jobsService := shared.GetDefaultJobsService(i.flags.namespace, i.flags.enablePersistence, i.flags.enableEvents)
+		install.InstallJobsService(&jobsService)
 	}
 	if i.flags.installMgmtConsole || i.flags.installAllServices {
-		install.InstallMgmtConsole(nil)
+		mgmtConsole := shared.GetDefaultMgmtConsole(i.flags.namespace)
+		install.InstallMgmtConsole(&mgmtConsole)
 	}
 	return install.GetError()
 }

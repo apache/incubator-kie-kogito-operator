@@ -36,34 +36,6 @@ import (
 
 var log = logger.GetLogger("mgmtconsole_controller")
 
-var watchedObjects = []framework.WatchedObjects{
-	{
-		GroupVersion: routev1.GroupVersion,
-		AddToScheme:  routev1.Install,
-		Objects:      []runtime.Object{&routev1.Route{}},
-	},
-	{
-		GroupVersion: imagev1.GroupVersion,
-		AddToScheme:  imagev1.Install,
-		Objects:      []runtime.Object{&imagev1.ImageStream{}},
-	},
-	{
-		Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}},
-	},
-	{
-		GroupVersion: routev1.GroupVersion,
-		AddToScheme:  routev1.Install,
-		Objects:      []runtime.Object{&routev1.Route{}},
-		Owner:        &appv1alpha1.KogitoDataIndex{},
-	},
-	{
-		Objects: []runtime.Object{&corev1.Service{}},
-		Owner:   &appv1alpha1.KogitoDataIndex{},
-	},
-}
-
-var controllerWatcher framework.ControllerWatcher
-
 // Add creates a new KogitoMgmtConsole Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -90,7 +62,32 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	controllerWatcher = framework.NewControllerWatcher(r.(*ReconcileKogitoMgmtConsole).client, mgr, c, &appv1alpha1.KogitoMgmtConsole{})
+	watchedObjects := []framework.WatchedObjects{
+		{
+			GroupVersion: routev1.GroupVersion,
+			AddToScheme:  routev1.Install,
+			Objects:      []runtime.Object{&routev1.Route{}},
+		},
+		{
+			GroupVersion: imagev1.GroupVersion,
+			AddToScheme:  imagev1.Install,
+			Objects:      []runtime.Object{&imagev1.ImageStream{}},
+		},
+		{
+			Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}},
+		},
+		{
+			GroupVersion: routev1.GroupVersion,
+			AddToScheme:  routev1.Install,
+			Objects:      []runtime.Object{&routev1.Route{}},
+			Owner:        &appv1alpha1.KogitoDataIndex{},
+		},
+		{
+			Objects: []runtime.Object{&corev1.Service{}},
+			Owner:   &appv1alpha1.KogitoDataIndex{},
+		},
+	}
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoMgmtConsole).client, mgr, c, &appv1alpha1.KogitoMgmtConsole{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}

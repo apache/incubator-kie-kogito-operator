@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
@@ -134,9 +135,11 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 
 func (i *installDataIndexCommand) InitHook() {
 	i.flags = installDataIndexFlags{
-		CommonFlags: deploy.CommonFlags{},
-		kafka:       v1alpha1.KafkaConnectionProperties{},
-		infinispan:  v1alpha1.InfinispanConnectionProperties{},
+		CommonFlags: deploy.CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
+		kafka:      v1alpha1.KafkaConnectionProperties{},
+		infinispan: v1alpha1.InfinispanConnectionProperties{},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
@@ -213,7 +216,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		SilentlyInstallOperatorIfNotExists().
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		WarnIfDependenciesNotReady(i.flags.infinispan.UseKogitoInfra, i.flags.kafka.UseKogitoInfra).
 		InstallDataIndex(&kogitoDataIndex).
 		GetError()

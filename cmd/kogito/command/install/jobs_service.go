@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
@@ -141,8 +142,10 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 
 func (i *installJobsServiceCommand) InitHook() {
 	i.flags = installJobsServiceFlags{
-		CommonFlags: deploy.CommonFlags{},
-		infinispan:  v1alpha1.InfinispanConnectionProperties{},
+		CommonFlags: deploy.CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
+		infinispan: v1alpha1.InfinispanConnectionProperties{},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
@@ -225,7 +228,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		SilentlyInstallOperatorIfNotExists().
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		WarnIfDependenciesNotReady(i.flags.infinispan.UseKogitoInfra, i.flags.kafka.UseKogitoInfra).
 		InstallJobsService(&kogitoJobsService).
 		GetError()

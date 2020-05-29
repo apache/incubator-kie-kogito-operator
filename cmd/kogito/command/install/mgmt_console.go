@@ -15,6 +15,7 @@
 package install
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
@@ -83,7 +84,9 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 
 func (i *installMgmtConsoleCommand) InitHook() {
 	i.flags = installMgmtConsoleFlags{
-		CommonFlags: deploy.CommonFlags{},
+		CommonFlags: deploy.CommonFlags{
+			OperatorFlags: common.OperatorFlags{},
+		},
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
@@ -119,7 +122,7 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		SilentlyInstallOperatorIfNotExists().
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		InstallMgmtConsole(&kogitoMgmtConsole).
 		GetError()
 }

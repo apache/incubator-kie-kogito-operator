@@ -62,6 +62,23 @@ spec:
                   description: If set to true will print the logs for downloading/uploading
                     of maven dependencies. Defaults to false
                   type: boolean
+                artifact:
+                  description: Artifact contains override information for building
+                    the Maven artifact
+                  properties:
+                    artifactId:
+                      description: Indicates the unique base name of the primary artifact
+                        being generated
+                      type: string
+                    groupId:
+                      description: Indicates the unique identifier of the organization
+                        or group that created the project
+                      type: string
+                    version:
+                      description: Indicates the version of the artifact generated
+                        by the project.
+                      type: string
+                  type: object
                 envs:
                   description: Environment variables used during build time
                   items:
@@ -186,13 +203,13 @@ spec:
                   description: Custom image used by the source to image process to
                     build the final Kogito Service image. Takes precedence over ImageVersion
                     attribute.
-                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
+                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
                   type: string
                 imageS2ITag:
                   description: Custom image used by the source to image process to
                     build the Kogito Service binaries. Takes precedence over ImageVersion
                     attribute.
-                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
+                  pattern: (?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/([a-z0-9-]+)/([a-z0-9-]+):(([a-z0-9\.-]+))
                   type: string
                 imageVersion:
                   description: 'Image version for the Kogito official images used
@@ -243,6 +260,12 @@ spec:
                         type: string
                     type: object
                   type: array
+              type: object
+            deploymentLabels:
+              additionalProperties:
+                type: string
+              description: Additional labels to be added to the Deployment and Pods
+                managed by the operator
               type: object
             enableEvents:
               description: 'Set this property to true to tell the operator to deploy
@@ -423,6 +446,12 @@ spec:
                     type: string
                   description: Labels for the application service
                   type: object
+              type: object
+            serviceLabels:
+              additionalProperties:
+                type: string
+              description: Additional labels to be added to the Service managed by
+                the operator
               type: object
           required:
           - build

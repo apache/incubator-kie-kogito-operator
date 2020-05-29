@@ -43,7 +43,7 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
-	imageHandler := newImageHandler(instance, infrastructure.DefaultJobsServiceImageName, cli)
+	imageHandler := newImageHandler(instance, infrastructure.DefaultJobsServiceImageName, "", cli)
 	image, err := imageHandler.resolveImage()
 	assert.NoError(t, err)
 	// since we have imagestream and tag, we should see them here
@@ -68,7 +68,7 @@ func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T)
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
-	imageHandler := newImageHandler(instance, infrastructure.DefaultJobsServiceImageName, cli)
+	imageHandler := newImageHandler(instance, infrastructure.DefaultJobsServiceImageName, "", cli)
 	image, err := imageHandler.resolveImage()
 	assert.NoError(t, err)
 	// on OpenShift and no ImageStream? Bye!
@@ -93,7 +93,7 @@ func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
-	imageHandler := newImageHandler(instance, infrastructure.DefaultJobsServiceImageName, cli)
+	imageHandler := newImageHandler(instance, infrastructure.DefaultJobsServiceImageName, "", cli)
 	image, err := imageHandler.resolveImage()
 	assert.NoError(t, err)
 	// we should always have an image available on Kubernetes
