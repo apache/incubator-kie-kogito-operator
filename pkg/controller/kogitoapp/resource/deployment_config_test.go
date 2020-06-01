@@ -368,5 +368,5 @@ func Test_namespaceEnvVarCorrectSet(t *testing.T) {
 	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, nil, "")
 	assert.NoError(t, err)
 	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, envVarNamespace))
-	assert.Equal(t, kogitoApp.Namespace, framework.GetEnvVarFromContainer(envVarNamespace, dc.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, kogitoApp.Namespace, framework.GetEnvVarFromContainer(envVarNamespace, &dc.Spec.Template.Spec.Containers[0]))
 }

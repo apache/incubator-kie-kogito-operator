@@ -80,12 +80,6 @@ func TestCompleteCRD(t *testing.T) {
 	}
 }
 
-func deleteNestedMapEntry(object map[string]interface{}, keys ...string) {
-	for index := 0; index < len(keys)-1; index++ {
-		object = object[keys[index]].(map[string]interface{})
-	}
-	delete(object, keys[len(keys)-1])
-}
 
 func getSchema(t *testing.T) validation.Schema {
 	box := packr.New("deploy/crds", "../../../../deploy/crds")

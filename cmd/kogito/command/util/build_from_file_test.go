@@ -38,6 +38,7 @@ func TestProduceTGZfile(t *testing.T) {
 	}
 	for _, file := range files {
 		err := ioutil.WriteFile(tempDir+file, simpleContent, 0755)
+		assert.Nil(t, err, "Error while writing the file")
 		fileInfo, err := os.Stat(tempDir + file)
 		// double check file exists
 		assert.Nil(t, err)
@@ -77,7 +78,7 @@ func TestProduceTGZfile(t *testing.T) {
 	tarHeader := tar.NewReader(gzf)
 
 	var filesFromGzip []string
-	for true {
+	for {
 		header, err := tarHeader.Next()
 		if err == io.EOF {
 			break

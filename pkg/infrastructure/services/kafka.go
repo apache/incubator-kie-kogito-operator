@@ -31,7 +31,7 @@ var quarkusBootstrapEnvVars = []string{"KAFKA_BOOTSTRAP_SERVERS", "QUARKUS_KAFKA
 
 // fromKafkaTopicToQuarkusEnvVar transforms a given Kafka Topic name into a environment variable to be read by Quarkus Kafka client used by Kogito Services
 func fromKafkaTopicToQuarkusEnvVar(topic KafkaTopicDefinition) string {
-	if &topic != nil && len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
+	if len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
 		return fmt.Sprintf(quarkusTopicBootstrapEnvVar, topic.MessagingType, strings.ToUpper(strings.ReplaceAll(topic.TopicName, "-", "_")))
 	}
 	return ""

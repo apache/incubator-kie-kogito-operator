@@ -136,7 +136,9 @@ func configureTestOutput() {
 
 func FeatureContext(s *godog.Suite) {
 	// Create kube client
-	framework.InitKubeClient()
+	if err := framework.InitKubeClient(); err != nil{
+		fmt.Println(err)
+	}
 
 	data := &steps.Data{}
 	data.RegisterAllSteps(s)
@@ -166,13 +168,16 @@ func FeatureContext(s *godog.Suite) {
 }
 
 func deleteNamespaceIfExists(namespace string) {
-	framework.OperateOnNamespaceIfExists(namespace, func(namespace string) error {
+	err := framework.OperateOnNamespaceIfExists(namespace, func(namespace string) error {
 		framework.GetLogger(namespace).Infof("Delete created namespace %s", namespace)
 		if e := framework.DeleteNamespace(namespace); e != nil {
 			return fmt.Errorf("Error while deleting the namespace: %v", e)
 		}
 		return nil
 	})
+	if err != nil{
+		framework.GetLogger(namespace).Errorf("Error while doing operator on namespace: %v", err)
+	}
 }
 
 func matchingFeature(filterTags string, features []*feature) bool {

@@ -183,7 +183,6 @@ func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 		Value: value,
 	}
 	k.Envs = append(k.Envs, env)
-	return
 }
 
 // AddEnvironmentVariableFromSecret adds a new environment variable from the secret under the key
@@ -200,7 +199,6 @@ func (k *KogitoServiceSpec) AddEnvironmentVariableFromSecret(variableName, secre
 		},
 	}
 	k.Envs = append(k.Envs, env)
-	return
 }
 
 // AddResourceRequest adds new resource request. Works also on uninitialized Requests field.

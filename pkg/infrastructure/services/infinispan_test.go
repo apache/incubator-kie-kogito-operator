@@ -223,7 +223,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			container := &corev1.Container{}
 
-			setInfinispanVariables(tt.args.runtime, tt.args.connectionProperties, tt.args.secret, container)
+			setInfinispanVariables(tt.args.runtime, &tt.args.connectionProperties, tt.args.secret, container)
 
 			assert.Equal(t, len(tt.expectedEnvVars), len(container.Env))
 			for _, expectedEnvVar := range tt.expectedEnvVars {

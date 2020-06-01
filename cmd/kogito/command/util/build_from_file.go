@@ -41,7 +41,7 @@ func ProduceTGZfile(resource string) (io.Reader, error) {
 	tarWriter := tar.NewWriter(gzipWriter)
 	defer tarWriter.Close()
 
-	filepath.Walk(resource, func(absoluteFilePath string, fileInfo os.FileInfo, err error) error {
+	err := filepath.Walk(resource, func(absoluteFilePath string, fileInfo os.FileInfo, err error) error {
 		if IsSuffixSupported(fileInfo.Name()) {
 
 			fileToCompress, err := os.Open(absoluteFilePath)
@@ -84,8 +84,11 @@ func ProduceTGZfile(resource string) (io.Reader, error) {
 		}
 		return nil
 	})
+	if err != nil{
+		log.Errorf("%s Error in walking the file", err)
+	}
 	log.Infof(message.KogitoAppFoundFile, filesFound)
-	return &buf, nil
+	return &buf, err
 }
 
 // IsSuffixSupported checks if the given extension is supported

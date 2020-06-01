@@ -67,7 +67,12 @@ func (data *Data) BeforeScenario(pickle *messages.Pickle) {
 	data.ScenarioContext = map[string]string{}
 
 	framework.GetLogger(data.Namespace).Info(fmt.Sprintf("Scenario %s", pickle.GetName()))
-	go framework.StartPodLogCollector(data.Namespace)
+	go func(){
+		err := framework.StartPodLogCollector(data.Namespace)
+		if err != nil{
+			fmt.Printf("Error starting pod log collector: %v", err)
+		}
+	}()
 }
 
 func getNamespaceName() string {
@@ -87,7 +92,7 @@ func createTemporaryFolder() string {
 
 // AfterScenario executes some actions on data after a scenario is finished
 func (data *Data) AfterScenario(pickle *messages.Pickle, err error) {
-	framework.OperateOnNamespaceIfExists(data.Namespace, func(namespace string) error {
+	error := framework.OperateOnNamespaceIfExists(data.Namespace, func(namespace string) error {
 		if err := framework.StopPodLogCollector(namespace); err != nil {
 			framework.GetMainLogger().Errorf("Error stopping log collector on namespace %s: %v", namespace, err)
 		}
@@ -99,6 +104,9 @@ func (data *Data) AfterScenario(pickle *messages.Pickle, err error) {
 		}
 		return nil
 	})
+	if error != nil{
+		fmt.Printf("Error on checking for operator: %v", error)
+	}
 
 	handleScenarioResult(data, pickle, err)
 	logScenarioDuration(data)

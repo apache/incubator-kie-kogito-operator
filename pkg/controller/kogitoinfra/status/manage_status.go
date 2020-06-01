@@ -97,7 +97,7 @@ func ensureKeycloak(instance *v1alpha1.KogitoInfra, cli *client.Client) (update,
 	requeue = false
 	log.Debug("Trying to update Keycloak conditions")
 	if !instance.Spec.InstallKeycloak {
-		if &instance.Status.Keycloak != nil && len(instance.Status.Keycloak.Condition) > 0 {
+		if len(instance.Status.Keycloak.Name) > 0 && len(instance.Status.Keycloak.Service) > 0 && len(instance.Status.Keycloak.Condition) > 0 {
 			instance.Status.Keycloak = v1alpha1.InfraComponentInstallStatusType{}
 			update = true
 		}
@@ -138,7 +138,7 @@ func ensureKafka(instance *v1alpha1.KogitoInfra, cli *client.Client) (update, re
 	requeue = false
 	log.Debug("Trying to update Kafka conditions")
 	if !instance.Spec.InstallKafka {
-		if &instance.Status.Kafka != nil && len(instance.Status.Kafka.Condition) > 0 {
+		if len(instance.Status.Kafka.Name) > 0 && len(instance.Status.Kafka.Service) > 0 && len(instance.Status.Kafka.Condition) > 0 {
 			instance.Status.Kafka = v1alpha1.InfraComponentInstallStatusType{}
 			update = true
 		}
@@ -167,7 +167,7 @@ func ensureInfinispan(instance *v1alpha1.KogitoInfra, cli *client.Client) (updat
 	update = false
 	log.Debug("Trying to update Infinispan conditions")
 	if !instance.Spec.InstallInfinispan {
-		if &instance.Status.Infinispan != nil && len(instance.Status.Infinispan.Condition) > 0 {
+		if len(instance.Status.Infinispan.Name) > 0 && len(instance.Status.Infinispan.Service) > 0 && len(instance.Status.Infinispan.Condition) > 0 {
 			instance.Status.Infinispan = v1alpha1.InfinispanInstallStatus{}
 			update = true
 		}

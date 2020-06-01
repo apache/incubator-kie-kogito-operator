@@ -15,6 +15,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -92,7 +93,12 @@ func createLogger(options *Opts) (logger Logger) {
 		}),
 		SugaredLogger: zapSugaredLogger(options),
 	}
-	defer log.SugaredLogger.Sync()
+	defer func() {
+		err := log.SugaredLogger.Sync()
+		if err != nil {
+			fmt.Println(err)
+		}
+		}()
 
 	logf.SetLogger(log.Logger)
 	return log
