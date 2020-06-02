@@ -237,6 +237,7 @@ You can set those optional keys:
 - `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
 - `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
 <!--- build -->
+- `custom_maven_repo` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information.
 - `maven_mirror` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
 - `build_image_registry` sets the build image registry.
