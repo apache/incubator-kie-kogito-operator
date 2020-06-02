@@ -397,7 +397,7 @@ func Test_DeployCmd_WithDefaultArtifactDetails(t *testing.T) {
 
 func Test_DeployCmd_MavenDownloadOutputEnabled(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project %s --enable-maven-download-output`, ns)
+	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project %s --maven-output`, ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
