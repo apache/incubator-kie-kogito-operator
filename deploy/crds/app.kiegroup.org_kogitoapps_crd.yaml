@@ -75,6 +75,10 @@ spec:
                         by the project.
                       type: string
                   type: object
+                enableMavenDownloadOutput:
+                  description: If set to true will print the logs for downloading/uploading
+                    of maven dependencies. Defaults to false
+                  type: boolean
                 envs:
                   description: Environment variables used during build time
                   items:

@@ -217,3 +217,53 @@ func getBuildEnvVariable(envVarName string, envs []corev1.EnvVar) (contains bool
 	}
 	return false, ""
 }
+
+func Test_setBCS2IStrategy_mavenDownloadOutputEnable(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				EnableMavenDownloadOutput: true,
+			},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	for _, buildEnv := range envs {
+		if buildEnv.Name == mavenDownloadOutputEnvVar {
+			assert.Equal(t, "true", buildEnv.Value)
+		}
+	}
+}
+
+func Test_setBCS2IStrategy_mavenDownloadOutputDisable(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				EnableMavenDownloadOutput: false,
+			},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	for _, buildEnv := range envs {
+		if buildEnv.Name == mavenDownloadOutputEnvVar {
+			assert.Fail(t, "Env variable "+mavenDownloadOutputEnvVar+" should not set.")
+		}
+	}
+}

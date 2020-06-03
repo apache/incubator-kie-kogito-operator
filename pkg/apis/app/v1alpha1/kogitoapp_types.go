@@ -141,6 +141,11 @@ type KogitoAppBuildObject struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Final Artifact"
 	Artifact Artifact `json:"artifact,omitempty"`
+	// If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false
+	// + optional
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	EnableMavenDownloadOutput bool `json:"enableMavenDownloadOutput,omitempty"`
 }
 
 // AddEnvironmentVariable adds new environment variable to build environment variables

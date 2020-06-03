@@ -9,3 +9,5 @@ spec:
       contextDir: process-quarkus-example
     # set your maven nexus repository
     #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+    # enable to print maven transfer logs in console
+    #enableMavenDownloadOutput: true

@@ -39,6 +39,7 @@ const (
 	mavenGroupIdEnvVar           = "PROJECT_GROUP_ID"
 	mavenArtifactIdEnvVar        = "PROJECT_ARTIFACT_ID"
 	mavenArtifactVersionEnvVar   = "PROJECT_VERSION"
+	mavenDownloadOutputEnvVar    = "MAVEN_DOWNLOAD_OUTPUT"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -118,6 +119,11 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 	if len(kogitoApp.Spec.Build.MavenMirrorURL) > 0 {
 		log.Infof("Setting maven mirror url to %s", kogitoApp.Spec.Build.MavenMirrorURL)
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
+	}
+
+	if kogitoApp.Spec.Build.EnableMavenDownloadOutput {
+		log.Infof("Enable logging for transfer progress of downloading/uploading maven dependencies")
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenDownloadOutputEnvVar, Value: strconv.FormatBool(kogitoApp.Spec.Build.EnableMavenDownloadOutput)})
 	}
 
 	// if user has provided a file, binary build should be used instead.

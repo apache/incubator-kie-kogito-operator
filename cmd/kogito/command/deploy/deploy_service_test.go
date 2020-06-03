@@ -394,3 +394,56 @@ func Test_DeployCmd_WithDefaultArtifactDetails(t *testing.T) {
 	assert.Equal(t, "", kogitoApp.Spec.Build.Artifact.ArtifactId)
 	assert.Equal(t, "", kogitoApp.Spec.Build.Artifact.Version)
 }
+
+func Test_DeployCmd_MavenDownloadOutputEnabled(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project %s --maven-output`, ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	// Start the test
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "successfully created")
+
+	// This should be created, given the command above
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-drools",
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoApp)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.NotNil(t, kogitoApp)
+	assert.Equal(t, true, kogitoApp.Spec.Build.EnableMavenDownloadOutput)
+}
+
+func Test_DeployCmd_MavenDownloadOutputDisabled(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf(`deploy-service example-drools https://github.com/kiegroup/kogito-examples -v --context-dir drools-quarkus-example --project %s`, ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoAppCRDName}})
+	// Start the test
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "successfully created")
+
+	// This should be created, given the command above
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-drools",
+			Namespace: ns,
+		},
+	}
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoApp)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.NotNil(t, kogitoApp)
+	assert.Equal(t, false, kogitoApp.Spec.Build.EnableMavenDownloadOutput)
+}
