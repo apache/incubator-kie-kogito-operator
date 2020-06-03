@@ -21,7 +21,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -29,7 +28,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"strings"
 )
 
 const (
@@ -38,16 +36,6 @@ const (
 	defaultReplicas = int32(1)
 	// ServiceAccountName is the name of service account used by Kogito Services Runtimes
 	ServiceAccountName = "kogito-service-viewer"
-
-	envVarInfinispanServerList     = "SERVER_LIST"
-	envVarInfinispanUseAuth        = "USE_AUTH"
-	envVarInfinispanUser           = "USERNAME"
-	envVarInfinispanPassword       = "PASSWORD"
-	envVarInfinispanSaslMechanism  = "SASL_MECHANISM"
-	defaultInfinispanSaslMechanism = v1alpha1.SASLPlain
-
-	envVarKafkaBootstrapURI    = "KAFKA_BOOTSTRAP_SERVERS"
-	envVarKafkaBootstrapSuffix = "_BOOTSTRAP_SERVERS"
 
 	envVarExternalURL        = "KOGITO_SERVICE_URL"
 	downwardAPIVolumeName    = "podinfo"
@@ -60,27 +48,6 @@ const (
 )
 
 var (
-	/*
-		Infinispan variables for the KogitoInfra deployed infrastructure.
-		For Quarkus: https://quarkus.io/guides/infinispan-client#quarkus-infinispan-client_configuration
-		For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
-	*/
-
-	envVarInfinispanQuarkus = map[string]string{
-		envVarInfinispanServerList:    "QUARKUS_INFINISPAN_CLIENT_SERVER_LIST",
-		envVarInfinispanUseAuth:       "QUARKUS_INFINISPAN_CLIENT_USE_AUTH",
-		envVarInfinispanUser:          "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
-		envVarInfinispanPassword:      "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
-		envVarInfinispanSaslMechanism: "QUARKUS_INFINISPAN_CLIENT_SASL_MECHANISM",
-	}
-	envVarInfinispanSpring = map[string]string{
-		envVarInfinispanServerList:    "INFINISPAN_REMOTE_SERVER_LIST",
-		envVarInfinispanUseAuth:       "INFINISPAN_REMOTE_USE_AUTH",
-		envVarInfinispanUser:          "INFINISPAN_REMOTE_AUTH_USERNAME",
-		envVarInfinispanPassword:      "INFINISPAN_REMOTE_AUTH_PASSWORD",
-		envVarInfinispanSaslMechanism: "INFINISPAN_REMOTE_SASL_MECHANISM",
-	}
-
 	downwardAPIDefaultMode = int32(420)
 
 	podStartExecCommand = []string{"/bin/bash", "-c", "if [ -x " + postHookPersistenceScript + " ]; then " + postHookPersistenceScript + "; fi"}
@@ -192,56 +159,6 @@ func setReplicas(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
 		replicas = *kogitoApp.Spec.KogitoServiceSpec.Replicas
 	}
 	dc.Spec.Replicas = replicas
-}
-
-// SetInfinispanEnvVars sets Infinispan variables to the given KogitoApp instance DeploymentConfig by reading information from the KogitoInfra
-func SetInfinispanEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) error {
-	if dc != nil && kogitoApp != nil &&
-		(kogitoInfra != nil && &kogitoInfra.Status != nil && &kogitoInfra.Status.Infinispan != nil) {
-		uri, err := infrastructure.GetInfinispanServiceURI(cli, kogitoInfra)
-		if err != nil {
-			return err
-		}
-		secret, err := infrastructure.GetInfinispanCredentialsSecret(cli, kogitoInfra)
-		if err != nil {
-			return err
-		}
-
-		// inject credentials to deploymentConfig container
-		if len(dc.Spec.Template.Spec.Containers) > 0 {
-			vars := envVarInfinispanQuarkus
-			if kogitoApp.Spec.Runtime == v1alpha1.SpringbootRuntimeType {
-				vars = envVarInfinispanSpring
-			}
-			framework.SetEnvVar(vars[envVarInfinispanUseAuth], "true", &dc.Spec.Template.Spec.Containers[0])
-			framework.SetEnvVar(vars[envVarInfinispanServerList], uri, &dc.Spec.Template.Spec.Containers[0])
-			framework.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(defaultInfinispanSaslMechanism), &dc.Spec.Template.Spec.Containers[0])
-			framework.SetEnvVarFromSecret(vars[envVarInfinispanUser], infrastructure.InfinispanSecretUsernameKey, secret, &dc.Spec.Template.Spec.Containers[0])
-			framework.SetEnvVarFromSecret(vars[envVarInfinispanPassword], infrastructure.InfinispanSecretPasswordKey, secret, &dc.Spec.Template.Spec.Containers[0])
-		}
-	}
-	return nil
-}
-
-// SetKafkaEnvVars sets Kafka variables to the given KogitoApp instance DeploymentConfig by reading information from the KogitoInfra
-func SetKafkaEnvVars(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) error {
-	if dc != nil && kogitoApp != nil &&
-		(kogitoInfra != nil && &kogitoInfra.Status != nil && &kogitoInfra.Status.Kafka != nil) {
-		uri, err := infrastructure.GetKafkaServiceURI(cli, kogitoInfra)
-		if err != nil {
-			return err
-		}
-		if len(dc.Spec.Template.Spec.Containers) > 0 {
-			framework.SetEnvVar(envVarKafkaBootstrapURI, uri, &dc.Spec.Template.Spec.Containers[0])
-			// let's also add a secret feature that injects all _BOOTSTRAP_SERVERS env vars with the correct uri :p
-			for _, env := range dc.Spec.Template.Spec.Containers[0].Env {
-				if strings.HasSuffix(env.Name, envVarKafkaBootstrapSuffix) {
-					framework.SetEnvVar(env.Name, uri, &dc.Spec.Template.Spec.Containers[0])
-				}
-			}
-		}
-	}
-	return nil
 }
 
 // SetExternalRouteEnvVar sets the external URL to the given requested deploymentConfig

@@ -25,32 +25,33 @@ import (
 	"time"
 )
 
+// InfinispanProperty type for infinispan properties
+type InfinispanProperty int
+
 const (
-	// vars for services that relies on infinispan image module, keeping for backward compatibility, should be removed:
-	// https://issues.redhat.com/browse/KOGITO-2046
-	// Deprecated
-	infinispanEnvKeyUsername string = "INFINISPAN_USERNAME"
-	// Deprecated
-	infinispanEnvKeyPassword string = "INFINISPAN_PASSWORD"
-	// Deprecated
-	infinispanEnvKeyUseAuth string = "INFINISPAN_USEAUTH"
-	// Deprecated
-	infinispanEnvKeyAuthRealm string = "INFINISPAN_AUTHREALM"
-	// Deprecated
-	infinispanEnvKeySasl string = "INFINISPAN_SASLMECHANISM"
-	// Deprecated
-	infinispanEnvKeyServerList string = "INFINISPAN_CLIENT_SERVER_LIST"
+	// keys for infinispan vars definition
+
+	// AppPropInfinispanServerList application property for setting infinispan server
+	AppPropInfinispanServerList InfinispanProperty = iota
+	// AppPropInfinispanUseAuth application property for enabling infinispan authentication
+	AppPropInfinispanUseAuth
+	// AppPropInfinispanSaslMechanism application property for setting infinispan SASL mechanism
+	AppPropInfinispanSaslMechanism
+	// AppPropInfinispanAuthRealm application property for setting infinispan auth realm
+	AppPropInfinispanAuthRealm
+	// EnvVarInfinispanUser environment variable for setting infinispan username
+	EnvVarInfinispanUser
+	// EnvVarInfinispanPassword environment variable for setting infinispan password
+	EnvVarInfinispanPassword
 
 	infinispanEnvKeyCredSecret string = "INFINISPAN_CREDENTIAL_SECRET"
 
-	// keys for infinispan vars definition
-
-	envVarInfinispanServerList    = "SERVER_LIST"
-	envVarInfinispanUseAuth       = "USE_AUTH"
-	envVarInfinispanUser          = "USERNAME"
-	envVarInfinispanPassword      = "PASSWORD"
-	envVarInfinispanSaslMechanism = "SASL_MECHANISM"
-	envVarInfinispanAuthRealm     = "AUTH_REALM"
+	// Deprecated, keep it for Job Service scripts
+	infinispanEnvKeyServerList string = "INFINISPAN_CLIENT_SERVER_LIST"
+	// Deprecated, keep it for Data Index and Job Service scripts
+	infinispanEnvKeyUsername string = "INFINISPAN_USERNAME"
+	// Deprecated, keep it for Data Index and Job Service scripts
+	infinispanEnvKeyPassword string = "INFINISPAN_PASSWORD"
 )
 
 var (
@@ -60,30 +61,34 @@ var (
 		For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
 	*/
 
-	envVarInfinispanQuarkus = map[string]string{
-		envVarInfinispanServerList:    "QUARKUS_INFINISPAN_CLIENT_SERVER_LIST",
-		envVarInfinispanUseAuth:       "QUARKUS_INFINISPAN_CLIENT_USE_AUTH",
-		envVarInfinispanUser:          "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
-		envVarInfinispanPassword:      "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
-		envVarInfinispanSaslMechanism: "QUARKUS_INFINISPAN_CLIENT_SASL_MECHANISM",
-		envVarInfinispanAuthRealm:     "QUARKUS_INFINISPAN_CLIENT_AUTH_REALM",
+	// PropertiesInfinispanQuarkus infinispan properties for quarkus runtime
+	PropertiesInfinispanQuarkus = map[InfinispanProperty]string{
+		AppPropInfinispanServerList:    "quarkus.infinispan-client.server-list",
+		AppPropInfinispanUseAuth:       "quarkus.infinispan-client.use-auth",
+		AppPropInfinispanSaslMechanism: "quarkus.infinispan-client.sasl-mechanism",
+		AppPropInfinispanAuthRealm:     "quarkus.infinispan-client.auth-realm",
+
+		EnvVarInfinispanUser:     "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
+		EnvVarInfinispanPassword: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
 	}
-	envVarInfinispanSpring = map[string]string{
-		envVarInfinispanServerList:    "INFINISPAN_REMOTE_SERVER_LIST",
-		envVarInfinispanUseAuth:       "INFINISPAN_REMOTE_USE_AUTH",
-		envVarInfinispanUser:          "INFINISPAN_REMOTE_AUTH_USERNAME",
-		envVarInfinispanPassword:      "INFINISPAN_REMOTE_AUTH_PASSWORD",
-		envVarInfinispanSaslMechanism: "INFINISPAN_REMOTE_SASL_MECHANISM",
-		envVarInfinispanAuthRealm:     "INFINISPAN_REMOTE_AUTH_REALM",
+	// PropertiesInfinispanSpring infinispan properties for spring boot runtime
+	PropertiesInfinispanSpring = map[InfinispanProperty]string{
+		AppPropInfinispanServerList:    "infinispan.remote.server-list",
+		AppPropInfinispanUseAuth:       "infinispan.remote.use-auth",
+		AppPropInfinispanSaslMechanism: "infinispan.remote.sasl-mechanism",
+		AppPropInfinispanAuthRealm:     "infinispan.remote.auth-realm",
+
+		EnvVarInfinispanUser:     "INFINISPAN_REMOTE_AUTH_USERNAME",
+		EnvVarInfinispanPassword: "INFINISPAN_REMOTE_AUTH_PASSWORD",
 	}
 )
 
 // setInfinispanVariables binds Infinispan properties in the container.
 // If credentials are enabled, uses the given secret as a reference (use FetchInfinispanCredentials to get the secret)
-func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret, container *corev1.Container) {
-	vars := envVarInfinispanQuarkus
+func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret, container *corev1.Container, appProps map[string]string) {
+	vars := PropertiesInfinispanQuarkus
 	if runtime == v1alpha1.SpringbootRuntimeType {
-		vars = envVarInfinispanSpring
+		vars = PropertiesInfinispanSpring
 	}
 
 	if &infinispanProps.Credentials != nil &&
@@ -95,38 +100,34 @@ func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps v1alph
 		if len(infinispanProps.Credentials.UsernameKey) > 0 {
 			usernameValue = infinispanProps.Credentials.UsernameKey
 		}
+		framework.SetEnvVarFromSecret(vars[EnvVarInfinispanUser], usernameValue, secret, container)
 		framework.SetEnvVarFromSecret(infinispanEnvKeyUsername, usernameValue, secret, container)
-		framework.SetEnvVarFromSecret(vars[envVarInfinispanUser], usernameValue, secret, container)
 
 		passwordValue := infrastructure.InfinispanSecretPasswordKey
 		if len(infinispanProps.Credentials.PasswordKey) > 0 {
 			passwordValue = infinispanProps.Credentials.PasswordKey
 		}
+		framework.SetEnvVarFromSecret(vars[EnvVarInfinispanPassword], passwordValue, secret, container)
 		framework.SetEnvVarFromSecret(infinispanEnvKeyPassword, passwordValue, secret, container)
-		framework.SetEnvVarFromSecret(vars[envVarInfinispanPassword], passwordValue, secret, container)
 
-		framework.SetEnvVar(infinispanEnvKeyUseAuth, "true", container)
-		framework.SetEnvVar(vars[envVarInfinispanUseAuth], "true", container)
+		appProps[vars[AppPropInfinispanUseAuth]] = "true"
 
 		framework.SetEnvVar(infinispanEnvKeyCredSecret, infinispanProps.Credentials.SecretName, container)
 		if len(infinispanProps.SaslMechanism) == 0 {
 			infinispanProps.SaslMechanism = v1alpha1.SASLPlain
 		}
 	} else {
-		framework.SetEnvVar(infinispanEnvKeyUseAuth, "false", container)
-		framework.SetEnvVar(vars[envVarInfinispanUseAuth], "false", container)
+		appProps[vars[AppPropInfinispanUseAuth]] = "false"
 	}
 	if len(infinispanProps.AuthRealm) > 0 {
-		framework.SetEnvVar(infinispanEnvKeyAuthRealm, infinispanProps.AuthRealm, container)
-		framework.SetEnvVar(vars[envVarInfinispanAuthRealm], infinispanProps.AuthRealm, container)
+		appProps[vars[AppPropInfinispanAuthRealm]] = infinispanProps.AuthRealm
 	}
 	if len(infinispanProps.SaslMechanism) > 0 {
-		framework.SetEnvVar(infinispanEnvKeySasl, string(infinispanProps.SaslMechanism), container)
-		framework.SetEnvVar(vars[envVarInfinispanSaslMechanism], string(infinispanProps.SaslMechanism), container)
+		appProps[vars[AppPropInfinispanSaslMechanism]] = string(infinispanProps.SaslMechanism)
 	}
 	if len(infinispanProps.URI) > 0 {
 		framework.SetEnvVar(infinispanEnvKeyServerList, infinispanProps.URI, container)
-		framework.SetEnvVar(vars[envVarInfinispanServerList], infinispanProps.URI, container)
+		appProps[vars[AppPropInfinispanServerList]] = infinispanProps.URI
 	}
 }
 

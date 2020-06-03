@@ -92,9 +92,9 @@ type KafkaTopicMessagingType string
 
 const (
 	// KafkaTopicIncoming ...
-	KafkaTopicIncoming KafkaTopicMessagingType = "INCOMING"
+	KafkaTopicIncoming KafkaTopicMessagingType = "incoming"
 	// KafkaTopicOutgoing ...
-	KafkaTopicOutgoing KafkaTopicMessagingType = "OUTGOING"
+	KafkaTopicOutgoing KafkaTopicMessagingType = "outgoing"
 )
 
 const (

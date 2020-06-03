@@ -56,11 +56,5 @@ func GetComparator() compare.MapComparator {
 			UseDefaultComparator().
 			Build())
 
-	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
-			WithType(reflect.TypeOf(v1.ConfigMap{})).
-			WithCustomComparator(framework.CreateConfigMapComparator()).
-			Build())
-
 	return compare.MapComparator{Comparator: resourceComparator}
 }
