@@ -88,6 +88,7 @@ local=false
 ci=
 cr_deployment_only=false
 load_default_config=false
+container_engine=
 # operator information
 operator_image=
 operator_tag=
@@ -166,6 +167,7 @@ run-tests:
 		--examples_ref ${examples_ref} \
 		--namespace_name ${namespace_name} \
 		--load_factor ${load_factor} \
+		--container_engine ${container_engine} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
