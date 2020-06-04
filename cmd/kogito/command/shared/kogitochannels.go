@@ -14,17 +14,18 @@
 
 package shared
 
+// KogitoChannelType describes the supported OLM channels that the Kogito Operator can be installed
 type KogitoChannelType string
 
 const (
-	// alpha channel
+	// AlphaChannel ...
 	AlphaChannel KogitoChannelType = "alpha"
 
-	// dev-preview channel
+	// DevPreviewChannel ...
 	DevPreviewChannel KogitoChannelType = "dev-preview"
 )
 
-// Validate user provide channel value is among valid channel. If channel is value then return true else false
+// IsChannelValid validates user provide channel value is among valid channel. If channel is value then return true else false
 func IsChannelValid(ch string) bool {
 	inputChannel := KogitoChannelType(ch)
 	switch inputChannel {
@@ -34,7 +35,7 @@ func IsChannelValid(ch string) bool {
 	return false
 }
 
-// Provide default chanel
+// GetDefaultChannel provides default chanel
 func GetDefaultChannel() KogitoChannelType {
 	return AlphaChannel
 }
