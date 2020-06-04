@@ -9,10 +9,12 @@ jobs:
         environment: GO111MODULE=on
     working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
     steps:
+      - run: go get -u golang.org/x/lint/golint
       - checkout
       - run: go mod tidy
       - run: go fmt ./...
       - run: go vet ./...
+      - run: ./hack/go-lint.sh
       - run: CGO_ENABLED=0 go test ./cmd/... -count=1 -p=1
       - run: CGO_ENABLED=0 go test ./pkg/... -count=1 -p=1
       - run: git clone https://github.com/bats-core/bats-core.git

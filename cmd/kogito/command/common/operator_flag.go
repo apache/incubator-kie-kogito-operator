@@ -20,14 +20,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// OperatorFlags describes the command lines flags for the operator features
 type OperatorFlags struct {
 	Channel string
 }
 
+// AddOperatorFlags adds the OperatorFlags to the given command
 func AddOperatorFlags(command *cobra.Command, oFlags *OperatorFlags) {
 	command.Flags().StringVar(&oFlags.Channel, "channel", string(shared.GetDefaultChannel()), "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
 }
 
+// CheckOperatorArgs verifies the given arguments to the OperatorFlags
 func CheckOperatorArgs(oFlags *OperatorFlags) error {
 	ch := oFlags.Channel
 	if !shared.IsChannelValid(ch) {
