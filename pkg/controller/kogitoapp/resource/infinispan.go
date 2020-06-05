@@ -29,7 +29,9 @@ const (
 // CreateInfinispanProperties creates Infinispan properties by reading information from the KogitoInfra
 func CreateInfinispanProperties(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogitoApp *v1alpha1.KogitoApp) (envs []corev1.EnvVar, appProps map[string]string, err error) {
 	if kogitoApp != nil &&
-		(kogitoInfra != nil && &kogitoInfra.Status != nil && &kogitoInfra.Status.Infinispan != nil) {
+		(kogitoInfra != nil &&
+			(len(kogitoInfra.Status.Infinispan.Name) > 0 ||
+				len(kogitoInfra.Status.Infinispan.Service) > 0)) {
 		uri, err := infrastructure.GetInfinispanServiceURI(cli, kogitoInfra)
 		if err != nil {
 			return nil, nil, err

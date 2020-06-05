@@ -180,7 +180,7 @@ func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deplo
 	}
 	setInfinispanVariables(
 		s.instance.GetSpec().GetRuntime(),
-		*infinispanAware.GetInfinispanProperties(),
+		infinispanAware.GetInfinispanProperties(),
 		infinispanSecret,
 		&deployment.Spec.Template.Spec.Containers[0],
 		appProps)

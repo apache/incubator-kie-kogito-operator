@@ -29,4 +29,5 @@ and https://github.com/kiegroup/kogito-cloud-operator#kogito-management-console-
 	KogitoAppFoundFile                = "File(s) found: %s."
 	KogitoAppFoundAsset               = "Asset found: %s."
 	KogitoAppProvidedFileIsDir        = "The provided source is a directory, packing files."
+	KogitoAppFileWalkingError         = "Error while walking through %s directory: %s"
 )

@@ -54,7 +54,10 @@ func Test_CreateRequiredInfinispanResources_NewResources(t *testing.T) {
 }
 
 func Test_CreateRequiredInfinispanResources_HaveGeneratedSecret(t *testing.T) {
-	yamlFile, _, _ := generateDefaultCredentials() //for tests this function will work beautifully
+	secreteMap := make(map[string][]byte)
+	secreteMap[infrastructure.InfinispanSecretPasswordKey] = []byte("password")
+	secreteMap[infrastructure.InfinispanSecretUsernameKey] = []byte(kogitoInfinispanUser)
+
 	kogitoInfra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "kogito-infra",
@@ -69,9 +72,7 @@ func Test_CreateRequiredInfinispanResources_HaveGeneratedSecret(t *testing.T) {
 			Name:      getInfinispanGeneratedSecretName()[0],
 			Namespace: t.Name(),
 		},
-		Data: map[string][]byte{
-			IdentityFileName: []byte(yamlFile),
-		},
+		Data: secreteMap,
 	}
 	cli := test.CreateFakeClient([]runtime.Object{kogitoInfra, infinispanSecret}, nil, nil)
 	secret, err := newInfinispanLinkedSecret(kogitoInfra, cli)

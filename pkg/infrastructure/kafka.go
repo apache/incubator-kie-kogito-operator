@@ -72,7 +72,7 @@ func IsStrimziAvailable(client *client.Client) bool {
 func GetKafkaServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri string, err error) {
 	uri = ""
 	err = nil
-	if &infra == nil || &infra.Status == nil || &infra.Status.Kafka == nil || len(infra.Status.Kafka.Service) == 0 {
+	if infra == nil || len(infra.Status.Kafka.Service) == 0 {
 		return
 	}
 
@@ -109,7 +109,7 @@ func GetKafkaServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri st
 func GetReadyKafkaInstanceName(cli *client.Client, infra *v1alpha1.KogitoInfra) (kafka string, err error) {
 	kafka = ""
 	err = nil
-	if &infra == nil || &infra.Status == nil || &infra.Status.Kafka == nil || len(infra.Status.Kafka.Name) == 0 {
+	if infra == nil || len(infra.Status.Kafka.Name) == 0 {
 		return
 	}
 

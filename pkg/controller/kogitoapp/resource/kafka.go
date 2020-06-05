@@ -43,7 +43,9 @@ var (
 // CreateKafkaProperties creates Kafka properties by reading information from the KogitoInfra
 func CreateKafkaProperties(cli *client.Client, kogitoInfra *v1alpha1.KogitoInfra, kogitoApp *v1alpha1.KogitoApp) (envs []corev1.EnvVar, appProps map[string]string, err error) {
 	if kogitoApp != nil &&
-		(kogitoInfra != nil && &kogitoInfra.Status != nil && &kogitoInfra.Status.Kafka != nil) {
+		(kogitoInfra != nil &&
+			(len(kogitoInfra.Status.Kafka.Service) > 0 ||
+				len(kogitoInfra.Status.Kafka.Name) > 0)) {
 		uri, err := infrastructure.GetKafkaServiceURI(cli, kogitoInfra)
 		if err != nil {
 			return nil, nil, err

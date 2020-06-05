@@ -55,7 +55,7 @@ func FromMapToString(labels map[string]string) string {
 
 // FromStringsKeyPairToMap converts a string array in the key/pair format (key=value) to a map. Unconvertable strings will be skipped.
 func FromStringsKeyPairToMap(array []string) map[string]string {
-	if array == nil || len(array) == 0 {
+	if len(array) == 0 {
 		return nil
 	}
 	keyPairMap := map[string]string{}
@@ -78,7 +78,7 @@ func FromStringsKeyPairToMap(array []string) map[string]string {
 // ParseStringsForKeyPair will parse the given string array for a valid key=pair format on each item.
 // Returns an error if any item is not in the valid format.
 func ParseStringsForKeyPair(array []string) error {
-	if array == nil || len(array) == 0 {
+	if len(array) == 0 {
 		return nil
 	}
 	for _, item := range array {

@@ -53,7 +53,7 @@ func InjectJobsServicesURLIntoKogitoApps(cli *client.Client, namespace string) e
 	for _, dc := range dcs {
 		// here we compare the current value to avoid updating the app every time
 		if len(dc.Spec.Template.Spec.Containers) > 0 &&
-			framework.GetEnvVarFromContainer(endpoint.HTTPRouteEnv, dc.Spec.Template.Spec.Containers[0]) != endpoint.HTTPRouteURI {
+			framework.GetEnvVarFromContainer(endpoint.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != endpoint.HTTPRouteURI {
 			log.Debugf("Updating kogitoApp's DC '%s' to inject route %s ", dc.GetName(), endpoint.HTTPRouteURI)
 			framework.SetEnvVar(endpoint.HTTPRouteEnv, endpoint.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
 			if err := kubernetes.ResourceC(cli).Update(&dc); err != nil {

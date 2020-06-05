@@ -15,42 +15,27 @@
 package infinispan
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
-func Test_generateDefaultCredentials(t *testing.T) {
-	yamlFile, fileMD5, err := generateDefaultCredentials()
+func Test_getDeveloperCresdentials(t *testing.T){
+	secreteMap := make(map[string][]byte)
+	secreteMap[infrastructure.InfinispanSecretPasswordKey] = []byte("password")
+	secreteMap[infrastructure.InfinispanSecretUsernameKey] = []byte(kogitoInfinispanUser)
+	infinispanSecret := &corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      getInfinispanGeneratedSecretName()[0],
+			Namespace: t.Name(),
+		},
+		Data: secreteMap,
+	}
+	credential, err := getDeveloperCredential(infinispanSecret)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, yamlFile)
-	assert.NotEmpty(t, fileMD5)
+	assert.Equal(t, kogitoInfinispanUser, credential.Username)
+	assert.Equal(t, "password", credential.Password)
 
-	actualMD5 := getMD5FromBytes([]byte(yamlFile))
-	assert.NoError(t, err)
-	assert.Equal(t, actualMD5, fileMD5)
-}
-
-func Test_hasKogitoUser(t *testing.T) {
-	defaultFile, _, _ := generateDefaultCredentials()
-	developersCredential, _ := yaml.Marshal(&Identity{Credentials: []Credential{{Username: "johndoe", Password: generateRandomPassword()}}})
-	type args struct {
-		secretFileData []byte
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{"default file has kogito user", args{secretFileData: []byte(defaultFile)}, true},
-		{"developer file hasn't kogito " +
-			"user", args{secretFileData: developersCredential}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := hasKogitoUser(tt.args.secretFileData); got != tt.want {
-				t.Errorf("hasKogitoUser() = %v, want %v", got, tt.want)
-			}
-		})
-	}
 }

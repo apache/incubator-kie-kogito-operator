@@ -15,7 +15,6 @@
 package infrastructure
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/version"
@@ -52,7 +51,7 @@ func getRuntimeImageVersion(v string) string {
 		if length <= 2 { // guard against unusual cases
 			lastIndex = length
 		}
-		return fmt.Sprintf("%s", strings.Join(versionPrefix[:lastIndex], versionSeparator))
+		return strings.Join(versionPrefix[:lastIndex], versionSeparator)
 	}
 	return LatestTag
 }

@@ -150,7 +150,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		}
 	}
 
-	defer r.updateBaseStatus(instance, &result, &resultErr)
+	defer r.updateBaseStatus(instance, &resultErr)
 
 	// Verify Infinispan
 	infinispanAvailable, resultErr := infrastructure.IsInfinispanOperatorAvailable(r.client, instance.Namespace)
@@ -218,18 +218,19 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 }
 
 // updateBaseStatus updates the base status for the KogitoInfra instance
-func (r *ReconcileKogitoInfra) updateBaseStatus(instance *appv1alpha1.KogitoInfra, result *reconcile.Result, err *error) {
+func (r *ReconcileKogitoInfra) updateBaseStatus(instance *appv1alpha1.KogitoInfra, err *error) {
 	log.Info("Updating Kogito Infra status")
-	result = &reconcile.Result{}
 	if *err != nil {
 		log.Warn("Seems that an error occurred, setting failure state: ", *err)
 		if statusErr := status.SetResourceFailed(instance, r.client, *err); statusErr != nil {
 			err = &statusErr
+			log.Errorf("Error in setting status failes: %v", *err)
 		}
 	} else {
 		log.Info("Kogito Infra successfully reconciled")
 		if statusErr := status.SetResourceSuccess(instance, r.client); statusErr != nil {
 			err = &statusErr
+			log.Errorf("Error in setting status failes: %v", *err)
 		}
 	}
 }

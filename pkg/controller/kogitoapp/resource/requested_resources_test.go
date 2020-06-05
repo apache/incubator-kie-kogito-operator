@@ -76,6 +76,7 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 			},
 		},
 	})
+	assert.Nil(t, err)
 	isTag := imgv1.ImageStreamTag{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app:latest",
