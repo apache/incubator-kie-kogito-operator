@@ -81,7 +81,7 @@ func buildServicePorts(deploymentConfig *appsv1.DeploymentConfig) (ports []corev
 // importPrometheusAnnotations will import any annotations on the deploymentConfig template spec to the given service
 // returns true if any modification has been made to the service
 func importPrometheusAnnotations(deploymentConfig *appsv1.DeploymentConfig, service *corev1.Service) bool {
-	if &deploymentConfig.Spec == nil || deploymentConfig.Spec.Template == nil || deploymentConfig.Spec.Template.Annotations == nil {
+	if deploymentConfig == nil || deploymentConfig.Spec.Template == nil || deploymentConfig.Spec.Template.Annotations == nil {
 		return false
 	}
 	if service.Annotations == nil {

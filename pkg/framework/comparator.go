@@ -162,10 +162,7 @@ func CreateServiceComparator() func(deployed resource.KubernetesResource, reques
 		svcDeployed := deployed.(*v1.Service)
 		svcRequested := requested.(*v1.Service).DeepCopy()
 
-		if !containAllLabels(svcDeployed, svcRequested) {
-			return false
-		}
-		return true
+		return containAllLabels(svcDeployed, svcRequested)
 	}
 }
 
@@ -175,10 +172,7 @@ func CreateRouteComparator() func(deployed resource.KubernetesResource, requeste
 		rtDeployed := deployed.(*routev1.Route)
 		rtRequested := requested.(*routev1.Route).DeepCopy()
 
-		if !containAllLabels(rtDeployed, rtRequested) {
-			return false
-		}
-		return true
+		return containAllLabels(rtDeployed, rtRequested)
 	}
 }
 

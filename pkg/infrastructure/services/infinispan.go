@@ -85,13 +85,13 @@ var (
 
 // setInfinispanVariables binds Infinispan properties in the container.
 // If credentials are enabled, uses the given secret as a reference (use FetchInfinispanCredentials to get the secret)
-func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret, container *corev1.Container, appProps map[string]string) {
+func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps *v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret, container *corev1.Container, appProps map[string]string) {
 	vars := PropertiesInfinispanQuarkus
 	if runtime == v1alpha1.SpringbootRuntimeType {
 		vars = PropertiesInfinispanSpring
 	}
 
-	if &infinispanProps.Credentials != nil &&
+	if infinispanProps != nil &&
 		len(infinispanProps.Credentials.SecretName) > 0 &&
 		secret != nil &&
 		container != nil {

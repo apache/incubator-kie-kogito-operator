@@ -37,7 +37,7 @@ const (
 
 // fromKafkaTopicToQuarkusAppProp transforms a given Kafka Topic name into a application properties to be read by Quarkus Kafka client used by Kogito Services
 func fromKafkaTopicToQuarkusAppProp(topic KafkaTopicDefinition) string {
-	if &topic != nil && len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
+	if len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
 		return fmt.Sprintf(quarkusTopicBootstrapAppProp, topic.MessagingType, topic.TopicName)
 	}
 	return ""

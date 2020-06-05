@@ -88,7 +88,7 @@ func (k *KogitoAppSpec) IsGitURIEmpty() bool {
 	if k == nil {
 		return true
 	}
-	if k.Build == nil || &k.Build.GitSource == nil {
+	if k.Build == nil{
 		return true
 	}
 	return len(k.Build.GitSource.URI) == 0
@@ -155,7 +155,6 @@ func (k *KogitoAppBuildObject) AddEnvironmentVariable(name, value string) {
 		Value: value,
 	}
 	k.Envs = append(k.Envs, env)
-	return
 }
 
 // AddResourceRequest adds new resource request. Works also on an uninitialized Requests field.

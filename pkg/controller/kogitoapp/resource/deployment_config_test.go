@@ -25,7 +25,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/stretchr/testify/assert"
 
-	appsv1 "github.com/openshift/api/apps/v1"
 	dockerv10 "github.com/openshift/api/image/docker10"
 
 	v1 "k8s.io/api/core/v1"
@@ -40,26 +39,6 @@ func contains(env []v1.EnvVar, key string) bool {
 		}
 	}
 	return false
-}
-
-func createTestDeploymentConfig() *appsv1.DeploymentConfig {
-	return &appsv1.DeploymentConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "test",
-		},
-		Spec: appsv1.DeploymentConfigSpec{
-			Template: &v1.PodTemplateSpec{
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{
-						{
-							Env: []v1.EnvVar{},
-						},
-					},
-				},
-			},
-		},
-	}
 }
 
 func Test_deploymentConfigResource_NewWithValidDocker(t *testing.T) {
@@ -264,5 +243,5 @@ func Test_namespaceEnvVarCorrectSet(t *testing.T) {
 	dc, err := newDeploymentConfig(kogitoApp, &bcRuntime, nil, "")
 	assert.NoError(t, err)
 	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, envVarNamespace))
-	assert.Equal(t, kogitoApp.Namespace, framework.GetEnvVarFromContainer(envVarNamespace, dc.Spec.Template.Spec.Containers[0]))
+	assert.Equal(t, kogitoApp.Namespace, framework.GetEnvVarFromContainer(envVarNamespace, &dc.Spec.Template.Spec.Containers[0]))
 }

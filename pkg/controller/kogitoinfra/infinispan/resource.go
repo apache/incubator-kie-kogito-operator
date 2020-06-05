@@ -122,28 +122,6 @@ func newInfinispanResource(kogitoInfra *v1alpha1.KogitoInfra) *infinispan.Infini
 	return infinispanRes
 }
 
-// newInfinispanCredentials will generate custom credentials for the Infinispan Operator
-// Deprecated: not in use right now because of this issue: https://github.com/infinispan/infinispan-operator/issues/211
-func newInfinispanCredentials(kogitoInfra *v1alpha1.KogitoInfra) (*v1.Secret, error) {
-	credentialsFileData, MD5, err := generateDefaultCredentials()
-	if err != nil {
-		return nil, err
-	}
-	secret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: kogitoInfra.Namespace,
-			Annotations: map[string]string{
-				annotationKeyMD5: MD5,
-			},
-		},
-		Type: v1.SecretTypeOpaque,
-		StringData: map[string]string{
-			IdentityFileName: credentialsFileData,
-		},
-	}
-	return secret, nil
-}
 
 // newInfinispanLinkedSecret will create a new secret based on the generated identity secret by the Infinispan Operator
 // this secret will be used later by any client services in the namespace to connect to the Infinispan instance

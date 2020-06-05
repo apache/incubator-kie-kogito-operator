@@ -114,10 +114,9 @@ func (i *InfinispanMeta) SetInfinispanProperties(props InfinispanConnectionPrope
 
 // AreInfinispanPropertiesBlank checks if the connection properties have been set
 func (i *InfinispanMeta) AreInfinispanPropertiesBlank() bool {
-	return &i.InfinispanProperties == nil ||
-		&i.InfinispanProperties.Credentials == nil ||
-		&i.InfinispanProperties.UseKogitoInfra == nil ||
-		len(i.InfinispanProperties.URI) == 0
+	return i == nil ||
+		len(i.InfinispanProperties.URI) == 0 ||
+		(len(i.InfinispanProperties.Credentials.PasswordKey) == 0 && len(i.InfinispanProperties.Credentials.SecretName) == 0 && len(i.InfinispanProperties.Credentials.UsernameKey) == 0)
 }
 
 // KafkaConnectionProperties has the data needed to connect to a Kafka cluster

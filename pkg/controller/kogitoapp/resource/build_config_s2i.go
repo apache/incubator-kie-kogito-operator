@@ -163,7 +163,7 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 func getBCS2ILimitsAsIntString(buildConfig *buildv1.BuildConfig) (limitCPU, limitMemory string) {
 	limitCPU = ""
 	limitMemory = ""
-	if &buildConfig.Spec.Resources == nil || buildConfig.Spec.Resources.Limits == nil {
+	if buildConfig == nil || buildConfig.Spec.Resources.Limits == nil {
 		return "", ""
 	}
 
