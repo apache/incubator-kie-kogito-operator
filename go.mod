@@ -14,6 +14,7 @@ require (
 	github.com/gobuffalo/packd v1.0.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/google/uuid v1.1.1
+	github.com/imdario/mergo v0.3.8
 	github.com/infinispan/infinispan-operator v0.0.0-20191028165532-917f400bee62
 	github.com/keycloak/keycloak-operator v0.0.0-20200110072234-2e9a66d4cae6
 	github.com/machinebox/graphql v0.2.2

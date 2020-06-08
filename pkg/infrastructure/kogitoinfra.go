@@ -167,7 +167,7 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 
 // isInfraComponentDeployed verifies if the given component is available in the infrastructure
 func isInfraComponentDeployed(status *v1alpha1.InfraComponentInstallStatusType) bool {
-	if &status != nil &&
+	if status != nil &&
 		len(status.Condition) > 0 {
 		return len(status.Service) > 0 &&
 			status.Condition[len(status.Condition)-1].Type == v1alpha1.SuccessInstallConditionType
@@ -176,21 +176,21 @@ func isInfraComponentDeployed(status *v1alpha1.InfraComponentInstallStatusType) 
 }
 
 func isInfinispanDeployed(infra *v1alpha1.KogitoInfra) bool {
-	if &infra.Status != nil && &infra.Status.Infinispan != nil {
+	if infra != nil {
 		return isInfraComponentDeployed(&infra.Status.Infinispan.InfraComponentInstallStatusType)
 	}
 	return false
 }
 
 func isKafkaDeployed(infra *v1alpha1.KogitoInfra) bool {
-	if &infra.Status != nil && &infra.Status.Kafka != nil {
+	if infra != nil {
 		return isInfraComponentDeployed(&infra.Status.Kafka)
 	}
 	return false
 }
 
 func isKeycloakDeployed(infra *v1alpha1.KogitoInfra) bool {
-	if &infra.Status != nil && &infra.Status.Keycloak != nil {
+	if infra != nil {
 		return isInfraComponentDeployed(&infra.Status.Keycloak)
 	}
 	return false

@@ -15,6 +15,8 @@ spec:
       contextDir: onboarding-example/onboarding
     # set your maven nexus repository to speed up the build time
     #mavenMirrorURL:
+    # enable to print maven transfer logs in console
+    #enableMavenDownloadOutput: true
   service:
     labels:
       onboarding: process
@@ -34,6 +36,8 @@ spec:
       contextDir: onboarding-example/hr
     # set your maven nexus repository to speed up the build time
     #mavenMirrorURL:
+    # enable to print maven transfer logs in console
+    #enableMavenDownloadOutput: true
   service:
     labels:
       department/first: process
@@ -52,6 +56,8 @@ spec:
       contextDir: onboarding-example/payroll
     # set your maven nexus repository to speed up the build time
     #mavenMirrorURL:
+    # enable to print maven transfer logs in console
+    #enableMavenDownloadOutput: true
   service:
     labels:
       taxes/rate: process

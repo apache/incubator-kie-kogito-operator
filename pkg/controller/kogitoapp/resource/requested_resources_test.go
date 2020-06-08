@@ -53,7 +53,8 @@ func createKogitoApp() *v1alpha1.KogitoApp {
 func TestBuildResources_CreateAllWithoutImage(t *testing.T) {
 	kogitoApp := createKogitoApp()
 	client := test.CreateFakeClient(nil, nil, nil)
-	resources, err := GetRequestedResources(kogitoApp, client)
+	appProps := map[string]string{}
+	resources, err := GetRequestedResources(kogitoApp, appProps, client)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, resources)
@@ -75,6 +76,7 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 			},
 		},
 	})
+	assert.Nil(t, err)
 	isTag := imgv1.ImageStreamTag{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-app:latest",
@@ -89,7 +91,8 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	client := test.CreateFakeClient([]runtime.Object{&isTag}, []runtime.Object{&isTag}, nil)
 	log.Errorf("kogitoapp", kogitoApp.GetName())
 
-	resources, err := GetRequestedResources(kogitoApp, client)
+	appProps := map[string]string{}
+	resources, err := GetRequestedResources(kogitoApp, appProps, client)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, resources)
@@ -118,26 +121,29 @@ func TestBuildResources_CreateAllSuccess(t *testing.T) {
 	assert.Equal(t, resources.DeploymentConfig.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort, int32(8080))
 }
 
-func TestBuildResources_CreateAllWithoutAppPropConfigMap(t *testing.T) {
+func TestBuildResources_CreateAllWithSameAppPropConfigMap(t *testing.T) {
 	kogitoApp := createKogitoApp()
-	client := test.CreateFakeClient([]runtime.Object{
-		&corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-app-properties",
-				Namespace: "testns",
-			},
-			Data: map[string]string{
-				"application.properties": "",
-			},
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: "v1",
 		},
-	},
-		nil, nil)
-	resources, err := GetRequestedResources(kogitoApp, client)
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-app-properties",
+			Namespace: "testns",
+		},
+		Data: map[string]string{
+			"application.properties": "",
+		},
+	}
+	client := test.CreateFakeClient([]runtime.Object{cm}, nil, nil)
+	appProps := map[string]string{}
+	resources, err := GetRequestedResources(kogitoApp, appProps, client)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, resources)
 	assert.NotNil(t, resources.AppPropContentHash)
-	assert.Nil(t, resources.AppPropCM)
+	assert.Equal(t, cm, resources.AppPropCM)
 }
 
 func Test_buildConfigS2IBuilderWithGitUrl(t *testing.T) {

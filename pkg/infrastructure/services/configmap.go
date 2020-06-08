@@ -17,12 +17,13 @@ package services
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/imdario/mergo"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"reflect"
+	"sort"
+	"strings"
 )
 
 /*
@@ -42,11 +43,13 @@ const (
 	appPropDefaultMode = int32(420)
 	appPropFileName    = "application.properties"
 	appPropFilePath    = "/home/kogito/config"
+
+	appPropConcatPattern = "%s\n%s=%s"
 )
 
 // GetAppPropConfigMapContentHash calculates the hash of the application.properties contents in the ConfigMap
 // If the ConfigMap doesn't exist, create a new one and return it.
-func GetAppPropConfigMapContentHash(name, namespace string, cli *client.Client) (string, *corev1.ConfigMap, error) {
+func GetAppPropConfigMapContentHash(name, namespace string, appProps map[string]string, cli *client.Client) (string, *corev1.ConfigMap, error) {
 	configMapName := GetAppPropConfigMapName(name)
 	configMap := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: configMapName, Namespace: namespace}}
 
@@ -55,23 +58,27 @@ func GetAppPropConfigMapContentHash(name, namespace string, cli *client.Client) 
 		return "", nil, err
 	}
 
-	if exist {
-		if _, ok := configMap.Data[appPropContentKey]; !ok {
-			exist = false
-		}
+	appPropsToApply := getAppPropsFromConfigMap(configMap, exist)
+	if err = mergo.Merge(&appPropsToApply, appProps, mergo.WithOverride); err != nil {
+		return "", nil, err
 	}
 
-	if !exist {
-		configMap.Data = map[string]string{
-			appPropContentKey: defaultAppPropContent,
+	appPropContent := defaultAppPropContent
+	if len(appPropsToApply) > 0 {
+		var keys []string
+		for key := range appPropsToApply {
+			keys = append(keys, key)
 		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			appPropContent = fmt.Sprintf(appPropConcatPattern, appPropContent, key, appPropsToApply[key])
+		}
+	}
+	configMap.Data = map[string]string{
+		appPropContentKey: appPropContent,
 	}
 
 	contentHash := fmt.Sprintf("%x", md5.Sum([]byte(configMap.Data[appPropContentKey])))
-
-	if exist {
-		return contentHash, nil, nil
-	}
 
 	return contentHash, configMap, nil
 }
@@ -113,21 +120,19 @@ func CreateAppPropVolume(name string) corev1.Volume {
 	}
 }
 
-// ExcludeAppPropConfigMapFromResource excludes the application properties config map from the resources to be compared for changes.
-// The config map is supposed to be modified by users directly, the operator should not overwrite the changes made by users.
-func ExcludeAppPropConfigMapFromResource(name string, resourceMap map[reflect.Type][]resource.KubernetesResource) {
-	tp := reflect.TypeOf(corev1.ConfigMap{})
-	if configmaps, ok := resourceMap[tp]; ok {
-		name := GetAppPropConfigMapName(name)
-		for i, cm := range configmaps {
-			if cm.GetName() == name {
-				if i == len(configmaps)-1 {
-					resourceMap[tp] = configmaps[:i]
-				} else {
-					resourceMap[tp] = append(configmaps[:i], configmaps[i+1:]...)
+// getAppPropsFromConfigMap extracts the application properties from the ConfigMap to a string map
+func getAppPropsFromConfigMap(configMap *corev1.ConfigMap, exist bool) map[string]string {
+	appProps := map[string]string{}
+	if exist {
+		if _, ok := configMap.Data[appPropContentKey]; ok {
+			props := strings.Split(configMap.Data[appPropContentKey], "\n")
+			for _, p := range props {
+				ps := strings.Split(p, "=")
+				if len(ps) > 1 {
+					appProps[strings.TrimSpace(ps[0])] = strings.TrimSpace(ps[1])
 				}
-				return
 			}
 		}
 	}
+	return appProps
 }

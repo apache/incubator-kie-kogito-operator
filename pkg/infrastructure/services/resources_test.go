@@ -182,9 +182,11 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	assert.True(t, ok)
 	_, ok = deployment.Spec.Template.Annotations[AppPropContentHashKey]
 	assert.True(t, ok)
+	_, ok = resources[reflect.TypeOf(corev1.ConfigMap{})][0].(*corev1.ConfigMap).Data[appPropContentKey]
+	assert.True(t, ok)
 }
 
-func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *testing.T) {
+func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *testing.T) {
 	replicas := int32(1)
 	instance := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{
@@ -197,6 +199,10 @@ func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *te
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
 	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: "v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName + appPropConfigMapSuffix,
 			Namespace: instance.Namespace,
@@ -222,8 +228,10 @@ func Test_serviceDeployer_createRequiredResources_CreateNoAppPropConfigMap(t *te
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 
-	_, exist := resources[reflect.TypeOf(corev1.ConfigMap{})]
-	assert.False(t, exist)
+	configmaps, exist := resources[reflect.TypeOf(corev1.ConfigMap{})]
+	assert.True(t, exist)
+	assert.Equal(t, 1, len(configmaps))
+	assert.Equal(t, cm, configmaps[0])
 
 	assert.Equal(t, 1, len(resources[reflect.TypeOf(appsv1.Deployment{})]))
 	deployment, ok := resources[reflect.TypeOf(appsv1.Deployment{})][0].(*appsv1.Deployment)

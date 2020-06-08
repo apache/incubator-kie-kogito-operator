@@ -33,7 +33,6 @@ type serviceInfoMessages struct {
 	installed                    string
 	checkStatus                  string
 	notInstalledNoKogitoOperator string
-	serviceExists                string
 }
 
 type servicesInstallation struct {

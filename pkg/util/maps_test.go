@@ -100,18 +100,23 @@ func TestFromMapToString(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want string
+		want []string
 	}{
-		{"Usual case", args{labels: map[string]string{"key": "value"}}, "key=value"},
-		{"Usual case 2", args{labels: map[string]string{"key1": "value1", "key2": "value2"}}, "key1=value1,key2=value2"},
-		{"Empty case", args{labels: map[string]string{}}, ""},
-		{"Only key case", args{labels: map[string]string{"key1": ""}}, "key1="},
+		{"Usual case", args{labels: map[string]string{"key": "value"}}, []string{"key=value"}},
+		{"Usual case 2", args{labels: map[string]string{"key1": "value1", "key2": "value2"}}, []string{"key1=value1,key2=value2", "key2=value2,key1=value1"}},
+		{"Empty case", args{labels: map[string]string{}}, []string{""}},
+		{"Only key case", args{labels: map[string]string{"key1": ""}}, []string{"key1="}},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := FromMapToString(tt.args.labels); got != tt.want {
-				t.Errorf("FromMapToString() = %v, want %v", got, tt.want)
+			got := FromMapToString(tt.args.labels)
+			for _, v := range tt.want {
+				if got == v {
+					return
+				}
 			}
+			t.Errorf("FromMapToString() = %v, want %v", got, tt.want)
 		})
 	}
 }

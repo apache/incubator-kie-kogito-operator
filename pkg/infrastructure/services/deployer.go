@@ -92,9 +92,9 @@ type KafkaTopicMessagingType string
 
 const (
 	// KafkaTopicIncoming ...
-	KafkaTopicIncoming KafkaTopicMessagingType = "INCOMING"
+	KafkaTopicIncoming KafkaTopicMessagingType = "incoming"
 	// KafkaTopicOutgoing ...
-	KafkaTopicOutgoing KafkaTopicMessagingType = "OUTGOING"
+	KafkaTopicOutgoing KafkaTopicMessagingType = "outgoing"
 )
 
 const (
@@ -121,7 +121,7 @@ func NewServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.Kogit
 }
 
 func builderCheck(definition ServiceDefinition) {
-	if &definition.Request == nil {
+	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
 		panic("No Request provided for the Service Deployer")
 	}
 }
@@ -136,8 +136,6 @@ type serviceDeployer struct {
 }
 
 func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Namespace }
-
-func (s *serviceDeployer) getServiceName() string { return s.definition.Request.Name }
 
 func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	found, reconcileAfter, err := s.getService()
@@ -261,6 +259,9 @@ func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *err
 		err = &statusErr
 	}
 	log.Infof("Successfully reconciled Kogito Service %s", instance.GetName())
+	if *err != nil {
+		log.Errorf("Error while creating kogito service: %v", *err)
+	}
 }
 
 func (s *serviceDeployer) deployInfinispan() (requeueAfter time.Duration, err error) {

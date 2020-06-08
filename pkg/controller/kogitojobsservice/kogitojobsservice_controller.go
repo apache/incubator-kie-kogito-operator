@@ -169,5 +169,7 @@ func onDeploymentCreate(deployment *appsv1.Deployment, service appv1alpha1.Kogit
 	} else {
 		log.Warnf("No container definition for service %s. Skipping applying custom jobs service deployment configuration", service.GetName())
 	}
+	framework.SetEnvVar(maxIntervalLimitRetryEnvKey, strconv.FormatInt(jobService.Spec.MaxIntervalLimitToRetryMillis, 10), &deployment.Spec.Template.Spec.Containers[0])
+
 	return nil
 }

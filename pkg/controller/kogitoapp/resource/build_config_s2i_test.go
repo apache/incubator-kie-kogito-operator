@@ -149,8 +149,8 @@ func Test_setBCS2IStrategy_withCustomArtifactDetails(t *testing.T) {
 			Runtime: v1alpha1.QuarkusRuntimeType,
 			Build: &v1alpha1.KogitoAppBuildObject{
 				Artifact: v1alpha1.Artifact{
-					GroupId:    "com.mycompany",
-					ArtifactId: "testproject",
+					GroupID:    "com.mycompany",
+					ArtifactID: "testproject",
 					Version:    "2.0-SNAPSHOT",
 				},
 			},
@@ -165,13 +165,13 @@ func Test_setBCS2IStrategy_withCustomArtifactDetails(t *testing.T) {
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
 	{
-		contains, envVarValue := getBuildEnvVariable(mavenGroupIdEnvVar, envs)
+		contains, envVarValue := getBuildEnvVariable(mavenGroupIDEnvVar, envs)
 		assert.True(t, contains)
 		assert.Equal(t, "com.mycompany", envVarValue)
 	}
 
 	{
-		contains, envVarValue := getBuildEnvVariable(mavenArtifactIdEnvVar, envs)
+		contains, envVarValue := getBuildEnvVariable(mavenArtifactIDEnvVar, envs)
 		assert.True(t, contains)
 		assert.Equal(t, "testproject", envVarValue)
 	}
@@ -199,11 +199,11 @@ func Test_setBCS2IStrategy_withDefaultArtifactDetails(t *testing.T) {
 	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, true)
 
 	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
-	containsGroupId, _ := getBuildEnvVariable(mavenGroupIdEnvVar, envs)
-	assert.False(t, containsGroupId)
+	containsGroupID, _ := getBuildEnvVariable(mavenGroupIDEnvVar, envs)
+	assert.False(t, containsGroupID)
 
-	containsArtifactId, _ := getBuildEnvVariable(mavenArtifactIdEnvVar, envs)
-	assert.False(t, containsArtifactId)
+	containsArtifactID, _ := getBuildEnvVariable(mavenArtifactIDEnvVar, envs)
+	assert.False(t, containsArtifactID)
 
 	containsVersion, _ := getBuildEnvVariable(mavenArtifactVersionEnvVar, envs)
 	assert.False(t, containsVersion)
@@ -216,4 +216,54 @@ func getBuildEnvVariable(envVarName string, envs []corev1.EnvVar) (contains bool
 		}
 	}
 	return false, ""
+}
+
+func Test_setBCS2IStrategy_mavenDownloadOutputEnable(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				EnableMavenDownloadOutput: true,
+			},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	for _, buildEnv := range envs {
+		if buildEnv.Name == mavenDownloadOutputEnvVar {
+			assert.Equal(t, "true", buildEnv.Value)
+		}
+	}
+}
+
+func Test_setBCS2IStrategy_mavenDownloadOutputDisable(t *testing.T) {
+	kogitoApp := &v1alpha1.KogitoApp{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoAppSpec{
+			Runtime: v1alpha1.QuarkusRuntimeType,
+			Build: &v1alpha1.KogitoAppBuildObject{
+				EnableMavenDownloadOutput: false,
+			},
+		},
+	}
+
+	buildConfig := &buildv1.BuildConfig{}
+
+	s2iBaseImage := corev1.ObjectReference{}
+
+	setBCS2IStrategy(kogitoApp, buildConfig, s2iBaseImage, false)
+
+	envs := buildConfig.Spec.Strategy.SourceStrategy.Env
+	for _, buildEnv := range envs {
+		if buildEnv.Name == mavenDownloadOutputEnvVar {
+			assert.Fail(t, "Env variable "+mavenDownloadOutputEnvVar+" should not set.")
+		}
+	}
 }

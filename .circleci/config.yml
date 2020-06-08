@@ -3,16 +3,23 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
-  build:
+   build:
     docker:
       - image: circleci/golang:1.13
-        environment: GO111MODULE=on
+        environment: 
+          - GO111MODULE=on
+          - GOLANG_LINT_VERSION=v1.27.0
+
     working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
     steps:
+      - run: go get -u golang.org/x/lint/golint
+      - run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
       - checkout
       - run: go mod tidy
       - run: go fmt ./...
       - run: go vet ./...
+      - run: golangci-lint run ./...
+      - run: ./hack/go-lint.sh
       - run: CGO_ENABLED=0 go test ./cmd/... -count=1 -p=1
       - run: CGO_ENABLED=0 go test ./pkg/... -count=1 -p=1
       - run: git clone https://github.com/bats-core/bats-core.git

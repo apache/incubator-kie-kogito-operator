@@ -92,7 +92,14 @@ func createLogger(options *Opts) (logger Logger) {
 		}),
 		SugaredLogger: zapSugaredLogger(options),
 	}
-	defer log.SugaredLogger.Sync()
+	defer func() {
+		if err := log.SugaredLogger.Sync(); err != nil {
+			// Let the messages in DEBUG mode only
+			// see: https://github.com/uber-go/zap/issues/772
+			// see: https://github.com/uber-go/zap/issues/370
+			logger.SugaredLogger.Debug("Failed to sync Sugered log: ", err)
+		}
+	}()
 
 	logf.SetLogger(log.Logger)
 	return log

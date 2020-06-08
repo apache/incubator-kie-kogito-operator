@@ -138,10 +138,16 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 				t.Errorf("GetDataIndexEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if &gotDataIndexEndpoints != nil && gotDataIndexEndpoints.HTTPRouteURI != tt.wantHTTPURL {
+			if (len(gotDataIndexEndpoints.HTTPRouteEnv) > 0 ||
+				len(gotDataIndexEndpoints.WSRouteEnv) > 0 ||
+				len(gotDataIndexEndpoints.WSRouteURI) > 0) &&
+				gotDataIndexEndpoints.HTTPRouteURI != tt.wantHTTPURL {
 				t.Errorf("GetDataIndexEndpoints() gotHTTPURL = %v, want %v", gotDataIndexEndpoints.HTTPRouteURI, tt.wantHTTPURL)
 			}
-			if &gotDataIndexEndpoints != nil && gotDataIndexEndpoints.WSRouteURI != tt.wantWSURL {
+			if (len(gotDataIndexEndpoints.HTTPRouteEnv) > 0 ||
+				len(gotDataIndexEndpoints.WSRouteEnv) > 0 ||
+				len(gotDataIndexEndpoints.HTTPRouteURI) > 0) &&
+				gotDataIndexEndpoints.WSRouteURI != tt.wantWSURL {
 				t.Errorf("GetDataIndexEndpoints() gotWSURL = %v, want %v", gotDataIndexEndpoints.WSRouteURI, tt.wantWSURL)
 			}
 		})

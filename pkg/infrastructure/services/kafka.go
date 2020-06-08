@@ -20,19 +20,25 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"strings"
 )
 
 const (
-	quarkusTopicBootstrapEnvVar = "MP_MESSAGING_%s_%s_BOOTSTRAP_SERVERS"
+	quarkusTopicBootstrapAppProp = "mp.messaging.%s.%s.bootstrap.servers"
+
+	// QuarkusBootstrapAppProp quarkus application property for setting kafka server
+	QuarkusBootstrapAppProp = "kafka.bootstrap.servers"
+
+	// SpringBootstrapAppProp spring boot application property for setting kafka server
+	SpringBootstrapAppProp = "spring.kafka.bootstrap-servers"
+
+	// Deprecated, keep it for Job Service scripts
+	quarkusBootstrapEnvVar = "KAFKA_BOOTSTRAP_SERVERS"
 )
 
-var quarkusBootstrapEnvVars = []string{"KAFKA_BOOTSTRAP_SERVERS", "QUARKUS_KAFKA_BOOTSTRAP_SERVERS"}
-
-// fromKafkaTopicToQuarkusEnvVar transforms a given Kafka Topic name into a environment variable to be read by Quarkus Kafka client used by Kogito Services
-func fromKafkaTopicToQuarkusEnvVar(topic KafkaTopicDefinition) string {
-	if &topic != nil && len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
-		return fmt.Sprintf(quarkusTopicBootstrapEnvVar, topic.MessagingType, strings.ToUpper(strings.ReplaceAll(topic.TopicName, "-", "_")))
+// fromKafkaTopicToQuarkusAppProp transforms a given Kafka Topic name into a application properties to be read by Quarkus Kafka client used by Kogito Services
+func fromKafkaTopicToQuarkusAppProp(topic KafkaTopicDefinition) string {
+	if len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
+		return fmt.Sprintf(quarkusTopicBootstrapAppProp, topic.MessagingType, topic.TopicName)
 	}
 	return ""
 }

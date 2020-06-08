@@ -43,9 +43,10 @@ func Test_InstallOperatorNoNamespace(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install operator -p %s", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	test.ExecuteCli()
+	_, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
 
-	cli = fmt.Sprintf("install operator --install-data-index")
+	cli = "install operator --install-data-index"
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)

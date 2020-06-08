@@ -568,6 +568,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Artifact"),
 						},
 					},
+					"enableMavenDownloadOutput": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},

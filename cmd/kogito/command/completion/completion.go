@@ -89,9 +89,13 @@ func (i *completionCommand) Exec(cmd *cobra.Command, args []string) error {
 	shell := args[0]
 
 	if shell == "bash" {
-		cmd.Root().GenBashCompletion(os.Stdout)
+		if err := cmd.Root().GenBashCompletion(os.Stdout); err != nil {
+			return fmt.Errorf("Error in creating bash completion file: %v", err)
+		}
 	} else if shell == "zsh" {
-		cmd.Root().GenZshCompletion(os.Stdout)
+		if err := cmd.Root().GenZshCompletion(os.Stdout); err != nil {
+			return fmt.Errorf("Error in creating zsh completion file: %v", err)
+		}
 	}
 
 	return nil

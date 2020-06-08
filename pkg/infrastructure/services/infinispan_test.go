@@ -28,71 +28,77 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		runtime              v1alpha1.RuntimeType
 		connectionProperties v1alpha1.InfinispanConnectionProperties
 		secret               *corev1.Secret
+		appProps             map[string]string
 	}
 	tests := []struct {
-		name            string
-		args            args
-		expectedEnvVars []corev1.EnvVar
+		name             string
+		args             args
+		expectedEnvVars  []corev1.EnvVar
+		expectedAppProps map[string]string
 	}{
 		{
-			"EmptyProperties",
+			"EmptyProperties, Quarkus",
 			args{
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{},
 				secret:               nil,
+				appProps:             map[string]string{},
 			},
-			[]corev1.EnvVar{
-				{Name: infinispanEnvKeyUseAuth, Value: "false"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
+			[]corev1.EnvVar{},
+			map[string]string{
+				PropertiesInfinispanQuarkus[AppPropInfinispanUseAuth]: "false",
 			},
 		},
 		{
-			"Uri",
+			"Uri, Quarkus",
 			args{
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					URI: "custom-uri:123",
 				},
-				secret: nil,
+				secret:   nil,
+				appProps: map[string]string{},
 			},
 			[]corev1.EnvVar{
-				{Name: infinispanEnvKeyUseAuth, Value: "false"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanServerList], Value: "custom-uri:123"},
 				{Name: infinispanEnvKeyServerList, Value: "custom-uri:123"},
+			},
+			map[string]string{
+				PropertiesInfinispanQuarkus[AppPropInfinispanUseAuth]:    "false",
+				PropertiesInfinispanQuarkus[AppPropInfinispanServerList]: "custom-uri:123",
 			},
 		},
 		{
-			"AuthRealm",
+			"AuthRealm, Quarkus",
 			args{
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					AuthRealm: "custom-realm",
 				},
-				secret: nil,
+				secret:   nil,
+				appProps: map[string]string{},
 			},
-			[]corev1.EnvVar{
-				{Name: infinispanEnvKeyUseAuth, Value: "false"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
-				{Name: infinispanEnvKeyAuthRealm, Value: "custom-realm"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanAuthRealm], Value: "custom-realm"},
+			[]corev1.EnvVar{},
+			map[string]string{
+				PropertiesInfinispanQuarkus[AppPropInfinispanUseAuth]:   "false",
+				PropertiesInfinispanQuarkus[AppPropInfinispanAuthRealm]: "custom-realm",
 			},
 		},
 		{
-			"SaslMechanism",
+			"SaslMechanism, Quarkus",
 			args{
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					SaslMechanism: "DIGEST-MD5",
 				},
-				secret: nil,
+				secret:   nil,
+				appProps: map[string]string{},
 			},
-			[]corev1.EnvVar{
-				{Name: infinispanEnvKeyUseAuth, Value: "false"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "false"},
-				{Name: infinispanEnvKeySasl, Value: "DIGEST-MD5"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanSaslMechanism], Value: "DIGEST-MD5"},
+			[]corev1.EnvVar{},
+			map[string]string{
+				PropertiesInfinispanQuarkus[AppPropInfinispanUseAuth]:       "false",
+				PropertiesInfinispanQuarkus[AppPropInfinispanSaslMechanism]: "DIGEST-MD5",
 			},
 		},
 		{
-			"CustomSecretDefaultKeys",
+			"CustomSecretDefaultKeys, Quarkus",
 			args{
+				runtime: v1alpha1.QuarkusRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					Credentials: v1alpha1.SecretCredentialsType{
 						SecretName: "custom-secret",
@@ -108,8 +114,18 @@ func Test_SetInfinispanVariables(t *testing.T) {
 						infrastructure.InfinispanSecretPasswordKey: "pass1",
 					},
 				},
+				appProps: map[string]string{},
 			},
 			[]corev1.EnvVar{
+				{
+					Name: PropertiesInfinispanQuarkus[EnvVarInfinispanUser],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  infrastructure.InfinispanSecretUsernameKey,
+						},
+					},
+				},
 				{
 					Name: infinispanEnvKeyUsername,
 					ValueFrom: &corev1.EnvVarSource{
@@ -120,11 +136,11 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{
-					Name: envVarInfinispanQuarkus[envVarInfinispanUser],
+					Name: PropertiesInfinispanQuarkus[EnvVarInfinispanPassword],
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  infrastructure.InfinispanSecretUsernameKey,
+							Key:                  infrastructure.InfinispanSecretPasswordKey,
 						},
 					},
 				},
@@ -137,25 +153,17 @@ func Test_SetInfinispanVariables(t *testing.T) {
 						},
 					},
 				},
-				{
-					Name: envVarInfinispanQuarkus[envVarInfinispanPassword],
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  infrastructure.InfinispanSecretPasswordKey,
-						},
-					},
-				},
 				{Name: infinispanEnvKeyCredSecret, Value: "custom-secret"},
-				{Name: infinispanEnvKeyUseAuth, Value: "true"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "true"},
-				{Name: infinispanEnvKeySasl, Value: string(v1alpha1.SASLPlain)},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanSaslMechanism], Value: string(v1alpha1.SASLPlain)},
+			},
+			map[string]string{
+				PropertiesInfinispanQuarkus[AppPropInfinispanUseAuth]:       "true",
+				PropertiesInfinispanQuarkus[AppPropInfinispanSaslMechanism]: string(v1alpha1.SASLPlain),
 			},
 		},
 		{
-			"CustomSecretCustomKeys",
+			"CustomSecretCustomKeys, Quarkus",
 			args{
+				runtime: v1alpha1.QuarkusRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					Credentials: v1alpha1.SecretCredentialsType{
 						SecretName:  "custom-secret",
@@ -173,8 +181,18 @@ func Test_SetInfinispanVariables(t *testing.T) {
 						"custom-password": "pass1",
 					},
 				},
+				appProps: map[string]string{},
 			},
 			[]corev1.EnvVar{
+				{
+					Name: PropertiesInfinispanQuarkus[EnvVarInfinispanUser],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  "custom-username",
+						},
+					},
+				},
 				{
 					Name: infinispanEnvKeyUsername,
 					ValueFrom: &corev1.EnvVarSource{
@@ -185,11 +203,11 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{
-					Name: envVarInfinispanQuarkus[envVarInfinispanUser],
+					Name: PropertiesInfinispanQuarkus[EnvVarInfinispanPassword],
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  "custom-username",
+							Key:                  "custom-password",
 						},
 					},
 				},
@@ -202,8 +220,194 @@ func Test_SetInfinispanVariables(t *testing.T) {
 						},
 					},
 				},
+				{Name: infinispanEnvKeyCredSecret, Value: "custom-secret"},
+			},
+			map[string]string{
+				PropertiesInfinispanQuarkus[AppPropInfinispanUseAuth]:       "true",
+				PropertiesInfinispanQuarkus[AppPropInfinispanSaslMechanism]: string(v1alpha1.SASLPlain),
+			},
+		},
+		{
+			"EmptyProperties, Spring",
+			args{
+				runtime:              v1alpha1.SpringbootRuntimeType,
+				connectionProperties: v1alpha1.InfinispanConnectionProperties{},
+				secret:               nil,
+				appProps:             map[string]string{},
+			},
+			[]corev1.EnvVar{},
+			map[string]string{
+				PropertiesInfinispanSpring[AppPropInfinispanUseAuth]: "false",
+			},
+		},
+		{
+			"Uri, Spring",
+			args{
+				runtime: v1alpha1.SpringbootRuntimeType,
+				connectionProperties: v1alpha1.InfinispanConnectionProperties{
+					URI: "custom-uri:123",
+				},
+				secret:   nil,
+				appProps: map[string]string{},
+			},
+			[]corev1.EnvVar{
+				{Name: infinispanEnvKeyServerList, Value: "custom-uri:123"},
+			},
+			map[string]string{
+				PropertiesInfinispanSpring[AppPropInfinispanUseAuth]:    "false",
+				PropertiesInfinispanSpring[AppPropInfinispanServerList]: "custom-uri:123",
+			},
+		},
+		{
+			"AuthRealm, Spring",
+			args{
+				runtime: v1alpha1.SpringbootRuntimeType,
+				connectionProperties: v1alpha1.InfinispanConnectionProperties{
+					AuthRealm: "custom-realm",
+				},
+				secret:   nil,
+				appProps: map[string]string{},
+			},
+			[]corev1.EnvVar{},
+			map[string]string{
+				PropertiesInfinispanSpring[AppPropInfinispanUseAuth]:   "false",
+				PropertiesInfinispanSpring[AppPropInfinispanAuthRealm]: "custom-realm",
+			},
+		},
+		{
+			"SaslMechanism, Spring",
+			args{
+				runtime: v1alpha1.SpringbootRuntimeType,
+				connectionProperties: v1alpha1.InfinispanConnectionProperties{
+					SaslMechanism: "DIGEST-MD5",
+				},
+				secret:   nil,
+				appProps: map[string]string{},
+			},
+			[]corev1.EnvVar{},
+			map[string]string{
+				PropertiesInfinispanSpring[AppPropInfinispanUseAuth]:       "false",
+				PropertiesInfinispanSpring[AppPropInfinispanSaslMechanism]: "DIGEST-MD5",
+			},
+		},
+		{
+			"CustomSecretDefaultKeys, Spring",
+			args{
+				runtime: v1alpha1.SpringbootRuntimeType,
+				connectionProperties: v1alpha1.InfinispanConnectionProperties{
+					Credentials: v1alpha1.SecretCredentialsType{
+						SecretName: "custom-secret",
+					},
+				},
+				secret: &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "custom-secret",
+						Namespace: t.Name(),
+					},
+					StringData: map[string]string{
+						infrastructure.InfinispanSecretUsernameKey: "user1",
+						infrastructure.InfinispanSecretPasswordKey: "pass1",
+					},
+				},
+				appProps: map[string]string{},
+			},
+			[]corev1.EnvVar{
 				{
-					Name: envVarInfinispanQuarkus[envVarInfinispanPassword],
+					Name: PropertiesInfinispanSpring[EnvVarInfinispanUser],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  infrastructure.InfinispanSecretUsernameKey,
+						},
+					},
+				},
+				{
+					Name: infinispanEnvKeyUsername,
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  infrastructure.InfinispanSecretUsernameKey,
+						},
+					},
+				},
+				{
+					Name: PropertiesInfinispanSpring[EnvVarInfinispanPassword],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  infrastructure.InfinispanSecretPasswordKey,
+						},
+					},
+				},
+				{
+					Name: infinispanEnvKeyPassword,
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  infrastructure.InfinispanSecretPasswordKey,
+						},
+					},
+				},
+				{Name: infinispanEnvKeyCredSecret, Value: "custom-secret"},
+			},
+			map[string]string{
+				PropertiesInfinispanSpring[AppPropInfinispanUseAuth]:       "true",
+				PropertiesInfinispanSpring[AppPropInfinispanSaslMechanism]: string(v1alpha1.SASLPlain),
+			},
+		},
+		{
+			"CustomSecretCustomKeys, Spring",
+			args{
+				runtime: v1alpha1.SpringbootRuntimeType,
+				connectionProperties: v1alpha1.InfinispanConnectionProperties{
+					Credentials: v1alpha1.SecretCredentialsType{
+						SecretName:  "custom-secret",
+						UsernameKey: "custom-username",
+						PasswordKey: "custom-password",
+					},
+				},
+				secret: &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "custom-secret",
+						Namespace: t.Name(),
+					},
+					StringData: map[string]string{
+						"custom-username": "user1",
+						"custom-password": "pass1",
+					},
+				},
+				appProps: map[string]string{},
+			},
+			[]corev1.EnvVar{
+				{
+					Name: PropertiesInfinispanSpring[EnvVarInfinispanUser],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  "custom-username",
+						},
+					},
+				},
+				{
+					Name: infinispanEnvKeyUsername,
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  "custom-username",
+						},
+					},
+				},
+				{
+					Name: PropertiesInfinispanSpring[EnvVarInfinispanPassword],
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
+							Key:                  "custom-password",
+						},
+					},
+				},
+				{
+					Name: infinispanEnvKeyPassword,
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
@@ -212,10 +416,10 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{Name: infinispanEnvKeyCredSecret, Value: "custom-secret"},
-				{Name: infinispanEnvKeyUseAuth, Value: "true"},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanUseAuth], Value: "true"},
-				{Name: infinispanEnvKeySasl, Value: string(v1alpha1.SASLPlain)},
-				{Name: envVarInfinispanQuarkus[envVarInfinispanSaslMechanism], Value: string(v1alpha1.SASLPlain)},
+			},
+			map[string]string{
+				PropertiesInfinispanSpring[AppPropInfinispanUseAuth]:       "true",
+				PropertiesInfinispanSpring[AppPropInfinispanSaslMechanism]: string(v1alpha1.SASLPlain),
 			},
 		},
 	}
@@ -223,12 +427,13 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			container := &corev1.Container{}
 
-			setInfinispanVariables(tt.args.runtime, tt.args.connectionProperties, tt.args.secret, container)
+			setInfinispanVariables(tt.args.runtime, &tt.args.connectionProperties, tt.args.secret, container, tt.args.appProps)
 
 			assert.Equal(t, len(tt.expectedEnvVars), len(container.Env))
 			for _, expectedEnvVar := range tt.expectedEnvVars {
 				assert.Contains(t, container.Env, expectedEnvVar)
 			}
+			assert.Equal(t, tt.expectedAppProps, tt.args.appProps)
 		})
 	}
 }

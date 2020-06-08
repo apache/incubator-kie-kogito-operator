@@ -36,9 +36,10 @@ const (
 	buildS2IlimitCPUEnvVarKey    = "LIMIT_CPU"
 	buildS2IlimitMemoryEnvVarKey = "LIMIT_MEMORY"
 	mavenMirrorURLEnvVar         = "MAVEN_MIRROR_URL"
-	mavenGroupIdEnvVar           = "PROJECT_GROUP_ID"
-	mavenArtifactIdEnvVar        = "PROJECT_ARTIFACT_ID"
+	mavenGroupIDEnvVar           = "PROJECT_GROUP_ID"
+	mavenArtifactIDEnvVar        = "PROJECT_ARTIFACT_ID"
 	mavenArtifactVersionEnvVar   = "PROJECT_VERSION"
+	mavenDownloadOutputEnvVar    = "MAVEN_DOWNLOAD_OUTPUT"
 )
 
 // newBuildConfigS2I creates a new build configuration for source to image (s2i) builds
@@ -120,17 +121,22 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: kogitoApp.Spec.Build.MavenMirrorURL})
 	}
 
+	if kogitoApp.Spec.Build.EnableMavenDownloadOutput {
+		log.Infof("Enable logging for transfer progress of downloading/uploading maven dependencies")
+		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenDownloadOutputEnvVar, Value: strconv.FormatBool(kogitoApp.Spec.Build.EnableMavenDownloadOutput)})
+	}
+
 	// if user has provided a file, binary build should be used instead.
 	if buildFromAsset {
 
-		if len(kogitoApp.Spec.Build.Artifact.GroupId) > 0 {
-			log.Debugf("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupId)
-			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.GroupId})
+		if len(kogitoApp.Spec.Build.Artifact.GroupID) > 0 {
+			log.Debugf("Setting final generated artifact group id %s", kogitoApp.Spec.Build.Artifact.GroupID)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIDEnvVar, Value: kogitoApp.Spec.Build.Artifact.GroupID})
 		}
 
-		if len(kogitoApp.Spec.Build.Artifact.ArtifactId) > 0 {
-			log.Debugf("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactId)
-			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIdEnvVar, Value: kogitoApp.Spec.Build.Artifact.ArtifactId})
+		if len(kogitoApp.Spec.Build.Artifact.ArtifactID) > 0 {
+			log.Debugf("Setting final generated artifact id %s", kogitoApp.Spec.Build.Artifact.ArtifactID)
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIDEnvVar, Value: kogitoApp.Spec.Build.Artifact.ArtifactID})
 		}
 
 		if len(kogitoApp.Spec.Build.Artifact.Version) > 0 {
@@ -157,7 +163,7 @@ func setBCS2IStrategy(kogitoApp *v1alpha1.KogitoApp, buildConfig *buildv1.BuildC
 func getBCS2ILimitsAsIntString(buildConfig *buildv1.BuildConfig) (limitCPU, limitMemory string) {
 	limitCPU = ""
 	limitMemory = ""
-	if &buildConfig.Spec.Resources == nil || buildConfig.Spec.Resources.Limits == nil {
+	if buildConfig == nil || buildConfig.Spec.Resources.Limits == nil {
 		return "", ""
 	}
 

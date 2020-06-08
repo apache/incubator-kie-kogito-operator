@@ -119,7 +119,7 @@ func TestNewProject_WhenTheresNoNamedFlag(t *testing.T) {
 }
 
 func TestNewProject_WhenTheresNoName(t *testing.T) {
-	cli := fmt.Sprintf("new-project")
+	cli := "new-project"
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
