@@ -97,10 +97,14 @@ type KogitoServiceSpecInterface interface {
 	SetReplicas(replicas int32)
 	GetEnvs() []corev1.EnvVar
 	SetEnvs(envs []corev1.EnvVar)
+	AddEnvironmentVariable(name, value string)
+	AddEnvironmentVariableFromSecret(variableName, secretName, secretKey string)
 	GetImage() *Image
 	SetImage(image Image)
 	GetResources() corev1.ResourceRequirements
 	SetResources(resources corev1.ResourceRequirements)
+	AddResourceRequest(name, value string)
+	AddResourceLimit(name, value string)
 	GetDeploymentLabels() map[string]string
 	SetDeploymentLabels(labels map[string]string)
 	GetServiceLabels() map[string]string
