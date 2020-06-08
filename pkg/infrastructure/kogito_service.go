@@ -18,6 +18,14 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"strconv"
+)
+
+const (
+	httpPortEnvVar = "HTTP_PORT"
 )
 
 // getSingletonKogitoServiceRoute gets the route from a kogito service that's unique in the given namespace
@@ -29,4 +37,31 @@ func getSingletonKogitoServiceRoute(client *client.Client, namespace string, ser
 		return serviceListRef.GetItemAt(0).GetStatus().GetExternalURI(), nil
 	}
 	return "", nil
+}
+
+func SetHttpPortEnvVar(container *v1.Container, kogitoService v1alpha1.KogitoService) {
+	httpPort := defineHTTPPort(kogitoService.(*v1alpha1.KogitoDataIndex))
+	framework.SetEnvVar(httpPortEnvVar, strconv.Itoa(int(httpPort)), container)
+	container.Ports[0].ContainerPort = httpPort
+	if container.ReadinessProbe != nil &&
+		container.ReadinessProbe.TCPSocket != nil {
+		container.ReadinessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
+		container.LivenessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
+	} else if container.ReadinessProbe != nil &&
+		container.ReadinessProbe.HTTPGet != nil {
+		container.ReadinessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
+		container.LivenessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
+	}
+}
+
+// defineHTTPPort will define on which port the service should be listening to. To set it use httpPort cr parameter.
+// defaults to 8080
+func defineHTTPPort(instance *v1alpha1.KogitoDataIndex) int32 {
+	// port should be greater than 0
+	if instance.Spec.HTTPPort < 1 {
+		log.Debugf("HTTPPort not set, returning default http port.")
+		return framework.DefaultExposedPort
+	}
+	log.Debugf("HTTPPort is set, returning port number %i", int(instance.Spec.HTTPPort))
+	return instance.Spec.HTTPPort
 }

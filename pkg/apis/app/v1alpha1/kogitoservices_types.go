@@ -106,6 +106,7 @@ type KogitoServiceSpecInterface interface {
 	GetServiceLabels() map[string]string
 	SetServiceLabels(labels map[string]string)
 	GetRuntime() RuntimeType
+	GetHTTPPort() int32
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification
@@ -148,6 +149,10 @@ type KogitoServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Additional Service Labels"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	ServiceLabels map[string]string `json:"serviceLabels,omitempty"`
+
+	// HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.
+	// +optional
+	HTTPPort int32 `json:"httpPort,omitempty"`
 }
 
 // GetReplicas ...
@@ -175,6 +180,9 @@ func (k *KogitoServiceSpec) GetResources() corev1.ResourceRequirements { return 
 func (k *KogitoServiceSpec) SetResources(resources corev1.ResourceRequirements) {
 	k.Resources = resources
 }
+
+// GetHTTPPort
+func (k *KogitoServiceSpec) GetHTTPPort() int32 { return k.HTTPPort }
 
 // AddEnvironmentVariable adds new environment variable to service environment variables
 func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {

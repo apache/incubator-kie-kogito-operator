@@ -15,7 +15,6 @@
 package kogitodataindex
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -24,12 +23,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	"path"
-	"strconv"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"path"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -153,7 +149,6 @@ const (
 	protoBufKeyFolder                  string = "KOGITO_PROTOBUF_FOLDER"
 	protoBufKeyWatch                   string = "KOGITO_PROTOBUF_WATCH"
 	protoBufConfigMapVolumeDefaultMode int32  = 420
-	dataIndexEnvKeyHTTPPort                   = "KOGITO_DATA_INDEX_HTTP_PORT"
 
 	// Collection of kafka topics that should be handled by the Data Index
 	kafkaTopicNameProcessInstances  string = "kogito-processinstances-events"
@@ -173,28 +168,13 @@ var kafkaTopics = []services.KafkaTopicDefinition{
 
 func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		httpPort := defineDataIndexHTTPPort(kogitoService.(*appv1alpha1.KogitoDataIndex))
-		framework.SetEnvVar(dataIndexEnvKeyHTTPPort, strconv.Itoa(int(httpPort)), &deployment.Spec.Template.Spec.Containers[0])
-		deployment.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort = httpPort
-		// TODO: when all services begin to support port customization, this should be implemented by the infrastructure: https://issues.redhat.com/browse/KOGITO-1483
-		if deployment.Spec.Template.Spec.Containers[0].ReadinessProbe != nil &&
-			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket != nil {
-			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
-			deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
-		} else if deployment.Spec.Template.Spec.Containers[0].ReadinessProbe != nil &&
-			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet != nil {
-			deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
-			deployment.Spec.Template.Spec.Containers[0].LivenessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
-
-		}
-
+		infrastructure.SetHttpPortEnvVar(&deployment.Spec.Template.Spec.Containers[0], kogitoService)
 		if err := r.mountProtoBufConfigMaps(deployment); err != nil {
 			return err
 		}
 	} else {
 		log.Warnf("No container definition for service %s. Skipping applying custom Data Index deployment configuration", kogitoService.GetName())
 	}
-
 	return nil
 }
 
@@ -234,16 +214,4 @@ func (r *ReconcileKogitoDataIndex) mountProtoBufConfigMaps(deployment *appsv1.De
 	}
 
 	return nil
-}
-
-// defineDataIndexHTTPPort will define which port the dataindex should be listening to. To set it use httpPort cr parameter.
-// defaults to 8080
-func defineDataIndexHTTPPort(instance *v1alpha1.KogitoDataIndex) int32 {
-	// port should be greater than 0
-	if instance.Spec.HTTPPort < 1 {
-		log.Debugf("HTTPPort not set, returning default http port.")
-		return framework.DefaultExposedPort
-	}
-	log.Debugf("HTTPPort is set, returning port number %i", int(instance.Spec.HTTPPort))
-	return instance.Spec.HTTPPort
 }
