@@ -85,7 +85,7 @@ func ProduceTGZfile(resource string) (io.Reader, error) {
 		return nil
 	})
 
-	if err != nil{
+	if err != nil {
 		log.Errorf(message.KogitoAppFileWalkingError, resource, err)
 	}
 	log.Infof(message.KogitoAppFoundFile, filesFound)

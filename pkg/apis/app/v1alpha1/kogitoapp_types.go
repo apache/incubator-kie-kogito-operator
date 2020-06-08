@@ -88,7 +88,7 @@ func (k *KogitoAppSpec) IsGitURIEmpty() bool {
 	if k == nil {
 		return true
 	}
-	if k.Build == nil{
+	if k.Build == nil {
 		return true
 	}
 	return len(k.Build.GitSource.URI) == 0

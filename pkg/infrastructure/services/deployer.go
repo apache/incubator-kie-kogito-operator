@@ -121,7 +121,7 @@ func NewServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.Kogit
 }
 
 func builderCheck(definition ServiceDefinition) {
-	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0{
+	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
 		panic("No Request provided for the Service Deployer")
 	}
 }
@@ -136,7 +136,6 @@ type serviceDeployer struct {
 }
 
 func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Namespace }
-
 
 func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	found, reconcileAfter, err := s.getService()
@@ -260,7 +259,7 @@ func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *err
 		err = &statusErr
 	}
 	log.Infof("Successfully reconciled Kogito Service %s", instance.GetName())
-	if *err != nil{
+	if *err != nil {
 		log.Errorf("Error while creating kogito service: %v", *err)
 	}
 }

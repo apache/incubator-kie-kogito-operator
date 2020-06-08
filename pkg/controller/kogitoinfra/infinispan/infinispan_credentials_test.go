@@ -22,7 +22,7 @@ import (
 	"testing"
 )
 
-func Test_getDeveloperCresdentials(t *testing.T){
+func Test_getDeveloperCresdentials(t *testing.T) {
 	secreteMap := make(map[string][]byte)
 	secreteMap[infrastructure.InfinispanSecretPasswordKey] = []byte("password")
 	secreteMap[infrastructure.InfinispanSecretUsernameKey] = []byte(kogitoInfinispanUser)

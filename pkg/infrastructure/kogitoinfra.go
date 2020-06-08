@@ -176,14 +176,14 @@ func isInfraComponentDeployed(status *v1alpha1.InfraComponentInstallStatusType) 
 }
 
 func isInfinispanDeployed(infra *v1alpha1.KogitoInfra) bool {
-	if infra != nil  {
+	if infra != nil {
 		return isInfraComponentDeployed(&infra.Status.Infinispan.InfraComponentInstallStatusType)
 	}
 	return false
 }
 
 func isKafkaDeployed(infra *v1alpha1.KogitoInfra) bool {
-	if infra != nil  {
+	if infra != nil {
 		return isInfraComponentDeployed(&infra.Status.Kafka)
 	}
 	return false
