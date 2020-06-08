@@ -80,7 +80,6 @@ func TestCompleteCRD(t *testing.T) {
 	}
 }
 
-
 func getSchema(t *testing.T) validation.Schema {
 	box := packr.New("deploy/crds", "../../../../deploy/crds")
 	crdFile := "app.kiegroup.org_kogitoapps_crd.yaml"

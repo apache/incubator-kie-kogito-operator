@@ -122,7 +122,6 @@ func newInfinispanResource(kogitoInfra *v1alpha1.KogitoInfra) *infinispan.Infini
 	return infinispanRes
 }
 
-
 // newInfinispanLinkedSecret will create a new secret based on the generated identity secret by the Infinispan Operator
 // this secret will be used later by any client services in the namespace to connect to the Infinispan instance
 func newInfinispanLinkedSecret(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (*v1.Secret, error) {

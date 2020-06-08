@@ -99,7 +99,7 @@ func createLogger(options *Opts) (logger Logger) {
 			// see: https://github.com/uber-go/zap/issues/370
 			logger.SugaredLogger.Debug("Failed to sync Sugered log: ", err)
 		}
-		}()
+	}()
 
 	logf.SetLogger(log.Logger)
 	return log

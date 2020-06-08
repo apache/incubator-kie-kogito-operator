@@ -66,10 +66,10 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 
 // GetInfinispanServiceURI fetches for the Infinispan service linked with the given KogitoInfra and returns a formatted URI
 func GetInfinispanServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri string, err error) {
-	 if len(infra.Status.Infinispan.Condition) == 0  &&
-	 	len(infra.Status.Infinispan.Service) == 0 &&
-	 	len(infra.Status.Infinispan.Name) == 0 &&
-	 	len(infra.Status.Infinispan.CredentialSecret) ==0  {
+	if len(infra.Status.Infinispan.Condition) == 0 &&
+		len(infra.Status.Infinispan.Service) == 0 &&
+		len(infra.Status.Infinispan.Name) == 0 &&
+		len(infra.Status.Infinispan.CredentialSecret) == 0 {
 		return "", nil
 	}
 
@@ -96,7 +96,7 @@ func GetInfinispanServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (u
 // GetInfinispanCredentialsSecret will fetch for the secret created to hold Infinispan credentials
 func GetInfinispanCredentialsSecret(cli *client.Client, infra *v1alpha1.KogitoInfra) (secret *corev1.Secret, err error) {
 	err = nil
-	if  len(infra.Status.Infinispan.Name) == 0 && len(infra.Status.Infinispan.Service) == 0{
+	if len(infra.Status.Infinispan.Name) == 0 && len(infra.Status.Infinispan.Service) == 0 {
 		return
 	}
 	secret = &corev1.Secret{

@@ -24,7 +24,6 @@ const (
 	kogitoInfinispanUser = "developer"
 )
 
-
 // Identity is the struct for the secret holding the credential for the Infinispan server
 type Identity struct {
 	Credentials []Credential `yaml:"credentials"`
@@ -35,7 +34,6 @@ type Credential struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
-
 
 // getDeveloperCredential will return the credential to be used by internal services
 func getDeveloperCredential(secret *v1.Secret) (*Credential, error) {
