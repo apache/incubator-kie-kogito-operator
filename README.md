@@ -9,22 +9,22 @@ For information about the Kogito Operator architecture and instructions for usin
 Table of Contents
 =================
 
-     * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
-        * [Prerequisites](#prerequisites)
-        * [Kogito Operator environment](#kogito-operator-environment)
-        * [Kogito Operator unit tests](#kogito-operator-unit-tests)
-        * [Kogito Operator collaboration and pull requests](#kogito-operator-collaboration-and-pull-requests)
-     * [Kogito Operator development](#kogito-operator-development)
-         * [Requirements](#requirements)
-         * [Building the Kogito Operator](#building-the-kogito-operator)
-         * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
-         * [Running BDD Tests](#running-bdd-tests)
-            * [Running BDD tests with current branch](#running-bdd-tests-with-current-branch)
-            * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
-            * [Running smoke tests](#running-smoke-tests)
-            * [Running performance tests](#running-performance-tests)
-            * [List of test tags](#list-of-test-tags)
-         * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
+* [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
+ * [Prerequisites](#prerequisites)
+ * [Kogito Operator environment](#kogito-operator-environment)
+    * [Kogito Operator unit tests](#kogito-operator-unit-tests)
+    * [Kogito Operator collaboration and pull requests](#kogito-operator-collaboration-and-pull-requests)
+ * [Kogito Operator development](#kogito-operator-development)
+    * [Requirements](#requirements)
+    * [Building the Kogito Operator](#building-the-kogito-operator)
+    * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
+    * [Running BDD Tests](#running-bdd-tests)
+       * [Running BDD tests with current branch](#running-bdd-tests-with-current-branch)
+       * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
+       * [Running smoke tests](#running-smoke-tests)
+       * [Running performance tests](#running-performance-tests)
+       * [List of test tags](#list-of-test-tags)
+    * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -83,7 +83,7 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 
 - [Docker](https://www.docker.com/)
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
-- [Operator SDK](https://github.com/operator-framework/operator-sdk) V0.15.x or later
+- [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.15.x
 - [Go](https://golang.org/) v1.13 is installed.
 - [Golint dependency](golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 
