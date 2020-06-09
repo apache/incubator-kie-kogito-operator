@@ -154,22 +154,16 @@ func onDeploymentCreate(deployment *appsv1.Deployment, service appv1alpha1.Kogit
 		infrastructure.SetHttpPortEnvVar(container, service)
 
 		jobService := service.(*appv1alpha1.KogitoJobsService)
-		if &jobService.Spec.BackOffRetryMillis != nil {
-			if jobService.Spec.BackOffRetryMillis <= 0 {
-				jobService.Spec.BackOffRetryMillis = backOffRetryDefaultValue
-			}
-			framework.SetEnvVar(backOffRetryEnvKey, strconv.FormatInt(jobService.Spec.BackOffRetryMillis, 10), container)
+		if jobService.Spec.BackOffRetryMillis <= 0 {
+			jobService.Spec.BackOffRetryMillis = backOffRetryDefaultValue
 		}
-		if &jobService.Spec.MaxIntervalLimitToRetryMillis != nil {
-			if jobService.Spec.MaxIntervalLimitToRetryMillis <= 0 {
-				jobService.Spec.MaxIntervalLimitToRetryMillis = maxIntervalLimitRetryDefaultValue
-			}
-			framework.SetEnvVar(maxIntervalLimitRetryEnvKey, strconv.FormatInt(jobService.Spec.MaxIntervalLimitToRetryMillis, 10), container)
+		framework.SetEnvVar(backOffRetryEnvKey, strconv.FormatInt(jobService.Spec.BackOffRetryMillis, 10), container)
+		if jobService.Spec.MaxIntervalLimitToRetryMillis <= 0 {
+			jobService.Spec.MaxIntervalLimitToRetryMillis = maxIntervalLimitRetryDefaultValue
 		}
+		framework.SetEnvVar(maxIntervalLimitRetryEnvKey, strconv.FormatInt(jobService.Spec.MaxIntervalLimitToRetryMillis, 10), container)
 	} else {
 		log.Warnf("No container definition for service %s. Skipping applying custom jobs service deployment configuration", service.GetName())
 	}
-	framework.SetEnvVar(maxIntervalLimitRetryEnvKey, strconv.FormatInt(jobService.Spec.MaxIntervalLimitToRetryMillis, 10), &deployment.Spec.Template.Spec.Containers[0])
-
 	return nil
 }

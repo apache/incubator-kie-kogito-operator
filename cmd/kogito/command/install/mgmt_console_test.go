@@ -61,3 +61,27 @@ func Test_DeployMgmtConsoleCmd_CustomImage(t *testing.T) {
 	assert.Equal(t, mgmtConsole.Spec.Image.Domain, "docker.io")
 	assert.Equal(t, mgmtConsole.Spec.Image.Tag, "latest")
 }
+
+func Test_DeployMgmtConsoleCmd_CustomHTTPPort(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install mgmt-console -p %s --http-port 9090", ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
+	)
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Management Console Service successfully installed")
+
+	mgmtConsole := &v1alpha1.KogitoMgmtConsole{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: ns,
+			Name:      infrastructure.DefaultMgmtConsoleName,
+		},
+	}
+	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
+	assert.NoError(t, err)
+	assert.True(t, exits)
+	assert.Equal(t, int32(9090), mgmtConsole.Spec.HTTPPort)
+}

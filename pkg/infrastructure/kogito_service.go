@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	httpPortEnvVar = "HTTP_PORT"
+	HTTPPortEnvVar = "HTTP_PORT"
 )
 
 // getSingletonKogitoServiceRoute gets the route from a kogito service that's unique in the given namespace
@@ -40,8 +40,8 @@ func getSingletonKogitoServiceRoute(client *client.Client, namespace string, ser
 }
 
 func SetHttpPortEnvVar(container *v1.Container, kogitoService v1alpha1.KogitoService) {
-	httpPort := defineHTTPPort(kogitoService.(*v1alpha1.KogitoDataIndex))
-	framework.SetEnvVar(httpPortEnvVar, strconv.Itoa(int(httpPort)), container)
+	httpPort := defineHTTPPort(kogitoService)
+	framework.SetEnvVar(HTTPPortEnvVar, strconv.Itoa(int(httpPort)), container)
 	container.Ports[0].ContainerPort = httpPort
 	if container.ReadinessProbe != nil &&
 		container.ReadinessProbe.TCPSocket != nil {
@@ -56,12 +56,14 @@ func SetHttpPortEnvVar(container *v1.Container, kogitoService v1alpha1.KogitoSer
 
 // defineHTTPPort will define on which port the service should be listening to. To set it use httpPort cr parameter.
 // defaults to 8080
-func defineHTTPPort(instance *v1alpha1.KogitoDataIndex) int32 {
+func defineHTTPPort(kogitoService v1alpha1.KogitoService) int32 {
 	// port should be greater than 0
-	if instance.Spec.HTTPPort < 1 {
+	httpPort := kogitoService.GetSpec().GetHTTPPort()
+	if httpPort < 1 {
 		log.Debugf("HTTPPort not set, returning default http port.")
 		return framework.DefaultExposedPort
+	} else {
+		log.Debugf("HTTPPort is set, returning port number %i", httpPort)
+		return httpPort
 	}
-	log.Debugf("HTTPPort is set, returning port number %i", int(instance.Spec.HTTPPort))
-	return instance.Spec.HTTPPort
 }

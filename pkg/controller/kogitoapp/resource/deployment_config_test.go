@@ -15,6 +15,8 @@
 package resource
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	appsv1 "github.com/openshift/api/apps/v1"
 	"strconv"
 	"strings"
 	"testing"
@@ -244,4 +246,36 @@ func Test_namespaceEnvVarCorrectSet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, envVarNamespace))
 	assert.Equal(t, kogitoApp.Namespace, framework.GetEnvVarFromContainer(envVarNamespace, &dc.Spec.Template.Spec.Containers[0]))
+}
+
+func Test_SetHttpPortEnvVar(t *testing.T) {
+	ns := t.Name()
+	httpPort := int32(9090)
+	dc := appsv1.DeploymentConfig{
+		Spec: appsv1.DeploymentConfigSpec{
+			Template: &v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{},
+					},
+				},
+			},
+		},
+	}
+
+	kogitoService := v1alpha1.KogitoApp{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoAppSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				HTTPPort: httpPort,
+			},
+		},
+	}
+
+	setHttpPortEnvVar(&kogitoService, &dc)
+	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, infrastructure.HTTPPortEnvVar))
+	assert.Equal(t, dc.Spec.Template.Spec.Containers[0].Env[0].Value, "9090")
 }

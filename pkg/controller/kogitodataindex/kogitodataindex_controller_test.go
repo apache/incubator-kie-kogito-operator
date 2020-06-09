@@ -15,7 +15,6 @@
 package kogitodataindex
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sort"
 	"testing"
@@ -99,16 +98,15 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 
 func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	ns := t.Name()
-	envMap := make(map[string]string)
-	envMap[dataIndexEnvKeyHTTPPort] = "3030"
 	instance := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: ns,
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			HTTPPort:          9090,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Envs: framework.MapToEnvVar(envMap)},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				HTTPPort: 9090,
+			},
 			KafkaMeta: v1alpha1.KafkaMeta{
 				KafkaProperties: v1alpha1.KafkaConnectionProperties{
 					UseKogitoInfra: false,
@@ -148,7 +146,7 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 
 	// make sure that the http port was correctly added.
 	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  dataIndexEnvKeyHTTPPort,
+		Name:  infrastructure.HTTPPortEnvVar,
 		Value: "9090",
 	})
 

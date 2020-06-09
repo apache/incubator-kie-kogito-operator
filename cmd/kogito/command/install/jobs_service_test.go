@@ -124,3 +124,29 @@ func Test_DeployJobsServiceCmd_SuccessfulDeployWithKafkaInstance(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
 }
+
+func Test_DeployJobServiceCmd_CustomHTTPPort(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install jobs-service --project %s --http-port 9090 --kafka-instance my-cluster", ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
+
+	// This should be created, given the command above
+	jobService := &v1alpha1.KogitoJobsService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      infrastructure.DefaultJobsServiceName,
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(jobService)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.NotNil(t, jobService)
+	assert.Equal(t, int32(9090), jobService.Spec.HTTPPort)
+}

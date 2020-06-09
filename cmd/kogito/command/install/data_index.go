@@ -40,7 +40,6 @@ const (
 type installDataIndexFlags struct {
 	deploy.CommonFlags
 	image              string
-	httpPort           int32
 	kafka              v1alpha1.KafkaConnectionProperties
 	infinispan         v1alpha1.InfinispanConnectionProperties
 	infinispanSasl     string
@@ -201,7 +200,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 					Requests: shared.FromStringArrayToResources(i.flags.Requests),
 				},
-				HTTPPort: i.flags.httpPort,
+				HTTPPort: i.flags.HTTPPort,
 			},
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: i.flags.infinispan},
 			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},
