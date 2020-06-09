@@ -1082,9 +1082,7 @@ spec:
 The flag `--enable-events` in the CLI and the attribute `spec.enableEvents: true` in the CR tells to the operator
 to deploy a Kafka cluster in the namespace if no Kafka cluster owned by Kogito Operator is found.
 
-An [application property](#kogito-runtimes-properties-configuration) is injected into the service container for specifying the Kafka server location. 
-For Quarkus runtimes, the name of the application property is `kafka.bootstrap.servers`. 
-For Springboot, the name of the application property is `spring.kafka.bootstrap-servers`.
+An [application property](#kogito-runtimes-properties-configuration) is injected into the service container for specifying the Kafka server location. The name of the application property is `kafka.bootstrap.servers`.
 
 _**Note:** The Kafka application properties are derived from the customization described in the Kogito CLI or the `KogitoApp` custom resource. Any manual changes to the properties in the ConfigMap will be overridden._
 

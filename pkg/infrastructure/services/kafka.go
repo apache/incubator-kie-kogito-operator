@@ -16,6 +16,7 @@ package services
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -29,7 +30,7 @@ const (
 	QuarkusBootstrapAppProp = "kafka.bootstrap.servers"
 
 	// SpringBootstrapAppProp spring boot application property for setting kafka server
-	SpringBootstrapAppProp = "spring.kafka.bootstrap-servers"
+	SpringBootstrapAppProp = "kafka.bootstrap-servers"
 
 	// Deprecated, keep it for Job Service scripts
 	quarkusBootstrapEnvVar = "KAFKA_BOOTSTRAP_SERVERS"
