@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	//Env variable to define port on which service will listen internally
+	// HTTPPortEnvVar ... Env variable to define port on which service will listen internally
 	HTTPPortEnvVar = "HTTP_PORT"
 )
 
@@ -40,7 +40,7 @@ func getSingletonKogitoServiceRoute(client *client.Client, namespace string, ser
 	return "", nil
 }
 
-//Set HTTP port in env variable of given container
+// SetHTTPPortEnvVar ... Set HTTP port in env variable of given container
 func SetHTTPPortEnvVar(container *v1.Container, kogitoService v1alpha1.KogitoService) {
 	httpPort := defineHTTPPort(kogitoService)
 	framework.SetEnvVar(HTTPPortEnvVar, strconv.Itoa(int(httpPort)), container)

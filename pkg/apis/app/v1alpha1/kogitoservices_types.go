@@ -182,6 +182,7 @@ func (k *KogitoServiceSpec) SetResources(resources corev1.ResourceRequirements) 
 	k.Resources = resources
 }
 
+// GetHTTPPort ...
 func (k *KogitoServiceSpec) GetHTTPPort() int32 { return k.HTTPPort }
 
 // AddEnvironmentVariable adds new environment variable to service environment variables
