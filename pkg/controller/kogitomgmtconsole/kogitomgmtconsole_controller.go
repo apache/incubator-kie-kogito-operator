@@ -130,7 +130,7 @@ func (r *ReconcileKogitoMgmtConsole) Reconcile(request reconcile.Request) (recon
 func onDeploymentCreate(deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		container := &deployment.Spec.Template.Spec.Containers[0]
-		infrastructure.SetHttpPortEnvVar(container, service)
+		infrastructure.SetHTTPPortEnvVar(container, service)
 	} else {
 		log.Warnf("No container definition for service %s. Skipping applying custom mgmt console deployment configuration", service.GetName())
 	}

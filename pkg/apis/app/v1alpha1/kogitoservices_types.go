@@ -106,6 +106,7 @@ type KogitoServiceSpecInterface interface {
 	GetServiceLabels() map[string]string
 	SetServiceLabels(labels map[string]string)
 	GetRuntime() RuntimeType
+	//Define port on which service will listen internally
 	GetHTTPPort() int32
 }
 
@@ -181,7 +182,6 @@ func (k *KogitoServiceSpec) SetResources(resources corev1.ResourceRequirements) 
 	k.Resources = resources
 }
 
-// GetHTTPPort
 func (k *KogitoServiceSpec) GetHTTPPort() int32 { return k.HTTPPort }
 
 // AddEnvironmentVariable adds new environment variable to service environment variables

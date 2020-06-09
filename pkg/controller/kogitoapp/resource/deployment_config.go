@@ -146,7 +146,7 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 
 	setReplicas(kogitoApp, dc)
 	setNamespaceEnvVars(kogitoApp, dc)
-	setHttpPortEnvVar(kogitoApp, dc)
+	setHTTPPortEnvVar(kogitoApp, dc)
 
 	return dc, nil
 }
@@ -179,7 +179,7 @@ func SetExternalRouteEnvVar(cli *client.Client, kogitoApp *v1alpha1.KogitoApp, d
 	return nil
 }
 
-func setHttpPortEnvVar(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
+func setHTTPPortEnvVar(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
 	container := &dc.Spec.Template.Spec.Containers[0]
 	// port should be greater than 0
 	httpPort := kogitoApp.Spec.HTTPPort

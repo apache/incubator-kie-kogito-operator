@@ -97,7 +97,7 @@ func onDeploymentCreate(deployment *v1.Deployment, kogitoService v1alpha1.Kogito
 	// external URL
 	framework.SetEnvVar(envVarExternalURL, kogitoService.GetStatus().GetExternalURI(), &deployment.Spec.Template.Spec.Containers[0])
 	// Http port
-	infrastructure.SetHttpPortEnvVar(&deployment.Spec.Template.Spec.Containers[0], kogitoService)
+	infrastructure.SetHTTPPortEnvVar(&deployment.Spec.Template.Spec.Containers[0], kogitoService)
 	// sa
 	deployment.Spec.Template.Spec.ServiceAccountName = serviceAccountName
 	// istio

@@ -96,7 +96,7 @@ func Test_SetHttpPortEnvVar(t *testing.T) {
 		},
 	}
 
-	SetHttpPortEnvVar(&container, &kogitoService)
+	SetHTTPPortEnvVar(&container, &kogitoService)
 
 	assert.Equal(t, httpPort, container.Ports[0].ContainerPort)
 	assert.Equal(t, httpPort, container.ReadinessProbe.TCPSocket.Port.IntVal)

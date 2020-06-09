@@ -275,7 +275,7 @@ func Test_SetHttpPortEnvVar(t *testing.T) {
 		},
 	}
 
-	setHttpPortEnvVar(&kogitoService, &dc)
+	setHTTPPortEnvVar(&kogitoService, &dc)
 	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, infrastructure.HTTPPortEnvVar))
 	assert.Equal(t, dc.Spec.Template.Spec.Containers[0].Env[0].Value, "9090")
 }

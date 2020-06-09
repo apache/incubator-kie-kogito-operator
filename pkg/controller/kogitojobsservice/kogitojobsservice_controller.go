@@ -151,7 +151,7 @@ var kafkaTopics = []services.KafkaTopicDefinition{
 func onDeploymentCreate(deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		container := &deployment.Spec.Template.Spec.Containers[0]
-		infrastructure.SetHttpPortEnvVar(container, service)
+		infrastructure.SetHTTPPortEnvVar(container, service)
 
 		jobService := service.(*appv1alpha1.KogitoJobsService)
 		if jobService.Spec.BackOffRetryMillis <= 0 {
