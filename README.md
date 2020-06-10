@@ -40,7 +40,7 @@ For code contributions, review the following prerequisites:
 
 - Become familiar with the Go language. For an introduction to Go, see the official [Go Documentation](https://golang.org/doc/). For an intermediate or advanced Go resource, see [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book.
 - Become familiar with the [Operator SDK](https://github.com/operator-framework/operator-sdk). For more information, see the [Operator SDK User Guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) and use the [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/memcached-operator) as an example.
-- Ensure that you have all [Kogito Operator requirements](../README.md#kogito-operator-requirements) set on your local machine. **You must use the listed versions.**
+- Ensure that you have all [Kogito Operator requirements](#requirements) set on your local machine. **You must use the listed versions.**
 
 ## Kogito Operator environment
 
