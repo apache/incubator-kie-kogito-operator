@@ -15,7 +15,6 @@
 package resource
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	appsv1 "github.com/openshift/api/apps/v1"
 	"strconv"
 	"strings"
@@ -265,7 +264,7 @@ func Test_SetHttpPortEnvVar(t *testing.T) {
 
 	kogitoService := v1alpha1.KogitoApp{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "my-data-index",
+			Name:      "my-kogito-app",
 			Namespace: ns,
 		},
 		Spec: v1alpha1.KogitoAppSpec{
@@ -276,6 +275,6 @@ func Test_SetHttpPortEnvVar(t *testing.T) {
 	}
 
 	setHTTPPortEnvVar(&kogitoService, &dc)
-	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, infrastructure.HTTPPortEnvVar))
+	assert.True(t, contains(dc.Spec.Template.Spec.Containers[0].Env, services.HTTPPortEnvKey))
 	assert.Equal(t, dc.Spec.Template.Spec.Containers[0].Env[0].Value, "9090")
 }

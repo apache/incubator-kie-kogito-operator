@@ -15,6 +15,7 @@
 package kogitodataindex
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sort"
 	"testing"
@@ -146,7 +147,7 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 
 	// make sure that the http port was correctly added.
 	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  infrastructure.HTTPPortEnvVar,
+		Name:  services.HTTPPortEnvKey,
 		Value: "9090",
 	})
 

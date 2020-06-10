@@ -21,7 +21,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -187,5 +186,5 @@ func setHTTPPortEnvVar(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfi
 		log.Debugf("HTTPPort not set, returning default http port.")
 		httpPort = framework.DefaultExposedPort
 	}
-	framework.SetEnvVar(infrastructure.HTTPPortEnvVar, strconv.Itoa(int(httpPort)), container)
+	framework.SetEnvVar(services.HTTPPortEnvKey, strconv.Itoa(int(httpPort)), container)
 }

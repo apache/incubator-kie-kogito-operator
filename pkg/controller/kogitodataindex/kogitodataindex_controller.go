@@ -168,13 +168,13 @@ var kafkaTopics = []services.KafkaTopicDefinition{
 
 func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		infrastructure.SetHTTPPortEnvVar(&deployment.Spec.Template.Spec.Containers[0], kogitoService)
 		if err := r.mountProtoBufConfigMaps(deployment); err != nil {
 			return err
 		}
 	} else {
 		log.Warnf("No container definition for service %s. Skipping applying custom Data Index deployment configuration", kogitoService.GetName())
 	}
+
 	return nil
 }
 

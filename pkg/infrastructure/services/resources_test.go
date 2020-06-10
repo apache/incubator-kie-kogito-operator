@@ -239,3 +239,48 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 	_, ok = deployment.Spec.Template.Annotations[AppPropContentHashKey]
 	assert.True(t, ok)
 }
+
+func Test_serviceDeployer_createRequiredResources_CustomHttpPort(t *testing.T) {
+	replicas := int32(1)
+	instance := &v1alpha1.KogitoJobsService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      infrastructure.DefaultJobsServiceName,
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoJobsServiceSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &replicas,
+				HTTPPort: 9090,
+			},
+			InfinispanMeta: v1alpha1.InfinispanMeta{
+				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
+					UseKogitoInfra: false,
+					URI:            "another-uri:11222",
+				},
+			},
+		},
+	}
+	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	deployer := serviceDeployer{
+		client:       cli,
+		scheme:       meta.GetRegisteredSchema(),
+		instanceList: &v1alpha1.KogitoJobsServiceList{},
+		instance:     instance,
+		definition: ServiceDefinition{
+			DefaultImageName: infrastructure.DefaultJobsServiceImageName,
+			Request: reconcile.Request{
+				NamespacedName: types.NamespacedName{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
+			},
+		},
+	}
+	resources, reconcileAfter, err := deployer.createRequiredResources()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, resources)
+	// we have the Image Stream, so other resources should have been created
+	assert.True(t, len(resources) > 1)
+	assert.Equal(t, reconcileAfter, time.Duration(0))
+	deployment := resources[reflect.TypeOf(appsv1.Deployment{})][0].(*appsv1.Deployment)
+	container := deployment.Spec.Template.Spec.Containers[0]
+	assert.Equal(t, int32(9090), container.Ports[0].ContainerPort)
+}

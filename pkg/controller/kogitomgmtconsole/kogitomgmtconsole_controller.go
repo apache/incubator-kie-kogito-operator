@@ -15,7 +15,6 @@
 package kogitomgmtconsole
 
 import (
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -24,6 +23,8 @@ import (
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
+
+	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -112,11 +113,10 @@ type ReconcileKogitoMgmtConsole struct {
 func (r *ReconcileKogitoMgmtConsole) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	log.Infof("Reconciling KogitoMgmtConsole for %s in %s", request.Name, request.Namespace)
 	definition := services.ServiceDefinition{
-		DefaultImageName:   infrastructure.DefaultMgmtConsoleImageName,
-		Request:            request,
-		OnDeploymentCreate: onDeploymentCreate,
-		SingleReplica:      false,
-		RequiresDataIndex:  true,
+		DefaultImageName:  infrastructure.DefaultMgmtConsoleImageName,
+		Request:           request,
+		SingleReplica:     false,
+		RequiresDataIndex: true,
 	}
 	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, &appv1alpha1.KogitoMgmtConsoleList{}, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err
@@ -125,14 +125,4 @@ func (r *ReconcileKogitoMgmtConsole) Reconcile(request reconcile.Request) (recon
 	}
 
 	return reconcile.Result{}, nil
-}
-
-func onDeploymentCreate(deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
-	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		container := &deployment.Spec.Template.Spec.Containers[0]
-		infrastructure.SetHTTPPortEnvVar(container, service)
-	} else {
-		log.Warnf("No container definition for service %s. Skipping applying custom mgmt console deployment configuration", service.GetName())
-	}
-	return nil
 }
