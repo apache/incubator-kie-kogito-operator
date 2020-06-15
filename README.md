@@ -52,6 +52,11 @@ To use Go modules with VS Code, see [Go modules support in VS Code](https://gith
 
 To debug Go in your VS code, see [Debugging Go code using VS Code](https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code).
 
+We check our code with `golangci-lint`, so it is recommended to add this to your IDE.
+For adding the `golangci-lint` with goland, see [Go Linter](https://plugins.jetbrains.com/plugin/12496-go-linter).
+
+For adding the `golangci-lint` with VScode, install the [Go Plugin](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go) and enable the linter from the plugins setting.
+
 ### Kogito Operator unit tests
 
 For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/unit-testing.md).
@@ -86,6 +91,7 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 - [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.15.x
 - [Go](https://golang.org/) v1.13 is installed.
 - [Golint dependency](golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
+- [Golangci-lint](https://golangci-lint.run/usage/install/)
 
 ### Building the Kogito Operator
 
