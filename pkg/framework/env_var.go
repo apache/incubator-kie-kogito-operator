@@ -107,17 +107,6 @@ func SetEnvVar(key, value string, container *corev1.Container) {
 	container.Env = append(container.Env, corev1.EnvVar{Name: key, Value: value})
 }
 
-// AppendEnvVar will update or add the environment variable
-func AppendEnvVar(key, value string, envs []corev1.EnvVar) []corev1.EnvVar {
-	for i, env := range envs {
-		if env.Name == key {
-			envs[i].Value = value
-			return envs
-		}
-	}
-	return append(envs, corev1.EnvVar{Name: key, Value: value})
-}
-
 // SetEnvVarFromSecret will set the Environment Variable from a Secret
 func SetEnvVarFromSecret(key, secretKey string, secret *corev1.Secret, container *corev1.Container) {
 	if container == nil || secret == nil {

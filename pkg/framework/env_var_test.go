@@ -228,26 +228,3 @@ func TestEnvVarCheck(t *testing.T) {
 	assert.False(t, EnvVarCheck(a, c))
 	assert.False(t, EnvVarCheck(c, b))
 }
-
-func TestAppendEnvVar_NewEnvVar(t *testing.T) {
-	vars := []corev1.EnvVar{}
-	modifiedEnv := AppendEnvVar("HTTP_PORT", "9090", vars)
-	assert.Equal(t, 1, len(modifiedEnv))
-	httpPortEnvVar := modifiedEnv[0]
-	assert.Equal(t, "HTTP_PORT", httpPortEnvVar.Name)
-	assert.Equal(t, "9090", httpPortEnvVar.Value)
-}
-
-func TestAppendEnvVar_UpdateEnvVar(t *testing.T) {
-	vars := []corev1.EnvVar{
-		{
-			Name:  "HTTP_PORT",
-			Value: "8080",
-		},
-	}
-	modifiedEnv := AppendEnvVar("HTTP_PORT", "9090", vars)
-	assert.Equal(t, 1, len(modifiedEnv))
-	httpPortEnvVar := modifiedEnv[0]
-	assert.Equal(t, "HTTP_PORT", httpPortEnvVar.Name)
-	assert.Equal(t, "9090", httpPortEnvVar.Value)
-}

@@ -37,7 +37,7 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 	}
 	replicas := service.GetSpec().GetReplicas()
 	httpPort := getServiceHTTPPort(service)
-	SetHTTPPortInEnvVar(httpPort, service)
+	setHTTPPortInEnvVar(httpPort, service)
 	probes := getProbeForKogitoService(definition, httpPort)
 	labels := service.GetSpec().GetDeploymentLabels()
 	if labels == nil {
@@ -93,9 +93,13 @@ func getServiceHTTPPort(kogitoService v1alpha1.KogitoService) int32 {
 	return httpPort
 }
 
-// SetHTTPPortInEnvVar will update or add the environment variable into the given kogito service
-func SetHTTPPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
+// setHTTPPortInEnvVar will update or add the environment variable into the given kogito service
+func setHTTPPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
+	httpPortEnvVar := corev1.EnvVar{
+		Name:  HTTPPortEnvKey,
+		Value: strconv.FormatInt(int64(httpPort), 10),
+	}
 	envs := kogitoService.GetSpec().GetEnvs()
-	modifiedEnv := framework.AppendEnvVar(HTTPPortEnvKey, strconv.FormatInt(int64(httpPort), 10), envs)
+	modifiedEnv := framework.EnvOverride(envs, httpPortEnvVar)
 	kogitoService.GetSpec().SetEnvs(modifiedEnv)
 }
