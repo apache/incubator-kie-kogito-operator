@@ -29,17 +29,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
-	"strconv"
 	"time"
 )
 
 const (
 	enablePersistenceEnvKey = "ENABLE_PERSISTENCE"
 	enableEventsEnvKey      = "ENABLE_EVENTS"
-	// HTTPPortEnvKey ... Env variable to define port on which service will listen internally
-	HTTPPortEnvKey = "HTTP_PORT"
 )
 
 // createRequiredResources creates the required resources given the KogitoService instance
@@ -133,7 +129,6 @@ func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deplo
 			return err
 		}
 	}
-	configureHTTPPort(deployment, s.instance)
 	return nil
 }
 
@@ -299,36 +294,4 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 	}
 
 	return compare.MapComparator{Comparator: resourceComparator}
-}
-
-// configureHTTPPort ... Set HTTP port in env variable of given container
-func configureHTTPPort(deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) {
-	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		container := &deployment.Spec.Template.Spec.Containers[0]
-		httpPort := defineHTTPPort(kogitoService)
-		framework.SetEnvVar(HTTPPortEnvKey, strconv.Itoa(int(httpPort)), container)
-		container.Ports[0].ContainerPort = httpPort
-		if container.ReadinessProbe != nil &&
-			container.ReadinessProbe.TCPSocket != nil {
-			container.ReadinessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
-			container.LivenessProbe.TCPSocket.Port = intstr.IntOrString{IntVal: httpPort}
-		} else if container.ReadinessProbe != nil &&
-			container.ReadinessProbe.HTTPGet != nil {
-			container.ReadinessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
-			container.LivenessProbe.HTTPGet.Port = intstr.IntOrString{IntVal: httpPort}
-		}
-	}
-}
-
-// defineHTTPPort will define on which port the service should be listening to. To set it use httpPort cr parameter.
-// defaults to 8080
-func defineHTTPPort(kogitoService v1alpha1.KogitoService) int32 {
-	// port should be greater than 0
-	httpPort := kogitoService.GetSpec().GetHTTPPort()
-	if httpPort < 1 {
-		log.Debugf("HTTPPort not set, returning default http port.")
-		return framework.DefaultExposedPort
-	}
-	log.Debugf("HTTPPort is set, returning port number %i", httpPort)
-	return httpPort
 }
