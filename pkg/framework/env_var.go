@@ -107,7 +107,7 @@ func SetEnvVar(key, value string, container *corev1.Container) {
 	container.Env = append(container.Env, corev1.EnvVar{Name: key, Value: value})
 }
 
-// appendEnvVar will update or add the environment variable
+// AppendEnvVar will update or add the environment variable
 func AppendEnvVar(key, value string, envs []corev1.EnvVar) []corev1.EnvVar {
 	for i, env := range envs {
 		if env.Name == key {

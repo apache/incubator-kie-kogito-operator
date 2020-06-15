@@ -24,8 +24,9 @@ import (
 )
 
 const (
-	portName       = "http"
-	singleReplica  = int32(1)
+	portName      = "http"
+	singleReplica = int32(1)
+	// HTTPPortEnvKey Env variable to define port on which service will listen internally
 	HTTPPortEnvKey = "HTTP_PORT"
 )
 
@@ -36,7 +37,7 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 	}
 	replicas := service.GetSpec().GetReplicas()
 	httpPort := getServiceHTTPPort(service)
-	SetHttpPortInEnvVar(httpPort, service)
+	SetHTTPPortInEnvVar(httpPort, service)
 	probes := getProbeForKogitoService(definition, httpPort)
 	labels := service.GetSpec().GetDeploymentLabels()
 	if labels == nil {
@@ -92,8 +93,8 @@ func getServiceHTTPPort(kogitoService v1alpha1.KogitoService) int32 {
 	return httpPort
 }
 
-// SetHttpPortInEnvVar will update or add the environment variable into the given kogito service
-func SetHttpPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
+// SetHTTPPortInEnvVar will update or add the environment variable into the given kogito service
+func SetHTTPPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
 	envs := kogitoService.GetSpec().GetEnvs()
 	modifiedEnv := framework.AppendEnvVar(HTTPPortEnvKey, strconv.FormatInt(int64(httpPort), 10), envs)
 	kogitoService.GetSpec().SetEnvs(modifiedEnv)
