@@ -33,6 +33,7 @@ import (
 
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
+	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -113,6 +114,8 @@ var (
 	KindPod = DefinitionKind{"Pod", false, corev1.SchemeGroupVersion}
 	// KindSecret ...
 	KindSecret = DefinitionKind{"Secret", false, corev1.SchemeGroupVersion}
+	// KindIngress ...
+	KindIngress = DefinitionKind{"Ingress", false, v1beta1.SchemeGroupVersion}
 	// KindInfinispan ...
 	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
 	// KindKafka ...

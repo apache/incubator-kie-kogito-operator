@@ -211,13 +211,14 @@ You can set those optional keys:
   *Default is false.*
 - `load_factor` sets the tests load factor. Useful for the tests to take into account that the cluster can be overloaded, for example for the calculation of timeouts.  
   *Default is 1.*
-- `local` to be set to true if running tests in local.  
+- `local` to be set to true if running tests in local using either a local or remote cluster.
   *Default is false.*
 - `ci` to be set if running tests with CI. Give CI name.
 - `cr_deployment_only` to be set if you don't have a CLI built. Default will deploy applications via the CLI.
 - `load_default_config` sets to true if you want to directly use the default test config (from test/.default_config)
 - `container_engine` engine used to interact with images and local containers.
   *Default is docker.*
+- `domain_suffix` domain suffix used for exposed services. Ignored when running tests on Openshift.
 <!--- operator information -->
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
@@ -263,6 +264,8 @@ You can set those optional keys:
 - `disabled_crds_update` sets to true to disable the update of CRDs.  
   *Default is false.*
 - `namespace_name` to specify name of the namespace which will be used for scenario execution (intended for development purposes).
+- `local_cluster` to be set to true if running tests using a local cluster.
+  *Default is false.*
 
 Logs will be shown on the Terminal.
 
