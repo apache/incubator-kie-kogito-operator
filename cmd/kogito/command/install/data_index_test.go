@@ -16,9 +16,11 @@ package install
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"testing"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -146,4 +148,14 @@ func Test_DeployDataIndexCmd_SuccessfulDeployWithInfinispanCredentialsAndSecret(
 	assert.NotNil(t, secret)
 	assert.True(t, exists)
 	assert.Contains(t, secret.StringData, defaultInfinispanUsernameKey, defaultInfinispanPasswordKey)
+}
+
+func Test_DeployDataIndexCmd_InsecureImage(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install data-index --project %s --insecure-image-registry", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
 }

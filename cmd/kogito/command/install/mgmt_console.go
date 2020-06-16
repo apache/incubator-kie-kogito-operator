@@ -29,7 +29,6 @@ import (
 
 type installMgmtConsoleFlags struct {
 	deploy.CommonFlags
-	image string
 }
 
 type installMgmtConsoleCommand struct {
@@ -74,7 +73,7 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.image); err != nil {
+			if err := deploy.CheckImageTag(i.flags.Image); err != nil {
 				return err
 			}
 			return nil
@@ -90,8 +89,6 @@ func (i *installMgmtConsoleCommand) InitHook() {
 	}
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
-
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
 }
 
 func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -106,12 +103,13 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
 				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
-				Image:    framework.ConvertImageTagToImage(i.flags.image),
+				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 					Requests: shared.FromStringArrayToResources(i.flags.Requests),
 				},
-				HTTPPort: i.flags.HTTPPort,
+				HTTPPort:              i.flags.HTTPPort,
+				InsecureImageRegistry: i.flags.InsecureImageRegistry,
 			},
 		},
 		Status: v1alpha1.KogitoMgmtConsoleStatus{

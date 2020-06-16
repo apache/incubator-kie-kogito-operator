@@ -169,6 +169,11 @@ spec:
                 tag:
                   type: string
               type: object
+            insecureImageRegistry:
+              description: A flag indicating that image streams created by Kogito
+                Operator should be configured to allow pulling from insecure registries.
+                Usable just on OpenShift. Defaults to 'false'.
+              type: boolean
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster Default value: 1'

@@ -15,13 +15,14 @@
 package services
 
 import (
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"testing"
 )
 
 func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.T) {
@@ -101,4 +102,25 @@ func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 	assert.NoError(t, err)
 	// we should always have an image available on Kubernetes
 	assert.Contains(t, image, infrastructure.DefaultJobsServiceImageName)
+}
+
+func Test_imageHandler_newImageHandlerInsecureImageRegistry(t *testing.T) {
+	replicas := int32(1)
+	instance := &v1alpha1.KogitoJobsService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoJobsServiceSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas:              &replicas,
+				InsecureImageRegistry: true,
+			},
+		},
+	}
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	imageHandler, err := newImageHandler(instance, ServiceDefinition{DefaultImageName: infrastructure.DefaultJobsServiceImageName}, cli)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(imageHandler.imageStream.Spec.Tags))
+	assert.True(t, imageHandler.imageStream.Spec.Tags[0].ImportPolicy.Insecure)
 }
