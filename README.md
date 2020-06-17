@@ -39,7 +39,7 @@ Any kind of contribution is welcome: code, design ideas, bug reporting, or docum
 For code contributions, review the following prerequisites:
 
 - Become familiar with the Go language. For an introduction to Go, see the official [Go Documentation](https://golang.org/doc/). For an intermediate or advanced Go resource, see [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book.
-- Become familiar with the [Operator SDK](https://github.com/operator-framework/operator-sdk). For more information, see the [Operator SDK User Guide](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md) and use the [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/memcached-operator) as an example.
+- Become familiar with the [Operator SDK](https://github.com/operator-framework/operator-sdk). For more information, see the [Operator SDK Documentation](https://sdk.operatorframework.io/docs/) and use the [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/go/memcached-operator) as an example.
 - Ensure that you have all [Kogito Operator requirements](#requirements) set on your local machine. **You must use the listed versions.**
 
 ## Kogito Operator environment
@@ -48,9 +48,9 @@ The Operator SDK is updated regularly and the Kogito Operator code typically use
 
 If you do not have a preferred IDE, use Visual Studio Code with the [`vscode-go`](https://github.com/Microsoft/vscode-go) plugin for Go language tools support.
 
-To use Go modules with VS Code, see [Go modules support in VS Code](https://github.com/Microsoft/vscode-go/wiki/Go-modules-support-in-Visual-Studio-Code).
+To use Go modules with VS Code, see [Go modules support in VS Code](https://github.com/golang/vscode-go#support-for-go-modules).
 
-To debug Go in your VS code, see [Debugging Go code using VS Code](https://github.com/Microsoft/vscode-go/wiki/Debugging-Go-code-using-VS-Code).
+To debug Go in your VS code, see [Debugging Go code using VS Code](https://github.com/golang/vscode-go/blob/master/docs/debugging.md).
 
 We check our code with `golangci-lint`, so it is recommended to add this to your IDE.
 For adding the `golangci-lint` with goland, see [Go Linter](https://plugins.jetbrains.com/plugin/12496-go-linter).
@@ -59,9 +59,9 @@ For adding the `golangci-lint` with VScode, install the [Go Plugin](https://mark
 
 ### Kogito Operator unit tests
 
-For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/unit-testing.md).
+For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://sdk.operatorframework.io/docs/golang/unit-testing/).
 
-In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitoapp_controller_test.go`](../pkg/controller/kogitoapp/kogitoapp_controller_test.go) test file.
+In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitoapp_controller_test.go`](../master/pkg/controller/kogitoapp/kogitoapp_controller_test.go) test file.
 
 ### Kogito Operator collaboration and pull requests
 
@@ -90,7 +90,7 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
 - [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.15.x
 - [Go](https://golang.org/) v1.13 is installed.
-- [Golint dependency](golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
+- [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
 
 ### Building the Kogito Operator
