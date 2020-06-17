@@ -26,6 +26,7 @@ import (
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
 	rbac "k8s.io/api/rbac/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -224,6 +225,7 @@ func newControllerCliOptions() controllercli.Options {
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindPod.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(apibuildv1.GroupVersion.WithKind(meta.KindBuildConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindSecret.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
+	mapper.Add(v1beta1.SchemeGroupVersion.WithKind(meta.KindIngress.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(infinispanv1.SchemeGroupVersion.WithKind(meta.KindInfinispan.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 	mapper.Add(kafkabetav1.SchemeGroupVersion.WithKind(meta.KindKafka.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
 
