@@ -1,91 +1,100 @@
-// Setup milestone to stop previous build from running when a new one is launched
-// The result would be:
-//  Build 1 runs and creates milestone 1
-//  While build 1 is running, suppose build 2 fires. It has milestone 1 and milestone 2. It passes 1, which causes build #1 to abort
+@Library('jenkins-pipeline-shared-libraries')_
 
-def buildNumber = env.BUILD_NUMBER as int
-if (buildNumber > 1) milestone(buildNumber - 1)
-milestone(buildNumber)
+def changeAuthor = env.ghprbPullAuthorLogin ?: CHANGE_AUTHOR
+def changeBranch = env.ghprbSourceBranch ?: CHANGE_BRANCH
+def changeTarget = env.ghprbTargetBranch ?: CHANGE_TARGET
 
 pipeline {
-    agent { label 'operator-slave'}
+    agent { label 'kogito-operator-slave && !master'}
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 90, unit: 'MINUTES')
     }
+    tools {
+            jdk 'kie-jdk11'
+            maven 'kie-maven-3.6.3'
+        }
     environment {
-        WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
-        GOPATH = "/home/jenkins/go"
-        GOCACHE = "/home/jenkins/go/.cache/go-build"
+        TEMP_TAG="""pr-${sh(
+                returnStdout: true,
+                script: 'echo \${ghprbActualCommit} | cut -c1-7'
+            ).trim()}"""
+        JAVA_HOME = "${GRAALVM_HOME}"
+
+        OPERATOR_IMAGE_NAME="kogito-cloud-operator"
+        OPENSHIFT_API = credentials("OPENSHIFT_API")
+        OPENSHIFT_REGISTRY = credentials("OPENSHIFT_REGISTRY")
+        OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
+        // OPENSHIFT_CREDS => Credentials to access the Openshift cluster. Use in `loginOpenshift()`
     }
     stages {
-        stage('Clean Workspace') {
-            steps {
-                dir ("${WORKING_DIR}") {
-                    deleteDir()
-                }
-            }
-        }
         stage('Initialize') {
             steps {
-                sh "mkdir -p ${WORKING_DIR} && cd ${WORKSPACE} && cp -Rap * ${WORKING_DIR}"
-                sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
+                script{
+                    githubscm.checkoutIfExists('kogito-cloud-operator', changeAuthor, changeBranch, 'kiegroup', changeTarget, true)
+                    // Make sure Openshift is available and can authenticate before continuing
+                     loginOpenshift()
+                }
             }
         }
         stage('Build Kogito Operator') {
             steps {
-                dir ("${WORKING_DIR}") {
-                    sh """
-                        export GOROOT=`go env GOROOT`
-                        GO111MODULE=on 
-                        go get -u golang.org/x/lint/golint
-                        touch /etc/sub{u,g}id
-                        usermod --add-subuids 10000-75535 \$(whoami)
-                        usermod --add-subgids 10000-75535 \$(whoami)
-                        cat /etc/subuid
-                        cat /etc/subgid
-                        make image_builder=buildah
-                    """
-                }
+                sh """
+                    go get -u golang.org/x/lint/golint
+                    make image_builder=podman
+                """
             }
-            
         }
         stage('Build Kogito CLI') {
             steps {
-                dir ("${WORKING_DIR}") {
-                    sh "make build-cli"
-                }
+                sh """
+                    go get -u github.com/gobuffalo/packr/v2/packr2
+                    make build-cli
+                """
             }
         }
         stage('Push Operator Image to Openshift Registry') {
             steps {
-                dir ("${WORKING_DIR}") {
-                    sh """
-                        set +x && buildah login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
-                        cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
-                        buildah tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                        buildah push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                    """
-                }
+                loginOpenshiftRegistry()
+                sh """
+                    podman tag quay.io/kiegroup/${OPERATOR_IMAGE_NAME}:${getOperatorVersion()} ${buildTempOpenshiftImageFullName()}
+                    podman push --tls-verify=false ${buildTempOpenshiftImageFullName()}
+                """
             }
         }
         stage('Running Smoke Testing') {
             steps {
-                dir ("${WORKING_DIR}") {
-                    sh """
-                        make run-smoke-tests load_factor=3 load_default_config=true operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
-                    """
-                }
-            }
-            post {
-                always {
-                    dir("${WORKING_DIR}") {
-                        archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                        junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                        sh "cd test && go run scripts/prune_namespaces.go"
-                    }
-                }
+                sh """
+                        make run-smoke-tests load_factor=3 load_default_config=true operator_image=${getTempOpenshiftImageName(true)} operator_tag=${TEMP_TAG} maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
+                """
             }
         }
     }
+    post {
+        always {
+            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+            sh "cd test && go run scripts/prune_namespaces.go"
+            cleanWs()
+        }
+    }
+}
+void loginOpenshift(){
+    withCredentials([usernamePassword(credentialsId: "OPENSHIFT_CREDS", usernameVariable: 'OC_USER', passwordVariable: 'OC_PWD')]){
+        sh "oc login --username=${OC_USER} --password=${OC_PWD} --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
+    }
+}
+void loginOpenshiftRegistry(){
+    loginOpenshift()
+    sh "set +x && podman login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}"
+}
+String getOperatorVersion(){
+    return sh(script: "cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '\"') && echo \${TAG_OPERATOR}", returnStdout: true).trim()
+}
+String buildTempOpenshiftImageFullName(boolean internal=false){
+    return "${getTempOpenshiftImageName(internal)}:${TEMP_TAG}"
+}
+String getTempOpenshiftImageName(boolean internal=false){
+    String registry = internal ? env.OPENSHIFT_INTERNAL_REGISTRY : env.OPENSHIFT_REGISTRY
+    return "${registry}/openshift/${OPERATOR_IMAGE_NAME}"
 }
