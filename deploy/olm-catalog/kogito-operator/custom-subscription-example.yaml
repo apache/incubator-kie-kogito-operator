@@ -8,4 +8,4 @@ spec:
   name: kogito-operator
   source: kogito-operator # name of the custom source
   sourceNamespace: openshift-marketplace
-  startingCSV: kogito-operator.v0.8.0-rc1
+  startingCSV: kogito-operator.v0.11.0
