@@ -19,12 +19,11 @@ import (
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
-
+	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
-
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 
 	coreappsv1 "k8s.io/api/apps/v1"
@@ -33,7 +32,6 @@ import (
 
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
-	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -55,71 +53,25 @@ type DefinitionKind struct {
 	GroupVersion schema.GroupVersion
 }
 
+// TODO: remove this mess on KOGITO-1998
+
 var (
 	// KindService for service
 	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
-	// KindServiceAccount for serviceAccount
-	KindServiceAccount = DefinitionKind{"ServiceAccount", false, corev1.SchemeGroupVersion}
 	// KindBuildConfig for a buildConfig
 	KindBuildConfig = DefinitionKind{"BuildConfig", true, buildv1.SchemeGroupVersion}
 	// KindDeploymentConfig for a DeploymentConfig
 	KindDeploymentConfig = DefinitionKind{"DeploymentConfig", true, appsv1.SchemeGroupVersion}
 	// KindRoute for a Route
 	KindRoute = DefinitionKind{"Route", true, routev1.SchemeGroupVersion}
-	// KindImageStreamTag for a ImageStreamTag
-	KindImageStreamTag = DefinitionKind{"ImageStreamTag", true, imgv1.SchemeGroupVersion}
 	// KindImageStream for a ImageStream
 	KindImageStream = DefinitionKind{"ImageStream", true, imgv1.SchemeGroupVersion}
 	// KindBuildRequest for a BuildRequest
 	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.SchemeGroupVersion}
-	// KindNamespace for a Namespace
-	KindNamespace = DefinitionKind{"Namespace", false, corev1.SchemeGroupVersion}
-	// KindCRD for a CustomResourceDefinition
-	KindCRD = DefinitionKind{"CustomResourceDefinition", false, apiextensionsv1beta1.SchemeGroupVersion}
-	// KindKogitoApp for a KogitoApp controller
-	KindKogitoApp = DefinitionKind{"KogitoApp", false, v1alpha1.SchemeGroupVersion}
 	// KindKogitoDataIndex for a KindKogitoDataIndex controller
 	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
-	// KindKogitoDataIndexList for a KindKogitoDataIndexList controller
-	KindKogitoDataIndexList = DefinitionKind{"KogitoDataIndexList", false, v1alpha1.SchemeGroupVersion}
-	// KindKogitoJobsService for a KogitoJobsService controller
-	KindKogitoJobsService = DefinitionKind{"KogitoJobsService", false, v1alpha1.SchemeGroupVersion}
-	// KindKogitoMgmtConsole ...
-	KindKogitoMgmtConsole = DefinitionKind{"KogitoMgmtConsole", false, v1alpha1.SchemeGroupVersion}
-	// KindKogitoRuntime ...
-	KindKogitoRuntime = DefinitionKind{"KogitoRuntime", false, v1alpha1.SchemeGroupVersion}
-	// KindKogitoInfra for a KindKogitoInfra controller
-	KindKogitoInfra = DefinitionKind{"KogitoInfra", false, v1alpha1.SchemeGroupVersion}
-	// KindConfigMap for a ConfigMap
-	KindConfigMap = DefinitionKind{"ConfigMap", false, corev1.SchemeGroupVersion}
-	// KindDeployment for a Deployment
-	KindDeployment = DefinitionKind{"Deployment", false, coreappsv1.SchemeGroupVersion}
-	// KindStatefulSet for a StatefulSet
-	KindStatefulSet = DefinitionKind{"StatefulSet", false, coreappsv1.SchemeGroupVersion}
-	// KindRole ...
-	KindRole = DefinitionKind{"Role", false, rbac.SchemeGroupVersion}
-	// KindRoleBinding ...
-	KindRoleBinding = DefinitionKind{"RoleBinding", false, rbac.SchemeGroupVersion}
-	// KindOperatorSource ...
-	KindOperatorSource = DefinitionKind{"OperatorSource", false, operatormkt.SchemeGroupVersion}
 	// KindServiceMonitor ...
 	KindServiceMonitor = DefinitionKind{"ServiceMonitor", false, monv1.SchemeGroupVersion}
-	// KindOperatorGroup ...
-	KindOperatorGroup = DefinitionKind{"OperatorGroup", false, olmapiv1.SchemeGroupVersion}
-	// KindSubscription ...
-	KindSubscription = DefinitionKind{"Subscription", false, olmapiv1alpha1.SchemeGroupVersion}
-	// KindPrometheus ...
-	KindPrometheus = DefinitionKind{"Prometheus", false, monv1.SchemeGroupVersion}
-	// KindPod for a Pod
-	KindPod = DefinitionKind{"Pod", false, corev1.SchemeGroupVersion}
-	// KindSecret ...
-	KindSecret = DefinitionKind{"Secret", false, corev1.SchemeGroupVersion}
-	// KindIngress ...
-	KindIngress = DefinitionKind{"Ingress", false, v1beta1.SchemeGroupVersion}
-	// KindInfinispan ...
-	KindInfinispan = DefinitionKind{"Infinispan", false, infinispanv1.SchemeGroupVersion}
-	// KindKafka ...
-	KindKafka = DefinitionKind{"Kafka", false, kafkabetav1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -131,32 +83,35 @@ func SetGroupVersionKind(typeMeta *metav1.TypeMeta, kind DefinitionKind) {
 	})
 }
 
+// GetRegisteredSchemeBuilder gets the SchemeBuilder with all the desired APIs registered
+func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
+	return runtime.NewSchemeBuilder(
+		v1alpha1.SchemeBuilder.AddToScheme,
+		corev1.AddToScheme,
+		coreappsv1.AddToScheme,
+		buildv1.Install,
+		rbac.AddToScheme,
+		appsv1.Install,
+		coreappsv1.AddToScheme,
+		routev1.Install,
+		imgv1.Install,
+		apiextensionsv1beta1.AddToScheme,
+		kafkabetav1.SchemeBuilder.AddToScheme,
+		infinispanv1.AddToScheme,
+		keycloakv1alpha1.SchemeBuilder.AddToScheme,
+		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
+		monv1.AddToScheme)
+}
+
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
 func GetRegisteredSchema() *runtime.Scheme {
 	s := scheme.Scheme
-	s.AddKnownTypes(corev1.SchemeGroupVersion, &corev1.Namespace{}, &corev1.ServiceAccount{})
-	s.AddKnownTypes(coreappsv1.SchemeGroupVersion, &coreappsv1.Deployment{})
-	s.AddKnownTypes(rbac.SchemeGroupVersion, &rbac.Role{}, &rbac.RoleBinding{})
-	s.AddKnownTypes(apiextensionsv1beta1.SchemeGroupVersion, &apiextensionsv1beta1.CustomResourceDefinition{}, &apiextensionsv1beta1.CustomResourceDefinitionList{})
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion,
-		&v1alpha1.KogitoApp{}, &v1alpha1.KogitoAppList{},
-		&v1alpha1.KogitoDataIndex{}, &v1alpha1.KogitoDataIndexList{},
-		&v1alpha1.KogitoInfra{}, &v1alpha1.KogitoInfraList{},
-		&v1alpha1.KogitoJobsService{}, &v1alpha1.KogitoJobsServiceList{},
-		&v1alpha1.KogitoMgmtConsole{}, &v1alpha1.KogitoMgmtConsoleList{},
-		&v1alpha1.KogitoRuntime{}, &v1alpha1.KogitoRuntimeList{})
-	s.AddKnownTypes(kafkabetav1.SchemeGroupVersion, &kafkabetav1.Kafka{}, &kafkabetav1.KafkaList{}, &kafkabetav1.KafkaTopic{}, &kafkabetav1.KafkaTopicList{})
-	s.AddKnownTypes(infinispanv1.SchemeGroupVersion, &infinispanv1.Infinispan{}, &infinispanv1.InfinispanList{})
-	s.AddKnownTypes(keycloakv1alpha1.SchemeGroupVersion, &keycloakv1alpha1.Keycloak{}, &keycloakv1alpha1.KeycloakList{})
-	s.AddKnownTypes(appsv1.GroupVersion, &appsv1.DeploymentConfig{}, &appsv1.DeploymentConfigList{})
-	s.AddKnownTypes(coreappsv1.SchemeGroupVersion, &coreappsv1.StatefulSet{}, &coreappsv1.StatefulSetList{})
-	s.AddKnownTypes(buildv1.GroupVersion, &buildv1.BuildConfig{}, &buildv1.BinaryBuildRequestOptions{}, &buildv1.BuildConfigList{})
-	s.AddKnownTypes(routev1.GroupVersion, &routev1.Route{}, &routev1.RouteList{})
-	s.AddKnownTypes(imgv1.GroupVersion, &imgv1.ImageStreamTag{}, &imgv1.ImageStream{}, &imgv1.ImageStreamList{})
-	s.AddKnownTypes(operatormkt.SchemeGroupVersion, &operatormkt.OperatorSource{}, &operatormkt.OperatorSourceList{})
-	s.AddKnownTypes(olmapiv1.SchemeGroupVersion, &olmapiv1.OperatorGroup{}, &olmapiv1.OperatorGroupList{})
-	s.AddKnownTypes(olmapiv1alpha1.SchemeGroupVersion, &olmapiv1alpha1.Subscription{}, &olmapiv1alpha1.SubscriptionList{})
-	s.AddKnownTypes(monv1.SchemeGroupVersion, &monv1.Prometheus{}, &monv1.PrometheusList{})
+	schemes := GetRegisteredSchemeBuilder()
+	err := schemes.AddToScheme(s)
+	if err != nil {
+		logger.GetLogger("meta").Fatalf("Failed to register APIs schemes: %v", err)
+		panic(err)
+	}
 
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
 	metav1.AddToGroupVersion(s, v1alpha1.SchemeGroupVersion)

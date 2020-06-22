@@ -200,7 +200,19 @@ func CreateImageStreamComparator() func(deployed resource.KubernetesResource, re
 		for i := range img1.Spec.Tags {
 			img1.Spec.Tags[i].Generation = nil
 		}
+		for i := range img2.Spec.Tags {
+			img2.Spec.Tags[i].Generation = nil
+		}
 		// there's no tag!
-		return reflect.DeepEqual(img1.Spec.Tags, img2.Spec.Tags)
+		return compare.Equals(img1.Spec.Tags, img2.Spec.Tags)
+	}
+}
+
+// CreateSharedImageStreamComparator creates a new Shared ImageStream comparator that verifies if the OwnerReferences are equal between them
+// Also incorporates the `CreateImageStreamComparator` logic
+func CreateSharedImageStreamComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		return CreateImageStreamComparator()(deployed, requested) &&
+			reflect.DeepEqual(deployed.GetOwnerReferences(), requested.GetOwnerReferences())
 	}
 }

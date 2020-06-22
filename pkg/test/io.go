@@ -15,7 +15,9 @@
 package test
 
 import (
+	"github.com/google/uuid"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/types"
 	"path/filepath"
 	"testing"
 )
@@ -28,4 +30,26 @@ func HelperLoadBytes(t *testing.T, name string) []byte {
 		t.Fatal(err)
 	}
 	return bytes
+}
+
+// GenerateUID generates a Unique ID to be used across test cases
+func GenerateUID() types.UID {
+	uid, err := uuid.NewUUID()
+	if err != nil {
+		panic(err)
+	}
+	return types.UID(uid.String())
+}
+
+// GenerateShortUID same as GenerateUID, but returns a fraction of the generated UID instead.
+// If count > than UID total length, returns the entire sequence.
+func GenerateShortUID(count int) string {
+	if count == 0 {
+		return ""
+	}
+	uid := GenerateUID()
+	if count > len(uid) {
+		count = len(uid)
+	}
+	return string(uid)[:count]
 }

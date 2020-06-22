@@ -15,6 +15,7 @@
 package test
 
 import (
+	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -75,4 +76,13 @@ func CreateFakeDiscoveryClient(openshift bool) discovery.DiscoveryInterface {
 			&metav1.APIResourceList{GroupVersion: "build.openshift.io/v1"})
 	}
 	return disco
+}
+
+// ToRuntimeObjects converts RHSysUtils array KubernetesResource into k8s runtime.Object array
+func ToRuntimeObjects(resources ...resource.KubernetesResource) []runtime.Object {
+	var k8sObject []runtime.Object
+	for _, resource := range resources {
+		k8sObject = append(k8sObject, resource)
+	}
+	return k8sObject
 }

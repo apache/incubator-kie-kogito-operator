@@ -30,16 +30,16 @@ const (
 	DefaultImageNamespace = "kiegroup"
 )
 
-// GetRuntimeImageVersion gets the Kogito Runtime latest micro version based on the Operator current version
+// GetKogitoImageVersion gets the Kogito Runtime latest micro version based on the Operator current version
 // E.g. Operator version is 0.9.0, the latest image version is 0.9.x-latest
-func GetRuntimeImageVersion() string {
-	return getRuntimeImageVersion(version.Version)
+func GetKogitoImageVersion() string {
+	return getKogitoImageVersion(version.Version)
 }
 
 // unit test friendly unexported function
 // in this case we are considering only micro updates, that's 0.9.0 -> 0.9, thus for 1.0.0 => 1.0
 // in the future this should be managed with carefully if we desire a behavior like 1.0.0 => 1, that's minor upgrades
-func getRuntimeImageVersion(v string) string {
+func getKogitoImageVersion(v string) string {
 	if len(v) == 0 {
 		return LatestTag
 	}

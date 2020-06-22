@@ -49,7 +49,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 			},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
+	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
@@ -121,7 +121,7 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultMgmtConsoleImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
+	is, tag := test.GetImageStreams(infrastructure.DefaultMgmtConsoleImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
@@ -156,7 +156,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
@@ -197,7 +197,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
@@ -231,6 +231,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 	configmaps, exist := resources[reflect.TypeOf(corev1.ConfigMap{})]
 	assert.True(t, exist)
 	assert.Equal(t, 1, len(configmaps))
+	configmaps[0].SetOwnerReferences(nil)
 	assert.Equal(t, cm, configmaps[0])
 
 	assert.Equal(t, 1, len(resources[reflect.TypeOf(appsv1.Deployment{})]))
