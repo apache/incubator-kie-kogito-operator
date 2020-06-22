@@ -13,6 +13,12 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Check Formatting
+          command: |
+            ./hack/go-fmt.sh
+            changed_files=$(git status -s)
+            [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Please make sure to run `make test` before sending the PR" && exit 1)
+      - run:
           name: Check Headers
           command: |
             ./hack/addheaders.sh
@@ -35,7 +41,6 @@ jobs:
       - run: go get golang.org/x/tools/cmd/cover
       - checkout
       - run: go mod tidy
-      - run: go fmt ./...
       - run: go vet ./...
       - run: go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.out
       - run: ./hack/coverage.sh cmd-coverage.out
