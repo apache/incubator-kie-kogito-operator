@@ -18,6 +18,8 @@ pipeline {
         string(name: 'KOGITO_IMAGES_NAME_SUFFIX', defaultValue: '', description: 'Test images name suffix')
         string(name: 'KOGITO_IMAGES_TAG', defaultValue: '', description: 'Test images tag')
         string(name: 'EXAMPLES_REF', defaultValue: '', description: 'Git reference (branch/tag) to the kogito-examples repository to use for tests.')
+
+        string(name: 'MAVEN_ARTIFACT_REPOSITORY', defaultValue: '', description: 'Maven repository where the build artifacts are present')
     }
 
     options {
@@ -125,7 +127,14 @@ pipeline {
                     env.TEST_PARAMS = ""
                     addTestParamFromValue("operator_image", getTempOpenshiftImageName())
                     addTestParamFromValue("operator_tag", env.TEMP_TAG)
-                    addTestParamFromValue("maven_mirror", env.MAVEN_MIRROR_REPOSITORY)
+                    if (params.MAVEN_ARTIFACT_REPOSITORY != ''){
+                        // No mirror if we set directly the Maven repository
+                        // Tests will be slower but we need to test against specific artifacts
+                        addTestParamFromValue("custom_maven_repo", params.MAVEN_ARTIFACT_REPOSITORY)
+                    } else if(env.MAVEN_MIRROR_REPOSITORY != null
+                                && env.MAVEN_MIRROR_REPOSITORY != '') {
+                        addTestParamFromValue("maven_mirror", env.MAVEN_MIRROR_REPOSITORY)
+                    }
 
                     if (params.KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY) {
                         addTestParamFromValue("build_image_registry", env.OPENSHIFT_REGISTRY)
