@@ -11,9 +11,15 @@ jobs:
           - GOLANG_LINT_VERSION=v1.27.0
     working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
     steps:
+      - checkout
+      - run:
+          name: Check Headers
+          command: |
+            ./hack/addheaders.sh
+            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+            [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Please make sure to run `make test` before sending the PR" && exit 1)
       - run: go get -u golang.org/x/lint/golint
       - run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
-      - checkout
       - run: ./hack/go-lint.sh
 
   unit_test_and_coverage:
