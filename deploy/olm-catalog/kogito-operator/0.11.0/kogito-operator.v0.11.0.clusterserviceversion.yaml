@@ -87,7 +87,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
-    containerImage: quay.io/kiegroup/kogito-cloud-operator:0.10.0
+    containerImage: quay.io/kiegroup/kogito-cloud-operator:0.11.0
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito Services.
     repository: https://github.com/kiegroup/kogito-cloud-operator
