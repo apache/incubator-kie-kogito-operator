@@ -16,23 +16,22 @@ package services
 
 import (
 	"fmt"
+	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	imgv1 "github.com/openshift/api/image/v1"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 )
 
 const (
-	dockerImageKind       = "DockerImage"
-	annotationKeyVersion  = "version"
-	defaultImageDomain    = "quay.io"
-	defaultImageNamespace = "kiegroup"
+	dockerImageKind      = "DockerImage"
+	annotationKeyVersion = "version"
 )
 
 var imageStreamTagAnnotations = map[string]string{
@@ -42,8 +41,14 @@ var imageStreamTagAnnotations = map[string]string{
 }
 
 var imageStreamAnnotations = map[string]string{
-	"openshift.io/provider-display-name": "Kie Group.",
+	"openshift.io/provider-display-name": "KIE Group",
 	"openshift.io/display-name":          "Kogito Service image",
+}
+
+// ImageHandler describes the handler structure to handle Kogito Services Images
+type ImageHandler interface {
+	GetImageStream() *imgv1.ImageStream
+	HasImageStream() bool
 }
 
 // imageHandler defines the base structure for images in either OpenShift or Kubernetes clusters
@@ -54,11 +59,19 @@ type imageHandler struct {
 	image *v1alpha1.Image
 	// defaultImageName is the default image name for this service
 	defaultImageName string
+	// namespace to fetch/create objects
+	namespace string
 	// client to handle API cluster calls
 	client *client.Client
 }
 
-func (i *imageHandler) hasImageStream() bool {
+// GetImageStream gets the a reference for the ImageStream in this handler. Can be nil on non OpenShift clusters
+func (i *imageHandler) GetImageStream() *imgv1.ImageStream {
+	return i.imageStream
+}
+
+// HasImageStream verifies if an ImageStream has been created for this handler
+func (i *imageHandler) HasImageStream() bool {
 	return i.imageStream != nil
 }
 
@@ -66,7 +79,7 @@ func (i *imageHandler) hasImageStream() bool {
 // Can be empty if on OpenShift and the ImageStream is not ready.
 func (i *imageHandler) resolveImage() (string, error) {
 	if i.client.IsOpenshift() {
-		is := &imgv1.ImageStream{ObjectMeta: v1.ObjectMeta{Name: i.imageStream.Name, Namespace: i.imageStream.Namespace}}
+		is := &imgv1.ImageStream{ObjectMeta: v1.ObjectMeta{Name: i.image.Name, Namespace: i.namespace}}
 		if exists, err := kubernetes.ResourceC(i.client).Fetch(is); err != nil {
 			return "", err
 		} else if !exists {
@@ -74,11 +87,11 @@ func (i *imageHandler) resolveImage() (string, error) {
 		}
 		// the image is on an ImageStreamTag object
 		for _, tag := range is.Spec.Tags {
-			if tag.From != nil && tag.From.Name == i.resolveRegistryImage() {
+			if tag.Name == i.resolveTag() {
 				ist, err := openshift.ImageStreamC(i.client).FetchTag(
 					types.NamespacedName{
 						Name:      i.defaultImageName,
-						Namespace: i.imageStream.Namespace,
+						Namespace: i.namespace,
 					}, i.resolveTag())
 				if err != nil {
 					return "", err
@@ -98,11 +111,11 @@ func (i *imageHandler) resolveImage() (string, error) {
 func (i *imageHandler) resolveRegistryImage() string {
 	domain := i.image.Domain
 	if len(domain) == 0 {
-		domain = defaultImageDomain
+		domain = infrastructure.DefaultImageRegistry
 	}
 	ns := i.image.Namespace
 	if len(ns) == 0 {
-		ns = defaultImageNamespace
+		ns = infrastructure.DefaultImageNamespace
 	}
 	return fmt.Sprintf("%s/%s/%s", domain, ns, i.resolveImageNameTag())
 }
@@ -119,45 +132,119 @@ func (i *imageHandler) resolveImageNameTag() string {
 // resolves like "latest", 0.8.0, and so on
 func (i *imageHandler) resolveTag() string {
 	if len(i.image.Tag) == 0 {
-		return infrastructure.GetRuntimeImageVersion()
+		return infrastructure.GetKogitoImageVersion()
 	}
 	return i.image.Tag
 }
 
-func newImageHandler(instance v1alpha1.KogitoService, defaultImageName string, defaultImageTag string, cli *client.Client) *imageHandler {
-	if instance.GetSpec().GetImage() == nil {
-		instance.GetSpec().SetImage(v1alpha1.Image{})
-	}
-	if len(instance.GetSpec().GetImage().Tag) == 0 && len(defaultImageTag) > 0 {
-		instance.GetSpec().GetImage().Tag = defaultImageTag
-	}
-	handler := &imageHandler{
-		image:            instance.GetSpec().GetImage(),
-		imageStream:      nil,
-		defaultImageName: defaultImageName,
-		client:           cli,
-	}
-
-	if cli.IsOpenshift() {
-		imageStreamTagAnnotations[annotationKeyVersion] = handler.resolveTag()
-		handler.imageStream = &imgv1.ImageStream{
-			ObjectMeta: v1.ObjectMeta{Name: defaultImageName, Namespace: instance.GetNamespace(), Annotations: imageStreamAnnotations},
+// createImageStream creates the ImageStream referencing the given namespace.
+// Adds a docker image in the "From" reference based on the given image if `addFromReference` is set to `true`
+func (i *imageHandler) createImageStream(namespace string, addFromReference bool) {
+	if i.client.IsOpenshift() {
+		imageStreamTagAnnotations[annotationKeyVersion] = i.resolveTag()
+		i.imageStream = &imgv1.ImageStream{
+			ObjectMeta: v1.ObjectMeta{Name: i.image.Name, Namespace: namespace, Annotations: imageStreamAnnotations},
 			Spec: imgv1.ImageStreamSpec{
 				LookupPolicy: imgv1.ImageLookupPolicy{Local: true},
 				Tags: []imgv1.TagReference{
 					{
-						Name:        handler.resolveTag(),
-						Annotations: imageStreamTagAnnotations,
-						From: &corev1.ObjectReference{
-							Kind: dockerImageKind,
-							Name: handler.resolveRegistryImage(),
-						},
+						Name:            i.resolveTag(),
+						Annotations:     imageStreamTagAnnotations,
 						ReferencePolicy: imgv1.TagReferencePolicy{Type: imgv1.LocalTagReferencePolicy},
 					},
 				},
 			},
 		}
+		if addFromReference {
+			i.imageStream.Spec.Tags[0].From = &corev1.ObjectReference{
+				Kind: dockerImageKind,
+				Name: i.resolveRegistryImage(),
+			}
+		}
+	}
+}
+
+// NewImageHandlerForBuiltServices creates a new handler for Kogito Services being built
+func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cli *client.Client) ImageHandler {
+	handler := &imageHandler{
+		image:            image,
+		imageStream:      nil,
+		namespace:        namespace,
+		defaultImageName: image.Name,
+		client:           cli,
+	}
+	if cli.IsOpenshift() {
+		// creates the empty tag reference in the ImageStream since this handler is for services being built
+		handler.createImageStream(namespace, false)
+	}
+	return handler
+}
+
+func newImageHandler(instance v1alpha1.KogitoService, definition ServiceDefinition, cli *client.Client) (*imageHandler, error) {
+	if instance.GetSpec().GetImage() == nil {
+		instance.GetSpec().SetImage(v1alpha1.Image{})
 	}
 
-	return handler
+	addDockerImageReference := !instance.GetSpec().GetImage().IsEmpty() || !definition.customService
+	if len(instance.GetSpec().GetImage().Tag) == 0 && len(definition.DefaultImageTag) > 0 {
+		instance.GetSpec().GetImage().Tag = definition.DefaultImageTag
+	}
+	if len(instance.GetSpec().GetImage().Name) == 0 {
+		instance.GetSpec().GetImage().Name = definition.DefaultImageName
+	}
+	handler := &imageHandler{
+		image:            instance.GetSpec().GetImage(),
+		imageStream:      nil,
+		defaultImageName: definition.DefaultImageName,
+		namespace:        instance.GetNamespace(),
+		client:           cli,
+	}
+	if cli.IsOpenshift() {
+		sharedImageStream, err := GetSharedDeployedImageStream(instance.GetSpec().GetImage().Name, instance.GetNamespace(), cli)
+		if err != nil {
+			return nil, err
+		}
+		if sharedImageStream != nil {
+			handler.imageStream = sharedImageStream
+		} else {
+			handler.createImageStream(instance.GetNamespace(), addDockerImageReference)
+		}
+	}
+	return handler, nil
+}
+
+// GetSharedDeployedImageStream gets the deployed ImageStream shared among Kogito Custom Resources
+func GetSharedDeployedImageStream(name, namespace string, cli *client.Client) (*imgv1.ImageStream, error) {
+	deployedImageStream := &imgv1.ImageStream{
+		ObjectMeta: v1.ObjectMeta{Name: name, Namespace: namespace},
+	}
+	if exists, err := kubernetes.ResourceC(cli).Fetch(deployedImageStream); err != nil {
+		return nil, err
+	} else if !exists {
+		return nil, nil
+	}
+	return deployedImageStream, nil
+}
+
+// AddSharedImageStreamToResources adds the shared ImageStream in the given resource map.
+// Normally used during reconciliation phase to bring a not yet owned ImageStream to the deployed list.
+func AddSharedImageStreamToResources(resources map[reflect.Type][]resource.KubernetesResource, name, ns string, cli *client.Client) error {
+	if cli.IsOpenshift() {
+		// is the image already there?
+		for _, is := range resources[reflect.TypeOf(imgv1.ImageStream{})] {
+			if is.GetName() == name &&
+				is.GetNamespace() == ns {
+				return nil
+			}
+		}
+		// fetch the shared image
+		sharedImageStream, err := GetSharedDeployedImageStream(name, ns, cli)
+		if err != nil {
+			return err
+		}
+		if sharedImageStream != nil {
+			resources[reflect.TypeOf(imgv1.ImageStream{})] = append(resources[reflect.TypeOf(imgv1.ImageStream{})], sharedImageStream)
+		}
+	}
+	return nil
 }

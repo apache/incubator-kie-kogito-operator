@@ -35,6 +35,8 @@ import (
 const (
 	checkBcRetries         = 30
 	checkBcRetriesInterval = 2 * time.Second
+	// BuildConfigLabelSelector default build selector for buildconfigs
+	BuildConfigLabelSelector = "buildconfig"
 )
 
 // BuildState describes the state of the build
@@ -46,9 +48,10 @@ type BuildState struct {
 // BuildConfigInterface exposes OpenShift BuildConfig operations
 type BuildConfigInterface interface {
 	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, imageName string) (BuildState, error)
-	TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (bool, error)
+	TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) (bool, error)
 	TriggerBuildFromFile(namespace string, r io.Reader, options *buildv1.BinaryBuildRequestOptions) (*buildv1.Build, error)
 	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error)
+	GetBuildsStatusByLabel(namespace, labelSelector string) (*v1alpha1.Builds, error)
 }
 
 func newBuildConfig(c *client.Client) BuildConfigInterface {
@@ -90,7 +93,7 @@ func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, i
 }
 
 // TriggerBuild triggers a new build
-func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (bool, error) {
+func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) (bool, error) {
 	if exists, err := b.checkBuildConfigExists(bc); !exists {
 		log.Warnf("Impossible to trigger a new build for %s. Not exists.", bc.Name)
 		return false, err
@@ -101,7 +104,7 @@ func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggedBy string) (b
 			log.Info("Skip build triggering duo to a bug on FakeBuild: github.com/openshift/client-go/build/clientset/versioned/typed/build/v1/fake/fake_buildconfig.go:134")
 		}
 	}()
-	buildRequest := newBuildRequest(triggedBy, bc)
+	buildRequest := newBuildRequest(triggeredBy, bc)
 	build, err := b.client.BuildCli.BuildConfigs(bc.Namespace).Instantiate(bc.Name, &buildRequest)
 	if err != nil {
 		return false, err
@@ -142,6 +145,42 @@ func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader,
 	return result, errPost
 }
 
+// GetBuildsStatusByLabel checks the status of the builds for all builds with the given label
+func (b *buildConfig) GetBuildsStatusByLabel(namespace, labelSelector string) (*v1alpha1.Builds, error) {
+	list, err := b.client.BuildCli.Builds(namespace).List(metav1.ListOptions{
+		LabelSelector: labelSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	status := &v1alpha1.Builds{}
+
+	for _, item := range list.Items {
+		log.Debugf("Checking status of build '%s'", item.Name)
+		switch item.Status.Phase {
+		case buildv1.BuildPhaseNew:
+			status.New = append(status.New, item.Name)
+		case buildv1.BuildPhasePending:
+			status.Pending = append(status.Pending, item.Name)
+		case buildv1.BuildPhaseRunning:
+			status.Running = append(status.Running, item.Name)
+		case buildv1.BuildPhaseComplete:
+			status.Complete = append(status.Complete, item.Name)
+		case buildv1.BuildPhaseFailed:
+			status.Failed = append(status.Failed, item.Name)
+		case buildv1.BuildPhaseError:
+			status.Error = append(status.Error, item.Name)
+		case buildv1.BuildPhaseCancelled:
+			status.Cancelled = append(status.Cancelled, item.Name)
+		default:
+			status.New = append(status.New, item.Name)
+		}
+		log.Debugf("Build %s status is %s", item.Name, item.Status.Phase)
+	}
+
+	return status, nil
+}
+
 // GetBuildsStatus checks the status of the builds for the BuildConfig
 func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error) {
 	if exists, err := b.checkBuildConfigExists(bc); !exists {
@@ -176,6 +215,8 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 				status.Error = append(status.Error, item.Name)
 			case buildv1.BuildPhaseCancelled:
 				status.Cancelled = append(status.Cancelled, item.Name)
+			default:
+				status.New = append(status.New, item.Name)
 			}
 			log.Debugf("Build %s status is %s", item.Name, item.Status.Phase)
 		}

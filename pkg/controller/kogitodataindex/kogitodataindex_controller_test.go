@@ -123,7 +123,7 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 			},
 		},
 	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetRuntimeImageVersion())
+	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	r := &ReconcileKogitoDataIndex{
 		client: cli,
@@ -203,8 +203,8 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	assert.NoError(t, err)
 	// get the service after reconcile
 	serviceAfterReconcile := &corev1.Service{}
-	servicefterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceAfterReconcile)
-	assert.True(t, servicefterReconcileFound)
+	serviceAfterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceAfterReconcile)
+	assert.True(t, serviceAfterReconcileFound)
 	assert.NoError(t, err)
 	// compare again if the port was updated after reconcile
 	assert.Equal(t, int32(9090), serviceAfterReconcile.Spec.Ports[0].Port)

@@ -71,6 +71,8 @@ type ServiceDefinition struct {
 	KafkaTopics []KafkaTopicDefinition
 	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe
 	HealthCheckProbe HealthCheckProbeType
+	// customService indicates that the service can be built within the cluster
+	customService bool
 	// infinispanAware whether or not to handle Infinispan integration in this service (inject variables, deploy if needed, and so on)
 	infinispanAware bool
 	// kafkaAware whether or not to handle Kafka integration in this service (inject variables, deploy if needed, and so on)
@@ -108,15 +110,17 @@ type ServiceDeployer interface {
 	Deploy() (reconcileAfter time.Duration, err error)
 }
 
-// NewSingletonServiceDeployer creates a new ServiceDeployer to handle Singleton Kogito Services instances and to be handled by Operator SDK controller
+// NewSingletonServiceDeployer creates a new ServiceDeployer to handle Singleton Kogito Services instances to be handled by Operator SDK controller
 func NewSingletonServiceDeployer(definition ServiceDefinition, serviceList v1alpha1.KogitoServiceList, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
 	builderCheck(definition)
 	return &serviceDeployer{definition: definition, instanceList: serviceList, client: cli, scheme: scheme, singleton: true}
 }
 
-// NewServiceDeployer creates a new ServiceDeployer to handle a Kogito Service instance and to be handled by Operator SDK controller
-func NewServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
+// NewCustomServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
+// A custom service means that could be built by a third party, not being provided by the Kogito Team Services catalog (such as Data Index, Management Console and etc.).
+func NewCustomServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
 	builderCheck(definition)
+	definition.customService = true
 	return &serviceDeployer{definition: definition, instance: serviceType, client: cli, scheme: scheme, singleton: false}
 }
 
@@ -196,7 +200,7 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
 	comparator := s.getComparator()
 	deltas := comparator.Compare(deployedResources, requestedResources)
-	writer := write.New(s.client.ControlCli).WithOwnerController(s.instance, s.scheme)
+	writer := write.New(s.client.ControlCli)
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
 			continue
@@ -254,7 +258,7 @@ func (s *serviceDeployer) ensureSingletonService() (exists bool, err error) {
 
 func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *error) {
 	log.Infof("Updating status for Kogito Service %s", instance.GetName())
-	if statusErr := s.manageStatus(s.definition.DefaultImageName, s.definition.DefaultImageTag, *err); statusErr != nil {
+	if statusErr := s.manageStatus(*err); statusErr != nil {
 		// this error will return to the operator console
 		err = &statusErr
 	}

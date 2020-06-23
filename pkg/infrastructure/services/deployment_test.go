@@ -23,7 +23,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var defaultDataIndexImageFullTag = infrastructure.GetRuntimeImageVersion() + ":latest"
+var defaultDataIndexImageFullTag = infrastructure.GetKogitoImageVersion() + ":latest"
 
 func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 	kogitoService := &v1alpha1.KogitoDataIndex{
