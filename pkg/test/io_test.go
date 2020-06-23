@@ -28,4 +28,9 @@ func TestGenerateShortUID(t *testing.T) {
 
 	uid = GenerateShortUID(0)
 	assert.Len(t, uid, 0)
+
+	uid1 := GenerateShortUID(4)
+	uid2 := GenerateShortUID(4)
+
+	assert.NotEqual(t, uid1, uid2)
 }

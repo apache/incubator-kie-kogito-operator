@@ -34,7 +34,7 @@ func HelperLoadBytes(t *testing.T, name string) []byte {
 
 // GenerateUID generates a Unique ID to be used across test cases
 func GenerateUID() types.UID {
-	uid, err := uuid.NewUUID()
+	uid, err := uuid.NewRandom()
 	if err != nil {
 		panic(err)
 	}
