@@ -252,6 +252,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 					Requests: shared.FromStringArrayToResources(i.flags.Requests),
 				},
+				HTTPPort: i.flags.HTTPPort,
 			},
 
 			Runtime: v1alpha1.RuntimeType(i.flags.runtime),

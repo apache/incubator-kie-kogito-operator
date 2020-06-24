@@ -28,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"strconv"
 )
 
 const (
@@ -144,6 +145,7 @@ func newDeploymentConfig(kogitoApp *v1alpha1.KogitoApp, runnerBC *buildv1.BuildC
 
 	setReplicas(kogitoApp, dc)
 	setNamespaceEnvVars(kogitoApp, dc)
+	setHTTPPortEnvVar(kogitoApp, dc)
 
 	return dc, nil
 }
@@ -174,4 +176,15 @@ func SetExternalRouteEnvVar(cli *client.Client, kogitoApp *v1alpha1.KogitoApp, d
 	}
 
 	return nil
+}
+
+func setHTTPPortEnvVar(kogitoApp *v1alpha1.KogitoApp, dc *appsv1.DeploymentConfig) {
+	container := &dc.Spec.Template.Spec.Containers[0]
+	// port should be greater than 0
+	httpPort := kogitoApp.Spec.HTTPPort
+	if httpPort < 1 {
+		log.Debugf("HTTPPort not set, returning default http port.")
+		httpPort = framework.DefaultExposedPort
+	}
+	framework.SetEnvVar(services.HTTPPortEnvKey, strconv.Itoa(int(httpPort)), container)
 }

@@ -155,6 +155,11 @@ spec:
                 - name
                 type: object
               type: array
+            httpPort:
+              description: HttpPort will set the environment env HTTP_PORT to define
+                which port service will listen internally.
+              format: int32
+              type: integer
             image:
               description: 'Image definition for the service. Example: Domain: quay.io,
                 Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift

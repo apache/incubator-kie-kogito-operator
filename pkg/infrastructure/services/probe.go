@@ -15,7 +15,6 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -40,30 +39,30 @@ type healthCheckProbe struct {
 }
 
 // getProbeForKogitoService gets the appropriate liveness (index 0) and readiness (index 1) probes based on the given service definition
-func getProbeForKogitoService(serviceDefinition ServiceDefinition) healthCheckProbe {
+func getProbeForKogitoService(serviceDefinition ServiceDefinition, httpPort int32) healthCheckProbe {
 	switch serviceDefinition.HealthCheckProbe {
 	case QuarkusHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getQuarkusHealthCheckReadiness(),
-			liveness:  getQuarkusHealthCheckLiveness(),
+			readiness: getQuarkusHealthCheckReadiness(httpPort),
+			liveness:  getQuarkusHealthCheckLiveness(httpPort),
 		}
 	case TCPHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(),
-			liveness:  getTCPHealthCheckProbe(),
+			readiness: getTCPHealthCheckProbe(httpPort),
+			liveness:  getTCPHealthCheckProbe(httpPort),
 		}
 	default:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(),
-			liveness:  getTCPHealthCheckProbe(),
+			readiness: getTCPHealthCheckProbe(httpPort),
+			liveness:  getTCPHealthCheckProbe(httpPort),
 		}
 	}
 }
 
-func getTCPHealthCheckProbe() *corev1.Probe {
+func getTCPHealthCheckProbe(httpPort int32) *corev1.Probe {
 	return &corev1.Probe{
 		Handler: corev1.Handler{
-			TCPSocket: &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: framework.DefaultExposedPort}},
+			TCPSocket: &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: httpPort}},
 		},
 		TimeoutSeconds:   int32(1),
 		PeriodSeconds:    int32(10),
@@ -72,12 +71,12 @@ func getTCPHealthCheckProbe() *corev1.Probe {
 	}
 }
 
-func getQuarkusHealthCheckLiveness() *corev1.Probe {
+func getQuarkusHealthCheckLiveness(httpPort int32) *corev1.Probe {
 	return &corev1.Probe{
 		Handler: corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   quarkusProbeLivenessPath,
-				Port:   intstr.IntOrString{IntVal: framework.DefaultExposedPort},
+				Port:   intstr.IntOrString{IntVal: httpPort},
 				Scheme: corev1.URISchemeHTTP,
 			},
 		},
@@ -88,12 +87,12 @@ func getQuarkusHealthCheckLiveness() *corev1.Probe {
 	}
 }
 
-func getQuarkusHealthCheckReadiness() *corev1.Probe {
+func getQuarkusHealthCheckReadiness(httpPort int32) *corev1.Probe {
 	return &corev1.Probe{
 		Handler: corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   quarkusProbeReadinessPath,
-				Port:   intstr.IntOrString{IntVal: framework.DefaultExposedPort},
+				Port:   intstr.IntOrString{IntVal: httpPort},
 				Scheme: corev1.URISchemeHTTP,
 			},
 		},

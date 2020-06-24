@@ -215,6 +215,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 					Requests: shared.FromStringArrayToResources(i.flags.Requests),
 				},
+				HTTPPort: i.flags.HTTPPort,
 			},
 			BackOffRetryMillis:            i.flags.backOffRetryMillis,
 			MaxIntervalLimitToRetryMillis: i.flags.maxIntervalLimitToRetryMillis,

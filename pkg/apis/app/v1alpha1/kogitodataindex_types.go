@@ -28,10 +28,6 @@ type KogitoDataIndexSpec struct {
 	KafkaMeta         `json:",inline"`
 	KogitoServiceSpec `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-
-	// HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.
-	// +optional
-	HTTPPort int32 `json:"httpPort,omitempty"`
 }
 
 // GetRuntime ...

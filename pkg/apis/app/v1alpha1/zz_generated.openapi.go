@@ -687,6 +687,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 							},
 						},
 					},
+					"httpPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"runtime": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The name of the runtime used, either Quarkus or Springboot Default value: quarkus",
@@ -1011,7 +1018,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT to define which port data-index service will listen internally.",
+							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -1326,6 +1333,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 									},
 								},
 							},
+						},
+					},
+					"httpPort": {
+						SchemaProps: spec.SchemaProps{
+							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 					"backOffRetryMillis": {

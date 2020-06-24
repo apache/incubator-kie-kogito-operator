@@ -111,6 +111,7 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 					Requests: shared.FromStringArrayToResources(i.flags.Requests),
 				},
+				HTTPPort: i.flags.HTTPPort,
 			},
 		},
 		Status: v1alpha1.KogitoMgmtConsoleStatus{

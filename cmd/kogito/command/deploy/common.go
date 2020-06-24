@@ -34,6 +34,7 @@ type CommonFlags struct {
 	Env      []string
 	Limits   []string
 	Requests []string
+	HTTPPort int32
 }
 
 // AddDeployFlags adds the common deploy flags to the given command
@@ -44,6 +45,7 @@ func AddDeployFlags(command *cobra.Command, flags *CommonFlags) {
 	command.Flags().StringArrayVarP(&flags.Env, "env", "e", nil, "Key/Pair value environment variables that will be set to the service runtime. For example 'MY_VAR=my_value'. Can be set more than once.")
 	command.Flags().StringSliceVar(&flags.Limits, "limits", nil, "Resource limits for the Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	command.Flags().StringSliceVar(&flags.Requests, "requests", nil, "Resource requests for the Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
+	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")
 }
 
 // CheckDeployArgs checks the default deploy flags

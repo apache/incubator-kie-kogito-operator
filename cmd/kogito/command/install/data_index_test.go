@@ -17,6 +17,7 @@ package install
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
@@ -53,7 +54,7 @@ func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
 func Test_DeployDataIndexCmd_CustomHTTPPort(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install data-index --project %s --http-port 9090 --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
-	test.SetupCliTest(cli,
+	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}})
@@ -62,6 +63,19 @@ func Test_DeployDataIndexCmd_CustomHTTPPort(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
 
+	// This should be created, given the command above
+	dataIndex := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      infrastructure.DefaultDataIndexName,
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(dataIndex)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.NotNil(t, dataIndex)
+	assert.Equal(t, int32(9090), dataIndex.Spec.HTTPPort)
 }
 
 func Test_DeployDataIndexCmd_SuccessfulDeployWithKafkaURI(t *testing.T) {
