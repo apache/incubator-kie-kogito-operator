@@ -38,12 +38,17 @@ const (
 	enableEventsEnvKey      = "ENABLE_EVENTS"
 )
 
+// TODO: review the way we create those resources on KOGITO-1998: reorganize all those functions on other files within the package
+
 // createRequiredResources creates the required resources given the KogitoService instance
 func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type][]resource.KubernetesResource, reconcileAfter time.Duration, err error) {
 	reconcileAfter = 0
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
-	imageHandler := newImageHandler(s.instance, s.definition.DefaultImageName, s.definition.DefaultImageTag, s.client)
-	if imageHandler.hasImageStream() {
+	imageHandler, err := newImageHandler(s.instance, s.definition, s.client)
+	if err != nil {
+		return
+	}
+	if imageHandler.HasImageStream() {
 		resources[reflect.TypeOf(imgv1.ImageStream{})] = []resource.KubernetesResource{imageHandler.imageStream}
 	}
 
@@ -98,6 +103,9 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		}
 	}
 
+	if err := s.setOwner(resources); err != nil {
+		return resources, reconcileAfter, err
+	}
 	return
 }
 
@@ -120,7 +128,7 @@ func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, ins
 }
 
 func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deployment, imageHandler *imageHandler) error {
-	if imageHandler.hasImageStream() {
+	if imageHandler.HasImageStream() {
 		key, value := framework.ResolveImageStreamTriggerAnnotation(imageHandler.resolveImageNameTag(), s.instance.GetName())
 		deployment.Annotations = map[string]string{key: value}
 	}
@@ -148,6 +156,18 @@ func (s *serviceDeployer) createAdditionalObjects(resources map[reflect.Type][]r
 	return nil
 }
 
+// setOwner sets this service instance as the owner of each resource.
+func (s *serviceDeployer) setOwner(resources map[reflect.Type][]resource.KubernetesResource) error {
+	for _, resourceArr := range resources {
+		for _, res := range resourceArr {
+			if err := framework.SetOwner(s.instance, s.scheme, res); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, instance v1alpha1.KogitoService) (string, error) {
 	image, err := imageHandler.resolveImage()
 	if err != nil {
@@ -156,8 +176,14 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 	if len(image) > 0 {
 		return image, nil
 	}
-	log.Warnf("Image for the service %s not found yet in the namespace %s. Please make sure that the informed image %s exists in the given registry.",
-		instance.GetName(), instance.GetNamespace(), imageHandler.resolveRegistryImage())
+	if !s.definition.customService {
+		log.Warnf("Image for the service %s not found yet in the namespace %s. Please make sure that the informed image %s exists in the given registry.",
+			instance.GetName(), instance.GetNamespace(), imageHandler.resolveRegistryImage())
+	} else {
+		log.Warnf("Image for the service %s not found yet in the namespace %s. ",
+			instance.GetName(), instance.GetNamespace())
+	}
+
 	deploymentDeployed := &appsv1.Deployment{ObjectMeta: v1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()}}
 	if exists, err := kubernetes.ResourceC(s.client).Fetch(deploymentDeployed); err != nil {
 		return "", err
@@ -255,6 +281,9 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 	if err != nil {
 		return
 	}
+	if err = AddSharedImageStreamToResources(resources, s.instance.GetSpec().GetImage().Name, s.getNamespace(), s.client); err != nil {
+		return
+	}
 
 	return
 }
@@ -286,7 +315,7 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(imgv1.ImageStream{})).
 			UseDefaultComparator().
-			WithCustomComparator(framework.CreateImageStreamComparator()).
+			WithCustomComparator(framework.CreateSharedImageStreamComparator()).
 			Build())
 
 	if s.definition.OnGetComparators != nil {

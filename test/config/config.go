@@ -31,6 +31,7 @@ type TestConfig struct {
 	ciName           string
 	crDeploymentOnly bool
 	containerEngine  string
+	domainSuffix     string
 
 	// operator information
 	operatorImageName string
@@ -52,6 +53,7 @@ type TestConfig struct {
 	runtimeApplicationImageNamespace string
 
 	// build
+	customMavenRepoURL   string
 	mavenMirrorURL       string
 	buildImageRegistry   string
 	buildImageNamespace  string
@@ -70,6 +72,7 @@ type TestConfig struct {
 	dryRun        bool
 	keepNamespace bool
 	namespaceName string
+	localCluster  bool
 }
 
 const (
@@ -100,10 +103,11 @@ func BindFlags(set *flag.FlagSet) {
 	set.BoolVar(&env.smoke, prefix+"smoke", false, "Launch only smoke tests")
 	set.BoolVar(&env.performance, prefix+"performance", false, "Launch performance tests")
 	set.IntVar(&env.loadFactor, prefix+"load-factor", defaultLoadFactor, "Set the tests load factor. Useful for the tests to take into account that the cluster can be overloaded, for example for the calculation of timeouts. Default value is 1.")
-	set.BoolVar(&env.localTests, prefix+"local", false, "If tests are launch on local machine")
+	set.BoolVar(&env.localTests, prefix+"local", false, "If tests are launch on local machine using either a local or remote cluster")
 	set.StringVar(&env.ciName, prefix+"ci", "", "If tests are launch on ci machine, give the CI name")
 	set.BoolVar(&env.crDeploymentOnly, prefix+"cr-deployment-only", false, "Use this option if you have no CLI to test against. It will use only direct CR deployments.")
 	set.StringVar(&env.containerEngine, prefix+"container-engine", defaultContainerEngine, "Engine used to interact with images and local containers.")
+	set.StringVar(&env.domainSuffix, prefix+"domain-suffix", "", "Set the domain suffix for exposed services. Ignored when running tests on Openshift.")
 
 	// operator information
 	set.StringVar(&env.operatorImageName, prefix+"operator-image-name", defaultOperatorImageName, "Operator image name")
@@ -125,6 +129,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.StringVar(&env.runtimeApplicationImageNamespace, prefix+"runtime-application-image-namespace", "", "Set the runtime application (built Kogito application image) image namespace")
 
 	// build
+	set.StringVar(&env.customMavenRepoURL, prefix+"custom-maven-repo-url", "", "Set a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information")
 	set.StringVar(&env.mavenMirrorURL, prefix+"maven-mirror-url", "", "Maven mirror url to be used when building app in the tests")
 	set.StringVar(&env.buildImageRegistry, prefix+"build-image-registry", "", "Set the build image registry")
 	set.StringVar(&env.buildImageNamespace, prefix+"build-image-namespace", "", "Set the build image namespace")
@@ -143,6 +148,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.BoolVar(&env.dryRun, prefix+"dry-run", false, "Dry Run the tests.")
 	set.BoolVar(&env.keepNamespace, prefix+"keep-namespace", false, "Do not delete namespace(s) after scenario run (WARNING: can be resources consuming ...)")
 	set.StringVar(&env.namespaceName, developmentOptionsPrefix+"namespace-name", "", "Use the specified namespace for scenarios, don't generate random namespace.")
+	set.BoolVar(&env.localCluster, developmentOptionsPrefix+"local-cluster", false, "If tests are launch using a local cluster")
 }
 
 // tests configuration
@@ -180,6 +186,11 @@ func IsCrDeploymentOnly() bool {
 // GetContainerEngine returns engine used to interact with images and local containers
 func GetContainerEngine() string {
 	return env.containerEngine
+}
+
+// GetDomainSuffix returns the domain suffix for exposed services
+func GetDomainSuffix() string {
+	return env.domainSuffix
 }
 
 // operator information
@@ -255,6 +266,11 @@ func GetRuntimeApplicationImageNamespace() string {
 
 // build
 
+// GetCustomMavenRepoURL return the custom maven repository url used by S2I builds
+func GetCustomMavenRepoURL() string {
+	return env.customMavenRepoURL
+}
+
 // GetMavenMirrorURL return the maven mirror url used for building applications
 func GetMavenMirrorURL() string {
 	return env.mavenMirrorURL
@@ -327,4 +343,9 @@ func IsKeepNamespace() bool {
 // GetNamespaceName return namespace name if it was defined
 func GetNamespaceName() string {
 	return env.namespaceName
+}
+
+// IsLocalCluster return whether tests are executed using a local cluster
+func IsLocalCluster() bool {
+	return env.localCluster
 }

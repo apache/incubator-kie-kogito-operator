@@ -14,6 +14,8 @@
 
 package v1alpha1
 
+import "fmt"
+
 /*
 Collection of common types among CRDs
 */
@@ -24,6 +26,22 @@ type Image struct {
 	Namespace string `json:"namespace,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Tag       string `json:"tag,omitempty"`
+}
+
+// IsEmpty verifies if this Image instance is empty
+func (i *Image) IsEmpty() bool {
+	return len(i.Namespace) == 0 &&
+		len(i.Domain) == 0 &&
+		len(i.Name) == 0 &&
+		len(i.Tag) == 0
+}
+
+// String representation of this Image
+func (i *Image) String() string {
+	if i.IsEmpty() {
+		return ""
+	}
+	return fmt.Sprintf("%s/%s/%s:%s", i.Domain, i.Namespace, i.Name, i.Tag)
 }
 
 // InfinispanSaslMechanismType is the possible SASL Mechanism used during infinispan connection.

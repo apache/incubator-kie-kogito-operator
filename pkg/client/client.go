@@ -20,13 +20,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
-	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
-	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
-	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
-	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbac "k8s.io/api/rbac/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -39,19 +36,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	ocappsv1 "github.com/openshift/api/apps/v1"
-	ocroutev1 "github.com/openshift/api/route/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 
-	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
-
-	apibuildv1 "github.com/openshift/api/build/v1"
-
-	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 )
 
 var (
@@ -201,32 +189,26 @@ func (r *restScope) Name() apimeta.RESTScopeName {
 // So it's need to keep adding them or find some kind of auto register in the kube api/apimachinery
 func newControllerCliOptions() controllercli.Options {
 	options := controllercli.Options{}
-
+	builder := meta.GetRegisteredSchemeBuilder()
+	gvks, err := k8sutil.GetGVKsFromAddToScheme(builder.AddToScheme)
+	if err != nil {
+		log.Fatalf("Error while creating SchemeBuilder for Kubernetes client: %v", err)
+		panic(err)
+	}
 	mapper := apimeta.NewDefaultRESTMapper([]schema.GroupVersion{})
-	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindNamespace.Name), &restScope{name: apimeta.RESTScopeNameRoot})
-	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindServiceAccount.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(apiextensionsv1beta1.SchemeGroupVersion.WithKind(meta.KindCRD.Name), &restScope{name: apimeta.RESTScopeNameRoot})
-	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoApp.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoJobsService.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoInfra.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoMgmtConsole.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoRuntime.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(coreappsv1.SchemeGroupVersion.WithKind(meta.KindDeployment.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRole.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(rbac.SchemeGroupVersion.WithKind(meta.KindRoleBinding.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(operatormkt.SchemeGroupVersion.WithKind(meta.KindOperatorSource.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(ocappsv1.GroupVersion.WithKind(meta.KindDeploymentConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(coreappsv1.SchemeGroupVersion.WithKind(meta.KindStatefulSet.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(ocroutev1.GroupVersion.WithKind(meta.KindRoute.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(olmapiv1.SchemeGroupVersion.WithKind(meta.KindOperatorGroup.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(olmapiv1alpha1.SchemeGroupVersion.WithKind(meta.KindSubscription.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(monv1.SchemeGroupVersion.WithKind(meta.KindPrometheus.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindPod.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(apibuildv1.GroupVersion.WithKind(meta.KindBuildConfig.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(corev1.SchemeGroupVersion.WithKind(meta.KindSecret.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(infinispanv1.SchemeGroupVersion.WithKind(meta.KindInfinispan.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-	mapper.Add(kafkabetav1.SchemeGroupVersion.WithKind(meta.KindKafka.Name), &restScope{name: apimeta.RESTScopeNameNamespace})
-
+	for _, gvk := range gvks {
+		// we will handle this manually later
+		if gvk.GroupVersion() == v1alpha1.SchemeGroupVersion && gvk.Kind == "KogitoDataIndex" {
+			continue
+		}
+		// namespaced resources
+		if (gvk.GroupVersion() == corev1.SchemeGroupVersion && gvk.Kind == "Namespace") ||
+			(gvk.GroupVersion() == apiextensionsv1beta1.SchemeGroupVersion && gvk.Kind == "CustomResourceDefinition") {
+			mapper.Add(gvk, &restScope{name: apimeta.RESTScopeNameRoot})
+		} else { // everything else
+			mapper.Add(gvk, &restScope{name: apimeta.RESTScopeNameNamespace})
+		}
+	}
 	// the kube client is having problems with plural: kogitodataindexs :(
 	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
 		schema.GroupVersionResource{

@@ -27,7 +27,7 @@ import (
 )
 
 // manageStatus handle status update for the Kogito Service
-func (s *serviceDeployer) manageStatus(imageName string, imageTag string, errCondition error) (err error) {
+func (s *serviceDeployer) manageStatus(errCondition error) (err error) {
 	if errCondition != nil {
 		s.instance.GetStatus().SetFailed(v1alpha1.UnknownReason, errCondition)
 		if err := s.update(); err != nil {
@@ -39,7 +39,10 @@ func (s *serviceDeployer) manageStatus(imageName string, imageTag string, errCon
 	}
 	var readyReplicas int32
 	changed := false
-	updateStatus := updateImageStatus(s.instance, imageName, imageTag, s.client)
+	updateStatus, err := updateImageStatus(s.instance, s.client)
+	if err != nil {
+		return err
+	}
 	if changed, readyReplicas, err = updateDeploymentStatus(s.instance, s.client); err != nil {
 		return err
 	}
@@ -66,17 +69,20 @@ func (s *serviceDeployer) manageStatus(imageName string, imageTag string, errCon
 	return nil
 }
 
-func updateImageStatus(instance v1alpha1.KogitoService, imageName string, imageTag string, cli *client.Client) bool {
-	imageHandler := newImageHandler(instance, imageName, imageTag, cli)
-	image := imageHandler.resolveRegistryImage()
-	if len(image) > 0 && image != instance.GetStatus().GetImage() {
-		if imageHandler.hasImageStream() {
-			image = fmt.Sprintf("%s (Internal Registry)", image)
-		}
-		instance.GetStatus().SetImage(image)
-		return true
+func updateImageStatus(instance v1alpha1.KogitoService, cli *client.Client) (bool, error) {
+	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()}}
+	exists, err := kubernetes.ResourceC(cli).Fetch(deployment)
+	if err != nil {
+		return false, err
 	}
-	return false
+	if exists && len(deployment.Spec.Template.Spec.Containers) > 0 {
+		image := deployment.Spec.Template.Spec.Containers[0].Image
+		if len(image) > 0 && image != instance.GetStatus().GetImage() {
+			instance.GetStatus().SetImage(deployment.Spec.Template.Spec.Containers[0].Image)
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func updateDeploymentStatus(instance v1alpha1.KogitoService, cli *client.Client) (update bool, readyReplicas int32, err error) {

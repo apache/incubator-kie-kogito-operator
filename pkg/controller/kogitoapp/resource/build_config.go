@@ -55,7 +55,7 @@ func resolveImageStreamTagNameForBuilds(kogitoApp *v1alpha1.KogitoApp, imageTag 
 	} else {
 		imageName = BuildImageStreams[buildType][kogitoApp.Spec.Runtime]
 		if len(imageVersion) == 0 {
-			imageVersion = infrastructure.GetRuntimeImageVersion()
+			imageVersion = infrastructure.GetKogitoImageVersion()
 		}
 	}
 	imageName = fmt.Sprintf("%s:%s", imageName, imageVersion)

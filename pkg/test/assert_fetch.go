@@ -12,14 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package framework
+package test
 
-// DeploySourceFilesFromPath deploys source files from a path
-func DeploySourceFilesFromPath(namespace, serviceName, path string) error {
-	GetLogger(namespace).Infof("Deploy example %s with source files in path %s", serviceName, path)
+import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-	kogitoApp := GetKogitoAppStub(namespace, "quarkus", serviceName)
-	kogitoApp.Spec.Build.GitSource.URI = path
-
-	return DeployService(namespace, CLIInstallerType, kogitoApp)
+// AssertFetchMustExist fetches the given object and verify if exists in the context without errors
+func AssertFetchMustExist(t *testing.T, client *client.Client, resource meta.ResourceObject) {
+	exists, err := kubernetes.ResourceC(client).Fetch(resource)
+	assert.NoError(t, err)
+	assert.True(t, exists)
 }

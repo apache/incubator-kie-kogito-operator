@@ -89,6 +89,7 @@ ci=
 cr_deployment_only=false
 load_default_config=false
 container_engine=
+domain_suffix=
 # operator information
 operator_image=
 operator_tag=
@@ -106,6 +107,7 @@ management_console_image_tag=
 runtime_application_image_registry=
 runtime_application_image_namespace=
 # build
+custom_maven_repo=
 maven_mirror=
 build_image_registry=
 build_image_namespace=
@@ -123,12 +125,14 @@ dry_run=false
 keep_namespace=false
 disabled_crds_update=false
 namespace_name=
+local_cluster=false
 run-tests:
 	declare -a opts \
 	&& if [ "${debug}" = "true" ]; then opts+=("--debug"); fi \
 	&& if [ "${smoke}" = "true" ]; then opts+=("--smoke"); fi \
 	&& if [ "${performance}" = "true" ]; then opts+=("--performance"); fi \
 	&& if [ "${local}" = "true" ]; then opts+=("--local"); fi \
+	&& if [ "${local_cluster}" = "true" ]; then opts+=("--local_cluster"); fi \
 	&& if [ "${cr_deployment_only}" = "true" ]; then opts+=("--cr_deployment_only"); fi \
 	&& if [ "${show_scenarios}" = "true" ]; then opts+=("--show_scenarios"); fi \
 	&& if [ "${show_steps}" = "true" ]; then opts+=("--show_steps"); fi \
@@ -156,6 +160,7 @@ run-tests:
 		--management_console_image_tag ${management_console_image_tag} \
 		--runtime_application_image_registry ${runtime_application_image_registry} \
 		--runtime_application_image_namespace ${runtime_application_image_namespace} \
+		--custom_maven_repo $(custom_maven_repo) \
 		--maven_mirror $(maven_mirror) \
 		--build_image_registry ${build_image_registry} \
 		--build_image_namespace ${build_image_namespace} \
@@ -168,6 +173,7 @@ run-tests:
 		--namespace_name ${namespace_name} \
 		--load_factor ${load_factor} \
 		--container_engine ${container_engine} \
+		--domain_suffix ${domain_suffix} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests

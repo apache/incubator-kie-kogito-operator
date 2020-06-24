@@ -41,7 +41,7 @@ func WaitForBuildComplete(namespace, buildName string, timeoutInMin int) error {
 					Namespace: namespace,
 				},
 			}
-			builds, err := openshift.BuildConfigC(kubeClient).GetBuildsStatus(&bc, fmt.Sprintf("%s=%s", "buildconfig", buildName))
+			builds, err := openshift.BuildConfigC(kubeClient).GetBuildsStatus(&bc, fmt.Sprintf("%s=%s", openshift.BuildConfigLabelSelector, buildName))
 
 			if err != nil {
 				return false, fmt.Errorf("Error while fetching buildconfig %s: %v", buildName, err)
@@ -85,14 +85,8 @@ func WaitForDeploymentConfigRunning(namespace, dcName string, podNb int, timeout
 			} else if dc == nil {
 				return false, nil
 			} else {
-				// Workaround for KOGITO-2162: DeploymentConfig is being rollout without any reason
-				pods, err := GetPodsByDeploymentConfigAndVersion(namespace, dcName, dc.Status.LatestVersion)
-				if err != nil {
-					return false, nil
-				}
-
-				GetLogger(namespace).Debugf("Deployment config has %d pods\n", len(pods.Items))
-				return len(pods.Items) == podNb && CheckPodsAreReady(pods), nil
+				GetLogger(namespace).Debugf("Deployment config has %d available replicas\n", dc.Status.AvailableReplicas)
+				return dc.Status.AvailableReplicas == int32(podNb), nil
 			}
 		}, CheckPodsByDeploymentConfigInError(namespace, dcName))
 }
@@ -156,8 +150,12 @@ func createHTTPRoute(namespace, serviceName string) error {
 }
 
 // GetRouteURI retrieves a route URI
-func GetRouteURI(namespace, routeName string) (string, error) {
-	route, err := GetRoute(namespace, routeName)
+func GetRouteURI(namespace, serviceName string) (string, error) {
+	if err := WaitForRoute(namespace, serviceName, 2); err != nil {
+		return "", fmt.Errorf("Route %s does not exist in namespace %s: %v", serviceName, namespace, err)
+	}
+
+	route, err := GetRoute(namespace, serviceName)
 	if err != nil || route == nil {
 		return "", err
 	}
@@ -172,21 +170,6 @@ func GetRouteURI(namespace, routeName string) (string, error) {
 
 	uri := protocol + "://" + host + ":" + port
 	return uri, nil
-}
-
-// WaitAndRetrieveRouteURI waits for a route and returns its URI
-func WaitAndRetrieveRouteURI(namespace, serviceName string) (string, error) {
-	if err := WaitForRoute(namespace, serviceName, 2); err != nil {
-		return "", fmt.Errorf("Route %s does not exist in namespace %s: %v", serviceName, namespace, err)
-	}
-	routeURI, err := GetRouteURI(namespace, serviceName)
-	if err != nil {
-		return "", fmt.Errorf("Error retrieving URI for route %s in namespace %s: %v", serviceName, namespace, err)
-	} else if len(routeURI) <= 0 {
-		return "", fmt.Errorf("No URI found for route name %s in namespace %s: %v", serviceName, namespace, err)
-	}
-	GetLogger(namespace).Debugf("Got route %s\n", routeURI)
-	return routeURI, nil
 }
 
 // WaitForOnOpenshift waits for a specification condition

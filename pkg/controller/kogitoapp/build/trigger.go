@@ -23,10 +23,6 @@ import (
 	buildv1 "github.com/openshift/api/build/v1"
 )
 
-const (
-	buildConfigLabelSelector = "buildconfig"
-)
-
 // Trigger defines how to interact with build triggers in a OpenShift cluster
 type Trigger interface {
 	// SelectOneBuildConfigWithLabel restricts the trigger only on the first build with the given labels
@@ -80,7 +76,7 @@ func (t *trigger) StartNewBuildIfNotRunning() (result TriggerResult, err error) 
 		return
 	}
 	result.BuildName = t.buildConfig.Name
-	builds, err := openshift.BuildConfigC(t.client).GetBuildsStatus(t.buildConfig, fmt.Sprintf("%s=%s", buildConfigLabelSelector, t.buildConfig.Name))
+	builds, err := openshift.BuildConfigC(t.client).GetBuildsStatus(t.buildConfig, fmt.Sprintf("%s=%s", openshift.BuildConfigLabelSelector, t.buildConfig.Name))
 	if err != nil {
 		return
 	}

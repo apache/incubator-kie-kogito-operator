@@ -43,11 +43,12 @@ function usage(){
   printf "\n--smoke\n\tFilter to run only the tests tagged with '@smoke'."
   printf "\n--performance\n\tFilter to run only the tests tagged with '@performance'. If not provided and the tag itself is not specified, these tests will be ignored."
   printf "\n--load_factor {INT_VALUE}\n\tSet the tests load factor. Useful for the tests to take into account that the cluster can be overloaded, for example for the calculation of timeouts. Default value is 1."
-  printf "\n--local\n\tSpecify whether you run test in local."
+  printf "\n--local\n\tSpecify whether you run test in local using either a local or remote cluster."
   printf "\n--ci {CI_NAME}\n\tSpecify whether you run test with ci, give also the name of the CI."
   printf "\n--cr_deployment_only\n\tUse this option if you have no CLI to test against. It will use only direct CR deployments."
   printf "\n--load_default_config\n\tTo be used if you want to directly use the default test config contained into ${SCRIPT_DIR}/../test/.default_config"
   printf "\n--container_engine\n\tTo be used if you want to specify engine to interact with images and containers. Default is docker."
+  printf "\n--domain_suffix\n\tTo be used if you want to set a domain suffix for exposed services. Ignored when running tests on Openshift."
 
   # operator information
   printf "\n--operator_image {NAME}\n\tOperator image name. Default is 'quay.io/kiegroup/kogito-cloud-operator' one."
@@ -70,6 +71,7 @@ function usage(){
   printf "\n--runtime_application_image_namespace {NAMESPACE}\n\tSet the namespace for built runtime applications."
 
   # build
+  printf "\n--custom_maven_repo {URI}\n\tSet a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information."
   printf "\n--maven_mirror {URI}\n\tMaven mirror url to be used when building app in the tests."
   printf "\n--build_image_registry {REGISTRY}\n\tSet the build image registry."
   printf "\n--build_image_namespace {NAMESPACE}\n\tSet the build image namespace."
@@ -90,6 +92,7 @@ function usage(){
   printf "\n--keep_namespace\n\tDo not delete namespace(s) after scenario run (WARNING: can be resources consuming ...)."
   printf "\n--disabled_crds_update\n\tDisable the update of CRDs."
   printf "\n--namespace_name\n\tSpecify name of the namespace which will be used for scenario execution (intended for development purposes)."
+  printf "\n--local_cluster\n\tSpecify whether you run test using a local cluster."
   printf "\n"
 }
 
@@ -204,6 +207,10 @@ case $1 in
     shift
     if addParamKeyValueIfAccepted "--tests.container-engine" ${1}; then shift; fi
   ;;
+  --domain_suffix)
+    shift
+    if addParamKeyValueIfAccepted "--tests.domain-suffix" ${1}; then shift; fi
+  ;;
 
   # operator information
   --operator_image)
@@ -264,6 +271,10 @@ case $1 in
   ;;
 
   # build
+  --custom_maven_repo)
+    shift
+    if addParamKeyValueIfAccepted "--tests.custom-maven-repo-url" ${1}; then shift; fi
+  ;;
   --maven_mirror)
     shift
     if addParamKeyValueIfAccepted "--tests.maven-mirror-url" ${1}; then shift; fi
@@ -330,6 +341,10 @@ case $1 in
   --namespace_name)
     shift
     if addParamKeyValueIfAccepted "--tests.dev.namespace-name" ${1}; then shift; fi
+  ;;
+  --local_cluster)
+    addParam "--tests.dev.local-cluster"
+    shift
   ;;
 
   # others

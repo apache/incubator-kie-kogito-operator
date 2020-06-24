@@ -466,7 +466,7 @@ func (r *ReconcileKogitoApp) createImageStream(instance *v1alpha1.KogitoApp, ima
 	} else {
 		imageVersion = instance.Spec.Build.ImageVersion
 		if len(imageVersion) == 0 {
-			imageVersion = infrastructure.GetRuntimeImageVersion()
+			imageVersion = infrastructure.GetKogitoImageVersion()
 		}
 		kogitoRequiredIS = kogitores.CreateKogitoImageStream(instance, imageVersion)
 	}

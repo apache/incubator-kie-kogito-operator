@@ -35,22 +35,24 @@ type KogitoServiceHolder struct {
 	}
 }
 
-// InstallServiceWithoutCliFlags the Kogito Service component without any CLI flags.
-func InstallServiceWithoutCliFlags(serviceHolder *KogitoServiceHolder, installerType InstallerType, cliName string) error {
-	return InstallService(serviceHolder, installerType, cliName, nil)
-}
-
 // InstallService the Kogito Service component
-func InstallService(serviceHolder *KogitoServiceHolder, installerType InstallerType, cliName string, cliFlags []string) error {
+func InstallService(serviceHolder *KogitoServiceHolder, installerType InstallerType, cliName string) error {
 	GetLogger(serviceHolder.GetNamespace()).Infof("%s install %s with %d replicas", serviceHolder.GetName(), installerType, *serviceHolder.GetSpec().GetReplicas())
+	var err error
 	switch installerType {
 	case CLIInstallerType:
-		return cliInstall(serviceHolder, cliName, cliFlags)
+		err = cliInstall(serviceHolder, cliName)
 	case CRInstallerType:
-		return crInstall(serviceHolder)
+		err = crInstall(serviceHolder)
 	default:
 		panic(fmt.Errorf("Unknown installer type %s", installerType))
 	}
+
+	if err == nil {
+		err = OnKogitoServiceDeployed(serviceHolder.GetNamespace(), serviceHolder.GetName())
+	}
+
+	return err
 }
 
 // WaitForService waits that the service has a certain number of replicas
@@ -93,21 +95,6 @@ func NewKogitoServiceStatus() v1alpha1.KogitoServiceStatus {
 	}
 }
 
-// GetCliFlags maps the parameters into a list of CLI flags.
-func GetCliFlags(persistence, events bool) []string {
-	cliFlags := []string{}
-
-	if persistence {
-		cliFlags = append(cliFlags, "--enable-persistence")
-	}
-
-	if events {
-		cliFlags = append(cliFlags, "--enable-events")
-	}
-
-	return cliFlags
-}
-
 func newImageOrDefault(fullImage string, defaultImageName string) v1alpha1.Image {
 	if len(fullImage) > 0 {
 		return framework.ConvertImageTagToImage(fullImage)
@@ -130,7 +117,7 @@ func newImageOrDefault(fullImage string, defaultImageName string) v1alpha1.Image
 		}
 
 		if len(image.Tag) == 0 {
-			image.Tag = infrastructure.GetRuntimeImageVersion()
+			image.Tag = infrastructure.GetKogitoImageVersion()
 		}
 
 		// Update image name with suffix if provided
@@ -156,10 +143,8 @@ func crInstall(serviceHolder *KogitoServiceHolder) error {
 	return nil
 }
 
-func cliInstall(serviceHolder *KogitoServiceHolder, cliName string, cliFlags []string) error {
+func cliInstall(serviceHolder *KogitoServiceHolder, cliName string) error {
 	cmd := []string{"install", cliName}
-
-	cmd = append(cmd, cliFlags...)
 
 	image := framework.ConvertImageToImageTag(*serviceHolder.GetSpec().GetImage())
 	if len(image) > 0 {
@@ -179,6 +164,9 @@ func cliInstall(serviceHolder *KogitoServiceHolder, cliName string, cliFlags []s
 		if uri := infinispanProperties.URI; len(uri) > 0 {
 			cmd = append(cmd, "--infinispan-url", uri)
 		}
+		if infinispanProperties.UseKogitoInfra {
+			cmd = append(cmd, "--enable-persistence")
+		}
 
 		if username := serviceHolder.Infinispan.Username; len(username) > 0 {
 			cmd = append(cmd, "--infinispan-user", username)
@@ -196,6 +184,9 @@ func cliInstall(serviceHolder *KogitoServiceHolder, cliName string, cliFlags []s
 		if instance := kafkaProperties.Instance; len(instance) > 0 {
 			cmd = append(cmd, "--kafka-instance", instance)
 		}
+		if kafkaProperties.UseKogitoInfra {
+			cmd = append(cmd, "--enable-events")
+		}
 	}
 
 	_, err := ExecuteCliCommandInNamespace(serviceHolder.GetNamespace(), cmd...)
@@ -205,4 +196,13 @@ func cliInstall(serviceHolder *KogitoServiceHolder, cliName string, cliFlags []s
 //IsInfinispanUsernameSpecified Returns true if Infinispan username is specified
 func (serviceHolder *KogitoServiceHolder) IsInfinispanUsernameSpecified() bool {
 	return len(serviceHolder.Infinispan.Username) > 0
+}
+
+// OnKogitoServiceDeployed is called when a service deployed.
+func OnKogitoServiceDeployed(namespace, serviceName string) error {
+	if !IsOpenshift() {
+		return ExposeServiceOnKubernetes(namespace, serviceName)
+	}
+
+	return nil
 }
