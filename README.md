@@ -357,7 +357,7 @@ To run the Kogito Operator locally, change the log level at runtime with the `DE
 ```bash
 $ make mod
 $ make clean
-$ DEBUG=true operator-sdk run --local --namespace=<namespace>
+$ DEBUG=true operator-sdk run --local --watch-namespace=<namespace>
 ```
 
 You can use the following command to vet, format, lint, and test your code:
