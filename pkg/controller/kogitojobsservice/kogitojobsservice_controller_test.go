@@ -25,8 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
@@ -42,18 +40,11 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 	r := ReconcileKogitoJobsService{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation
-	result, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.False(t, result.Requeue)
-
+	test.AssertReconcileMustNotRequeue(t, &r, instance)
 	// second time
-	result, err = r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.False(t, result.Requeue)
+	test.AssertReconcileMustNotRequeue(t, &r, instance)
 
-	_, err = kubernetes.ResourceC(cli).Fetch(instance)
+	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, instance.Status.Conditions, 1)
@@ -74,21 +65,13 @@ func TestReconcileKogitoJobsService_Reconcile_WithInfinispan(t *testing.T) {
 
 	r := ReconcileKogitoJobsService{client: cli, scheme: meta.GetRegisteredSchema()}
 
-	result, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	// there's no infra controller to deploy infinispan, keep reconciling
-	assert.True(t, result.Requeue)
-
-	result, err = r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.True(t, result.Requeue)
+	test.AssertReconcileMustRequeue(t, &r, instance)
+	test.AssertReconcileMustRequeue(t, &r, instance)
 
 	kogitoInfra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultKogitoInfraName, Namespace: instance.Namespace},
 	}
-	_, err = kubernetes.ResourceC(cli).Fetch(kogitoInfra)
+	_, err := kubernetes.ResourceC(cli).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, kogitoInfra.Spec.InstallInfinispan)
 }

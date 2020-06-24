@@ -20,11 +20,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
 
@@ -41,19 +40,44 @@ func TestReconcileKogitoMgmtConsole_Reconcile(t *testing.T) {
 	r := ReconcileKogitoMgmtConsole{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation
-	result, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.False(t, result.Requeue)
-
+	test.AssertReconcileMustNotRequeue(t, &r, instance)
 	// second time
-	result, err = r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.False(t, result.Requeue)
+	test.AssertReconcileMustNotRequeue(t, &r, instance)
 
-	_, err = kubernetes.ResourceC(cli).Fetch(instance)
+	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, instance.Status.Conditions, 1)
+}
+
+// see: https://issues.redhat.com/browse/KOGITO-2535
+func TestReconcileKogitoMgmtConsole_CustomImage(t *testing.T) {
+	replicas := int32(1)
+	instance := &v1alpha1.KogitoMgmtConsole{
+		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: t.Name()},
+		Spec: v1alpha1.KogitoMgmtConsoleSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &replicas,
+				Image: v1alpha1.Image{
+					Domain:    "quay.io",
+					Name:      "super-mgmt-console",
+					Namespace: "mynamespace",
+					Tag:       "0.1.3",
+				},
+			},
+		},
+	}
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	test.AssertReconcileMustNotRequeue(t, &ReconcileKogitoMgmtConsole{client: cli, scheme: meta.GetRegisteredSchema()}, instance)
+	// image stream
+	is := imagev1.ImageStream{
+		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleImageName, Namespace: instance.Namespace},
+	}
+	exists, err := kubernetes.ResourceC(cli).Fetch(&is)
+	assert.True(t, exists)
+	assert.NoError(t, err)
+	assert.Len(t, is.Spec.Tags, 1)
+	assert.Equal(t, "0.1.3", is.Spec.Tags[0].Name)
+	assert.Equal(t, "quay.io/mynamespace/super-mgmt-console:0.1.3", is.Spec.Tags[0].From.Name)
+
 }

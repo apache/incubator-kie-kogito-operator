@@ -149,8 +149,8 @@ spec:
                 type: object
               type: array
             httpPort:
-              description: HttpPort will set the environment env KOGITO_DATA_INDEX_HTTP_PORT
-                to define which port data-index service will listen internally.
+              description: HttpPort will set the environment env HTTP_PORT to define
+                which port service will listen internally.
               format: int32
               type: integer
             image:
