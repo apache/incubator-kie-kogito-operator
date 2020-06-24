@@ -16,6 +16,8 @@ package services
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
+	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"time"
 
@@ -137,6 +139,7 @@ type serviceDeployer struct {
 	singleton    bool
 	client       *client.Client
 	scheme       *runtime.Scheme
+	recorder     record.EventRecorder
 }
 
 func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Namespace }
@@ -146,6 +149,8 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	if err != nil || !found {
 		return reconcileAfter, err
 	}
+	s.recorder = record.NewRecorder(s.scheme, v1.EventSource{Component: s.instance.GetName(), Host: record.GetHostName()})
+
 	if s.instance.GetSpec().GetReplicas() == nil {
 		s.instance.GetSpec().SetReplicas(defaultReplicas)
 	}
@@ -206,21 +211,29 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 			continue
 		}
 		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
-		_, err = writer.AddResources(delta.Added)
-		if err != nil {
-			return
-		}
-		_, err = writer.UpdateResources(deployedResources[resourceType], delta.Updated)
-		if err != nil {
-			return
-		}
-		_, err = writer.RemoveResources(delta.Removed)
-		if err != nil {
-			return
-		}
-	}
 
+		if _, err = writer.AddResources(delta.Added); err != nil {
+			return
+		}
+		s.generateEventForDeltaResources("Created", resourceType, delta.Added)
+
+		if _, err = writer.UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
+			return
+		}
+		s.generateEventForDeltaResources("Updated", resourceType, delta.Updated)
+
+		if _, err = writer.RemoveResources(delta.Removed); err != nil {
+			return
+		}
+		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
+	}
 	return
+}
+
+func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, resourceType reflect.Type, addedResources []resource.KubernetesResource) {
+	for _, newResource := range addedResources {
+		s.recorder.Eventf(s.client, s.instance, v1.EventTypeNormal, eventReason, "%s %s: %s", eventReason, resourceType.Name(), newResource.GetName())
+	}
 }
 
 func (s *serviceDeployer) getService() (found bool, reconcileAfter time.Duration, err error) {
