@@ -16,7 +16,7 @@ jobs:
           name: Check Formatting
           command: |
             ./hack/go-fmt.sh
-            changed_files=$(git status -s)
+            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
             [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Please make sure to run `make test` before sending the PR" && exit 1)
       - run:
           name: Check Headers
