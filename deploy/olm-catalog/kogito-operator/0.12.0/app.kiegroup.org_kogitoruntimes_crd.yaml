@@ -26,7 +26,7 @@ spec:
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: KogitoRuntime is a custom Kogito Runtime Service
+      description: KogitoRuntime is a custom Kogito service
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation

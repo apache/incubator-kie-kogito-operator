@@ -26,7 +26,7 @@ const (
 	builderSuffix = "-builder"
 )
 
-// GetApplicationName gets the Kogito Runtime Service name
+// GetApplicationName gets the Kogito service name
 func GetApplicationName(build *v1alpha1.KogitoBuild) string {
 	if len(build.Spec.TargetKogitoRuntime) == 0 {
 		return build.Name

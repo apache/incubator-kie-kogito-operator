@@ -23,11 +23,11 @@ import (
 type KogitoBuildType string
 
 const (
-	// BinaryBuildType builds takes an uploaded binary file already compiled and creates a Kogito Runtime Service image from it
+	// BinaryBuildType builds takes an uploaded binary file already compiled and creates a Kogito service image from it
 	BinaryBuildType KogitoBuildType = "Binary"
-	// RemoteSourceBuildType builds pulls the source code from a Git repository, builds the binary and then the final Kogito Runtime Service image
+	// RemoteSourceBuildType builds pulls the source code from a Git repository, builds the binary and then the final Kogito service image
 	RemoteSourceBuildType KogitoBuildType = "RemoteSource"
-	// LocalSourceBuildType builds takes an uploaded resource files such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito Runtime Service image
+	// LocalSourceBuildType builds takes an uploaded resource files such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image
 	LocalSourceBuildType KogitoBuildType = "LocalSource"
 )
 
@@ -35,9 +35,9 @@ const (
 type KogitoBuildSpec struct {
 
 	// Sets the type of build that this instance will handle:
-	// Binary - takes an uploaded binary file already compiled and creates a Kogito Runtime Service image from it
-	// RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito Runtime Service image
-	// LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito Runtime Service image
+	// Binary - takes an uploaded binary file already compiled and creates a Kogito service image from it
+	// RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito service image
+	// LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="DisableIncremental Builds"
 	// +kubebuilder:validation:Enum=Binary;RemoteSource;LocalSource
@@ -62,7 +62,7 @@ type KogitoBuildSpec struct {
 	// +optional
 	GitSource GitSource `json:"gitSource,omitempty"`
 
-	// Which runtime Kogito Runtime base image to use when building the Kogito Service.
+	// Which runtime Kogito service base image to use when building the Kogito service.
 	// If "BuildImage" is set, this value is ignored by the operator.
 	// Default value: quarkus
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
@@ -108,7 +108,7 @@ type KogitoBuildSpec struct {
 	// +optional
 	BuildImage Image `json:"buildImage,omitempty"`
 
-	// Image used as the base image for the final Kogito Runtime Service. This image only has the required packages to run the application.
+	// Image used as the base image for the final Kogito service. This image only has the required packages to run the application.
 	// For example: quarkus based services will have only JVM installed, native services only the packages required by the OS.
 	// The operator will use the one provided by the Kogito Team based on the "Runtime" field.
 	// Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jvm-builder, Tag: latest.
@@ -201,7 +201,7 @@ type KogitoBuildConditions struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoBuild handles how to build a custom Kogito Runtime Service in a Kubernetes/OpenShift cluster.
+// KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitobuilds,scope=Namespaced
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type",description="Type of this build instance"

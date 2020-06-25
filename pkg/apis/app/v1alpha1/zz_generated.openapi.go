@@ -427,7 +427,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoApp(ref common.ReferenceCallback) common
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoApp is a project prescription running a Kogito Runtime Service.",
+				Description: "KogitoApp is a project prescription running a Kogito service.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -807,7 +807,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoBuild(ref common.ReferenceCallback) comm
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoBuild handles how to build a custom Kogito Runtime Service in a Kubernetes/OpenShift cluster.",
+				Description: "KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -1494,7 +1494,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoRuntime(ref common.ReferenceCallback) co
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoRuntime is a custom Kogito Runtime Service",
+				Description: "KogitoRuntime is a custom Kogito service",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {

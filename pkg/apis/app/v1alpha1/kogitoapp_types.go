@@ -295,7 +295,7 @@ type Builds struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoApp is a project prescription running a Kogito Runtime Service.
+// KogitoApp is a project prescription running a Kogito service.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoapps,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"

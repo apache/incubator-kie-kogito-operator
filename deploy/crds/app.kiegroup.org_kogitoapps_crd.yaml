@@ -38,7 +38,7 @@ spec:
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: KogitoApp is a project prescription running a Kogito Runtime Service.
+      description: KogitoApp is a project prescription running a Kogito service.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation

@@ -46,13 +46,13 @@ type KogitoRuntimeStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoRuntime is a custom Kogito Runtime Service
+// KogitoRuntime is a custom Kogito service
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoruntimes,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Image of this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Runtime"
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito service"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMaps,v1"

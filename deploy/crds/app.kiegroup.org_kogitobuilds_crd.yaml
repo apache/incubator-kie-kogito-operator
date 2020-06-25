@@ -38,8 +38,8 @@ spec:
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: KogitoBuild handles how to build a custom Kogito Runtime Service
-        in a Kubernetes/OpenShift cluster.
+      description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift
+        cluster.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -258,16 +258,16 @@ spec:
                   type: object
               type: object
             runtime:
-              description: 'Which runtime Kogito Runtime base image to use when building
-                the Kogito Service. If "BuildImage" is set, this value is ignored
+              description: 'Which runtime Kogito service base image to use when building
+                the Kogito service. If "BuildImage" is set, this value is ignored
                 by the operator. Default value: quarkus'
               enum:
               - quarkus
               - springboot
               type: string
             runtimeImage:
-              description: 'Image used as the base image for the final Kogito Runtime
-                Service. This image only has the required packages to run the application.
+              description: 'Image used as the base image for the final Kogito service.
+                This image only has the required packages to run the application.
                 For example: quarkus based services will have only JVM installed,
                 native services only the packages required by the OS. The operator
                 will use the one provided by the Kogito Team based on the "Runtime"
@@ -299,11 +299,11 @@ spec:
             type:
               description: 'Sets the type of build that this instance will handle:
                 Binary - takes an uploaded binary file already compiled and creates
-                a Kogito Runtime Service image from it RemoteSource - pulls the source
-                code from a Git repository, builds the binary and then the final Kogito
-                Runtime Service image LocalSource - takes an uploaded resource file
-                such as DRL (rules), DMN (decision) or BPMN (process), builds the
-                binary and the final Kogito Runtime Service image'
+                a Kogito service image from it RemoteSource - pulls the source code
+                from a Git repository, builds the binary and then the final Kogito
+                service image LocalSource - takes an uploaded resource file such as
+                DRL (rules), DMN (decision) or BPMN (process), builds the binary and
+                the final Kogito service image'
               enum:
               - Binary
               - RemoteSource
