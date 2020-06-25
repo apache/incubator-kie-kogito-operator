@@ -19,14 +19,32 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"strings"
 )
 
+const secretKeyNameSeparator = "#"
+
 // FromStringArrayToEnvs converts a string array in the format of key=value pairs to the required type for the Kubernetes EnvVar type
-func FromStringArrayToEnvs(strings []string) []v1.EnvVar {
-	if strings == nil {
+func FromStringArrayToEnvs(keyPairStrings []string) []v1.EnvVar {
+	if keyPairStrings == nil {
 		return nil
 	}
-	return framework.MapToEnvVar(util.FromStringsKeyPairToMap(strings))
+	var envVars []v1.EnvVar
+	keyPairMap := util.FromStringsKeyPairToMap(keyPairStrings)
+	for key, value := range keyPairMap {
+		if strings.Contains(value, secretKeyNameSeparator) {
+			secretNameKeyPair := strings.SplitN(value, secretKeyNameSeparator, 2)
+			if len(secretNameKeyPair) == 2 {
+				secretName := secretNameKeyPair[0]
+				secretKey := secretNameKeyPair[1]
+				secretEnvVar := framework.CreateSecretEnvVar(key, secretName, secretKey)
+				envVars = append(envVars, secretEnvVar)
+			}
+		} else {
+			envVars = append(envVars, framework.CreateEnvVar(key, value))
+		}
+	}
+	return envVars
 }
 
 // FromStringArrayToResources ...

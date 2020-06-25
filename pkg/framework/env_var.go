@@ -41,18 +41,6 @@ func EnvVarArrayEquals(array1 []corev1.EnvVar, array2 []corev1.EnvVar) bool {
 	return reflect.DeepEqual(map1, map2)
 }
 
-// MapToEnvVar converts a map to an array of EnvVar
-func MapToEnvVar(env map[string]string) (envVars []corev1.EnvVar) {
-	for key, value := range env {
-		envVars = append(envVars, corev1.EnvVar{
-			Name:  key,
-			Value: value,
-		})
-	}
-
-	return envVars
-}
-
 // GetEnvVar returns the position of the EnvVar found by name
 func GetEnvVar(envName string, env []corev1.EnvVar) int {
 	for pos, v := range env {
@@ -154,4 +142,27 @@ func envVarEqual(env corev1.EnvVar, envList []corev1.EnvVar) bool {
 		}
 	}
 	return match
+}
+
+// CreateEnvVar will create EnvVar value for provided key/value pair
+func CreateEnvVar(key string, value string) corev1.EnvVar {
+	return corev1.EnvVar{
+		Name:  key,
+		Value: value,
+	}
+}
+
+// CreateSecretEnvVar will create EnvVar value to hold SecretKey for given secret key/name
+func CreateSecretEnvVar(variableName, secretKey, secretName string) corev1.EnvVar {
+	return corev1.EnvVar{
+		Name: variableName,
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: secretName,
+				},
+				Key: secretKey,
+			},
+		},
+	}
 }
