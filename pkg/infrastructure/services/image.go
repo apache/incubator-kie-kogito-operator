@@ -57,8 +57,10 @@ type imageHandler struct {
 	imageStream *imgv1.ImageStream
 	// image is the CR structure attribute given by the user
 	image *v1alpha1.Image
-	// defaultImageName is the default image name for this service
+	// defaultImageName is the default image name for this service. Used to resolve the image from the Kogito Team registry when no custom image is given.
 	defaultImageName string
+	// imageStreamName name for the image stream that will handle image tags for the given instance
+	imageStreamName string
 	// namespace to fetch/create objects
 	namespace string
 	// client to handle API cluster calls
@@ -79,7 +81,7 @@ func (i *imageHandler) HasImageStream() bool {
 // Can be empty if on OpenShift and the ImageStream is not ready.
 func (i *imageHandler) resolveImage() (string, error) {
 	if i.client.IsOpenshift() {
-		is := &imgv1.ImageStream{ObjectMeta: v1.ObjectMeta{Name: i.image.Name, Namespace: i.namespace}}
+		is := &imgv1.ImageStream{ObjectMeta: v1.ObjectMeta{Name: i.imageStreamName, Namespace: i.namespace}}
 		if exists, err := kubernetes.ResourceC(i.client).Fetch(is); err != nil {
 			return "", err
 		} else if !exists {
@@ -90,7 +92,7 @@ func (i *imageHandler) resolveImage() (string, error) {
 			if tag.Name == i.resolveTag() {
 				ist, err := openshift.ImageStreamC(i.client).FetchTag(
 					types.NamespacedName{
-						Name:      i.defaultImageName,
+						Name:      i.imageStreamName,
 						Namespace: i.namespace,
 					}, i.resolveTag())
 				if err != nil {
@@ -143,7 +145,7 @@ func (i *imageHandler) createImageStream(namespace string, addFromReference bool
 	if i.client.IsOpenshift() {
 		imageStreamTagAnnotations[annotationKeyVersion] = i.resolveTag()
 		i.imageStream = &imgv1.ImageStream{
-			ObjectMeta: v1.ObjectMeta{Name: i.image.Name, Namespace: namespace, Annotations: imageStreamAnnotations},
+			ObjectMeta: v1.ObjectMeta{Name: i.imageStreamName, Namespace: namespace, Annotations: imageStreamAnnotations},
 			Spec: imgv1.ImageStreamSpec{
 				LookupPolicy: imgv1.ImageLookupPolicy{Local: true},
 				Tags: []imgv1.TagReference{
@@ -170,6 +172,7 @@ func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cl
 		image:            image,
 		imageStream:      nil,
 		namespace:        namespace,
+		imageStreamName:  image.Name,
 		defaultImageName: image.Name,
 		client:           cli,
 	}
@@ -196,11 +199,12 @@ func newImageHandler(instance v1alpha1.KogitoService, definition ServiceDefiniti
 		image:            instance.GetSpec().GetImage(),
 		imageStream:      nil,
 		defaultImageName: definition.DefaultImageName,
+		imageStreamName:  definition.DefaultImageName,
 		namespace:        instance.GetNamespace(),
 		client:           cli,
 	}
 	if cli.IsOpenshift() {
-		sharedImageStream, err := GetSharedDeployedImageStream(instance.GetSpec().GetImage().Name, instance.GetNamespace(), cli)
+		sharedImageStream, err := GetSharedDeployedImageStream(handler.imageStreamName, instance.GetNamespace(), cli)
 		if err != nil {
 			return nil, err
 		}

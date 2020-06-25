@@ -281,7 +281,7 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 	if err != nil {
 		return
 	}
-	if err = AddSharedImageStreamToResources(resources, s.instance.GetSpec().GetImage().Name, s.getNamespace(), s.client); err != nil {
+	if err = AddSharedImageStreamToResources(resources, s.definition.DefaultImageName, s.getNamespace(), s.client); err != nil {
 		return
 	}
 

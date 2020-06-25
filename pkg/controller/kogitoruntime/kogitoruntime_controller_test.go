@@ -20,13 +20,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
 
@@ -46,18 +45,11 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	r := ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation
-	result, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.False(t, result.Requeue)
-
+	test.AssertReconcileMustNotRequeue(t, &r, instance)
 	// second time
-	result, err = r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}})
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.False(t, result.Requeue)
+	test.AssertReconcileMustNotRequeue(t, &r, instance)
 
-	_, err = kubernetes.ResourceC(cli).Fetch(instance)
+	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, instance.Status.Conditions, 1)
@@ -85,4 +77,43 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Equal(t, getProtoBufConfigMapName(instance.Name), configMap.Name)
+}
+
+// see https://issues.redhat.com/browse/KOGITO-2535
+func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
+	replicas := int32(1)
+	instance := &v1alpha1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		Spec: v1alpha1.KogitoRuntimeSpec{
+			Runtime: v1alpha1.SpringbootRuntimeType,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &replicas,
+				Image: v1alpha1.Image{
+					Domain:    "quay.io",
+					Name:      "process-springboot-example-default",
+					Namespace: "ksuta",
+					Tag:       "latest",
+				},
+			},
+		},
+	}
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+
+	test.AssertReconcileMustNotRequeue(t, &ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}, instance)
+
+	_, err := kubernetes.ResourceC(cli).Fetch(instance)
+	assert.NoError(t, err)
+	assert.NotNil(t, instance.Status)
+	assert.Len(t, instance.Status.Conditions, 1)
+
+	// image stream
+	is := imagev1.ImageStream{
+		ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace},
+	}
+	exists, err := kubernetes.ResourceC(cli).Fetch(&is)
+	assert.True(t, exists)
+	assert.NoError(t, err)
+	assert.Len(t, is.Spec.Tags, 1)
+	assert.Equal(t, "latest", is.Spec.Tags[0].Name)
+	assert.Equal(t, "quay.io/ksuta/process-springboot-example-default:latest", is.Spec.Tags[0].From.Name)
 }

@@ -25,7 +25,7 @@ import (
 	"strings"
 )
 
-func getOutputImageNameTag(bc *buildv1.BuildConfig) (name, tag string) {
+func getOutputImageStreamNameTag(bc *buildv1.BuildConfig) (name, tag string) {
 	imageNameTag := strings.Split(bc.Spec.Output.To.Name, ":")
 	name = imageNameTag[0]
 	tag = tagLatest
@@ -37,10 +37,10 @@ func getOutputImageNameTag(bc *buildv1.BuildConfig) (name, tag string) {
 
 // newOutputImageStreamForBuilder creates a new output ImageStream for Builder BuildConfigs
 func newOutputImageStreamForBuilder(bc *buildv1.BuildConfig) imgv1.ImageStream {
-	imageName, imageTag := getOutputImageNameTag(bc)
+	isName, tag := getOutputImageStreamNameTag(bc)
 	return imgv1.ImageStream{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      imageName,
+			Name:      isName,
 			Namespace: bc.Namespace,
 			Labels: map[string]string{
 				framework.LabelAppKey: bc.Labels[framework.LabelAppKey],
@@ -52,7 +52,7 @@ func newOutputImageStreamForBuilder(bc *buildv1.BuildConfig) imgv1.ImageStream {
 			},
 			Tags: []imgv1.TagReference{
 				{
-					Name: imageTag,
+					Name: tag,
 					ReferencePolicy: imgv1.TagReferencePolicy{
 						Type: imgv1.LocalTagReferencePolicy,
 					},
@@ -65,8 +65,8 @@ func newOutputImageStreamForBuilder(bc *buildv1.BuildConfig) imgv1.ImageStream {
 // newOutputImageStreamForRuntime creates a new image stream for the Runtime
 // if one image stream is found in the namespace managed by other resources such as KogitoRuntime or other KogitoBuild, we add ourselves in the owner references
 func newOutputImageStreamForRuntime(bc *buildv1.BuildConfig, build *v1alpha1.KogitoBuild, client *client.Client) (*imgv1.ImageStream, error) {
-	imageName, imageTag := getOutputImageNameTag(bc)
-	sharedImageStream, err := services.GetSharedDeployedImageStream(imageName, build.Namespace, client)
+	isName, tag := getOutputImageStreamNameTag(bc)
+	sharedImageStream, err := services.GetSharedDeployedImageStream(isName, build.Namespace, client)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +74,5 @@ func newOutputImageStreamForRuntime(bc *buildv1.BuildConfig, build *v1alpha1.Kog
 		return sharedImageStream, nil
 	}
 	// let's create an ImageStream since we haven't found one in the namespace
-	imageHandler := services.NewImageHandlerForBuiltServices(&v1alpha1.Image{Name: imageName, Tag: imageTag}, build.Namespace, client)
-	return imageHandler.GetImageStream(), nil
+	return services.NewImageHandlerForBuiltServices(&v1alpha1.Image{Name: isName, Tag: tag}, build.Namespace, client).GetImageStream(), nil
 }
