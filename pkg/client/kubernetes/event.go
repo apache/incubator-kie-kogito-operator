@@ -15,6 +15,7 @@
 package kubernetes
 
 import (
+	"context"
 	v1beta1 "k8s.io/api/events/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,5 +41,5 @@ func newEvent(c *client.Client) EventInterface {
 
 func (event *event) GetEvents(namespace string) (*v1beta1.EventList, error) {
 	opts := metav1.ListOptions{}
-	return event.client.KubernetesExtensionCli.EventsV1beta1().Events(namespace).List(opts)
+	return event.client.KubernetesExtensionCli.EventsV1beta1().Events(namespace).List(context.TODO(), opts)
 }

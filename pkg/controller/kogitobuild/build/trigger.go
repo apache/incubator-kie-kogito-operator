@@ -15,6 +15,7 @@
 package build
 
 import (
+	"context"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	v1 "github.com/openshift/api/build/v1"
@@ -47,7 +48,7 @@ func StartNewBuild(buildConfig *v1.BuildConfig, client *client.Client) error {
 
 // cancelRunningBuilds cancels any running builds for the given BuildConfig
 func cancelRunningBuilds(buildConfig *v1.BuildConfig, client *client.Client) error {
-	builds, err := client.BuildCli.Builds(buildConfig.Namespace).List(
+	builds, err := client.BuildCli.Builds(buildConfig.Namespace).List(context.TODO(),
 		metav1.ListOptions{LabelSelector: strings.Join([]string{openshift.BuildConfigLabelSelector, buildConfig.Name}, "=")},
 	)
 	if err != nil {
@@ -64,12 +65,12 @@ func cancelRunningBuilds(buildConfig *v1.BuildConfig, client *client.Client) err
 				defer wg.Done()
 				err := wait.Poll(poolWaitTimeout, cancelUpdateTimeout, func() (bool, error) {
 					build.Status.Cancelled = true
-					_, err := client.BuildCli.Builds(build.Namespace).Update(build)
+					_, err := client.BuildCli.Builds(build.Namespace).Update(context.TODO(), build, metav1.UpdateOptions{})
 					if err == nil {
 						return true, nil
 					} else if errors.IsConflict(err) {
 						// try again, someone just updated our status
-						build, err = client.BuildCli.Builds(build.Namespace).Get(build.Name, metav1.GetOptions{})
+						build, err = client.BuildCli.Builds(build.Namespace).Get(context.TODO(), build.Name, metav1.GetOptions{})
 						return false, err
 					}
 					return true, err
@@ -81,7 +82,7 @@ func cancelRunningBuilds(buildConfig *v1.BuildConfig, client *client.Client) err
 				}
 				// wait for the build to be cancelled
 				err = wait.Poll(poolWaitTimeout, cancelUpdateTimeout, func() (bool, error) {
-					updatedBuild, err := client.BuildCli.Builds(build.Namespace).Get(build.Name, metav1.GetOptions{})
+					updatedBuild, err := client.BuildCli.Builds(build.Namespace).Get(context.TODO(), build.Name, metav1.GetOptions{})
 					if err != nil {
 						return true, err
 					}
