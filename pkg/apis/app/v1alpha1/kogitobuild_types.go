@@ -23,21 +23,21 @@ import (
 type KogitoBuildType string
 
 const (
-	// BinaryBuildType builds takes an uploaded binary file already compiled and creates a Kogito service image from it
+	// BinaryBuildType builds takes an uploaded binary file already compiled and creates a Kogito service image from it.
 	BinaryBuildType KogitoBuildType = "Binary"
-	// RemoteSourceBuildType builds pulls the source code from a Git repository, builds the binary and then the final Kogito service image
+	// RemoteSourceBuildType builds pulls the source code from a Git repository, builds the binary and then the final Kogito service image.
 	RemoteSourceBuildType KogitoBuildType = "RemoteSource"
-	// LocalSourceBuildType builds takes an uploaded resource files such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image
+	// LocalSourceBuildType builds takes an uploaded resource files such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image.
 	LocalSourceBuildType KogitoBuildType = "LocalSource"
 )
 
-// KogitoBuildSpec defines the desired state of KogitoBuild
+// KogitoBuildSpec defines the desired state of KogitoBuild.
 type KogitoBuildSpec struct {
 
 	// Sets the type of build that this instance will handle:
-	// Binary - takes an uploaded binary file already compiled and creates a Kogito service image from it
-	// RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito service image
-	// LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image
+	// Binary - takes an uploaded binary file already compiled and creates a Kogito service image from it.
+	// RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito service image.
+	// LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="DisableIncremental Builds"
 	// +kubebuilder:validation:Enum=Binary;RemoteSource;LocalSource
@@ -50,7 +50,7 @@ type KogitoBuildSpec struct {
 	// +optional
 	DisableIncremental bool `json:"disableIncremental,omitempty"`
 
-	// Environment variables used during build time
+	// Environment variables used during build time.
 	// +listType=atomic
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Env Variables"
@@ -58,13 +58,13 @@ type KogitoBuildSpec struct {
 	Envs []corev1.EnvVar `json:"envs,omitempty"`
 
 	// Information about the git repository where the Kogito Service source code resides.
-	// Ignored for binary builds
+	// Ignored for binary builds.
 	// +optional
 	GitSource GitSource `json:"gitSource,omitempty"`
 
 	// Which runtime Kogito service base image to use when building the Kogito service.
 	// If "BuildImage" is set, this value is ignored by the operator.
-	// Default value: quarkus
+	// Default value: quarkus.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Runtime"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
@@ -72,7 +72,7 @@ type KogitoBuildSpec struct {
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime RuntimeType `json:"runtime,omitempty"`
 
-	// WebHooks secrets for source to image builds based on Git repositories (Remote Sources)
+	// WebHooks secrets for source to image builds based on Git repositories (Remote Sources).
 	// +listType=map
 	// +listMapKey=type
 	// +optional
@@ -92,7 +92,7 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
-	// Maven Mirror URL to be used during source-to-image builds (Local and Remote) to considerably increase build speed
+	// Maven Mirror URL to be used during source-to-image builds (Local and Remote) to considerably increase build speed.
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Maven Mirror URL"
@@ -138,7 +138,7 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Final Artifact"
 	Artifact Artifact `json:"artifact,omitempty"`
 
-	// If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false
+	// If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false.
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Maven Download Output"
@@ -146,7 +146,7 @@ type KogitoBuildSpec struct {
 	EnableMavenDownloadOutput bool `json:"enableMavenDownloadOutput,omitempty"`
 }
 
-// KogitoBuildStatus defines the observed state of KogitoBuild
+// KogitoBuildStatus defines the observed state of KogitoBuild.
 // +k8s:openapi-gen=true
 type KogitoBuildStatus struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
@@ -167,11 +167,11 @@ type KogitoBuildStatus struct {
 type KogitoBuildConditionType string
 
 const (
-	// KogitoBuildSuccessful condition for a successful build
+	// KogitoBuildSuccessful condition for a successful build.
 	KogitoBuildSuccessful KogitoBuildConditionType = "Successful"
-	// KogitoBuildFailure condition for a failure build
+	// KogitoBuildFailure condition for a failure build.
 	KogitoBuildFailure KogitoBuildConditionType = "Failed"
-	// KogitoBuildRunning condition for a running build
+	// KogitoBuildRunning condition for a running build.
 	KogitoBuildRunning KogitoBuildConditionType = "Running"
 )
 
@@ -179,13 +179,13 @@ const (
 type KogitoBuildConditionReason string
 
 const (
-	// OperatorFailureReason when operator fails to reconcile
+	// OperatorFailureReason when operator fails to reconcile.
 	OperatorFailureReason KogitoBuildConditionReason = "OperatorFailure"
-	// BuildFailureReason when build fails
+	// BuildFailureReason when build fails.
 	BuildFailureReason KogitoBuildConditionReason = "BuildFailure"
 )
 
-// KogitoBuildConditions describes the conditions for this build instance according to Kubernetes status interface
+// KogitoBuildConditions describes the conditions for this build instance according to Kubernetes status interface.
 type KogitoBuildConditions struct {
 	// Type of this condition
 	Type KogitoBuildConditionType `json:"type"`
@@ -223,7 +223,7 @@ type KogitoBuild struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoBuildList contains a list of KogitoBuild
+// KogitoBuildList contains a list of KogitoBuild.
 type KogitoBuildList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -22,17 +22,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// KogitoService defines the interface for any Kogito Service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
+// KogitoService defines the interface for any Kogito service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
 type KogitoService interface {
 	metav1.Object
 	runtime.Object
-	// GetSpec gets the Kogito Service specification structure
+	// GetSpec gets the Kogito Service specification structure.
 	GetSpec() KogitoServiceSpecInterface
-	// GetStatus gets the Kogito Service Status structure
+	// GetStatus gets the Kogito Service Status structure.
 	GetStatus() KogitoServiceStatusInterface
 }
 
-// KogitoServiceList defines a base interface for Kogito Service list
+// KogitoServiceList defines a base interface for Kogito Service list.
 type KogitoServiceList interface {
 	runtime.Object
 	// GetItemsCount gets the number of items in the list
@@ -41,7 +41,7 @@ type KogitoServiceList interface {
 	GetItemAt(index int) KogitoService
 }
 
-// KogitoServiceStatusInterface defines the basic interface for the Kogito Service status
+// KogitoServiceStatusInterface defines the basic interface for the Kogito Service status.
 type KogitoServiceStatusInterface interface {
 	ConditionMetaInterface
 	GetDeploymentConditions() []appsv1.DeploymentCondition
@@ -52,29 +52,29 @@ type KogitoServiceStatusInterface interface {
 	SetExternalURI(uri string)
 }
 
-// KogitoServiceStatus is the basic structure for any Kogito Service status
+// KogitoServiceStatus is the basic structure for any Kogito Service status.
 type KogitoServiceStatus struct {
 	ConditionsMeta `json:",inline"`
-	// General conditions for the Kogito Service deployment
+	// General conditions for the Kogito Service deployment.
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Deployment Conditions"
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	DeploymentConditions []appsv1.DeploymentCondition `json:"deploymentConditions,omitempty"`
-	// Image is the resolved image for this service
+	// Image is the resolved image for this service.
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	Image string `json:"image,omitempty"`
-	// URI is where the service is exposed
+	// URI is where the service is exposed.
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
 	ExternalURI string `json:"externalURI,omitempty"`
 }
 
-// GetDeploymentConditions gets the deployment conditions for the service
+// GetDeploymentConditions gets the deployment conditions for the service.
 func (k *KogitoServiceStatus) GetDeploymentConditions() []appsv1.DeploymentCondition {
 	return k.DeploymentConditions
 }
 
-// SetDeploymentConditions sets the deployment conditions for the service
+// SetDeploymentConditions sets the deployment conditions for the service.
 func (k *KogitoServiceStatus) SetDeploymentConditions(deploymentConditions []appsv1.DeploymentCondition) {
 	k.DeploymentConditions = deploymentConditions
 }
@@ -91,7 +91,7 @@ func (k *KogitoServiceStatus) GetExternalURI() string { return k.ExternalURI }
 // SetExternalURI ...
 func (k *KogitoServiceStatus) SetExternalURI(uri string) { k.ExternalURI = uri }
 
-// KogitoServiceSpecInterface defines the interface for the Kogito Service specification, it's the basic structure for any Kogito Service
+// KogitoServiceSpecInterface defines the interface for the Kogito service specification, it's the basic structure for any Kogito service.
 type KogitoServiceSpecInterface interface {
 	GetReplicas() *int32
 	SetReplicas(replicas int32)
@@ -115,10 +115,10 @@ type KogitoServiceSpecInterface interface {
 	IsInsecureImageRegistry() bool
 }
 
-// KogitoServiceSpec is the basic structure for the Kogito Service specification
+// KogitoServiceSpec is the basic structure for the Kogito Service specification.
 type KogitoServiceSpec struct {
-	// Number of replicas that the service will have deployed in the cluster
-	// Default value: 1
+	// Number of replicas that the service will have deployed in the cluster.
+	// Default value: 1.
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
@@ -144,19 +144,19 @@ type KogitoServiceSpec struct {
 	// Defaults to 'false'.
 	InsecureImageRegistry bool `json:"insecureImageRegistry,omitempty"`
 
-	// Defined compute resource requirements for the deployed service
+	// Defined compute resource requirements for the deployed service.
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
-	// Additional labels to be added to the Deployment and Pods managed by the operator
+	// Additional labels to be added to the Deployment and Pods managed by the operator.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Additional Deployment Labels"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	DeploymentLabels map[string]string `json:"deploymentLabels,omitempty"`
 
-	// Additional labels to be added to the Service managed by the operator
+	// Additional labels to be added to the Service managed by the operator.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Additional Service Labels"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
@@ -196,7 +196,7 @@ func (k *KogitoServiceSpec) SetResources(resources corev1.ResourceRequirements) 
 // GetHTTPPort ...
 func (k *KogitoServiceSpec) GetHTTPPort() int32 { return k.HTTPPort }
 
-// AddEnvironmentVariable adds new environment variable to service environment variables
+// AddEnvironmentVariable adds new environment variable to service environment variables.
 func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 	env := corev1.EnvVar{
 		Name:  name,
@@ -205,7 +205,7 @@ func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 	k.Envs = append(k.Envs, env)
 }
 
-// AddEnvironmentVariableFromSecret adds a new environment variable from the secret under the key
+// AddEnvironmentVariableFromSecret adds a new environment variable from the secret under the key.
 func (k *KogitoServiceSpec) AddEnvironmentVariableFromSecret(variableName, secretName, secretKey string) {
 	env := corev1.EnvVar{
 		Name: variableName,

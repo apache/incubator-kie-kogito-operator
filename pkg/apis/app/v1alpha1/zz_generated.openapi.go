@@ -67,7 +67,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds are being created",
+							Description: "Builds are being created.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -86,7 +86,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds are about to start running",
+							Description: "Builds are about to start running.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -105,7 +105,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds are running",
+							Description: "Builds are running.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -124,7 +124,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds have executed and succeeded",
+							Description: "Builds have executed and succeeded.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -143,7 +143,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds have executed and failed",
+							Description: "Builds have executed and failed.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -162,7 +162,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds have been prevented from executing by an error",
+							Description: "Builds have been prevented from executing by an error.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -181,7 +181,7 @@ func schema_pkg_apis_app_v1alpha1_Builds(ref common.ReferenceCallback) common.Op
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Builds have been stopped from executing",
+							Description: "Builds have been stopped from executing.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -258,7 +258,7 @@ func schema_pkg_apis_app_v1alpha1_Deployments(ref common.ReferenceCallback) comm
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Deployments are ready to serve requests",
+							Description: "Deployments are ready to serve requests.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -296,7 +296,7 @@ func schema_pkg_apis_app_v1alpha1_Deployments(ref common.ReferenceCallback) comm
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Deployments are not starting and the next step is unclear",
+							Description: "Deployments are not starting and the next step is unclear.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -337,26 +337,26 @@ func schema_pkg_apis_app_v1alpha1_GitSource(ref common.ReferenceCallback) common
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "GitSource Git coordinates to locate the source code to build",
+				Description: "GitSource Git coordinates to locate the source code to build.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"uri": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Git URI for the s2i source",
+							Description: "Git URI for the s2i source.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"reference": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Branch to use in the Git repository",
+							Description: "Branch to use in the Git repository.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"contextDir": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Context/subdirectory where the code is located, relative to the repo root",
+							Description: "Context/subdirectory where the code is located, relative to the repo root.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -372,7 +372,7 @@ func schema_pkg_apis_app_v1alpha1_InfinispanConnectionProperties(ref common.Refe
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "InfinispanConnectionProperties is the configuration needed for authenticating an Infinispan cluster For more information, see https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description",
+				Description: "InfinispanConnectionProperties is the configuration needed for authenticating an Infinispan cluster. For more information, see https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"credentials": {
@@ -403,14 +403,14 @@ func schema_pkg_apis_app_v1alpha1_InfinispanConnectionProperties(ref common.Refe
 					},
 					"uri": {
 						SchemaProps: spec.SchemaProps{
-							Description: "URI to connect to the Infinispan cluster (can it be an internal service or external URI), for example, myinfinispan-cluster:11222",
+							Description: "URI to connect to the Infinispan cluster (can it be an internal service or external URI), for example, myinfinispan-cluster:11222.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"useKogitoInfra": {
 						SchemaProps: spec.SchemaProps{
-							Description: "UseKogitoInfra flags if the instance will use a provided infrastructure by KogitoInfra CR. Setting this to true will deploy a new KogitoInfra CR into the namespace that will install Infinispan via Infinispan Operator. Infinispan Operator MUST be installed in the namespace for this to work. On OpenShift, OLM should install it for you. If running on Kubernetes without OLM installed, please install Infinispan Operator first. Set this to false and fill all other properties to provide your own infrastructure",
+							Description: "UseKogitoInfra flags if the instance will use a provided infrastructure by KogitoInfra CR. Setting this to true will deploy a new KogitoInfra CR into the namespace that will install Infinispan via Infinispan Operator. Infinispan Operator MUST be installed in the namespace for this to work. On OpenShift, OLM should install it for you. If running on Kubernetes without OLM installed, please install Infinispan Operator first. Set this to false and fill all other properties to provide your own infrastructure.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -471,7 +471,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoAppBuildObject Data to define how to build an application from source",
+				Description: "KogitoAppBuildObject Data to define how to build an application from source.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"incremental": {
@@ -487,7 +487,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Environment variables used during build time",
+							Description: "Environment variables used during build time.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -512,7 +512,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "WebHook secrets for build configs",
+							Description: "WebHook secrets for build configs.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -559,20 +559,20 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					},
 					"mavenMirrorURL": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed",
+							Description: "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"artifact": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Artifact contains override information for building the Maven artifact",
+							Description: "Artifact contains override information for building the Maven artifact.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Artifact"),
 						},
 					},
 					"enableMavenDownloadOutput": {
 						SchemaProps: spec.SchemaProps{
-							Description: "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false",
+							Description: "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -589,12 +589,12 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppServiceObject(ref common.ReferenceCal
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoAppServiceObject Data to define the service of the Kogito application",
+				Description: "KogitoAppServiceObject Data to define the service of the Kogito application.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"labels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Labels for the application service",
+							Description: "Labels for the application service.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -617,12 +617,12 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoAppSpec defines the desired state of KogitoApp",
+				Description: "KogitoAppSpec defines the desired state of KogitoApp.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of replicas that the service will have deployed in the cluster Default value: 1",
+							Description: "Number of replicas that the service will have deployed in the cluster. Default value: 1.",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -660,13 +660,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Defined compute resource requirements for the deployed service",
+							Description: "Defined compute resource requirements for the deployed service.",
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
 					"deploymentLabels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Additional labels to be added to the Deployment and Pods managed by the operator",
+							Description: "Additional labels to be added to the Deployment and Pods managed by the operator.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -681,7 +681,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					},
 					"serviceLabels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Additional labels to be added to the Service managed by the operator",
+							Description: "Additional labels to be added to the Service managed by the operator.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -703,20 +703,20 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					},
 					"runtime": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The name of the runtime used, either Quarkus or Springboot Default value: quarkus",
+							Description: "The name of the runtime used, either Quarkus or SpringBoot. Default value: quarkus.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"build": {
 						SchemaProps: spec.SchemaProps{
-							Description: "S2I Build configuration Default value: nil",
+							Description: "S2I Build configuration. Default value: nil",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppBuildObject"),
 						},
 					},
 					"service": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Kubernetes Service configuration Default value: nil",
+							Description: "Kubernetes Service configuration. Default value: nil",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoAppServiceObject"),
 						},
 					},
@@ -729,14 +729,14 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 					},
 					"enablePersistence": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Set this property to true to tell the operator to deploy an instance of Infinispan via the Infinispan Operator and configure this service to connect to the deployed server. For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*. More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services. Set to false or ignore it if your service does not need persistence or if you are going to configure the persistence infrastructure yourself",
+							Description: "Set this property to true to tell the operator to deploy an instance of Infinispan via the Infinispan Operator and configure this service to connect to the deployed server. For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_* environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*. More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services. Set to false or ignore it if your service does not need persistence or if you are going to configure the persistence infrastructure yourself.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
 					},
 					"enableEvents": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Set this property to true to tell the operator to deploy an instance of Kafka via the Strimzi Operator and configure this service with the proper information to connect to the Kafka cluster. The Kafka cluster service endpoint will be injected in the Kogito Service container via an environment variable named \"KAFKA_BOOTSTRAP_SERVERS\" e.g.: kafka-kogito:9092. Set to false or ignore it if your service does not need messaging or if you are going to configure the messaging infrastructure yourself",
+							Description: "Set this property to true to tell the operator to deploy an instance of Kafka via the Strimzi Operator and configure this service with the proper information to connect to the Kafka cluster. The Kafka cluster service endpoint will be injected in the Kogito Service container via an environment variable named \"KAFKA_BOOTSTRAP_SERVERS\" e.g.: kafka-kogito:9092. Set to false or ignore it if your service does not need messaging or if you are going to configure the messaging infrastructure yourself.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -754,7 +754,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref common.ReferenceCallback) 
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoAppStatus defines the observed state of KogitoApp",
+				Description: "KogitoAppStatus defines the observed state of KogitoApp.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"conditions": {
@@ -777,20 +777,20 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppStatus(ref common.ReferenceCallback) 
 					},
 					"route": {
 						SchemaProps: spec.SchemaProps{
-							Description: "External URL for the service",
+							Description: "External URL for the service.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"deployments": {
 						SchemaProps: spec.SchemaProps{
-							Description: "History of service deployments status",
+							Description: "History of service deployments status.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Deployments"),
 						},
 					},
 					"builds": {
 						SchemaProps: spec.SchemaProps{
-							Description: "History of service builds status",
+							Description: "History of service builds status.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Builds"),
 						},
 					},
@@ -851,7 +851,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoBuildStatus(ref common.ReferenceCallback
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoBuildStatus defines the observed state of KogitoBuild",
+				Description: "KogitoBuildStatus defines the observed state of KogitoBuild.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"latestBuild": {
@@ -897,7 +897,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndex(ref common.ReferenceCallback) 
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoDataIndex defines the Data Index Service infrastructure deployment",
+				Description: "KogitoDataIndex defines the Data Index Service infrastructure deployment.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -941,7 +941,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoDataIndexSpec defines the desired state of KogitoDataIndex",
+				Description: "KogitoDataIndexSpec defines the desired state of KogitoDataIndex.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"infinispan": {
@@ -958,7 +958,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of replicas that the service will have deployed in the cluster Default value: 1",
+							Description: "Number of replicas that the service will have deployed in the cluster. Default value: 1.",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -996,13 +996,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Defined compute resource requirements for the deployed service",
+							Description: "Defined compute resource requirements for the deployed service.",
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
 					"deploymentLabels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Additional labels to be added to the Deployment and Pods managed by the operator",
+							Description: "Additional labels to be added to the Deployment and Pods managed by the operator.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -1017,7 +1017,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"serviceLabels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Additional labels to be added to the Service managed by the operator",
+							Description: "Additional labels to be added to the Service managed by the operator.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -1049,7 +1049,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexStatus(ref common.ReferenceCall
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoDataIndexStatus defines the observed state of KogitoDataIndex",
+				Description: "KogitoDataIndexStatus defines the observed state of KogitoDataIndex.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"conditions": {
@@ -1072,7 +1072,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexStatus(ref common.ReferenceCall
 					},
 					"deploymentConditions": {
 						SchemaProps: spec.SchemaProps{
-							Description: "General conditions for the Kogito Service deployment",
+							Description: "General conditions for the Kogito Service deployment.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -1085,14 +1085,14 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexStatus(ref common.ReferenceCall
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image is the resolved image for this service",
+							Description: "Image is the resolved image for this service.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"externalURI": {
 						SchemaProps: spec.SchemaProps{
-							Description: "URI is where the service is exposed",
+							Description: "URI is where the service is exposed.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1154,7 +1154,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoInfraSpec defines the desired state of KogitoInfra",
+				Description: "KogitoInfraSpec defines the desired state of KogitoInfra.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"installInfinispan": {
@@ -1188,7 +1188,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraStatus(ref common.ReferenceCallback
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoInfraStatus defines the observed state of KogitoInfra",
+				Description: "KogitoInfraStatus defines the observed state of KogitoInfra.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"condition": {
@@ -1223,7 +1223,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsService(ref common.ReferenceCallback
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoJobsService deploys the Kogito Jobs Service in the given namespace",
+				Description: "KogitoJobsService deploys the Kogito Jobs Service in the given namespace.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -1267,7 +1267,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoJobsServiceSpec defines the desired state of KogitoJobsService",
+				Description: "KogitoJobsServiceSpec defines the desired state of KogitoJobsService.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"infinispan": {
@@ -1284,7 +1284,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of replicas that the service will have deployed in the cluster Default value: 1",
+							Description: "Number of replicas that the service will have deployed in the cluster. Default value: 1.",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -1322,13 +1322,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Defined compute resource requirements for the deployed service",
+							Description: "Defined compute resource requirements for the deployed service.",
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
 					"deploymentLabels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Additional labels to be added to the Deployment and Pods managed by the operator",
+							Description: "Additional labels to be added to the Deployment and Pods managed by the operator.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -1343,7 +1343,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"serviceLabels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Additional labels to be added to the Service managed by the operator",
+							Description: "Additional labels to be added to the Service managed by the operator.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -1389,7 +1389,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref common.ReferenceCa
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoJobsServiceStatus defines the observed state of KogitoJobsService",
+				Description: "KogitoJobsServiceStatus defines the observed state of KogitoJobsService.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"conditions": {
@@ -1412,7 +1412,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref common.ReferenceCa
 					},
 					"deploymentConditions": {
 						SchemaProps: spec.SchemaProps{
-							Description: "General conditions for the Kogito Service deployment",
+							Description: "General conditions for the Kogito Service deployment.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
@@ -1425,14 +1425,14 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref common.ReferenceCa
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image is the resolved image for this service",
+							Description: "Image is the resolved image for this service.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"externalURI": {
 						SchemaProps: spec.SchemaProps{
-							Description: "URI is where the service is exposed",
+							Description: "URI is where the service is exposed.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1450,7 +1450,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoMgmtConsole(ref common.ReferenceCallback
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoMgmtConsole deploys the Kogito Management Console service in the given namespace",
+				Description: "KogitoMgmtConsole deploys the Kogito Management Console service in the given namespace.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -1494,7 +1494,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoRuntime(ref common.ReferenceCallback) co
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoRuntime is a custom Kogito service",
+				Description: "KogitoRuntime is a custom Kogito service.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
@@ -1538,12 +1538,12 @@ func schema_pkg_apis_app_v1alpha1_WebhookSecret(ref common.ReferenceCallback) co
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "WebhookSecret Secret to use for a given webhook",
+				Description: "WebhookSecret Secret to use for a given webhook.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"type": {
 						SchemaProps: spec.SchemaProps{
-							Description: "WebHook type, either GitHub or Generic",
+							Description: "WebHook type, either GitHub or Generic.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
