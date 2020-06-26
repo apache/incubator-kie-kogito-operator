@@ -22,7 +22,7 @@ import (
 func Test_FromStringArrayToEnvs(t *testing.T) {
 	keyPairStrings := []string{
 		"VAR1=key1",
-		"VAR2=secretKey2#secretName2",
+		"VAR2=secretName2#secretKey2",
 	}
 
 	envVars := FromStringArrayToEnvs(keyPairStrings)

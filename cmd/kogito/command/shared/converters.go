@@ -22,18 +22,18 @@ import (
 	"strings"
 )
 
-const secretKeyNameSeparator = "#"
+const secretNameKeySeparator = "#"
 
 // FromStringArrayToEnvs converts a string array in the format of key=value pairs to the required type for the Kubernetes EnvVar type
 func FromStringArrayToEnvs(keyPairStrings []string) []v1.EnvVar {
-	if keyPairStrings == nil {
+	if len(keyPairStrings) == 0 {
 		return nil
 	}
 	var envVars []v1.EnvVar
 	keyPairMap := util.FromStringsKeyPairToMap(keyPairStrings)
 	for key, value := range keyPairMap {
-		if strings.Contains(value, secretKeyNameSeparator) {
-			secretNameKeyPair := strings.SplitN(value, secretKeyNameSeparator, 2)
+		if strings.Contains(value, secretNameKeySeparator) {
+			secretNameKeyPair := strings.SplitN(value, secretNameKeySeparator, 2)
 			if len(secretNameKeyPair) == 2 {
 				secretName := secretNameKeyPair[0]
 				secretKey := secretNameKeyPair[1]
