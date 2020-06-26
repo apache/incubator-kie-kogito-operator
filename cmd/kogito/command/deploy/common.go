@@ -42,7 +42,7 @@ func AddDeployFlags(command *cobra.Command, flags *CommonFlags) {
 	common.AddOperatorFlags(command, &flags.OperatorFlags)
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
-	command.Flags().StringArrayVarP(&flags.Env, "env", "e", nil, "Key/Pair value environment variables that will be set to the service runtime. For example 'MY_VAR=my_value' or 'MY_VAR=secretKey#secretName'. Can be set more than once.")
+	command.Flags().StringArrayVarP(&flags.Env, "env", "e", nil, "Key/Pair value environment variables that will be set to the service runtime. For example 'MY_VAR=my_value' or 'MY_VAR=secretName#secretKey'(to provide secret reference). Can be set more than once.")
 	command.Flags().StringSliceVar(&flags.Limits, "limits", nil, "Resource limits for the Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	command.Flags().StringSliceVar(&flags.Requests, "requests", nil, "Resource requests for the Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")

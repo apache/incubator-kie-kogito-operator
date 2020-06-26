@@ -153,7 +153,7 @@ func CreateEnvVar(key string, value string) corev1.EnvVar {
 }
 
 // CreateSecretEnvVar will create EnvVar value to hold SecretKey for given secret key/name
-func CreateSecretEnvVar(variableName, secretKey, secretName string) corev1.EnvVar {
+func CreateSecretEnvVar(variableName, secretName, secretKey string) corev1.EnvVar {
 	return corev1.EnvVar{
 		Name: variableName,
 		ValueFrom: &corev1.EnvVarSource{

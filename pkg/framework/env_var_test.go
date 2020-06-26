@@ -200,7 +200,7 @@ func Test_CreateEnvVar(t *testing.T) {
 }
 
 func Test_CreateSecretEnvVar(t *testing.T) {
-	envVar := CreateSecretEnvVar("var", "key", "name")
+	envVar := CreateSecretEnvVar("var", "name", "key")
 	assert.NotNil(t, envVar)
 	assert.Equal(t, "var", envVar.Name)
 	assert.Equal(t, "key", envVar.ValueFrom.SecretKeyRef.Key)
