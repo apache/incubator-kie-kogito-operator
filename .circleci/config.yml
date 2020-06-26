@@ -17,13 +17,19 @@ jobs:
           command: |
             ./hack/go-fmt.sh
             changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-            [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Please make sure to run `make test` before sending the PR" && exit 1)
+            [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Please make sure to run "make test" before sending the PR" && exit 1)
       - run:
           name: Check Headers
           command: |
             ./hack/addheaders.sh
             changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-            [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Please make sure to run `make test` before sending the PR" && exit 1)
+            [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Please make sure to run "make test" before sending the PR" && exit 1)
+      - run:
+          name: Check Vet
+          command: |
+            ./hack/go-vet.sh
+            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+            [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run "make test" before sending the PR?" && exit 1)
       - run: go get -u golang.org/x/lint/golint
       - run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
       - run: ./hack/go-lint.sh
@@ -41,7 +47,6 @@ jobs:
       - run: go get golang.org/x/tools/cmd/cover
       - checkout
       - run: go mod tidy
-      - run: go vet ./...
       - run: go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.out
       - run: ./hack/coverage.sh cmd-coverage.out
       - store_artifacts:
