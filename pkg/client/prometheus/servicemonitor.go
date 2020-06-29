@@ -15,6 +15,7 @@
 package prometheus
 
 import (
+	"context"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +40,7 @@ func newServiceMonitor(c *client.Client) ServiceMonitorInterface {
 func (s *serviceMonitor) List(namespace string) (*monv1.ServiceMonitorList, error) {
 	log.Debugf("List service monitor instances from namespace %s", namespace)
 
-	pList, err := s.client.PrometheusCli.ServiceMonitors(namespace).List(metav1.ListOptions{})
+	pList, err := s.client.PrometheusCli.ServiceMonitors(namespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err

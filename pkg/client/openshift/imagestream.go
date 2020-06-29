@@ -15,6 +15,7 @@
 package openshift
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -65,7 +66,7 @@ func (i *imageStream) FetchTag(key types.NamespacedName, tag string) (*imgv1.Ima
 		tag = ImageTagLatest
 	}
 	tagRefName := fmt.Sprintf("%s:%s", key.Name, tag)
-	isTag, err := i.client.ImageCli.ImageStreamTags(key.Namespace).Get(tagRefName, metav1.GetOptions{})
+	isTag, err := i.client.ImageCli.ImageStreamTags(key.Namespace).Get(context.TODO(), tagRefName, metav1.GetOptions{})
 	if err != nil && errors.IsNotFound(err) {
 		log.Debugf("Image '%s' not found on namespace %s", tagRefName, key.Namespace)
 		return nil, nil
@@ -98,7 +99,7 @@ func (i *imageStream) FetchDockerImage(key types.NamespacedName) (*dockerv10.Doc
 }
 
 func (i *imageStream) CreateTagIfNotExists(is *imgv1.ImageStreamTag) (bool, error) {
-	is, err := i.client.ImageCli.ImageStreamTags(is.Namespace).Create(is)
+	is, err := i.client.ImageCli.ImageStreamTags(is.Namespace).Create(context.TODO(), is, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
 		log.Debugf("Error while creating Image Stream Tag '%s' in namespace '%s'", is.Name, is.Namespace)
 		return false, err
@@ -111,7 +112,7 @@ func (i *imageStream) CreateTagIfNotExists(is *imgv1.ImageStreamTag) (bool, erro
 }
 
 func (i *imageStream) CreateImageStream(is *imgv1.ImageStream) (bool, error) {
-	is, err := i.client.ImageCli.ImageStreams(is.Namespace).Create(is)
+	is, err := i.client.ImageCli.ImageStreams(is.Namespace).Create(context.TODO(), is, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
 		log.Debugf("Error while creating Image Stream '%s' in namespace '%s'", is.Name, is.Namespace)
 		return false, err

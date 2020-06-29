@@ -15,6 +15,7 @@
 package openshift
 
 import (
+	"context"
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"io"
@@ -105,7 +106,7 @@ func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) 
 		}
 	}()
 	buildRequest := newBuildRequest(triggeredBy, bc)
-	build, err := b.client.BuildCli.BuildConfigs(bc.Namespace).Instantiate(bc.Name, &buildRequest)
+	build, err := b.client.BuildCli.BuildConfigs(bc.Namespace).Instantiate(context.TODO(), bc.Name, &buildRequest, metav1.CreateOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -123,7 +124,7 @@ func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader,
 
 	// before upload the file, make sure that the build exist
 	err := b.waitForBuildConfig(checkBcRetries, checkBcRetriesInterval, func() (err error) {
-		if targetBuildConfig, err := b.client.BuildCli.BuildConfigs(namespace).Get(buildName, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
+		if targetBuildConfig, err := b.client.BuildCli.BuildConfigs(namespace).Get(context.TODO(), buildName, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
 			log.Debugf("BuildConfig %s not found in the %s namespace", targetBuildConfig.Name, targetBuildConfig.Namespace)
 			return err
 		}
@@ -140,14 +141,14 @@ func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader,
 		SubResource("instantiatebinary").
 		Body(bodyPost).
 		VersionedParams(options, runtime.NewParameterCodec(meta.GetRegisteredSchema())).
-		Do().
+		Do(context.TODO()).
 		Into(result)
 	return result, errPost
 }
 
 // GetBuildsStatusByLabel checks the status of the builds for all builds with the given label
 func (b *buildConfig) GetBuildsStatusByLabel(namespace, labelSelector string) (*v1alpha1.Builds, error) {
-	list, err := b.client.BuildCli.Builds(namespace).List(metav1.ListOptions{
+	list, err := b.client.BuildCli.Builds(namespace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 	if err != nil {
@@ -187,7 +188,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 		return nil, err
 	}
 
-	list, err := b.client.BuildCli.Builds(bc.Namespace).List(metav1.ListOptions{
+	list, err := b.client.BuildCli.Builds(bc.Namespace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 	if err != nil {
@@ -226,7 +227,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 }
 
 func (b *buildConfig) checkBuildConfigExists(bc *buildv1.BuildConfig) (bool, error) {
-	if _, err := b.client.BuildCli.BuildConfigs(bc.Namespace).Get(bc.Name, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
+	if _, err := b.client.BuildCli.BuildConfigs(bc.Namespace).Get(context.TODO(), bc.Name, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
 		log.Warnf("BuildConfig not found in namespace %s", bc.Namespace)
 		return false, nil
 	} else if err != nil {
