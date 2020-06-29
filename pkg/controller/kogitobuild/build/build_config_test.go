@@ -22,7 +22,7 @@ import (
 	"testing"
 )
 
-func Test_decoratorForSourceBuilder_setIncrementalBuild_Test(t *testing.T) {
+func Test_decoratorForSourceBuilder_enableIncrementalBuild_Test(t *testing.T) {
 	kogitoBuild := &v1alpha1.KogitoBuild{
 		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
 		Spec: v1alpha1.KogitoBuildSpec{
@@ -41,4 +41,24 @@ func Test_decoratorForSourceBuilder_setIncrementalBuild_Test(t *testing.T) {
 	decoratorForSourceBuilder()(kogitoBuild, bc)
 
 	assert.Equal(t, true, *bc.Spec.CommonSpec.Strategy.SourceStrategy.Incremental)
+}
+func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
+	kogitoBuild := &v1alpha1.KogitoBuild{
+		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
+		Spec: v1alpha1.KogitoBuildSpec{
+			DisableIncremental: true,
+			Type:               "LocalSource",
+		},
+	}
+	bc := &buildv1.BuildConfig{
+		ObjectMeta: v12.ObjectMeta{
+			Namespace: kogitoBuild.Namespace,
+		},
+		Spec: buildv1.BuildConfigSpec{
+			CommonSpec: buildv1.CommonSpec{Resources: kogitoBuild.Spec.Resources},
+		},
+	}
+	decoratorForSourceBuilder()(kogitoBuild, bc)
+
+	assert.Equal(t, false, *bc.Spec.CommonSpec.Strategy.SourceStrategy.Incremental)
 }
