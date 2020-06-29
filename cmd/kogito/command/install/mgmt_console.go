@@ -17,8 +17,8 @@ package install
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -28,7 +28,7 @@ import (
 )
 
 type installMgmtConsoleFlags struct {
-	deploy.CommonFlags
+	common.DeployFlags
 	image string
 }
 
@@ -71,10 +71,10 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
+			if err := common.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.image); err != nil {
+			if err := util.CheckImageTag(i.flags.image); err != nil {
 				return err
 			}
 			return nil
@@ -84,12 +84,12 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 
 func (i *installMgmtConsoleCommand) InitHook() {
 	i.flags = installMgmtConsoleFlags{
-		CommonFlags: deploy.CommonFlags{
+		DeployFlags: common.DeployFlags{
 			OperatorFlags: common.OperatorFlags{},
 		},
 	}
 	i.Parent.AddCommand(i.command)
-	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
+	common.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
 }

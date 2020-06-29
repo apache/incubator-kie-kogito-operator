@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deploy
+package message
 
-import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/spf13/cobra"
+import "fmt"
+
+var (
+	// RuntimeServiceErrCreating ...
+	RuntimeServiceErrCreating = fmt.Sprintf(serviceErrCreating, "Runtime", "%s")
+	// RuntimeServiceSuccessfulInstalled ...
+	RuntimeServiceSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Runtime", "%s")
+	// RuntimeServiceCheckStatus ...
+	RuntimeServiceCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitoruntime", "%s", "%s")
+	// RuntimeServiceNotInstalledNoKogitoOperator ...
+	RuntimeServiceNotInstalledNoKogitoOperator = fmt.Sprintf("Skipping deploy %s since Kogito Operator is not available.", "Runtime Service")
 )
-
-// BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
-	initDeleteServiceCommand(ctx, rootCommand)
-	initDeployCommand(ctx, rootCommand)
-	initDeployRuntimeCommand(ctx, rootCommand)
-	initDeleteRuntimeCommand(ctx, rootCommand)
-}

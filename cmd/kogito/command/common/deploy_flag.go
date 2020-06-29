@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deploy
+package common
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
@@ -26,9 +25,9 @@ const (
 	defaultDeployReplicas = 1
 )
 
-// CommonFlags is the base structure for resources that can be deployed in the cluster
-type CommonFlags struct {
-	common.OperatorFlags
+// DeployFlags is the base structure for resources that can be deployed in the cluster
+type DeployFlags struct {
+	OperatorFlags
 	Project  string
 	Replicas int32
 	Env      []string
@@ -38,8 +37,8 @@ type CommonFlags struct {
 }
 
 // AddDeployFlags adds the common deploy flags to the given command
-func AddDeployFlags(command *cobra.Command, flags *CommonFlags) {
-	common.AddOperatorFlags(command, &flags.OperatorFlags)
+func AddDeployFlags(command *cobra.Command, flags *DeployFlags) {
+	AddOperatorFlags(command, &flags.OperatorFlags)
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
 	command.Flags().StringArrayVarP(&flags.Env, "env", "e", nil, "Key/Pair value environment variables that will be set to the service runtime. For example 'MY_VAR=my_value'. Can be set more than once.")
@@ -49,7 +48,10 @@ func AddDeployFlags(command *cobra.Command, flags *CommonFlags) {
 }
 
 // CheckDeployArgs checks the default deploy flags
-func CheckDeployArgs(flags *CommonFlags) error {
+func CheckDeployArgs(flags *DeployFlags) error {
+	if err := CheckOperatorArgs(&flags.OperatorFlags); err != nil {
+		return err
+	}
 	if err := util.ParseStringsForKeyPair(flags.Env); err != nil {
 		return fmt.Errorf("environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", flags.Env)
 	}
@@ -61,17 +63,6 @@ func CheckDeployArgs(flags *CommonFlags) error {
 	}
 	if flags.Replicas <= 0 {
 		return fmt.Errorf("valid replicas are non-zero, positive numbers, received %v", flags.Replicas)
-	}
-	if err := common.CheckOperatorArgs(&flags.OperatorFlags); err != nil {
-		return err
-	}
-	return nil
-}
-
-// CheckImageTag checks the given image tag
-func CheckImageTag(image string) error {
-	if len(image) > 0 && !framework.DockerTagRegxCompiled.MatchString(image) {
-		return fmt.Errorf("invalid name for image tag. Valid format is domain/namespace/image-name:tag. Received %s", image)
 	}
 	return nil
 }

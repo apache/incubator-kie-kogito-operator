@@ -17,9 +17,9 @@ package install
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -38,7 +38,7 @@ const (
 )
 
 type installDataIndexFlags struct {
-	deploy.CommonFlags
+	common.DeployFlags
 	image              string
 	kafka              v1alpha1.KafkaConnectionProperties
 	infinispan         v1alpha1.InfinispanConnectionProperties
@@ -121,10 +121,10 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 				i.flags.kafka.UseKogitoInfra = true
 				log.Info("No Kafka information has been given. A Kafka instance will be automatically deployed via Strimzi Operator in the namespace. Kafka Topics will be created accordingly if they don't exist already")
 			}
-			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
+			if err := common.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.image); err != nil {
+			if err := util.CheckImageTag(i.flags.image); err != nil {
 				return err
 			}
 			return nil
@@ -134,14 +134,14 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 
 func (i *installDataIndexCommand) InitHook() {
 	i.flags = installDataIndexFlags{
-		CommonFlags: deploy.CommonFlags{
+		DeployFlags: common.DeployFlags{
 			OperatorFlags: common.OperatorFlags{},
 		},
 		kafka:      v1alpha1.KafkaConnectionProperties{},
 		infinispan: v1alpha1.InfinispanConnectionProperties{},
 	}
 	i.Parent.AddCommand(i.command)
-	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
+	common.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")

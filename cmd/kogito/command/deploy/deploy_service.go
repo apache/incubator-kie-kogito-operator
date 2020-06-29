@@ -48,7 +48,7 @@ var (
 )
 
 type deployFlags struct {
-	CommonFlags
+	common.DeployFlags
 	name                      string
 	runtime                   string
 	serviceLabels             []string
@@ -133,13 +133,13 @@ func (i *deployCommand) RegisterHook() {
 			if !util.Contains(i.flags.runtime, deployRuntimeValidEntries) {
 				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, i.flags.runtime)
 			}
-			if err := CheckImageTag(i.flags.imageRuntime); err != nil {
+			if err := buildutil.CheckImageTag(i.flags.imageRuntime); err != nil {
 				return err
 			}
-			if err := CheckImageTag(i.flags.imageS2I); err != nil {
+			if err := buildutil.CheckImageTag(i.flags.imageS2I); err != nil {
 				return err
 			}
-			if err := CheckDeployArgs(&i.flags.CommonFlags); err != nil {
+			if err := common.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
 			return nil
@@ -149,12 +149,12 @@ func (i *deployCommand) RegisterHook() {
 
 func (i *deployCommand) InitHook() {
 	i.flags = deployFlags{
-		CommonFlags: CommonFlags{
+		DeployFlags: common.DeployFlags{
 			OperatorFlags: common.OperatorFlags{},
 		},
 	}
 	i.Parent.AddCommand(i.command)
-	AddDeployFlags(i.command, &i.flags.CommonFlags)
+	common.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
 	i.command.Flags().StringVarP(&i.flags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	i.command.Flags().StringVarP(&i.flags.reference, "branch", "b", "", "Git branch to use in the git repository")

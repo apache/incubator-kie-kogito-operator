@@ -44,6 +44,9 @@ type servicesInstallation struct {
 
 // ServicesInstallation provides an interface for handling infrastructure services installation
 type ServicesInstallation interface {
+	// InstallRuntime deploy Runtime service.
+	// Depends on the Operator, install it first.
+	InstallRuntime(runtime *v1alpha1.KogitoRuntime) ServicesInstallation
 	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
@@ -95,6 +98,19 @@ func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool
 		if available := infrastructure.IsStrimziAvailable(s.client); !available {
 			log.Infof(message.ServiceKafkaNotAvailable, s.namespace)
 		}
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallRuntime(runtime *v1alpha1.KogitoRuntime) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(runtime,
+			serviceInfoMessages{
+				errCreating:                  message.RuntimeServiceErrCreating,
+				installed:                    message.RuntimeServiceSuccessfulInstalled,
+				checkStatus:                  message.RuntimeServiceCheckStatus,
+				notInstalledNoKogitoOperator: message.RuntimeServiceNotInstalledNoKogitoOperator,
+			})
 	}
 	return s
 }
