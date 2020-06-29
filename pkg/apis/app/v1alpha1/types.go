@@ -20,7 +20,7 @@ import "fmt"
 Collection of common types among CRDs
 */
 
-// Image is a definition of a Docker image
+// Image is a definition of a Docker image.
 type Image struct {
 	Domain    string `json:"domain,omitempty"`
 	Namespace string `json:"namespace,omitempty"`
@@ -28,7 +28,7 @@ type Image struct {
 	Tag       string `json:"tag,omitempty"`
 }
 
-// IsEmpty verifies if this Image instance is empty
+// IsEmpty verifies if this Image instance is empty.
 func (i *Image) IsEmpty() bool {
 	return len(i.Namespace) == 0 &&
 		len(i.Domain) == 0 &&
@@ -36,7 +36,7 @@ func (i *Image) IsEmpty() bool {
 		len(i.Tag) == 0
 }
 
-// String representation of this Image
+// String representation of this Image.
 func (i *Image) String() string {
 	if i.IsEmpty() {
 		return ""
@@ -49,29 +49,29 @@ func (i *Image) String() string {
 type InfinispanSaslMechanismType string
 
 const (
-	// SASLPlain is the PLAIN type
+	// SASLPlain is the PLAIN type.
 	SASLPlain InfinispanSaslMechanismType = "PLAIN"
-	// SASLDigestMD5 is the DIGEST-MD5 type
+	// SASLDigestMD5 is the DIGEST-MD5 type.
 	SASLDigestMD5 InfinispanSaslMechanismType = "DIGEST-MD5"
 )
 
-// SecretCredentialsType is the data structure for specifying credentials within a Secret
+// SecretCredentialsType is the data structure for specifying credentials within a Secret.
 type SecretCredentialsType struct {
 	// +optional
-	// SecretName is the name of the secret where the credentials are set
+	// SecretName is the name of the secret where the credentials are set.
 	SecretName string `json:"secretName,omitempty"`
 
 	// +optional
-	// UsernameKey is the key pointing to a value in a Secret holding the username value
+	// UsernameKey is the key pointing to a value in a Secret holding the username value.
 	UsernameKey string `json:"usernameKey,omitempty"`
 
 	// +optional
-	// PasswordKey is the key pointing to a value in a Secret holding the password value
+	// PasswordKey is the key pointing to a value in a Secret holding the password value.
 	PasswordKey string `json:"passwordKey,omitempty"`
 }
 
-// InfinispanConnectionProperties is the configuration needed for authenticating an Infinispan cluster
-// For more information, see https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description
+// InfinispanConnectionProperties is the configuration needed for authenticating an Infinispan cluster.
+// For more information, see https://docs.jboss.org/infinispan/10.0/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description.
 // +k8s:openapi-gen=true
 type InfinispanConnectionProperties struct {
 	// +optional
@@ -91,7 +91,7 @@ type InfinispanConnectionProperties struct {
 	SaslMechanism InfinispanSaslMechanismType `json:"saslMechanism,omitempty"`
 
 	// +optional
-	// URI to connect to the Infinispan cluster (can it be an internal service or external URI), for example, myinfinispan-cluster:11222
+	// URI to connect to the Infinispan cluster (can it be an internal service or external URI), for example, myinfinispan-cluster:11222.
 	URI string `json:"uri,omitempty"`
 
 	// +optional
@@ -99,21 +99,21 @@ type InfinispanConnectionProperties struct {
 	// Setting this to true will deploy a new KogitoInfra CR into the namespace that will install Infinispan via Infinispan Operator.
 	// Infinispan Operator MUST be installed in the namespace for this to work. On OpenShift, OLM should install it for you.
 	// If running on Kubernetes without OLM installed, please install Infinispan Operator first.
-	// Set this to false and fill all other properties to provide your own infrastructure
+	// Set this to false and fill all other properties to provide your own infrastructure.
 	UseKogitoInfra bool `json:"useKogitoInfra,omitempty"`
 }
 
-// InfinispanAware defines a spec with InfinispanProperties awareness
+// InfinispanAware defines a spec with InfinispanProperties awareness.
 type InfinispanAware interface {
 	// GetInfinispanProperties ...
 	GetInfinispanProperties() *InfinispanConnectionProperties
 	// SetInfinispanProperties ...
 	SetInfinispanProperties(props InfinispanConnectionProperties)
-	// AreInfinispanPropertiesBlank checks if the connection properties have been set
+	// AreInfinispanPropertiesBlank checks if the connection properties have been set.
 	AreInfinispanPropertiesBlank() bool
 }
 
-// InfinispanMeta defines a structure for specs that need InfinispanProperties integration
+// InfinispanMeta defines a structure for specs that need InfinispanProperties integration.
 type InfinispanMeta struct {
 	// +optional
 	// Has the data used by the service to connect to the Infinispan cluster.
@@ -130,21 +130,21 @@ func (i *InfinispanMeta) SetInfinispanProperties(props InfinispanConnectionPrope
 	i.InfinispanProperties = props
 }
 
-// AreInfinispanPropertiesBlank checks if the connection properties have been set
+// AreInfinispanPropertiesBlank checks if the connection properties have been set.
 func (i *InfinispanMeta) AreInfinispanPropertiesBlank() bool {
 	return i == nil ||
 		len(i.InfinispanProperties.URI) == 0 ||
 		(len(i.InfinispanProperties.Credentials.PasswordKey) == 0 && len(i.InfinispanProperties.Credentials.SecretName) == 0 && len(i.InfinispanProperties.Credentials.UsernameKey) == 0)
 }
 
-// KafkaConnectionProperties has the data needed to connect to a Kafka cluster
+// KafkaConnectionProperties has the data needed to connect to a Kafka cluster.
 type KafkaConnectionProperties struct {
 	// +optional
-	// URI is the service URI to connect to the Kafka cluster, for example, my-cluster-kafka-bootstrap:9092
+	// URI is the service URI to connect to the Kafka cluster, for example, my-cluster-kafka-bootstrap:9092.
 	ExternalURI string `json:"externalURI,omitempty"`
 
 	// +optional
-	// Instance is the Kafka instance to be used, for example, kogito-kafka
+	// Instance is the Kafka instance to be used, for example, kogito-kafka.
 	Instance string `json:"instance,omitempty"`
 
 	// +optional
@@ -152,21 +152,21 @@ type KafkaConnectionProperties struct {
 	// Setting this to true will configure a KogitoInfra CR to install Kafka via Strimzi Operator.
 	// Strimzi Operator MUST be installed in the namespace for this to work. On OpenShift, OLM should install it for you.
 	// If running on Kubernetes without OLM installed, please install Strimzi Operator first.
-	// Set this to false and fill other properties to provide your own infrastructure
+	// Set this to false and fill other properties to provide your own infrastructure.
 	UseKogitoInfra bool `json:"useKogitoInfra,omitempty"`
 }
 
-// KafkaAware defines a spec with KafkaProperties awareness
+// KafkaAware defines a spec with KafkaProperties awareness.
 type KafkaAware interface {
 	// GetKafkaProperties ...
 	GetKafkaProperties() *KafkaConnectionProperties
 	// SetKafkaProperties ...
 	SetKafkaProperties(props KafkaConnectionProperties)
-	// AreKafkaPropertiesBlank checks if the connection properties have been set
+	// AreKafkaPropertiesBlank checks if the connection properties have been set.
 	AreKafkaPropertiesBlank() bool
 }
 
-// KafkaMeta defines a structure for specs that need KafkaProperties integration
+// KafkaMeta defines a structure for specs that need KafkaProperties integration.
 type KafkaMeta struct {
 	// +optional
 	// Has the data used by the service to connect to the Kafka cluster.
@@ -183,7 +183,7 @@ func (k *KafkaMeta) SetKafkaProperties(props KafkaConnectionProperties) {
 	k.KafkaProperties = props
 }
 
-// AreKafkaPropertiesBlank checks if the connection properties have been set
+// AreKafkaPropertiesBlank checks if the connection properties have been set.
 func (k *KafkaMeta) AreKafkaPropertiesBlank() bool {
 	return len(k.KafkaProperties.ExternalURI) == 0 &&
 		len(k.KafkaProperties.Instance) == 0 &&

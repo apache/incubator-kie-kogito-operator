@@ -76,7 +76,7 @@ func (i *installJobsServiceCommand) RegisterHook() {
 		Use:     "jobs-service [flags]",
 		Short:   "Installs the Kogito Jobs Service in the given Project",
 		Example: "jobs-service -p my-project",
-		Long: `'install jobs-service' deploys the Jobs Service to enable scheduling jobs that aim to be fired at a given time for Kogito Runtime Services.
+		Long: `'install jobs-service' deploys the Jobs Service to enable scheduling jobs that aim to be fired at a given time for Kogito services.
 
 If 'enable-persistence' flag is set and 'infinispan-url' is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure.
 Use 'infinispan-url' and set 'enable-persistence' flag if you plan to connect to an external Infinispan server that is already provided 

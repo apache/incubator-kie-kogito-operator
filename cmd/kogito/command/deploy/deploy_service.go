@@ -95,9 +95,9 @@ func (i *deployCommand) Command() *cobra.Command {
 func (i *deployCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:     "deploy-service NAME [SOURCE]",
-		Short:   "Deploys a new Kogito Runtime Service into the given Project",
+		Short:   "Deploys a new Kogito service into the given Project",
 		Aliases: []string{"deploy"},
-		Long: `deploy-service will create a new Kogito Runtime Service in the Project context. 
+		Long: `deploy-service will create a new Kogito service in the Project context. 
 	If the [SOURCE] is provided, the build will take place on the cluster.
 	If not, you can also provide a dmn/drl/bpmn/bpmn2 file or a directory containing one or more of those files, using the --from-file
 	Or you can also later upload directly the application binaries via "oc start-build [NAME-binary] --from-dir=target

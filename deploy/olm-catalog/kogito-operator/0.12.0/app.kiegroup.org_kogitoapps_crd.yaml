@@ -38,7 +38,7 @@ spec:
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: KogitoApp is a project prescription running a Kogito Runtime Service.
+      description: KogitoApp is a project prescription running a Kogito service.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -53,22 +53,22 @@ spec:
         metadata:
           type: object
         spec:
-          description: KogitoAppSpec defines the desired state of KogitoApp
+          description: KogitoAppSpec defines the desired state of KogitoApp.
           properties:
             build:
-              description: 'S2I Build configuration Default value: nil'
+              description: 'S2I Build configuration. Default value: nil'
               properties:
                 artifact:
                   description: Artifact contains override information for building
-                    the Maven artifact
+                    the Maven artifact.
                   properties:
                     artifactId:
                       description: Indicates the unique base name of the primary artifact
-                        being generated
+                        being generated.
                       type: string
                     groupId:
                       description: Indicates the unique identifier of the organization
-                        or group that created the project
+                        or group that created the project.
                       type: string
                     version:
                       description: Indicates the version of the artifact generated
@@ -77,10 +77,10 @@ spec:
                   type: object
                 enableMavenDownloadOutput:
                   description: If set to true will print the logs for downloading/uploading
-                    of maven dependencies. Defaults to false
+                    of maven dependencies. Defaults to false.
                   type: boolean
                 envs:
-                  description: Environment variables used during build time
+                  description: Environment variables used during build time.
                   items:
                     description: EnvVar represents an environment variable present
                       in a Container.
@@ -188,13 +188,13 @@ spec:
                   properties:
                     contextDir:
                       description: Context/subdirectory where the code is located,
-                        relative to the repo root
+                        relative to the repo root.
                       type: string
                     reference:
-                      description: Branch to use in the Git repository
+                      description: Branch to use in the Git repository.
                       type: string
                     uri:
-                      description: Git URI for the s2i source
+                      description: Git URI for the s2i source.
                       type: string
                   required:
                   - uri
@@ -219,7 +219,7 @@ spec:
                   type: boolean
                 mavenMirrorURL:
                   description: Internal Maven Mirror to be used during source-to-image
-                    builds to considerably increase build speed
+                    builds to considerably increase build speed.
                   type: string
                 native:
                   description: Native indicates if the Kogito Service built should
@@ -245,15 +245,15 @@ spec:
                       type: object
                   type: object
                 webhooks:
-                  description: WebHook secrets for build configs
+                  description: WebHook secrets for build configs.
                   items:
-                    description: WebhookSecret Secret to use for a given webhook
+                    description: WebhookSecret Secret to use for a given webhook.
                     properties:
                       secret:
                         description: Secret value for webhook
                         type: string
                       type:
-                        description: WebHook type, either GitHub or Generic
+                        description: WebHook type, either GitHub or Generic.
                         enum:
                         - GitHub
                         - Generic
@@ -265,7 +265,7 @@ spec:
               additionalProperties:
                 type: string
               description: Additional labels to be added to the Deployment and Pods
-                managed by the operator
+                managed by the operator.
               type: object
             enableEvents:
               description: 'Set this property to true to tell the operator to deploy
@@ -275,7 +275,7 @@ spec:
                 via an environment variable named "KAFKA_BOOTSTRAP_SERVERS" e.g.:
                 kafka-kogito:9092. Set to false or ignore it if your service does
                 not need messaging or if you are going to configure the messaging
-                infrastructure yourself'
+                infrastructure yourself.'
               type: boolean
             enableIstio:
               description: Annotates the pods managed by the operator with the required
@@ -290,7 +290,7 @@ spec:
                 Boot, these variables start with SPRING_INFINISPAN_CLIENT_*. More
                 info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
                 Set to false or ignore it if your service does not need persistence
-                or if you are going to configure the persistence infrastructure yourself'
+                or if you are going to configure the persistence infrastructure yourself.'
               type: boolean
             envs:
               description: Environment variables to be added to the runtime container.
@@ -418,13 +418,13 @@ spec:
               type: boolean
             replicas:
               description: 'Number of replicas that the service will have deployed
-                in the cluster Default value: 1'
+                in the cluster. Default value: 1.'
               format: int32
               minimum: 0
               type: integer
             resources:
               description: Defined compute resource requirements for the deployed
-                service
+                service.
               properties:
                 limits:
                   additionalProperties:
@@ -442,68 +442,68 @@ spec:
                   type: object
               type: object
             runtime:
-              description: 'The name of the runtime used, either Quarkus or Springboot
-                Default value: quarkus'
+              description: 'The name of the runtime used, either Quarkus or SpringBoot.
+                Default value: quarkus.'
               enum:
               - quarkus
               - springboot
               type: string
             service:
-              description: 'Kubernetes Service configuration Default value: nil'
+              description: 'Kubernetes Service configuration. Default value: nil'
               properties:
                 labels:
                   additionalProperties:
                     type: string
-                  description: Labels for the application service
+                  description: Labels for the application service.
                   type: object
               type: object
             serviceLabels:
               additionalProperties:
                 type: string
               description: Additional labels to be added to the Service managed by
-                the operator
+                the operator.
               type: object
           required:
           - build
           type: object
         status:
-          description: KogitoAppStatus defines the observed state of KogitoApp
+          description: KogitoAppStatus defines the observed state of KogitoApp.
           properties:
             builds:
-              description: History of service builds status
+              description: History of service builds status.
               properties:
                 cancelled:
-                  description: Builds have been stopped from executing
+                  description: Builds have been stopped from executing.
                   items:
                     type: string
                   type: array
                 complete:
-                  description: Builds have executed and succeeded
+                  description: Builds have executed and succeeded.
                   items:
                     type: string
                   type: array
                 error:
-                  description: Builds have been prevented from executing by an error
+                  description: Builds have been prevented from executing by an error.
                   items:
                     type: string
                   type: array
                 failed:
-                  description: Builds have executed and failed
+                  description: Builds have executed and failed.
                   items:
                     type: string
                   type: array
                 new:
-                  description: Builds are being created
+                  description: Builds are being created.
                   items:
                     type: string
                   type: array
                 pending:
-                  description: Builds are about to start running
+                  description: Builds are about to start running.
                   items:
                     type: string
                   type: array
                 running:
-                  description: Builds are running
+                  description: Builds are running.
                   items:
                     type: string
                   type: array
@@ -532,7 +532,7 @@ spec:
                 type: object
               type: array
             deployments:
-              description: History of service deployments status
+              description: History of service deployments status.
               properties:
                 failed:
                   description: Deployments failed
@@ -540,7 +540,7 @@ spec:
                     type: string
                   type: array
                 ready:
-                  description: Deployments are ready to serve requests
+                  description: Deployments are ready to serve requests.
                   items:
                     type: string
                   type: array
@@ -550,13 +550,13 @@ spec:
                     type: string
                   type: array
                 stopped:
-                  description: Deployments are not starting and the next step is unclear
+                  description: Deployments are not starting and the next step is unclear.
                   items:
                     type: string
                   type: array
               type: object
             route:
-              description: External URL for the service
+              description: External URL for the service.
               type: string
           required:
           - builds

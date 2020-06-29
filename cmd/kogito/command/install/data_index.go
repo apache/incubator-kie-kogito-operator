@@ -75,7 +75,7 @@ func (i *installDataIndexCommand) RegisterHook() {
 		Use:     "data-index [flags]",
 		Short:   "Installs the Kogito Data Index Service in the given Project",
 		Example: "data-index -p my-project",
-		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito Runtime Services.
+		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito services.
 
 If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
 If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Data Index service's namespace.
