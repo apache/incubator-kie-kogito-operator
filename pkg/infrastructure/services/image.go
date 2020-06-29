@@ -16,6 +16,8 @@ package services
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -26,7 +28,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 )
 
 const (
@@ -141,7 +142,7 @@ func (i *imageHandler) resolveTag() string {
 
 // createImageStream creates the ImageStream referencing the given namespace.
 // Adds a docker image in the "From" reference based on the given image if `addFromReference` is set to `true`
-func (i *imageHandler) createImageStream(namespace string, addFromReference bool) {
+func (i *imageHandler) createImageStream(namespace string, addFromReference, insecureImageRegistry bool) {
 	if i.client.IsOpenshift() {
 		imageStreamTagAnnotations[annotationKeyVersion] = i.resolveTag()
 		i.imageStream = &imgv1.ImageStream{
@@ -153,6 +154,7 @@ func (i *imageHandler) createImageStream(namespace string, addFromReference bool
 						Name:            i.resolveTag(),
 						Annotations:     imageStreamTagAnnotations,
 						ReferencePolicy: imgv1.TagReferencePolicy{Type: imgv1.LocalTagReferencePolicy},
+						ImportPolicy:    imgv1.TagImportPolicy{Insecure: insecureImageRegistry},
 					},
 				},
 			},
@@ -178,7 +180,7 @@ func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cl
 	}
 	if cli.IsOpenshift() {
 		// creates the empty tag reference in the ImageStream since this handler is for services being built
-		handler.createImageStream(namespace, false)
+		handler.createImageStream(namespace, false, false)
 	}
 	return handler
 }
@@ -211,7 +213,7 @@ func newImageHandler(instance v1alpha1.KogitoService, definition ServiceDefiniti
 		if sharedImageStream != nil {
 			handler.imageStream = sharedImageStream
 		} else {
-			handler.createImageStream(instance.GetNamespace(), addDockerImageReference)
+			handler.createImageStream(instance.GetNamespace(), addDockerImageReference, instance.GetSpec().IsInsecureImageRegistry())
 		}
 	}
 	return handler, nil

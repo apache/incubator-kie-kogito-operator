@@ -112,6 +112,7 @@ type KogitoServiceSpecInterface interface {
 	GetRuntime() RuntimeType
 	//Define port on which service will listen internally
 	GetHTTPPort() int32
+	IsInsecureImageRegistry() bool
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification
@@ -136,6 +137,12 @@ type KogitoServiceSpec struct {
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Image Image `json:"image,omitempty"`
+
+	// +optional
+	// A flag indicating that image streams created by Kogito Operator should be configured to allow pulling from insecure registries.
+	// Usable just on OpenShift.
+	// Defaults to 'false'.
+	InsecureImageRegistry bool `json:"insecureImageRegistry,omitempty"`
 
 	// Defined compute resource requirements for the deployed service
 	// +optional
@@ -245,3 +252,6 @@ func (k *KogitoServiceSpec) GetServiceLabels() map[string]string { return k.Serv
 
 // SetServiceLabels ...
 func (k *KogitoServiceSpec) SetServiceLabels(labels map[string]string) { k.ServiceLabels = labels }
+
+// IsInsecureImageRegistry ...
+func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureImageRegistry }

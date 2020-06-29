@@ -16,6 +16,7 @@ package deploy
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
@@ -29,12 +30,14 @@ const (
 // CommonFlags is the base structure for resources that can be deployed in the cluster
 type CommonFlags struct {
 	common.OperatorFlags
-	Project  string
-	Replicas int32
-	Env      []string
-	Limits   []string
-	Requests []string
-	HTTPPort int32
+	Project               string
+	Replicas              int32
+	Env                   []string
+	Limits                []string
+	Requests              []string
+	HTTPPort              int32
+	Image                 string
+	InsecureImageRegistry bool
 }
 
 // AddDeployFlags adds the common deploy flags to the given command
@@ -46,6 +49,8 @@ func AddDeployFlags(command *cobra.Command, flags *CommonFlags) {
 	command.Flags().StringSliceVar(&flags.Limits, "limits", nil, "Resource limits for the Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	command.Flags().StringSliceVar(&flags.Requests, "requests", nil, "Resource requests for the Service pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")
+	command.Flags().StringVarP(&flags.Image, "image", "i", "", "Image tag for the Service, example: quay.io/kiegroup/kogito-data-index:latest")
+	command.Flags().BoolVar(&flags.InsecureImageRegistry, "insecure-image-registry", false, "Indicates that the Service image points to insecure image registry")
 }
 
 // CheckDeployArgs checks the default deploy flags

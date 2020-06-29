@@ -16,6 +16,8 @@ package install
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -24,7 +26,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func Test_DeployJobsServiceCmd(t *testing.T) {
@@ -149,4 +150,14 @@ func Test_DeployJobServiceCmd_CustomHTTPPort(t *testing.T) {
 	assert.True(t, exist)
 	assert.NotNil(t, jobService)
 	assert.Equal(t, int32(9090), jobService.Spec.HTTPPort)
+}
+
+func Test_DeployJobsServiceCmd_InsecureImage(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf("install jobs-service --project %s --insecure-image-registry", ns)
+	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
 }

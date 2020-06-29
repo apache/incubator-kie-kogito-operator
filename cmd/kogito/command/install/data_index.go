@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
@@ -39,7 +40,6 @@ const (
 
 type installDataIndexFlags struct {
 	deploy.CommonFlags
-	image              string
 	kafka              v1alpha1.KafkaConnectionProperties
 	infinispan         v1alpha1.InfinispanConnectionProperties
 	infinispanSasl     string
@@ -124,7 +124,7 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.image); err != nil {
+			if err := deploy.CheckImageTag(i.flags.Image); err != nil {
 				return err
 			}
 			return nil
@@ -143,7 +143,6 @@ func (i *installDataIndexCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	deploy.AddDeployFlags(i.command, &i.flags.CommonFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
 	i.command.Flags().StringVar(&i.flags.infinispan.URI, "infinispan-url", "", "The Infinispan Server URI, example: infinispan-server:11222")
@@ -195,12 +194,13 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
 				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
-				Image:    framework.ConvertImageTagToImage(i.flags.image),
+				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 					Requests: shared.FromStringArrayToResources(i.flags.Requests),
 				},
-				HTTPPort: i.flags.HTTPPort,
+				HTTPPort:              i.flags.HTTPPort,
+				InsecureImageRegistry: i.flags.InsecureImageRegistry,
 			},
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: i.flags.infinispan},
 			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},

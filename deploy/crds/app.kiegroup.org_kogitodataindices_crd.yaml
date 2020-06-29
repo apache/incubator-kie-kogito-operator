@@ -225,6 +225,11 @@ spec:
                     all other properties to provide your own infrastructure
                   type: boolean
               type: object
+            insecureImageRegistry:
+              description: A flag indicating that image streams created by Kogito
+                Operator should be configured to allow pulling from insecure registries.
+                Usable just on OpenShift. Defaults to 'false'.
+              type: boolean
             kafka:
               description: Has the data used by the service to connect to the Kafka
                 cluster.
