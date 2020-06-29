@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strings"
 )
 
 // WatchedObjects objects that the controller supposed to watch for
@@ -98,7 +99,10 @@ func (c *controllerWatcher) Watch(watchedObjects ...WatchedObjects) (err error) 
 				delete(c.groupsNotWatched, object.GroupVersion.Group)
 			} else {
 				c.groupsNotWatched[object.GroupVersion.Group] = true
-				log.Warnf("Impossible to register GroupVersion %s. CRD not installed in the cluster, controller might not behave as expected", object.GroupVersion)
+				// warn only for CRDs that are not in the OpenShift group
+				if !strings.Contains(object.GroupVersion.Group, client.OpenShiftGroupName) {
+					log.Warnf("Impossible to register GroupVersion %s. CRD not installed in the cluster, controller might not behave as expected", object.GroupVersion)
+				}
 			}
 		}
 	}
