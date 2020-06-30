@@ -89,7 +89,7 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 - [Docker](https://www.docker.com/)
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
 - [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.18.x, 0.18.2 is preferred.
-- [Go](https://golang.org/) v1.13 is installed.
+- [Go](https://golang.org/) v1.14 is installed.
 - [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
 
