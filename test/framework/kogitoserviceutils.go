@@ -49,7 +49,7 @@ func InstallService(serviceHolder *KogitoServiceHolder, installerType InstallerT
 	}
 
 	if err == nil {
-		err = OnKogitoServiceDeployed(serviceHolder.GetNamespace(), serviceHolder.GetName())
+		err = OnKogitoServiceDeployed(serviceHolder.GetNamespace(), serviceHolder)
 	}
 
 	return err
@@ -82,7 +82,9 @@ func NewObjectMetadata(namespace string, name string) metav1.ObjectMeta {
 func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName string) v1alpha1.KogitoServiceSpec {
 	return v1alpha1.KogitoServiceSpec{
 		Replicas: &replicas,
-		Image:    newImageOrDefault(fullImage, defaultImageName),
+		Image:    NewImageOrDefault(fullImage, defaultImageName),
+		// Sets insecure image registry as service images can be stored in insecure registries
+		InsecureImageRegistry: true,
 	}
 }
 
@@ -95,7 +97,8 @@ func NewKogitoServiceStatus() v1alpha1.KogitoServiceStatus {
 	}
 }
 
-func newImageOrDefault(fullImage string, defaultImageName string) v1alpha1.Image {
+// NewImageOrDefault Returns Image parsed from provided image tag or created from configuration options
+func NewImageOrDefault(fullImage string, defaultImageName string) v1alpha1.Image {
 	if len(fullImage) > 0 {
 		return framework.ConvertImageTagToImage(fullImage)
 	}
@@ -199,9 +202,9 @@ func (serviceHolder *KogitoServiceHolder) IsInfinispanUsernameSpecified() bool {
 }
 
 // OnKogitoServiceDeployed is called when a service deployed.
-func OnKogitoServiceDeployed(namespace, serviceName string) error {
+func OnKogitoServiceDeployed(namespace string, service v1alpha1.KogitoService) error {
 	if !IsOpenshift() {
-		return ExposeServiceOnKubernetes(namespace, serviceName)
+		return ExposeServiceOnKubernetes(namespace, service)
 	}
 
 	return nil

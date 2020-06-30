@@ -18,7 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// KogitoMgmtConsoleSpec defines the desired state of KogitoMgmtConsole
+// KogitoMgmtConsoleSpec defines the desired state of KogitoMgmtConsole.
 type KogitoMgmtConsoleSpec struct {
 	KogitoServiceSpec `json:",inline"`
 }
@@ -28,14 +28,14 @@ func (m *KogitoMgmtConsoleSpec) GetRuntime() RuntimeType {
 	return QuarkusRuntimeType
 }
 
-// KogitoMgmtConsoleStatus defines the observed state of KogitoMgmtConsole
+// KogitoMgmtConsoleStatus defines the observed state of KogitoMgmtConsole.
 type KogitoMgmtConsoleStatus struct {
 	KogitoServiceStatus `json:",inline"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoMgmtConsole deploys the Kogito Management Console service in the given namespace
+// KogitoMgmtConsole deploys the Kogito Management Console service in the given namespace.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitomgmtconsoles,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
@@ -66,7 +66,7 @@ func (k *KogitoMgmtConsole) GetStatus() KogitoServiceStatusInterface {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoMgmtConsoleList contains a list of KogitoMgmtConsole
+// KogitoMgmtConsoleList contains a list of KogitoMgmtConsole.
 type KogitoMgmtConsoleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

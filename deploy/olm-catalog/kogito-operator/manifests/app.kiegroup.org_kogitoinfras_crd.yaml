@@ -45,7 +45,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: KogitoInfraSpec defines the desired state of KogitoInfra.
+          description: KogitoInfraSpec defines the desired state of KogitoInfra
           properties:
             installInfinispan:
               description: Indicates if Infinispan should be installed or not using
@@ -64,7 +64,7 @@ spec:
               type: boolean
           type: object
         status:
-          description: KogitoInfraStatus defines the observed state of KogitoInfra.
+          description: KogitoInfraStatus defines the observed state of KogitoInfra
           properties:
             condition:
               description: KogitoInfraCondition ...
@@ -84,12 +84,12 @@ spec:
               type: object
             infinispan:
               description: InfinispanInstallStatus defines the Infinispan installation
-                status.
+                status
               properties:
                 condition:
                   items:
                     description: InstallCondition defines the installation condition
-                      for the infrastructure actor.
+                      for the infrastructure actor
                     properties:
                       lastTransitionTime:
                         format: date-time
@@ -100,7 +100,7 @@ spec:
                         type: string
                       type:
                         description: InstallConditionType defines the possibles conditions
-                          that a install might have.
+                          that a install might have
                         type: string
                     required:
                     - status
@@ -116,12 +116,12 @@ spec:
               type: object
             kafka:
               description: InfraComponentInstallStatusType is the base structure to
-                define the status for an actor in the infrastructure.
+                define the status for an actor in the infrastructure
               properties:
                 condition:
                   items:
                     description: InstallCondition defines the installation condition
-                      for the infrastructure actor.
+                      for the infrastructure actor
                     properties:
                       lastTransitionTime:
                         format: date-time
@@ -132,7 +132,7 @@ spec:
                         type: string
                       type:
                         description: InstallConditionType defines the possibles conditions
-                          that a install might have.
+                          that a install might have
                         type: string
                     required:
                     - status
@@ -146,12 +146,12 @@ spec:
               type: object
             keycloak:
               description: InfraComponentInstallStatusType is the base structure to
-                define the status for an actor in the infrastructure.
+                define the status for an actor in the infrastructure
               properties:
                 condition:
                   items:
                     description: InstallCondition defines the installation condition
-                      for the infrastructure actor.
+                      for the infrastructure actor
                     properties:
                       lastTransitionTime:
                         format: date-time
@@ -162,7 +162,7 @@ spec:
                         type: string
                       type:
                         description: InstallConditionType defines the possibles conditions
-                          that a install might have.
+                          that a install might have
                         type: string
                     required:
                     - status

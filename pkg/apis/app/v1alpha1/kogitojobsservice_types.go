@@ -18,7 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// KogitoJobsServiceSpec defines the desired state of KogitoJobsService
+// KogitoJobsServiceSpec defines the desired state of KogitoJobsService.
 // +k8s:openapi-gen=true
 type KogitoJobsServiceSpec struct {
 	InfinispanMeta    `json:",inline"`
@@ -44,7 +44,7 @@ func (j *KogitoJobsServiceSpec) GetRuntime() RuntimeType {
 	return QuarkusRuntimeType
 }
 
-// KogitoJobsServiceStatus defines the observed state of KogitoJobsService
+// KogitoJobsServiceStatus defines the observed state of KogitoJobsService.
 // +k8s:openapi-gen=true
 type KogitoJobsServiceStatus struct {
 	KogitoServiceStatus `json:",inline"`
@@ -52,7 +52,7 @@ type KogitoJobsServiceStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoJobsService deploys the Kogito Jobs Service in the given namespace
+// KogitoJobsService deploys the Kogito Jobs Service in the given namespace.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitojobsservices,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
@@ -83,7 +83,7 @@ func (k *KogitoJobsService) GetStatus() KogitoServiceStatusInterface {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoJobsServiceList contains a list of KogitoJobsService
+// KogitoJobsServiceList contains a list of KogitoJobsService.
 type KogitoJobsServiceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

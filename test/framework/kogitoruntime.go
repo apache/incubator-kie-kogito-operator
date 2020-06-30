@@ -39,7 +39,7 @@ func DeployRuntimeService(namespace string, installerType InstallerType, service
 	}
 
 	if err == nil {
-		err = OnKogitoServiceDeployed(namespace, serviceHolder.GetName())
+		err = OnKogitoServiceDeployed(namespace, serviceHolder)
 	}
 
 	return err
@@ -83,6 +83,8 @@ func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1alph
 			Runtime: v1alpha1.RuntimeType(runtimeType),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Image: image,
+				// Use insecure registry flag in tests
+				InsecureImageRegistry: true,
 			},
 		},
 	}

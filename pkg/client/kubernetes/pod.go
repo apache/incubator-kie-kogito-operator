@@ -15,6 +15,7 @@
 package kubernetes
 
 import (
+	"context"
 	"io/ioutil"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -55,7 +56,7 @@ func (pod *pod) getLogs(namespace, podName, containerName string, follow bool) (
 		Container: containerName,
 	}
 	req := pod.client.KubernetesExtensionCli.CoreV1().Pods(namespace).GetLogs(podName, &podLogOpts)
-	readCloser, err := req.Stream()
+	readCloser, err := req.Stream(context.TODO())
 	if err != nil {
 		return "", err
 	}

@@ -103,7 +103,7 @@ metadata:
     certified: "false"
     containerImage: quay.io/kiegroup/kogito-cloud-operator:0.10.0
     createdAt: "2019-08-22T13:12:22Z"
-    description: Kogito Operator for deployment and management of Kogito services.
+    description: Kogito Operator for deployment and management of Kogito Services.
     repository: https://github.com/kiegroup/kogito-cloud-operator
     support: Red Hat
     tectonic-visibility: ocs
@@ -115,7 +115,7 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: KogitoApp is a project prescription running a Kogito service.
+    - description: KogitoApp is a project prescription running a Kogito Runtime Service.
       displayName: Kogito Service
       kind: KogitoApp
       name: kogitoapps.app.kiegroup.org
@@ -143,26 +143,26 @@ spec:
         version: v1
       specDescriptors:
       - description: Artifact contains override information for building the Maven
-          artifact.
+          artifact
         displayName: Final Artifact
         path: build.artifact
       - description: If set to true will print the logs for downloading/uploading
-          of maven dependencies. Defaults to false.
+          of maven dependencies. Defaults to false
         displayName: Enable Maven Download Output
         path: build.enableMavenDownloadOutput
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Environment variables used during build time.
+      - description: Environment variables used during build time
         displayName: Build Env Variables
         path: build.envs
       - description: Context/subdirectory where the code is located, relative to the
-          repo root.
+          repo root
         displayName: Git Context
         path: build.gitSource.contextDir
-      - description: Branch to use in the Git repository.
+      - description: Branch to use in the Git repository
         displayName: Git Reference
         path: build.gitSource.reference
-      - description: Git URI for the s2i source.
+      - description: Git URI for the s2i source
         displayName: Git URI
         path: build.gitSource.uri
       - description: 'Image version for the Kogito official images used during the
@@ -182,7 +182,7 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
       - description: Additional labels to be added to the Deployment and Pods managed
-          by the operator.
+          by the operator
         displayName: Additional Deployment Labels
         path: deploymentLabels
         x-descriptors:
@@ -193,7 +193,7 @@ spec:
           service endpoint will be injected in the Kogito Service container via an
           environment variable named "KAFKA_BOOTSTRAP_SERVERS" e.g.: kafka-kogito:9092.
           Set to false or ignore it if your service does not need messaging or if
-          you are going to configure the messaging infrastructure yourself.'
+          you are going to configure the messaging infrastructure yourself'
         displayName: Enable Events
         path: enableEvents
         x-descriptors:
@@ -211,7 +211,7 @@ spec:
           environment variables. For Spring Boot, these variables start with SPRING_INFINISPAN_CLIENT_*.
           More info: https://github.com/kiegroup/kogito-cloud-operator#kogito-services.
           Set to false or ignore it if your service does not need persistence or if
-          you are going to configure the persistence infrastructure yourself.'
+          you are going to configure the persistence infrastructure yourself'
         displayName: Enable Persistence
         path: enablePersistence
         x-descriptors:
@@ -227,29 +227,29 @@ spec:
         displayName: Image
         path: image
       - description: 'Number of replicas that the service will have deployed in the
-          cluster. Default value: 1.'
+          cluster Default value: 1'
         displayName: Replicas
         path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: Defined compute resource requirements for the deployed service.
+      - description: Defined compute resource requirements for the deployed service
         displayName: Resources
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
-      - description: 'The name of the runtime used, either Quarkus or SpringBoot.
-          Default value: quarkus.'
+      - description: 'The name of the runtime used, either Quarkus or Springboot Default
+          value: quarkus'
         displayName: Runtime
         path: runtime
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
-      - description: Additional labels to be added to the Service managed by the operator.
+      - description: Additional labels to be added to the Service managed by the operator
         displayName: Additional Service Labels
         path: serviceLabels
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       statusDescriptors:
-      - description: History of service builds status.
+      - description: History of service builds status
         displayName: Builds
         path: builds
       - description: History of conditions for the resource
@@ -257,19 +257,19 @@ spec:
         path: conditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: History of service deployments status.
+      - description: History of service deployments status
         displayName: Deployments
         path: deployments
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podStatuses
-      - description: External URL for the service.
+      - description: External URL for the service
         displayName: Route
         path: route
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
       version: v1alpha1
-    - description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift
-        cluster.
+    - description: KogitoBuild handles how to build a custom Kogito Runtime Service
+        in a Kubernetes/OpenShift cluster.
       displayName: Kogito Build
       kind: KogitoBuild
       name: kogitobuilds.app.kiegroup.org
@@ -302,26 +302,26 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: If set to true will print the logs for downloading/uploading
-          of maven dependencies. Defaults to false.
+          of maven dependencies. Defaults to false
         displayName: Enable Maven Download Output
         path: enableMavenDownloadOutput
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Environment variables used during build time.
+      - description: Environment variables used during build time
         displayName: Build Env Variables
         path: envs
       - description: Context/subdirectory where the code is located, relative to the
-          repo root.
+          repo root
         displayName: Git Context
         path: gitSource.contextDir
-      - description: Branch to use in the Git repository.
+      - description: Branch to use in the Git repository
         displayName: Git Reference
         path: gitSource.reference
-      - description: Git URI for the s2i source.
+      - description: Git URI for the s2i source
         displayName: Git URI
         path: gitSource.uri
       - description: Maven Mirror URL to be used during source-to-image builds (Local
-          and Remote) to considerably increase build speed.
+          and Remote) to considerably increase build speed
         displayName: Maven Mirror URL
         path: mavenMirrorURL
         x-descriptors:
@@ -338,15 +338,15 @@ spec:
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
-      - description: 'Which runtime Kogito service base image to use when building
-          the Kogito service. If "BuildImage" is set, this value is ignored by the
-          operator. Default value: quarkus.'
+      - description: 'Which runtime Kogito Runtime base image to use when building
+          the Kogito Service. If "BuildImage" is set, this value is ignored by the
+          operator. Default value: quarkus'
         displayName: Runtime
         path: runtime
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
-      - description: 'Image used as the base image for the final Kogito service. This
-          image only has the required packages to run the application. For example:
+      - description: 'Image used as the base image for the final Kogito Runtime Service.
+          This image only has the required packages to run the application. For example:
           quarkus based services will have only JVM installed, native services only
           the packages required by the OS. The operator will use the one provided
           by the Kogito Team based on the "Runtime" field. Example: Domain: quay.io,
@@ -368,11 +368,11 @@ spec:
         displayName: Base Image
         path: targetKogitoRuntime
       - description: 'Sets the type of build that this instance will handle: Binary
-          - takes an uploaded binary file already compiled and creates a Kogito service
-          image from it. RemoteSource - pulls the source code from a Git repository,
-          builds the binary and then the final Kogito service image. LocalSource -
-          takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN
-          (process), builds the binary and the final Kogito service image.'
+          - takes an uploaded binary file already compiled and creates a Kogito Runtime
+          Service image from it RemoteSource - pulls the source code from a Git repository,
+          builds the binary and then the final Kogito Runtime Service image LocalSource
+          - takes an uploaded resource file such as DRL (rules), DMN (decision) or
+          BPMN (process), builds the binary and the final Kogito Runtime Service image'
         displayName: DisableIncremental Builds
         path: type
       statusDescriptors:
@@ -388,7 +388,7 @@ spec:
       - displayName: Latest Build
         path: latestBuild
       version: v1alpha1
-    - description: KogitoDataIndex defines the Data Index Service infrastructure deployment.
+    - description: KogitoDataIndex defines the Data Index Service infrastructure deployment
       displayName: Kogito Data Index
       kind: KogitoDataIndex
       name: kogitodataindices.app.kiegroup.org
@@ -410,7 +410,7 @@ spec:
         version: v1
       specDescriptors:
       - description: Additional labels to be added to the Deployment and Pods managed
-          by the operator.
+          by the operator
         displayName: Additional Deployment Labels
         path: deploymentLabels
         x-descriptors:
@@ -426,17 +426,17 @@ spec:
         displayName: Image
         path: image
       - description: 'Number of replicas that the service will have deployed in the
-          cluster. Default value: 1.'
+          cluster Default value: 1'
         displayName: Replicas
         path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: Defined compute resource requirements for the deployed service.
+      - description: Defined compute resource requirements for the deployed service
         displayName: Resources
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
-      - description: Additional labels to be added to the Service managed by the operator.
+      - description: Additional labels to be added to the Service managed by the operator
         displayName: Additional Service Labels
         path: serviceLabels
         x-descriptors:
@@ -447,17 +447,17 @@ spec:
         path: conditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: General conditions for the Kogito Service deployment.
+      - description: General conditions for the Kogito Service deployment
         displayName: Deployment Conditions
         path: deploymentConditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: URI is where the service is exposed.
+      - description: URI is where the service is exposed
         displayName: External URI
         path: externalURI
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
-      - description: Image is the resolved image for this service.
+      - description: Image is the resolved image for this service
         displayName: Image
         path: image
       version: v1alpha1
@@ -506,7 +506,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       version: v1alpha1
     - description: KogitoJobsService deploys the Kogito Jobs Service in the given
-        namespace.
+        namespace
       displayName: Kogito Jobs Services
       kind: KogitoJobsService
       name: kogitojobsservices.app.kiegroup.org
@@ -530,7 +530,7 @@ spec:
         displayName: Back Off Retry Millis
         path: backOffRetryMillis
       - description: Additional labels to be added to the Deployment and Pods managed
-          by the operator.
+          by the operator
         displayName: Additional Deployment Labels
         path: deploymentLabels
         x-descriptors:
@@ -550,17 +550,17 @@ spec:
         displayName: Max Interval Limit To Retry Millis
         path: maxIntervalLimitToRetryMillis
       - description: 'Number of replicas that the service will have deployed in the
-          cluster. Default value: 1.'
+          cluster Default value: 1'
         displayName: Replicas
         path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: Defined compute resource requirements for the deployed service.
+      - description: Defined compute resource requirements for the deployed service
         displayName: Resources
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
-      - description: Additional labels to be added to the Service managed by the operator.
+      - description: Additional labels to be added to the Service managed by the operator
         displayName: Additional Service Labels
         path: serviceLabels
         x-descriptors:
@@ -571,22 +571,22 @@ spec:
         path: conditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: General conditions for the Kogito Service deployment.
+      - description: General conditions for the Kogito Service deployment
         displayName: Deployment Conditions
         path: deploymentConditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: URI is where the service is exposed.
+      - description: URI is where the service is exposed
         displayName: External URI
         path: externalURI
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
-      - description: Image is the resolved image for this service.
+      - description: Image is the resolved image for this service
         displayName: Image
         path: image
       version: v1alpha1
     - description: KogitoMgmtConsole deploys the Kogito Management Console service
-        in the given namespace.
+        in the given namespace
       displayName: Kogito Management Console
       kind: KogitoMgmtConsole
       name: kogitomgmtconsoles.app.kiegroup.org
@@ -605,7 +605,7 @@ spec:
         version: v1
       specDescriptors:
       - description: Additional labels to be added to the Deployment and Pods managed
-          by the operator.
+          by the operator
         displayName: Additional Deployment Labels
         path: deploymentLabels
         x-descriptors:
@@ -621,17 +621,17 @@ spec:
         displayName: Image
         path: image
       - description: 'Number of replicas that the service will have deployed in the
-          cluster. Default value: 1.'
+          cluster Default value: 1'
         displayName: Replicas
         path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: Defined compute resource requirements for the deployed service.
+      - description: Defined compute resource requirements for the deployed service
         displayName: Resources
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
-      - description: Additional labels to be added to the Service managed by the operator.
+      - description: Additional labels to be added to the Service managed by the operator
         displayName: Additional Service Labels
         path: serviceLabels
         x-descriptors:
@@ -642,22 +642,22 @@ spec:
         path: conditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: General conditions for the Kogito Service deployment.
+      - description: General conditions for the Kogito Service deployment
         displayName: Deployment Conditions
         path: deploymentConditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: URI is where the service is exposed.
+      - description: URI is where the service is exposed
         displayName: External URI
         path: externalURI
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
-      - description: Image is the resolved image for this service.
+      - description: Image is the resolved image for this service
         displayName: Image
         path: image
       version: v1alpha1
-    - description: KogitoRuntime is a custom Kogito service.
-      displayName: Kogito service
+    - description: KogitoRuntime is a custom Kogito Runtime Service
+      displayName: Kogito Runtime
       kind: KogitoRuntime
       name: kogitoruntimes.app.kiegroup.org
       resources:
@@ -675,7 +675,7 @@ spec:
         version: v1
       specDescriptors:
       - description: Additional labels to be added to the Deployment and Pods managed
-          by the operator.
+          by the operator
         displayName: Additional Deployment Labels
         path: deploymentLabels
         x-descriptors:
@@ -698,23 +698,23 @@ spec:
         displayName: Image
         path: image
       - description: 'Number of replicas that the service will have deployed in the
-          cluster. Default value: 1.'
+          cluster Default value: 1'
         displayName: Replicas
         path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: Defined compute resource requirements for the deployed service.
+      - description: Defined compute resource requirements for the deployed service
         displayName: Resources
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
-      - description: 'The name of the runtime used, either Quarkus or SpringBoot.
-          Default value: quarkus'
+      - description: 'The name of the runtime used, either Quarkus or Springboot Default
+          value: quarkus'
         displayName: runtime
         path: runtime
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
-      - description: Additional labels to be added to the Service managed by the operator.
+      - description: Additional labels to be added to the Service managed by the operator
         displayName: Additional Service Labels
         path: serviceLabels
         x-descriptors:
@@ -725,17 +725,17 @@ spec:
         path: conditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: General conditions for the Kogito Service deployment.
+      - description: General conditions for the Kogito Service deployment
         displayName: Deployment Conditions
         path: deploymentConditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
-      - description: URI is where the service is exposed.
+      - description: URI is where the service is exposed
         displayName: External URI
         path: externalURI
         x-descriptors:
         - urn:alm:descriptor:org.w3:link
-      - description: Image is the resolved image for this service.
+      - description: Image is the resolved image for this service
         displayName: Image
         path: image
       version: v1alpha1
@@ -762,17 +762,14 @@ spec:
       name: keycloaks.keycloak.org
       version: v1alpha1
   description: |-
-    Kogito Operator is designed to deploy Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
+    Kogito Operator is designed to deploy Kogito Runtimes Services from source and every piece of infrastructure that the services might need:
 
-    * Creates two kinds of build configuration: Native or JVM. For more information refer to [Native build and deployment](https://docs.jboss.org/kogito/release/latest/html_single/#_native_build_and_deployment) section on our docs
-    * Builds a Kogito service from a remote git repository and creates a custom image for the given runtime: Quarkus or Springboot. [See more](https://docs.jboss.org/kogito/release/latest/html_single/#con-kogito-operator-deployment-options_kogito-deploying-on-openshift).
-    * Installs the [Kogito Data Index Service](https://docs.jboss.org/kogito/release/latest/html_single/#con-kogito-operator-with-data-index-service_kogito-deploying-on-openshift) to enable data index feature for Kogito services.
-    * Installs the [Kogito Jobs Service](https://docs.jboss.org/kogito/release/latest/html_single/#con-kogito-operator-with-jobs-service_kogito-deploying-on-openshift) to enable jobs scheduling.
+    * Creates two kinds of build configuration: Native or JVM. For more information refer to [Native X JVM Builds](https://github.com/kiegroup/kogito-cloud-operator#native-x-jvm-builds) on our docs
+    * Builds a Kogito Runtime Service from a remote git repository and creates a custom image for the given runtime: Quarkus or Springboot. [See more](https://github.com/kiegroup/kogito-cloud-operator#kogito-runtimes-service-deployment).
+    * Installs the [Kogito Data Index Service](https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to enable data index feature for Kogito Runtimes. [See more](https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-installation).
+    * Installs the [Kogito Jobs Service](https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service) to enable jobs scheduling.
 
-    For Kubernetes deployment of Kogito services, please refer to the section [Deploying Kogito services on Kubernetes](https://docs.jboss.org/kogito/release/latest/html_single/#proc-kogito-deploying-on-kubernetes_kogito-deploying-on-openshift) on our docs.
-
-    **IMPORTANT!** Kogito Operator might need Infinispan Operator and Strimzi to implement persistence and messaging use cases if you do not provide these services beforehand.
-    If you need these features to be automatically provisioned for you, bear in mind that those operators must be installed in the same namespace as the Kogito Operator.
+    **IMPORTANT!** Kogito Operator depends on Infinispan Operator and Strimzi to implement persistence and messaging use cases. If you need these features, bear in mind that those operators must be installed in the same namespace as the Kogito Operator.
   displayName: Kogito
   icon:
   - base64data: PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDI0IDEwMjQiPjxkZWZzPjxzdHlsZT4uY2xzLTF7ZmlsbDojMDg1ODcwO30uY2xzLTJ7ZmlsbDojZmZmO30uY2xzLTN7ZmlsbDojZjU4OTFmO30uY2xzLTR7ZmlsbDojOTdkNGU4O308L3N0eWxlPjwvZGVmcz48dGl0bGU+a29naXRvX2ljb25fcmdiX2NvbG9yX2RlZmF1bHQ8L3RpdGxlPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTkyOS4zNywzMC41QTcwLjMxLDcwLjMxLDAsMCwwLDg3Mi4xOSwxQzg2OC4wOSwxLDczOCwyMy42Nyw3MzgsMjMuNjdhNzAuMTUsNzAuMTUsMCwwLDAtNDguMSwzMy4yNUw2NjgsOTMuNzdjLTQ4LjQxLTQyLjQ2LTEwMS43NC02NC43LTE1Ni02NC43UzQwNC40Myw1MS4zMSwzNTYsOTMuNzdMMzM0LjExLDU2LjkyQTcwLjEzLDcwLjEzLDAsMCwwLDI4NiwyMy42N1MxNTUuOSwxLDE1MS44MSwxQTcwLjE5LDcwLjE5LDAsMCwwLDkwLjU0LDEwNS40MWw1MC4yNCw5MGExMTUuMTIsMTE1LjEyLDAsMCwwLDYwLjMsMTY5LjlMMTA4LjMsNzk0LjYsNTEyLDEwMjMsOTE1LjcsNzk0LjYsODIyLjkyLDM2NS4yN2ExMTUuMTIsMTE1LjEyLDAsMCwwLDYwLjMtMTY5LjlsNTAuMjQtOTBBNzAuNDksNzAuNDksMCwwLDAsOTI5LjM3LDMwLjVaIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNDgwLjA5LDI3OC4zbDguNTctLjA5TDUxMiwzMDEuNGwyMy4xOS0yMy4xOSw4LjYuMDhjNjMuMjMuNjMsMTIzLjgyLDMuMTQsMTc2LjI4LDcuMjctNDUuOTQtOTkuNDktMTIyLTE4Ni4zLTIwOC0xODYuM1MzNDkuOSwxODYuMDcsMzA0LDI4NS41N0MzNTYuMzksMjgxLjQ0LDQxNi45NCwyNzguOTIsNDgwLjA5LDI3OC4zWiIvPjxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTQ0OC43LDY5Ni4xNmExMTYuMzYsMTE2LjM2LDAsMCwwLDEzMS4xNy41MSw1ODEuNDcsNTgxLjQ3LDAsMCwwLTEzMS4xNy0uNTFaIi8+PHBhdGggY2xhc3M9ImNscy00IiBkPSJNNjkxLjU3LDY3OS43M2ExODUuNDQsMTg1LjQ0LDAsMCwwLTE3LjI3LTQxLjQ3Yy0xLjIxLTIuMTItMi41LTQuMTgtMy43OC02LjI0LS43My0xLjE5LTEuNDMtMi40MS0yLjE5LTMuNTgtMS4yLTEuODUtMi40OS0zLjYzLTMuNzUtNS40My0uOTQtMS4zNC0xLjg1LTIuNzEtMi44Mi00LTEuMTItMS41MS0yLjMyLTMtMy40OC00LjQzcy0yLjM4LTMuMDgtMy42NC00LjU3Yy0xLTEuMTgtMi0yLjI5LTMtMy40NEExODYuNjksMTg2LjY5LDAsMCwwLDU3MC43Myw1NTNjLTE3LjI1LDExLjU2LTM5LDIyLjY5LTU4LjczLDIyLjY5UzQ3MC41Miw1NjQuNTcsNDUzLjI3LDU1M2ExODYuNTksMTg2LjU5LDAsMCwwLTgwLjkxLDUzLjZjLTEsMS4xMy0yLDIuMjItMywzLjM3LTEuMjYsMS41LTIuNDQsMy4wNi0zLjY2LDQuNnMtMi4zNCwyLjkxLTMuNDYsNC40MWMtMSwxLjMyLTEuODgsMi42OS0yLjgzLDQtMS4yNiwxLjc5LTIuNTQsMy41Ni0zLjczLDUuNC0uNzcsMS4xOS0xLjQ4LDIuNDItMi4yMiwzLjYyLTEuMjcsMi4wNS0yLjU2LDQuMS0zLjc1LDYuMjFhMTg1LDE4NSwwLDAsMC0xNy4yOCw0MS40N2MxMi44NC00LjQsMjYuNDMtOC4yMyw0MC40Ni0xMS42NywwLDAtLjA1LS4wOS0uMDctLjE0LDEuNDUtLjM1LDIuOTUtLjY2LDQuNDEtMWwxNi45NS00Ny4yNnY0My41MWMxLS4yLDItLjM0LDMtLjU0cTkuNDQtMS44NSwxOS4xNC0zLjM5Yy43OS0uMTMsMS41Ny0uMjcsMi4zNi0uMzlxMTEuNzQtMS44MywyMy44Ni0zLjJsMTMuODctNTUuNTF2NTQuMDljOC41Ni0uNzcsMTcuMjYtMS4zMSwyNi0xLjcybDMuOTItLjE3YzMuMjctLjEzLDYuNTMtLjI3LDkuODMtLjM1LDUuMjMtLjE0LDEwLjUtLjIzLDE1LjgtLjIzLDUuNDksMCwxMC45My4xLDE2LjM0LjI1LDIuOS4wOCw1Ljc5LjE5LDguNjcuMzFsNS43NS4yNmM4LjM2LjQxLDE2LjY2Ljk0LDI0LjgyLDEuNjhWNjAwLjEzbDEzLjg4LDU1LjUzYy41NS4wNiwxLjA5LjE1LDEuNjUuMjIsNy4zLjg1LDE0LjU0LDEuNzksMjEuNjUsMi44OSwyLjczLjQxLDUuMzguOTIsOC4wOCwxLjM3LDMuOTUuNjgsNy45LDEuMzUsMTEuNzgsMi4xLDEuNzIuMzIsMy41LjU4LDUuMi45MlY2MTkuNjVsMTcsNDcuMjljMS4yMy4yOSwyLjQuNjQsMy42Mi45NCwxLjg0LjQ1LDMuNzIuODYsNS41NCwxLjMybC0uMDYuMUM2NjguMTksNjcyLjQ0LDY4MC4yMSw2NzUuODMsNjkxLjU3LDY3OS43M1oiLz48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik03MzcuNTcsMzI4LjA3bC0xMC0uODRjLTUxLjU2LTQuMzgtMTEyLjEzLTcuMS0xNzUuNjctNy45TDUxMiwzNTkuMjRsLTQwLjA5LTM5LjkxYy02My40OC44MS0xMjQsMy41My0xNzUuNTQsNy45bC0xMCwuODVDMjY4LjI3LDM3Ny44MiwyNTgsNDI4LjExLDI1OCw0NzAuMjRjMCw2OS45NCwyOC4zMSwxMDQuMTYsNzQsMTIwLjkzQTIyOS40OCwyMjkuNDgsMCwwLDEsNDE4LjI4LDUyM2EyMC40MywyMC40MywwLDAsMSwzMi4xNi0yNC4xNmMxNi4xMiwxNC45LDQ1Ljg5LDM1LjkxLDYxLjU2LDM1LjkxczQ1Ljk0LTIxLjQzLDYxLjU1LTM1LjkxQTIwLjQzLDIwLjQzLDAsMCwxLDYwNS43Miw1MjMsMjI5LjY1LDIyOS42NSwwLDAsMSw2OTIsNTkxLjE3YzQ1Ljc0LTE2Ljc3LDc0LTUxLDc0LTEyMC45M0M3NjYsNDI4LjExLDc1NS43MywzNzcuODIsNzM3LjU3LDMyOC4wN1pNNDAzLjUsNDYyLjc3Yy0yOS4zMS42Ni01Ni0xNi4yLTc0LjgyLTQzLjUxLDE3LjUzLTI4LjEzLDQzLjQ3LTQ2LjE3LDcyLjc4LTQ2LjgzczU2LDE2LjE5LDc0LjgyLDQzLjUxQzQ1OC43NSw0NDQuMDcsNDMyLjgxLDQ2Mi4xMSw0MDMuNSw0NjIuNzdabTI5MS44Mi0xMy4xOC0zMiwzMi0zMi0zMi0zMiwzMi0zMi0zMiwzMi0zMi0zMi0zMiwzMi0zMiwzMiwzMiwzMi0zMiwzMiwzMi0zMiwzMloiLz48cGF0aCBjbGFzcz0iY2xzLTQiIGQ9Ik02MDguMjMsNzk3bDE5LjkxLDc5LjY3LDc2LjMyLTQzLjE4Vjc0NWwxOS4zOCw3Ny41MywxMTIuMzUtNjMuNTZMNzkxLjUyLDU1Mi4yN2MtMTQuOTQsMzMuOTItNDAuNjgsNTguNzctNzcuMiw3NC4xMkEyMjUuMTQsMjI1LjE0LDAsMCwxLDczMSw2NjguNzFhNDAuOTQsNDAuOTQsMCwwLDEtNTIuNzIsNDkuNzUsNDM4LjI3LDQzOC4yNywwLDAsMC00Ni43My0xMywxNTcuMDcsMTU3LjA3LDAsMCwxLTIzNC42LTEsNDQzLjg2LDQ0My44NiwwLDAsMC01MS4yMywxNEE0MC45NCw0MC45NCwwLDAsMSwyOTMsNjY4LjcxYTIyNC44NiwyMjQuODYsMCwwLDEsMTYuNjktNDIuMzNjLTM2LjUzLTE1LjM0LTYyLjI3LTQwLjItNzcuMjEtNzQuMTFMMTg3LjgxLDc1OC45NCwzMDAuMTYsODIyLjUsMzE5LjU0LDc0NXY4OC41bDc2LjMyLDQzLjE4TDQxNS43Nyw3OTd2OTAuOTNMNTEyLDk0Mi4zNmw5Ni4yMy01NC40NVoiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yNTMuOTEsMjk4LjQzYTU4MC4wNiw1ODAuMDYsMCwwLDEsNDMuNTUtODcuNjRxMTEuOTMtMTkuNTEsMjQuNjktMzYuNjRMMjczLjc4LDkyLjc5bC0xMjItMjEuNiw3OC43NiwxNDEsLjA2LjA3YTQ0LjgxLDQ0LjgxLDAsMSwwLDIzLjI3LDg2LjEzWiIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTc5My4zNSwyMTIuM2wuMDctLjA3LDc4Ljc2LTE0MS0xMjIsMjEuNi00OC4zNyw4MS4zNnExMi43MiwxNy4xNywyNC42OSwzNi42NGE1ODAuMDYsNTgwLjA2LDAsMCwxLDQzLjU1LDg3LjY0LDQ0LjgsNDQuOCwwLDEsMCwyMy4yNi04Ni4xM1oiLz48L3N2Zz4=
@@ -817,26 +814,6 @@ spec:
                 resources: {}
               serviceAccountName: kogito-operator
       permissions:
-      - rules:
-        - apiGroups:
-          - ""
-          resources:
-          - services
-          verbs:
-          - list
-          - get
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          verbs:
-          - list
-          - get
-          - watch
-          - update
-          - patch
-        serviceAccountName: kogito-service-viewer
       - rules:
         - apiGroups:
           - ""
@@ -919,6 +896,26 @@ spec:
           verbs:
           - '*'
         serviceAccountName: kogito-operator
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - services
+          verbs:
+          - list
+          - get
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - list
+          - get
+          - watch
+          - update
+          - patch
+        serviceAccountName: kogito-service-viewer
     strategy: deployment
   installModes:
   - supported: true

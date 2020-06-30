@@ -16,6 +16,8 @@ package services
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -26,7 +28,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 )
 
 const (
@@ -57,8 +58,10 @@ type imageHandler struct {
 	imageStream *imgv1.ImageStream
 	// image is the CR structure attribute given by the user
 	image *v1alpha1.Image
-	// defaultImageName is the default image name for this service
+	// defaultImageName is the default image name for this service. Used to resolve the image from the Kogito Team registry when no custom image is given.
 	defaultImageName string
+	// imageStreamName name for the image stream that will handle image tags for the given instance
+	imageStreamName string
 	// namespace to fetch/create objects
 	namespace string
 	// client to handle API cluster calls
@@ -79,7 +82,7 @@ func (i *imageHandler) HasImageStream() bool {
 // Can be empty if on OpenShift and the ImageStream is not ready.
 func (i *imageHandler) resolveImage() (string, error) {
 	if i.client.IsOpenshift() {
-		is := &imgv1.ImageStream{ObjectMeta: v1.ObjectMeta{Name: i.image.Name, Namespace: i.namespace}}
+		is := &imgv1.ImageStream{ObjectMeta: v1.ObjectMeta{Name: i.imageStreamName, Namespace: i.namespace}}
 		if exists, err := kubernetes.ResourceC(i.client).Fetch(is); err != nil {
 			return "", err
 		} else if !exists {
@@ -90,7 +93,7 @@ func (i *imageHandler) resolveImage() (string, error) {
 			if tag.Name == i.resolveTag() {
 				ist, err := openshift.ImageStreamC(i.client).FetchTag(
 					types.NamespacedName{
-						Name:      i.defaultImageName,
+						Name:      i.imageStreamName,
 						Namespace: i.namespace,
 					}, i.resolveTag())
 				if err != nil {
@@ -139,11 +142,11 @@ func (i *imageHandler) resolveTag() string {
 
 // createImageStream creates the ImageStream referencing the given namespace.
 // Adds a docker image in the "From" reference based on the given image if `addFromReference` is set to `true`
-func (i *imageHandler) createImageStream(namespace string, addFromReference bool) {
+func (i *imageHandler) createImageStream(namespace string, addFromReference, insecureImageRegistry bool) {
 	if i.client.IsOpenshift() {
 		imageStreamTagAnnotations[annotationKeyVersion] = i.resolveTag()
 		i.imageStream = &imgv1.ImageStream{
-			ObjectMeta: v1.ObjectMeta{Name: i.image.Name, Namespace: namespace, Annotations: imageStreamAnnotations},
+			ObjectMeta: v1.ObjectMeta{Name: i.imageStreamName, Namespace: namespace, Annotations: imageStreamAnnotations},
 			Spec: imgv1.ImageStreamSpec{
 				LookupPolicy: imgv1.ImageLookupPolicy{Local: true},
 				Tags: []imgv1.TagReference{
@@ -151,6 +154,7 @@ func (i *imageHandler) createImageStream(namespace string, addFromReference bool
 						Name:            i.resolveTag(),
 						Annotations:     imageStreamTagAnnotations,
 						ReferencePolicy: imgv1.TagReferencePolicy{Type: imgv1.LocalTagReferencePolicy},
+						ImportPolicy:    imgv1.TagImportPolicy{Insecure: insecureImageRegistry},
 					},
 				},
 			},
@@ -170,12 +174,13 @@ func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cl
 		image:            image,
 		imageStream:      nil,
 		namespace:        namespace,
+		imageStreamName:  image.Name,
 		defaultImageName: image.Name,
 		client:           cli,
 	}
 	if cli.IsOpenshift() {
 		// creates the empty tag reference in the ImageStream since this handler is for services being built
-		handler.createImageStream(namespace, false)
+		handler.createImageStream(namespace, false, false)
 	}
 	return handler
 }
@@ -196,18 +201,19 @@ func newImageHandler(instance v1alpha1.KogitoService, definition ServiceDefiniti
 		image:            instance.GetSpec().GetImage(),
 		imageStream:      nil,
 		defaultImageName: definition.DefaultImageName,
+		imageStreamName:  definition.DefaultImageName,
 		namespace:        instance.GetNamespace(),
 		client:           cli,
 	}
 	if cli.IsOpenshift() {
-		sharedImageStream, err := GetSharedDeployedImageStream(instance.GetSpec().GetImage().Name, instance.GetNamespace(), cli)
+		sharedImageStream, err := GetSharedDeployedImageStream(handler.imageStreamName, instance.GetNamespace(), cli)
 		if err != nil {
 			return nil, err
 		}
 		if sharedImageStream != nil {
 			handler.imageStream = sharedImageStream
 		} else {
-			handler.createImageStream(instance.GetNamespace(), addDockerImageReference)
+			handler.createImageStream(instance.GetNamespace(), addDockerImageReference, instance.GetSpec().IsInsecureImageRegistry())
 		}
 	}
 	return handler, nil

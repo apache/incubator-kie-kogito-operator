@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 # Copyright 2019 Red Hat, Inc. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ if [[ -z ${CI} ]]; then
     # enforce GOROOT
     export GOROOT=$(go env GOROOT)
     operator-sdk generate k8s
-    operator-sdk generate crds
+    operator-sdk generate crds --crd-version=v1beta1
     # get the openapi binary
     which ./bin/openapi-gen > /dev/null || go build -o ./bin/openapi-gen k8s.io/kube-openapi/cmd/openapi-gen
     # generate the openapi files

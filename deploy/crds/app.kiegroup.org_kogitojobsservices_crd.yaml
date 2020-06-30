@@ -27,7 +27,7 @@ spec:
   validation:
     openAPIV3Schema:
       description: KogitoJobsService deploys the Kogito Jobs Service in the given
-        namespace
+        namespace.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -42,7 +42,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: KogitoJobsServiceSpec defines the desired state of KogitoJobsService
+          description: KogitoJobsServiceSpec defines the desired state of KogitoJobsService.
           properties:
             backOffRetryMillis:
               description: 'Retry backOff time in milliseconds between the job execution
@@ -54,7 +54,7 @@ spec:
               additionalProperties:
                 type: string
               description: Additional labels to be added to the Deployment and Pods
-                managed by the operator
+                managed by the operator.
               type: object
             envs:
               description: Environment variables to be added to the runtime container.
@@ -99,7 +99,8 @@ spec:
                       fieldRef:
                         description: 'Selects a field of the pod: supports metadata.name,
                           metadata.namespace, metadata.labels, metadata.annotations,
-                          spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP.'
+                          spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP,
+                          status.podIPs.'
                         properties:
                           apiVersion:
                             description: Version of the schema the FieldPath is written
@@ -123,9 +124,13 @@ spec:
                               for env vars'
                             type: string
                           divisor:
+                            anyOf:
+                            - type: integer
+                            - type: string
                             description: Specifies the output format of the exposed
                               resources, defaults to "1"
-                            type: string
+                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                            x-kubernetes-int-or-string: true
                           resource:
                             description: 'Required: resource to select'
                             type: string
@@ -155,6 +160,7 @@ spec:
                 - name
                 type: object
               type: array
+              x-kubernetes-list-type: atomic
             httpPort:
               description: HttpPort will set the environment env HTTP_PORT to define
                 which port service will listen internally.
@@ -185,19 +191,19 @@ spec:
                   type: string
                 credentials:
                   description: SecretCredentialsType is the data structure for specifying
-                    credentials within a Secret
+                    credentials within a Secret.
                   properties:
                     passwordKey:
                       description: PasswordKey is the key pointing to a value in a
-                        Secret holding the password value
+                        Secret holding the password value.
                       type: string
                     secretName:
                       description: SecretName is the name of the secret where the
-                        credentials are set
+                        credentials are set.
                       type: string
                     usernameKey:
                       description: UsernameKey is the key pointing to a value in a
-                        Secret holding the username value
+                        Secret holding the username value.
                       type: string
                   type: object
                 saslMechanism:
@@ -209,7 +215,7 @@ spec:
                   type: string
                 uri:
                   description: URI to connect to the Infinispan cluster (can it be
-                    an internal service or external URI), for example, myinfinispan-cluster:11222
+                    an internal service or external URI), for example, myinfinispan-cluster:11222.
                   type: string
                 useAuth:
                   description: UseAuth is set to true if the credentials are set.
@@ -223,20 +229,25 @@ spec:
                     in the namespace for this to work. On OpenShift, OLM should install
                     it for you. If running on Kubernetes without OLM installed, please
                     install Infinispan Operator first. Set this to false and fill
-                    all other properties to provide your own infrastructure
+                    all other properties to provide your own infrastructure.
                   type: boolean
               type: object
+            insecureImageRegistry:
+              description: A flag indicating that image streams created by Kogito
+                Operator should be configured to allow pulling from insecure registries.
+                Usable just on OpenShift. Defaults to 'false'.
+              type: boolean
             kafka:
               description: Has the data used by the service to connect to the Kafka
                 cluster.
               properties:
                 externalURI:
                   description: URI is the service URI to connect to the Kafka cluster,
-                    for example, my-cluster-kafka-bootstrap:9092
+                    for example, my-cluster-kafka-bootstrap:9092.
                   type: string
                 instance:
                   description: Instance is the Kafka instance to be used, for example,
-                    kogito-kafka
+                    kogito-kafka.
                   type: string
                 useKogitoInfra:
                   description: UseKogitoInfra flags if the instance will use a provided
@@ -246,7 +257,7 @@ spec:
                     On OpenShift, OLM should install it for you. If running on Kubernetes
                     without OLM installed, please install Strimzi Operator first.
                     Set this to false and fill other properties to provide your own
-                    infrastructure
+                    infrastructure.
                   type: boolean
               type: object
             maxIntervalLimitToRetryMillis:
@@ -256,23 +267,31 @@ spec:
               type: integer
             replicas:
               description: 'Number of replicas that the service will have deployed
-                in the cluster Default value: 1'
+                in the cluster. Default value: 1.'
               format: int32
               minimum: 0
               type: integer
             resources:
               description: Defined compute resource requirements for the deployed
-                service
+                service.
               properties:
                 limits:
                   additionalProperties:
-                    type: string
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
                   description: 'Limits describes the maximum amount of compute resources
                     allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                   type: object
                 requests:
                   additionalProperties:
-                    type: string
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
                   description: 'Requests describes the minimum amount of compute resources
                     required. If Requests is omitted for a container, it defaults
                     to Limits if that is explicitly specified, otherwise to an implementation-defined
@@ -283,11 +302,11 @@ spec:
               additionalProperties:
                 type: string
               description: Additional labels to be added to the Service managed by
-                the operator
+                the operator.
               type: object
           type: object
         status:
-          description: KogitoJobsServiceStatus defines the observed state of KogitoJobsService
+          description: KogitoJobsServiceStatus defines the observed state of KogitoJobsService.
           properties:
             conditions:
               description: History of conditions for the resource
@@ -312,8 +331,9 @@ spec:
                 - type
                 type: object
               type: array
+              x-kubernetes-list-type: atomic
             deploymentConditions:
-              description: General conditions for the Kogito Service deployment
+              description: General conditions for the Kogito Service deployment.
               items:
                 description: DeploymentCondition describes the state of a deployment
                   at a certain point.
@@ -346,10 +366,10 @@ spec:
                 type: object
               type: array
             externalURI:
-              description: URI is where the service is exposed
+              description: URI is where the service is exposed.
               type: string
             image:
-              description: Image is the resolved image for this service
+              description: Image is the resolved image for this service.
               type: string
           required:
           - conditions

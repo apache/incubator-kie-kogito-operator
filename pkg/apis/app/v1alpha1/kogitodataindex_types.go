@@ -18,10 +18,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// KogitoDataIndexCRDName is the name of the Kogito Data Index CRD in the cluster
+// KogitoDataIndexCRDName is the name of the Kogito Data Index CRD in the cluster.
 const KogitoDataIndexCRDName = "kogitodataindices.app.kiegroup.org"
 
-// KogitoDataIndexSpec defines the desired state of KogitoDataIndex
+// KogitoDataIndexSpec defines the desired state of KogitoDataIndex.
 // +k8s:openapi-gen=true
 type KogitoDataIndexSpec struct {
 	InfinispanMeta    `json:",inline"`
@@ -35,7 +35,7 @@ func (d *KogitoDataIndexSpec) GetRuntime() RuntimeType {
 	return QuarkusRuntimeType
 }
 
-// KogitoDataIndexStatus defines the observed state of KogitoDataIndex
+// KogitoDataIndexStatus defines the observed state of KogitoDataIndex.
 // +k8s:openapi-gen=true
 type KogitoDataIndexStatus struct {
 	KogitoServiceStatus `json:",inline"`
@@ -43,7 +43,7 @@ type KogitoDataIndexStatus struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoDataIndex defines the Data Index Service infrastructure deployment
+// KogitoDataIndex defines the Data Index Service infrastructure deployment.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitodataindices,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
@@ -75,7 +75,7 @@ func (k *KogitoDataIndex) GetStatus() KogitoServiceStatusInterface {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoDataIndexList contains a list of KogitoDataIndex
+// KogitoDataIndexList contains a list of KogitoDataIndex.
 type KogitoDataIndexList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
