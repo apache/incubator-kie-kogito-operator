@@ -16,25 +16,24 @@ package deploy
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type deployRuntimeFlags struct {
-	common.DeployFlags
-	common.InfinispanFlags
-	common.KafkaFlags
+	flag.DeployFlags
+	flag.InfinispanFlags
+	flag.KafkaFlags
+	flag.RuntimeFlags
 	name              string
 	image             string
-	runtime           string
 	enableIstio       bool
 	enablePersistence bool
 	enableEvents      bool
@@ -80,20 +79,20 @@ func (i *deployRuntimeCommand) RegisterHook() {
 			if len(args) != 1 {
 				return fmt.Errorf("requires 1 arg, received %v", len(args))
 			}
-			if err := common.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
+			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
-			if err := common.CheckInfinispanArgs(&i.flags.InfinispanFlags); err != nil {
+			if err := flag.CheckInfinispanArgs(&i.flags.InfinispanFlags); err != nil {
 				return err
 			}
-			if err := common.CheckKafkaArgs(&i.flags.KafkaFlags); err != nil {
+			if err := flag.CheckKafkaArgs(&i.flags.KafkaFlags); err != nil {
+				return err
+			}
+			if err := flag.CheckRuntimeArgs(&i.flags.RuntimeFlags); err != nil {
 				return err
 			}
 			if err := buildutil.CheckImageTag(i.flags.image); err != nil {
 				return err
-			}
-			if !util.Contains(i.flags.runtime, deployRuntimeValidEntries) {
-				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, i.flags.runtime)
 			}
 			if err := util.ParseStringsForKeyPair(i.flags.serviceLabels); err != nil {
 				return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", i.flags.serviceLabels)
@@ -106,18 +105,20 @@ func (i *deployRuntimeCommand) RegisterHook() {
 func (i *deployRuntimeCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	i.flags = deployRuntimeFlags{
-		DeployFlags: common.DeployFlags{
-			OperatorFlags: common.OperatorFlags{},
+		DeployFlags: flag.DeployFlags{
+			OperatorFlags:    flag.OperatorFlags{},
+			PodResourceFlags: flag.PodResourceFlags{},
 		},
-		InfinispanFlags: common.InfinispanFlags{},
-		KafkaFlags:      common.KafkaFlags{},
+		InfinispanFlags: flag.InfinispanFlags{},
+		KafkaFlags:      flag.KafkaFlags{},
+		RuntimeFlags:    flag.RuntimeFlags{},
 	}
 
-	common.AddDeployFlags(i.command, &i.flags.DeployFlags)
-	common.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
-	common.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
+	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
+	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
+	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
+	flag.AddRuntimeFlags(i.command, &i.flags.RuntimeFlags)
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "The image which should be used to run Service.")
-	i.command.Flags().StringVarP(&i.flags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	i.command.Flags().BoolVar(&i.flags.enableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
 	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set to true, deployed runtime service will support integration with Infinispan server for persistence. Default to false")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set to true, deployed runtime service will support integration with Kafka cluster for events. Default to false")
@@ -132,7 +133,7 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 	if err := shared.CheckKogitoRuntimeNotExists(i.Client, i.flags.name, i.flags.Project); err != nil {
 		return err
 	}
-	infinispanProperties, err := common.FromInfinispanFlagsToInfinispanProperties(i.Client, i.flags.Project, &i.flags.InfinispanFlags, i.flags.enablePersistence)
+	infinispanMeta, err := converter.FromInfinispanFlagsToInfinispanMeta(i.Client, i.flags.Project, &i.flags.InfinispanFlags, i.flags.enablePersistence)
 	if err != nil {
 		return err
 	}
@@ -144,24 +145,17 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 		},
 		Spec: v1alpha1.KogitoRuntimeSpec{
 			EnableIstio: i.flags.enableIstio,
-			Runtime:     v1alpha1.RuntimeType(i.flags.runtime),
+			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&i.flags.RuntimeFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
-				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
-				Image:    framework.ConvertImageTagToImage(i.flags.image),
-				Resources: corev1.ResourceRequirements{
-					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
-					Requests: shared.FromStringArrayToResources(i.flags.Requests),
-				},
+				Replicas:      &i.flags.Replicas,
+				Envs:          converter.FromStringArrayToEnvs(i.flags.Env),
+				Image:         converter.FromImageTagToImage(i.flags.image),
+				Resources:     converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				ServiceLabels: util.FromStringsKeyPairToMap(i.flags.serviceLabels),
 				HTTPPort:      i.flags.HTTPPort,
 			},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: infinispanProperties,
-			},
-			KafkaMeta: v1alpha1.KafkaMeta{
-				KafkaProperties: common.FromKafkaFlagsToKafkaProperties(&i.flags.KafkaFlags, i.flags.enableEvents),
-			},
+			InfinispanMeta: infinispanMeta,
+			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, i.flags.enableEvents),
 		},
 		Status: v1alpha1.KogitoRuntimeStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -176,6 +170,6 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra).
-		InstallRuntime(&kogitoRuntime).
+		DeployService(&kogitoRuntime).
 		GetError()
 }

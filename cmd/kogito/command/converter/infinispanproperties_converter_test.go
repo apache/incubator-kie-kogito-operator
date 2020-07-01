@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
@@ -22,34 +23,34 @@ import (
 	"testing"
 )
 
-func Test_FromInfinispanFlagsToInfinispanProperties_EnablePersistenceWithUserDefineProperties(t *testing.T) {
+func Test_FromInfinispanFlagsToInfinispanMeta_EnablePersistenceWithUserDefineProperties(t *testing.T) {
 	ns := t.Name()
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	infinispanFlags := &InfinispanFlags{
+	infinispanFlags := &flag.InfinispanFlags{
 		URI:                "test-uri",
 		InfinispanUser:     "user",
 		InfinispanPassword: "password",
 	}
-	infinispanProperties, err := FromInfinispanFlagsToInfinispanProperties(client, ns, infinispanFlags, true)
+	infinispanMeta, err := FromInfinispanFlagsToInfinispanMeta(client, ns, infinispanFlags, true)
 	assert.Nil(t, err)
-	assert.False(t, infinispanProperties.UseKogitoInfra)
-	assert.Equal(t, "test-uri", infinispanProperties.URI)
+	assert.False(t, infinispanMeta.InfinispanProperties.UseKogitoInfra)
+	assert.Equal(t, "test-uri", infinispanMeta.InfinispanProperties.URI)
 }
 
 func Test_FromInfinispanFlagsToInfinispanProperties_EnablePersistenceWithDefaultProperties(t *testing.T) {
 	ns := t.Name()
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	infinispanFlags := &InfinispanFlags{}
-	infinispanProperties, err := FromInfinispanFlagsToInfinispanProperties(client, ns, infinispanFlags, true)
+	infinispanFlags := &flag.InfinispanFlags{}
+	infinispanMeta, err := FromInfinispanFlagsToInfinispanMeta(client, ns, infinispanFlags, true)
 	assert.Nil(t, err)
-	assert.True(t, infinispanProperties.UseKogitoInfra)
+	assert.True(t, infinispanMeta.InfinispanProperties.UseKogitoInfra)
 }
 
 func Test_FromInfinispanFlagsToInfinispanProperties_DisablePersistence(t *testing.T) {
 	ns := t.Name()
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	infinispanFlags := &InfinispanFlags{}
-	infinispanProperties, err := FromInfinispanFlagsToInfinispanProperties(client, ns, infinispanFlags, false)
+	infinispanFlags := &flag.InfinispanFlags{}
+	infinispanMeta, err := FromInfinispanFlagsToInfinispanMeta(client, ns, infinispanFlags, false)
 	assert.Nil(t, err)
-	assert.False(t, infinispanProperties.UseKogitoInfra)
+	assert.False(t, infinispanMeta.InfinispanProperties.UseKogitoInfra)
 }

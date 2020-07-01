@@ -12,35 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func Test_FromKafkaFlagsToKafkaProperties_EnableEventsWithUserDefineProperties(t *testing.T) {
-	kafkaFlags := &KafkaFlags{
+	kafkaFlags := &flag.KafkaFlags{
 		ExternalURI: "ExternalURI",
 		Instance:    "Instance",
 	}
-	kafkaProperties := FromKafkaFlagsToKafkaProperties(kafkaFlags, true)
-	assert.NotNil(t, kafkaProperties)
-	assert.Equal(t, "ExternalURI", kafkaProperties.ExternalURI)
-	assert.Equal(t, "Instance", kafkaProperties.Instance)
-	assert.False(t, kafkaProperties.UseKogitoInfra)
+	kafkaMeta := FromKafkaFlagsToKafkaMeta(kafkaFlags, true)
+	assert.NotNil(t, kafkaMeta)
+	assert.Equal(t, "ExternalURI", kafkaMeta.KafkaProperties.ExternalURI)
+	assert.Equal(t, "Instance", kafkaMeta.KafkaProperties.Instance)
+	assert.False(t, kafkaMeta.KafkaProperties.UseKogitoInfra)
 }
 
 func Test_FromKafkaFlagsToKafkaProperties_EnableEventsWithDefaultProperties(t *testing.T) {
-	kafkaFlags := &KafkaFlags{}
-	kafkaProperties := FromKafkaFlagsToKafkaProperties(kafkaFlags, true)
-	assert.NotNil(t, kafkaProperties)
-	assert.True(t, kafkaProperties.UseKogitoInfra)
+	kafkaFlags := &flag.KafkaFlags{}
+	kafkaMeta := FromKafkaFlagsToKafkaMeta(kafkaFlags, true)
+	assert.NotNil(t, kafkaMeta)
+	assert.True(t, kafkaMeta.KafkaProperties.UseKogitoInfra)
 }
 
 func Test_FromKafkaFlagsToKafkaProperties_DisableEvents(t *testing.T) {
-	kafkaFlags := &KafkaFlags{}
-	kafkaProperties := FromKafkaFlagsToKafkaProperties(kafkaFlags, false)
-	assert.NotNil(t, kafkaProperties)
-	assert.False(t, kafkaProperties.UseKogitoInfra)
+	kafkaFlags := &flag.KafkaFlags{}
+	kafkaMeta := FromKafkaFlagsToKafkaMeta(kafkaFlags, false)
+	assert.NotNil(t, kafkaMeta)
+	assert.False(t, kafkaMeta.KafkaProperties.UseKogitoInfra)
 }

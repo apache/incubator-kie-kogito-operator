@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
@@ -44,9 +45,12 @@ type servicesInstallation struct {
 
 // ServicesInstallation provides an interface for handling infrastructure services installation
 type ServicesInstallation interface {
-	// InstallRuntime deploy Runtime service.
+	// BuildService build kogito service.
 	// Depends on the Operator, install it first.
-	InstallRuntime(runtime *v1alpha1.KogitoRuntime) ServicesInstallation
+	BuildService(build *v1alpha1.KogitoBuild) ServicesInstallation
+	// DeployService deploy Runtime service.
+	// Depends on the Operator, install it first.
+	DeployService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation
 	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
@@ -102,7 +106,20 @@ func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool
 	return s
 }
 
-func (s *servicesInstallation) InstallRuntime(runtime *v1alpha1.KogitoRuntime) ServicesInstallation {
+func (s *servicesInstallation) BuildService(build *v1alpha1.KogitoBuild) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(build,
+			serviceInfoMessages{
+				errCreating:                  message.BuildServiceErrCreating,
+				installed:                    message.BuildServiceSuccessfulInstalled,
+				checkStatus:                  message.BuildServiceCheckStatus,
+				notInstalledNoKogitoOperator: message.BuildServiceNotInstalledNoKogitoOperator,
+			})
+	}
+	return s
+}
+
+func (s *servicesInstallation) DeployService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(runtime,
 			serviceInfoMessages{
@@ -190,18 +207,18 @@ func (s *servicesInstallation) GetError() error {
 	return s.err
 }
 
-func (s *servicesInstallation) installKogitoService(service v1alpha1.KogitoService, messages serviceInfoMessages) error {
+func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject, messages serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
 		if !s.operatorInstalled { // depends on operator
 			log.Info(messages.notInstalledNoKogitoOperator)
 			return nil
 		}
-		if err := kubernetes.ResourceC(s.client).Create(service); err != nil {
+		if err := kubernetes.ResourceC(s.client).Create(resource); err != nil {
 			return fmt.Errorf(messages.errCreating, err)
 		}
 		log.Infof(messages.installed, s.namespace)
-		log.Infof(messages.checkStatus, service.GetName(), s.namespace)
+		log.Infof(messages.checkStatus, resource.GetName(), s.namespace)
 	}
 	return nil
 }

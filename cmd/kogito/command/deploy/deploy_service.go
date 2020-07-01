@@ -16,15 +16,16 @@ package deploy
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	kogitoerror "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/error"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
@@ -48,7 +49,7 @@ var (
 )
 
 type deployFlags struct {
-	common.DeployFlags
+	flag.DeployFlags
 	name                      string
 	runtime                   string
 	serviceLabels             []string
@@ -139,7 +140,7 @@ func (i *deployCommand) RegisterHook() {
 			if err := buildutil.CheckImageTag(i.flags.imageS2I); err != nil {
 				return err
 			}
-			if err := common.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
+			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
 			return nil
@@ -149,12 +150,12 @@ func (i *deployCommand) RegisterHook() {
 
 func (i *deployCommand) InitHook() {
 	i.flags = deployFlags{
-		DeployFlags: common.DeployFlags{
-			OperatorFlags: common.OperatorFlags{},
+		DeployFlags: flag.DeployFlags{
+			OperatorFlags: flag.OperatorFlags{},
 		},
 	}
 	i.Parent.AddCommand(i.command)
-	common.AddDeployFlags(i.command, &i.flags.DeployFlags)
+	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
 	i.command.Flags().StringVarP(&i.flags.runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
 	i.command.Flags().StringVarP(&i.flags.reference, "branch", "b", "", "Git branch to use in the git repository")
@@ -247,20 +248,20 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		Spec: v1alpha1.KogitoAppSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Envs:     converter.FromStringArrayToEnvs(i.flags.Env),
 				Resources: corev1.ResourceRequirements{
-					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
-					Requests: shared.FromStringArrayToResources(i.flags.Requests),
+					Limits:   converter.FromStringArrayToResources(i.flags.Limits),
+					Requests: converter.FromStringArrayToResources(i.flags.Requests),
 				},
 				HTTPPort: i.flags.HTTPPort,
 			},
 
 			Runtime: v1alpha1.RuntimeType(i.flags.runtime),
 			Build: &v1alpha1.KogitoAppBuildObject{
-				Envs: shared.FromStringArrayToEnvs(i.flags.buildEnv),
+				Envs: converter.FromStringArrayToEnvs(i.flags.buildEnv),
 				Resources: corev1.ResourceRequirements{
-					Limits:   shared.FromStringArrayToResources(i.flags.buildLimits),
-					Requests: shared.FromStringArrayToResources(i.flags.buildRequests),
+					Limits:   converter.FromStringArrayToResources(i.flags.buildLimits),
+					Requests: converter.FromStringArrayToResources(i.flags.buildRequests),
 				},
 				Incremental:     i.flags.incrementalBuild,
 				ImageS2ITag:     i.flags.imageS2I,

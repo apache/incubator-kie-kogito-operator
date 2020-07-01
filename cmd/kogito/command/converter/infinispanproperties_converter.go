@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package converter
 
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -31,27 +32,38 @@ const (
 )
 
 // FromInfinispanFlagsToInfinispanProperties converts given InfinispanFlags into InfinispanConnectionProperties
-func FromInfinispanFlagsToInfinispanProperties(cli *client.Client, namespace string, infinispanFlags *InfinispanFlags, enablePersistence bool) (v1alpha1.InfinispanConnectionProperties, error) {
-	log := context.GetDefaultLogger()
-	infinispanProperties := v1alpha1.InfinispanConnectionProperties{}
+func FromInfinispanFlagsToInfinispanMeta(cli *client.Client, namespace string, infinispanFlags *flag.InfinispanFlags, enablePersistence bool) (v1alpha1.InfinispanMeta, error) {
+	infinispanMeta := v1alpha1.InfinispanMeta{}
 	// configure Infinispan connection properties only when enablePersistence flag is true
 	if enablePersistence {
-		// If User provided Infinispan URI then configure connection properties to user define values else
-		// set UseKogitoInfra to true so Infinispan will be automatically deployed via Infinispan Operator
-		if len(infinispanFlags.URI) > 0 {
-			if err := initializeUserDefineInfinispanProperties(cli, namespace, infinispanFlags, &infinispanProperties); err != nil {
-				return infinispanProperties, err
-			}
-		} else {
-			log.Info("infinispan-url not informed, Infinispan will be automatically deployed via Infinispan Operator")
-			infinispanProperties.UseKogitoInfra = true
+		infinispanProperties, err := fromInfinispanFlagsToInfinispanProperties(cli, namespace, infinispanFlags)
+		if err != nil {
+			return infinispanMeta, err
 		}
+		infinispanMeta.InfinispanProperties = infinispanProperties
+	}
+	return infinispanMeta, nil
+}
+
+// FromInfinispanFlagsToInfinispanProperties converts given InfinispanFlags into InfinispanConnectionProperties
+func fromInfinispanFlagsToInfinispanProperties(cli *client.Client, namespace string, infinispanFlags *flag.InfinispanFlags) (v1alpha1.InfinispanConnectionProperties, error) {
+	log := context.GetDefaultLogger()
+	infinispanProperties := v1alpha1.InfinispanConnectionProperties{}
+	// If User provided Infinispan URI then configure connection properties to user define values else
+	// set UseKogitoInfra to true so Infinispan will be automatically deployed via Infinispan Operator
+	if len(infinispanFlags.URI) > 0 {
+		if err := initializeUserDefineInfinispanProperties(cli, namespace, infinispanFlags, &infinispanProperties); err != nil {
+			return infinispanProperties, err
+		}
+	} else {
+		log.Info("infinispan-url not informed, Infinispan will be automatically deployed via Infinispan Operator")
+		infinispanProperties.UseKogitoInfra = true
 	}
 	return infinispanProperties, nil
 }
 
 // initializeUserDefineInfinispanProperties set Infinispan connection properties to user define values
-func initializeUserDefineInfinispanProperties(cli *client.Client, namespace string, infinispanFlags *InfinispanFlags, infinispanProperties *v1alpha1.InfinispanConnectionProperties) error {
+func initializeUserDefineInfinispanProperties(cli *client.Client, namespace string, infinispanFlags *flag.InfinispanFlags, infinispanProperties *v1alpha1.InfinispanConnectionProperties) error {
 	log := context.GetDefaultLogger()
 	log.Infof("infinispan-url informed. Infinispan will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", infinispanFlags.URI)
 	if err := createInfinispanSecret(cli, namespace, infinispanFlags.InfinispanUser, infinispanFlags.InfinispanPassword); err != nil {

@@ -15,8 +15,9 @@
 package install
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -28,7 +29,7 @@ import (
 )
 
 type installMgmtConsoleFlags struct {
-	common.DeployFlags
+	flag.DeployFlags
 	image string
 }
 
@@ -71,7 +72,7 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := common.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
+			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
 			if err := util.CheckImageTag(i.flags.image); err != nil {
@@ -84,12 +85,12 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 
 func (i *installMgmtConsoleCommand) InitHook() {
 	i.flags = installMgmtConsoleFlags{
-		DeployFlags: common.DeployFlags{
-			OperatorFlags: common.OperatorFlags{},
+		DeployFlags: flag.DeployFlags{
+			OperatorFlags: flag.OperatorFlags{},
 		},
 	}
 	i.Parent.AddCommand(i.command)
-	common.AddDeployFlags(i.command, &i.flags.DeployFlags)
+	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
 }
@@ -105,11 +106,11 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 		Spec: v1alpha1.KogitoMgmtConsoleSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Envs:     converter.FromStringArrayToEnvs(i.flags.Env),
 				Image:    framework.ConvertImageTagToImage(i.flags.image),
 				Resources: v1.ResourceRequirements{
-					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
-					Requests: shared.FromStringArrayToResources(i.flags.Requests),
+					Limits:   converter.FromStringArrayToResources(i.flags.Limits),
+					Requests: converter.FromStringArrayToResources(i.flags.Requests),
 				},
 				HTTPPort: i.flags.HTTPPort,
 			},

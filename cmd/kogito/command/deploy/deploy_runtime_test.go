@@ -28,7 +28,7 @@ import (
 	"testing"
 )
 
-// KogitoDataIndexCRDName is the name of the Kogito Data Index CRD in the cluster
+// kogitoRuntimeCRDName is the name of the Kogito Runtime CRD in the cluster
 const kogitoRuntimeCRDName = "kogitoruntime.app.kiegroup.org"
 
 func Test_DeployRuntimeCmd_DefaultConfigurations(t *testing.T) {

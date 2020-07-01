@@ -16,7 +16,8 @@ package install
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
@@ -35,7 +36,7 @@ const (
 )
 
 type installJobsServiceFlags struct {
-	common.DeployFlags
+	flag.DeployFlags
 	image                         string
 	kafka                         v1alpha1.KafkaConnectionProperties
 	infinispan                    v1alpha1.InfinispanConnectionProperties
@@ -129,7 +130,7 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 				}
 			}
 
-			if err := common.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
+			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
 			if err := util.CheckImageTag(i.flags.image); err != nil {
@@ -142,13 +143,13 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 
 func (i *installJobsServiceCommand) InitHook() {
 	i.flags = installJobsServiceFlags{
-		DeployFlags: common.DeployFlags{
-			OperatorFlags: common.OperatorFlags{},
+		DeployFlags: flag.DeployFlags{
+			OperatorFlags: flag.OperatorFlags{},
 		},
 		infinispan: v1alpha1.InfinispanConnectionProperties{},
 	}
 	i.Parent.AddCommand(i.command)
-	common.AddDeployFlags(i.command, &i.flags.DeployFlags)
+	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
@@ -209,11 +210,11 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 			KafkaMeta: v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Envs:     converter.FromStringArrayToEnvs(i.flags.Env),
 				Image:    framework.ConvertImageTagToImage(i.flags.image),
 				Resources: v1.ResourceRequirements{
-					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
-					Requests: shared.FromStringArrayToResources(i.flags.Requests),
+					Limits:   converter.FromStringArrayToResources(i.flags.Limits),
+					Requests: converter.FromStringArrayToResources(i.flags.Requests),
 				},
 				HTTPPort: i.flags.HTTPPort,
 			},

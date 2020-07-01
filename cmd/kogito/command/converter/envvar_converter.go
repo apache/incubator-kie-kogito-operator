@@ -12,32 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package converter
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // FromStringArrayToEnvs converts a string array in the format of key=value pairs to the required type for the Kubernetes EnvVar type
-func FromStringArrayToEnvs(strings []string) []v1.EnvVar {
-	if strings == nil {
+func FromStringArrayToEnvs(keyValuePair []string) []v1.EnvVar {
+	if keyValuePair == nil {
 		return nil
 	}
-	return framework.MapToEnvVar(util.FromStringsKeyPairToMap(strings))
-}
-
-// FromStringArrayToResources ...
-func FromStringArrayToResources(strings []string) v1.ResourceList {
-	if strings == nil {
-		return nil
-	}
-	res := v1.ResourceList{}
-	mapStr := util.FromStringsKeyPairToMap(strings)
-	for k, v := range mapStr {
-		res[v1.ResourceName(k)] = resource.MustParse(v)
-	}
-	return res
+	return framework.MapToEnvVar(util.FromStringsKeyPairToMap(keyValuePair))
 }
