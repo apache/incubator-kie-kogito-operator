@@ -9,27 +9,37 @@ jobs:
         environment:
           - GO111MODULE=on
           - GOLANG_LINT_VERSION=v1.27.0
+          - OPERATOR_SDK_VERSION=v0.18.2
     working_directory: /go/src/github.com/kiegroup/kogito-cloud-operator
     steps:
       - checkout
       - run:
-          name: Check Formatting
+          name: Install operator-sdk
           command: |
-            ./hack/go-fmt.sh
-            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-            [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Please make sure to run "make test" before sending the PR" && exit 1)
-      - run:
-          name: Check Headers
-          command: |
-            ./hack/addheaders.sh
-            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-            [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Please make sure to run "make test" before sending the PR" && exit 1)
+            sudo curl -L https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu -o /usr/bin/operator-sdk
+            sudo chmod +x /usr/bin/operator-sdk
+            # For debugging
+            operator-sdk version
       - run:
           name: Check Vet
           command: |
             ./hack/go-vet.sh
             changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-            [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run "make test" before sending the PR?" && exit 1)
+            generated_changed_files=$(git status -s | grep zz_generated || :)
+            [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen && exit 1")
+            [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
+      - run:
+          name: Check Formatting
+          command: |
+            ./hack/go-fmt.sh
+            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+            [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Please make sure to run 'make test' before sending the PR" && exit 1)
+      - run:
+          name: Check Headers
+          command: |
+            ./hack/addheaders.sh
+            changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+            [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Please make sure to run 'make test' before sending the PR" && exit 1)
       - run: go get -u golang.org/x/lint/golint
       - run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
       - run: ./hack/go-lint.sh
