@@ -219,6 +219,7 @@ You can set those optional keys:
 - `container_engine` engine used to interact with images and local containers.
   *Default is docker.*
 - `domain_suffix` domain suffix used for exposed services. Ignored when running tests on Openshift.
+- `image_cache_mode` Use this option to specify whether you want to use image cache for runtime images. Available options are 'always', 'never' or 'if-available'(default).
 <!--- operator information -->
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
@@ -253,6 +254,8 @@ You can set those optional keys:
 <!--- build runtime applications -->
 - `runtime_application_image_registry` sets the registry for built runtime applications.
 - `runtime_application_image_namespace` sets the namespace for built runtime applications.
+- `runtime_application_image_name_suffix` sets the image name suffix to append to usual image names for built runtime applications.
+- `runtime_application_image_version` sets the version for built runtime applications.
 <!--- development options -->
 - `show_scenarios` sets to true to display scenarios which will be executed.  
   *Default is false.*
