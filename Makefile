@@ -190,6 +190,10 @@ run-smoke-tests:
 run-performance-tests:
 	make run-tests performance=true
 
+.PHONY: build-examples-images
+build-examples-images:
+	make run-tests feature=scripts/examples
+
 .PHONY: prepare-olm
 version = ""
 prepare-olm:
