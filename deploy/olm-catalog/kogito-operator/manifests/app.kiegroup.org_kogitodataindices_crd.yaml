@@ -18,15 +18,15 @@ spec:
     type: string
   group: app.kiegroup.org
   names:
-    kind: KogitoDataIndex
-    listKind: KogitoDataIndexList
+    kind: KogitoTrusty
+    listKind: KogitoTrustyList
     plural: kogitodataindices
-    singular: kogitodataindex
+    singular: kogitotrusty
   scope: Namespaced
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: KogitoDataIndex defines the Data Index Service infrastructure deployment
+      description: KogitoTrusty defines the Trusty Service infrastructure deployment.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -41,13 +41,13 @@ spec:
         metadata:
           type: object
         spec:
-          description: KogitoDataIndexSpec defines the desired state of KogitoDataIndex
+          description: KogitoTrustySpec defines the desired state of KogitoTrusty.
           properties:
             deploymentLabels:
               additionalProperties:
                 type: string
               description: Additional labels to be added to the Deployment and Pods
-                managed by the operator
+                managed by the operator.
               type: object
             envs:
               description: Environment variables to be added to the runtime container.
@@ -184,19 +184,19 @@ spec:
                   type: string
                 credentials:
                   description: SecretCredentialsType is the data structure for specifying
-                    credentials within a Secret
+                    credentials within a Secret.
                   properties:
                     passwordKey:
                       description: PasswordKey is the key pointing to a value in a
-                        Secret holding the password value
+                        Secret holding the password value.
                       type: string
                     secretName:
                       description: SecretName is the name of the secret where the
-                        credentials are set
+                        credentials are set.
                       type: string
                     usernameKey:
                       description: UsernameKey is the key pointing to a value in a
-                        Secret holding the username value
+                        Secret holding the username value.
                       type: string
                   type: object
                 saslMechanism:
@@ -208,7 +208,7 @@ spec:
                   type: string
                 uri:
                   description: URI to connect to the Infinispan cluster (can it be
-                    an internal service or external URI), for example, myinfinispan-cluster:11222
+                    an internal service or external URI), for example, myinfinispan-cluster:11222.
                   type: string
                 useAuth:
                   description: UseAuth is set to true if the credentials are set.
@@ -222,20 +222,25 @@ spec:
                     in the namespace for this to work. On OpenShift, OLM should install
                     it for you. If running on Kubernetes without OLM installed, please
                     install Infinispan Operator first. Set this to false and fill
-                    all other properties to provide your own infrastructure
+                    all other properties to provide your own infrastructure.
                   type: boolean
               type: object
+            insecureImageRegistry:
+              description: A flag indicating that image streams created by Kogito
+                Operator should be configured to allow pulling from insecure registries.
+                Usable just on OpenShift. Defaults to 'false'.
+              type: boolean
             kafka:
               description: Has the data used by the service to connect to the Kafka
                 cluster.
               properties:
                 externalURI:
                   description: URI is the service URI to connect to the Kafka cluster,
-                    for example, my-cluster-kafka-bootstrap:9092
+                    for example, my-cluster-kafka-bootstrap:9092.
                   type: string
                 instance:
                   description: Instance is the Kafka instance to be used, for example,
-                    kogito-kafka
+                    kogito-kafka.
                   type: string
                 useKogitoInfra:
                   description: UseKogitoInfra flags if the instance will use a provided
@@ -245,18 +250,18 @@ spec:
                     On OpenShift, OLM should install it for you. If running on Kubernetes
                     without OLM installed, please install Strimzi Operator first.
                     Set this to false and fill other properties to provide your own
-                    infrastructure
+                    infrastructure.
                   type: boolean
               type: object
             replicas:
               description: 'Number of replicas that the service will have deployed
-                in the cluster Default value: 1'
+                in the cluster. Default value: 1.'
               format: int32
               minimum: 0
               type: integer
             resources:
               description: Defined compute resource requirements for the deployed
-                service
+                service.
               properties:
                 limits:
                   additionalProperties:
@@ -285,11 +290,11 @@ spec:
               additionalProperties:
                 type: string
               description: Additional labels to be added to the Service managed by
-                the operator
+                the operator.
               type: object
           type: object
         status:
-          description: KogitoDataIndexStatus defines the observed state of KogitoDataIndex
+          description: KogitoTrustyStatus defines the observed state of KogitoTrusty.
           properties:
             conditions:
               description: History of conditions for the resource
@@ -316,7 +321,7 @@ spec:
               type: array
               x-kubernetes-list-type: atomic
             deploymentConditions:
-              description: General conditions for the Kogito Service deployment
+              description: General conditions for the Kogito Service deployment.
               items:
                 description: DeploymentCondition describes the state of a deployment
                   at a certain point.
@@ -349,10 +354,10 @@ spec:
                 type: object
               type: array
             externalURI:
-              description: URI is where the service is exposed
+              description: URI is where the service is exposed.
               type: string
             image:
-              description: Image is the resolved image for this service
+              description: Image is the resolved image for this service.
               type: string
           required:
           - conditions
