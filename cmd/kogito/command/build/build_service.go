@@ -58,7 +58,7 @@ type buildCommand struct {
 	Parent  *cobra.Command
 }
 
-// initDeployCommand is the constructor for the deploy command
+// initBuildServiceCommand is the constructor for the build command
 func initBuildServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &buildCommand{CommandContext: *ctx, Parent: parent}
 	cmd.RegisterHook()
@@ -145,7 +145,7 @@ func (i *buildCommand) InitHook() {
 	flag.AddResourceFlags(i.command, &i.flags.PodResourceFlags)
 	flag.AddArtifactFlags(i.command, &i.flags.ArtifactFlags)
 	flag.AddWebHookFlags(i.command, &i.flags.WebHookFlags)
-	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the service will be deployed")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the service will be build")
 	i.command.Flags().BoolVar(&i.flags.incrementalBuild, "incremental-build", true, "Build should be incremental?")
 	i.command.Flags().StringArrayVar(&i.flags.env, "env", nil, "Key/pair value environment variables that will be set during the build. For example 'MY_CUSTOM_ENV=my_custom_value'. Can be set more than once.")
 	i.command.Flags().BoolVar(&i.flags.native, "native", false, "Use native builds? Be aware that native builds takes more time and consume much more resources from the cluster. Defaults to false")

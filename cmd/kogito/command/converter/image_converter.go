@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 )
 
+// FromImageTagToImage converts given buildImage into Image
 func FromImageTagToImage(buildImage string) v1alpha1.Image {
 	return framework.ConvertImageTagToImage(buildImage)
 }

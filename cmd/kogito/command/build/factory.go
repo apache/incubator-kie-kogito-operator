@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// BuildCommands creates the commands available in this package
-func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
+// AddBuildCommands creates the commands available in this package
+func AddBuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	initBuildServiceCommand(ctx, rootCommand)
+	initDeleteBuildCommand(ctx, rootCommand)
 }

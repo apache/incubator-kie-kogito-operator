@@ -139,3 +139,22 @@ func isKogitoRuntimeExists(kubeCli *client.Client, name string, namespace string
 	}
 	return exists, nil
 }
+
+// CheckKogitoBuildExists returns an error if the Kogito Build does not exist in the project/namespace
+func CheckKogitoBuildExists(kubeCli *client.Client, name string, project string) error {
+	log := context.GetDefaultLogger()
+	log.Debugf("Checking if Kogito Build '%s' was deployed before on project %s", name, project)
+	kogitoapp := &v1alpha1.KogitoBuild{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: project,
+		},
+	}
+	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoapp); err != nil {
+		return fmt.Errorf("Error while trying to look for the KogitoBuild: %s ", err)
+	} else if !exists {
+		return fmt.Errorf("Looks like a Kogito Build with the name '%s' doesn't exist in this project. Please try another name ", name)
+	}
+	log.Debugf("Custom resource with name '%s' was found in the project '%s' ", name, project)
+	return nil
+}

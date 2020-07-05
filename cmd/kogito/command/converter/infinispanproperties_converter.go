@@ -31,7 +31,7 @@ const (
 	defaultInfinispanPasswordKey = "password"
 )
 
-// FromInfinispanFlagsToInfinispanProperties converts given InfinispanFlags into InfinispanConnectionProperties
+// FromInfinispanFlagsToInfinispanMeta converts given InfinispanFlags into InfinispanMeta
 func FromInfinispanFlagsToInfinispanMeta(cli *client.Client, namespace string, infinispanFlags *flag.InfinispanFlags, enablePersistence bool) (v1alpha1.InfinispanMeta, error) {
 	infinispanMeta := v1alpha1.InfinispanMeta{}
 	// configure Infinispan connection properties only when enablePersistence flag is true
@@ -45,7 +45,7 @@ func FromInfinispanFlagsToInfinispanMeta(cli *client.Client, namespace string, i
 	return infinispanMeta, nil
 }
 
-// FromInfinispanFlagsToInfinispanProperties converts given InfinispanFlags into InfinispanConnectionProperties
+// fromInfinispanFlagsToInfinispanProperties converts given InfinispanFlags into InfinispanConnectionProperties
 func fromInfinispanFlagsToInfinispanProperties(cli *client.Client, namespace string, infinispanFlags *flag.InfinispanFlags) (v1alpha1.InfinispanConnectionProperties, error) {
 	log := context.GetDefaultLogger()
 	infinispanProperties := v1alpha1.InfinispanConnectionProperties{}

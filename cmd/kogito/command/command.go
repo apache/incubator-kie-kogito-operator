@@ -39,7 +39,7 @@ func BuildCommands(kubeClient *client.Client, output io.Writer) *cobra.Command {
 
 	rootCommand := context.NewRootCommand(ctx, output)
 	completion.BuildCommands(ctx, rootCommand.Command())
-	build.BuildCommands(ctx, rootCommand.Command())
+	build.AddBuildCommands(ctx, rootCommand.Command())
 	deploy.BuildCommands(ctx, rootCommand.Command())
 	install.BuildCommands(ctx, rootCommand.Command())
 	remove.BuildCommands(ctx, rootCommand.Command())

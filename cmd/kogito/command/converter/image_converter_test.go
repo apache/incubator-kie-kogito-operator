@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import (
 )
 
 func Test_FromImageTagToImage(t *testing.T) {
-	buildImage := "quay.io/vajain/kogito-cloud-operator:1.0"
+	buildImage := "mydomain.io/mynamespace/builder-image:1.0"
 	image := FromImageTagToImage(buildImage)
 	assert.NotNil(t, image)
-	assert.Equal(t, "quay.io", image.Domain)
-	assert.Equal(t, "vajain", image.Namespace)
-	assert.Equal(t, "kogito-cloud-operator", image.Name)
+	assert.Equal(t, "mydomain.io", image.Domain)
+	assert.Equal(t, "mynamespace", image.Namespace)
+	assert.Equal(t, "builder-image", image.Name)
 	assert.Equal(t, "1.0", image.Tag)
 
 }

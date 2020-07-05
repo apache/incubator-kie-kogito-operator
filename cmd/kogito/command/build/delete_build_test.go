@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deploy
+package build
 
 import (
 	"fmt"
@@ -28,24 +28,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Test_DeleteRuntimeCmd_WhenWeSuccessfullyDelete(t *testing.T) {
+func Test_DeleteBuildCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("delete-runtime example-drools --project %s", ns)
+	cli := fmt.Sprintf("delete-build example-drools --project %s", ns)
 	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
+		context.CommandFactory{BuildCommands: AddBuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1alpha1.KogitoRuntime{ObjectMeta: metav1.ObjectMeta{Name: "example-drools", Namespace: ns}})
+		&v1alpha1.KogitoBuild{ObjectMeta: metav1.ObjectMeta{Name: "example-drools", Namespace: ns}})
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Successfully deleted Kogito Runtime Service example-drools")
+	assert.Contains(t, lines, "Successfully deleted Kogito Build example-drools")
 }
 
-func Test_DeleteRuntimeCmd_WhenServiceDoesNotExist(t *testing.T) {
+func Test_DeleteBuildCmd_WhenServiceDoesNotExist(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("delete-runtime example-drools --project %s", ns)
+	cli := fmt.Sprintf("delete-build example-drools --project %s", ns)
 	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
+		context.CommandFactory{BuildCommands: AddBuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
