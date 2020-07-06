@@ -16,6 +16,7 @@ package flag
 
 import (
 	"fmt"
+	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
@@ -29,10 +30,12 @@ const (
 type DeployFlags struct {
 	OperatorFlags
 	PodResourceFlags
-	Project  string
-	Replicas int32
-	Env      []string
-	HTTPPort int32
+	Project               string
+	Replicas              int32
+	Env                   []string
+	HTTPPort              int32
+	Image                 string
+	InsecureImageRegistry bool
 }
 
 // AddDeployFlags adds the common deploy flags to the given command
@@ -43,6 +46,8 @@ func AddDeployFlags(command *cobra.Command, flags *DeployFlags) {
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
 	command.Flags().StringArrayVarP(&flags.Env, "env", "e", nil, "Key/Pair value environment variables that will be set to the service runtime. For example 'MY_VAR=my_value'. Can be set more than once.")
 	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")
+	command.Flags().StringVarP(&flags.Image, "image", "i", "", "The image which should be used to run Service. For example 'quay.io/kiegroup/kogito-data-index:latest'")
+	command.Flags().BoolVar(&flags.InsecureImageRegistry, "insecure-image-registry", false, "Indicates that the Service image points to insecure image registry")
 }
 
 // CheckDeployArgs checks the default deploy flags
@@ -58,6 +63,9 @@ func CheckDeployArgs(flags *DeployFlags) error {
 	}
 	if flags.Replicas <= 0 {
 		return fmt.Errorf("valid replicas are non-zero, positive numbers, received %v", flags.Replicas)
+	}
+	if err := buildutil.CheckImageTag(flags.Image); err != nil {
+		return err
 	}
 	return nil
 }

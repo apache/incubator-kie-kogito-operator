@@ -18,15 +18,15 @@ import "fmt"
 
 var (
 	// RuntimeServiceErrCreating ...
-	RuntimeServiceErrCreating = fmt.Sprintf(serviceErrCreating, "Runtime", "%s")
+	RuntimeServiceErrCreating = fmt.Sprintf("Error while trying to create a new Kogito Service: %s", "%s")
 	// RuntimeServiceSuccessfulInstalled ...
-	RuntimeServiceSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Runtime", "%s")
+	RuntimeServiceSuccessfulInstalled = fmt.Sprintf("Kogito Service successfully installed in the Project %s.", "%s")
 	// RuntimeServiceCheckStatus ...
 	RuntimeServiceCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitoruntime", "%s", "%s")
 	// RuntimeServiceNotInstalledNoKogitoOperator ...
-	RuntimeServiceNotInstalledNoKogitoOperator = fmt.Sprintf("Skipping deploy %s since Kogito Operator is not available.", "Runtime Service")
+	RuntimeServiceNotInstalledNoKogitoOperator = "Skipping deploy Kogito Service since Kogito Operator is not available."
 	// RuntimeServiceMgmtConsole ...
-	RuntimeServiceMgmtConsole = `To more easily manage your Kogito Runtime Service install Data Index Service and Process Instance Management. 
+	RuntimeServiceMgmtConsole = `To more easily manage your Kogito Service install Data Index Service and Process Instance Management. 
 For how to install see: https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-deployment
 and https://github.com/kiegroup/kogito-cloud-operator#kogito-management-console-install`
 	// RuntimeServiceMgmtConsoleEndpoint ...

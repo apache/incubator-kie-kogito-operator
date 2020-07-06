@@ -152,7 +152,7 @@ func (i *buildCommand) InitHook() {
 	i.command.Flags().StringVar(&i.flags.mavenMirrorURL, "maven-mirror-url", "", "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed, e.g: https://my.internal.nexus/content/group/public")
 	i.command.Flags().StringVar(&i.flags.buildImage, "build-image", "", "Custom image tag for the s2i build to build the application binaries, e.g: quay.io/mynamespace/myimage:latest")
 	i.command.Flags().StringVar(&i.flags.runtimeImage, "runtime-image", "", "Custom image tag for the s2i build, e.g: quay.io/mynamespace/myimage:latest")
-	i.command.Flags().StringVar(&i.flags.targetRuntime, "target-runtime", "", "Set this field targeting the desired KogitoRuntime when this KogitoBuild instance has a different name than the KogitoRuntime")
+	i.command.Flags().StringVar(&i.flags.targetRuntime, "target-runtime", "", "Set this field targeting the desired KogitoService when this KogitoBuild instance has a different name than the KogitoService")
 	i.command.Flags().BoolVarP(&i.flags.enableMavenDownloadOutput, "maven-output", "m", false, "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false")
 }
 

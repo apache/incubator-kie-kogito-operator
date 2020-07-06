@@ -16,11 +16,9 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -37,7 +35,6 @@ const (
 
 type installJobsServiceFlags struct {
 	flag.DeployFlags
-	image                         string
 	kafka                         v1alpha1.KafkaConnectionProperties
 	infinispan                    v1alpha1.InfinispanConnectionProperties
 	infinispanSasl                string
@@ -77,7 +74,7 @@ func (i *installJobsServiceCommand) RegisterHook() {
 		Use:     "jobs-service [flags]",
 		Short:   "Installs the Kogito Jobs Service in the given Project",
 		Example: "jobs-service -p my-project",
-		Long: `'install jobs-service' deploys the Jobs Service to enable scheduling jobs that aim to be fired at a given time for Kogito Runtime Services.
+		Long: `'install jobs-service' deploys the Jobs Service to enable scheduling jobs that aim to be fired at a given time for Kogito services.
 
 If 'enable-persistence' flag is set and 'infinispan-url' is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure.
 Use 'infinispan-url' and set 'enable-persistence' flag if you plan to connect to an external Infinispan server that is already provided 
@@ -133,9 +130,6 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
-			if err := util.CheckImageTag(i.flags.image); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -151,7 +145,6 @@ func (i *installJobsServiceCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Jobs Service, example: quay.io/kiegroup/kogito-jobs-service:latest")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092. When set, enables events for Jobs Service.")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster. When set, enables events for Jobs Service.")
@@ -211,12 +204,13 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
 				Envs:     converter.FromStringArrayToEnvs(i.flags.Env),
-				Image:    framework.ConvertImageTagToImage(i.flags.image),
+				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   converter.FromStringArrayToResources(i.flags.Limits),
 					Requests: converter.FromStringArrayToResources(i.flags.Requests),
 				},
-				HTTPPort: i.flags.HTTPPort,
+				HTTPPort:              i.flags.HTTPPort,
+				InsecureImageRegistry: i.flags.InsecureImageRegistry,
 			},
 			BackOffRetryMillis:            i.flags.backOffRetryMillis,
 			MaxIntervalLimitToRetryMillis: i.flags.maxIntervalLimitToRetryMillis,

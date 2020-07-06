@@ -16,6 +16,7 @@ package client
 
 import (
 	"fmt"
+
 	"os"
 	"path/filepath"
 	"strings"
@@ -44,6 +45,11 @@ import (
 
 var (
 	log = logger.GetLogger("client_api")
+)
+
+const (
+	// OpenShiftGroupName name included in OpenShift APIs
+	OpenShiftGroupName = "openshift.io"
 )
 
 // Client wraps clients functions from controller-runtime, Kube and OpenShift cli for generic API calls to the cluster
@@ -79,7 +85,7 @@ func NewForController(config *restclient.Config, client controllercli.Client) *C
 
 // IsOpenshift detects if the application is running on OpenShift or not
 func (c *Client) IsOpenshift() bool {
-	return c.HasServerGroup("openshift.io")
+	return c.HasServerGroup(OpenShiftGroupName)
 }
 
 // HasServerGroup detects if the given api group is supported by the server

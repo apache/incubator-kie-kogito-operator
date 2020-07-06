@@ -19,14 +19,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// InfraComponentInstallStatusType is the base structure to define the status for an actor in the infrastructure
+// InfraComponentInstallStatusType is the base structure to define the status for an actor in the infrastructure.
 type InfraComponentInstallStatusType struct {
 	Service   string             `json:"service,omitempty"`
 	Name      string             `json:"name,omitempty"`
 	Condition []InstallCondition `json:"condition,omitempty"`
 }
 
-// KogitoInfraSpec defines the desired state of KogitoInfra
+// KogitoInfraSpec defines the desired state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
@@ -51,7 +51,7 @@ type KogitoInfraSpec struct {
 	InstallKeycloak bool `json:"installKeycloak,omitempty"`
 }
 
-// KogitoInfraStatus defines the observed state of KogitoInfra
+// KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
 	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
@@ -73,13 +73,13 @@ type KogitoInfraCondition struct {
 	Message            string                   `json:"message,omitempty"`
 }
 
-// InfinispanInstallStatus defines the Infinispan installation status
+// InfinispanInstallStatus defines the Infinispan installation status.
 type InfinispanInstallStatus struct {
 	InfraComponentInstallStatusType `json:",inline"`
 	CredentialSecret                string `json:"credentialSecret,omitempty"`
 }
 
-// InstallCondition defines the installation condition for the infrastructure actor
+// InstallCondition defines the installation condition for the infrastructure actor.
 type InstallCondition struct {
 	Type               InstallConditionType `json:"type"`
 	Status             v1.ConditionStatus   `json:"status"`
@@ -87,7 +87,7 @@ type InstallCondition struct {
 	Message            string               `json:"message,omitempty"`
 }
 
-// InstallConditionType defines the possibles conditions that a install might have
+// InstallConditionType defines the possibles conditions that a install might have.
 type InstallConditionType string
 
 const (
@@ -136,7 +136,7 @@ type KogitoInfra struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoInfraList contains a list of KogitoInfra
+// KogitoInfraList contains a list of KogitoInfra.
 type KogitoInfraList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

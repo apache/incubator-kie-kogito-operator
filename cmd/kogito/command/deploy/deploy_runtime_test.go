@@ -41,7 +41,7 @@ func Test_DeployRuntimeCmd_DefaultConfigurations(t *testing.T) {
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Runtime Service successfully installed")
+	assert.Contains(t, lines, "Kogito Service successfully installed")
 
 	// This should be created, given the command above
 	kogitoRuntime := &v1alpha1.KogitoRuntime{
@@ -64,11 +64,12 @@ func Test_DeployRuntimeCmd_DefaultConfigurations(t *testing.T) {
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
+	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
 }
 
 func Test_DeployRuntimeCmd_CustomConfigurations(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf(`deploy-service example-drools --image quay.io/kiegroup/drools-quarkus-example:1.0 --project %s --limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi --enable-istio --enable-persistence --enable-events --http-port 9090 --runtime springboot --replicas 2`, ns)
+	cli := fmt.Sprintf(`deploy-service example-drools --image quay.io/kiegroup/drools-quarkus-example:1.0 --project %s --limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi --enable-istio --enable-persistence --enable-events --http-port 9090 --runtime springboot --replicas 2 --insecure-image-registry`, ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -76,7 +77,7 @@ func Test_DeployRuntimeCmd_CustomConfigurations(t *testing.T) {
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Runtime Service successfully installed")
+	assert.Contains(t, lines, "Kogito Service successfully installed")
 
 	// This should be created, given the command above
 	kogitoRuntime := &v1alpha1.KogitoRuntime{
@@ -101,4 +102,5 @@ func Test_DeployRuntimeCmd_CustomConfigurations(t *testing.T) {
 	assert.Equal(t, int32(9090), kogitoRuntime.Spec.HTTPPort)
 	assert.Equal(t, *kogitoRuntime.Spec.KogitoServiceSpec.Resources.Limits.Cpu(), resource.MustParse("1"))
 	assert.Equal(t, *kogitoRuntime.Spec.KogitoServiceSpec.Resources.Requests.Memory(), resource.MustParse("1Gi"))
+	assert.True(t, kogitoRuntime.Spec.InsecureImageRegistry)
 }

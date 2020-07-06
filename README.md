@@ -88,8 +88,8 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 
 - [Docker](https://www.docker.com/)
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
-- [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.15.x
-- [Go](https://golang.org/) v1.13 is installed.
+- [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.18.x, 0.18.2 is preferred.
+- [Go](https://golang.org/) v1.14 is installed.
 - [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
 
@@ -219,6 +219,7 @@ You can set those optional keys:
 - `container_engine` engine used to interact with images and local containers.
   *Default is docker.*
 - `domain_suffix` domain suffix used for exposed services. Ignored when running tests on Openshift.
+- `image_cache_mode` Use this option to specify whether you want to use image cache for runtime images. Available options are 'always', 'never' or 'if-available'(default).
 <!--- operator information -->
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
@@ -253,6 +254,8 @@ You can set those optional keys:
 <!--- build runtime applications -->
 - `runtime_application_image_registry` sets the registry for built runtime applications.
 - `runtime_application_image_namespace` sets the namespace for built runtime applications.
+- `runtime_application_image_name_suffix` sets the image name suffix to append to usual image names for built runtime applications.
+- `runtime_application_image_version` sets the version for built runtime applications.
 <!--- development options -->
 - `show_scenarios` sets to true to display scenarios which will be executed.  
   *Default is false.*
@@ -357,7 +360,7 @@ To run the Kogito Operator locally, change the log level at runtime with the `DE
 ```bash
 $ make mod
 $ make clean
-$ DEBUG=true operator-sdk run --local --namespace=<namespace>
+$ DEBUG=true operator-sdk run local --watch-namespace=<namespace>
 ```
 
 You can use the following command to vet, format, lint, and test your code:

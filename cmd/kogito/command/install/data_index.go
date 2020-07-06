@@ -16,11 +16,9 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -40,7 +38,6 @@ const (
 
 type installDataIndexFlags struct {
 	flag.DeployFlags
-	image              string
 	kafka              v1alpha1.KafkaConnectionProperties
 	infinispan         v1alpha1.InfinispanConnectionProperties
 	infinispanSasl     string
@@ -76,7 +73,7 @@ func (i *installDataIndexCommand) RegisterHook() {
 		Use:     "data-index [flags]",
 		Short:   "Installs the Kogito Data Index Service in the given Project",
 		Example: "data-index -p my-project",
-		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito Runtime Services.
+		Long: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito services.
 
 If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
 If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Data Index service's namespace.
@@ -125,9 +122,6 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
-			if err := util.CheckImageTag(i.flags.image); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -144,7 +138,6 @@ func (i *installDataIndexCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
 
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Data Index Service, example: quay.io/kiegroup/kogito-data-index:latest")
 	i.command.Flags().StringVar(&i.flags.kafka.ExternalURI, "kafka-url", "", "The Kafka cluster external URI, example: my-kafka-cluster:9092")
 	i.command.Flags().StringVar(&i.flags.kafka.Instance, "kafka-instance", "", "The Kafka cluster external URI, example: my-kafka-cluster")
 	i.command.Flags().StringVar(&i.flags.infinispan.URI, "infinispan-url", "", "The Infinispan Server URI, example: infinispan-server:11222")
@@ -196,12 +189,13 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
 				Envs:     converter.FromStringArrayToEnvs(i.flags.Env),
-				Image:    framework.ConvertImageTagToImage(i.flags.image),
+				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   converter.FromStringArrayToResources(i.flags.Limits),
 					Requests: converter.FromStringArrayToResources(i.flags.Requests),
 				},
-				HTTPPort: i.flags.HTTPPort,
+				HTTPPort:              i.flags.HTTPPort,
+				InsecureImageRegistry: i.flags.InsecureImageRegistry,
 			},
 			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: i.flags.infinispan},
 			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},

@@ -83,12 +83,16 @@ func (mvnCmd *mavenCommandStruct) Execute(targets ...string) (string, error) {
 		}
 	}
 
+	if mvnCmd.skipTests {
+		mvnCmd.otherOptions = append(mvnCmd.otherOptions, "-DskipTests")
+	}
+
 	args = append(args, targets...)
 	if len(mvnCmd.profiles) > 0 {
 		args = append(args, fmt.Sprintf("-P%s", strings.Join(mvnCmd.profiles, ",")))
 	}
 	if len(mvnCmd.otherOptions) > 0 {
-		args = append(args, strings.Join(mvnCmd.otherOptions, " "))
+		args = append(args, mvnCmd.otherOptions...)
 	}
 
 	cmd := CreateCommand(mavenCommandName, args...).InDirectory(mvnCmd.directory)

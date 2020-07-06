@@ -38,7 +38,7 @@ func Test_DeleteRuntimeCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Successfully deleted Kogito Runtime Service example-drools")
+	assert.Contains(t, lines, "Successfully deleted Kogito Service example-drools")
 }
 
 func Test_DeleteRuntimeCmd_WhenServiceDoesNotExist(t *testing.T) {

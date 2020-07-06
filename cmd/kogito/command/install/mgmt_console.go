@@ -19,7 +19,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -30,7 +29,6 @@ import (
 
 type installMgmtConsoleFlags struct {
 	flag.DeployFlags
-	image string
 }
 
 type installMgmtConsoleCommand struct {
@@ -75,9 +73,6 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
 				return err
 			}
-			if err := util.CheckImageTag(i.flags.image); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -91,8 +86,6 @@ func (i *installMgmtConsoleCommand) InitHook() {
 	}
 	i.Parent.AddCommand(i.command)
 	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
-
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "Image tag for the Management Console, example: quay.io/kiegroup/kogito-management-service:latest")
 }
 
 func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -107,12 +100,13 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
 				Envs:     converter.FromStringArrayToEnvs(i.flags.Env),
-				Image:    framework.ConvertImageTagToImage(i.flags.image),
+				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   converter.FromStringArrayToResources(i.flags.Limits),
 					Requests: converter.FromStringArrayToResources(i.flags.Requests),
 				},
-				HTTPPort: i.flags.HTTPPort,
+				HTTPPort:              i.flags.HTTPPort,
+				InsecureImageRegistry: i.flags.InsecureImageRegistry,
 			},
 		},
 		Status: v1alpha1.KogitoMgmtConsoleStatus{

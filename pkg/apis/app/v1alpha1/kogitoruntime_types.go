@@ -18,7 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// KogitoRuntimeSpec defines the desired state of KogitoRuntime
+// KogitoRuntimeSpec defines the desired state of KogitoRuntime.
 type KogitoRuntimeSpec struct {
 	InfinispanMeta    `json:",inline"`
 	KafkaMeta         `json:",inline"`
@@ -30,7 +30,7 @@ type KogitoRuntimeSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	EnableIstio bool `json:"enableIstio,omitempty"`
 
-	// The name of the runtime used, either Quarkus or Springboot
+	// The name of the runtime used, either Quarkus or SpringBoot.
 	// Default value: quarkus
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="runtime"
@@ -39,20 +39,20 @@ type KogitoRuntimeSpec struct {
 	Runtime RuntimeType `json:"runtime,omitempty"`
 }
 
-// KogitoRuntimeStatus defines the observed state of KogitoRuntime
+// KogitoRuntimeStatus defines the observed state of KogitoRuntime.
 type KogitoRuntimeStatus struct {
 	KogitoServiceStatus `json:",inline"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoRuntime is a custom Kogito Runtime Service
+// KogitoRuntime is a custom Kogito service.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoruntimes,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Image of this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Runtime"
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito service"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMaps,v1"
@@ -85,7 +85,7 @@ func (k *KogitoRuntime) GetStatus() KogitoServiceStatusInterface {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoRuntimeList contains a list of KogitoRuntime
+// KogitoRuntimeList contains a list of KogitoRuntime.
 type KogitoRuntimeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

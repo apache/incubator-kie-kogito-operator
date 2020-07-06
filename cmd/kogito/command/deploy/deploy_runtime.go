@@ -21,7 +21,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
@@ -35,7 +34,6 @@ type deployRuntimeFlags struct {
 	flag.KafkaFlags
 	flag.RuntimeFlags
 	name              string
-	image             string
 	enableIstio       bool
 	enablePersistence bool
 	enableEvents      bool
@@ -64,9 +62,9 @@ func (i *deployRuntimeCommand) Command() *cobra.Command {
 func (i *deployRuntimeCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:     "deploy-service NAME [IMAGE]",
-		Short:   "Deploys a new Kogito Runtime Service into the given Project",
+		Short:   "Deploys a new Kogito Service into the given Project",
 		Aliases: []string{"deploy"},
-		Long: `deploy-service will create a new Kogito Runtime Service using provided [IMAGE] in the Project context. 
+		Long: `deploy-service will create a new Kogito Service using provided [IMAGE] in the Project context. 
 			
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
@@ -93,9 +91,6 @@ func (i *deployRuntimeCommand) RegisterHook() {
 			if err := flag.CheckRuntimeArgs(&i.flags.RuntimeFlags); err != nil {
 				return err
 			}
-			if err := buildutil.CheckImageTag(i.flags.image); err != nil {
-				return err
-			}
 			if err := util.ParseStringsForKeyPair(i.flags.serviceLabels); err != nil {
 				return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", i.flags.serviceLabels)
 			}
@@ -120,10 +115,9 @@ func (i *deployRuntimeCommand) InitHook() {
 	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
 	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
 	flag.AddRuntimeFlags(i.command, &i.flags.RuntimeFlags)
-	i.command.Flags().StringVarP(&i.flags.image, "image", "i", "", "The image which should be used to run Service.")
 	i.command.Flags().BoolVar(&i.flags.enableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
-	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set to true, deployed runtime service will support integration with Infinispan server for persistence. Default to false")
-	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set to true, deployed runtime service will support integration with Kafka cluster for events. Default to false")
+	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set to true, deployed Kogito service will support integration with Infinispan server for persistence. Default to false")
+	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set to true, deployed Kogito service will support integration with Kafka cluster for events. Default to false")
 }
 
 func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err error) {
@@ -149,12 +143,13 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 			EnableIstio: i.flags.enableIstio,
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&i.flags.RuntimeFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
-				Replicas:      &i.flags.Replicas,
-				Envs:          converter.FromStringArrayToEnvs(i.flags.Env),
-				Image:         converter.FromImageTagToImage(i.flags.image),
-				Resources:     converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
-				ServiceLabels: util.FromStringsKeyPairToMap(i.flags.serviceLabels),
-				HTTPPort:      i.flags.HTTPPort,
+				Replicas:              &i.flags.Replicas,
+				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env),
+				Image:                 converter.FromImageTagToImage(i.flags.Image),
+				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
+				ServiceLabels:         util.FromStringsKeyPairToMap(i.flags.serviceLabels),
+				HTTPPort:              i.flags.HTTPPort,
+				InsecureImageRegistry: i.flags.InsecureImageRegistry,
 			},
 			InfinispanMeta: infinispanMeta,
 			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, i.flags.enableEvents),
@@ -166,7 +161,7 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 		},
 	}
 
-	log.Debugf("Trying to deploy Kogito runtime Service '%s'", kogitoRuntime.Name)
+	log.Debugf("Trying to deploy Kogito Service '%s'", kogitoRuntime.Name)
 	// Create the Kogito application
 	err = shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).

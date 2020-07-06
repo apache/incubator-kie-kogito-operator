@@ -15,8 +15,10 @@
 package openshift
 
 import (
+	"context"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	v1 "github.com/openshift/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // DeploymentConfigInterface common client for Deployment Config API interactions
@@ -40,7 +42,7 @@ func (d *deploymentConfig) RolloutLatest(dcName string, namespace string) (dc *v
 		Latest: true,
 		Force:  true,
 	}
-	if dc, err = d.client.DeploymentCli.DeploymentConfigs(namespace).Instantiate(dcName, request); err != nil {
+	if dc, err = d.client.DeploymentCli.DeploymentConfigs(namespace).Instantiate(context.TODO(), dcName, request, metav1.CreateOptions{}); err != nil {
 		return
 	}
 	return
