@@ -15,11 +15,17 @@
 package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 )
 
-// FromImageTagToImage converts given buildImage into Image
-func FromImageTagToImage(buildImage string) v1alpha1.Image {
-	return framework.ConvertImageTagToImage(buildImage)
+// FromImageFlagToImage converts given ImageFlags into Image
+func FromImageFlagToImage(imageFlags *flag.ImageFlags) v1alpha1.Image {
+	return FromImageTagToImage(imageFlags.Image)
+}
+
+// FromImageTagToImage converts given image tag into Image
+func FromImageTagToImage(image string) v1alpha1.Image {
+	return framework.ConvertImageTagToImage(image)
 }

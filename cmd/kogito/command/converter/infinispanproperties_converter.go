@@ -66,6 +66,7 @@ func fromInfinispanFlagsToInfinispanProperties(cli *client.Client, namespace str
 func initializeUserDefineInfinispanProperties(cli *client.Client, namespace string, infinispanFlags *flag.InfinispanFlags, infinispanProperties *v1alpha1.InfinispanConnectionProperties) error {
 	log := context.GetDefaultLogger()
 	log.Infof("infinispan-url informed. Infinispan will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", infinispanFlags.URI)
+	// If user and password are sent, create a secret to hold them and attach them to the CRD
 	if err := createInfinispanSecret(cli, namespace, infinispanFlags.InfinispanUser, infinispanFlags.InfinispanPassword); err != nil {
 		return err
 	}

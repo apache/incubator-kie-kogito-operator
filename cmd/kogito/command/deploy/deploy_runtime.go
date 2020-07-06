@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
@@ -50,8 +51,10 @@ type deployRuntimeCommand struct {
 // initDeployCommand is the constructor for the deploy command
 func initDeployRuntimeCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := &deployRuntimeCommand{CommandContext: *ctx, Parent: parent}
+
 	cmd.RegisterHook()
 	cmd.InitHook()
+
 	return cmd
 }
 
@@ -101,15 +104,7 @@ func (i *deployRuntimeCommand) RegisterHook() {
 
 func (i *deployRuntimeCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
-	i.flags = deployRuntimeFlags{
-		DeployFlags: flag.DeployFlags{
-			OperatorFlags:    flag.OperatorFlags{},
-			PodResourceFlags: flag.PodResourceFlags{},
-		},
-		InfinispanFlags: flag.InfinispanFlags{},
-		KafkaFlags:      flag.KafkaFlags{},
-		RuntimeFlags:    flag.RuntimeFlags{},
-	}
+	i.flags = deployRuntimeFlags{}
 
 	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
 	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
@@ -145,11 +140,11 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &i.flags.Replicas,
 				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env),
-				Image:                 converter.FromImageTagToImage(i.flags.Image),
+				Image:                 converter.FromImageFlagToImage(&i.flags.ImageFlags),
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				ServiceLabels:         util.FromStringsKeyPairToMap(i.flags.serviceLabels),
 				HTTPPort:              i.flags.HTTPPort,
-				InsecureImageRegistry: i.flags.InsecureImageRegistry,
+				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 			},
 			InfinispanMeta: infinispanMeta,
 			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, i.flags.enableEvents),
@@ -172,8 +167,15 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 	if err != nil {
 		return err
 	}
+	if err = printMgmtConsoleInfo(i.Client, i.flags.Project); err != nil {
+		return err
+	}
+	return nil
+}
 
-	endpoint, err := infrastructure.GetManagementConsoleEndpoint(i.Client, i.flags.Project)
+func printMgmtConsoleInfo(client *client.Client, project string) error {
+	log := context.GetDefaultLogger()
+	endpoint, err := infrastructure.GetManagementConsoleEndpoint(client, project)
 	if err != nil {
 		return err
 	}
@@ -182,6 +184,5 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 	} else {
 		log.Infof(message.RuntimeServiceMgmtConsoleEndpoint, endpoint.HTTPRouteURI)
 	}
-
 	return nil
 }

@@ -26,14 +26,14 @@ type PodResourceFlags struct {
 	Requests []string
 }
 
-// AddResourceFlags adds the common resource flags to the given command
-func AddResourceFlags(command *cobra.Command, flags *PodResourceFlags) {
+// AddPodResourceFlags adds the common resource flags to the given command
+func AddPodResourceFlags(command *cobra.Command, flags *PodResourceFlags) {
 	command.Flags().StringSliceVar(&flags.Limits, "limits", nil, "Resource limits for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	command.Flags().StringSliceVar(&flags.Requests, "requests", nil, "Resource requests for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 }
 
-// CheckResourceArgs validates the resource flags
-func CheckResourceArgs(flags *PodResourceFlags) error {
+// CheckPodResourceArgs validates the resource flags
+func CheckPodResourceArgs(flags *PodResourceFlags) error {
 	if err := util.ParseStringsForKeyPair(flags.Limits); err != nil {
 		return fmt.Errorf("limits are in the wrong format. Valid are key pairs like 'cpu=1', received %s", flags.Limits)
 	}

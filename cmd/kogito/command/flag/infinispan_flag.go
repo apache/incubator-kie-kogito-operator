@@ -31,11 +31,11 @@ type InfinispanFlags struct {
 
 // AddInfinispanFlags adds the infinispan flags to the given command
 func AddInfinispanFlags(command *cobra.Command, flags *InfinispanFlags) {
-	command.Flags().StringVar(&flags.URI, "infinispan-url", "", "Set only if enable-persistence is defined. The Infinispan Server URI, example: infinispan-server:11222")
-	command.Flags().StringVar(&flags.AuthRealm, "infinispan-authrealm", "", "Set only if enable-persistence is defined. The Infinispan Server Auth Realm for authentication, example: ApplicationRealm")
-	command.Flags().StringVar(&flags.InfinispanSasl, "infinispan-sasl", "", "Set only if enable-persistence is defined. The Infinispan Server SASL Mechanism, example: PLAIN")
-	command.Flags().StringVar(&flags.InfinispanUser, "infinispan-user", "", "Set only if enable-persistence is defined. The Infinispan Server username")
-	command.Flags().StringVar(&flags.InfinispanPassword, "infinispan-password", "", "Set only if enable-persistence is defined. The Infinispan Server password")
+	command.Flags().StringVar(&flags.URI, "infinispan-url", "", "The Infinispan Server URI, example: infinispan-server:11222")
+	command.Flags().StringVar(&flags.AuthRealm, "infinispan-authrealm", "", "The Infinispan Server Auth Realm for authentication, example: ApplicationRealm")
+	command.Flags().StringVar(&flags.InfinispanSasl, "infinispan-sasl", "", "The Infinispan Server SASL Mechanism, example: PLAIN")
+	command.Flags().StringVar(&flags.InfinispanUser, "infinispan-user", "", "The Infinispan Server username")
+	command.Flags().StringVar(&flags.InfinispanPassword, "infinispan-password", "", "The Infinispan Server password")
 }
 
 // CheckInfinispanArgs validates the InfinispanFlags flags

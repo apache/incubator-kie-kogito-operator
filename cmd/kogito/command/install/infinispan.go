@@ -23,7 +23,7 @@ import (
 
 type installInfinispanFlags struct {
 	flag.OperatorFlags
-	namespace string
+	project string
 }
 
 type installInfinispanCommand struct {
@@ -68,26 +68,21 @@ func (i *installInfinispanCommand) RegisterHook() {
 }
 
 func (i *installInfinispanCommand) InitHook() {
-	i.flags = installInfinispanFlags{
-		OperatorFlags: flag.OperatorFlags{},
-	}
+	i.flags = installInfinispanFlags{}
 	i.Parent.AddCommand(i.command)
 	flag.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 
-	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the operator will be deployed")
 }
 
 func (i *installInfinispanCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
-	if i.flags.namespace, err = shared.EnsureProject(i.Client, i.flags.namespace); err != nil {
+	if i.flags.project, err = shared.EnsureProject(i.Client, i.flags.project); err != nil {
 		return err
 	}
-
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.namespace, "", i.Client, shared.KogitoChannelType(i.flags.Channel)); err != nil {
-		return err
-	} else if !installed {
-		return nil
-	}
-
-	return shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallInfinispan().GetError()
+	return shared.
+		ServicesInstallationBuilder(i.Client, i.flags.project).
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
+		InstallInfinispan().
+		GetError()
 }

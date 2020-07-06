@@ -89,8 +89,8 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().BoolVar(&i.flags.installJobsService, "install-jobs-service", false, "Installs the default instance of Jobs Service being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVar(&i.flags.installMgmtConsole, "install-mgmt-console", false, "Installs the default instance of Management Console being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVar(&i.flags.installAllServices, "install-all-services", false, "Installs the default instance of every Kogito Support services (Data Index, Jobs Service, etc.) being provisioned by the Kogito Operator in the project")
-	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
-	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
+	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current project using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
+	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same project and inject the environment variables to configure the service connection to the Infinispan server.")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
 }
 

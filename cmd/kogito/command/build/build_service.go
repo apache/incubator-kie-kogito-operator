@@ -102,7 +102,7 @@ func (i *buildCommand) RegisterHook() {
 			if err := flag.CheckRuntimeArgs(&i.flags.RuntimeFlags); err != nil {
 				return err
 			}
-			if err := flag.CheckResourceArgs(&i.flags.PodResourceFlags); err != nil {
+			if err := flag.CheckPodResourceArgs(&i.flags.PodResourceFlags); err != nil {
 				return err
 			}
 			if err := flag.CheckArtifactArgs(&i.flags.ArtifactFlags); err != nil {
@@ -142,7 +142,7 @@ func (i *buildCommand) InitHook() {
 	flag.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 	flag.AddGitSourceFlags(i.command, &i.flags.GitSourceFlags)
 	flag.AddRuntimeFlags(i.command, &i.flags.RuntimeFlags)
-	flag.AddResourceFlags(i.command, &i.flags.PodResourceFlags)
+	flag.AddPodResourceFlags(i.command, &i.flags.PodResourceFlags)
 	flag.AddArtifactFlags(i.command, &i.flags.ArtifactFlags)
 	flag.AddWebHookFlags(i.command, &i.flags.WebHookFlags)
 	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the service will be build")

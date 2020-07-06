@@ -20,10 +20,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -60,10 +58,10 @@ func (i *installMgmtConsoleCommand) RegisterHook() {
 		Aliases: []string{"management-console"},
 		Short:   "Installs the Kogito Management Console in the given Project",
 		Example: "mgmt-console -p my-project",
-		Long: `'install mgmt-console' deploys the Management Console to enable management for Kogito Services deployed within the same namespace.
+		Long: `'install mgmt-console' deploys the Management Console to enable management for Kogito Services deployed within the same project.
 
 Please note that Management Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
-You won't be able to use the Management Console if Data Index is not deployed in the same namespace either using Kogito CLI or the Kogito Operator.
+You won't be able to use the Management Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
 
 For more information on Management Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
 		RunE:    i.Exec,
@@ -79,11 +77,7 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 }
 
 func (i *installMgmtConsoleCommand) InitHook() {
-	i.flags = installMgmtConsoleFlags{
-		DeployFlags: flag.DeployFlags{
-			OperatorFlags: flag.OperatorFlags{},
-		},
-	}
+	i.flags = installMgmtConsoleFlags{}
 	i.Parent.AddCommand(i.command)
 	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
 }
@@ -98,15 +92,12 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoMgmtConsoleSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
-				Replicas: &i.flags.Replicas,
-				Envs:     converter.FromStringArrayToEnvs(i.flags.Env),
-				Image:    framework.ConvertImageTagToImage(i.flags.Image),
-				Resources: v1.ResourceRequirements{
-					Limits:   converter.FromStringArrayToResources(i.flags.Limits),
-					Requests: converter.FromStringArrayToResources(i.flags.Requests),
-				},
+				Replicas:              &i.flags.Replicas,
+				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env),
+				Image:                 converter.FromImageFlagToImage(&i.flags.ImageFlags),
+				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,
-				InsecureImageRegistry: i.flags.InsecureImageRegistry,
+				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 			},
 		},
 		Status: v1alpha1.KogitoMgmtConsoleStatus{
