@@ -30,7 +30,7 @@ import (
 
 func Test_DeleteRuntimeCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("delete-runtime example-drools --project %s", ns)
+	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -43,7 +43,7 @@ func Test_DeleteRuntimeCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 
 func Test_DeleteRuntimeCmd_WhenServiceDoesNotExist(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("delete-runtime example-drools --project %s", ns)
+	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})

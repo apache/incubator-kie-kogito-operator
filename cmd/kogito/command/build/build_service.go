@@ -163,12 +163,12 @@ func (i *buildCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	resourceType, err := buildutil.GetResourceType(args[1])
+	resourceType, err := shared.GetResourceType(args[1])
 	if err != nil {
 		return nil
 	}
 
-	if resourceType == buildutil.GitRepositoryResource {
+	if resourceType == shared.GitRepositoryResource {
 		i.flags.GitSourceFlags.Source = args[1]
 	}
 
@@ -217,23 +217,23 @@ func (i *buildCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func createBuildIfRequires(name, namespace, resource string, resourceType buildutil.ResourceType) error {
+func createBuildIfRequires(name, namespace, resource string, resourceType shared.ResourceType) error {
 	switch resourceType {
-	case buildutil.GitRepositoryResource:
+	case shared.GitRepositoryResource:
 		handleGitRepositoryBuild(name, namespace)
-	case buildutil.GitFileResource:
+	case shared.GitFileResource:
 		if err := handleGitFileResourceBuild(name, namespace, resource); err != nil {
 			return err
 		}
-	case buildutil.LocalDirectoryResource:
+	case shared.LocalDirectoryResource:
 		if err := handleLocalDirectoryResourceBuild(name, namespace, resource); err != nil {
 			return err
 		}
-	case buildutil.LocalFileResource:
+	case shared.LocalFileResource:
 		if err := handleLocalFileResourceBuild(name, namespace, resource); err != nil {
 			return err
 		}
-	case buildutil.BinaryResource:
+	case shared.BinaryResource:
 		handleBinaryResourceBuild(name, namespace)
 	}
 	return nil
@@ -241,12 +241,12 @@ func createBuildIfRequires(name, namespace, resource string, resourceType buildu
 
 func handleGitRepositoryBuild(name, namespace string) {
 	log := context.GetDefaultLogger()
-	log.Infof(message.KogitoAppViewDeploymentStatus, name, namespace)
-	log.Infof(message.KogitoAppViewBuildStatus, name, namespace)
+	log.Infof(message.KogitoBuildViewDeploymentStatus, name, namespace)
+	log.Infof(message.KogitoViewBuildStatus, name, namespace)
 }
 
 func handleGitFileResourceBuild(name, namespace, resource string) error {
-	fileReader, fileName, err := buildutil.LoadGitFileIntoMemory(resource)
+	fileReader, fileName, err := shared.LoadGitFileIntoMemory(resource)
 	if err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func handleGitFileResourceBuild(name, namespace, resource string) error {
 }
 
 func handleLocalDirectoryResourceBuild(name, namespace, resource string) error {
-	fileReader, fileName, err := buildutil.ZipAndLoadLocalDirectoryIntoMemory(resource)
+	fileReader, fileName, err := shared.ZipAndLoadLocalDirectoryIntoMemory(resource)
 	if err != nil {
 		return err
 	}
@@ -268,7 +268,7 @@ func handleLocalDirectoryResourceBuild(name, namespace, resource string) error {
 }
 
 func handleLocalFileResourceBuild(name, namespace, resource string) error {
-	fileReader, fileName, err := buildutil.LoadLocalFileIntoMemory(resource)
+	fileReader, fileName, err := shared.LoadLocalFileIntoMemory(resource)
 	if err != nil {
 		return err
 	}
@@ -280,7 +280,7 @@ func handleLocalFileResourceBuild(name, namespace, resource string) error {
 
 func handleBinaryResourceBuild(name, namespace string) {
 	log := context.GetDefaultLogger()
-	log.Infof(message.KogitoAppUploadBinariesInstruction, name, namespace)
+	log.Infof(message.KogitoBuildUploadBinariesInstruction, name, namespace)
 }
 
 func triggerBuild(name string, namespace string, fileReader io.Reader, fileName string) error {
@@ -301,6 +301,6 @@ func triggerBuild(name string, namespace string, fileReader io.Reader, fileName 
 		return err
 	}
 
-	log.Infof(message.KogitoAppSuccessfullyUploadedFile, name, namespace)
+	log.Infof(message.KogitoBuildSuccessfullyUploadedFile, name, namespace)
 	return nil
 }

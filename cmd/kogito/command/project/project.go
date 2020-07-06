@@ -16,7 +16,7 @@ package project
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message/flags"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/spf13/cobra"
@@ -35,11 +35,11 @@ type projectFlags struct {
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
 	flag.AddOperatorFlags(command, &pFlags.OperatorFlags)
-	command.Flags().StringVarP(&pFlags.project, "project", "n", "", flags.ProjectCurrentContext)
-	command.Flags().BoolVar(&pFlags.installDataIndex, "install-data-index", false, flags.InstallDataIndex)
-	command.Flags().BoolVar(&pFlags.installJobsService, "install-jobs-service", false, flags.InstallJobsService)
-	command.Flags().BoolVar(&pFlags.installManagementConsole, "install-mgmt-console", false, flags.InstallMgmtConsole)
-	command.Flags().BoolVar(&pFlags.installAll, "install-all", false, flags.InstallAllServices)
+	command.Flags().StringVarP(&pFlags.project, "project", "n", "", message.ProjectCurrentContext)
+	command.Flags().BoolVar(&pFlags.installDataIndex, "install-data-index", false, message.InstallDataIndex)
+	command.Flags().BoolVar(&pFlags.installJobsService, "install-jobs-service", false, message.InstallJobsService)
+	command.Flags().BoolVar(&pFlags.installManagementConsole, "install-mgmt-console", false, message.InstallMgmtConsole)
+	command.Flags().BoolVar(&pFlags.installAll, "install-all", false, message.InstallAllServices)
 	command.Flags().BoolVar(&pFlags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
 	command.Flags().BoolVar(&pFlags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
 }

@@ -25,4 +25,10 @@ var (
 	RuntimeServiceCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitoruntime", "%s", "%s")
 	// RuntimeServiceNotInstalledNoKogitoOperator ...
 	RuntimeServiceNotInstalledNoKogitoOperator = fmt.Sprintf("Skipping deploy %s since Kogito Operator is not available.", "Runtime Service")
+	// RuntimeServiceMgmtConsole ...
+	RuntimeServiceMgmtConsole = `To more easily manage your Kogito Runtime Service install Data Index Service and Process Instance Management. 
+For how to install see: https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-deployment
+and https://github.com/kiegroup/kogito-cloud-operator#kogito-management-console-install`
+	// RuntimeServiceMgmtConsoleEndpoint ...
+	RuntimeServiceMgmtConsoleEndpoint = `You can manage your process using the management console: %s`
 )

@@ -15,16 +15,16 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func Test_FromResourceTypeToKogitoBuildType(t *testing.T) {
-	assert.Equal(t, v1alpha1.LocalSourceBuildType, FromResourceTypeToKogitoBuildType(util.LocalFileResource))
-	assert.Equal(t, v1alpha1.LocalSourceBuildType, FromResourceTypeToKogitoBuildType(util.LocalDirectoryResource))
-	assert.Equal(t, v1alpha1.LocalSourceBuildType, FromResourceTypeToKogitoBuildType(util.GitFileResource))
-	assert.Equal(t, v1alpha1.RemoteSourceBuildType, FromResourceTypeToKogitoBuildType(util.GitRepositoryResource))
-	assert.Equal(t, v1alpha1.BinaryBuildType, FromResourceTypeToKogitoBuildType(util.BinaryResource))
+	assert.Equal(t, v1alpha1.LocalSourceBuildType, FromResourceTypeToKogitoBuildType(shared.LocalFileResource))
+	assert.Equal(t, v1alpha1.LocalSourceBuildType, FromResourceTypeToKogitoBuildType(shared.LocalDirectoryResource))
+	assert.Equal(t, v1alpha1.LocalSourceBuildType, FromResourceTypeToKogitoBuildType(shared.GitFileResource))
+	assert.Equal(t, v1alpha1.RemoteSourceBuildType, FromResourceTypeToKogitoBuildType(shared.GitRepositoryResource))
+	assert.Equal(t, v1alpha1.BinaryBuildType, FromResourceTypeToKogitoBuildType(shared.BinaryResource))
 }

@@ -45,10 +45,10 @@ type deleteRuntimeCommand struct {
 
 func (i *deleteRuntimeCommand) RegisterHook() {
 	i.command = &cobra.Command{
-		Example: "delete-runtime example-drools --project kogito",
-		Use:     "delete-runtime NAME [flags]",
+		Example: "delete-service example-drools --project kogito",
+		Use:     "delete-service NAME [flags]",
 		Short:   "Deletes a Kogito Runtime Service deployed in the namespace/project",
-		Long:    `delete-runtime will exclude every OpenShift/Kubernetes resource created to deploy the Kogito Runtime Service into the namespace.`,
+		Long:    `delete-service will exclude every OpenShift/Kubernetes resource created to deploy the Kogito Runtime Service into the namespace.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,

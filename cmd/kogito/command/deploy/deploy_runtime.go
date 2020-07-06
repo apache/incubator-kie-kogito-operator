@@ -19,9 +19,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,10 +63,10 @@ func (i *deployRuntimeCommand) Command() *cobra.Command {
 
 func (i *deployRuntimeCommand) RegisterHook() {
 	i.command = &cobra.Command{
-		Use:     "deploy-runtime NAME [IMAGE]",
+		Use:     "deploy-service NAME [IMAGE]",
 		Short:   "Deploys a new Kogito Runtime Service into the given Project",
 		Aliases: []string{"deploy"},
-		Long: `deploy-runtime will create a new Kogito Runtime Service using provided [IMAGE] in the Project context. 
+		Long: `deploy-service will create a new Kogito Runtime Service using provided [IMAGE] in the Project context. 
 			
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
@@ -166,10 +168,25 @@ func (i *deployRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err erro
 
 	log.Debugf("Trying to deploy Kogito runtime Service '%s'", kogitoRuntime.Name)
 	// Create the Kogito application
-	return shared.
+	err = shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
 		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra).
 		DeployService(&kogitoRuntime).
 		GetError()
+	if err != nil {
+		return err
+	}
+
+	endpoint, err := infrastructure.GetManagementConsoleEndpoint(i.Client, i.flags.Project)
+	if err != nil {
+		return err
+	}
+	if endpoint.IsEmpty() {
+		log.Info(message.RuntimeServiceMgmtConsole)
+	} else {
+		log.Infof(message.RuntimeServiceMgmtConsoleEndpoint, endpoint.HTTPRouteURI)
+	}
+
+	return nil
 }

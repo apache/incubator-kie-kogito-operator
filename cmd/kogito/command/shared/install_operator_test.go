@@ -17,7 +17,6 @@ package shared
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
@@ -34,6 +33,9 @@ import (
 	"testing"
 )
 
+// ServiceAccountName is the name of service account used by Kogito Services Runtimes
+const serviceAccountName = "kogito-service-viewer"
+
 func Test_InstallOperatorWithYaml(t *testing.T) {
 	ns := t.Name()
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
@@ -44,14 +46,14 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 
 	serviceAccount := v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      resource.ServiceAccountName,
+			Name:      serviceAccountName,
 			Namespace: ns,
 		},
 	}
 
 	_, err = kubernetes.ResourceC(client).Fetch(&serviceAccount)
 	assert.NoError(t, err)
-	assert.Equal(t, resource.ServiceAccountName, serviceAccount.Name)
+	assert.Equal(t, serviceAccountName, serviceAccount.Name)
 
 	serviceAccount = v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{

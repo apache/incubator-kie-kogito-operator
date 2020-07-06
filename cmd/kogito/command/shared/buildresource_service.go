@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package shared
 
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"io"
 	"net/http"
 	"net/url"
@@ -63,7 +64,7 @@ func GetResourceType(resource string) (ResourceType ResourceType, err error) {
 		// check whether resource is Git File or Git Repo
 		ff := strings.Split(resource, "/")
 		fileName := strings.Join(strings.Fields(ff[len(ff)-1]), "")
-		if IsSuffixSupported(fileName) {
+		if util.IsSuffixSupported(fileName) {
 			return GitFileResource, nil
 		}
 		return GitRepositoryResource, nil
@@ -75,7 +76,7 @@ func GetResourceType(resource string) (ResourceType ResourceType, err error) {
 		return
 	}
 	if fileInfo.Mode().IsRegular() {
-		if IsSuffixSupported(resource) {
+		if util.IsSuffixSupported(resource) {
 			return LocalFileResource, nil
 		}
 		return "", fmt.Errorf("invalid resource")
@@ -97,14 +98,14 @@ func LoadGitFileIntoMemory(resource string) (io.Reader, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to download %s, error message: %s", resource, err.Error())
 	}
-	log.Infof(message.KogitoAppFoundAsset, fileName)
+	log.Infof(message.KogitoBuildFoundAsset, fileName)
 	return response.Body, fileName, nil
 }
 
 // LoadLocalFileIntoMemory reads file from local system and load it in memory.
 func LoadLocalFileIntoMemory(resource string) (io.Reader, string, error) {
 	log := context.GetDefaultLogger()
-	log.Infof(message.KogitoAppFoundFile, resource)
+	log.Infof(message.KogitoBuildFoundFile, resource)
 	ff := strings.Split(resource, "/")
 	fileName := strings.Join(strings.Fields(ff[len(ff)-1]), "")
 	fileReader, err := os.Open(resource)
@@ -117,8 +118,8 @@ func LoadLocalFileIntoMemory(resource string) (io.Reader, string, error) {
 // ZipAndLoadLocalDirectoryIntoMemory zip the given directory URI and load it in memory.
 func ZipAndLoadLocalDirectoryIntoMemory(resource string) (io.Reader, string, error) {
 	log := context.GetDefaultLogger()
-	log.Info(message.KogitoAppProvidedFileIsDir)
-	ioTgzR, err := ProduceTGZfile(resource)
+	log.Info(message.KogitoBuildProvidedFileIsDir)
+	ioTgzR, err := util.ProduceTGZfile(resource)
 	if err != nil {
 		return nil, "", err
 	}
