@@ -507,10 +507,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppBuildObject(ref common.ReferenceCallb
 					"webhooks": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []interface{}{
-									"type",
-								},
-								"x-kubernetes-list-type": "map",
+								"x-kubernetes-list-type": "atomic",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
