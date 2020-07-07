@@ -1,8 +1,0 @@
-version: 2
-jobs:
-  build:
-    docker:
-      - image: circleci/golang:1.14
-        environment:
-    steps:
-      - run: echo "I'm deprecated. Please remove me after this PR"
