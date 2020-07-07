@@ -17,38 +17,36 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/service"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/spf13/cobra"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type deleteRuntimeFlags struct {
+type deleteServiceFlags struct {
 	name    string
 	project string
 }
 
-func initDeleteRuntimeCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
-	cmd := &deleteRuntimeCommand{CommandContext: *ctx, Parent: parent}
+func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+	cmd := &deleteServiceCommand{CommandContext: *ctx, Parent: parent}
 	cmd.RegisterHook()
 	cmd.InitHook()
 	return cmd
 }
 
-type deleteRuntimeCommand struct {
+type deleteServiceCommand struct {
 	context.CommandContext
 	command *cobra.Command
-	flags   deleteRuntimeFlags
+	flags   deleteServiceFlags
 	Parent  *cobra.Command
 }
 
-func (i *deleteRuntimeCommand) RegisterHook() {
+func (i *deleteServiceCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Example: "delete-service example-drools --project kogito",
 		Use:     "delete-service NAME [flags]",
-		Short:   "Deletes a Kogito service deployed in the namespace/project",
-		Long:    `delete-service will exclude every OpenShift/Kubernetes resource created to deploy the Kogito service into the namespace.`,
+		Short:   "Deletes a Kogito build/service deployed in the namespace/project",
+		Long:    `delete-service will exclude every OpenShift/Kubernetes resource created to deploy the Kogito build/service into the namespace.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
@@ -61,34 +59,29 @@ func (i *deleteRuntimeCommand) RegisterHook() {
 	}
 }
 
-func (i *deleteRuntimeCommand) Command() *cobra.Command {
+func (i *deleteServiceCommand) Command() *cobra.Command {
 	return i.command
 }
 
-func (i *deleteRuntimeCommand) InitHook() {
-	i.flags = deleteRuntimeFlags{}
+func (i *deleteServiceCommand) InitHook() {
+	i.flags = deleteServiceFlags{}
 	i.Parent.AddCommand(i.command)
 	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name from where the service needs to be deleted")
 }
 
-func (i *deleteRuntimeCommand) Exec(cmd *cobra.Command, args []string) (err error) {
+func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	if i.flags.project, err = shared.EnsureProject(i.Client, i.flags.project); err != nil {
 		return err
 	}
-	if err := shared.CheckKogitoRuntimeExists(i.Client, i.flags.name, i.flags.project); err != nil {
+	if err = service.DeleteRuntimeService(i.Client, i.flags.name, i.flags.project); err != nil {
 		return err
 	}
-	log.Debugf("About to delete service %s in namespace %s", i.flags.name, i.flags.project)
-	if err := kubernetes.ResourceC(i.Client).Delete(&v1alpha1.KogitoRuntime{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      i.flags.name,
-			Namespace: i.flags.project,
-		},
-	}); err != nil {
-		return err
+	if i.Client.IsOpenshift() {
+		if err = service.DeleteBuildService(i.Client, i.flags.name, i.flags.project); err != nil {
+			log.Errorf("%s", err)
+		}
 	}
-	log.Infof("Successfully deleted Kogito Service %s in the Project %s", i.flags.name, i.flags.project)
 	return nil
 }

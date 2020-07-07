@@ -15,18 +15,18 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
 // FromResourceTypeToKogitoBuildType converts given ResourceType into KogitoBuildType
-func FromResourceTypeToKogitoBuildType(resourceType shared.ResourceType) v1alpha1.KogitoBuildType {
+func FromResourceTypeToKogitoBuildType(resourceType flag.ResourceType) v1alpha1.KogitoBuildType {
 	switch resourceType {
-	case shared.LocalDirectoryResource, shared.LocalFileResource, shared.GitFileResource:
+	case flag.LocalDirectoryResource, flag.LocalFileResource, flag.GitFileResource:
 		return v1alpha1.LocalSourceBuildType
-	case shared.GitRepositoryResource:
+	case flag.GitRepositoryResource:
 		return v1alpha1.RemoteSourceBuildType
-	case shared.BinaryResource:
+	case flag.BinaryResource:
 		return v1alpha1.BinaryBuildType
 	default:
 		return v1alpha1.RemoteSourceBuildType

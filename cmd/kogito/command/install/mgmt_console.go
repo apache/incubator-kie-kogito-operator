@@ -26,7 +26,7 @@ import (
 )
 
 type installMgmtConsoleFlags struct {
-	flag.DeployFlags
+	flag.InstallFlags
 }
 
 type installMgmtConsoleCommand struct {
@@ -68,7 +68,7 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
+			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
 				return err
 			}
 			return nil
@@ -79,7 +79,7 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 func (i *installMgmtConsoleCommand) InitHook() {
 	i.flags = installMgmtConsoleFlags{}
 	i.Parent.AddCommand(i.command)
-	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
+	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
 }
 
 func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) error {

@@ -25,8 +25,8 @@ const (
 	defaultDeployReplicas = 1
 )
 
-// DeployFlags is the base structure for resources that can be deployed in the cluster
-type DeployFlags struct {
+// InstallFlags is the base structure for resources that can be deployed in the cluster
+type InstallFlags struct {
 	OperatorFlags
 	PodResourceFlags
 	ImageFlags
@@ -36,10 +36,10 @@ type DeployFlags struct {
 	HTTPPort int32
 }
 
-// AddDeployFlags adds the common deploy flags to the given command
-func AddDeployFlags(command *cobra.Command, flags *DeployFlags) {
+// AddInstallFlags adds the common deploy flags to the given command
+func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
 	AddOperatorFlags(command, &flags.OperatorFlags)
-	AddPodResourceFlags(command, &flags.PodResourceFlags)
+	AddPodResourceFlags(command, &flags.PodResourceFlags, "")
 	AddImageFlags(command, &flags.ImageFlags)
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
@@ -47,8 +47,8 @@ func AddDeployFlags(command *cobra.Command, flags *DeployFlags) {
 	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")
 }
 
-// CheckDeployArgs checks the default deploy flags
-func CheckDeployArgs(flags *DeployFlags) error {
+// CheckInstallArgs checks the default deploy flags
+func CheckInstallArgs(flags *InstallFlags) error {
 	if err := CheckOperatorArgs(&flags.OperatorFlags); err != nil {
 		return err
 	}

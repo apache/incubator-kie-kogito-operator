@@ -27,7 +27,7 @@ import (
 )
 
 type installDataIndexFlags struct {
-	flag.DeployFlags
+	flag.InstallFlags
 	flag.InfinispanFlags
 	flag.KafkaFlags
 }
@@ -74,7 +74,7 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
+			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
 				return err
 			}
 			if err := flag.CheckInfinispanArgs(&i.flags.InfinispanFlags); err != nil {
@@ -91,7 +91,7 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 func (i *installDataIndexCommand) InitHook() {
 	i.flags = installDataIndexFlags{}
 	i.Parent.AddCommand(i.command)
-	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
+	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
 	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
 	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
 }

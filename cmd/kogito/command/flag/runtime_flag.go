@@ -16,31 +16,46 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-const defaultDeployRuntime = string(v1alpha1.QuarkusRuntimeType)
-
-var (
-	runtimeTypeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
-)
-
-// RuntimeFlags is common properties used to configure runtime properties
+// RuntimeFlags is common properties used to configure Runtime service
 type RuntimeFlags struct {
-	Runtime string
+	InstallFlags
+	InfinispanFlags
+	KafkaFlags
+	RuntimeTypeFlags
+	Name              string
+	EnableIstio       bool
+	EnablePersistence bool
+	EnableEvents      bool
+	ServiceLabels     []string
 }
 
-// AddRuntimeFlags adds the Runtime flags to the given command
+// AddRuntimeFlags adds the RuntimeFlags to the given command
 func AddRuntimeFlags(command *cobra.Command, flags *RuntimeFlags) {
-	command.Flags().StringVarP(&flags.Runtime, "runtime", "r", defaultDeployRuntime, "The runtime which should be used to build the Service. Valid values are 'quarkus' or 'springboot'. Default to '"+defaultDeployRuntime+"'.")
+	AddInstallFlags(command, &flags.InstallFlags)
+	AddInfinispanFlags(command, &flags.InfinispanFlags)
+	AddKafkaFlags(command, &flags.KafkaFlags)
+	command.Flags().BoolVar(&flags.EnableIstio, "enable-istio", false, "Enable Istio integration by annotating the Kogito service pods with the right value for Istio controller to inject sidecars on it. Defaults to false")
+	command.Flags().BoolVar(&flags.EnablePersistence, "enable-persistence", false, "If set to true, deployed Kogito service will support integration with Infinispan server for persistence. Default to false")
+	command.Flags().BoolVar(&flags.EnableEvents, "enable-events", false, "If set to true, deployed Kogito service will support integration with Kafka cluster for events. Default to false")
 }
 
 // CheckRuntimeArgs validates the RuntimeFlags flags
 func CheckRuntimeArgs(flags *RuntimeFlags) error {
-	if !util.Contains(flags.Runtime, runtimeTypeValidEntries) {
-		return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", runtimeTypeValidEntries, flags.Runtime)
+	if err := CheckInstallArgs(&flags.InstallFlags); err != nil {
+		return err
+	}
+	if err := CheckInfinispanArgs(&flags.InfinispanFlags); err != nil {
+		return err
+	}
+	if err := CheckKafkaArgs(&flags.KafkaFlags); err != nil {
+		return err
+	}
+	if err := util.ParseStringsForKeyPair(flags.ServiceLabels); err != nil {
+		return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", flags.ServiceLabels)
 	}
 	return nil
 }

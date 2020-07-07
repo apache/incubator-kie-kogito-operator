@@ -47,10 +47,10 @@ type servicesInstallation struct {
 type ServicesInstallation interface {
 	// BuildService build kogito service.
 	// Depends on the Operator, install it first.
-	BuildService(build *v1alpha1.KogitoBuild) ServicesInstallation
+	InstallBuildService(build *v1alpha1.KogitoBuild) ServicesInstallation
 	// DeployService deploy Runtime service.
 	// Depends on the Operator, install it first.
-	DeployService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation
+	InstallRuntimeService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation
 	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
@@ -106,7 +106,7 @@ func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool
 	return s
 }
 
-func (s *servicesInstallation) BuildService(build *v1alpha1.KogitoBuild) ServicesInstallation {
+func (s *servicesInstallation) InstallBuildService(build *v1alpha1.KogitoBuild) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(build,
 			serviceInfoMessages{
@@ -119,7 +119,7 @@ func (s *servicesInstallation) BuildService(build *v1alpha1.KogitoBuild) Service
 	return s
 }
 
-func (s *servicesInstallation) DeployService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation {
+func (s *servicesInstallation) InstallRuntimeService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(runtime,
 			serviceInfoMessages{

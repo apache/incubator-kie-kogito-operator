@@ -27,9 +27,15 @@ type PodResourceFlags struct {
 }
 
 // AddPodResourceFlags adds the common resource flags to the given command
-func AddPodResourceFlags(command *cobra.Command, flags *PodResourceFlags) {
-	command.Flags().StringSliceVar(&flags.Limits, "limits", nil, "Resource limits for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
-	command.Flags().StringSliceVar(&flags.Requests, "requests", nil, "Resource requests for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
+func AddPodResourceFlags(command *cobra.Command, flags *PodResourceFlags, prefix string) {
+	limitName := "limits"
+	requestName := "requests"
+	if prefix != "" {
+		limitName = prefix + "-" + limitName
+		requestName = prefix + "-" + requestName
+	}
+	command.Flags().StringSliceVar(&flags.Limits, limitName, nil, "Resource limits for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
+	command.Flags().StringSliceVar(&flags.Requests, requestName, nil, "Resource requests for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 }
 
 // CheckPodResourceArgs validates the resource flags

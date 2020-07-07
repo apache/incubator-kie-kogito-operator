@@ -18,17 +18,14 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"testing"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
 	"github.com/stretchr/testify/assert"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
-func Test_DeleteRuntimeCmd_WhenWeSuccessfullyDelete(t *testing.T) {
+func Test_DeleteServiceCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,
@@ -41,7 +38,7 @@ func Test_DeleteRuntimeCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 	assert.Contains(t, lines, "Successfully deleted Kogito Service example-drools")
 }
 
-func Test_DeleteRuntimeCmd_WhenServiceDoesNotExist(t *testing.T) {
+func Test_DeleteServiceCmd_WhenServiceDoesNotExist(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,

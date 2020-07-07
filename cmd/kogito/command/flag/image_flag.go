@@ -38,3 +38,8 @@ func CheckImageArgs(flags *ImageFlags) error {
 	}
 	return nil
 }
+
+// IsEmpty return true if image details are not provided else return false
+func (i *ImageFlags) IsEmpty() bool {
+	return len(i.Image) == 0
+}

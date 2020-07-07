@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package service
 
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"io"
@@ -26,33 +27,17 @@ import (
 	"strings"
 )
 
-// ResourceType represents mediums through which user can trigger build
-type ResourceType string
-
-const (
-	// LocalFileResource Build using file on local system
-	LocalFileResource ResourceType = "LocalFileResource"
-	// LocalDirectoryResource Build using directory on local system
-	LocalDirectoryResource ResourceType = "LocalDirectoryResource"
-	// GitFileResource Build using file in Git Repo
-	GitFileResource ResourceType = "GitFileResource"
-	// GitRepositoryResource Build using Git Repo
-	GitRepositoryResource ResourceType = "GitRepositoryResource"
-	// BinaryResource Build using user generated binaries
-	BinaryResource ResourceType = "BinaryResource"
-)
-
 // GetResourceType drive resource type using provide resource URI.
 // If resource URI is not provided then its a Binary build request
 // If resource URI starts with HTTP and end with file ext suffix then its a build request using Git file
 // If resource URI starts with HTTP and don't have file ext suffix then its a build request using Git Repo
 // If resource URI is refers to local system and end with file ext suffix then its a build request using local file
 // If resource URI is refers to local system and don't file ext suffix then its a build request using local directory
-func GetResourceType(resource string) (ResourceType ResourceType, err error) {
+func GetResourceType(resource string) (ResourceType flag.ResourceType, err error) {
 
 	// check for binary resource
 	if len(resource) == 0 {
-		return BinaryResource, nil
+		return flag.BinaryResource, nil
 	}
 
 	// check for Git resource
@@ -65,9 +50,9 @@ func GetResourceType(resource string) (ResourceType ResourceType, err error) {
 		ff := strings.Split(resource, "/")
 		fileName := strings.Join(strings.Fields(ff[len(ff)-1]), "")
 		if util.IsSuffixSupported(fileName) {
-			return GitFileResource, nil
+			return flag.GitFileResource, nil
 		}
-		return GitRepositoryResource, nil
+		return flag.GitRepositoryResource, nil
 	}
 
 	// check for local resource
@@ -77,11 +62,11 @@ func GetResourceType(resource string) (ResourceType ResourceType, err error) {
 	}
 	if fileInfo.Mode().IsRegular() {
 		if util.IsSuffixSupported(resource) {
-			return LocalFileResource, nil
+			return flag.LocalFileResource, nil
 		}
 		return "", fmt.Errorf("invalid resource")
 	} else if fileInfo.Mode().IsDir() {
-		return LocalDirectoryResource, nil
+		return flag.LocalDirectoryResource, nil
 	}
 
 	return "", fmt.Errorf("invalid resource")

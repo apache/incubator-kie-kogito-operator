@@ -26,7 +26,7 @@ import (
 )
 
 type installJobsServiceFlags struct {
-	flag.DeployFlags
+	flag.InstallFlags
 	flag.InfinispanFlags
 	flag.KafkaFlags
 	backOffRetryMillis            int64
@@ -74,7 +74,7 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := flag.CheckDeployArgs(&i.flags.DeployFlags); err != nil {
+			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
 				return err
 			}
 			if err := flag.CheckInfinispanArgs(&i.flags.InfinispanFlags); err != nil {
@@ -91,7 +91,7 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 func (i *installJobsServiceCommand) InitHook() {
 	i.flags = installJobsServiceFlags{}
 	i.Parent.AddCommand(i.command)
-	flag.AddDeployFlags(i.command, &i.flags.DeployFlags)
+	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
 	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
 	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
 

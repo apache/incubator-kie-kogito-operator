@@ -19,7 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
-// FromRuntimeFlagsToRuntimeType converts given RuntimeFlags into RuntimeType
-func FromRuntimeFlagsToRuntimeType(flags *flag.RuntimeFlags) v1alpha1.RuntimeType {
+// FromRuntimeFlagsToRuntimeType converts given RuntimeTypeFlags into RuntimeType
+func FromRuntimeFlagsToRuntimeType(flags *flag.RuntimeTypeFlags) v1alpha1.RuntimeType {
 	return v1alpha1.RuntimeType(flags.Runtime)
 }

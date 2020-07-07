@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package build
+package service
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"

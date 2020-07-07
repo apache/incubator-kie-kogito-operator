@@ -22,7 +22,7 @@ import (
 )
 
 func Test_FromRuntimeFlagsToRuntimeType(t *testing.T) {
-	flags := &flag.RuntimeFlags{
+	flags := &flag.RuntimeTypeFlags{
 		Runtime: "springboot",
 	}
 
