@@ -87,6 +87,13 @@ pipeline {
                     make build-cli
                 """
             }
+            post {
+                success {
+                    script {
+                        archiveArtifacts artifacts: "build/_output/bin/kogito", allowEmptyArchive: false
+                    }
+                }
+            }
         }
         stage('Push Operator Image to Openshift Registry') {
             steps {
@@ -105,8 +112,11 @@ pipeline {
             }
             steps {
                 script {
+                    // Need to login to Openshift Registry for application images to be pushed
+                    loginOpenshiftRegistry()
+
                     // Optaplanner taking a lot of resources, we should not build in parallel
-                    sh "make build-examples-images concurrent=1 ${getBDDParameters()}"
+                    sh "make build-examples-images concurrent=1 image_cache_mode=never ${getBDDParameters()}"
                 }
             }
             post {
@@ -149,7 +159,6 @@ pipeline {
                 }
             }
         }
-        // TODO archive CLI as artifact
     }
 }
 
@@ -261,37 +270,42 @@ String getBDDParameters() {
     if (params.KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY) {
         testParamsMap["build_image_registry"] = env.OPENSHIFT_INTERNAL_REGISTRY
         testParamsMap["services_image_registry"] = env.OPENSHIFT_INTERNAL_REGISTRY
-        testParamsMap["runtime_application_image_registry"] = env.OPENSHIFT_INTERNAL_REGISTRY
         testParamsMap["build_image_namespace"] = "openshift"
         testParamsMap["services_image_namespace"] = "openshift"
-        testParamsMap["runtime_application_image_namespace"] = "openshift"
     } else {
         if(params.KOGITO_IMAGES_REGISTRY != '') {
             testParamsMap["build_image_registry"] = params.KOGITO_IMAGES_REGISTRY
             testParamsMap["services_image_registry"] = params.KOGITO_IMAGES_REGISTRY
-            testParamsMap["runtime_application_image_registry"] = params.KOGITO_IMAGES_REGISTRY
         }
         if(params.KOGITO_IMAGES_NAMESPACE != '') {
             testParamsMap["build_image_namespace"] = params.KOGITO_IMAGES_NAMESPACE
             testParamsMap["services_image_namespace"] = params.KOGITO_IMAGES_NAMESPACE
-            testParamsMap["runtime_application_image_namespace"] = params.KOGITO_IMAGES_NAMESPACE
         }
     }
+    // runtime_application_image are built in this pipeline so we can just use Openshift registry for them
+    testParamsMap["runtime_application_image_registry"] = env.OPENSHIFT_REGISTRY
+    testParamsMap["runtime_application_image_namespace"] = "openshift"
+
     if(params.KOGITO_IMAGES_NAME_SUFFIX != '') {
         testParamsMap["build_image_name_suffix"] = params.KOGITO_IMAGES_NAME_SUFFIX
         testParamsMap["services_image_name_suffix"] = params.KOGITO_IMAGES_NAME_SUFFIX
         testParamsMap["runtime_application_image_name_suffix"] = params.KOGITO_IMAGES_NAME_SUFFIX
     }
+
     if(params.KOGITO_IMAGES_TAG != '') {
         testParamsMap["build_image_version"] = params.KOGITO_IMAGES_TAG
         testParamsMap["services_image_version"] = params.KOGITO_IMAGES_TAG
         testParamsMap["runtime_application_image_version"] = params.KOGITO_IMAGES_TAG
     }
+
     if(params.EXAMPLES_REF != '') {
         testParamsMap["examples_ref"] = params.EXAMPLES_REF
     }
+    
+    // Use podman container engine in tests
+    testParamsMap['container_engine'] = 'podman'
 
     String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(" ")
-    echo "Test parameters = ${testParams}"
+    echo "BDD parameters = ${testParams}"
     return testParams
 }
