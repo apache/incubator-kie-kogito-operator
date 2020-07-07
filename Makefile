@@ -91,6 +91,7 @@ load_default_config=false
 container_engine=
 domain_suffix=
 image_cache_mode=
+http_retry_nb=
 # operator information
 operator_image=
 operator_tag=
@@ -180,6 +181,7 @@ run-tests:
 		--container_engine ${container_engine} \
 		--domain_suffix ${domain_suffix} \
 		--image_cache_mode ${image_cache_mode} \
+		--http_retry_nb ${http_retry_nb} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
