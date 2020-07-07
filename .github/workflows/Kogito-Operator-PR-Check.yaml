@@ -1,0 +1,124 @@
+name: Kogito Operator PR Checks
+on:
+  pull_request:
+  push:
+    paths-ignore:
+      - "README.md"
+      - "examples/**"
+      - "LICENSE"
+      - "Makefile"
+    branches:
+      - master
+env:
+  OPERATOR_SDK_VERSION: v0.18.2
+  GO_VERSION: 1.14
+jobs:
+  golint:
+    name: Lint
+    runs-on: ubuntu-latest
+    env:
+      GOLANG_LINT_VERSION: v1.27.0
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod/cache
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache-
+      - name: Cache the binaries
+        uses: actions/cache@v1
+        with:
+          path: /usr/bin
+          key: ${{ runner.os }}-operator-sdk-${{ env.OPERATOR_SDK_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-operator-sdk-${{ env.OPERATOR_SDK_VERSION }}
+      - name: Setup GOPATH
+        run: |
+          export GOPATH=$(go env GOPATH)
+          mkdir -p $GOPATH/bin/
+          echo "::add-path::$GOPATH/bin/"
+      - name: Install Operator-sdk
+        run: |
+          sudo curl -L https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu -o /usr/bin/operator-sdk
+          sudo chmod +x /usr/bin/operator-sdk
+          # For Verification
+          operator-sdk version
+      - name: Check Headers
+        run: |
+          ./hack/addheaders.sh
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make test' before sending the PR" && exit 1)
+      - name: Check Vet
+        run: |
+          ./hack/go-vet.sh
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          generated_changed_files=$(git status -s | grep zz_generated || :)
+          [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen && exit 1")
+          [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
+      - name: Check Formatting
+        run: |
+          ./hack/go-fmt.sh
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
+      - name: Install golinters
+        run: |
+          go get -u golang.org/x/lint/golint
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
+      - name: Check lint
+        run: ./hack/go-lint.sh
+
+  unit_test_and_coverage:
+    name: Unit test and Coverage
+    runs-on: ubuntu-latest
+    env:
+      MIN_COVERAGE: 50
+      CGO_ENABLED: 0
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod/cache
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache-
+      - name: Setup GOPATH
+        run: |
+          export GOPATH=$(go env GOPATH)
+          mkdir -p $GOPATH/bin/
+          echo "::add-path::$GOPATH/bin/"
+      - name: Install cover
+        run: go get golang.org/x/tools/cmd/cover
+      - run: go mod tidy
+      - name: Test cmd dir and archive coverage
+        run: |
+          go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.out
+          ./hack/coverage.sh cmd-coverage.out
+      - uses: actions/upload-artifact@v2
+        with:
+          path: cmd-coverage.out
+      - name: Test pkg dir and archive coverage
+        run: |
+          go test ./pkg/... -count=1 -p=1 -coverprofile=pkg-coverage.out
+          ./hack/coverage.sh pkg-coverage.out
+      - uses: actions/upload-artifact@v2
+        with:
+          path: pkg-coverage.out
+
+  bats_test:
+    name: Bats Test
+    needs: [golint, unit_test_and_coverage]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Bats
+        run: |
+          git clone https://github.com/bats-core/bats-core.git
+          cd bats-core && ./install.sh $HOME
+      - name: Run Bats
+        run: $HOME/bin/bats hack/*.bats
