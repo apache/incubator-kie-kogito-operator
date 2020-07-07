@@ -4,7 +4,7 @@ require (
 	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
 	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc
 	github.com/cucumber/gherkin-go/v11 v11.0.0
-	github.com/cucumber/godog v0.9.0
+	github.com/cucumber/godog v0.10.0
 	github.com/cucumber/messages-go/v10 v10.0.3
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
@@ -29,7 +29,7 @@ require (
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.14.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
