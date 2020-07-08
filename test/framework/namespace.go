@@ -70,7 +70,7 @@ func OperateOnNamespaceIfExists(namespace string, operate func(namespace string)
 	} else if ok {
 		return operate(namespace)
 	}
-	GetLogger(namespace).Warn("No namespace found for deletion")
+	GetLogger(namespace).Warn("Namespace not found for operation")
 	return nil
 }
 
