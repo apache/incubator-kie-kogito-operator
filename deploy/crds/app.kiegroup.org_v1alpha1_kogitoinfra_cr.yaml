@@ -2,7 +2,7 @@ apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoInfra
 metadata:
   # default name
-  name: kogito-infra
+  name: infra
 spec:
   # set to true if a Infinispan instance should be installed in the namespace via Infinispan Operator
   installInfinispan: false

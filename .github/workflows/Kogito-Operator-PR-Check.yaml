@@ -21,6 +21,11 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
       - name: Cache dependencies
         uses: actions/cache@v1
         with:
@@ -31,26 +36,12 @@ jobs:
       - name: Cache the binaries
         uses: actions/cache@v1
         with:
-          path: /usr/bin
-          key: ${{ runner.os }}-operator-sdk-${{ env.OPERATOR_SDK_VERSION }}
+          path: ~/go/bin/
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-operator-sdk-${{ env.OPERATOR_SDK_VERSION }}
-      - name: Setup GOPATH
-        run: |
-          export GOPATH=$(go env GOPATH)
-          mkdir -p $GOPATH/bin/
-          echo "::add-path::$GOPATH/bin/"
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}
       - name: Install Operator-sdk
-        run: |
-          sudo curl -L https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu -o /usr/bin/operator-sdk
-          sudo chmod +x /usr/bin/operator-sdk
-          # For Verification
-          operator-sdk version
-      - name: Check Headers
-        run: |
-          ./hack/addheaders.sh
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-          [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make test' before sending the PR" && exit 1)
+        run: ./hack/ci/install-operator-sdk.sh
       - name: Check Vet
         run: |
           ./hack/go-vet.sh
@@ -58,6 +49,12 @@ jobs:
           generated_changed_files=$(git status -s | grep zz_generated || :)
           [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen" && exit 1)
           [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
+
+      - name: Check Headers
+        run: |
+          ./hack/addheaders.sh
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make test' before sending the PR" && exit 1)
       - name: Check Formatting
         run: |
           ./hack/go-fmt.sh
@@ -79,6 +76,11 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
       - name: Cache dependencies
         uses: actions/cache@v1
         with:
@@ -86,11 +88,6 @@ jobs:
           key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-cache-
-      - name: Setup GOPATH
-        run: |
-          export GOPATH=$(go env GOPATH)
-          mkdir -p $GOPATH/bin/
-          echo "::add-path::$GOPATH/bin/"
       - name: Install cover
         run: go get golang.org/x/tools/cmd/cover
       - run: go mod tidy
@@ -122,3 +119,55 @@ jobs:
           cd bats-core && ./install.sh $HOME
       - name: Run Bats
         run: $HOME/bin/bats hack/*.bats
+  olm_integration:
+    name: OLM Integration Test
+    runs-on: ubuntu-latest
+    env:
+      CLUSTER_NAME: operator-test
+      KIND_VERSION: v0.8.1
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod/cache
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache-
+      - name: Cache the binaries
+        uses: actions/cache@v1
+        with:
+          path: ~/go/bin/
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}
+      - name: Cache Go mod
+        uses: actions/cache@v1
+        with:
+          path: go.mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+              ${{ runner.os }}-go-mod-
+      - run: go mod tidy
+      - name: Intall Operator-sdk
+        run: ./hack/ci/install-operator-sdk.sh
+      - name: Install Kind
+        run: ./hack/ci/install-kind.sh
+      - name: Start Kind
+        run: ./hack/ci/start-kind.sh
+      - name: Genrate Manifests
+        run: ./hack/generate-manifests.sh
+      - name: Build Operator Image
+        env:
+          BUILDER: docker
+        run: ./hack/go-build.sh
+      - name: Load Operator Image
+        run: ./hack/ci/load-operator-image.sh
+      - name: Run Operator OLM Integration Test
+        run: ./hack/ci/operator-olm-test.sh
