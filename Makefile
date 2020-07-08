@@ -90,6 +90,8 @@ cr_deployment_only=false
 load_default_config=false
 container_engine=
 domain_suffix=
+image_cache_mode=
+http_retry_nb=
 # operator information
 operator_image=
 operator_tag=
@@ -106,6 +108,8 @@ jobs_service_image_tag=
 management_console_image_tag=
 runtime_application_image_registry=
 runtime_application_image_namespace=
+runtime_application_image_name_suffix=
+runtime_application_image_version=
 # build
 custom_maven_repo=
 maven_mirror=
@@ -160,6 +164,8 @@ run-tests:
 		--management_console_image_tag ${management_console_image_tag} \
 		--runtime_application_image_registry ${runtime_application_image_registry} \
 		--runtime_application_image_namespace ${runtime_application_image_namespace} \
+		--runtime_application_image_name_suffix ${runtime_application_image_name_suffix} \
+		--runtime_application_image_version ${runtime_application_image_version} \
 		--custom_maven_repo $(custom_maven_repo) \
 		--maven_mirror $(maven_mirror) \
 		--build_image_registry ${build_image_registry} \
@@ -174,6 +180,8 @@ run-tests:
 		--load_factor ${load_factor} \
 		--container_engine ${container_engine} \
 		--domain_suffix ${domain_suffix} \
+		--image_cache_mode ${image_cache_mode} \
+		--http_retry_nb ${http_retry_nb} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
@@ -183,6 +191,10 @@ run-smoke-tests:
 .PHONY: run-performance-tests
 run-performance-tests:
 	make run-tests performance=true
+
+.PHONY: build-examples-images
+build-examples-images:
+	make run-tests feature=scripts/examples
 
 .PHONY: prepare-olm
 version = ""
