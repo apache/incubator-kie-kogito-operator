@@ -24,6 +24,7 @@ rm -rf "${OUTPUT}"
 
 mkdir -p "${OUTPUT}"
 
+# copying all the kogito dependent operator to be added at manifests root.
 rm -rf ~/operators/
 git clone https://github.com/operator-framework/community-operators.git ~/operators/
 cp -r ~/operators/community-operators/strimzi-kafka-operator "${OUTPUT}"

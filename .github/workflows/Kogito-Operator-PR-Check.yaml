@@ -108,7 +108,6 @@ jobs:
 
   bats_test:
     name: Bats Test
-    needs: [golint, unit_test_and_coverage]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -121,6 +120,7 @@ jobs:
         run: $HOME/bin/bats hack/*.bats
   olm_integration:
     name: OLM Integration Test
+    needs: [golint, unit_test_and_coverage, bats_test]
     runs-on: ubuntu-latest
     env:
       CLUSTER_NAME: operator-test

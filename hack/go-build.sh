@@ -34,8 +34,6 @@ source ./hack/go-mod-env.sh
 source ./hack/export-version.sh
 
 # Default values
-REPO=https://github.com/kiegroup/kogito-cloud-operator
-BRANCH=master
 REGISTRY=quay.io/kiegroup
 IMAGE=kogito-cloud-operator
 TAG=0.12.0
@@ -44,6 +42,37 @@ BINARY_OUTPUT=build/_output/bin/kogito-cloud-operator
 setGoModEnv
 go generate ./...
 
+while (( $# ))
+do
+case $1 in
+  --image_registry)
+    shift
+    if [[ ! ${1} =~ ^-.* ]] && [[ ! -z "${1}" ]]; then export REGISTRY="${1}"; shift; fi
+  ;;
+  --image_name)
+    shift
+    if [[ ! ${1} =~ ^-.* ]] && [[ ! -z "${1}" ]]; then export IMAGE="${1}"; shift; fi
+  ;;
+  --image_tag)
+    shift
+    if [[ ! ${1} =~ ^-.* ]] && [[ ! -z "${1}" ]]; then export TAG="${1}"; shift; fi
+  ;;
+  --image_builder)
+    shift
+    if [[ ! ${1} =~ ^-.* ]] && [[ ! -z "${1}" ]]; then export BUILDER="${1}"; shift; fi
+  ;;
+  -h|--help)
+    usage
+    exit 0
+  ;;
+  *)
+    echo "Unknown arguments: ${1}"
+    usage
+    exit 1
+  ;;
+esac
+done
+
 if [[ -z ${CUSTOM_IMAGE_TAG} ]]; then
     CUSTOM_IMAGE_TAG=${REGISTRY}/${IMAGE}:${TAG}
 fi
@@ -51,6 +80,6 @@ if [[ -z ${BUILDER} ]]; then
     BUILDER=podman
 fi
 
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -o build/_output/bin/kogito-cloud-operator github.com/kiegroup/kogito-cloud-operator/cmd/manager
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -o ${BINARY_OUTPUT} github.com/kiegroup/kogito-cloud-operator/cmd/manager
 
-operator-sdk build ${CUSTOM_IMAGE_TAG} --image-builder ${BUILDER}
+operator-sdk build "${CUSTOM_IMAGE_TAG}" --image-builder ${BUILDER}
