@@ -38,7 +38,7 @@ pipeline {
 
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
-        timeout(time: 360, unit: 'MINUTES')
+        timeout(time: 420, unit: 'MINUTES')
     }
 
     environment {
@@ -50,10 +50,6 @@ pipeline {
         OPENSHIFT_REGISTRY = credentials("OPENSHIFT_REGISTRY")
         OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
         OPENSHIFT_CREDS_KEY = "OPENSHIFT_CREDS"
-
-        // Here under is a list of env variable which are defined dynamically into the pipeline
-        // We don't define them here because then there would be immutable ...
-        // TEST_PARAMS => parameters which will be set in `configure testing` stage, depending also on pipeline params
     }
     
     stages {
@@ -135,7 +131,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "make run-tests load_factor=3 concurrent=3 image_cache_mode=always smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
+                    sh "make run-tests timeout=360 load_factor=3 concurrent=6 image_cache_mode=always smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
                 }
             }
             post {
