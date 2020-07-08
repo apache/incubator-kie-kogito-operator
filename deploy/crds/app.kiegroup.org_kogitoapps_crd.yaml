@@ -273,9 +273,7 @@ spec:
                         type: string
                     type: object
                   type: array
-                  x-kubernetes-list-map-keys:
-                  - type
-                  x-kubernetes-list-type: map
+                  x-kubernetes-list-type: atomic
               type: object
             deploymentLabels:
               additionalProperties:

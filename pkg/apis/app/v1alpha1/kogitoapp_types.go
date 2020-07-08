@@ -109,8 +109,8 @@ type KogitoAppBuildObject struct {
 	// +optional
 	GitSource GitSource `json:"gitSource,omitempty"`
 	// WebHook secrets for build configs.
-	// +listType=map
-	// +listMapKey=type
+	// +listType=atomic
+	// +optional
 	Webhooks []WebhookSecret `json:"webhooks,omitempty"`
 	// + optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
