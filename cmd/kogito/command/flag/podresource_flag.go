@@ -30,9 +30,9 @@ type PodResourceFlags struct {
 func AddPodResourceFlags(command *cobra.Command, flags *PodResourceFlags, prefix string) {
 	limitName := "limits"
 	requestName := "requests"
-	if prefix != "" {
-		limitName = prefix + "-" + limitName
-		requestName = prefix + "-" + requestName
+	if len(prefix) > 0 {
+		limitName = fmt.Sprintf("%s-%s", prefix, limitName)
+		requestName = fmt.Sprintf("%s-%s", prefix, requestName)
 	}
 	command.Flags().StringSliceVar(&flags.Limits, limitName, nil, "Resource limits for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	command.Flags().StringSliceVar(&flags.Requests, requestName, nil, "Resource requests for the pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")

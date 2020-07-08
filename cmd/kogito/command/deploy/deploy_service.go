@@ -53,10 +53,13 @@ func (i *deployCommand) Command() *cobra.Command {
 
 func (i *deployCommand) RegisterHook() {
 	i.command = &cobra.Command{
-		Use:     "deploy-service NAME [IMAGE]",
+		Use:     "deploy-service NAME [SOURCE]",
 		Short:   "Deploys a new Kogito Service into the given Project",
 		Aliases: []string{"deploy"},
-		Long: `deploy-service will create a new Kogito Service using provided [IMAGE] in the Project context. 
+		Long: `deploy-service will create a new Kogito service in the Project context. 
+	If the [SOURCE] is provided, the build will take place on the cluster.
+	If not, you can also provide a dmn/drl/bpmn/bpmn2 file or a directory containing one or more of those files, using the --from-file
+	Or you can also later upload directly the application binaries via "oc start-build [NAME-binary] --from-dir=target
 			
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
@@ -97,7 +100,6 @@ func (i *deployCommand) InitHook() {
 }
 
 func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
-	//log := context.GetDefaultLogger()
 	name := args[0]
 	project, err := shared.EnsureProject(i.Client, i.flags.RuntimeFlags.Project)
 	if err != nil {

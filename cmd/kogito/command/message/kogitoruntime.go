@@ -27,8 +27,8 @@ var (
 	RuntimeServiceNotInstalledNoKogitoOperator = "Skipping deploy Kogito Service since Kogito Operator is not available."
 	// RuntimeServiceMgmtConsole ...
 	RuntimeServiceMgmtConsole = `To more easily manage your Kogito Service install Data Index Service and Process Instance Management. 
-For how to install see: https://github.com/kiegroup/kogito-cloud-operator#kogito-data-index-service-deployment
-and https://github.com/kiegroup/kogito-cloud-operator#kogito-management-console-install`
+For how to install see: https://docs.jboss.org/kogito/release/latest/html_single/#con-kogito-operator-with-data-index-service_kogito-deploying-on-openshift
+and https://docs.jboss.org/kogito/release/latest/html_single/#con-management-console_kogito-developing-process-services`
 	// RuntimeServiceMgmtConsoleEndpoint ...
 	RuntimeServiceMgmtConsoleEndpoint = `You can manage your process using the management console: %s`
 )

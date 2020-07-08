@@ -43,7 +43,7 @@ func GetResourceType(resource string) (ResourceType flag.ResourceType, err error
 	// check for Git resource
 	if strings.HasPrefix(resource, "http") {
 		parsedURL, err := url.ParseRequestURI(resource)
-		if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		if err != nil || len(parsedURL.Scheme) == 0 || len(parsedURL.Host) == 0 {
 			return "", &url.Error{URL: resource, Err: err}
 		}
 		// check whether resource is Git File or Git Repo
@@ -64,12 +64,12 @@ func GetResourceType(resource string) (ResourceType flag.ResourceType, err error
 		if util.IsSuffixSupported(resource) {
 			return flag.LocalFileResource, nil
 		}
-		return "", fmt.Errorf("invalid resource")
+		return "", fmt.Errorf("invalid resource %s", resource)
 	} else if fileInfo.Mode().IsDir() {
 		return flag.LocalDirectoryResource, nil
 	}
 
-	return "", fmt.Errorf("invalid resource")
+	return "", fmt.Errorf("invalid resource %s", resource)
 }
 
 // LoadGitFileIntoMemory reads file from remote Git location and load it in memory.

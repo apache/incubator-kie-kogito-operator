@@ -45,8 +45,8 @@ func (i *deleteServiceCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Example: "delete-service example-drools --project kogito",
 		Use:     "delete-service NAME [flags]",
-		Short:   "Deletes a Kogito build/service deployed in the namespace/project",
-		Long:    `delete-service will exclude every OpenShift/Kubernetes resource created to deploy the Kogito build/service into the namespace.`,
+		Short:   "Deletes a Kogito service deployed in the namespace/project",
+		Long:    `delete-service will exclude every OpenShift/Kubernetes resource created to deploy the Kogito Service into the namespace.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
