@@ -133,7 +133,7 @@ func (data *Data) deployExampleServiceWithConfiguration(runtimeType, contextDir 
 		addInfinispanEnvVars(kogitoAppHolder)
 	}
 
-	return framework.DeployService(data.Namespace, framework.GetDefaultInstallerType(), kogitoAppHolder.KogitoApp)
+	return framework.DeployKogitoAppService(data.Namespace, framework.CRInstallerType, kogitoAppHolder.KogitoApp)
 }
 
 func (data *Data) createService(runtimeType, serviceName string) error {
@@ -153,7 +153,7 @@ func (data *Data) createServiceWithConfiguration(runtimeType, serviceName string
 		addInfinispanEnvVars(kogitoAppHolder)
 	}
 
-	return framework.DeployService(data.Namespace, framework.GetDefaultInstallerType(), kogitoAppHolder.KogitoApp)
+	return framework.DeployKogitoAppService(data.Namespace, framework.CRInstallerType, kogitoAppHolder.KogitoApp)
 }
 
 func (data *Data) deployServiceFromExampleFile(runtimeType, exampleFile string) error {
@@ -211,7 +211,7 @@ func deployServiceFromExampleFile(namespace, runtimeType, exampleFile string) er
 	// Setup image streams again as KogitoApp has changed
 	framework.SetupKogitoAppBuildImageStreams(kogitoAppHolder.KogitoApp)
 
-	return framework.DeployService(namespace, framework.CRInstallerType, kogitoAppHolder.KogitoApp)
+	return framework.DeployKogitoAppService(namespace, framework.CRInstallerType, kogitoAppHolder.KogitoApp)
 }
 
 // getKogitoAppHolder Get basic KogitoApp stub with GIT properties initialized to common Kogito examples
@@ -316,7 +316,7 @@ func parseKogitoAppConfigRow(row *messages.PickleStepArgument_PickleTable_Pickle
 
 	switch secondColumn {
 	case kogitoAppNativeKey:
-		native := framework.MustParseEnabledDisabled(getThirdColumn(row))
+		native := mustParseEnabledDisabled(getThirdColumn(row))
 		if native {
 			kogitoApp.Spec.Build.Native = native
 			// Make sure that enough memory is allocated for builder pod in case of native build
@@ -324,14 +324,14 @@ func parseKogitoAppConfigRow(row *messages.PickleStepArgument_PickleTable_Pickle
 		}
 
 	case kogitoAppPersistenceKey:
-		persistence := framework.MustParseEnabledDisabled(getThirdColumn(row))
+		persistence := mustParseEnabledDisabled(getThirdColumn(row))
 		if persistence {
 			*profilesPtr = append(*profilesPtr, "persistence")
 			kogitoApp.Spec.EnablePersistence = true
 		}
 
 	case kogitoAppEventsKey:
-		events := framework.MustParseEnabledDisabled(getThirdColumn(row))
+		events := mustParseEnabledDisabled(getThirdColumn(row))
 		if events {
 			*profilesPtr = append(*profilesPtr, "events")
 			kogitoApp.Spec.EnableEvents = true
@@ -370,5 +370,17 @@ func parseKogitoAppKafkaRow(row *messages.PickleStepArgument_PickleTable_PickleT
 		}
 		kogitoApp.Spec.AddEnvironmentVariable(key, getThirdColumn(row))
 		*profilesPtr = append(*profilesPtr, "events")
+	}
+}
+
+// mustParseEnabledDisabled parse a boolean string value
+func mustParseEnabledDisabled(value string) bool {
+	switch value {
+	case "enabled":
+		return true
+	case "disabled":
+		return false
+	default:
+		panic(fmt.Errorf("Unknown value for enabled/disabled: %s", value))
 	}
 }

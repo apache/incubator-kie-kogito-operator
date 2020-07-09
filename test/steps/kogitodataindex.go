@@ -19,6 +19,8 @@ import (
 	"github.com/cucumber/messages-go/v10"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/test/mappers"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 )
 
 /*
@@ -41,15 +43,15 @@ func registerKogitoDataIndexServiceSteps(s *godog.Suite, data *Data) {
 
 func (data *Data) installKogitoDataIndexServiceWithReplicas(replicas int) error {
 	dataIndex := framework.GetKogitoDataIndexResourceStub(data.Namespace, replicas)
-	return framework.InstallKogitoDataIndexService(data.Namespace, framework.GetDefaultInstallerType(), &framework.KogitoServiceHolder{KogitoService: dataIndex})
+	return framework.InstallKogitoDataIndexService(data.Namespace, framework.GetDefaultInstallerType(), &bddtypes.KogitoServiceHolder{KogitoService: dataIndex})
 }
 
 func (data *Data) installKogitoDataIndexServiceWithReplicasWithConfiguration(replicas int, table *messages.PickleStepArgument_PickleTable) error {
-	dataIndex := &framework.KogitoServiceHolder{
+	dataIndex := &bddtypes.KogitoServiceHolder{
 		KogitoService: framework.GetKogitoDataIndexResourceStub(data.Namespace, replicas),
 	}
 
-	if err := configureKogitoServiceFromTable(table, dataIndex); err != nil {
+	if err := mappers.MapKogitoServiceTable(table, dataIndex); err != nil {
 		return err
 	}
 

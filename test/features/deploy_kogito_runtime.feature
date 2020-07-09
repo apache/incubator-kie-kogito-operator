@@ -1,5 +1,3 @@
-# Disabled until we can integrate it as part of the pipeline, see KOGITO-2278
-@disabled
 Feature: Deploy Kogito Runtime
 
   Background:

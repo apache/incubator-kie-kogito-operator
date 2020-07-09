@@ -18,12 +18,13 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 )
 
 // InstallKogitoManagementConsole install the Kogito Management Console component
 func InstallKogitoManagementConsole(namespace string, installerType InstallerType, replicas int) error {
 	resource := newManagementConsoleResource(namespace, replicas)
-	return InstallService(&KogitoServiceHolder{KogitoService: resource}, installerType, "mgmt-console")
+	return InstallService(&bddtypes.KogitoServiceHolder{KogitoService: resource}, installerType, "mgmt-console")
 }
 
 // WaitForKogitoManagementConsoleService wait for Kogito Management Console to be deployed
