@@ -37,7 +37,7 @@ import (
 
 var log = logger.GetLogger("controller_kogitotrusty")
 
-// Add creates a new KogitoDataIndex Controller and adds it to the Manager. The Manager will set fields on the Controller
+// Add creates a new KogitoTrusty Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
@@ -60,7 +60,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource KogitoDataIndex
+	// Watch for changes to primary resource KogitoTrusty
 	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoTrusty{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
@@ -144,13 +144,8 @@ func (r *ReconcileKogitoTrusty) Reconcile(request reconcile.Request) (result rec
 }
 
 const (
-	defaultProtobufMountPath                  = "/home/kogito/data/protobufs"
-	protoBufKeyFolder                  string = "KOGITO_PROTOBUF_FOLDER"
-	protoBufKeyWatch                   string = "KOGITO_PROTOBUF_WATCH"
-	protoBufConfigMapVolumeDefaultMode int32  = 420
-
 	// Collection of kafka topics that should be handled by the Trusty
-	kafkaTopicNameTraceEvents string = "kogito-jobs-events"
+	kafkaTopicNameTraceEvents string = "kogito-tracing-decision"
 )
 
 var kafkaTopics = []services.KafkaTopicDefinition{
