@@ -6,6 +6,6 @@ metadata:
 spec:
   type: appregistry
   endpoint: https://quay.io/cnr
-  registryNamespace: jrota
+  registryNamespace: kiegroup
   displayName: "Kogito Operator"
-  publisher: "Jacopo"
+  publisher: "Red Hat"
