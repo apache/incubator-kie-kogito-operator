@@ -18,10 +18,10 @@ spec:
     type: string
   group: app.kiegroup.org
   names:
-    kind: KogitoTrusty
-    listKind: KogitoTrustyList
+    kind: KogitoDataIndex
+    listKind: KogitoDataIndexList
     plural: kogitodataindices
-    singular: kogitotrusty
+    singular: kogitodataindex
   scope: Namespaced
   subresources: {}
   validation:

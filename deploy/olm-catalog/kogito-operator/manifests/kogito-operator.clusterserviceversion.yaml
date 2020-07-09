@@ -35,6 +35,22 @@ metadata:
         },
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
+          "kind": "KogitoDataIndex",
+          "metadata": {
+            "name": "data-index"
+          },
+          "spec": {
+            "infinispan": {
+              "useKogitoInfra": false
+            },
+            "kafka": {
+              "useKogitoInfra": false
+            },
+            "replicas": 1
+          }
+        },
+        {
+          "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoInfra",
           "metadata": {
             "name": "kogito-infra"
@@ -722,6 +738,9 @@ spec:
       - description: Image is the resolved image for this service.
         displayName: Image
         path: image
+      version: v1alpha1
+    - kind: KogitoTrusty
+      name: kogitotrusty.app.kiegroup.org
       version: v1alpha1
     required:
     - description: Represents a Infinispan cluster used internally by Kogito Data

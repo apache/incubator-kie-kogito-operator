@@ -18,15 +18,15 @@ spec:
     type: string
   group: app.kiegroup.org
   names:
-    kind: KogitoTrusty
-    listKind: KogitoTrustyList
+    kind: KogitoDataIndex
+    listKind: KogitoDataIndexList
     plural: kogitodataindices
-    singular: kogitotrusty
+    singular: kogitodataindex
   scope: Namespaced
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: KogitoTrusty defines the Trusty Service infrastructure deployment.
+      description: KogitoDataIndex defines the Data Index Service infrastructure deployment.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -41,7 +41,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: KogitoTrustySpec defines the desired state of KogitoTrusty.
+          description: KogitoDataIndexSpec defines the desired state of KogitoDataIndex.
           properties:
             deploymentLabels:
               additionalProperties:
@@ -294,7 +294,7 @@ spec:
               type: object
           type: object
         status:
-          description: KogitoTrustyStatus defines the observed state of KogitoTrusty.
+          description: KogitoDataIndexStatus defines the observed state of KogitoDataIndex.
           properties:
             conditions:
               description: History of conditions for the resource

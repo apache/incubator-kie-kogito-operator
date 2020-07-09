@@ -15,8 +15,6 @@
 package trusty
 
 import (
-	"path"
-
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -152,67 +150,13 @@ const (
 	protoBufConfigMapVolumeDefaultMode int32  = 420
 
 	// Collection of kafka topics that should be handled by the Trusty
-	kafkaTopicNameProcessInstances  string = "kogito-processinstances-events"
-	kafkaTopicNameUserTaskInstances string = "kogito-usertaskinstances-events"
-	kafkaTopicNameProcessDomain     string = "kogito-processdomain-events"
-	kafkaTopicNameUserTaskDomain    string = "kogito-usertaskdomain-events"
-	kafkaTopicNameJobsEvents        string = "kogito-jobs-events"
+	kafkaTopicNameTraceEvents string = "kogito-jobs-events"
 )
 
 var kafkaTopics = []services.KafkaTopicDefinition{
-	{TopicName: kafkaTopicNameProcessInstances, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameUserTaskInstances, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameProcessDomain, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameUserTaskDomain, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameTraceEvents, MessagingType: services.KafkaTopicIncoming},
 }
 
 func (r *ReconcileKogitoTrusty) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
-	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		if err := r.mountProtoBufConfigMaps(deployment); err != nil {
-			return err
-		}
-	} else {
-		log.Warnf("No container definition for service %s. Skipping applying custom Trusty deployment configuration", kogitoService.GetName())
-	}
-
-	return nil
-}
-
-// mountProtoBufConfigMaps mounts protobuf configMaps from KogitoApps into the given deployment
-func (r *ReconcileKogitoTrusty) mountProtoBufConfigMaps(deployment *appsv1.Deployment) (err error) {
-	var cms *corev1.ConfigMapList
-	configMapDefaultMode := protoBufConfigMapVolumeDefaultMode
-	if cms, err = infrastructure.GetProtoBufConfigMaps(deployment.Namespace, r.client); err != nil {
-		return err
-	}
-	for _, cm := range cms.Items {
-		deployment.Spec.Template.Spec.Volumes =
-			append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
-				Name: cm.Name,
-				VolumeSource: corev1.VolumeSource{
-					ConfigMap: &corev1.ConfigMapVolumeSource{
-						DefaultMode: &configMapDefaultMode,
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: cm.Name,
-						},
-					},
-				},
-			})
-		for fileName := range cm.Data {
-			deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
-				append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts,
-					corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"], fileName), SubPath: fileName})
-		}
-	}
-
-	if len(deployment.Spec.Template.Spec.Volumes) > 0 {
-		framework.SetEnvVar(protoBufKeyWatch, "true", &deployment.Spec.Template.Spec.Containers[0])
-		framework.SetEnvVar(protoBufKeyFolder, defaultProtobufMountPath, &deployment.Spec.Template.Spec.Containers[0])
-	} else {
-		framework.SetEnvVar(protoBufKeyWatch, "false", &deployment.Spec.Template.Spec.Containers[0])
-		framework.SetEnvVar(protoBufKeyFolder, "", &deployment.Spec.Template.Spec.Containers[0])
-	}
-
 	return nil
 }

@@ -15,19 +15,14 @@
 package infrastructure
 
 import (
-	"fmt"
-	"net/url"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 )
 
 const (
-	// DefaultTrustyImageName is just the image name for the Data Index Service
+	// DefaultTrustyImageName is just the image name for the Trusty Service
 	DefaultTrustyImageName = "kogito-trusty"
-	// DefaultTrustyName is the default name for the Data Index instance service
+	// DefaultTrustyName is the default name for the Trusty instance service
 	DefaultTrustyName = "trusty"
 
 	trustyHTTPRouteEnv = "KOGITO_TRUSTY_HTTP_URL"
@@ -37,69 +32,6 @@ const (
 // InjectTrustyURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Data Index route to each one
 // Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
 func InjectTrustyURLIntoKogitoApps(client *client.Client, namespace string) error {
-	log.Debugf("Querying KogitoApps in the namespace '%s' to inject Trusty Route ", namespace)
-
-	dcs, err := getKogitoAppsDCs(namespace, client)
-	if err != nil {
-		return err
-	}
-	log.Debugf("Found %s KogitoApps in the namespace '%s' ", len(dcs), namespace)
-	var dataIndexEndpoints ServiceEndpoints
-	if len(dcs) > 0 {
-		log.Debug("Querying Data Index route to inject into KogitoApps ")
-		dataIndexEndpoints, err = GetDataIndexEndpoints(client, namespace)
-		if err != nil {
-			return err
-		}
-		log.Debugf("Trusty route is '%s'", dataIndexEndpoints.HTTPRouteURI)
-	}
-
-	for _, dc := range dcs {
-		// here we compare the current value to avoid updating the app every time
-		if len(dc.Spec.Template.Spec.Containers) == 0 {
-			break
-		}
-		updateHTTP := framework.GetEnvVarFromContainer(dataIndexEndpoints.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.HTTPRouteURI
-		updateWS := framework.GetEnvVarFromContainer(dataIndexEndpoints.WSRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.WSRouteURI
-		if updateHTTP {
-			log.Debugf("Updating dc '%s' to inject route %s ", dc.GetName(), dataIndexEndpoints.HTTPRouteURI)
-			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
-		}
-		if updateWS {
-			log.Debugf("Updating dc '%s' to inject route %s ", dc.GetName(), dataIndexEndpoints.WSRouteURI)
-			framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &dc.Spec.Template.Spec.Containers[0])
-		}
-		// update only once
-		if updateWS || updateHTTP {
-			if err := kubernetes.ResourceC(client).Update(&dc); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-// GetTrustyEndpoints queries for the Data Index URIs
-func GetTrustyEndpoints(client *client.Client, namespace string) (trustyEndpoints ServiceEndpoints, err error) {
-	route := ""
-	trustyEndpoints = ServiceEndpoints{HTTPRouteEnv: dataIndexHTTPRouteEnv, WSRouteEnv: dataIndexWSRouteEnv}
-	route, err = getSingletonKogitoServiceRoute(client, namespace, &v1alpha1.KogitoDataIndexList{})
-	if err != nil {
-		return
-	}
-	if len(route) > 0 {
-		var routeURL *url.URL
-		routeURL, err = url.Parse(route)
-		if err != nil {
-			log.Warnf("Failed to parse data index route url (%s), set to empty: %s", route, err)
-			return
-		}
-		trustyEndpoints.HTTPRouteURI = routeURL.String()
-		if httpScheme == routeURL.Scheme {
-			trustyEndpoints.WSRouteURI = fmt.Sprintf("%s://%s", webSocketScheme, routeURL.Host)
-		} else {
-			trustyEndpoints.WSRouteURI = fmt.Sprintf("%s://%s", webSocketSecureScheme, routeURL.Host)
-		}
-	}
-	return
+	log.Debugf("Injecting Trusty Route in kogito apps")
+	return injectURLIntoKogitoApps(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, &v1alpha1.KogitoTrustyList{})
 }
