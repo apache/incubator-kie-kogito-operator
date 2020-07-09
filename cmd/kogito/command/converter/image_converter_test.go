@@ -15,6 +15,7 @@
 package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -28,4 +29,18 @@ func Test_FromImageTagToImage(t *testing.T) {
 	assert.Equal(t, "builder-image", image.Name)
 	assert.Equal(t, "1.0", image.Tag)
 
+}
+
+func Test_FromImageFlagToImage(t *testing.T) {
+	imageFlags := flag.ImageFlags{
+		Image:                 "mydomain.io/mynamespace/builder-image:1.0",
+		InsecureImageRegistry: true,
+	}
+
+	image := FromImageFlagToImage(&imageFlags)
+	assert.NotNil(t, image)
+	assert.Equal(t, "mydomain.io", image.Domain)
+	assert.Equal(t, "mynamespace", image.Namespace)
+	assert.Equal(t, "builder-image", image.Name)
+	assert.Equal(t, "1.0", image.Tag)
 }

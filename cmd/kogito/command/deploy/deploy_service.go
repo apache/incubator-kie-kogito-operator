@@ -72,7 +72,7 @@ func (i *deployCommand) RegisterHook() {
 		// Args validation
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 2 {
-				return fmt.Errorf("requires 2 arg, received %v", len(args))
+				return fmt.Errorf("requires 1 arg, received %v", len(args))
 			}
 			if len(args) == 0 {
 				return fmt.Errorf("the service requires a name ")
