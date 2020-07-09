@@ -71,7 +71,6 @@ jobs:
     name: Unit test and Coverage
     runs-on: ubuntu-latest
     env:
-      MIN_COVERAGE: 50
       CGO_ENABLED: 0
     steps:
       - name: Checkout Code
@@ -91,20 +90,18 @@ jobs:
       - name: Install cover
         run: go get golang.org/x/tools/cmd/cover
       - run: go mod tidy
-      - name: Test cmd dir and archive coverage
+      - name: Validate codcov yaml file
+        run: cat codecov.yml | curl --data-binary @- https://codecov.io/validate
+      - name: Test cmd dir
         run: |
-          go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.out
-          ./hack/coverage.sh cmd-coverage.out
-      - uses: actions/upload-artifact@v2
-        with:
-          path: cmd-coverage.out
-      - name: Test pkg dir and archive coverage
+          go test ./cmd/... -count=1 -p=1 -coverprofile=coverage.txt -covermode=atomic
+      - name: Upload results of cmd to codecov
+        run: bash <(curl -s https://codecov.io/bash) -F cli -X gcov
+      - name: Test pkg dir
         run: |
-          go test ./pkg/... -count=1 -p=1 -coverprofile=pkg-coverage.out
-          ./hack/coverage.sh pkg-coverage.out
-      - uses: actions/upload-artifact@v2
-        with:
-          path: pkg-coverage.out
+           go test ./pkg/... -count=1 -coverprofile=coverage.txt -covermode=atomic
+      - name: Upload results of pkg to codecov
+        run: bash <(curl -s https://codecov.io/bash) -F operator -X gcov
 
   bats_test:
     name: Bats Test
