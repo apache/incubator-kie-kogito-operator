@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2019 Red Hat, Inc. and/or its affiliates
+# Copyright 2020 Red Hat, Inc. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-which addlicense > /dev/null || go get -u github.com/google/addlicense
+set -e
 
-addlicense -c "Red Hat, Inc. and/or its affiliates" -l=apache cmd hack pkg test version tools.go
+default_cluster_name="operator-test"
+
+if [[ -z ${CLUSTER_NAME} ]]; then
+    CLUSTER_NAME=$default_cluster_name
+fi
+
+source ./hack/export-version.sh
+docker images
+echo "---> Loading Operator Image into Kind"
+kind load docker-image quay.io/kiegroup/kogito-cloud-operator:"${OP_VERSION}" --name ${CLUSTER_NAME}
+
+node_name=$(kubectl get nodes -o jsonpath="{.items[0].metadata.name}")
+echo "---> Checking internal loaded images on node ${node_name}"
+docker exec "${node_name}" crictl images

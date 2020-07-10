@@ -112,6 +112,7 @@ type KogitoServiceSpecInterface interface {
 	GetRuntime() RuntimeType
 	//Define port on which service will listen internally
 	GetHTTPPort() int32
+	SetHTTPPort(httpPort int32)
 	IsInsecureImageRegistry() bool
 }
 
@@ -195,6 +196,9 @@ func (k *KogitoServiceSpec) SetResources(resources corev1.ResourceRequirements) 
 
 // GetHTTPPort ...
 func (k *KogitoServiceSpec) GetHTTPPort() int32 { return k.HTTPPort }
+
+// SetHTTPPort ...
+func (k *KogitoServiceSpec) SetHTTPPort(httpPort int32) { k.HTTPPort = httpPort }
 
 // AddEnvironmentVariable adds new environment variable to service environment variables.
 func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {

@@ -6,24 +6,23 @@ The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito
 
 For information about the Kogito Operator architecture and instructions for using the operator and CLI to deploy Kogito services and infrastructures, see the official [Kogito Documentation](https://docs.jboss.org/kogito/release/latest/html_single/#chap-kogito-deploying-on-openshift) page.
 
-Table of Contents
-=================
+# Table of Contents
 
 * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
- * [Prerequisites](#prerequisites)
- * [Kogito Operator environment](#kogito-operator-environment)
+  * [Prerequisites](#prerequisites)
+  * [Kogito Operator environment](#kogito-operator-environment)
     * [Kogito Operator unit tests](#kogito-operator-unit-tests)
     * [Kogito Operator collaboration and pull requests](#kogito-operator-collaboration-and-pull-requests)
- * [Kogito Operator development](#kogito-operator-development)
+  * [Kogito Operator development](#kogito-operator-development)
     * [Requirements](#requirements)
     * [Building the Kogito Operator](#building-the-kogito-operator)
     * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
     * [Running BDD Tests](#running-bdd-tests)
-       * [Running BDD tests with current branch](#running-bdd-tests-with-current-branch)
-       * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
-       * [Running smoke tests](#running-smoke-tests)
-       * [Running performance tests](#running-performance-tests)
-       * [List of test tags](#list-of-test-tags)
+      * [Running BDD tests with current branch](#running-bdd-tests-with-current-branch)
+      * [Running BDD tests with custom Kogito Build images' version](#running-bdd-tests-with-custom-kogito-build-images-version)
+      * [Running smoke tests](#running-smoke-tests)
+      * [Running performance tests](#running-performance-tests)
+      * [List of test tags](#list-of-test-tags)
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -89,7 +88,7 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 - [Docker](https://www.docker.com/)
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
 - [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.18.x, 0.18.2 is preferred.
-- [Go](https://golang.org/) v1.13 is installed.
+- [Go](https://golang.org/) v1.14 is installed.
 - [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
 
@@ -219,6 +218,9 @@ You can set those optional keys:
 - `container_engine` engine used to interact with images and local containers.
   *Default is docker.*
 - `domain_suffix` domain suffix used for exposed services. Ignored when running tests on Openshift.
+- `image_cache_mode` Use this option to specify whether you want to use image cache for runtime images. Available options are 'always', 'never' or 'if-available'(default).
+- `http_retry_nb` sets the retry number for all HTTP calls in case it fails (and response code != 500).
+  *Default is 3.*
 <!--- operator information -->
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
@@ -253,6 +255,8 @@ You can set those optional keys:
 <!--- build runtime applications -->
 - `runtime_application_image_registry` sets the registry for built runtime applications.
 - `runtime_application_image_namespace` sets the namespace for built runtime applications.
+- `runtime_application_image_name_suffix` sets the image name suffix to append to usual image names for built runtime applications.
+- `runtime_application_image_version` sets the version for built runtime applications.
 <!--- development options -->
 - `show_scenarios` sets to true to display scenarios which will be executed.  
   *Default is false.*

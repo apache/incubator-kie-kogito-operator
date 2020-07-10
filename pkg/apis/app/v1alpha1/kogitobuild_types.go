@@ -73,8 +73,7 @@ type KogitoBuildSpec struct {
 	Runtime RuntimeType `json:"runtime,omitempty"`
 
 	// WebHooks secrets for source to image builds based on Git repositories (Remote Sources).
-	// +listType=map
-	// +listMapKey=type
+	// +listType=atomic
 	// +optional
 	WebHooks []WebhookSecret `json:"webHooks,omitempty"`
 

@@ -1,10 +1,22 @@
+@Library('jenkins-pipeline-shared-libraries')_
+
 pipeline {
-    agent { label 'operator-slave' }
+    agent {
+        label 'kogito-operator-slave && !master'
+    }
+
+    // Needed for local build
+    tools {
+        jdk 'kie-jdk11'
+    }
 
     parameters {
         string(name: 'DISPLAY_NAME', defaultValue: '', description: 'Setup a specific build display name')
+        
         string(name: 'BUILD_BRANCH_NAME', defaultValue: 'master', description: 'Which branch to build ? Set if you are not on a multibranch pipeline.')
+        string(name: 'GIT_AUTHOR', defaultValue: 'kiegroup', description: 'Which Git author repository ?')
 
+        booleanParam(name: 'IMAGE_USE_OPENSHIFT_REGISTRY', defaultValue: false, description: 'Set to true if image should be deployed in Openshift registry.In this case, IMAGE_REGISTRY_CREDENTIALS, IMAGE_REGISTRY and IMAGE_NAMESPACE parameters will be ignored')
         string(name: 'IMAGE_REGISTRY_CREDENTIALS', defaultValue: '', description: 'Image registry credentials to use to deploy images. Will be ignored if no IMAGE_REGISTRY is given')
         string(name: 'IMAGE_REGISTRY', defaultValue: '', description: 'Image registry to use to deploy images')
         string(name: 'IMAGE_NAMESPACE', defaultValue: 'kiegroup', description: 'Image namespace to use to deploy images')
@@ -20,191 +32,129 @@ pipeline {
         string(name: 'EXAMPLES_REF', defaultValue: '', description: 'Git reference (branch/tag) to the kogito-examples repository to use for tests.')
 
         string(name: 'MAVEN_ARTIFACT_REPOSITORY', defaultValue: '', description: 'Maven repository where the build artifacts are present')
+        booleanParam(name: 'SMOKE_TESTS_ONLY', defaultValue: false, description: 'If only smoke tests should be run. Default is full testing.')
+        booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip tests')
     }
 
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
-        timeout(time: 360, unit: 'MINUTES')
+        timeout(time: 420, unit: 'MINUTES')
     }
 
     environment {
+        JAVA_HOME = "${GRAALVM_HOME}"
+        
         OPERATOR_IMAGE_NAME="kogito-cloud-operator"
 
-        WORKING_DIR = "/home/jenkins/go/src/github.com/kiegroup/kogito-cloud-operator/"
-        GOPATH = "/home/jenkins/go"
-        GOCACHE = "/home/jenkins/go/.cache/go-build"
-
-        TEMP_TAG="""pr-${sh(
-                returnStdout: true,
-                script: 'echo \${GIT_COMMIT} | cut -c1-7'
-            ).trim()}"""
-
-        // Keep commented. It is for documentation only
-        // Cannot define here as an env variable defined here is immutable ...
-        // BRANCH_NAME => should be set by the multibranch pipeline. If single pipeline, then it is set with value from ${params.BUILD_BRANCH_NAME}
-
-        // OPENSHIFT_API => Taken from Jenkins global env
-        // OPENSHIFT_REGISTRY => Taken from Jenkins global env
-
-        // DEPLOY_IMAGE_REGISTRY_CREDENTIALS
-        // DEPLOY_IMAGE_USE_OPENSHIFT
-        // DEPLOY_IMAGE_REGISTRY
-        // DEPLOY_IMAGE_NAMESPACE
-        // DEPLOY_IMAGE_NAME_SUFFIX
-        // DEPLOY_IMAGE_TAG
-
-        // TEST_PARAMS => parameters which will be set in `configure testing` stage, depending also on pipeline params
+        OPENSHIFT_API = credentials("OPENSHIFT_API")
+        OPENSHIFT_REGISTRY = credentials("OPENSHIFT_REGISTRY")
+        OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
+        OPENSHIFT_CREDS_KEY = "OPENSHIFT_CREDS"
     }
     
     stages {
-        stage('Clean Workspace') {
-            steps {
-                dir ("${WORKING_DIR}") {
-                    deleteDir()
-                }
-            }
-        }
         stage('Initialize') {
             steps {
                 script {
-                    sh "mkdir -p ${WORKING_DIR} && cd ${WORKSPACE} && cp -Rap * ${WORKING_DIR}"
-                    sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
-                    
-                    setupImageEnvVarsFromParams("","DEPLOY")
+                    // Make sure Openshift is available and can authenticate before continuing
+                    loginOpenshift()
 
                     if (params.DISPLAY_NAME != "") {
                         currentBuild.displayName = params.DISPLAY_NAME
                     }
 
-                    if (env.BRANCH_NAME != "") {
-                        // Switch to branch if not on a multibranch pipeline
-                        env.BRANCH_NAME = params.BUILD_BRANCH_NAME
-                        dir("${WORKING_DIR}"){
-                            checkout([$class: 'GitSCM', branches: [[name: env.BRANCH_NAME]], browser: [$class: 'GithubWeb', repoUrl: "${GIT_URL}"], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: '']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'user-kie-ci10', url: "${GIT_URL}"]]])
-                        }
-                    }
+                    checkout(githubscm.resolveRepository("kogito-cloud-operator", params.GIT_AUTHOR, params.BUILD_BRANCH_NAME, false))
                 }
             }
         }
         stage('Build Kogito Operator') {
             steps {
-                dir ("${WORKING_DIR}") {
-                    sh """
-                        export GOROOT=`go env GOROOT`
-                        go get -u golang.org/x/lint/golint
-                        touch /etc/sub{u,g}id
-                        usermod --add-subuids 10000-75535 \$(whoami)
-                        usermod --add-subgids 10000-75535 \$(whoami)
-                        cat /etc/subuid
-                        cat /etc/subgid
-                        make image_builder=buildah
-                    """
-                }
+                sh """
+                    go get -u golang.org/x/lint/golint
+                    make image_builder=podman
+                """
             }
             
         }
         stage('Build Kogito CLI') {
             steps {
-                dir ("${WORKING_DIR}") {
-                    sh "make build-cli"
+                sh """
+                    go get -u github.com/gobuffalo/packr/v2/packr2
+                    make build-cli
+                """
+            }
+            post {
+                success {
+                    script {
+                        archiveArtifacts artifacts: "build/_output/bin/kogito", allowEmptyArchive: false
+                    }
                 }
             }
         }
         stage('Push Operator Image to Openshift Registry') {
             steps {
-                dir ("${WORKING_DIR}") {
-                    loginOpenshiftRegistry()
-                    sh """
-                        buildah tag quay.io/kiegroup/${OPERATOR_IMAGE_NAME}:${getOperatorVersion()} ${buildTempOpenshiftImageFullName()}
-                        buildah push --tls-verify=false docker://${buildTempOpenshiftImageFullName()}
-                    """
-                }
+                loginOpenshiftRegistry()
+                sh """
+                    podman tag quay.io/kiegroup/${OPERATOR_IMAGE_NAME}:${getOperatorVersion()} ${buildTempOpenshiftImageFullName()}
+                    podman push --tls-verify=false ${buildTempOpenshiftImageFullName()}
+                """
             }
         }
-        stage("Configure Testing") {
+        stage("Build examples' images for testing"){
+            when {
+                expression {
+                    return !params.SKIP_TESTS;
+                }
+            }
             steps {
                 script {
-                    env.TEST_PARAMS = ""
-                    addTestParamFromValue("operator_image", getTempOpenshiftImageName())
-                    addTestParamFromValue("operator_tag", env.TEMP_TAG)
-                    if (params.MAVEN_ARTIFACT_REPOSITORY != ''){
-                        // No mirror if we set directly the Maven repository
-                        // Tests will be slower but we need to test against specific artifacts
-                        addTestParamFromValue("custom_maven_repo", params.MAVEN_ARTIFACT_REPOSITORY)
-                    } else if(env.MAVEN_MIRROR_REPOSITORY != null
-                                && env.MAVEN_MIRROR_REPOSITORY != '') {
-                        addTestParamFromValue("maven_mirror", env.MAVEN_MIRROR_REPOSITORY)
-                    }
+                    // Need to login to Openshift Registry for application images to be pushed
+                    loginOpenshiftRegistry()
 
-                    if (params.KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY) {
-                        addTestParamFromValue("build_image_registry", env.OPENSHIFT_REGISTRY)
-                        addTestParamFromValue("services_image_registry", env.OPENSHIFT_REGISTRY)
-                        addTestParamFromValue("build_image_namespace", "openshift")
-                        addTestParamFromValue("services_image_namespace", "openshift")
-                    } else {
-                        if(params.KOGITO_IMAGES_REGISTRY != ''){
-                            addTestParamFromValue("build_image_registry", params.KOGITO_IMAGES_REGISTRY)
-                            addTestParamFromValue("services_image_registry", params.KOGITO_IMAGES_REGISTRY)
-                        }
-                        if(params.KOGITO_IMAGES_NAMESPACE != ''){
-                            addTestParamFromValue("build_image_namespace", params.KOGITO_IMAGES_NAMESPACE)
-                            addTestParamFromValue("services_image_namespace", params.KOGITO_IMAGES_NAMESPACE)
-                        }
-                    }
-                    if(params.KOGITO_IMAGES_TAG != ''){
-                        addTestParamFromValue("build_image_version", params.KOGITO_IMAGES_TAG)
-                        addTestParamFromValue("services_image_version", params.KOGITO_IMAGES_TAG)
-                    }
-                    if(params.KOGITO_IMAGES_NAME_SUFFIX != ''){
-                        addTestParamFromValue("build_image_name_suffix", params.KOGITO_IMAGES_NAME_SUFFIX)
-                        addTestParamFromValue("services_image_name_suffix", params.KOGITO_IMAGES_NAME_SUFFIX)
-                    }
-                    if(params.EXAMPLES_REF != ''){
-                        addTestParamFromValue("examples_ref",params.EXAMPLES_REF)
-                    }
-
-                    echo "Test parameters = ${TEST_PARAMS}"
-                }
-            }
-        }
-        stage('Run Testing') {
-            steps {
-                dir ("${WORKING_DIR}") {
-                    sh """
-                        make run-smoke-tests load_factor=3 concurrent=3 load_default_config=true ${TEST_PARAMS}
-                    """
+                    // Optaplanner taking a lot of resources, we should not build in parallel
+                    sh "make build-examples-images concurrent=1 image_cache_mode=never ${getBDDParameters()}"
                 }
             }
             post {
                 always {
-                    dir("${WORKING_DIR}") {
-                        archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                        junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                        sh "cd test && go run scripts/prune_namespaces.go"
-                    }
+                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                    sh "cd test && go run scripts/prune_namespaces.go"
+                }
+            }
+        }
+        stage('Run Full Testing') {
+            when {
+                expression {
+                    return !params.SKIP_TESTS;
+                }
+            }
+            steps {
+                script {
+                    sh "make run-tests timeout=360 load_factor=3 concurrent=6 image_cache_mode=always smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                    sh "cd test && go run scripts/prune_namespaces.go"
                 }
             }
         }
         stage('Push to registry') {
             steps {
                 script {
-                    if (env.DEPLOY_IMAGE_USE_OPENSHIFT == "true") {
+                    if (isDeployImageInOpenshiftRegistry()) {
                         loginOpenshiftRegistry()
-                        tagImage()
-                        pushImage()
-                    } else if (env.DEPLOY_IMAGE_REGISTRY_CREDENTIALS != ''){
-                        withDockerRegistry([ credentialsId: "${DEPLOY_IMAGE_REGISTRY_CREDENTIALS}", url: "https://${DEPLOY_IMAGE_REGISTRY}" ]){        
-                            tagImage()
-                            pushImage()
-                        }
-                    } else {
-                        tagImage()
-                        pushImage()
+                    } else if (getDeployImageRegistryCredentials() != ''){
+                        loginContainerRegistry(getDeployImageRegistry(), getDeployImageRegistryCredentials())
                     }
+                    tagImage()
+                    pushImage()
                 }
             }
         }
-        // TODO archive CLI as artifact
     }
 }
 
@@ -213,76 +163,145 @@ String getOperatorVersion(){
 }
 
 void tagImage(){
-    sh "buildah tag ${buildTempOpenshiftImageFullName()} ${buildFinalImageFullName()}"
+    sh "podman tag ${buildTempOpenshiftImageFullName()} ${buildFinalImageFullName()}"
 }
 
 void pushImage(){
-    sh "buildah push --tls-verify=false docker://${buildFinalImageFullName()}"
+    sh "podman push --tls-verify=false ${buildFinalImageFullName()}"
 }
 
-String buildTempOpenshiftImageFullName(){
-    return "${getTempOpenshiftImageName()}:${TEMP_TAG}"
+String buildTempOpenshiftImageFullName(boolean internal=false){
+    return "${getTempOpenshiftImageName(internal)}:${getTempTag()}"
 }
-String getTempOpenshiftImageName(){
-    return "${OPENSHIFT_REGISTRY}/openshift/${OPERATOR_IMAGE_NAME}"
+String getTempOpenshiftImageName(boolean internal=false){
+    String registry = internal ? env.OPENSHIFT_INTERNAL_REGISTRY : env.OPENSHIFT_REGISTRY
+    return "${registry}/openshift/${OPERATOR_IMAGE_NAME}"
 }
 
 String buildFinalImageFullName(){
     String finalImageName = env.OPERATOR_IMAGE_NAME
-    if(env.DEPLOY_IMAGE_NAME_SUFFIX != null && env.DEPLOY_IMAGE_NAME_SUFFIX != ''){
-        finalImageName += "-" + env.DEPLOY_IMAGE_NAME_SUFFIX
+    if(getDeployImageNameSuffix() != ''){
+        finalImageName += "-" + getDeployImageNameSuffix()
     }
-    return "${DEPLOY_IMAGE_REGISTRY}/${DEPLOY_IMAGE_NAMESPACE}/${finalImageName}:${DEPLOY_IMAGE_TAG}"
+    return "${getDeployImageRegistry()}/${getDeployImageNamespace()}/${finalImageName}:${getDeployImageTag()}"
+}
+
+void loginOpenshift(){
+    withCredentials([usernamePassword(credentialsId: env.OPENSHIFT_CREDS_KEY, usernameVariable: 'OC_USER', passwordVariable: 'OC_PWD')]){
+        sh "oc login --username=${OC_USER} --password=${OC_PWD} --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
+    }
 }
 
 void loginOpenshiftRegistry(){
-    sh "set +x && buildah login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}"
+    loginOpenshift()
+    // username can be anything. See https://docs.openshift.com/container-platform/4.4/registry/accessing-the-registry.html#registry-accessing-directly_accessing-the-registry
+    sh "set +x && podman login -u anything -p \$(oc whoami -t) --tls-verify=false ${env.OPENSHIFT_REGISTRY}"
 }
 
-void addTestParamFromValue(String key, String value) {
-    env.TEST_PARAMS += " ${key}=\"${value}\""
+void loginContainerRegistry(String registry, String credsId){
+    withCredentials([usernamePassword(credentialsId: credsId, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PWD')]) {
+        sh "podman login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} --tls-verify=false ${registry}"
+    }
 }
 
-/**
-    Setup env variables for image registry/namesapce/tag, depending on parameters
-*/
-void setupImageEnvVarsFromParams(String prefixParam, String prefixEnv) {
-    if(getParam(prefixParam, "IMAGE_REGISTRY") == '') {
-        setEnv(prefixEnv, "IMAGE_REGISTRY", env.OPENSHIFT_REGISTRY) // Use direct registry as `operator-slave` is running on Openshift
-        setEnv(prefixEnv, "IMAGE_NAMESPACE", "openshift")
-        setEnv(prefixEnv, "IMAGE_USE_OPENSHIFT", "true")
+String getTempTag(){
+    hash = sh(returnStdout: true,script: 'git rev-parse --short HEAD').trim()
+    return "pr-${hash}"
+}
+
+////////////////////////////////////////////////////////////////////////
+// Deploy image information
+////////////////////////////////////////////////////////////////////////
+
+boolean isDeployImageInOpenshiftRegistry(){
+    return params.IMAGE_USE_OPENSHIFT_REGISTRY
+}
+
+String getDeployImageRegistryCredentials(){
+    return isDeployImageInOpenshiftRegistry() ? "" : params.IMAGE_REGISTRY_CREDENTIALS
+}
+
+String getDeployImageRegistry(){
+    return isDeployImageInOpenshiftRegistry() ? env.OPENSHIFT_REGISTRY : params.IMAGE_REGISTRY
+}
+
+String getDeployImageNamespace(){
+    return isDeployImageInOpenshiftRegistry() ? "openshift" : params.IMAGE_NAMESPACE
+}
+
+String getDeployImageNameSuffix(){
+    return params.IMAGE_NAME_SUFFIX
+}
+
+String getDeployImageTag(){
+    if (params.IMAGE_TAG != ""){
+        return params.IMAGE_TAG
     } else {
-        setEnvFromParam("IMAGE_REGISTRY_CREDENTIALS", prefixEnv, prefixParam)
-        setEnvFromParam("IMAGE_REGISTRY", prefixEnv, prefixParam)
-        setEnvFromParam("IMAGE_NAMESPACE", prefixEnv, prefixParam)
-        setEnv(prefixEnv, "IMAGE_USE_OPENSHIFT", "false")
+        sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
     }
-    if (getParam(prefixParam, "IMAGE_TAG") != '') {
-        setEnvFromParam("IMAGE_TAG", prefixEnv, prefixParam)
+}
+
+////////////////////////////////////////////////////////////////////////
+// BDD parameters
+////////////////////////////////////////////////////////////////////////
+
+String getBDDParameters() {
+    testParamsMap = [:]
+
+    testParamsMap["load_default_config"] = true
+    testParamsMap["ci"] = "jenkins"
+
+    testParamsMap["operator_image"] = getTempOpenshiftImageName(true)
+    testParamsMap["operator_tag"] = getTempTag()
+
+    if (params.MAVEN_ARTIFACT_REPOSITORY != '') {
+        // No mirror if we set directly the Maven repository
+        // Tests will be slower but we need to test against specific artifacts
+        testParamsMap["custom_maven_repo"] = params.MAVEN_ARTIFACT_REPOSITORY
+    } else if(env.MAVEN_MIRROR_REPOSITORY != null
+                && env.MAVEN_MIRROR_REPOSITORY != '') {
+        testParamsMap["maven_mirror"] = env.MAVEN_MIRROR_REPOSITORY
+    }
+
+    if (params.KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY) {
+        testParamsMap["build_image_registry"] = env.OPENSHIFT_INTERNAL_REGISTRY
+        testParamsMap["services_image_registry"] = env.OPENSHIFT_INTERNAL_REGISTRY
+        testParamsMap["build_image_namespace"] = "openshift"
+        testParamsMap["services_image_namespace"] = "openshift"
     } else {
-        setEnv(prefixEnv, "IMAGE_TAG", sh(script: "echo ${GIT_COMMIT} | cut -c1-7", returnStdout: true).trim())
+        if(params.KOGITO_IMAGES_REGISTRY != '') {
+            testParamsMap["build_image_registry"] = params.KOGITO_IMAGES_REGISTRY
+            testParamsMap["services_image_registry"] = params.KOGITO_IMAGES_REGISTRY
+        }
+        if(params.KOGITO_IMAGES_NAMESPACE != '') {
+            testParamsMap["build_image_namespace"] = params.KOGITO_IMAGES_NAMESPACE
+            testParamsMap["services_image_namespace"] = params.KOGITO_IMAGES_NAMESPACE
+        }
     }
-    if(getParam(prefixParam, "IMAGE_NAME_SUFFIX") != '') {
-        setEnvFromParam("IMAGE_NAME_SUFFIX", prefixEnv, prefixParam)
+    // runtime_application_image are built in this pipeline so we can just use Openshift registry for them
+    testParamsMap["runtime_application_image_registry"] = env.OPENSHIFT_REGISTRY
+    testParamsMap["runtime_application_image_namespace"] = "openshift"
+
+    if(params.KOGITO_IMAGES_NAME_SUFFIX != '') {
+        testParamsMap["build_image_name_suffix"] = params.KOGITO_IMAGES_NAME_SUFFIX
+        testParamsMap["services_image_name_suffix"] = params.KOGITO_IMAGES_NAME_SUFFIX
+        testParamsMap["runtime_application_image_name_suffix"] = params.KOGITO_IMAGES_NAME_SUFFIX
     }
-}
 
-String getKey(String prefix, String envVarName) {
-    if (prefix == '') {
-        return envVarName
+    if(params.KOGITO_IMAGES_TAG != '') {
+        testParamsMap["build_image_version"] = params.KOGITO_IMAGES_TAG
+        testParamsMap["services_image_version"] = params.KOGITO_IMAGES_TAG
+        testParamsMap["runtime_application_image_version"] = params.KOGITO_IMAGES_TAG
     }
-    return "${prefix}_${envVarName}"
-}
 
-void setEnv(String keyPrefix, String keyId, String value){
-    echo "setEnv ${getKey(keyPrefix, keyId)} = ${value}"
-    env."${getKey(keyPrefix, keyId)}" = value
-}
+    if(params.EXAMPLES_REF != '') {
+        testParamsMap["examples_ref"] = params.EXAMPLES_REF
+    }
+    
+    // Use podman container engine in tests
+    testParamsMap['container_engine'] = 'podman'
 
-void setEnvFromParam(String keyId, String prefixEnv, String prefixParam){
-    setEnv(prefixEnv, keyId, getParam(prefixParam, keyId))
-}
-
-String getParam(String keyPrefix, String keyId){
-    return params."${getKey(keyPrefix, keyId)}"
+    String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(" ")
+    echo "BDD parameters = ${testParams}"
+    return testParams
 }
