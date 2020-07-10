@@ -91,17 +91,27 @@ jobs:
         run: go get golang.org/x/tools/cmd/cover
       - run: go mod tidy
       - name: Validate codcov yaml file
-        run: cat codecov.yml | curl --data-binary @- https://codecov.io/validate
+        run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
       - name: Test cmd dir
         run: |
-          go test ./cmd/... -count=1 -p=1 -coverprofile=coverage.txt -covermode=atomic
+          go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.txt -covermode=atomic
       - name: Upload results of cmd to codecov
-        run: bash <(curl -s https://codecov.io/bash) -F cli -X gcov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./cmd-coverage.txt
+          flags: cli
+          name: cli-test
+          fail_ci_if_error: true
       - name: Test pkg dir
         run: |
-           go test ./pkg/... -count=1 -coverprofile=coverage.txt -covermode=atomic
+           go test ./pkg/... -count=1 -coverprofile=pkg-coverage.txt -covermode=atomic
       - name: Upload results of pkg to codecov
-        run: bash <(curl -s https://codecov.io/bash) -F operator -X gcov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./pkg-coverage.txt
+          flags: operator
+          name: operator-test
+          fail_ci_if_error: true
 
   bats_test:
     name: Bats Test
