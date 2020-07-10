@@ -85,10 +85,11 @@ func Test_CheckKogitoRuntimeExists_exists(t *testing.T) {
 			Namespace: ns,
 		},
 	})
+	resourceCheckService := InitResourceCheckService()
 
-	err := CheckKogitoRuntimeExists(kubeCli, runtimeServiceName, ns)
+	err := resourceCheckService.CheckKogitoRuntimeExists(kubeCli, runtimeServiceName, ns)
 	assert.Nil(t, err)
-	err = CheckKogitoRuntimeNotExists(kubeCli, runtimeServiceName, ns)
+	err = resourceCheckService.CheckKogitoRuntimeNotExists(kubeCli, runtimeServiceName, ns)
 	assert.NotNil(t, err)
 }
 
@@ -98,14 +99,15 @@ func Test_CheckKogitoRuntimeExists_notExists(t *testing.T) {
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
 		ObjectMeta: v12.ObjectMeta{Name: ns},
 	})
+	resourceCheckService := InitResourceCheckService()
 
-	err := CheckKogitoRuntimeExists(kubeCli, runtimeServiceName, ns)
+	err := resourceCheckService.CheckKogitoRuntimeExists(kubeCli, runtimeServiceName, ns)
 	assert.NotNil(t, err)
-	err = CheckKogitoRuntimeNotExists(kubeCli, runtimeServiceName, ns)
+	err = resourceCheckService.CheckKogitoRuntimeNotExists(kubeCli, runtimeServiceName, ns)
 	assert.Nil(t, err)
 }
 
-func Test_CheckKogitoBuildExists(t *testing.T) {
+func Test_CheckKogitoBuildExists_exists(t *testing.T) {
 	buildServiceName := "build-service"
 	ns := t.Name()
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
@@ -116,7 +118,24 @@ func Test_CheckKogitoBuildExists(t *testing.T) {
 			Namespace: ns,
 		},
 	})
+	resourceCheckService := InitResourceCheckService()
 
-	err := CheckKogitoBuildExists(kubeCli, buildServiceName, ns)
+	err := resourceCheckService.CheckKogitoBuildExists(kubeCli, buildServiceName, ns)
+	assert.Nil(t, err)
+	err = resourceCheckService.CheckKogitoBuildNotExists(kubeCli, buildServiceName, ns)
+	assert.NotNil(t, err)
+}
+
+func Test_CheckKogitoBuildExists_notExists(t *testing.T) {
+	buildServiceName := "build-service"
+	ns := t.Name()
+	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
+		ObjectMeta: v12.ObjectMeta{Name: ns},
+	})
+	resourceCheckService := InitResourceCheckService()
+
+	err := resourceCheckService.CheckKogitoBuildExists(kubeCli, buildServiceName, ns)
+	assert.NotNil(t, err)
+	err = resourceCheckService.CheckKogitoBuildNotExists(kubeCli, buildServiceName, ns)
 	assert.Nil(t, err)
 }

@@ -32,14 +32,23 @@ type deployFlags struct {
 
 type deployCommand struct {
 	context.CommandContext
-	command *cobra.Command
-	flags   deployFlags
-	Parent  *cobra.Command
+	command              *cobra.Command
+	flags                *deployFlags
+	Parent               *cobra.Command
+	resourceCheckService shared.IResourceCheckService
+	buildService         service.IBuildService
+	runtimeService       service.IRuntimeService
 }
 
 // initDeployCommand is the constructor for the deploy command
 func initDeployCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
-	cmd := &deployCommand{CommandContext: *ctx, Parent: parent}
+	cmd := &deployCommand{
+		CommandContext:       *ctx,
+		Parent:               parent,
+		resourceCheckService: shared.InitResourceCheckService(),
+		buildService:         service.InitBuildService(),
+		runtimeService:       service.InitRuntimeService(),
+	}
 
 	cmd.RegisterHook()
 	cmd.InitHook()
@@ -93,7 +102,7 @@ func (i *deployCommand) RegisterHook() {
 
 func (i *deployCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
-	i.flags = deployFlags{}
+	i.flags = &deployFlags{}
 	flag.AddBuildFlags(i.command, &i.flags.BuildFlags)
 	flag.AddRuntimeFlags(i.command, &i.flags.RuntimeFlags)
 	flag.AddRuntimeTypeFlags(i.command, &i.flags.RuntimeTypeFlags)
@@ -101,30 +110,25 @@ func (i *deployCommand) InitHook() {
 
 func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	name := args[0]
-	project, err := shared.EnsureProject(i.Client, i.flags.RuntimeFlags.Project)
+	project, err := i.resourceCheckService.EnsureProject(i.Client, i.flags.RuntimeFlags.Project)
 	if err != nil {
 		return err
 	}
-	if err = installBuildService(i.Client, &i.flags, name, project, args); err != nil {
+	if err = i.installBuildService(i.Client, i.flags, name, project, args); err != nil {
 		return err
 	}
-	if err = installRuntimeService(i.Client, &i.flags, name, project); err != nil {
+	if err = i.installRuntimeService(i.Client, i.flags, name, project); err != nil {
 		return err
 	}
 	return nil
 }
 
-func installBuildService(cli *client.Client, flags *deployFlags, name, project string, args []string) error {
+func (i *deployCommand) installBuildService(cli *client.Client, flags *deployFlags, name, project string, args []string) error {
 	log := context.GetDefaultLogger()
 
 	if !flags.ImageFlags.IsEmpty() {
 		log.Info("Image details are provided, skipping to install kogito build")
 		return nil
-	}
-
-	if !cli.IsOpenshift() {
-		log.Info("Kogito Build is only supported on Openshift.")
-		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8")
 	}
 
 	resource := ""
@@ -137,12 +141,12 @@ func installBuildService(cli *client.Client, flags *deployFlags, name, project s
 	flags.BuildFlags.Project = project
 	flags.BuildFlags.OperatorFlags = flags.RuntimeFlags.OperatorFlags
 	flags.BuildFlags.RuntimeTypeFlags = flags.RuntimeTypeFlags
-	return service.InstallBuildService(cli, &flags.BuildFlags, resource)
+	return i.buildService.InstallBuildService(cli, &flags.BuildFlags, resource)
 }
 
-func installRuntimeService(cli *client.Client, flags *deployFlags, name, project string) error {
+func (i *deployCommand) installRuntimeService(cli *client.Client, flags *deployFlags, name, project string) error {
 	flags.RuntimeFlags.Name = name
 	flags.RuntimeFlags.Project = project
 	flags.RuntimeFlags.RuntimeTypeFlags = flags.RuntimeTypeFlags
-	return service.InstallRuntimeService(cli, &flags.RuntimeFlags)
+	return i.runtimeService.InstallRuntimeService(cli, &flags.RuntimeFlags)
 }

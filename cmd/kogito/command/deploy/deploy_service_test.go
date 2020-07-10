@@ -17,10 +17,13 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/service"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -60,4 +63,102 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
+}
+
+func Test_DeployCmd_success(t *testing.T) {
+	ns := "default"
+	resource := "https://github.com/kiegroup/kogito-examples/"
+	deployFlags := &deployFlags{}
+
+	kubeCli := test.SetupFakeKubeCli()
+	resourceServiceMock := new(shared.ResourceCheckServiceMock)
+	buildService := new(service.BuildServiceMock)
+	runtimeService := new(service.RuntimeServiceMock)
+
+	resourceServiceMock.On("EnsureProject", kubeCli, "").Return(ns, nil)
+	buildService.On("InstallBuildService", kubeCli, &deployFlags.BuildFlags, resource).Return(nil)
+	runtimeService.On("InstallRuntimeService", kubeCli, &deployFlags.RuntimeFlags).Return(nil)
+
+	deployCmd := deployCommand{
+		CommandContext:       context.CommandContext{Client: kubeCli},
+		flags:                deployFlags,
+		resourceCheckService: resourceServiceMock,
+		buildService:         buildService,
+		runtimeService:       runtimeService,
+	}
+
+	args := []string{
+		"process-quarkus-example",
+		resource,
+	}
+
+	err := deployCmd.Exec(nil, args)
+	assert.NoError(t, err)
+	buildService.AssertCalled(t, "InstallBuildService", kubeCli, &deployFlags.BuildFlags, resource)
+	runtimeService.AssertCalled(t, "InstallRuntimeService", kubeCli, &deployFlags.RuntimeFlags)
+}
+
+func Test_DeployCmd_SkipKogitoBuild_ImageDetailsProvided(t *testing.T) {
+	ns := "default"
+	resource := "https://github.com/kiegroup/kogito-examples/"
+	deployFlags := &deployFlags{}
+	deployFlags.Image = "quay.io/kiegroup/data-index:1.0"
+
+	kubeCli := test.SetupFakeKubeCli()
+	resourceServiceMock := new(shared.ResourceCheckServiceMock)
+	buildService := new(service.BuildServiceMock)
+	runtimeService := new(service.RuntimeServiceMock)
+
+	resourceServiceMock.On("EnsureProject", kubeCli, "").Return(ns, nil)
+	runtimeService.On("InstallRuntimeService", kubeCli, &deployFlags.RuntimeFlags).Return(nil)
+
+	deployCmd := deployCommand{
+		CommandContext:       context.CommandContext{Client: kubeCli},
+		flags:                deployFlags,
+		resourceCheckService: resourceServiceMock,
+		buildService:         buildService,
+		runtimeService:       runtimeService,
+	}
+
+	args := []string{
+		"process-quarkus-example",
+		resource,
+	}
+
+	err := deployCmd.Exec(nil, args)
+	assert.NoError(t, err)
+	buildService.AssertNotCalled(t, "InstallBuildService", mock.Anything, mock.Anything, mock.Anything)
+	runtimeService.AssertCalled(t, "InstallRuntimeService", kubeCli, &deployFlags.RuntimeFlags)
+}
+
+func Test_DeployCmd_KogitoBuildFailed(t *testing.T) {
+	ns := "default"
+	resource := "https://github.com/kiegroup/kogito-examples/"
+	deployFlags := &deployFlags{}
+
+	kubeCli := test.SetupFakeKubeCli()
+	resourceServiceMock := new(shared.ResourceCheckServiceMock)
+	buildService := new(service.BuildServiceMock)
+	runtimeService := new(service.RuntimeServiceMock)
+
+	resourceServiceMock.On("EnsureProject", kubeCli, "").Return(ns, nil)
+	buildService.On("InstallBuildService", kubeCli, &deployFlags.BuildFlags, resource).Return(fmt.Errorf(""))
+
+	deployCmd := deployCommand{
+		CommandContext:       context.CommandContext{Client: kubeCli},
+		flags:                deployFlags,
+		resourceCheckService: resourceServiceMock,
+		buildService:         buildService,
+		runtimeService:       runtimeService,
+	}
+
+	args := []string{
+		"process-quarkus-example",
+		resource,
+	}
+
+	err := deployCmd.Exec(nil, args)
+	assert.Error(t, err)
+	buildService.AssertCalled(t, "InstallBuildService", kubeCli, &deployFlags.BuildFlags, resource)
+	runtimeService.AssertNotCalled(t, "InstallRuntimeService", mock.Anything, mock.Anything)
 }

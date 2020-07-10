@@ -28,7 +28,13 @@ type deleteServiceFlags struct {
 }
 
 func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
-	cmd := &deleteServiceCommand{CommandContext: *ctx, Parent: parent}
+	cmd := &deleteServiceCommand{
+		CommandContext:       *ctx,
+		Parent:               parent,
+		resourceCheckService: shared.InitResourceCheckService(),
+		buildService:         service.InitBuildService(),
+		runtimeService:       service.InitRuntimeService(),
+	}
 	cmd.RegisterHook()
 	cmd.InitHook()
 	return cmd
@@ -36,9 +42,12 @@ func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command
 
 type deleteServiceCommand struct {
 	context.CommandContext
-	command *cobra.Command
-	flags   deleteServiceFlags
-	Parent  *cobra.Command
+	command              *cobra.Command
+	flags                *deleteServiceFlags
+	Parent               *cobra.Command
+	resourceCheckService shared.IResourceCheckService
+	buildService         service.IBuildService
+	runtimeService       service.IRuntimeService
 }
 
 func (i *deleteServiceCommand) RegisterHook() {
@@ -64,24 +73,21 @@ func (i *deleteServiceCommand) Command() *cobra.Command {
 }
 
 func (i *deleteServiceCommand) InitHook() {
-	i.flags = deleteServiceFlags{}
+	i.flags = &deleteServiceFlags{}
 	i.Parent.AddCommand(i.command)
 	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name from where the service needs to be deleted")
 }
 
 func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
-	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
-	if i.flags.project, err = shared.EnsureProject(i.Client, i.flags.project); err != nil {
+	if i.flags.project, err = i.resourceCheckService.EnsureProject(i.Client, i.flags.project); err != nil {
 		return err
 	}
-	if err = service.DeleteRuntimeService(i.Client, i.flags.name, i.flags.project); err != nil {
+	if err = i.runtimeService.DeleteRuntimeService(i.Client, i.flags.name, i.flags.project); err != nil {
 		return err
 	}
-	if i.Client.IsOpenshift() {
-		if err = service.DeleteBuildService(i.Client, i.flags.name, i.flags.project); err != nil {
-			log.Errorf("%s", err)
-		}
+	if err = i.buildService.DeleteBuildService(i.Client, i.flags.name, i.flags.project); err != nil {
+		return err
 	}
 	return nil
 }

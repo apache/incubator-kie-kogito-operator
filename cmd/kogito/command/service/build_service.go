@@ -15,6 +15,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
@@ -29,10 +30,35 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// IBuildService is interface to perform Kogito Build
+type IBuildService interface {
+	InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error)
+	DeleteBuildService(cli *client.Client, name, project string) (err error)
+}
+
+type buildServiceImpl struct {
+	resourceCheckService shared.IResourceCheckService
+}
+
+// InitBuildService create and return buildServiceImpl value
+func InitBuildService() IBuildService {
+	return buildServiceImpl{
+		resourceCheckService: shared.InitResourceCheckService(),
+	}
+}
+
 // InstallBuildService install Kogito build service
-func InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error) {
+func (i buildServiceImpl) InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Installing Kogito build : %s", flags.Name)
+
+	if !cli.IsOpenshift() {
+		log.Info("Kogito Build is only supported on Openshift.")
+		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8")
+	}
+	if err := i.resourceCheckService.CheckKogitoBuildNotExists(cli, flags.Name, flags.Project); err != nil {
+		return err
+	}
 	resourceType, err := GetResourceType(resource)
 	if err != nil {
 		return nil
@@ -52,8 +78,8 @@ func InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource st
 			DisableIncremental:        !flags.IncrementalBuild,
 			Envs:                      converter.FromStringArrayToEnvs(flags.Env),
 			GitSource:                 converter.FromGitSourceFlagsToGitSource(&flags.GitSourceFlags),
-			WebHooks:                  converter.FromWebHookFlagsToWebHookSecret(&flags.WebHookFlags),
 			Runtime:                   converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
+			WebHooks:                  converter.FromWebHookFlagsToWebHookSecret(&flags.WebHookFlags),
 			Native:                    flags.Native,
 			Resources:                 converter.FromPodResourceFlagsToResourceRequirement(&flags.PodResourceFlags),
 			MavenMirrorURL:            flags.MavenMirrorURL,
@@ -84,6 +110,30 @@ func InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource st
 		return nil
 	}
 
+	return nil
+}
+
+// DeleteBuildService delete Kogito build service
+func (i buildServiceImpl) DeleteBuildService(cli *client.Client, name, project string) (err error) {
+	log := context.GetDefaultLogger()
+
+	if !cli.IsOpenshift() {
+		log.Info("Delete Kogito Build is only supported on OpenShift.")
+		return nil
+	}
+	if err := i.resourceCheckService.CheckKogitoBuildExists(cli, name, project); err != nil {
+		return err
+	}
+	log.Debugf("About to delete build %s in namespace %s", name, project)
+	if err := kubernetes.ResourceC(cli).Delete(&v1alpha1.KogitoBuild{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      name,
+			Namespace: project,
+		},
+	}); err != nil {
+		return err
+	}
+	log.Infof("Successfully deleted Kogito Build %s in the Project %s", name, project)
 	return nil
 }
 
@@ -172,24 +222,5 @@ func triggerBuild(name string, namespace string, fileReader io.Reader, fileName 
 	}
 
 	log.Infof(message.KogitoBuildSuccessfullyUploadedFile, name, namespace)
-	return nil
-}
-
-// DeleteBuildService delete Kogito build service
-func DeleteBuildService(cli *client.Client, name, project string) (err error) {
-	log := context.GetDefaultLogger()
-	if err := shared.CheckKogitoBuildExists(cli, name, project); err != nil {
-		return err
-	}
-	log.Debugf("About to delete build %s in namespace %s", name, project)
-	if err := kubernetes.ResourceC(cli).Delete(&v1alpha1.KogitoBuild{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      name,
-			Namespace: project,
-		},
-	}); err != nil {
-		return err
-	}
-	log.Infof("Successfully deleted Kogito Build %s in the Project %s", name, project)
 	return nil
 }

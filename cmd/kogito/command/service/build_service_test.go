@@ -15,21 +15,25 @@
 package service
 
 import (
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
+	"github.com/stretchr/testify/mock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"testing"
 )
 
-func Test_InstallBuildService(t *testing.T) {
+func Test_InstallBuildService_Success_OpenShiftCluster(t *testing.T) {
 	ns := t.Name()
+	name := "example-quarkus"
 	resource := "https://github.com/kiegroup/kogito-examples/"
 	buildFlag := flag.BuildFlags{
-		Name:    "example-quarkus",
+		Name:    name,
 		Project: ns,
 		GitSourceFlags: flag.GitSourceFlags{
 			ContextDir: "drools-quarkus-example",
@@ -43,9 +47,15 @@ func Test_InstallBuildService(t *testing.T) {
 		EnableMavenDownloadOutput: true,
 		IncrementalBuild:          true,
 	}
-	client := test.SetupFakeKubeCli(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	client := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoBuildNotExists", client, name, ns).Return(nil)
 
-	err := InstallBuildService(client, &buildFlag, resource)
+	buildService := buildServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+
+	err := buildService.InstallBuildService(client, &buildFlag, resource)
 	assert.NoError(t, err)
 
 	// This should be created, given the command above
@@ -68,21 +78,55 @@ func Test_InstallBuildService(t *testing.T) {
 	assert.Equal(t, true, kogitoBuild.Spec.EnableMavenDownloadOutput)
 }
 
-func Test_DeleteBuildService_WhenBuildExists(t *testing.T) {
+func Test_InstallBuildService_Failure_K8Cluster(t *testing.T) {
+	resource := "https://github.com/kiegroup/kogito-examples/"
+	buildFlag := flag.BuildFlags{}
+	client := test.CreateFakeClient(nil, nil, nil)
+
+	buildService := buildServiceImpl{}
+
+	err := buildService.InstallBuildService(client, &buildFlag, resource)
+	assert.Error(t, err)
+}
+
+func Test_DeleteBuildService_Success_WhenBuildExists(t *testing.T) {
 	ns := t.Name()
 	name := "example-quarkus"
-	client := test.SetupFakeKubeCli(
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1alpha1.KogitoBuild{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns}})
-	err := DeleteBuildService(client, name, ns)
+	objects := []runtime.Object{
+		&v1alpha1.KogitoBuild{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns}},
+	}
+	client := test.CreateFakeClientOnOpenShift(objects, nil, nil)
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoBuildExists", client, name, ns).Return(nil)
+	buildService := buildServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+	err := buildService.DeleteBuildService(client, name, ns)
 	assert.NoError(t, err)
 }
 
-func Test_DeleteBuildService_WhenBuildNotExists(t *testing.T) {
+func Test_DeleteBuildService_Failure_WhenBuildNotExists(t *testing.T) {
 	ns := t.Name()
 	name := "example-quarkus"
-	client := test.SetupFakeKubeCli(
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	err := DeleteBuildService(client, name, ns)
+	client := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoBuildExists", client, name, ns).Return(fmt.Errorf(""))
+	buildService := buildServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+	err := buildService.DeleteBuildService(client, name, ns)
 	assert.Error(t, err)
+}
+
+func Test_DeleteBuildService_Failure_K8Cluster(t *testing.T) {
+	ns := t.Name()
+	name := "example-quarkus"
+	client := test.CreateFakeClient(nil, nil, nil)
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	buildService := buildServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+	err := buildService.DeleteBuildService(client, name, ns)
+	assert.NoError(t, err)
+	resourceCheckService.AssertNotCalled(t, "CheckKogitoBuildExists", mock.Anything, mock.Anything, mock.Anything)
 }

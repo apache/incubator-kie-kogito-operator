@@ -17,34 +17,100 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/service"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
-func Test_DeleteServiceCmd_WhenWeSuccessfullyDelete(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
-	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1alpha1.KogitoRuntime{ObjectMeta: metav1.ObjectMeta{Name: "example-drools", Namespace: ns}})
+func Test_DeleteServiceCmd_Success_OpenShiftCluster(t *testing.T) {
+	ns := "default"
+	name := "process-springboot-example"
+	kubeCli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	resourceCheckServiceMock := new(shared.ResourceCheckServiceMock)
+	buildService := new(service.BuildServiceMock)
+	runtimeService := new(service.RuntimeServiceMock)
 
-	lines, _, err := test.ExecuteCli()
+	resourceCheckServiceMock.On("EnsureProject", kubeCli, "").Return(ns, nil)
+	buildService.On("DeleteBuildService", kubeCli, name, ns).Return(nil)
+	runtimeService.On("DeleteRuntimeService", kubeCli, name, ns).Return(nil)
+
+	deleteFlags := &deleteServiceFlags{}
+	deleteServiceCmd := &deleteServiceCommand{
+		CommandContext:       context.CommandContext{Client: kubeCli},
+		flags:                deleteFlags,
+		resourceCheckService: resourceCheckServiceMock,
+		buildService:         buildService,
+		runtimeService:       runtimeService,
+	}
+
+	args := []string{
+		"process-springboot-example",
+	}
+
+	err := deleteServiceCmd.Exec(nil, args)
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Successfully deleted Kogito Service example-drools")
+	buildService.AssertCalled(t, "DeleteBuildService", kubeCli, name, ns)
+	runtimeService.AssertCalled(t, "DeleteRuntimeService", kubeCli, name, ns)
 }
 
-func Test_DeleteServiceCmd_WhenServiceDoesNotExist(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
-	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
+func Test_DeleteServiceCmd_WhenProjectDoesNotExist(t *testing.T) {
+	kubeCli := test.CreateFakeClient(nil, nil, nil)
+	resourceCheckServiceMock := new(shared.ResourceCheckServiceMock)
+	buildService := new(service.BuildServiceMock)
+	runtimeService := new(service.RuntimeServiceMock)
+
+	resourceCheckServiceMock.On("EnsureProject", kubeCli, "").Return("", fmt.Errorf(""))
+
+	deleteFlags := &deleteServiceFlags{}
+
+	deleteServiceCmd := &deleteServiceCommand{
+		CommandContext:       context.CommandContext{Client: kubeCli},
+		flags:                deleteFlags,
+		resourceCheckService: resourceCheckServiceMock,
+		buildService:         buildService,
+		runtimeService:       runtimeService,
+	}
+
+	args := []string{
+		"process-springboot-example",
+	}
+
+	err := deleteServiceCmd.Exec(nil, args)
 	assert.Error(t, err)
-	assert.Contains(t, lines, "with the name 'example-drools' doesn't exist")
+	buildService.AssertNotCalled(t, "DeleteBuildService", mock.Anything, mock.Anything, mock.Anything)
+	runtimeService.AssertNotCalled(t, "DeleteRuntimeService", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func Test_DeleteServiceCmd_Error_DeleteKogitoRuntimeFailed(t *testing.T) {
+	ns := "default"
+	name := "process-springboot-example"
+	kubeCli := test.CreateFakeClient(nil, nil, nil)
+	resourceCheckServiceMock := new(shared.ResourceCheckServiceMock)
+	buildService := new(service.BuildServiceMock)
+	runtimeService := new(service.RuntimeServiceMock)
+
+	resourceCheckServiceMock.On("EnsureProject", kubeCli, "").Return(ns, nil)
+	runtimeService.On("DeleteRuntimeService", kubeCli, name, ns).Return(fmt.Errorf(""))
+
+	deleteFlags := &deleteServiceFlags{}
+
+	deleteServiceCmd := &deleteServiceCommand{
+		CommandContext:       context.CommandContext{Client: kubeCli},
+		flags:                deleteFlags,
+		resourceCheckService: resourceCheckServiceMock,
+		buildService:         buildService,
+		runtimeService:       runtimeService,
+	}
+
+	args := []string{
+		"process-springboot-example",
+	}
+
+	err := deleteServiceCmd.Exec(nil, args)
+	assert.Error(t, err)
+	buildService.AssertNotCalled(t, "DeleteBuildService", mock.Anything, mock.Anything, mock.Anything)
+	runtimeService.AssertCalled(t, "DeleteRuntimeService", kubeCli, name, ns)
 }

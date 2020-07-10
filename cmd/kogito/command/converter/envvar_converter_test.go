@@ -28,8 +28,13 @@ func Test_FromStringArrayToEnvs(t *testing.T) {
 	envVars := FromStringArrayToEnvs(keyValuePair)
 	assert.NotNil(t, envVars)
 	assert.Equal(t, 2, len(envVars))
-	assert.Equal(t, "key1", envVars[0].Name)
-	assert.Equal(t, "value1", envVars[0].Value)
-	assert.Equal(t, "key2", envVars[1].Name)
-	assert.Equal(t, "value2", envVars[1].Value)
+	for _, envVar := range envVars {
+		if envVar.Name == "key1" {
+			assert.Equal(t, "value1", envVar.Value)
+		} else if envVar.Name == "key2" {
+			assert.Equal(t, "value2", envVar.Value)
+		} else {
+			assert.Fail(t, "Invalid EnvVar")
+		}
+	}
 }

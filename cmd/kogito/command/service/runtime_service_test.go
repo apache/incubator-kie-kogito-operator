@@ -15,7 +15,9 @@
 package service
 
 import (
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -28,8 +30,9 @@ import (
 
 func Test_InstallRuntimeService(t *testing.T) {
 	ns := t.Name()
+	name := "example-drools"
 	runtimeFlag := flag.RuntimeFlags{
-		Name: "example-drools",
+		Name: name,
 		InstallFlags: flag.InstallFlags{
 			Project: ns,
 			ImageFlags: flag.ImageFlags{
@@ -51,8 +54,12 @@ func Test_InstallRuntimeService(t *testing.T) {
 		},
 	}
 	client := test.SetupFakeKubeCli(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-
-	err := InstallRuntimeService(client, &runtimeFlag)
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoRuntimeNotExists", client, name, ns).Return(nil)
+	runtimeService := runtimeServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+	err := runtimeService.InstallRuntimeService(client, &runtimeFlag)
 	assert.NoError(t, err)
 	// This should be created, given the command above
 	kogitoRuntime := &v1alpha1.KogitoRuntime{
@@ -83,18 +90,27 @@ func Test_InstallRuntimeService(t *testing.T) {
 func Test_DeleteRuntimeService_WhenBuildExists(t *testing.T) {
 	ns := t.Name()
 	name := "example-quarkus"
-	client := test.SetupFakeKubeCli(
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1alpha1.KogitoRuntime{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns}})
-	err := DeleteRuntimeService(client, name, ns)
+	client := test.SetupFakeKubeCli(&v1alpha1.KogitoRuntime{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns}})
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoRuntimeExists", client, name, ns).Return(nil)
+
+	runtimeService := runtimeServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+	err := runtimeService.DeleteRuntimeService(client, name, ns)
 	assert.NoError(t, err)
 }
 
 func Test_DeleteRuntimeService_WhenBuildNotExists(t *testing.T) {
 	ns := t.Name()
 	name := "example-quarkus"
-	client := test.SetupFakeKubeCli(
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	err := DeleteRuntimeService(client, name, ns)
+	client := test.SetupFakeKubeCli()
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoRuntimeExists", client, name, ns).Return(fmt.Errorf(""))
+
+	runtimeService := runtimeServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+	err := runtimeService.DeleteRuntimeService(client, name, ns)
 	assert.Error(t, err)
 }
