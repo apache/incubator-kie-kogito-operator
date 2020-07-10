@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -73,7 +74,7 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.Image); err != nil {
+			if err := util.CheckImageTag(i.flags.Image); err != nil {
 				return err
 			}
 			return nil
@@ -102,7 +103,7 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 		Spec: v1alpha1.KogitoMgmtConsoleSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Envs:     shared.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),

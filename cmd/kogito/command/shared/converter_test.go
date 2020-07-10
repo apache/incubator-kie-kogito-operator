@@ -22,10 +22,13 @@ import (
 func Test_FromStringArrayToEnvs(t *testing.T) {
 	keyPairStrings := []string{
 		"VAR1=key1",
+	}
+
+	secretKeyPairStrings := []string{
 		"VAR2=secretName2#secretKey2",
 	}
 
-	envVars := FromStringArrayToEnvs(keyPairStrings)
+	envVars := FromStringArrayToEnvs(keyPairStrings, secretKeyPairStrings)
 	assert.NotNil(t, envVars)
 	assert.Equal(t, 2, len(envVars))
 	generalEnv := envVars[0]
@@ -35,4 +38,17 @@ func Test_FromStringArrayToEnvs(t *testing.T) {
 	assert.Equal(t, "VAR2", secretEnvVar.Name)
 	assert.Equal(t, "secretKey2", secretEnvVar.ValueFrom.SecretKeyRef.Key)
 	assert.Equal(t, "secretName2", secretEnvVar.ValueFrom.SecretKeyRef.LocalObjectReference.Name)
+}
+
+func Test_FromStringsKeyPairToMap(t *testing.T) {
+	keyValuePair := []string{
+		"VAR1=key1",
+		"VAR2=key2",
+	}
+
+	keyPairMap := FromStringsKeyPairToMap(keyValuePair)
+	assert.NotNil(t, keyPairMap)
+	assert.Equal(t, 2, len(keyPairMap))
+	assert.Equal(t, "key1", keyPairMap["VAR1"])
+	assert.Equal(t, "key2", keyPairMap["VAR2"])
 }

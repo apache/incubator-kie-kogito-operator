@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
@@ -132,7 +133,7 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.Image); err != nil {
+			if err := util.CheckImageTag(i.flags.Image); err != nil {
 				return err
 			}
 			return nil
@@ -208,7 +209,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 			KafkaMeta: v1alpha1.KafkaMeta{KafkaProperties: i.flags.kafka},
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Envs:     shared.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),

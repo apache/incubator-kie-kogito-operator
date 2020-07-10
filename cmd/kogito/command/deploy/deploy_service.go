@@ -16,6 +16,7 @@ package deploy
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"io"
 	"net/http"
 	"net/url"
@@ -33,7 +34,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,6 +54,7 @@ type deployFlags struct {
 	serviceLabels             []string
 	incrementalBuild          bool
 	buildEnv                  []string
+	secretBuildEnv            []string
 	reference                 string
 	contextDir                string
 	source                    string
@@ -118,25 +119,28 @@ func (i *deployCommand) RegisterHook() {
 			if len(args) == 0 {
 				return fmt.Errorf("the service requires a name ")
 			}
-			if err := util.ParseStringsForKeyPair(i.flags.buildEnv); err != nil {
+			if err := buildutil.CheckKeyPair(i.flags.buildEnv); err != nil {
 				return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", i.flags.buildEnv)
 			}
-			if err := util.ParseStringsForKeyPair(i.flags.serviceLabels); err != nil {
+			if err := buildutil.CheckSecretKeyPair(i.flags.secretBuildEnv); err != nil {
+				return fmt.Errorf("secret build environment variables are in the wrong format. Valid are key pairs like 'env=secretName#secretValue', received %s", i.flags.secretBuildEnv)
+			}
+			if err := buildutil.CheckKeyPair(i.flags.serviceLabels); err != nil {
 				return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", i.flags.serviceLabels)
 			}
-			if err := util.ParseStringsForKeyPair(i.flags.buildLimits); err != nil {
+			if err := buildutil.CheckKeyPair(i.flags.buildLimits); err != nil {
 				return fmt.Errorf("build-limits are in the wrong format. Valid are key pairs like 'cpu=1', received %s", i.flags.buildLimits)
 			}
-			if err := util.ParseStringsForKeyPair(i.flags.buildRequests); err != nil {
+			if err := buildutil.CheckKeyPair(i.flags.buildRequests); err != nil {
 				return fmt.Errorf("build-requests are in the wrong format. Valid are key pairs like 'cpu=1', received %s", i.flags.buildRequests)
 			}
 			if !util.Contains(i.flags.runtime, deployRuntimeValidEntries) {
 				return fmt.Errorf("runtime not valid. Valid runtimes are %s. Received %s", deployRuntimeValidEntries, i.flags.runtime)
 			}
-			if err := CheckImageTag(i.flags.imageRuntime); err != nil {
+			if err := buildutil.CheckImageTag(i.flags.imageRuntime); err != nil {
 				return err
 			}
-			if err := CheckImageTag(i.flags.imageS2I); err != nil {
+			if err := buildutil.CheckImageTag(i.flags.imageS2I); err != nil {
 				return err
 			}
 			if err := CheckDeployArgs(&i.flags.CommonFlags); err != nil {
@@ -163,6 +167,7 @@ func (i *deployCommand) InitHook() {
 	i.command.Flags().BoolVar(&i.flags.incrementalBuild, "incremental-build", true, "Build should be incremental?")
 	i.command.Flags().BoolVar(&i.flags.native, "native", false, "Use native builds? Be aware that native builds takes more time and consume much more resources from the cluster. Defaults to false")
 	i.command.Flags().StringArrayVar(&i.flags.buildEnv, "build-env", nil, "Key/pair value environment variables that will be set during the build. For example 'MY_CUSTOM_ENV=my_custom_value'. Can be set more than once.")
+	i.command.Flags().StringArrayVar(&i.flags.secretBuildEnv, "secret-build-env", nil, "Secret Key/Pair value environment variables that will be set during the build. For example 'MY_VAR=secretName#secretKey'. Can be set more than once.")
 	i.command.Flags().StringSliceVar(&i.flags.buildLimits, "build-limits", nil, "Resource limits for the s2i build pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	i.command.Flags().StringSliceVar(&i.flags.buildRequests, "build-requests", nil, "Resource requests for the s2i build pod. Valid values are 'cpu' and 'memory'. For example 'cpu=1'. Can be set more than once.")
 	i.command.Flags().StringVar(&i.flags.imageS2I, "image-s2i", "", "Custom image tag for the s2i build to build the application binaries, e.g: quay.io/mynamespace/myimage:latest")
@@ -247,7 +252,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		Spec: v1alpha1.KogitoAppSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Envs:     shared.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Resources: corev1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),
 					Requests: shared.FromStringArrayToResources(i.flags.Requests),
@@ -257,7 +262,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 
 			Runtime: v1alpha1.RuntimeType(i.flags.runtime),
 			Build: &v1alpha1.KogitoAppBuildObject{
-				Envs: shared.FromStringArrayToEnvs(i.flags.buildEnv),
+				Envs: shared.FromStringArrayToEnvs(i.flags.buildEnv, i.flags.secretBuildEnv),
 				Resources: corev1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.buildLimits),
 					Requests: shared.FromStringArrayToResources(i.flags.buildRequests),
@@ -276,7 +281,7 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 				EnableMavenDownloadOutput: i.flags.enableMavenDownloadOutput,
 			},
 			Service: v1alpha1.KogitoAppServiceObject{
-				Labels: util.FromStringsKeyPairToMap(i.flags.serviceLabels),
+				Labels: shared.FromStringsKeyPairToMap(i.flags.serviceLabels),
 			},
 			EnablePersistence: i.flags.enablePersistence,
 			EnableEvents:      i.flags.enableEvents,
