@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+set -e
 default_kind_version=v0.8.1
 
 if [[ -z ${KIND_VERSION} ]]; then
