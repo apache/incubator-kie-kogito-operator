@@ -936,7 +936,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: kogito-operator
-    operated-by: kogito-operator.0.11.0
+    operated-by: kogito-operator.0.12.0
   links:
   - name: Product Page
     url: https://kogito.kie.org/
