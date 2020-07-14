@@ -1,0 +1,55 @@
+name: Kogito Operator Unit tests
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+env:
+  OPERATOR_SDK_VERSION: v0.18.2
+  GO_VERSION: 1.14
+jobs:
+  unit_test_and_coverage:
+    name: Unit test and Coverage
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: 0
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod/cache
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache-
+      - name: Install cover
+        run: go get golang.org/x/tools/cmd/cover
+      - run: go mod tidy
+      - name: Validate codcov yaml file
+        run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
+      - name: Test cmd dir
+        run: |
+          go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.txt -covermode=atomic
+      - name: Upload results of cmd to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./cmd-coverage.txt
+          flags: cli
+          name: cli-test
+          fail_ci_if_error: true
+      - name: Test pkg dir
+        run: |
+          go test ./pkg/... -p=1 -count=1 -coverprofile=pkg-coverage.txt -covermode=atomic
+      - name: Upload results of pkg to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./pkg-coverage.txt
+          flags: operator
+          name: operator-test
+          fail_ci_if_error: true
