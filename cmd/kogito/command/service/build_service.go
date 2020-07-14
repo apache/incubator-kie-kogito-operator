@@ -26,6 +26,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	buildv1 "github.com/openshift/api/build/v1"
+	"go.uber.org/zap"
 	"io"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -52,13 +53,10 @@ func (i buildServiceImpl) InstallBuildService(cli *client.Client, flags *flag.Bu
 	log := context.GetDefaultLogger()
 	log.Debugf("Installing Kogito build : %s", flags.Name)
 
-	if !cli.IsOpenshift() {
-		log.Info("Kogito Build is only supported on Openshift.")
-		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8")
-	}
-	if err := i.resourceCheckService.CheckKogitoBuildNotExists(cli, flags.Name, flags.Project); err != nil {
+	if err = validatePreRequisite(cli, flags, log, i); err != nil {
 		return err
 	}
+
 	resourceType, err := GetResourceType(resource)
 	if err != nil {
 		return nil
@@ -110,6 +108,25 @@ func (i buildServiceImpl) InstallBuildService(cli *client.Client, flags *flag.Bu
 		return nil
 	}
 
+	return nil
+}
+
+func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.SugaredLogger, i buildServiceImpl) error {
+
+	if !cli.IsOpenshift() {
+		log.Info("Kogito Build is only supported on Openshift.")
+		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8")
+	}
+
+	if err := i.resourceCheckService.CheckKogitoBuildNotExists(cli, flags.Name, flags.Project); err != nil {
+		return err
+	}
+
+	if flags.Native {
+		if v1alpha1.RuntimeType(flags.RuntimeTypeFlags.Runtime) != v1alpha1.QuarkusRuntimeType {
+			return fmt.Errorf("native builds are only supported with %s runtime", v1alpha1.QuarkusRuntimeType)
+		}
+	}
 	return nil
 }
 

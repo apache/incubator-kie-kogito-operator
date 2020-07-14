@@ -39,13 +39,14 @@ func Test_InstallBuildService_Success_OpenShiftCluster(t *testing.T) {
 			ContextDir: "drools-quarkus-example",
 		},
 		RuntimeTypeFlags: flag.RuntimeTypeFlags{
-			Runtime: "springboot",
+			Runtime: "quarkus",
 		},
 		BuildImage:                "mydomain.io/mynamespace/builder-image-s2i:1.0",
 		RuntimeImage:              "mydomain.io/mynamespace/runnable-image:1.0",
 		MavenMirrorURL:            "http://172.18.0.1:8080/repository/local/",
 		EnableMavenDownloadOutput: true,
 		IncrementalBuild:          true,
+		Native:                    true,
 	}
 	client := test.CreateFakeClientOnOpenShift(nil, nil, nil)
 	resourceCheckService := new(shared.ResourceCheckServiceMock)
@@ -71,7 +72,8 @@ func Test_InstallBuildService_Success_OpenShiftCluster(t *testing.T) {
 	assert.True(t, exist)
 	assert.Equal(t, v1alpha1.RemoteSourceBuildType, kogitoBuild.Spec.Type)
 	assert.Equal(t, false, kogitoBuild.Spec.DisableIncremental)
-	assert.Equal(t, v1alpha1.SpringbootRuntimeType, kogitoBuild.Spec.Runtime)
+	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoBuild.Spec.Runtime)
+	assert.Equal(t, true, kogitoBuild.Spec.Native)
 	assert.Equal(t, "mydomain.io/mynamespace/builder-image-s2i:1.0", kogitoBuild.Spec.BuildImage.String())
 	assert.Equal(t, "mydomain.io/mynamespace/runnable-image:1.0", kogitoBuild.Spec.RuntimeImage.String())
 	assert.Equal(t, "http://172.18.0.1:8080/repository/local/", kogitoBuild.Spec.MavenMirrorURL)
@@ -84,6 +86,50 @@ func Test_InstallBuildService_Failure_K8Cluster(t *testing.T) {
 	client := test.CreateFakeClient(nil, nil, nil)
 
 	buildService := buildServiceImpl{}
+
+	err := buildService.InstallBuildService(client, &buildFlag, resource)
+	assert.Error(t, err)
+}
+
+func Test_InstallBuildService_Failure_BuildAlreadyExits(t *testing.T) {
+	ns := t.Name()
+	name := "example-quarkus"
+	resource := "https://github.com/kiegroup/kogito-examples/"
+	buildFlag := flag.BuildFlags{
+		Name:    name,
+		Project: ns,
+	}
+	client := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoBuildNotExists", client, name, ns).Return(fmt.Errorf("Build Already Exits. "))
+
+	buildService := buildServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
+
+	err := buildService.InstallBuildService(client, &buildFlag, resource)
+	assert.Error(t, err)
+}
+
+func Test_InstallBuildService_Failure_NativeBuildWithSpringBootRuntime(t *testing.T) {
+	ns := t.Name()
+	name := "example-quarkus"
+	resource := "https://github.com/kiegroup/kogito-examples/"
+	buildFlag := flag.BuildFlags{
+		Name:    name,
+		Project: ns,
+		RuntimeTypeFlags: flag.RuntimeTypeFlags{
+			Runtime: "springboot",
+		},
+		Native: true,
+	}
+	client := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	resourceCheckService := new(shared.ResourceCheckServiceMock)
+	resourceCheckService.On("CheckKogitoBuildNotExists", client, name, ns).Return(nil)
+
+	buildService := buildServiceImpl{
+		resourceCheckService: resourceCheckService,
+	}
 
 	err := buildService.InstallBuildService(client, &buildFlag, resource)
 	assert.Error(t, err)

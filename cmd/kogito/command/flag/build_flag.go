@@ -17,7 +17,6 @@ package flag
 import (
 	"fmt"
 	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
 	"net/url"
@@ -97,11 +96,6 @@ func CheckBuildArgs(flags *BuildFlags) error {
 	}
 	if err := util.ParseStringsForKeyPair(flags.Env); err != nil {
 		return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", flags.Env)
-	}
-	if flags.Native {
-		if v1alpha1.RuntimeType(flags.RuntimeTypeFlags.Runtime) != v1alpha1.QuarkusRuntimeType {
-			return fmt.Errorf("native builds are only supported with %s runtime", v1alpha1.QuarkusRuntimeType)
-		}
 	}
 	if len(flags.MavenMirrorURL) > 0 {
 		if _, err := url.ParseRequestURI(flags.MavenMirrorURL); err != nil {
