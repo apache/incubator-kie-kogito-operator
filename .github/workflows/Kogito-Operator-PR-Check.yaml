@@ -81,7 +81,7 @@ jobs:
         run: $HOME/bin/bats hack/*.bats
   olm_integration:
     name: OLM Integration Test
-    needs: [golint, unit_test_and_coverage, bats_test]
+    needs: [golint, bats_test]
     runs-on: ubuntu-latest
     env:
       CLUSTER_NAME: operator-test
