@@ -16,6 +16,7 @@ package converter
 
 import (
 	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
 	"testing"
 )
 
@@ -28,13 +29,6 @@ func Test_FromStringArrayToEnvs(t *testing.T) {
 	envVars := FromStringArrayToEnvs(keyValuePair)
 	assert.NotNil(t, envVars)
 	assert.Equal(t, 2, len(envVars))
-	for _, envVar := range envVars {
-		if envVar.Name == "key1" {
-			assert.Equal(t, "value1", envVar.Value)
-		} else if envVar.Name == "key2" {
-			assert.Equal(t, "value2", envVar.Value)
-		} else {
-			assert.Fail(t, "Invalid EnvVar")
-		}
-	}
+	assert.Contains(t, envVars, v1.EnvVar{Name: "key1", Value: "value1"})
+	assert.Contains(t, envVars, v1.EnvVar{Name: "key2", Value: "value2"})
 }

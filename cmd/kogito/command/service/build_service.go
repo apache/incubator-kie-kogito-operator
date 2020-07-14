@@ -115,7 +115,7 @@ func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.S
 
 	if !cli.IsOpenshift() {
 		log.Info("Kogito Build is only supported on Openshift.")
-		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8")
+		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8s")
 	}
 
 	if err := i.resourceCheckService.CheckKogitoBuildNotExists(cli, flags.Name, flags.Project); err != nil {
