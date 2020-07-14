@@ -1,4 +1,4 @@
-# In this example we create a KogitoBuild responsible to build our service from service and then deploy it as
+# In this example we create a KogitoBuild responsible to build our service from source and then deploy it as
 # a KogitoRuntime reference. Since they have the same name, they will be bound together through the built image.
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoBuild

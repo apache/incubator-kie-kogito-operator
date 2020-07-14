@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2019 Red Hat, Inc. and/or its affiliates
+# Copyright 2020 Red Hat, Inc. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-which addlicense > /dev/null || go get -u github.com/google/addlicense
 
-addlicense -c "Red Hat, Inc. and/or its affiliates" -l=apache cmd hack pkg test version tools.go
+
+source ./hack/export-version.sh
+
+operator-sdk generate csv --csv-version "$OP_VERSION"  --verbose  --update-crds --operator-name kogito-operator

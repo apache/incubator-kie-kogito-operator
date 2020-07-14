@@ -53,7 +53,7 @@ metadata:
           "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoInfra",
           "metadata": {
-            "name": "kogito-infra"
+            "name": "infra"
           },
           "spec": {
             "installInfinispan": false,

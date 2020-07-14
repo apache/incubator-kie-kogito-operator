@@ -91,6 +91,7 @@ load_default_config=false
 container_engine=
 domain_suffix=
 image_cache_mode=
+http_retry_nb=
 # operator information
 operator_image=
 operator_tag=
@@ -180,6 +181,7 @@ run-tests:
 		--container_engine ${container_engine} \
 		--domain_suffix ${domain_suffix} \
 		--image_cache_mode ${image_cache_mode} \
+		--http_retry_nb ${http_retry_nb} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
@@ -197,7 +199,18 @@ build-examples-images:
 .PHONY: prepare-olm
 version = ""
 prepare-olm:
-	./hack/pr-operatorhub.sh $(version)
+	./hack/generate-manifests.sh
+	./hack/ci/operator-ensure-manifests.sh
+
+.PHONY: olm-integration
+olm-integration:
+	./hack/ci/install-operator-sdk.sh
+	./hack/ci/install-kind.sh
+	./hack/ci/start-kind.sh
+	./hack/generate-manifests.sh
+	BUILDER=docker ./hack/go-build.sh
+	./hack/ci/load-operator-image.sh
+	./hack/ci/operator-olm-test.sh
 
 .PHONY: bump-version
 old_version = ""

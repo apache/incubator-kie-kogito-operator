@@ -1,0 +1,20 @@
+flags:
+  operator:
+    paths:
+      - pkg/
+  cli:
+    paths:
+      - cmd/
+coverage:
+  status:
+    project:
+      operator:
+        target: auto
+        threshold: 5%
+        flags:
+          - operator
+      cli:
+        target: auto
+        threshold: 5%
+        flags:
+          - cli
