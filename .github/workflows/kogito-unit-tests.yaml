@@ -1,9 +1,11 @@
 name: Kogito Operator Unit tests
 on:
   pull_request:
+    paths:
+      - '**.go'
   push:
     paths:
-      - "**.go"
+      - '**.go'
     branches:
       - master
 env:
