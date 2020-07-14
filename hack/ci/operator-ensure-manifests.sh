@@ -33,6 +33,7 @@ cp -r ~/operators/community-operators/infinispan/ "${OUTPUT}"
 cp -r ~/operators/community-operators/kogito-operator/ "${OUTPUT}"
 rm -rf ~/operators/
 
+rm -rf "${OUTPUT}/kogito-operator/${OP_VERSION}/"
 cp -r "deploy/olm-catalog/kogito-operator/${OP_VERSION}/" "${OUTPUT}/kogito-operator/"
 cp "deploy/olm-catalog/kogito-operator/kogito-operator.package.yaml"  "${OUTPUT}/kogito-operator/"
 
