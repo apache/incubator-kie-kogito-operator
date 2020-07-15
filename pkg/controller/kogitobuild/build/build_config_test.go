@@ -62,3 +62,62 @@ func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
 
 	assert.Equal(t, false, *bc.Spec.CommonSpec.Strategy.SourceStrategy.Incremental)
 }
+
+func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
+	kogitoBuild := &v1alpha1.KogitoBuild{
+		Spec: v1alpha1.KogitoBuildSpec{
+			GitSource: v1alpha1.GitSource{
+				URI:        "host:port",
+				Reference:  "my_branch",
+				ContextDir: "/mypath/",
+			},
+		},
+	}
+	bc := &buildv1.BuildConfig{}
+	decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
+
+	assert.Equal(t, buildv1.BuildSourceGit, bc.Spec.Source.Type)
+	assert.Equal(t, "/mypath", bc.Spec.Source.ContextDir)
+	assert.Equal(t, "host:port", bc.Spec.Source.Git.URI)
+	assert.Equal(t, "my_branch", bc.Spec.Source.Git.Ref)
+}
+
+func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
+	kogitoBuild := &v1alpha1.KogitoBuild{
+		Spec: v1alpha1.KogitoBuildSpec{
+			WebHooks: []v1alpha1.WebhookSecret{
+				{
+					Type:   v1alpha1.GitHubWebhook,
+					Secret: "github_secret",
+				},
+			},
+		},
+	}
+	bc := &buildv1.BuildConfig{}
+	decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
+
+	assert.Equal(t, 1, len(bc.Spec.Triggers))
+	assert.NotNil(t, bc.Spec.Triggers[0].GitHubWebHook)
+	assert.False(t, bc.Spec.Triggers[0].GitHubWebHook.AllowEnv)
+	assert.Equal(t, "github_secret", bc.Spec.Triggers[0].GitHubWebHook.SecretReference.Name)
+}
+
+func Test_decoratorForRemoteSourceBuilder_genericWebHook(t *testing.T) {
+	kogitoBuild := &v1alpha1.KogitoBuild{
+		Spec: v1alpha1.KogitoBuildSpec{
+			WebHooks: []v1alpha1.WebhookSecret{
+				{
+					Type:   v1alpha1.GenericWebhook,
+					Secret: "generic_secret",
+				},
+			},
+		},
+	}
+	bc := &buildv1.BuildConfig{}
+	decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
+
+	assert.Equal(t, 1, len(bc.Spec.Triggers))
+	assert.NotNil(t, bc.Spec.Triggers[0].GenericWebHook)
+	assert.True(t, bc.Spec.Triggers[0].GenericWebHook.AllowEnv)
+	assert.Equal(t, "generic_secret", bc.Spec.Triggers[0].GenericWebHook.SecretReference.Name)
+}
