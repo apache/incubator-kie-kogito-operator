@@ -1,4 +1,4 @@
-name: Kogito Operator PR Checks
+name: Kogito Operator Unit Tests
 on:
   pull_request:
     paths:
