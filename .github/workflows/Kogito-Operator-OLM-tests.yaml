@@ -54,13 +54,11 @@ jobs:
         run: ./hack/ci/install-kind.sh
       - name: Start Kind
         run: ./hack/ci/start-kind.sh
-      - name: Genrate Manifests
+      - name: Generate Manifests
         run: ./hack/generate-manifests.sh
       - name: Build Operator Image
         env:
           BUILDER: docker
         run: ./hack/go-build.sh
-      - name: Load Operator Image
-        run: ./hack/ci/load-operator-image.sh
       - name: Run Operator OLM Integration Test
         run: ./hack/ci/operator-olm-test.sh

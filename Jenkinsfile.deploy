@@ -76,6 +76,21 @@ pipeline {
             }
             
         }
+        stage("Run OLM integration test") {
+            // when {
+            //     expression {
+            //         return shouldLaunchTests()
+            //     }
+            // }
+            steps {
+                script {
+                    loginOpenshift()
+                    
+                    sh(script: "./hack/generate-manifests.sh", label: "Generate Manifests")
+                    sh(script: "./hack/ci/operator-olm-test.sh openshift", label: "Run Operator OLM Integration Test")
+                }
+            }
+        }
         stage('Build Kogito CLI') {
             steps {
                 sh """

@@ -13,7 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+#Make sure kubectl is installed before proceeding
+which kubectl > /dev/null || (echo "kubectl is not installed. Please install it before proceeding exiting...." && exit 1)
+
+#Make sure docker is installed before proceeding
+which docker > /dev/null || (echo "docker is not installed. Please install it before proceeding exiting...." && exit 1)
+
+#make sure kind is installed before proceeding
+which kind > /dev/null || (echo "kind is not installed. Please install it before proceeding exiting...." && exit 1)
 
 default_cluster_name="operator-test"
 
@@ -21,11 +28,9 @@ if [[ -z ${CLUSTER_NAME} ]]; then
     CLUSTER_NAME=$default_cluster_name
 fi
 
-source ./hack/export-version.sh
-docker images
-echo "---> Loading Operator Image into Kind"
-kind load docker-image quay.io/kiegroup/kogito-cloud-operator:"${OP_VERSION}" --name ${CLUSTER_NAME}
-
-node_name=$(kubectl get nodes -o jsonpath="{.items[0].metadata.name}")
-echo "---> Checking internal loaded images on node ${node_name}"
-docker exec "${node_name}" crictl images
+if [[ $(kind get clusters | grep ${CLUSTER_NAME}) ]]; then
+  echo "---> Remove cluster ${CLUSTER_NAME}"
+  kind delete cluster --name ${CLUSTER_NAME}
+else
+  echo "---> Cluster does not exist"
+fi
