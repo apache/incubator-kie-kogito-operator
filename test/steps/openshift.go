@@ -17,7 +17,10 @@ package steps
 import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/test/mappers"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 )
 
 func registerOpenShiftSteps(s *godog.Suite, data *Data) {
@@ -29,6 +32,7 @@ func registerOpenShiftSteps(s *godog.Suite, data *Data) {
 	// BuildConfig steps
 	s.Step(`^BuildConfig "([^"]*)" is created after (\d+) minutes$`, data.buildConfigIsCreatedAfterMinutes)
 	s.Step(`^BuildConfig "([^"]*)" is created with build resources within (\d+) minutes:$`, data.buildConfigHasResourcesWithinMinutes)
+	s.Step(`^BuildConfig "([^"]*)" is created with webhooks within (\d+) minutes:$`, data.buildConfigHasWebhooksWithinMinutes)
 }
 
 // Build steps
@@ -60,4 +64,17 @@ func (data *Data) buildConfigHasResourcesWithinMinutes(buildConfigName string, t
 	}
 
 	return framework.WaitForBuildConfigToHaveResources(data.Namespace, buildConfigName, *requirements, timeoutInMin)
+}
+
+func (data *Data) buildConfigHasWebhooksWithinMinutes(buildConfigName string, timeoutInMin int, dt *messages.PickleStepArgument_PickleTable) error {
+	buildHolder := &bddtypes.KogitoBuildHolder{
+		KogitoBuild: &v1alpha1.KogitoBuild{},
+	}
+	err := mappers.MapKogitoBuildTable(dt, buildHolder)
+
+	if err != nil {
+		return err
+	}
+
+	return framework.WaitForBuildConfigCreatedWithWebhooks(data.Namespace, buildConfigName, buildHolder.Spec.WebHooks, timeoutInMin)
 }

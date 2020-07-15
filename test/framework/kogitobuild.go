@@ -59,6 +59,13 @@ func cliDeployKogitoBuild(buildHolder *bddtypes.KogitoBuildHolder) error {
 		cmd = append(cmd, gitURI)
 	}
 
+	// webhooks
+	if len(buildHolder.Spec.WebHooks) > 0 {
+		for _, webhook := range buildHolder.Spec.WebHooks {
+			cmd = append(cmd, "--web-hook", fmt.Sprintf("%s=%s", webhook.Type, webhook.Secret))
+		}
+	}
+
 	cmd = append(cmd, mappers.GetBuildCLIFlags(buildHolder.KogitoBuild)...)
 	cmd = append(cmd, mappers.GetServiceCLIFlags(buildHolder.KogitoServiceHolder)...)
 
