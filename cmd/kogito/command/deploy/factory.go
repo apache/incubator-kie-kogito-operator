@@ -21,6 +21,6 @@ import (
 
 // BuildCommands creates the commands available in this package
 func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
-	initDeployCommand(ctx, rootCommand)
 	initDeleteServiceCommand(ctx, rootCommand)
+	initDeployCommand(ctx, rootCommand)
 }
