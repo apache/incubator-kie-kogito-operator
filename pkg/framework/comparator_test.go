@@ -19,6 +19,7 @@ import (
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -178,8 +179,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 		want1 bool
 	}{
 		{
-
-			"Equals",
+			"Equals Env",
 			args{
 				deployed: &appsv1.DeploymentConfig{
 					Spec: appsv1.DeploymentConfigSpec{
@@ -227,7 +227,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 			true,
 		},
 		{
-			"NotEquals",
+			"NotEquals Env",
 			args{
 				deployed: &appsv1.DeploymentConfig{
 					Spec: appsv1.DeploymentConfigSpec{
@@ -274,6 +274,67 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 			reflect.TypeOf(appsv1.DeploymentConfig{}),
 			false,
 		},
+		{
+			"Equals Volumes",
+			args{
+				deployed: &appsv1.DeploymentConfig{
+					Spec: appsv1.DeploymentConfigSpec{
+						Strategy: appsv1.DeploymentStrategy{
+							Type: appsv1.DeploymentStrategyTypeRolling,
+							RollingParams: &appsv1.RollingDeploymentStrategyParams{
+								MaxUnavailable: &intstr.IntOrString{StrVal: "30%"},
+							},
+						},
+						Template: &v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										VolumeMounts: []v1.VolumeMount{
+											{
+												Name:      "volume1",
+												MountPath: "/mnt/dev/vol1",
+											},
+											{
+												Name:      "volume2",
+												MountPath: "/mnt/dev/vol2",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &appsv1.DeploymentConfig{
+					Spec: appsv1.DeploymentConfigSpec{
+						Strategy: appsv1.DeploymentStrategy{
+							Type: appsv1.DeploymentStrategyTypeRolling,
+						},
+						Template: &v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										// notice the array order, that matters
+										VolumeMounts: []v1.VolumeMount{
+											{
+												Name:      "volume2",
+												MountPath: "/mnt/dev/vol2",
+											},
+											{
+												Name:      "volume1",
+												MountPath: "/mnt/dev/vol1",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(appsv1.DeploymentConfig{}),
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -288,6 +349,166 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got1(tt.args.deployed, tt.args.requested), tt.want1) {
 				t.Errorf("createDeploymentConfigComparator() got1 = %v, want %v", got1(tt.args.deployed, tt.args.requested), tt.want1)
+			}
+		})
+	}
+}
+
+func Test_CreateDeploymentComparator(t *testing.T) {
+	type args struct {
+		deployed  resource.KubernetesResource
+		requested resource.KubernetesResource
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  reflect.Type
+		want1 bool
+	}{
+		{
+			"Equals Env",
+			args{
+				deployed: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Env: []v1.EnvVar{
+											{Name: "app", Value: "test"},
+											{Name: "service", Value: "test"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Env: []v1.EnvVar{
+											{Name: "app", Value: "test"},
+											{Name: "service", Value: "test"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(apps.Deployment{}),
+			true,
+		},
+		{
+			"NotEquals Env",
+			args{
+				deployed: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Env: []v1.EnvVar{
+											{Name: "app", Value: "test"},
+											{Name: "service", Value: "test"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Env: []v1.EnvVar{
+											{Name: "app", Value: "test"},
+											{Name: "service", Value: "test1"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(apps.Deployment{}),
+			false,
+		},
+		{
+			"Equals Volumes",
+			args{
+				deployed: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										VolumeMounts: []v1.VolumeMount{
+											{
+												Name:      "volume1",
+												MountPath: "/mnt/dev/vol1",
+											},
+											{
+												Name:      "volume2",
+												MountPath: "/mnt/dev/vol2",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										// notice the array order, that matters
+										VolumeMounts: []v1.VolumeMount{
+											{
+												Name:      "volume2",
+												MountPath: "/mnt/dev/vol2",
+											},
+											{
+												Name:      "volume1",
+												MountPath: "/mnt/dev/vol1",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(apps.Deployment{}),
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 :=
+				NewComparatorBuilder().
+					WithType(tt.want).
+					UseDefaultComparator().
+					WithCustomComparator(CreateDeploymentComparator()).
+					Build()
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("createDeploymentComparator() got = %v, want %v", got, tt.want)
+			}
+			if !reflect.DeepEqual(got1(tt.args.deployed, tt.args.requested), tt.want1) {
+				t.Errorf("createDeploymentComparator() got1 = %v, want %v", got1(tt.args.deployed, tt.args.requested), tt.want1)
 			}
 		})
 	}
