@@ -450,6 +450,10 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 					Spec: apps.DeploymentSpec{
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
+								Volumes: []v1.Volume {
+									{Name: "volume1"},
+									{Name: "volume2"},
+								},
 								Containers: []v1.Container{
 									{
 										VolumeMounts: []v1.VolumeMount{
@@ -472,6 +476,10 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 					Spec: apps.DeploymentSpec{
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
+								Volumes: []v1.Volume {
+									{Name: "volume2"},
+									{Name: "volume1"},
+								},
 								Containers: []v1.Container{
 									{
 										// notice the array order, that matters

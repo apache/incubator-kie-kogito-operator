@@ -156,6 +156,9 @@ func CreateDeploymentComparator() func(deployed resource.KubernetesResource, req
 // sortVolumes sorts the volumes of a given PodSpec (can be used either by a Deployment or DeploymentConfig objects)
 // TODO: open a PR to operatorutils fixing this once we verify KOGITO-2797
 func sortVolumes(pod *v1.PodSpec) {
+	sort.SliceStable(pod.Volumes, func(i, j int) bool {
+		return pod.Volumes[i].Name < pod.Volumes[j].Name
+	})
 	for _, c := range pod.Containers {
 		sort.SliceStable(c.VolumeMounts, func(i, j int) bool {
 			return c.VolumeMounts[i].Name < c.VolumeMounts[j].Name
