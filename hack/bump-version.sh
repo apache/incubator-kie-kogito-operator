@@ -31,6 +31,8 @@ fi
 sed -i "s/$old_version/$new_version/g" cmd/kogito/version/version.go README.md version/version.go deploy/operator.yaml deploy/olm-catalog/kogito-operator/kogito-operator.package.yaml hack/go-build.sh hack/go-vet.sh .osdk-scorecard.yaml
 operator-sdk generate csv --apis-dir ./pkg/apis/apps/v1alpha1 --verbose --csv-version "$new_version" --from-version "$old_version"  --update-crds --operator-name kogito-operator
 
+# rewrite test default config, all other configuration into the file will be overridden
+test_config_file="test/.default_config"
 current_branch=`git branch --show-current`
 
 if [ "${current_branch}" = "master" ]; then
@@ -40,5 +42,10 @@ else
     image_version=`echo "${new_version}" | awk -F. '{print \$1"."\$2}'`
     branch="${image_version}.x"
 fi
+
+rm ${test_config_file}
+echo "tests.build-image-version=${image_version}" >> ${test_config_file}
+echo "tests.services-image-version=${image_version}" >> ${test_config_file}
+echo "tests.examples-ref=${branch}" >> ${test_config_file}
 
 echo "Version bumped from $old_version to $new_version"
