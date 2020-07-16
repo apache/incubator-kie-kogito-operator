@@ -450,7 +450,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 					Spec: apps.DeploymentSpec{
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
-								Volumes: []v1.Volume {
+								Volumes: []v1.Volume{
 									{Name: "volume1"},
 									{Name: "volume2"},
 								},
@@ -476,7 +476,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 					Spec: apps.DeploymentSpec{
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
-								Volumes: []v1.Volume {
+								Volumes: []v1.Volume{
 									{Name: "volume2"},
 									{Name: "volume1"},
 								},
