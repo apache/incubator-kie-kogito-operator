@@ -51,43 +51,6 @@ func Test_EnvVarToMap(t *testing.T) {
 	}
 }
 
-func Test_MapToEnvVar(t *testing.T) {
-	type args struct {
-		env map[string]string
-	}
-	tests := []struct {
-		name          string
-		args          args
-		wantEnvVars   []corev1.EnvVar
-		orWantEnvVars []corev1.EnvVar
-	}{
-		{
-			"TestMapToEnv",
-			args{
-				map[string]string{
-					"test1": "test1",
-					"test2": "test2",
-				},
-			},
-			[]corev1.EnvVar{
-				{Name: "test1", Value: "test1"},
-				{Name: "test2", Value: "test2"},
-			},
-			[]corev1.EnvVar{
-				{Name: "test2", Value: "test2"},
-				{Name: "test1", Value: "test1"},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotEnvVars := MapToEnvVar(tt.args.env); !reflect.DeepEqual(gotEnvVars, tt.wantEnvVars) && !reflect.DeepEqual(gotEnvVars, tt.orWantEnvVars) {
-				t.Errorf("mapToEnv() = %v, want %v or %v", gotEnvVars, tt.wantEnvVars, tt.orWantEnvVars)
-			}
-		})
-	}
-}
-
 func TestEnvVarArrayEquals(t *testing.T) {
 	type args struct {
 		array1 []corev1.EnvVar
@@ -227,4 +190,19 @@ func TestEnvVarCheck(t *testing.T) {
 
 	assert.False(t, EnvVarCheck(a, c))
 	assert.False(t, EnvVarCheck(c, b))
+}
+
+func Test_CreateEnvVar(t *testing.T) {
+	envVar := CreateEnvVar("key", "value")
+	assert.NotNil(t, envVar)
+	assert.Equal(t, "key", envVar.Name)
+	assert.Equal(t, "value", envVar.Value)
+}
+
+func Test_CreateSecretEnvVar(t *testing.T) {
+	envVar := CreateSecretEnvVar("var", "name", "key")
+	assert.NotNil(t, envVar)
+	assert.Equal(t, "var", envVar.Name)
+	assert.Equal(t, "key", envVar.ValueFrom.SecretKeyRef.Key)
+	assert.Equal(t, "name", envVar.ValueFrom.SecretKeyRef.LocalObjectReference.Name)
 }

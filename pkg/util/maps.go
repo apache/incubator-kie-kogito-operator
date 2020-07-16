@@ -22,8 +22,7 @@ import (
 )
 
 const (
-	keyPairSeparator = "="
-	pairSeparator    = ","
+	pairSeparator = ","
 )
 
 // MapContainsMap returns true only if source contains expected map
@@ -51,45 +50,6 @@ func FromMapToString(labels map[string]string) string {
 		fmt.Fprintf(b, "%s=%s%s", k, labels[k], pairSeparator)
 	}
 	return strings.TrimSuffix(b.String(), pairSeparator)
-}
-
-// FromStringsKeyPairToMap converts a string array in the key/pair format (key=value) to a map. Unconvertable strings will be skipped.
-func FromStringsKeyPairToMap(array []string) map[string]string {
-	if len(array) == 0 {
-		return nil
-	}
-	keyPairMap := map[string]string{}
-	for _, item := range array {
-		keyPair := strings.SplitN(item, keyPairSeparator, 2)
-
-		if len(keyPair[0]) == 0 {
-			break
-		}
-
-		if len(keyPair) == 2 {
-			keyPairMap[keyPair[0]] = keyPair[1]
-		} else if len(keyPair) == 1 {
-			keyPairMap[keyPair[0]] = ""
-		}
-	}
-	return keyPairMap
-}
-
-// ParseStringsForKeyPair will parse the given string array for a valid key=pair format on each item.
-// Returns an error if any item is not in the valid format.
-func ParseStringsForKeyPair(array []string) error {
-	if len(array) == 0 {
-		return nil
-	}
-	for _, item := range array {
-		if !strings.Contains(item, keyPairSeparator) {
-			return fmt.Errorf("Item %s does not contain the key/pair separator '%s'", item, keyPairSeparator)
-		}
-		if strings.HasPrefix(item, keyPairSeparator) {
-			return fmt.Errorf("Item %s starts with key/pair separator '%s'", item, keyPairSeparator)
-		}
-	}
-	return nil
 }
 
 // AppendToStringMap appends source into dest. If keys are equal, value is overridden
