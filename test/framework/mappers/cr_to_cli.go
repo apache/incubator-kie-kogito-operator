@@ -37,6 +37,12 @@ func GetServiceCLIFlags(serviceHolder *bddtypes.KogitoServiceHolder) []string {
 		cmd = append(cmd, "--enable-persistence")
 	}
 
+	if istioAware, ok := serviceHolder.KogitoService.GetSpec().(v1alpha1.IstioAware); ok {
+		if istioAware.IsIstioEnabled() {
+			cmd = append(cmd, "--enable-istio")
+		}
+	}
+
 	for _, envVar := range serviceHolder.GetSpec().GetEnvs() {
 		cmd = append(cmd, "--env", fmt.Sprintf("%s=%s", envVar.Name, envVar.Value))
 	}

@@ -189,3 +189,21 @@ func (k *KafkaMeta) AreKafkaPropertiesBlank() bool {
 		len(k.KafkaProperties.Instance) == 0 &&
 		!k.KafkaProperties.UseKogitoInfra
 }
+
+// IstioAware defines a spec with Istio awareness.
+type IstioAware interface {
+	// IsIstioEnabled checks whether Istio is enabled
+	IsIstioEnabled() bool
+	// SetIstioEnabled sets the Istio enable flag
+	SetIstioEnabled(enabled bool)
+}
+
+// IsIstioEnabled ...
+func (k *KogitoRuntimeSpec) IsIstioEnabled() bool {
+	return k.EnableIstio
+}
+
+// SetIstioEnabled ...
+func (k *KogitoRuntimeSpec) SetIstioEnabled(enabled bool) {
+	k.EnableIstio = enabled
+}

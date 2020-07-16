@@ -38,6 +38,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	maistrav1 "github.com/maistra/istio-operator/pkg/apis/maistra/v1"
 
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
@@ -72,6 +73,8 @@ var (
 	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
 	// KindServiceMonitor ...
 	KindServiceMonitor = DefinitionKind{"ServiceMonitor", false, monv1.SchemeGroupVersion}
+	// KindServiceMeshControlPlane ...
+	KindServiceMeshControlPlane = DefinitionKind{"ServiceMeshControlPlane", false, maistrav1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -100,7 +103,7 @@ func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		infinispanv1.AddToScheme,
 		keycloakv1alpha1.SchemeBuilder.AddToScheme,
 		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
-		monv1.AddToScheme)
+		monv1.AddToScheme, maistrav1.SchemeBuilder.AddToScheme)
 }
 
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
@@ -122,6 +125,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, olmapiv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, olmapiv1alpha1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, monv1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, maistrav1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, routev1.GroupVersion)
 	metav1.AddToGroupVersion(s, infinispanv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, kafkabetav1.SchemeGroupVersion)

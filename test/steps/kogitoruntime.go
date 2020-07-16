@@ -15,12 +15,15 @@
 package steps
 
 import (
+	"strings"
+
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	framework2 "github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/steps/mappers"
 	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
+	corev1 "k8s.io/api/core/v1"
 )
 
 /*
@@ -49,6 +52,7 @@ func registerKogitoRuntimeSteps(ctx *godog.ScenarioContext, data *Data) {
 
 	// Deployment steps
 	ctx.Step(`^Kogito Runtime "([^"]*)" has (\d+) pods running within (\d+) minutes$`, data.kogitoRuntimeHasPodsRunningWithinMinutes)
+	ctx.Step(`^Kogito Runtime "([^"]*)" is configured with Istio$`, data.kogitoRuntimeIsConfiguredWithIstio)
 
 	// Kogito Runtime steps
 	ctx.Step(`^Scale Kogito Runtime "([^"]*)" to (\d+) pods within (\d+) minutes$`, data.scaleKogitoRuntimeToPodsWithinMinutes)
@@ -89,6 +93,19 @@ func (data *Data) kogitoRuntimeHasPodsRunningWithinMinutes(dName string, podNb, 
 	// Workaround because two pods are created at the same time when adding a Kogito Runtime.
 	// We need wait for only one (wait until the wrong one is deleted)
 	return framework.WaitForPodsWithLabel(data.Namespace, framework2.LabelAppKey, dName, podNb, timeoutInMin)
+}
+
+func (data *Data) kogitoRuntimeIsConfiguredWithIstio(dcName string) error {
+	return framework.WaitForPodsWithLabelAndConditions(data.Namespace, framework2.LabelAppKey, dcName, 1, 10, func(pods *corev1.PodList) bool {
+		for _, pod := range pods.Items {
+			value := pod.GetAnnotations()["sidecar.istio.io/inject"]
+			if !strings.Contains(value, "true") {
+				return false
+			}
+		}
+
+		return true
+	})
 }
 
 // Scale steps

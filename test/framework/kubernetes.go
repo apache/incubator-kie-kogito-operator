@@ -59,6 +59,11 @@ func InitKubeClient() error {
 
 // WaitForPodsWithLabel waits for pods with specific label to be available and running
 func WaitForPodsWithLabel(namespace, labelName, labelValue string, numberOfPods, timeoutInMin int) error {
+	return WaitForPodsWithLabelAndConditions(namespace, labelName, labelValue, numberOfPods, timeoutInMin, CheckPodsAreReady)
+}
+
+// WaitForPodsWithLabelAndConditions waits for pods with specific label to be available and running, and applies a predicate
+func WaitForPodsWithLabelAndConditions(namespace, labelName, labelValue string, numberOfPods, timeoutInMin int, predicates ...func(pods *corev1.PodList) bool) error {
 	return WaitForOnOpenshift(namespace, fmt.Sprintf("Pods with label name '%s' and value '%s' available and running", labelName, labelValue), timeoutInMin,
 		func() (bool, error) {
 			pods, err := GetPodsWithLabels(namespace, map[string]string{labelName: labelValue})
@@ -66,7 +71,13 @@ func WaitForPodsWithLabel(namespace, labelName, labelValue string, numberOfPods,
 				return false, err
 			}
 
-			return CheckPodsAreReady(pods), nil
+			for _, predicate := range predicates {
+				if !predicate(pods) {
+					return false, nil
+				}
+			}
+
+			return true, nil
 		}, CheckPodsWithLabelInError(namespace, labelName, labelValue))
 }
 

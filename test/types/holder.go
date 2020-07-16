@@ -27,6 +27,7 @@ type KogitoServiceHolder struct {
 	}
 	EnablePersistence bool
 	EnableEvents      bool
+	EnableIstio       bool
 }
 
 // KogitoBuildHolder Helper structure holding informations for Kogito build

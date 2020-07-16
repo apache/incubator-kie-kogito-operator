@@ -31,6 +31,7 @@ const (
 	kogitoServiceConfigKey          = "config"
 	kogitoServiceInfinispanKey      = "infinispan"
 	kogitoServiceKafkaKey           = "kafka"
+	kogitoServiceIstioKey           = "istio"
 	kogitoServiceRuntimeRequestKey  = "runtime-request"
 	kogitoServiceRuntimeLimitKey    = "runtime-limit"
 	kogitoServiceRuntimeEnvKey      = "runtime-env"
@@ -46,6 +47,7 @@ const (
 	kogitoServiceHTTPPortKey                    = "httpPort"
 	kogitoServiceInfinispanEnablePersistenceKey = "enablePersistence"
 	kogitoServiceInfinispanEnableEventsKey      = "enableEvents"
+	kogitoServiceIstioEnabledKey                = "enabled"
 )
 
 // MapKogitoServiceTable maps Cucumber table to KogitoServiceHolder
@@ -75,6 +77,9 @@ func mapKogitoServiceTableRow(row *TableRow, kogitoService *bddtypes.KogitoServi
 
 	case kogitoServiceKafkaKey:
 		return mapKogitoServiceKafkaTableRow(row, kogitoService)
+
+	case kogitoServiceIstioKey:
+		return mapKogitoServiceIstioRow(row, kogitoService)
 
 	case kogitoServiceServiceLabelKey:
 		kogitoService.KogitoService.GetSpec().AddServiceLabel(getSecondColumn(row), getThirdColumn(row))
@@ -164,6 +169,26 @@ func mapKogitoServiceConfigTableRow(row *TableRow, kogitoService *bddtypes.Kogit
 
 	default:
 		return false, fmt.Errorf("Unrecognized config configuration option: %s", secondColumn)
+	}
+
+	return true, nil
+}
+
+func mapKogitoServiceIstioRow(row *TableRow, kogitoService *bddtypes.KogitoServiceHolder) (mappingFound bool, err error) {
+	secondColumn := getSecondColumn(row)
+
+	if istioAware, ok := kogitoService.KogitoService.GetSpec().(v1alpha1.IstioAware); ok {
+		switch secondColumn {
+		case kogitoServiceIstioEnabledKey:
+			enabled, err := strconv.ParseBool(getThirdColumn(row))
+			if err != nil {
+				return false, err
+			}
+
+			istioAware.SetIstioEnabled(enabled)
+		}
+	} else {
+		return false, fmt.Errorf("Kogito service %s doesn't support Istio configuration", kogitoService.KogitoService.GetName())
 	}
 
 	return true, nil
