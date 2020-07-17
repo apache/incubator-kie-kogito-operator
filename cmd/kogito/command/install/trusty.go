@@ -75,16 +75,14 @@ func (i *installTrustyCommand) RegisterHook() {
 		Use:     "trusty [flags]",
 		Short:   "Installs the Kogito Trusty Service in the given Project",
 		Example: "trusty -p my-project",
-		Long: `'install trusty' will deploy the Trusty service to enable capturing and indexing data produced by one or more Kogito services.
+		Long: `'install trusty' will deploy the Trusty service to enable capturing tracing events produced by one or more Kogito services and provide analysis capabilities on top of the data.
 
 If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
 If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Trusty service's namespace.
 Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given namespace.
 
 If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
-Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.
-
-For more information on Kogito Trusty Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
+Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
@@ -116,7 +114,7 @@ For more information on Kogito Trusty Service see: https://github.com/kiegroup/k
 				log.Infof("kafka-url informed. Kafka will NOT be provisioned for you. Make sure that %s url is accessible from the cluster", i.flags.kafka.ExternalURI)
 			} else if len(i.flags.kafka.Instance) > 0 {
 				i.flags.kafka.UseKogitoInfra = false
-				log.Infof("kafka-instance informed. Kafka will NOT be provisioned for you. Make sure Kafka instance %s is properly deployed in the project. If the Kafka instance is found, Kafka Topics for Data Index service will be deployed in the project if they don't exist already", i.flags.kafka.Instance)
+				log.Infof("kafka-instance informed. Kafka will NOT be provisioned for you. Make sure Kafka instance %s is properly deployed in the project. If the Kafka instance is found, Kafka Topics for Trusty service will be deployed in the project if they don't exist already", i.flags.kafka.Instance)
 			} else {
 				i.flags.kafka.UseKogitoInfra = true
 				log.Info("No Kafka information has been given. A Kafka instance will be automatically deployed via Strimzi Operator in the namespace. Kafka Topics will be created accordingly if they don't exist already")
