@@ -194,7 +194,7 @@ run-performance-tests:
 
 .PHONY: build-examples-images
 build-examples-images:
-	make run-tests feature=scripts/examples
+	make run-tests feature=scripts/examples cr_deployment_only=true
 
 .PHONY: prepare-olm
 version = ""
