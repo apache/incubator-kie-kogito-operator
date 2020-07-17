@@ -16,7 +16,7 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/spf13/cobra"
 )
 
@@ -40,10 +40,10 @@ func AddPodResourceFlags(command *cobra.Command, flags *PodResourceFlags, prefix
 
 // CheckPodResourceArgs validates the resource flags
 func CheckPodResourceArgs(flags *PodResourceFlags) error {
-	if err := util.ParseStringsForKeyPair(flags.Limits); err != nil {
+	if err := util.CheckKeyPair(flags.Limits); err != nil {
 		return fmt.Errorf("limits are in the wrong format. Valid are key pairs like 'cpu=1', received %s", flags.Limits)
 	}
-	if err := util.ParseStringsForKeyPair(flags.Requests); err != nil {
+	if err := util.CheckKeyPair(flags.Requests); err != nil {
 		return fmt.Errorf("requests are in the wrong format. Valid are key pairs like 'cpu=1', received %s", flags.Requests)
 	}
 	return nil

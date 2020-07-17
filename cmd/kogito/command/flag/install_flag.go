@@ -17,7 +17,6 @@ package flag
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -30,9 +29,9 @@ type InstallFlags struct {
 	OperatorFlags
 	PodResourceFlags
 	ImageFlags
+	EnvVarFlags
 	Project  string
 	Replicas int32
-	Env      []string
 	HTTPPort int32
 }
 
@@ -41,9 +40,9 @@ func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
 	AddOperatorFlags(command, &flags.OperatorFlags)
 	AddPodResourceFlags(command, &flags.PodResourceFlags, "")
 	AddImageFlags(command, &flags.ImageFlags)
+	AddEnvVarFlags(command, &flags.EnvVarFlags, "env", "e")
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
-	command.Flags().StringArrayVarP(&flags.Env, "env", "e", nil, "Key/Pair value environment variables that will be set to the service runtime. For example 'MY_VAR=my_value'. Can be set more than once.")
 	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")
 }
 
@@ -58,8 +57,8 @@ func CheckInstallArgs(flags *InstallFlags) error {
 	if err := CheckImageArgs(&flags.ImageFlags); err != nil {
 		return err
 	}
-	if err := util.ParseStringsForKeyPair(flags.Env); err != nil {
-		return fmt.Errorf("environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", flags.Env)
+	if err := CheckEnvVarArgs(&flags.EnvVarFlags); err != nil {
+		return err
 	}
 	if flags.Replicas <= 0 {
 		return fmt.Errorf("valid replicas are non-zero, positive numbers, received %v", flags.Replicas)

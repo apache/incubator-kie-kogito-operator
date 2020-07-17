@@ -16,19 +16,26 @@ package converter
 
 import (
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/api/core/v1"
 	"testing"
 )
 
 func Test_FromStringArrayToEnvs(t *testing.T) {
-	keyValuePair := []string{
-		"key1=value1",
-		"key2=value2",
+	keyPairStrings := []string{
+		"VAR1=key1",
 	}
 
-	envVars := FromStringArrayToEnvs(keyValuePair)
+	secretKeyPairStrings := []string{
+		"VAR2=secretName2#secretKey2",
+	}
+
+	envVars := FromStringArrayToEnvs(keyPairStrings, secretKeyPairStrings)
 	assert.NotNil(t, envVars)
 	assert.Equal(t, 2, len(envVars))
-	assert.Contains(t, envVars, v1.EnvVar{Name: "key1", Value: "value1"})
-	assert.Contains(t, envVars, v1.EnvVar{Name: "key2", Value: "value2"})
+	generalEnv := envVars[0]
+	secretEnvVar := envVars[1]
+	assert.Equal(t, "VAR1", generalEnv.Name)
+	assert.Equal(t, "key1", generalEnv.Value)
+	assert.Equal(t, "VAR2", secretEnvVar.Name)
+	assert.Equal(t, "secretKey2", secretEnvVar.ValueFrom.SecretKeyRef.Key)
+	assert.Equal(t, "secretName2", secretEnvVar.ValueFrom.SecretKeyRef.LocalObjectReference.Name)
 }

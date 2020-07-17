@@ -16,8 +16,8 @@ package converter
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 )
 
 // FromWebHookFlagsToWebHookSecret converts given WebHookFlags into WebhookSecret

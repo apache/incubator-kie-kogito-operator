@@ -16,7 +16,7 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/spf13/cobra"
 )
 
@@ -55,7 +55,7 @@ func CheckRuntimeArgs(flags *RuntimeFlags) error {
 	if err := CheckKafkaArgs(&flags.KafkaFlags); err != nil {
 		return err
 	}
-	if err := util.ParseStringsForKeyPair(flags.ServiceLabels); err != nil {
+	if err := util.CheckKeyPair(flags.ServiceLabels); err != nil {
 		return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", flags.ServiceLabels)
 	}
 	return nil

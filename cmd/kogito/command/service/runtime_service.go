@@ -20,12 +20,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // IRuntimeService is interface to perform Kogito Runtime
@@ -67,7 +67,7 @@ func (i runtimeServiceImpl) InstallRuntimeService(cli *client.Client, flags *fla
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
-				Envs:                  converter.FromStringArrayToEnvs(flags.Env),
+				Envs:                  converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
 				Image:                 converter.FromImageFlagToImage(&flags.ImageFlags),
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&flags.PodResourceFlags),
 				ServiceLabels:         util.FromStringsKeyPairToMap(flags.ServiceLabels),

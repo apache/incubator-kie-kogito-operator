@@ -15,9 +15,7 @@
 package flag
 
 import (
-	"fmt"
-	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/spf13/cobra"
 	"net/url"
 )
@@ -46,10 +44,10 @@ type BuildFlags struct {
 	PodResourceFlags
 	ArtifactFlags
 	WebHookFlags
+	EnvVarFlags
 	Name                      string
 	Project                   string
 	IncrementalBuild          bool
-	Env                       []string
 	Native                    bool
 	MavenMirrorURL            string
 	BuildImage                string
@@ -64,8 +62,8 @@ func AddBuildFlags(command *cobra.Command, flags *BuildFlags) {
 	AddPodResourceFlags(command, &flags.PodResourceFlags, "build")
 	AddArtifactFlags(command, &flags.ArtifactFlags)
 	AddWebHookFlags(command, &flags.WebHookFlags)
+	AddEnvVarFlags(command, &flags.EnvVarFlags, "build-env", "")
 	command.Flags().BoolVar(&flags.IncrementalBuild, "incremental-build", true, "Build should be incremental?")
-	command.Flags().StringArrayVar(&flags.Env, "build-env", nil, "Key/pair value environment variables that will be set during the build. For example 'MY_CUSTOM_ENV=my_custom_value'. Can be set more than once.")
 	command.Flags().BoolVar(&flags.Native, "native", false, "Use native builds? Be aware that native builds takes more time and consume much more resources from the cluster. Defaults to false")
 	command.Flags().StringVar(&flags.MavenMirrorURL, "maven-mirror-url", "", "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed, e.g: https://my.internal.nexus/content/group/public")
 	command.Flags().StringVar(&flags.BuildImage, "build-image", "", "Custom image tag for the s2i build to build the application binaries, e.g: quay.io/mynamespace/myimage:latest")
@@ -76,10 +74,10 @@ func AddBuildFlags(command *cobra.Command, flags *BuildFlags) {
 
 // CheckBuildArgs validates the BuildFlags flags
 func CheckBuildArgs(flags *BuildFlags) error {
-	if err := buildutil.CheckImageTag(flags.RuntimeImage); err != nil {
+	if err := util.CheckImageTag(flags.RuntimeImage); err != nil {
 		return err
 	}
-	if err := buildutil.CheckImageTag(flags.BuildImage); err != nil {
+	if err := util.CheckImageTag(flags.BuildImage); err != nil {
 		return err
 	}
 	if err := CheckGitSourceArgs(&flags.GitSourceFlags); err != nil {
@@ -94,8 +92,8 @@ func CheckBuildArgs(flags *BuildFlags) error {
 	if err := CheckWebHookArgs(&flags.WebHookFlags); err != nil {
 		return err
 	}
-	if err := util.ParseStringsForKeyPair(flags.Env); err != nil {
-		return fmt.Errorf("build environment variables are in the wrong format. Valid are key pairs like 'env=value', received %s", flags.Env)
+	if err := CheckEnvVarArgs(&flags.EnvVarFlags); err != nil {
+		return err
 	}
 	if len(flags.MavenMirrorURL) > 0 {
 		if _, err := url.ParseRequestURI(flags.MavenMirrorURL); err != nil {

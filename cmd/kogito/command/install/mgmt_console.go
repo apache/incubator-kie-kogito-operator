@@ -93,7 +93,7 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 		Spec: v1alpha1.KogitoMgmtConsoleSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &i.flags.Replicas,
-				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env),
+				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:                 converter.FromImageFlagToImage(&i.flags.ImageFlags),
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,

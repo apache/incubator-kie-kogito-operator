@@ -15,7 +15,7 @@
 package flag
 
 import (
-	buildutil "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +33,7 @@ func AddImageFlags(command *cobra.Command, flags *ImageFlags) {
 
 // CheckImageArgs validates the ImageFlags flags
 func CheckImageArgs(flags *ImageFlags) error {
-	if err := buildutil.CheckImageTag(flags.Image); err != nil {
+	if err := util.CheckImageTag(flags.Image); err != nil {
 		return err
 	}
 	return nil

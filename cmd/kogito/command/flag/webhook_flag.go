@@ -16,6 +16,7 @@ package flag
 
 import (
 	"fmt"
+	util2 "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
@@ -37,7 +38,7 @@ func AddWebHookFlags(command *cobra.Command, flags *WebHookFlags) {
 
 // CheckWebHookArgs validates the WebHookFlags flags
 func CheckWebHookArgs(flags *WebHookFlags) error {
-	webHookMap := util.FromStringsKeyPairToMap(flags.WebHook)
+	webHookMap := util2.FromStringsKeyPairToMap(flags.WebHook)
 	for webHookType := range webHookMap {
 		if !util.Contains(webHookType, validWebHookTypes) {
 			return fmt.Errorf("WebHook type not valid. Valid types are %s. Received %s", validWebHookTypes, webHookType)
