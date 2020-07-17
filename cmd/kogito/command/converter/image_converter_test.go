@@ -22,13 +22,21 @@ import (
 
 func Test_FromImageTagToImage(t *testing.T) {
 	buildImage := "mydomain.io/mynamespace/builder-image:1.0"
-	image := FromImageTagToImage(buildImage)
+	image := FromImageTagToImage(buildImage, "2.0")
 	assert.NotNil(t, image)
 	assert.Equal(t, "mydomain.io", image.Domain)
 	assert.Equal(t, "mynamespace", image.Namespace)
 	assert.Equal(t, "builder-image", image.Name)
 	assert.Equal(t, "1.0", image.Tag)
+}
 
+func Test_FromImageTagToImage_EmptyImageTag(t *testing.T) {
+	image := FromImageTagToImage("", "2.0")
+	assert.NotNil(t, image)
+	assert.Equal(t, "", image.Domain)
+	assert.Equal(t, "", image.Namespace)
+	assert.Equal(t, "", image.Name)
+	assert.Equal(t, "2.0", image.Tag)
 }
 
 func Test_FromImageFlagToImage(t *testing.T) {

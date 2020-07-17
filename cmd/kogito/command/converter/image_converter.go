@@ -22,10 +22,19 @@ import (
 
 // FromImageFlagToImage converts given ImageFlags into Image
 func FromImageFlagToImage(imageFlags *flag.ImageFlags) v1alpha1.Image {
-	return FromImageTagToImage(imageFlags.Image)
+	return FromImageTagToImage(imageFlags.Image, "")
 }
 
 // FromImageTagToImage converts given image tag into Image
-func FromImageTagToImage(image string) v1alpha1.Image {
-	return framework.ConvertImageTagToImage(image)
+func FromImageTagToImage(imageTag, imageVersion string) v1alpha1.Image {
+	image := framework.ConvertImageTagToImage(imageTag)
+
+	// Apply image version only if image is empty
+	// It is expected that user will provide image version in input image tag, only when user didn't provide image tag
+	// and separately provides image version then default image domain/repo is picked at runtime and tag is used as user
+	// provided image-version
+	if image.IsEmpty() {
+		image.Tag = imageVersion
+	}
+	return image
 }

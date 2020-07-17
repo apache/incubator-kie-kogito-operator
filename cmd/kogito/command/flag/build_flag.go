@@ -52,6 +52,7 @@ type BuildFlags struct {
 	MavenMirrorURL            string
 	BuildImage                string
 	RuntimeImage              string
+	ImageVersion              string
 	TargetRuntime             string
 	EnableMavenDownloadOutput bool
 }
@@ -70,6 +71,7 @@ func AddBuildFlags(command *cobra.Command, flags *BuildFlags) {
 	command.Flags().StringVar(&flags.RuntimeImage, "runtime-image", "", "Custom image tag for the s2i build, e.g: quay.io/mynamespace/myimage:latest")
 	command.Flags().StringVar(&flags.TargetRuntime, "target-runtime", "", "Set this field targeting the desired KogitoService when this KogitoBuild instance has a different name than the KogitoService")
 	command.Flags().BoolVarP(&flags.EnableMavenDownloadOutput, "maven-output", "m", false, "If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false")
+	command.Flags().StringVar(&flags.ImageVersion, "image-version", "", "Image version for standard Kogito build images. Ignored if a custom image is set for image-s2i or image-runtime.")
 }
 
 // CheckBuildArgs validates the BuildFlags flags
