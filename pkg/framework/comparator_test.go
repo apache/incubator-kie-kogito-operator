@@ -503,6 +503,82 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 			reflect.TypeOf(apps.Deployment{}),
 			true,
 		},
+		{
+			"Equals Volumes Mount Path",
+			args{
+				deployed: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Volumes: []v1.Volume{
+									{Name: "app-prop-config"},
+									{Name: "process-quarkus-example-protobuf-files"},
+								},
+								Containers: []v1.Container{
+									{
+										VolumeMounts: []v1.VolumeMount{
+											{
+												Name:      "app-prop-config",
+												MountPath: "/home/kogito/config",
+											},
+											{
+												Name:      "process-quarkus-example-protobuf-files",
+												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/demo.orders.proto",
+											},
+											{
+												Name:      "process-quarkus-example-protobuf-files",
+												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/kogito-application.proto",
+											},
+											{
+												Name:      "process-quarkus-example-protobuf-files",
+												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/persons.proto",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Volumes: []v1.Volume{
+									{Name: "app-prop-config"},
+									{Name: "process-quarkus-example-protobuf-files"},
+								},
+								Containers: []v1.Container{
+									{
+										// notice the array order, that matters. using logs from KOGITO-2797 bug report
+										VolumeMounts: []v1.VolumeMount{
+											{
+												Name:      "app-prop-config",
+												MountPath: "/home/kogito/config",
+											},
+											{
+												Name:      "process-quarkus-example-protobuf-files",
+												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/kogito-application.proto",
+											},
+											{
+												Name:      "process-quarkus-example-protobuf-files",
+												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/persons.proto",
+											},
+											{
+												Name:      "process-quarkus-example-protobuf-files",
+												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/demo.orders.proto",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(apps.Deployment{}),
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

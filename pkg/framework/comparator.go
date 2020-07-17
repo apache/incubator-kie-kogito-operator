@@ -161,7 +161,7 @@ func sortVolumes(pod *v1.PodSpec) {
 	})
 	for _, c := range pod.Containers {
 		sort.SliceStable(c.VolumeMounts, func(i, j int) bool {
-			return c.VolumeMounts[i].Name < c.VolumeMounts[j].Name
+			return c.VolumeMounts[i].MountPath < c.VolumeMounts[j].MountPath
 		})
 	}
 }
