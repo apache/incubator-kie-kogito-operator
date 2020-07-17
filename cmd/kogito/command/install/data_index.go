@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 
@@ -124,7 +125,7 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.Image); err != nil {
+			if err := util.CheckImageTag(i.flags.Image); err != nil {
 				return err
 			}
 			return nil
@@ -193,7 +194,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &i.flags.Replicas,
-				Envs:     shared.FromStringArrayToEnvs(i.flags.Env),
+				Envs:     shared.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:    framework.ConvertImageTagToImage(i.flags.Image),
 				Resources: v1.ResourceRequirements{
 					Limits:   shared.FromStringArrayToResources(i.flags.Limits),

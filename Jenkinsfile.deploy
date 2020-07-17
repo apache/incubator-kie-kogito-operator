@@ -112,7 +112,7 @@ pipeline {
                     loginOpenshiftRegistry()
 
                     // Optaplanner taking a lot of resources, we should not build in parallel
-                    sh "make build-examples-images concurrent=1 image_cache_mode=never ${getBDDParameters()}"
+                    sh "make build-examples-images concurrent=1 ${getBDDParameters('never', false)}"
                 }
             }
             post {
@@ -131,7 +131,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "make run-tests timeout=360 load_factor=3 concurrent=6 image_cache_mode=always smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
+                    sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true)}"
                 }
             }
             post {
@@ -154,6 +154,11 @@ pipeline {
                     pushImage()
                 }
             }
+        }
+    }
+    post {
+        always {
+            cleanWs()
         }
     }
 }
@@ -245,7 +250,7 @@ String getDeployImageTag(){
 // BDD parameters
 ////////////////////////////////////////////////////////////////////////
 
-String getBDDParameters() {
+String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false) {
     testParamsMap = [:]
 
     testParamsMap["load_default_config"] = true
@@ -279,7 +284,8 @@ String getBDDParameters() {
         }
     }
     // runtime_application_image are built in this pipeline so we can just use Openshift registry for them
-    testParamsMap["runtime_application_image_registry"] = env.OPENSHIFT_REGISTRY
+    testParamsMap["image_cache_mode"] = image_cache_mode
+    testParamsMap["runtime_application_image_registry"] = runtime_app_registry_internal ? env.OPENSHIFT_INTERNAL_REGISTRY : env.OPENSHIFT_REGISTRY
     testParamsMap["runtime_application_image_namespace"] = "openshift"
 
     if(params.KOGITO_IMAGES_NAME_SUFFIX != '') {

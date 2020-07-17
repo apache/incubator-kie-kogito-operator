@@ -194,12 +194,23 @@ run-performance-tests:
 
 .PHONY: build-examples-images
 build-examples-images:
-	make run-tests feature=scripts/examples
+	make run-tests feature=scripts/examples cr_deployment_only=true
 
 .PHONY: prepare-olm
 version = ""
 prepare-olm:
-	./hack/pr-operatorhub.sh $(version)
+	./hack/generate-manifests.sh
+	./hack/ci/operator-ensure-manifests.sh
+
+.PHONY: olm-integration
+olm-integration:
+	./hack/ci/install-operator-sdk.sh
+	./hack/ci/install-kind.sh
+	./hack/ci/start-kind.sh
+	./hack/generate-manifests.sh
+	BUILDER=docker ./hack/go-build.sh
+	./hack/ci/load-operator-image.sh
+	./hack/ci/operator-olm-test.sh
 
 .PHONY: bump-version
 old_version = ""

@@ -21,6 +21,11 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
       - name: Cache dependencies
         uses: actions/cache@v1
         with:
@@ -31,26 +36,12 @@ jobs:
       - name: Cache the binaries
         uses: actions/cache@v1
         with:
-          path: /usr/bin
-          key: ${{ runner.os }}-operator-sdk-${{ env.OPERATOR_SDK_VERSION }}
+          path: ~/go/bin/
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-operator-sdk-${{ env.OPERATOR_SDK_VERSION }}
-      - name: Setup GOPATH
-        run: |
-          export GOPATH=$(go env GOPATH)
-          mkdir -p $GOPATH/bin/
-          echo "::add-path::$GOPATH/bin/"
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}
       - name: Install Operator-sdk
-        run: |
-          sudo curl -L https://github.com/operator-framework/operator-sdk/releases/download/$OPERATOR_SDK_VERSION/operator-sdk-$OPERATOR_SDK_VERSION-x86_64-linux-gnu -o /usr/bin/operator-sdk
-          sudo chmod +x /usr/bin/operator-sdk
-          # For Verification
-          operator-sdk version
-      - name: Check Headers
-        run: |
-          ./hack/addheaders.sh
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
-          [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make test' before sending the PR" && exit 1)
+        run: ./hack/ci/install-operator-sdk.sh
       - name: Check Vet
         run: |
           ./hack/go-vet.sh
@@ -58,6 +49,12 @@ jobs:
           generated_changed_files=$(git status -s | grep zz_generated || :)
           [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen" && exit 1)
           [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
+
+      - name: Check Headers
+        run: |
+          ./hack/addheaders.sh
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make test' before sending the PR" && exit 1)
       - name: Check Formatting
         run: |
           ./hack/go-fmt.sh
@@ -70,48 +67,8 @@ jobs:
       - name: Check lint
         run: ./hack/go-lint.sh
 
-  unit_test_and_coverage:
-    name: Unit test and Coverage
-    runs-on: ubuntu-latest
-    env:
-      MIN_COVERAGE: 50
-      CGO_ENABLED: 0
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Cache dependencies
-        uses: actions/cache@v1
-        with:
-          path: ~/go/pkg/mod/cache
-          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-cache-
-      - name: Setup GOPATH
-        run: |
-          export GOPATH=$(go env GOPATH)
-          mkdir -p $GOPATH/bin/
-          echo "::add-path::$GOPATH/bin/"
-      - name: Install cover
-        run: go get golang.org/x/tools/cmd/cover
-      - run: go mod tidy
-      - name: Test cmd dir and archive coverage
-        run: |
-          go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.out
-          ./hack/coverage.sh cmd-coverage.out
-      - uses: actions/upload-artifact@v2
-        with:
-          path: cmd-coverage.out
-      - name: Test pkg dir and archive coverage
-        run: |
-          go test ./pkg/... -count=1 -p=1 -coverprofile=pkg-coverage.out
-          ./hack/coverage.sh pkg-coverage.out
-      - uses: actions/upload-artifact@v2
-        with:
-          path: pkg-coverage.out
-
   bats_test:
     name: Bats Test
-    needs: [golint, unit_test_and_coverage]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

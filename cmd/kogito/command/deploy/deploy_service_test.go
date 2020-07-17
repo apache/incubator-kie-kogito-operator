@@ -57,6 +57,8 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 								--image-s2i=quay.io/namespace/myimage:latest --image-runtime=quay.io/namespace/myimage:0.2
 								--limits cpu=1 --limits memory=1Gi --requests cpu=1,memory=1Gi
 								--build-limits cpu=1 --build-limits memory=1Gi --build-requests cpu=1,memory=2Gi
+								--env myvar1=myvalue1 --secret-env myvar2=mysecretName2#mysecretKey2 
+								--build-env myvar3=myvalue3 --secret-build-env myvar4=mysecretName4#mysecretKey4
 								--enable-persistence`, ns)
 	// Clean up after the command above
 	cli = strings.Join(strings.Fields(cli), " ")
@@ -85,8 +87,10 @@ func Test_DeployCmd_CustomDeployment(t *testing.T) {
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoApp.Spec.Runtime)
 	assert.Equal(t, *kogitoApp.Spec.KogitoServiceSpec.Resources.Limits.Cpu(), resource.MustParse("1"))
 	assert.Equal(t, *kogitoApp.Spec.KogitoServiceSpec.Resources.Requests.Memory(), resource.MustParse("1Gi"))
+	assert.Equal(t, 2, len(kogitoApp.Spec.KogitoServiceSpec.Envs))
 	assert.Equal(t, *kogitoApp.Spec.Build.Resources.Limits.Cpu(), resource.MustParse("1"))
 	assert.Equal(t, *kogitoApp.Spec.Build.Resources.Requests.Memory(), resource.MustParse("2Gi"))
+	assert.Equal(t, 2, len(kogitoApp.Spec.Build.Envs))
 	assert.Equal(t, "quay.io/namespace/myimage:latest", kogitoApp.Spec.Build.ImageS2ITag)
 	assert.Equal(t, "quay.io/namespace/myimage:0.2", kogitoApp.Spec.Build.ImageRuntimeTag)
 	assert.True(t, kogitoApp.Spec.EnablePersistence)
