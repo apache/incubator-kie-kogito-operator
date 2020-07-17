@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
@@ -122,7 +123,7 @@ Only use infinispan-url if you plan to connect to an external Infinispan server 
 			if err := deploy.CheckDeployArgs(&i.flags.CommonFlags); err != nil {
 				return err
 			}
-			if err := deploy.CheckImageTag(i.flags.Image); err != nil {
+			if err := util.CheckImageTag(i.flags.Image); err != nil {
 				return err
 			}
 			return nil
