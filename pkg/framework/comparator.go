@@ -18,11 +18,12 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	imgv1 "github.com/openshift/api/image/v1"
-
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
+	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	apps "k8s.io/api/apps/v1"
+	"sort"
 
 	v1 "k8s.io/api/core/v1"
 
@@ -117,6 +118,9 @@ func containAllLabels(deployed resource.KubernetesResource, requested resource.K
 // CreateDeploymentConfigComparator creates a new comparator for DeploymentConfig using Trigger and RollingParams
 func CreateDeploymentConfigComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		sortVolumes(&deployed.(*appsv1.DeploymentConfig).Spec.Template.Spec)
+		sortVolumes(&requested.(*appsv1.DeploymentConfig).Spec.Template.Spec)
+
 		dcDeployed := deployed.(*appsv1.DeploymentConfig)
 		dcRequested := requested.(*appsv1.DeploymentConfig).DeepCopy()
 
@@ -136,6 +140,29 @@ func CreateDeploymentConfigComparator() func(deployed resource.KubernetesResourc
 			dcDeployed.Spec.Strategy.RollingParams = dcRequested.Spec.Strategy.RollingParams
 		}
 		return true
+	}
+}
+
+// CreateDeploymentComparator creates a new comparator for Deployment sorting volumes
+func CreateDeploymentComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		sortVolumes(&deployed.(*apps.Deployment).Spec.Template.Spec)
+		sortVolumes(&requested.(*apps.Deployment).Spec.Template.Spec)
+
+		return true
+	}
+}
+
+// sortVolumes sorts the volumes of a given PodSpec (can be used either by a Deployment or DeploymentConfig objects)
+// TODO: open a PR to operatorutils fixing this once we verify KOGITO-2797
+func sortVolumes(pod *v1.PodSpec) {
+	sort.SliceStable(pod.Volumes, func(i, j int) bool {
+		return pod.Volumes[i].Name < pod.Volumes[j].Name
+	})
+	for _, c := range pod.Containers {
+		sort.SliceStable(c.VolumeMounts, func(i, j int) bool {
+			return c.VolumeMounts[i].MountPath < c.VolumeMounts[j].MountPath
+		})
 	}
 }
 

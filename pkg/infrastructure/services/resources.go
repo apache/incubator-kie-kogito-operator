@@ -296,6 +296,7 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(appsv1.Deployment{})).
 			UseDefaultComparator().
+			WithCustomComparator(framework.CreateDeploymentComparator()).
 			Build())
 
 	resourceComparator.SetComparator(

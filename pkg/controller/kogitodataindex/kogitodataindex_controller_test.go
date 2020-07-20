@@ -258,3 +258,38 @@ func TestReconcileKogitoDataIndex_mountProtoBufConfigMaps(t *testing.T) {
 	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].SubPath, fileName1)
 	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath, fileName1)
 }
+
+func TestReconcileKogitoDataIndex_MultipleProtoBufCMs(t *testing.T) {
+	fileName1 := "mydomain.proto"
+	fileName2 := "mydomain2.proto"
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: infrastructure.DefaultDataIndexName},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: false, URI: "infinispan:20220"}},
+			KafkaMeta:      v1alpha1.KafkaMeta{KafkaProperties: v1alpha1.KafkaConnectionProperties{UseKogitoInfra: false, ExternalURI: "kafka:9900"}},
+		},
+	}
+	cm1 := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: t.Name(),
+			Name:      "my-domain-protobufs1",
+			Labels:    map[string]string{infrastructure.ConfigMapProtoBufEnabledLabelKey: "true"},
+		},
+		Data: map[string]string{fileName1: "This is a protobuf file"},
+	}
+	cm2 := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: t.Name(),
+			Name:      "my-domain-protobufs2",
+			Labels:    map[string]string{infrastructure.ConfigMapProtoBufEnabledLabelKey: "true"},
+		},
+		Data: map[string]string{fileName2: "This is a protobuf file"},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{instance, cm1, cm2}, nil, nil)
+	r := &ReconcileKogitoDataIndex{
+		client: cli,
+		scheme: meta.GetRegisteredSchema(),
+	}
+	test.AssertReconcileMustNotRequeue(t, r, instance)
+	test.AssertReconcileMustNotRequeue(t, r, instance)
+}
