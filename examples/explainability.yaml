@@ -1,0 +1,18 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoExplainability
+metadata:
+  name: explainability
+spec:
+  # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
+  #env:
+    # - name: JAVA_OPTIONS
+    #    value: "-Dquarkus.log.level=DEBUG"
+  # number of pods to be deployed
+  replicas: 1
+  # the http port that the explainability image will listen internally
+  #httpPort: 9090
+  # Limits and requests for the Explainability pod
+  #memoryLimit: ""
+  #memoryRequest: ""
+  #cpuLimit: ""
+  #cpuRequest: ""

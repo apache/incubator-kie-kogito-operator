@@ -49,6 +49,7 @@ type TestConfig struct {
 	servicesImageNameSuffix           string
 	servicesImageVersion              string
 	dataIndexImageTag                 string
+	explainabilityImageTag            string
 	jobsServiceImageTag               string
 	mgmtConsoleImageTag               string
 	runtimeApplicationImageRegistry   string
@@ -130,6 +131,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.StringVar(&env.servicesImageNameSuffix, prefix+"services-image-name-suffix", "", "Set the services (jobs-service, data-index) image name suffix")
 	set.StringVar(&env.servicesImageVersion, prefix+"services-image-version", "", "Set the services (jobs-service, data-index) image version")
 	set.StringVar(&env.dataIndexImageTag, prefix+"data-index-image-tag", "", "Set the Kogito Data Index image tag ('services-image-version' is ignored)")
+	set.StringVar(&env.explainabilityImageTag, prefix+"explainability-image-tag", "", "Set the Kogito Explainability image tag ('services-image-version' is ignored)")
 	set.StringVar(&env.jobsServiceImageTag, prefix+"jobs-service-image-tag", "", "Set the Kogito Jobs Service image tag ('services-image-version' is ignored)")
 	set.StringVar(&env.mgmtConsoleImageTag, prefix+"management-console-image-tag", "", "Set the Kogito Management Console image tag ('services-image-version' is ignored)")
 	set.StringVar(&env.runtimeApplicationImageRegistry, prefix+"runtime-application-image-registry", "", "Set the runtime application (built Kogito application image) image registry")
@@ -261,6 +263,11 @@ func GetServicesImageVersion() string {
 // GetDataIndexImageTag return the Kogito Data Index image tag
 func GetDataIndexImageTag() string {
 	return env.dataIndexImageTag
+}
+
+// GetExplainabilityImageTag return the Kogito Explainability image tag
+func GetExplainabilityImageTag() string {
+	return env.explainabilityImageTag
 }
 
 // GetJobsServiceImageTag return the Kogito Jobs Service image tag
