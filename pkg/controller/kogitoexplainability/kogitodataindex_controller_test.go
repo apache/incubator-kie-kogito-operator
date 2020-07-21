@@ -67,8 +67,8 @@ func TestReconcileKogitoExplainability_Reconcile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reconcile: (%v)", err)
 	}
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
+	if res.Requeue {
+		t.Error("reconcile should not have requeued the request")
 	}
 }
 
