@@ -5,6 +5,7 @@ on:
       - 'deploy/**'
       - 'pkg/**'
       - 'cmd/**'
+      - 'hack/ci/**'
   push:
     paths:
       - 'deploy/**'
