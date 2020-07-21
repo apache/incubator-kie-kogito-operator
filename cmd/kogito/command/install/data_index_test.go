@@ -33,29 +33,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Test_DeployDataIndexCmd(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
-}
-
-func Test_DeployDataIndexCmd_RequiredFlags(t *testing.T) {
+func Test_DeployDataIndexCmd_DefaultConfiguration(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install data-index --project %s", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Infinispan Operator has not been installed yet")
-}
-
-func Test_DeployDataIndexCmd_CustomHTTPPort(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --http-port 9090 --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -77,85 +57,37 @@ func Test_DeployDataIndexCmd_CustomHTTPPort(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, dataIndex)
-	assert.Equal(t, int32(9090), dataIndex.Spec.HTTPPort)
+	assert.False(t, dataIndex.Spec.InsecureImageRegistry)
+	assert.True(t, dataIndex.Spec.InfinispanProperties.UseKogitoInfra)
+	assert.True(t, dataIndex.Spec.KafkaProperties.UseKogitoInfra)
 }
 
-func Test_DeployDataIndexCmd_SuccessfulDeployWithKafkaURI(t *testing.T) {
+func Test_DeployDataIndexCmd_CustomConfiguration(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
-}
-
-func Test_DeployDataIndexCmd_SuccessfulDeployWithKafkaInstance(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-instance my-cluster", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
-}
-
-func Test_DeployDataIndexCmd_SuccessfulDeploy(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
-	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
-}
-
-func Test_DeployDataIndexCmd_SuccessfulDeployWithInfinispanCredentials(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password", ns)
-	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
-}
-
-func Test_DeployDataIndexCmd_SuccessfulDeployWithInfinispanCredentialsAndSecret(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password", ns)
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password --insecure-image-registry --http-port 9090", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}},
-		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: defaultDataIndexInfinispanSecretName, Namespace: ns}})
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoDataIndexCRDName}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
 
-	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
-		Name:      defaultDataIndexInfinispanSecretName,
-		Namespace: ns,
-	}}
-	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(secret)
-	assert.NoError(t, err)
-	assert.NotNil(t, secret)
-	assert.True(t, exists)
-	assert.Contains(t, secret.StringData, defaultInfinispanUsernameKey, defaultInfinispanPasswordKey)
-}
+	// This should be created, given the command above
+	dataIndex := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      infrastructure.DefaultDataIndexName,
+			Namespace: ns,
+		},
+	}
 
-func Test_DeployDataIndexCmd_InsecureImage(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install data-index --project %s --insecure-image-registry", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(dataIndex)
 	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
+	assert.True(t, exist)
+	assert.NotNil(t, dataIndex)
+	assert.True(t, dataIndex.Spec.InsecureImageRegistry)
+	assert.False(t, dataIndex.Spec.InfinispanProperties.UseKogitoInfra)
+	assert.False(t, dataIndex.Spec.KafkaProperties.UseKogitoInfra)
+	assert.Equal(t, int32(9090), dataIndex.Spec.HTTPPort)
 }

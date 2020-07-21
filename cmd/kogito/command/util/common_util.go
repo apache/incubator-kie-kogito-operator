@@ -16,9 +16,15 @@ package util
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"strings"
+)
+
+const (
+	// KeyPairSeparator separator for key value pair
+	KeyPairSeparator = "="
+	// SecretNameKeySeparator separator for secret key value pair
+	SecretNameKeySeparator = "#"
 )
 
 // CheckKeyPair will parse the given string array for a valid key=pair format on each item.
@@ -28,11 +34,11 @@ func CheckKeyPair(array []string) error {
 		return nil
 	}
 	for _, item := range array {
-		if !strings.Contains(item, shared.KeyPairSeparator) {
-			return fmt.Errorf("Item %s does not contain the key/pair separator '%s'", item, shared.KeyPairSeparator)
+		if !strings.Contains(item, KeyPairSeparator) {
+			return fmt.Errorf("Item %s does not contain the key/pair separator '%s'", item, KeyPairSeparator)
 		}
-		if strings.HasPrefix(item, shared.KeyPairSeparator) {
-			return fmt.Errorf("Item %s starts with key/pair separator '%s'", item, shared.KeyPairSeparator)
+		if strings.HasPrefix(item, KeyPairSeparator) {
+			return fmt.Errorf("Item %s starts with key/pair separator '%s'", item, KeyPairSeparator)
 		}
 	}
 	return nil
@@ -45,10 +51,10 @@ func CheckSecretKeyPair(secretKeyValuePair []string) error {
 		return nil
 	}
 
-	keyPairMap := shared.FromStringsKeyPairToMap(secretKeyValuePair)
+	keyPairMap := FromStringsKeyPairToMap(secretKeyValuePair)
 	for _, value := range keyPairMap {
-		if !strings.Contains(value, shared.SecretNameKeySeparator) {
-			return fmt.Errorf("item %s does not contain the secret key/pair separator '%s'", value, shared.SecretNameKeySeparator)
+		if !strings.Contains(value, SecretNameKeySeparator) {
+			return fmt.Errorf("item %s does not contain the secret key/pair separator '%s'", value, SecretNameKeySeparator)
 		}
 	}
 	return nil
@@ -60,4 +66,26 @@ func CheckImageTag(image string) error {
 		return fmt.Errorf("invalid name for image tag. Valid format is domain/namespace/image-name:tag. Received %s", image)
 	}
 	return nil
+}
+
+// FromStringsKeyPairToMap converts a string array in the key/pair format (key=value) to a map. Unconvertable strings will be skipped.
+func FromStringsKeyPairToMap(array []string) map[string]string {
+	if len(array) == 0 {
+		return nil
+	}
+	keyPairMap := map[string]string{}
+	for _, item := range array {
+		keyPair := strings.SplitN(item, KeyPairSeparator, 2)
+
+		if len(keyPair[0]) == 0 {
+			break
+		}
+
+		if len(keyPair) == 2 {
+			keyPairMap[keyPair[0]] = keyPair[1]
+		} else if len(keyPair) == 1 {
+			keyPairMap[keyPair[0]] = ""
+		}
+	}
+	return keyPairMap
 }

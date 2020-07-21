@@ -12,36 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"strings"
-)
-
-const (
-	// KeyPairSeparator separator for key value pair
-	KeyPairSeparator = "="
-	// SecretNameKeySeparator separator for secret key value pair
-	SecretNameKeySeparator = "#"
 )
 
 // FromStringArrayToEnvs converts a string array in the format of key=value pairs to the required type for the Kubernetes EnvVar type
 func FromStringArrayToEnvs(keyPairStrings []string, secretKeyPairStrings []string) (envVars []v1.EnvVar) {
 	if len(keyPairStrings) > 0 {
-		keyPairMap := FromStringsKeyPairToMap(keyPairStrings)
+		keyPairMap := util.FromStringsKeyPairToMap(keyPairStrings)
 		for key, value := range keyPairMap {
 			envVars = append(envVars, framework.CreateEnvVar(key, value))
 		}
 	}
 
 	if len(secretKeyPairStrings) > 0 {
-		keyPairMap := FromStringsKeyPairToMap(secretKeyPairStrings)
+		keyPairMap := util.FromStringsKeyPairToMap(secretKeyPairStrings)
 		for key, value := range keyPairMap {
-			if strings.Contains(value, SecretNameKeySeparator) {
-				secretNameKeyPair := strings.SplitN(value, SecretNameKeySeparator, 2)
+			if strings.Contains(value, util.SecretNameKeySeparator) {
+				secretNameKeyPair := strings.SplitN(value, util.SecretNameKeySeparator, 2)
 				if len(secretNameKeyPair) == 2 {
 					secretName := secretNameKeyPair[0]
 					secretKey := secretNameKeyPair[1]
@@ -52,39 +45,4 @@ func FromStringArrayToEnvs(keyPairStrings []string, secretKeyPairStrings []strin
 		}
 	}
 	return envVars
-}
-
-// FromStringArrayToResources ...
-func FromStringArrayToResources(strings []string) v1.ResourceList {
-	if strings == nil {
-		return nil
-	}
-	res := v1.ResourceList{}
-	mapStr := FromStringsKeyPairToMap(strings)
-	for k, v := range mapStr {
-		res[v1.ResourceName(k)] = resource.MustParse(v)
-	}
-	return res
-}
-
-// FromStringsKeyPairToMap converts a string array in the key/pair format (key=value) to a map. Unconvertable strings will be skipped.
-func FromStringsKeyPairToMap(array []string) map[string]string {
-	if len(array) == 0 {
-		return nil
-	}
-	keyPairMap := map[string]string{}
-	for _, item := range array {
-		keyPair := strings.SplitN(item, KeyPairSeparator, 2)
-
-		if len(keyPair[0]) == 0 {
-			break
-		}
-
-		if len(keyPair) == 2 {
-			keyPairMap[keyPair[0]] = keyPair[1]
-		} else if len(keyPair) == 1 {
-			keyPairMap[keyPair[0]] = ""
-		}
-	}
-	return keyPairMap
 }

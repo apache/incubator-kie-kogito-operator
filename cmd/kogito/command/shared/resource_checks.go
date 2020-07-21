@@ -26,8 +26,30 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// IResourceCheckService is interface to check K8 resource existence
+type IResourceCheckService interface {
+	EnsureProject(kubeCli *client.Client, project string) (string, error)
+	CheckKogitoRuntimeExists(kubeCli *client.Client, name string, namespace string) error
+	CheckKogitoRuntimeNotExists(kubeCli *client.Client, name string, namespace string) error
+	CheckKogitoBuildExists(kubeCli *client.Client, name string, project string) error
+	CheckKogitoBuildNotExists(kubeCli *client.Client, name string, namespace string) error
+}
+
+type resourceCheckServiceImpl struct{}
+
+// InitResourceCheckService create and return resourceCheckServiceImpl value
+func InitResourceCheckService() IResourceCheckService {
+	return resourceCheckServiceImpl{}
+}
+
+// EnsureProject verifies whether the given project is a valid string in the context and whether it exists in the cluster
+func (r resourceCheckServiceImpl) EnsureProject(kubeCli *client.Client, project string) (string, error) {
+	return EnsureProject(kubeCli, project)
+}
+
 // EnsureProject verifies whether the given project is a valid string in the context and whether it exists in the cluster
 func EnsureProject(kubeCli *client.Client, project string) (string, error) {
+	log := context.GetDefaultLogger()
 	projectInContext := GetCurrentNamespaceFromKubeConfig()
 	if len(projectInContext) == 0 {
 		return "", fmt.Errorf(message.ProjectNoContext)
@@ -35,7 +57,7 @@ func EnsureProject(kubeCli *client.Client, project string) (string, error) {
 	if len(project) == 0 {
 		project = projectInContext
 	}
-	if err := CheckProjectExists(kubeCli, project); err != nil {
+	if err := checkProjectExists(kubeCli, project); err != nil {
 		return project, err
 	}
 	if project != projectInContext {
@@ -43,12 +65,12 @@ func EnsureProject(kubeCli *client.Client, project string) (string, error) {
 			return "", err
 		}
 	}
-	context.GetDefaultLogger().Debugf(message.ProjectUsingProject, project)
+	log.Debugf(message.ProjectUsingProject, project)
 	return project, nil
 }
 
-// CheckProjectExists ...
-func CheckProjectExists(kubeCli *client.Client, namespace string) error {
+// checkProjectExists ...
+func checkProjectExists(kubeCli *client.Client, namespace string) error {
 	log := context.GetDefaultLogger()
 	log.Debugf("Checking if namespace '%s' exists", namespace)
 	if ns, err := kubernetes.NamespaceC(kubeCli).Fetch(namespace); err != nil {
@@ -60,40 +82,86 @@ func CheckProjectExists(kubeCli *client.Client, namespace string) error {
 	return nil
 }
 
-// CheckKogitoAppNotExists returns an error if the KogitoApp exists
-func CheckKogitoAppNotExists(kubeCli *client.Client, name string, namespace string) error {
+// CheckKogitoRuntimeExists returns an error if the KogitoRuntime not exists
+func (r resourceCheckServiceImpl) CheckKogitoRuntimeExists(kubeCli *client.Client, name string, namespace string) error {
+	log := context.GetDefaultLogger()
+	if exists, err := isKogitoRuntimeExists(kubeCli, name, namespace); err != nil {
+		return err
+	} else if !exists {
+		return fmt.Errorf("Looks like a Kogito runtime with the name '%s' doesn't exist in this project. Please try another name ", name)
+	} else {
+		log.Debugf("Kogito runtime with name '%s' was found in the project '%s' ", name, namespace)
+		return nil
+	}
+}
+
+// CheckKogitoRuntimeNotExists returns an error if the KogitoRuntime exists
+func (r resourceCheckServiceImpl) CheckKogitoRuntimeNotExists(kubeCli *client.Client, name string, namespace string) error {
+	log := context.GetDefaultLogger()
+	if exists, err := isKogitoRuntimeExists(kubeCli, name, namespace); err != nil {
+		return err
+	} else if exists {
+		return fmt.Errorf("Looks like a Kogito Runtime with the name '%s' already exists in this context/namespace. Please try another name ", name)
+	} else {
+		log.Debugf("Custom resource with name '%s' was not found in the project '%s' ", name, namespace)
+		return nil
+	}
+}
+
+func isKogitoRuntimeExists(kubeCli *client.Client, name string, namespace string) (bool, error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Checking if Kogito Service '%s' was deployed before on namespace %s", name, namespace)
-	kogitoapp := &v1alpha1.KogitoApp{
+	kogitoRuntime := &v1alpha1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
 	}
-	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoapp); err != nil {
-		return fmt.Errorf("Error while trying to look for the KogitoApp: %s ", err)
-	} else if exists {
-		return fmt.Errorf("Looks like a Kogito App with the name '%s' already exists in this context/namespace. Please try another name ", name)
+	exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoRuntime)
+	if err != nil {
+		return false, fmt.Errorf("Error while trying to look for the KogitoRuntime: %s ", err)
 	}
-	log.Debugf("No custom resource with name '%s' was found in the namespace '%s'", name, namespace)
-	return nil
+	return exists, nil
 }
 
-// CheckKogitoAppExists returns an error if the Kogito Service does not exist in the project/namespace
-func CheckKogitoAppExists(kubeCli *client.Client, name string, project string) error {
+// CheckKogitoBuildExists returns an error if the KogitoBuild not exists
+func (r resourceCheckServiceImpl) CheckKogitoBuildExists(kubeCli *client.Client, name string, namespace string) error {
 	log := context.GetDefaultLogger()
-	log.Debugf("Checking if Kogito Service '%s' was deployed before on project %s", name, project)
-	kogitoapp := &v1alpha1.KogitoApp{
+	if exists, err := isKogitoBuildExists(kubeCli, name, namespace); err != nil {
+		return err
+	} else if !exists {
+		return fmt.Errorf("Looks like a Kogito Build with the name '%s' doesn't exist in this project. Please try another name ", name)
+	} else {
+		log.Debugf("Kogito Build with name '%s' was found in the project '%s' ", name, namespace)
+		return nil
+	}
+}
+
+// CheckKogitoBuildNotExists returns an error if the KogitoBuild exists
+func (r resourceCheckServiceImpl) CheckKogitoBuildNotExists(kubeCli *client.Client, name string, namespace string) error {
+	log := context.GetDefaultLogger()
+	if exists, err := isKogitoBuildExists(kubeCli, name, namespace); err != nil {
+		return err
+	} else if exists {
+		return fmt.Errorf("Looks like a Kogito Build with the name '%s' already exists in this context/namespace. Please try another name ", name)
+	} else {
+		log.Debugf("Kogito Build with name '%s' was not found in the project '%s' ", name, namespace)
+		return nil
+	}
+}
+
+func isKogitoBuildExists(kubeCli *client.Client, name string, namespace string) (bool, error) {
+	log := context.GetDefaultLogger()
+	log.Debugf("Checking if Kogito Build '%s' was deployed before on namespace %s", name, namespace)
+	kogitoBuild := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: project,
+			Namespace: namespace,
 		},
 	}
-	if exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoapp); err != nil {
-		return fmt.Errorf("Error while trying to look for the KogitoApp: %s ", err)
-	} else if !exists {
-		return fmt.Errorf("Looks like a Kogito App with the name '%s' doesn't exist in this project. Please try another name ", name)
+	exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoBuild)
+	if err != nil {
+		return false, fmt.Errorf("Error while trying to look for the KogitoBuild: %s ", err)
 	}
-	log.Debugf("Custom resource with name '%s' was found in the project '%s' ", name, project)
-	return nil
+	return exists, nil
 }
