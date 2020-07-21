@@ -6,11 +6,6 @@ on:
       - 'pkg/**'
       - 'cmd/**'
       - 'hack/ci/**'
-  push:
-    paths:
-      - 'deploy/**'
-      - 'pkg/**'
-      - 'cmd/**'
     branches:
       - master
 env:
