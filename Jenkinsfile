@@ -14,6 +14,8 @@ pipeline {
         stage('Initialize') {
             steps {
                script{
+                    sh ' git config --global user.email "jenkins@kie.com" '
+                    sh ' git config --global user.name "kie user"'
                     githubscm.checkoutIfExists('kogito-cloud-operator', changeAuthor, changeBranch, 'kiegroup', changeTarget, true, ['token' : 'GITHUB_TOKEN', 'usernamePassword' : 'user-kie-ci10'])
                     sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
                }
