@@ -4,10 +4,6 @@ on:
     paths:
       - 'pkg/**.go'
       - 'cmd/**.go'
-  push:
-    paths:
-      - 'pkg/**.go'
-      - 'cmd/**.go'
     branches:
       - master
 env:

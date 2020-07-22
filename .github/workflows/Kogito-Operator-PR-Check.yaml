@@ -1,7 +1,6 @@
 name: Kogito Operator PR Checks
 on:
   pull_request:
-  push:
     paths-ignore:
       - "README.md"
       - "examples/**"
