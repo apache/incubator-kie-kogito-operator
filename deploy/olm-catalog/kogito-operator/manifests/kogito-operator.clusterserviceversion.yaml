@@ -115,8 +115,11 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: KogitoApp is a project prescription running a Kogito service.
-      displayName: Kogito Service
+    - description: 'KogitoApp is a project prescription running a Kogito service (it''s
+        meant to be used to Build and Deploy the application at the same time). KogitoApp
+        is under deprecation, please use a combination of KogitoRuntime and KogitoBuild
+        instead. See: https://issues.redhat.com/browse/KOGITO-1998'
+      displayName: Kogito Application
       kind: KogitoApp
       name: kogitoapps.app.kiegroup.org
       resources:
