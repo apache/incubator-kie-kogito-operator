@@ -16,6 +16,8 @@
 EXAMPLES_DIR=./deploy/examples
 TARGET_DIR="${EXAMPLES_DIR}/kubernetes/travel-agency"
 STRIMZI_VERSION=0.17.0
+INFINISPAN_VERSION=1.1.1.Final
+
 if [[ -z ${PROJECT_NAME} ]]; then
   PROJECT_NAME=kogito
 fi
@@ -24,9 +26,9 @@ echo "Deploying the Travel Agency Demo on ${PROJECT_NAME} namespace"
 kubectl create namespace "$PROJECT_NAME"
 
 echo "Installing Infinispan Operator"
-kubectl apply -f https://raw.githubusercontent.com/infinispan/infinispan-operator/1.1.1.Final/deploy/crd.yaml -n ${PROJECT_NAME}
-kubectl apply -f https://raw.githubusercontent.com/infinispan/infinispan-operator/1.1.1.Final/deploy/rbac.yaml -n ${PROJECT_NAME}
-kubectl apply -f https://raw.githubusercontent.com/infinispan/infinispan-operator/1.1.1.Final/deploy/operator.yaml -n ${PROJECT_NAME}
+kubectl apply -f "https://raw.githubusercontent.com/infinispan/infinispan-operator/${INFINISPAN_VERSION}/deploy/crd.yaml" -n ${PROJECT_NAME}
+kubectl apply -f "https://raw.githubusercontent.com/infinispan/infinispan-operator/${INFINISPAN_VERSION}/deploy/rbac.yaml" -n ${PROJECT_NAME}
+kubectl apply -f "https://raw.githubusercontent.com/infinispan/infinispan-operator/${INFINISPAN_VERSION}/deploy/operator.yaml" -n ${PROJECT_NAME}
 
 echo "Deploying Strimzi"
 wget "https://github.com/strimzi/strimzi-kafka-operator/releases/download/${STRIMZI_VERSION}/strimzi-${STRIMZI_VERSION}.tar.gz" -P "$TARGET_DIR/"
@@ -37,6 +39,10 @@ kubectl apply -f ${TARGET_DIR}/strimzi-${STRIMZI_VERSION}/install/cluster-operat
 echo "Deploying Data Index"
 kubectl apply -f ${TARGET_DIR}/data-index.yaml -n ${PROJECT_NAME}
 kubectl apply -f ${TARGET_DIR}/data-index-ingress.yaml -n ${PROJECT_NAME}
+
+echo "Deploying Management Console"
+kubectl apply -f ${TARGET_DIR}/management-console.yaml -n ${PROJECT_NAME}
+kubectl apply -f ${TARGET_DIR}/management-console-ingress.yaml -n ${PROJECT_NAME}
 
 echo "Deploying Kogito Travels Application"
 kubectl apply -f ${TARGET_DIR}/kogito-travels.yaml -n ${PROJECT_NAME}
