@@ -427,7 +427,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoApp(ref common.ReferenceCallback) common
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoApp is a project prescription running a Kogito service.",
+				Description: "KogitoApp is a project prescription running a Kogito service (it's meant to be used to Build and Deploy the application at the same time). KogitoApp is under deprecation, please use a combination of KogitoRuntime and KogitoBuild instead. See: https://issues.redhat.com/browse/KOGITO-1998",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
