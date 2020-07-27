@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package shared
+package converter
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -38,17 +38,4 @@ func Test_FromStringArrayToEnvs(t *testing.T) {
 	assert.Equal(t, "VAR2", secretEnvVar.Name)
 	assert.Equal(t, "secretKey2", secretEnvVar.ValueFrom.SecretKeyRef.Key)
 	assert.Equal(t, "secretName2", secretEnvVar.ValueFrom.SecretKeyRef.LocalObjectReference.Name)
-}
-
-func Test_FromStringsKeyPairToMap(t *testing.T) {
-	keyValuePair := []string{
-		"VAR1=key1",
-		"VAR2=key2",
-	}
-
-	keyPairMap := FromStringsKeyPairToMap(keyValuePair)
-	assert.NotNil(t, keyPairMap)
-	assert.Equal(t, 2, len(keyPairMap))
-	assert.Equal(t, "key1", keyPairMap["VAR1"])
-	assert.Equal(t, "key2", keyPairMap["VAR2"])
 }

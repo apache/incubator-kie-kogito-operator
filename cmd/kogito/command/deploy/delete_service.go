@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,11 +17,8 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/service"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +28,13 @@ type deleteServiceFlags struct {
 }
 
 func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
-	cmd := &deleteServiceCommand{CommandContext: *ctx, Parent: parent}
+	cmd := &deleteServiceCommand{
+		CommandContext:       *ctx,
+		Parent:               parent,
+		resourceCheckService: shared.InitResourceCheckService(),
+		buildService:         service.InitBuildService(),
+		runtimeService:       service.InitRuntimeService(),
+	}
 	cmd.RegisterHook()
 	cmd.InitHook()
 	return cmd
@@ -39,9 +42,12 @@ func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command
 
 type deleteServiceCommand struct {
 	context.CommandContext
-	command *cobra.Command
-	flags   deleteServiceFlags
-	Parent  *cobra.Command
+	command              *cobra.Command
+	flags                *deleteServiceFlags
+	Parent               *cobra.Command
+	resourceCheckService shared.IResourceCheckService
+	buildService         service.IBuildService
+	runtimeService       service.IRuntimeService
 }
 
 func (i *deleteServiceCommand) RegisterHook() {
@@ -49,7 +55,7 @@ func (i *deleteServiceCommand) RegisterHook() {
 		Example: "delete-service example-drools --project kogito",
 		Use:     "delete-service NAME [flags]",
 		Short:   "Deletes a Kogito service deployed in the namespace/project",
-		Long:    `delete-service will exclude every OpenShift/Kubernetes resource created to deploy the Kogito service into the namespace.`,
+		Long:    `delete-service will exclude every OpenShift/Kubernetes resource created to deploy the Kogito Service into the namespace.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
@@ -67,34 +73,21 @@ func (i *deleteServiceCommand) Command() *cobra.Command {
 }
 
 func (i *deleteServiceCommand) InitHook() {
-	i.flags = deleteServiceFlags{}
+	i.flags = &deleteServiceFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name from where the service needs to be deleted")
 }
 
-func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) error {
-	log := context.GetDefaultLogger()
+func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	i.flags.name = args[0]
-	var err error
-	if i.flags.project, err = shared.EnsureProject(i.Client, i.flags.project); err != nil {
+	if i.flags.project, err = i.resourceCheckService.EnsureProject(i.Client, i.flags.project); err != nil {
 		return err
 	}
-
-	if err := shared.CheckKogitoAppExists(i.Client, i.flags.name, i.flags.project); err != nil {
+	if err = i.runtimeService.DeleteRuntimeService(i.Client, i.flags.name, i.flags.project); err != nil {
 		return err
 	}
-	log.Debugf("About to delete service %s in namespace %s", i.flags.name, i.flags.project)
-
-	if err := kubernetes.ResourceC(i.Client).Delete(&v1alpha1.KogitoApp{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      i.flags.name,
-			Namespace: i.flags.project,
-		},
-	}); err != nil {
+	if err = i.buildService.DeleteBuildService(i.Client, i.flags.name, i.flags.project); err != nil {
 		return err
 	}
-
-	log.Infof("Successfully deleted Kogito Service %s in the Project %s", i.flags.name, i.flags.project)
-
 	return nil
 }

@@ -15,15 +15,15 @@
 package install
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/common"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 )
 
 type installKeycloakFlags struct {
-	common.OperatorFlags
-	namespace string
+	flag.OperatorFlags
+	project string
 }
 
 type installKeycloakCommand struct {
@@ -59,7 +59,7 @@ func (i *installKeycloakCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := common.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
+			if err := flag.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
 				return err
 			}
 			return nil
@@ -68,26 +68,21 @@ func (i *installKeycloakCommand) RegisterHook() {
 }
 
 func (i *installKeycloakCommand) InitHook() {
-	i.flags = installKeycloakFlags{
-		OperatorFlags: common.OperatorFlags{},
-	}
+	i.flags = installKeycloakFlags{}
 	i.Parent.AddCommand(i.command)
-	common.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
+	flag.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 
-	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the operator will be deployed")
 }
 
 func (i *installKeycloakCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
-	if i.flags.namespace, err = shared.EnsureProject(i.Client, i.flags.namespace); err != nil {
+	if i.flags.project, err = shared.EnsureProject(i.Client, i.flags.project); err != nil {
 		return err
 	}
-
-	if installed, err := shared.SilentlyInstallOperatorIfNotExists(i.flags.namespace, "", i.Client, shared.KogitoChannelType(i.flags.Channel)); err != nil {
-		return err
-	} else if !installed {
-		return nil
-	}
-
-	return shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallKeycloak().GetError()
+	return shared.
+		ServicesInstallationBuilder(i.Client, i.flags.project).
+		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
+		InstallKeycloak().
+		GetError()
 }

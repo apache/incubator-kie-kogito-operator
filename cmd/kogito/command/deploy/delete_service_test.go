@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,30 +18,27 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"testing"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-
 	"github.com/stretchr/testify/assert"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
-func Test_DeleteServiceCmd_WhenWeSuccessfullyDelete(t *testing.T) {
+func Test_DeleteServiceCmd_SuccessfullyDelete(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1alpha1.KogitoApp{ObjectMeta: metav1.ObjectMeta{Name: "example-drools", Namespace: ns}})
+		&v1alpha1.KogitoRuntime{ObjectMeta: metav1.ObjectMeta{Name: "example-drools", Namespace: ns}})
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Successfully deleted Kogito Service example-drools")
 }
 
-func Test_DeleteServiceCmd_WhenServiceDoesNotExist(t *testing.T) {
+func Test_DeleteServiceCmd_Failure_ServiceDoesNotExist(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-service example-drools --project %s", ns)
 	test.SetupCliTest(cli,

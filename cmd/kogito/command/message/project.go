@@ -35,4 +35,18 @@ const (
 	ProjectAlreadyExists = "Project '%s' already exists"
 	// ProjectCreatedSuccessfully in: project's name
 	ProjectCreatedSuccessfully = "Project '%s' created successfully"
+	// ProjectCurrentContext --project / -p
+	ProjectCurrentContext = "The project to be used in the current context"
+	// InstallDataIndex --install-data-index
+	InstallDataIndex = `Installs the default instance of Data Index being provisioned by the Kogito Operator in the project. 
+For a more customized Data Index installation, use 'kogito install data-index [OPTIONS]'`
+	// InstallJobsService --install-jobs-service
+	InstallJobsService = `Installs the default instance of Jobs Service being provisioned by the Kogito Operator in the project.
+For a more customized Jobs Service installation, use 'kogito install jobs-service [OPTIONS]'`
+	// InstallMgmtConsole --install-mgmt-console
+	InstallMgmtConsole = `Installs the default instance of Jobs Service being provisioned by the Kogito Operator in the project.
+For a more customized Jobs Service installation, use 'kogito install jobs-service [OPTIONS]'`
+	// InstallAllServices --install-all
+	InstallAllServices = `Installs the default instance of all Kogito Support Services being provisioned by the Kogito Operator in the project.
+Avoid installing the default services on production environments. Prefer the command 'kogito install [SERVICE]' since it can be customized.`
 )

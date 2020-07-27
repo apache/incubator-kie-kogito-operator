@@ -295,7 +295,8 @@ type Builds struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoApp is a project prescription running a Kogito service.
+// KogitoApp is a project prescription running a Kogito service (it's meant to be used to Build and Deploy the application at the same time).
+// KogitoApp is under deprecation, please use a combination of KogitoRuntime and KogitoBuild instead. See: https://issues.redhat.com/browse/KOGITO-1998
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoapps,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
@@ -304,7 +305,7 @@ type Builds struct {
 // +kubebuilder:printcolumn:name="Enable Events",type="boolean",JSONPath=".spec.enableEvents",description="Indicates if events is enabled"
 // +kubebuilder:printcolumn:name="Image Version",type="string",JSONPath=".spec.build.imageVersion",description="Build image version"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.route",description="External URI to access this service"
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Service"
+// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Application"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="DeploymentConfigs,apps.openshift.io/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStreams,image.openshift.io/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="BuildConfigs,build.openshift.io/v1"
