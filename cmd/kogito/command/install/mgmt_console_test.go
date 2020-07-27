@@ -28,48 +28,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Test_DeployMgmtConsoleCmd(t *testing.T) {
+func Test_DeployMgmtConsoleCmd_DefaultConfiguration(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install mgmt-console -p %s", ns)
 	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Management Console Service successfully installed")
-
-	mgmtConsole := &v1alpha1.KogitoMgmtConsole{ObjectMeta: metav1.ObjectMeta{Namespace: ns, Name: infrastructure.DefaultMgmtConsoleName}}
-	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
-	assert.NoError(t, err)
-	assert.True(t, exits)
-	assert.Equal(t, mgmtConsole.Spec.Image.Name, "")
-}
-
-func Test_DeployMgmtConsoleCmd_CustomImage(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install mgmt-console --image docker.io/namespace/mgmt-console:latest -p %s", ns)
-	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Management Console Service successfully installed")
-
-	mgmtConsole := &v1alpha1.KogitoMgmtConsole{ObjectMeta: metav1.ObjectMeta{Namespace: ns, Name: infrastructure.DefaultMgmtConsoleName}}
-	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
-	assert.NoError(t, err)
-	assert.True(t, exits)
-	assert.Equal(t, mgmtConsole.Spec.Image.Name, "mgmt-console")
-	assert.Equal(t, mgmtConsole.Spec.Image.Namespace, "namespace")
-	assert.Equal(t, mgmtConsole.Spec.Image.Domain, "docker.io")
-	assert.Equal(t, mgmtConsole.Spec.Image.Tag, "latest")
-}
-
-func Test_DeployMgmtConsoleCmd_CustomHTTPPort(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install mgmt-console -p %s --http-port 9090", ns)
-	ctx := test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-	)
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
@@ -84,15 +46,33 @@ func Test_DeployMgmtConsoleCmd_CustomHTTPPort(t *testing.T) {
 	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
 	assert.NoError(t, err)
 	assert.True(t, exits)
-	assert.Equal(t, int32(9090), mgmtConsole.Spec.HTTPPort)
+	assert.Equal(t, mgmtConsole.Spec.Image.Name, "")
+	assert.False(t, mgmtConsole.Spec.InsecureImageRegistry)
 }
 
-func Test_DeployMgmtConsoleCmd_InsecureImage(t *testing.T) {
+func Test_DeployMgmtConsoleCmd_CustomConfiguration(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install mgmt-console --project %s --insecure-image-registry", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	cli := fmt.Sprintf("install mgmt-console -p %s --image docker.io/project/mgmt-console:latest --insecure-image-registry --http-port 9090", ns)
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Management Console Service successfully installed")
+
+	mgmtConsole := &v1alpha1.KogitoMgmtConsole{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: ns,
+			Name:      infrastructure.DefaultMgmtConsoleName,
+		},
+	}
+	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
+	assert.NoError(t, err)
+	assert.True(t, exits)
+	assert.True(t, mgmtConsole.Spec.InsecureImageRegistry)
+	assert.Equal(t, "mgmt-console", mgmtConsole.Spec.Image.Name)
+	assert.Equal(t, "project", mgmtConsole.Spec.Image.Namespace)
+	assert.Equal(t, "docker.io", mgmtConsole.Spec.Image.Domain)
+	assert.Equal(t, "latest", mgmtConsole.Spec.Image.Tag)
+	assert.Equal(t, int32(9090), mgmtConsole.Spec.HTTPPort)
+
 }

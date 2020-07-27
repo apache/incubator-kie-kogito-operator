@@ -28,107 +28,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Test_DeployJobsServiceCmd(t *testing.T) {
+func Test_DeployJobServiceCmd_DefaultConfiguration(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --infinispan-url myservice:11222", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
-}
-
-func Test_DeployJobsServiceCmd_RequiredFlags(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --enable-persistence --project %s", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Infinispan Operator has not been installed yet")
-}
-
-func Test_DeployDataIndexCmd_SuccessfullDeployWithInfinispanCredentials(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --infinispan-url myservice:11222 --infinispan-user user --infinispan-password password", ns)
-	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
-}
-
-func Test_DeployJobsServiceCmd_SuccessfulDeployWithInfinispanCredentialsAndSecret(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --infinispan-url myservice:11222 --infinispan-user user --infinispan-password password", ns)
-	ctx := test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: defaultJobsServiceInfinispanSecretName, Namespace: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
-
-	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
-		Name:      defaultJobsServiceInfinispanSecretName,
-		Namespace: ns,
-	}}
-	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(secret)
-	assert.NoError(t, err)
-	assert.NotNil(t, secret)
-	assert.True(t, exists)
-	assert.Contains(t, secret.StringData, defaultInfinispanUsernameKey, defaultInfinispanPasswordKey)
-}
-
-func Test_DeployJobsServiceCmd_SuccessfulDeployWithKafkaURI(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --kafka-url my-cluster:9092", ns)
-	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
-
-	jobsService := &v1alpha1.KogitoJobsService{ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns}}
-	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(jobsService)
-	assert.NoError(t, err)
-	assert.True(t, exists)
-	assert.Equal(t, "my-cluster:9092", jobsService.Spec.KafkaProperties.ExternalURI)
-	assert.False(t, jobsService.Spec.KafkaProperties.UseKogitoInfra)
-}
-
-func Test_DeployJobsServiceCmd_SuccessfulDeployWithEventsEnabled(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --enable-events", ns)
-	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
-
-	jobsService := &v1alpha1.KogitoJobsService{ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns}}
-	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(jobsService)
-	assert.NoError(t, err)
-	assert.True(t, exists)
-	assert.True(t, jobsService.Spec.KafkaProperties.UseKogitoInfra)
-}
-
-func Test_DeployJobsServiceCmd_SuccessfulDeployWithKafkaInstance(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --kafka-instance my-cluster", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
-}
-
-func Test_DeployJobServiceCmd_CustomHTTPPort(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --http-port 9090 --kafka-instance my-cluster", ns)
+	cli := fmt.Sprintf("install jobs-service --project %s", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
@@ -149,15 +51,40 @@ func Test_DeployJobServiceCmd_CustomHTTPPort(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, jobService)
-	assert.Equal(t, int32(9090), jobService.Spec.HTTPPort)
+	assert.False(t, jobService.Spec.InsecureImageRegistry)
+	assert.False(t, jobService.Spec.InfinispanProperties.UseKogitoInfra)
+	assert.False(t, jobService.Spec.KafkaProperties.UseKogitoInfra)
+	assert.Equal(t, int64(0), jobService.Spec.BackOffRetryMillis)
+	assert.Equal(t, int64(0), jobService.Spec.MaxIntervalLimitToRetryMillis)
 }
 
-func Test_DeployJobsServiceCmd_InsecureImage(t *testing.T) {
+func Test_DeployJobServiceCmd_CustomConfiguration(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s --insecure-image-registry", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	cli := fmt.Sprintf("install jobs-service --project %s --enable-events --enable-persistence --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password --insecure-image-registry --http-port 9090 --backoff-retry-millis=5 --max-internal-limit-retry-millis=10", ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Jobs Service successfully installed")
+
+	// This should be created, given the command above
+	jobService := &v1alpha1.KogitoJobsService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      infrastructure.DefaultJobsServiceName,
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(jobService)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.NotNil(t, jobService)
+	assert.True(t, jobService.Spec.InsecureImageRegistry)
+	assert.False(t, jobService.Spec.InfinispanProperties.UseKogitoInfra)
+	assert.False(t, jobService.Spec.KafkaProperties.UseKogitoInfra)
+	assert.Equal(t, int32(9090), jobService.Spec.HTTPPort)
+	assert.Equal(t, int64(5), jobService.Spec.BackOffRetryMillis)
+	assert.Equal(t, int64(10), jobService.Spec.MaxIntervalLimitToRetryMillis)
 }

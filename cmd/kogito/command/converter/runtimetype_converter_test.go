@@ -12,17 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package error
+package converter
 
 import (
-	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-// KogitoAssetFileBuildError Custom error for handling build from file errors.
-type KogitoAssetFileBuildError struct {
-	Asset string
-}
+func Test_FromRuntimeFlagsToRuntimeType(t *testing.T) {
+	flags := &flag.RuntimeTypeFlags{
+		Runtime: "springboot",
+	}
 
-func (k *KogitoAssetFileBuildError) Error() string {
-	return fmt.Sprintf("unable to process the requested file %s", k.Asset)
+	runtimeType := FromRuntimeFlagsToRuntimeType(flags)
+	assert.NotNil(t, runtimeType)
+	assert.Equal(t, v1alpha1.SpringbootRuntimeType, runtimeType)
 }
