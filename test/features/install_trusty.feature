@@ -27,5 +27,3 @@ Feature: Kogito Trusty
       | infinispan | uri      | external-infinispan:11222 |
 
     Then Kogito Trusty has 1 pods running within 10 minutes
-
-# External Kafka testing is covered in deploy_quarkus_service and deploy_springboot_service as it checks integration between Trusty and KogitoApp
