@@ -742,6 +742,9 @@ spec:
         displayName: Image
         path: image
       version: v1alpha1
+    - kind: KogitoTrusty
+      name: kogitotrusty.app.kiegroup.org
+      version: v1alpha1
     required:
     - description: Represents a Infinispan cluster used internally by Kogito Data
         Index Service
