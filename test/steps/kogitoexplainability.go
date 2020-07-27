@@ -33,8 +33,8 @@ func registerKogitoExplainabilityServiceSteps(ctx *godog.ScenarioContext, data *
 }
 
 func (data *Data) installKogitoExplainabilityServiceWithReplicas(replicas int) error {
-	dataIndex := framework.GetKogitoDataIndexResourceStub(data.Namespace, replicas)
-	return framework.InstallKogitoDataIndexService(data.Namespace, framework.GetDefaultInstallerType(), &framework.KogitoServiceHolder{KogitoService: dataIndex})
+	explainability := framework.GetKogitoExplainabilityResourceStub(data.Namespace, replicas)
+	return framework.InstallKogitoExplainabilityService(data.Namespace, framework.GetDefaultInstallerType(), &framework.KogitoServiceHolder{KogitoService: explainability})
 }
 
 func (data *Data) installKogitoExplainabilityServiceWithReplicasWithConfiguration(replicas int, table *godog.Table) error {
