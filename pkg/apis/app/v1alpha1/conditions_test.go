@@ -17,6 +17,7 @@ package v1alpha1
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -81,6 +82,8 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	assert.Equal(t, 2, len(conditionsMeta.Conditions))
 	assert.Equal(t, ProvisioningConditionType, condition.Type)
 	assert.Equal(t, corev1.ConditionTrue, condition.Status)
+	// we set a sleep to not conflict the time
+	time.Sleep(1 * time.Second)
 	assert.True(t, now.Before(&condition.LastTransitionTime))
 
 	assert.Equal(t, DeployedConditionType, conditionsMeta.Conditions[1].Type)

@@ -179,6 +179,14 @@ func CreateBuildConfigComparator() func(deployed resource.KubernetesResource, re
 			//Triggers are generated based on provided github repo
 			bcDeployed.Spec.Triggers = bcRequested.Spec.Triggers
 		}
+		if len(bcRequested.Spec.Triggers) == 0 {
+			// see: https://issues.redhat.com/browse/KOGITO-2872
+			// setting both to nil for the sake of the comparator
+			// on OCP 4.5, empty triggers are set to nil
+			// on previous versions empty triggers were empty arrays. Yes, it's different.
+			requested.(*buildv1.BuildConfig).Spec.Triggers = nil
+			bcDeployed.Spec.Triggers = nil
+		}
 		return true
 	}
 }
