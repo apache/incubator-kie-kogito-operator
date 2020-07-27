@@ -27,12 +27,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	defaultTrustyInfinispanSecretName  = infrastructure.DefaultTrustyName + "-infinispan-credentials"
-	defaultTrustyInfinispanUsernameKey = "username"
-	defaultTrustyInfinispanPasswordKey = "password"
-)
-
 type installTrustyFlags struct {
 	flag.InstallFlags
 	flag.InfinispanFlags
