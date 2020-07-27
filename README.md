@@ -339,6 +339,7 @@ All options from BDD tests do also apply here.
 | @quarkus           | Quarkus tests                                                                      |
 |                    |                                                                                    |
 | @dataindex         | Tests including DataIndex                                                          |
+| @trusty            | Tests including Trusty                                                             |
 | @jobsservice       | Tests including Jobs service                                                       |
 | @managementconsole | Tests including Management console                                                 |
 | @infra             | Tests checking KogitoInfra functionality                                           |
