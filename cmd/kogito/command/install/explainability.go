@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,6 +50,13 @@ func initInstallExplainabilityCommand(ctx *context.CommandContext, parent *cobra
 	return cmd
 }
 
+func (i *installExplainabilityCommand) InitHook() {
+	i.flags = installExplainabilityFlags{}
+	i.Parent.AddCommand(i.command)
+	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
+	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
+}
+
 func (i *installExplainabilityCommand) Command() *cobra.Command {
 	return i.command
 }
@@ -59,10 +66,10 @@ func (i *installExplainabilityCommand) RegisterHook() {
 		Use:     "explainability [flags]",
 		Short:   "Installs the Kogito Explainability Service in the given Project",
 		Example: "explainability -p my-project",
-		Long: `'install explainability' will deploy the Explainability service to enable capturing and indexing data produced by one or more Kogito services.
+		Long: `'install explainability' will deploy the Explainability service to provide analysis on the decisions that have been taken by a kogito runtime application.
 
 If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other project or infrastructure.
-If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in he Data Index service's project.
+If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Explainability service's project.
 Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given project.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
@@ -96,8 +103,7 @@ func (i *installExplainabilityCommand) Exec(cmd *cobra.Command, args []string) e
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 			},
-			InfinispanMeta: infinispanMeta,
-			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, true),
+			KafkaMeta: converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, true),
 		},
 		Status: v1alpha1.KogitoExplainabilityStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -109,7 +115,7 @@ func (i *installExplainabilityCommand) Exec(cmd *cobra.Command, args []string) e
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
-		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra).
+		WarnIfDependenciesNotReady(false, i.flags.KafkaFlags.UseKogitoInfra).
 		InstallExplainability(&kogitoExplainability).
 		GetError()
 }

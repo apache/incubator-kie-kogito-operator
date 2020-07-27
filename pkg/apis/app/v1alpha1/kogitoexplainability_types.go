@@ -25,6 +25,7 @@ const KogitoExplainabilityCRDName = "kogitoexplainability.app.kiegroup.org"
 // +k8s:openapi-gen=true
 type KogitoExplainabilitySpec struct {
 	KogitoServiceSpec `json:",inline"`
+	KafkaMeta         `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }
 

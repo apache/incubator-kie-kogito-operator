@@ -35,6 +35,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
+const (
+	// Collection of kafka topics that should be handled by the Explainability service
+	kafkaTopicNameExplainabilityRequest string = "trusty-explainability-request"
+	kafkaTopicNameExplainabilityResult  string = "trusty-explainability-result"
+)
+
+var kafkaTopics = []services.KafkaTopicDefinition{
+	{TopicName: kafkaTopicNameExplainabilityRequest, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameExplainabilityResult, MessagingType: services.KafkaTopicOutgoing},
+}
+
 var log = logger.GetLogger("controller_kogitoexplainability")
 
 // Add creates a new KogitoExplainability Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -124,8 +135,9 @@ func (r *ReconcileKogitoExplainability) Reconcile(request reconcile.Request) (re
 		DefaultImageName:    infrastructure.DefaultExplainabilityImageName,
 		Request:             request,
 		OnDeploymentCreate:  r.onDeploymentCreate,
+		KafkaTopics:         kafkaTopics,
 		RequiresPersistence: false,
-		RequiresMessaging:   false,
+		RequiresMessaging:   true,
 		HealthCheckProbe:    services.QuarkusHealthCheckProbe,
 	}
 	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, instances, r.client, r.scheme).Deploy(); err != nil {
