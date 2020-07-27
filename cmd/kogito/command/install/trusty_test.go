@@ -33,29 +33,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Test_DeployTrustyCmd(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install trusty --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Trusty Service successfully installed")
-}
-
-func Test_DeployTrustyCmd_RequiredFlags(t *testing.T) {
+func Test_DeployTrustyCmd_DefaultConfiguration(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("install trusty --project %s", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Infinispan Operator has not been installed yet")
-}
-
-func Test_DeployTrustyCmd_CustomHTTPPort(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install trusty --project %s --http-port 9090 --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -77,75 +57,37 @@ func Test_DeployTrustyCmd_CustomHTTPPort(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, trusty)
-	assert.Equal(t, int32(9090), trusty.Spec.HTTPPort)
+	assert.False(t, trusty.Spec.InsecureImageRegistry)
+	assert.True(t, trusty.Spec.InfinispanProperties.UseKogitoInfra)
+	assert.True(t, trusty.Spec.KafkaProperties.UseKogitoInfra)
 }
 
-func Test_DeployTrustyCmd_SuccessfulDeployWithKafkaURI(t *testing.T) {
+func Test_DeployTrustyCmd_CustomConfiguration(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install trusty --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Trusty Service successfully installed")
-}
-
-func Test_DeployTrustyCmd_SuccessfulDeployWithKafkaInstance(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install trusty --project %s --infinispan-url myservice:11222 --kafka-instance my-cluster", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Trusty Service successfully installed")
-}
-
-func Test_DeployTrustyCmd_SuccessfulDeploy(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install trusty --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092", ns)
-	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoTrustyCRDName}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Trusty Service successfully installed")
-}
-
-func Test_DeployTrustyCmd_SuccessfulDeployWithInfinispanCredentials(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install trusty --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password", ns)
-	test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoTrustyCRDName}})
-	lines, _, err := test.ExecuteCli()
-
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "Kogito Trusty Service successfully installed")
-}
-
-func Test_DeployTrustyCmd_SuccessfulDeployWithInfinispanCredentialsAndSecret(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf("install trusty --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password", ns)
+	cli := fmt.Sprintf("install data-index --project %s --infinispan-url myservice:11222 --kafka-url my-cluster:9092 --infinispan-user user --infinispan-password password --insecure-image-registry --http-port 9090", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoTrustyCRDName}},
-		&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: defaultTrustyInfinispanSecretName, Namespace: ns}})
+		&apiextensionsv1beta1.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.KogitoTrustyCRDName}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Trusty Service successfully installed")
 
-	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
-		Name:      defaultTrustyInfinispanSecretName,
-		Namespace: ns,
-	}}
-	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(secret)
+	// This should be created, given the command above
+	trusty := &v1alpha1.KogitoTrusty{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      infrastructure.DefaultTrustyName,
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(trusty)
 	assert.NoError(t, err)
-	assert.NotNil(t, secret)
-	assert.True(t, exists)
-	assert.Contains(t, secret.StringData, defaultInfinispanUsernameKey, defaultInfinispanPasswordKey)
+	assert.True(t, exist)
+	assert.NotNil(t, trusty)
+	assert.True(t, trusty.Spec.InsecureImageRegistry)
+	assert.False(t, trusty.Spec.InfinispanProperties.UseKogitoInfra)
+	assert.False(t, trusty.Spec.KafkaProperties.UseKogitoInfra)
+	assert.Equal(t, int32(9090), trusty.Spec.HTTPPort)
 }
