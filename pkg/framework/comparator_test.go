@@ -148,6 +148,32 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 			reflect.TypeOf(buildv1.BuildConfig{}),
 			false,
 		},
+		{
+			"With empty triggers KOGITO-2872",
+			args{
+				deployed: &buildv1.BuildConfig{
+					Spec: buildv1.BuildConfigSpec{Triggers: nil},
+				},
+				requested: &buildv1.BuildConfig{
+					Spec: buildv1.BuildConfigSpec{Triggers: []buildv1.BuildTriggerPolicy{}},
+				},
+			},
+			reflect.TypeOf(buildv1.BuildConfig{}),
+			true,
+		},
+		{
+			"With empty triggers reference",
+			args{
+				deployed: &buildv1.BuildConfig{
+					Spec: buildv1.BuildConfigSpec{Triggers: []buildv1.BuildTriggerPolicy{}},
+				},
+				requested: &buildv1.BuildConfig{
+					Spec: buildv1.BuildConfigSpec{Triggers: []buildv1.BuildTriggerPolicy{}},
+				},
+			},
+			reflect.TypeOf(buildv1.BuildConfig{}),
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
