@@ -776,6 +776,7 @@ func (in *KogitoExplainabilityList) DeepCopyObject() runtime.Object {
 func (in *KogitoExplainabilitySpec) DeepCopyInto(out *KogitoExplainabilitySpec) {
 	*out = *in
 	in.KogitoServiceSpec.DeepCopyInto(&out.KogitoServiceSpec)
+	out.KafkaMeta = in.KafkaMeta
 	return
 }
 

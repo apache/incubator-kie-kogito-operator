@@ -1240,11 +1240,17 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 							Format:      "int32",
 						},
 					},
+					"kafka": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Has the data used by the service to connect to the Kafka cluster.",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
