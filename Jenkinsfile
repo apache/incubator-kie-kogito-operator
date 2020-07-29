@@ -10,6 +10,12 @@ pipeline {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 90, unit: 'MINUTES')
     }
+    environment {
+        OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
+
+        // Use buildah container engine in this pipeline
+        CONTAINER_ENGINE="buildah"
+    }
     stages {
         stage('Initialize') {
             steps {
@@ -27,7 +33,7 @@ pipeline {
                     go get -u golang.org/x/lint/golint
                     usermod --add-subuids 10000-75535 \$(whoami)
                     usermod --add-subgids 10000-75535 \$(whoami)
-                    make image_builder=buildah
+                    make image_builder=${CONTAINER_ENGINE}
                 """
             }
         }
@@ -39,17 +45,29 @@ pipeline {
         stage('Push Operator Image to Openshift Registry') {
             steps {
                 sh """
-                    set +x && buildah login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
+                    set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
                     cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
-                    buildah tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                    buildah push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                 """
+            }
+        }
+        stage("Build examples' images for testing"){
+            steps {
+                // Do not build native images for the PR checks
+                sh "make build-examples-images tags='~@native' concurrent=1 ${getBDDParameters('never', false)}"
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                }
             }
         }
         stage('Running Smoke Testing') {
             steps {
                 sh """
-                     make run-smoke-tests load_factor=3 load_default_config=true operator_image=${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator operator_tag=pr-\$(echo \${GIT_COMMIT} | cut -c1-7) maven_mirror=${MAVEN_MIRROR_REPOSITORY} concurrent=3
+                    make run-smoke-tests concurrent=3 ${getBDDParameters('always', true)}
                 """
             }
             post {
@@ -66,4 +84,28 @@ pipeline {
             cleanWs()
         }
     }
+}
+
+String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false) {
+    testParamsMap = [:]
+
+    testParamsMap["load_default_config"] = true
+    testParamsMap["ci"] = "jenkins"
+    testParamsMap["load_factor"] = 3
+
+    testParamsMap["operator_image"] = "${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator"
+    testParamsMap["operator_tag"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
+    testParamsMap["maven_mirror"] = env.MAVEN_MIRROR_REPOSITORY
+    
+    // runtime_application_image are built in this pipeline so we can just use Openshift registry for them
+    testParamsMap["image_cache_mode"] = image_cache_mode
+    testParamsMap["runtime_application_image_registry"] = runtime_app_registry_internal ? env.OPENSHIFT_INTERNAL_REGISTRY : env.OPENSHIFT_REGISTRY
+    testParamsMap["runtime_application_image_namespace"] = "openshift"
+    testParamsMap["runtime_application_image_version"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
+    
+    testParamsMap['container_engine'] = env.CONTAINER_ENGINE
+
+    String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(" ")
+    echo "BDD parameters = ${testParams}"
+    return testParams
 }
