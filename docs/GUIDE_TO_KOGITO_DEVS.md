@@ -58,9 +58,11 @@ $ cp /path/to/kogito-apps/jobs-service/target/jobs-service-8.0.0-SNAPSHOT-runner
 
 Also, inside this directory, you can have a `Dockerfile` which can be used to update the artifact.
 
-` $ vim jobs-service-Dockerfile` 
+```shell-script
+$ vim jobs-service-Dockerfile
+``` 
 
-```
+```Dockerfile
 FROM quay.io/kiegroup/kogito-jobs-service
 COPY jobs-service-8.0.0-SNAPSHOT-runner.jar ${KOGITO_HOME}/bin/kogito-jobs-service-runner.jar
 ```
@@ -69,7 +71,9 @@ COPY jobs-service-8.0.0-SNAPSHOT-runner.jar ${KOGITO_HOME}/bin/kogito-jobs-servi
 
 Now you are going to build the image. Inside the above created directory, run:
 
-`$ podman build -t <prefered-tag-name>  -f jobs-service-Dockerfile  .`
+```shell-script
+$ podman build -t <prefered-tag-name>  -f jobs-service-Dockerfile  .
+```
 
 The above command will build your image with `quay.io/<your-namespace>/<image-name>` and can be seen in the output of `$ podman images`
 
@@ -109,13 +113,17 @@ It’ll build your image with the kogito service running on it.
 
 Now let’s push the above built image to a public container registry.
 
-`$ podman push quay.io/<yournamespace>/process-business-rules-quarkus:latest`
+```shell-script
+$ podman push quay.io/<yournamespace>/process-business-rules-quarkus:latest
+```
 
 ## Install the Operator
 
 First we would need to enable the OLM in our Minikube cluster. For that, just run:
 
-`$ minikube addons enable olm`
+```shell-script
+$ minikube addons enable olm
+```
 
 To launch the OLM console locally, clone the [operator-lifecycle-manager](https://github.com/operator-framework/operator-lifecycle-manager) repository and from the root of the project run: `$ make run-console-local`.
  
@@ -125,14 +133,18 @@ This will run the operatorhub console on http://localhost:9000
 
 Create a different namespace where `kogito-operator` and all the dependent operator(s) will run
 
-`$ kubectl create ns kogito`
+```shell-script
+$ kubectl create ns kogito
+```
 
 Now open your browser and visit the OLM console on https://localhost:9000. Select `Operators > OperatorHub` and search for `kogito`.  
 Select the Kogito Operator by Red Hat and install it with defaults options, choose the namespace `kogito` which was created for this purpose
 
 You can see the pods by:
 
-`$ watch kubectl get pod -n kogito`
+```shell-script
+$ watch kubectl get pod -n kogito
+```
 
 Wait until all pods are in running state (It is installing kogito-operator and all the dependent operator(s) for kogito)
 
@@ -159,16 +171,20 @@ Create a `myapp.yml` file with the above content.
 
 Just create the above object with
 
-`$ kubectl create -f myapp.yml -n kogito`
+```shell-script
+$ kubectl create -f myapp.yml -n kogito
+```
 
 You can see your runtime object by 
 
-`$ kubectl get KogitoRuntime -n kogito`
+```shell-script
+$ kubectl get KogitoRuntime -n kogito
+```
 
 Now expose the service on NodePort so it’s easily accessible.
 
-`$ kubectl expose deployment process-business-rules-quarkus -n <operator-namespace>  --type=NodePort --name=process-business-rules-quarkus`
-
-`$ minikube service process-business-rules-quarkus -n <operator-namspace>`
-
-The above command will open the exposed service in your default browser.
+```shell-script
+$ kubectl expose deployment process-business-rules-quarkus -n <operator-namespace>  --type=NodePort --name=process-business-rules-quarkus
+$ minikube service process-business-rules-quarkus -n <operator-namspace>
+```
+The above commands will expose the service on `nodePort`  and open the exposed service in your default browser.
