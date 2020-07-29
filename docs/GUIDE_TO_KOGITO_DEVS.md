@@ -33,10 +33,10 @@ Before proceeding, please read the README files on the following repositories to
 To generate the jar artifacts, you can just run the following command on each repository:
 
 ```shell-script
-mvn clean install -DskipTests #(For skipping tests)
+mvn clean package -DskipTests #(For skipping tests)
 ```
 
-This will deploy your artifacts on your local Maven repository (default is `~/.m2/repository/org/kie/kogito`).
+This will deploy your jar's in the target directory. For example, for jobs-service the jar would present at `/path/to/kogito-apps/jobs-service/target/jobs-service-8.0.0-SNAPSHOT-runner.jar`
 
 So, you can just build the artifacts you modified or where you added new feature in and update them so they can be built with the Images
 
@@ -53,7 +53,7 @@ First, create a directory e.g: `~/images/`.
 Then, inside this directory, copy the artifacts you need to update:
 
 ```shell-script
-$ cp ~/.m2/repository/org/kie/kogito/jobs-service/8.0.0-SNAPSHOT/jobs-service-8.0.0-SNAPSHOT-runner.jar .
+$ cp /path/to/kogito-apps/jobs-service/target/jobs-service-8.0.0-SNAPSHOT-runner.jar .
 ```
 
 Also, inside this directory, you can have a `Dockerfile` which can be used to update the artifact.

@@ -373,4 +373,4 @@ $ make test
 
 ## Guide for Kogito Developers
 
-If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](GUIDE_TO_KOGITO_DEVS.md) to test your changes.
+If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
