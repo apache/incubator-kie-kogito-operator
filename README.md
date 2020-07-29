@@ -24,7 +24,8 @@ For information about the Kogito Operator architecture and instructions for usin
       * [Running performance tests](#running-performance-tests)
       * [List of test tags](#list-of-test-tags)
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
-  *[Guide for Kogito Developers](#guide-for-kogito-developers)
+  * [Guide for Kogito Developers](#guide-for-kogito-developers)
+  
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Contributing to the Kogito Operator
