@@ -165,3 +165,4 @@ Now expose the service on NodePort so it’s easily accessible.
 
 `$ minikube service process-business-rules-quarkus -n <operator-namspace>`
 
+The above command will open the exposed service in your default browser.
