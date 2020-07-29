@@ -36,25 +36,25 @@ func GetProtoBufConfigMaps(namespace string, cli *client.Client) (*v1.ConfigMapL
 	return cms, nil
 }
 
-// getKogitoAppsDCs gets all dcs owned by KogitoApps within the given namespace
-func getKogitoAppsDCs(namespace string, cli *client.Client) ([]oappsv1.DeploymentConfig, error) {
+// getKogitoRuntimeDCs gets all dcs owned by KogitoRuntime services within the given namespace
+func getKogitoRuntimeDCs(namespace string, cli *client.Client) ([]oappsv1.DeploymentConfig, error) {
 	var kdcs []oappsv1.DeploymentConfig
-	kogitoApps := &v1alpha1.KogitoAppList{}
-	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoApps); err != nil {
+	kogitoRuntimeServices := &v1alpha1.KogitoRuntimeList{}
+	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoRuntimeServices); err != nil {
 		return nil, err
 	}
-	log.Debugf("Found %d KogitoApps in the namespace '%s' ", len(kogitoApps.Items), namespace)
-	if len(kogitoApps.Items) == 0 {
+	log.Debugf("Found %d KogitoRuntime services in the namespace '%s' ", len(kogitoRuntimeServices.Items), namespace)
+	if len(kogitoRuntimeServices.Items) == 0 {
 		return kdcs, nil
 	}
 	dcs := &oappsv1.DeploymentConfigList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
 		return nil, err
 	}
-	log.Debug("Looking for DeploymentConfigs owned by KogitoApps")
+	log.Debug("Looking for DeploymentConfigs owned by KogitoRuntime")
 	for _, dc := range dcs.Items {
 		for _, owner := range dc.OwnerReferences {
-			for _, app := range kogitoApps.Items {
+			for _, app := range kogitoRuntimeServices.Items {
 				if owner.UID == app.UID {
 					kdcs = append(kdcs, dc)
 					break

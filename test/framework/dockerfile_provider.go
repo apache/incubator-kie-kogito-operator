@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
+	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitobuild/build"
 )
 
 // KogitoApplicationDockerfileProvider is the API to provide Dockerfile content for image creation based on built project content
@@ -50,7 +50,7 @@ var quarkusNativeKogitoApplicationDockerfileProvider = kogitoApplicationDockerfi
 }
 
 var springbootKogitoApplicationDockerfileProvider = kogitoApplicationDockerfileProviderStruct{
-	imageName:               kogitores.KogitoSpringbootUbi8Image,
+	imageName:               kogitores.KogitoSpringBootUbi8Image,
 	applicationBinarySuffix: ".jar",
 	libFolderNeeded:         false,
 }

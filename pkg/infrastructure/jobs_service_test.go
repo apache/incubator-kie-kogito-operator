@@ -29,10 +29,10 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
+func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 	URI := "http://localhost:8080"
 	replicas := int32(1)
-	app := &v1alpha1.KogitoApp{
+	app := &v1alpha1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
 			Namespace: t.Name(),
@@ -56,7 +56,7 @@ func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{app, dc, jobs}, nil, nil)
-	err := InjectJobsServicesURLIntoKogitoApps(cli, t.Name())
+	err := InjectJobsServicesURLIntoKogitoRuntimeServices(cli, t.Name())
 	assert.NoError(t, err)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 0)
 
@@ -70,10 +70,10 @@ func TestInjectJobsServicesURLIntoKogitoApps(t *testing.T) {
 	})
 }
 
-func TestInjectJobsServicesURLIntoKogitoAppsCleanUp(t *testing.T) {
+func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	URI := "http://localhost:8080"
 	replicas := int32(1)
-	app := &v1alpha1.KogitoApp{
+	app := &v1alpha1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
 			Namespace: t.Name(),
@@ -98,7 +98,7 @@ func TestInjectJobsServicesURLIntoKogitoAppsCleanUp(t *testing.T) {
 	}
 	cli := test.CreateFakeClient([]runtime.Object{app, dc, jobs}, nil, nil)
 	// first we inject
-	err := InjectJobsServicesURLIntoKogitoApps(cli, t.Name())
+	err := InjectJobsServicesURLIntoKogitoRuntimeServices(cli, t.Name())
 	assert.NoError(t, err)
 
 	exists, err := kubernetes.ResourceC(cli).Fetch(dc)
@@ -113,7 +113,7 @@ func TestInjectJobsServicesURLIntoKogitoAppsCleanUp(t *testing.T) {
 	assert.NoError(t, err)
 
 	// after deletion, we should have no env
-	err = InjectJobsServicesURLIntoKogitoApps(cli, t.Name())
+	err = InjectJobsServicesURLIntoKogitoRuntimeServices(cli, t.Name())
 	assert.NoError(t, err)
 
 	dc = &oappsv1.DeploymentConfig{ObjectMeta: metav1.ObjectMeta{Name: dc.Name, Namespace: dc.Namespace}}

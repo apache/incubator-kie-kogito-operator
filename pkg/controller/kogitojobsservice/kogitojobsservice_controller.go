@@ -112,7 +112,7 @@ func (r *ReconcileKogitoJobsService) Reconcile(request reconcile.Request) (resul
 	log.Infof("Reconciling KogitoJobsService for %s in %s", request.Name, request.Namespace)
 
 	// clean up variables if needed
-	if err := infrastructure.InjectJobsServicesURLIntoKogitoApps(r.client, request.Namespace); err != nil {
+	if err := infrastructure.InjectJobsServicesURLIntoKogitoRuntimeServices(r.client, request.Namespace); err != nil {
 		return reconcile.Result{}, err
 	}
 

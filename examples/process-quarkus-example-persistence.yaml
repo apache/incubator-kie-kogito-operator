@@ -1,19 +1,19 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoApp
+kind: KogitoBuild
 metadata:
   name: example-quarkus
 spec:
-  enableEvents: true
-  enablePersistence: true
-  build:
-    envs:
-     # enable persistence
-      - name: MAVEN_ARGS_APPEND
-        value: "-Ppersistence,events"
-    gitSource:
-      contextDir: process-quarkus-example
-      uri: 'https://github.com/kiegroup/kogito-examples'
-    # set your maven nexus repository
-    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
-    # enable to print maven transfer logs in console
-    #enableMavenDownloadOutput: true
+  type: RemoteSource
+  gitSource:
+    contextDir: process-quarkus-example
+    uri: 'https://github.com/kiegroup/kogito-examples'
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: example-quarkus
+spec:
+  infinispan:
+    useKogitoInfra: true
+  kafka:
+    UseKogitoInfra: true

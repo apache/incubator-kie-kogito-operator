@@ -1,21 +1,24 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoApp
+kind: KogitoBuild
 metadata:
   name: example-quarkus
 spec:
-  build:
-    #envs:
-    # envs can be used to set variables during build
-    #- name: MY_CUSTOM_ENV
-    #  value: "my value"
-    gitSource:
-      contextDir: process-quarkus-example
-      uri: 'https://github.com/kiegroup/kogito-examples'
-    # images that don't have a custom tag, will use this version (set yours)
-    imageVersion: 9.9.9
-    # the image runtime build will use this image (a pretty different namespace)
-    imageRuntimeTag:  quay.io/customnamespace/kogito-quarkus-jvm-ubi8:9.9.9
-    # set your maven nexus repository
-    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
-    # enable to print maven transfer logs in console
-    #enableMavenDownloadOutput: true
+  type: RemoteSource
+  gitSource:
+    contextDir: process-quarkus-example
+    uri: 'https://github.com/kiegroup/kogito-examples'
+  buildImage:
+    domain: quay.io
+    namespace: vajain
+    name: kogito-quarkus-ubi8-s2i
+    tag: '1.0'
+  runtimeImage:
+    domain: quay.io
+    namespace: vajain
+    name: kogito-quarkus-jvm-ubi8
+    tag: '1.0'
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: example-quarkus

@@ -4,7 +4,6 @@ scorecard:
   plugins:
     - basic:
         cr-manifest:
-          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoinfra_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitojobsservice_cr.yaml"
@@ -12,7 +11,6 @@ scorecard:
         csv-path: "deploy/olm-catalog/kogito-operator/0.13.0/kogito-operator.v0.13.0.clusterserviceversion.yaml"
     - olm:
         cr-manifest:
-          - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoapp_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitodataindex_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitoinfra_cr.yaml"
           - "deploy/crds/app.kiegroup.org_v1alpha1_kogitojobsservice_cr.yaml"

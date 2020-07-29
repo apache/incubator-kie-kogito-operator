@@ -14,13 +14,6 @@
 
 package infrastructure
 
-import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	v1 "k8s.io/api/core/v1"
-)
-
 const (
 	webSocketScheme       = "ws"
 	webSocketSecureScheme = "wss"
@@ -46,23 +39,4 @@ func (s *ServiceEndpoints) String() string {
 // IsEmpty returns true if route URIs are empty
 func (s *ServiceEndpoints) IsEmpty() bool {
 	return len(s.HTTPRouteURI) == 0 && len(s.WSRouteURI) == 0
-}
-
-// InjectEnvVarsFromExternalServices inject environment variables from external services that the KogitoApp runtime might need
-func InjectEnvVarsFromExternalServices(kogitoApp *v1alpha1.KogitoApp, container *v1.Container, client *client.Client) error {
-	log.Debugf("Querying external routes to inject into KogitoApp: %s", kogitoApp.GetName())
-	dataIndexEndpoints, err := GetDataIndexEndpoints(client, kogitoApp.GetNamespace())
-	if err != nil {
-		return err
-	}
-	log.Debugf("Data Index route is '%s'", dataIndexEndpoints.HTTPRouteURI)
-	jobsServiceEndpoints, err := GetJobsServiceEndpoints(client, kogitoApp.GetNamespace())
-	if err != nil {
-		return err
-	}
-	log.Debugf("Jobs Service route is '%s'", jobsServiceEndpoints)
-	framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, container)
-	framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, container)
-	framework.SetEnvVar(jobsServiceEndpoints.HTTPRouteEnv, jobsServiceEndpoints.HTTPRouteURI, container)
-	return nil
 }

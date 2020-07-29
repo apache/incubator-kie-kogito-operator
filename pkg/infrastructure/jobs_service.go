@@ -31,17 +31,17 @@ const (
 	jobsServicesHTTPURIEnv = "KOGITO_JOBS_SERVICE_URL"
 )
 
-// InjectJobsServicesURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Jobs Services route to each one
-// Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
-func InjectJobsServicesURLIntoKogitoApps(cli *client.Client, namespace string) error {
-	log.Debugf("Querying KogitoApps in the namespace '%s' to inject Jobs Service Route ", namespace)
-	dcs, err := getKogitoAppsDCs(namespace, cli)
+// InjectJobsServicesURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Jobs Services route to each one
+// Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
+func InjectJobsServicesURLIntoKogitoRuntimeServices(cli *client.Client, namespace string) error {
+	log.Debugf("Querying KogitoRuntime services in the namespace '%s' to inject Jobs Service Route ", namespace)
+	dcs, err := getKogitoRuntimeDCs(namespace, cli)
 	if err != nil {
 		return err
 	}
 	var endpoint ServiceEndpoints
 	if len(dcs) > 0 {
-		log.Debug("Querying Jobs Service URI to inject into KogitoApps ")
+		log.Debug("Querying Jobs Service URI to inject into KogitoRuntime ")
 		var err error
 		endpoint, err = GetJobsServiceEndpoints(cli, namespace)
 		if err != nil {
@@ -54,7 +54,7 @@ func InjectJobsServicesURLIntoKogitoApps(cli *client.Client, namespace string) e
 		// here we compare the current value to avoid updating the app every time
 		if len(dc.Spec.Template.Spec.Containers) > 0 &&
 			framework.GetEnvVarFromContainer(endpoint.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != endpoint.HTTPRouteURI {
-			log.Debugf("Updating kogitoApp's DC '%s' to inject route %s ", dc.GetName(), endpoint.HTTPRouteURI)
+			log.Debugf("Updating KogitoRuntime's DC '%s' to inject route %s ", dc.GetName(), endpoint.HTTPRouteURI)
 			framework.SetEnvVar(endpoint.HTTPRouteEnv, endpoint.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
 			if err := kubernetes.ResourceC(cli).Update(&dc); err != nil {
 				return err

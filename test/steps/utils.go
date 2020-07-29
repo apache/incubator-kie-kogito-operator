@@ -19,8 +19,6 @@ import (
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
-	"github.com/gobuffalo/packr/v2"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -30,25 +28,10 @@ const (
 	buildLimitKey     = "build-limit"
 	runtimeRequestKey = "runtime-request"
 	runtimeLimitKey   = "runtime-limit"
-
-	boxExamplesPath = "../../deploy/examples"
 )
 
 // TableRow represents a row of godog.Table made to a step definition
 type TableRow = messages.PickleStepArgument_PickleTable_PickleTableRow
-
-func addDefaultJavaOptionsIfNotProvided(spec v1alpha1.KogitoServiceSpec) {
-	javaOptionsProvided := false
-	for _, env := range spec.Envs {
-		if env.Name == javaOptionsEnvVar {
-			javaOptionsProvided = true
-		}
-	}
-
-	if !javaOptionsProvided {
-		spec.AddEnvironmentVariable(javaOptionsEnvVar, "-Xmx2G")
-	}
-}
 
 func getFirstColumn(row *TableRow) string {
 	return row.Cells[0].Value
@@ -62,7 +45,7 @@ func getThirdColumn(row *TableRow) string {
 	return row.Cells[2].Value
 }
 
-// parseResourceRequirementsTable is useful for steps that check resource requirements, table is a subset of KogitoApp
+// parseResourceRequirementsTable is useful for steps that check resource requirements, table is a subset of KogitoRuntime
 // configuration table
 func parseResourceRequirementsTable(table *godog.Table) (build, runtime *v1.ResourceRequirements, err error) {
 	build = &v1.ResourceRequirements{Limits: v1.ResourceList{}, Requests: v1.ResourceList{}}
@@ -89,13 +72,4 @@ func parseResourceRequirementsTable(table *godog.Table) (build, runtime *v1.Reso
 
 	}
 	return
-}
-
-func getExampleFileContent(exampleFile string) (string, error) {
-	box := packr.New("examples", boxExamplesPath)
-	yamlContent, err := box.FindString(exampleFile)
-	if err != nil {
-		return "", fmt.Errorf("Error reading file %s: %v ", exampleFile, err)
-	}
-	return yamlContent, nil
 }

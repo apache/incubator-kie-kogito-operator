@@ -34,19 +34,19 @@ const (
 	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
 )
 
-// InjectDataIndexURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Data Index route to each one
-// Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
-func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) error {
-	log.Debugf("Querying KogitoApps in the namespace '%s' to inject Data Index Route ", namespace)
+// InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
+// Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
+func InjectDataIndexURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
+	log.Debugf("Querying Kogito runtime services in the namespace '%s' to inject Data Index Route ", namespace)
 
-	dcs, err := getKogitoAppsDCs(namespace, client)
+	dcs, err := getKogitoRuntimeDCs(namespace, client)
 	if err != nil {
 		return err
 	}
-	log.Debugf("Found %s KogitoApps in the namespace '%s' ", len(dcs), namespace)
+	log.Debugf("Found %s KogitoRuntime services in the namespace '%s' ", len(dcs), namespace)
 	var dataIndexEndpoints ServiceEndpoints
 	if len(dcs) > 0 {
-		log.Debug("Querying Data Index route to inject into KogitoApps ")
+		log.Debug("Querying Data Index route to inject into Kogito runtime ")
 		dataIndexEndpoints, err = GetDataIndexEndpoints(client, namespace)
 		if err != nil {
 			return err

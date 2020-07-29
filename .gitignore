@@ -5,7 +5,6 @@ bin/*
 build/_output/
 build/_test/
 target/
-pkg/controller/kogitoapp/defaults/packrd
 *-packr.go
 *.tar.gz
 

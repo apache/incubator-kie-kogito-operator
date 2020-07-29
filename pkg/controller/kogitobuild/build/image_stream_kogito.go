@@ -43,8 +43,8 @@ const (
 )
 
 var (
-	// kogitoImages maps the default Kogito Images on a matrix of RuntimeType and its purpose
-	kogitoImages = map[v1alpha1.RuntimeType]map[bool]string{
+	// KogitoImages maps the default Kogito Images on a matrix of RuntimeType and its purpose
+	KogitoImages = map[v1alpha1.RuntimeType]map[bool]string{
 		v1alpha1.QuarkusRuntimeType: {
 			true:  KogitoQuarkusUbi8s2iImage,
 			false: KogitoQuarkusJVMUbi8Image,
@@ -143,7 +143,7 @@ func resolveKogitoImageName(build *v1alpha1.KogitoBuild, isBuilder bool) string 
 	if len(image.Name) > 0 {
 		return image.Name
 	}
-	imageName := kogitoImages[build.Spec.Runtime][isBuilder]
+	imageName := KogitoImages[build.Spec.Runtime][isBuilder]
 	if build.Spec.Native && !isBuilder {
 		imageName = KogitoQuarkusUbi8Image
 	}

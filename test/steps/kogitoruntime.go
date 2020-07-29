@@ -16,7 +16,7 @@ package steps
 
 import (
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/steps/mappers"
 	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
@@ -41,7 +41,7 @@ import (
 func registerKogitoRuntimeSteps(ctx *godog.ScenarioContext, data *Data) {
 	// Deploy steps
 	ctx.Step(`^Deploy (quarkus|springboot) example service "([^"]*)" from runtime registry with configuration:$`, data.deployExampleServiceFromRuntimeRegistryWithConfiguration)
-	ctx.Step(`^Deploy runtime (quarkus|springboot) example service "([^"]*)" with configuration:$`, data.deployRuntimeExampleServiceWithConfiguration)
+	ctx.Step(`^Deploy runtime (quarkus|springboot) example service "([^"]*)" with configuration:$`, data.deployExampleServiceWithConfiguration)
 
 	// Deployment steps
 	ctx.Step(`^Kogito Runtime "([^"]*)" has (\d+) pods running within (\d+) minutes$`, data.kogitoRuntimeHasPodsRunningWithinMinutes)
@@ -56,8 +56,7 @@ func (data *Data) deployExampleServiceFromRuntimeRegistryWithConfiguration(runti
 	return data.deployExampleServiceFromImageWithConfiguration(runtimeType, kogitoApplicationName, imageTag, table)
 }
 
-// Can be renamed to deployExampleServiceWithConfiguration once KogitoApp is removed
-func (data *Data) deployRuntimeExampleServiceWithConfiguration(runtimeType, kogitoApplicationName string, table *godog.Table) error {
+func (data *Data) deployExampleServiceWithConfiguration(runtimeType, kogitoApplicationName string, table *godog.Table) error {
 	// Passing empty image tag so image values are not filled
 	return data.deployExampleServiceFromImageWithConfiguration(runtimeType, kogitoApplicationName, "", table)
 }
@@ -79,7 +78,7 @@ func (data *Data) kogitoRuntimeHasPodsRunningWithinMinutes(dcName string, podNb,
 
 	// Workaround because two pods are created at the same time when adding a Kogito Runtime.
 	// We need wait for only one (wait until the wrong one is deleted)
-	return framework.WaitForPodsWithLabel(data.Namespace, resource.LabelKeyAppName, dcName, podNb, timeoutInMin)
+	return framework.WaitForPodsWithLabel(data.Namespace, v1alpha1.LabelKeyAppName, dcName, podNb, timeoutInMin)
 }
 
 // Scale steps

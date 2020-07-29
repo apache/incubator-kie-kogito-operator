@@ -29,11 +29,11 @@ import (
 	"testing"
 )
 
-func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
+func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	ns := t.Name()
 	name := "my-kogito-app"
 	expectedRoute := "http://dataindex-route.com"
-	kogitoApp := &v1alpha1.KogitoApp{
+	kogitoRuntime := &v1alpha1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -41,7 +41,7 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 		},
 	}
 	dc := &oappsv1.DeploymentConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: kogitoApp.Name, Namespace: kogitoApp.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoApp.UID}}},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoRuntime.Name, Namespace: kogitoRuntime.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoRuntime.UID}}},
 		Spec: oappsv1.DeploymentConfigSpec{
 			Template: &v1.PodTemplateSpec{
 				Spec: v1.PodSpec{Containers: []v1.Container{{Name: "test"}}},
@@ -61,9 +61,9 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes, dc}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{kogitoRuntime, dataIndexes, dc}, nil, nil)
 
-	err := InjectDataIndexURLIntoKogitoApps(cli, ns)
+	err := InjectDataIndexURLIntoKogitoRuntimeServices(cli, ns)
 	assert.NoError(t, err)
 
 	exist, err := kubernetes.ResourceC(cli).Fetch(dc)
