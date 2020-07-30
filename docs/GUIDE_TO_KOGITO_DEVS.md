@@ -184,7 +184,7 @@ $ kubectl get KogitoRuntime -n kogito
 Now expose the service on NodePort so it’s easily accessible.
 
 ```shell-script
-$ kubectl expose deployment process-business-rules-quarkus -n kogito  --type=NodePort --name=process-business-rules-quarkus
-$ minikube service process-business-rules-quarkus -n kogito
+$ kubectl expose deployment process-business-rules-quarkus -n kogito  --type=NodePort --name=process-business-rules-quarkus-np
+$ minikube service process-business-rules-quarkus-np -n kogito
 ```
 The above commands will expose the service on `nodePort`  and open the exposed service in your default browser.
