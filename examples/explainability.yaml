@@ -16,3 +16,7 @@ spec:
   #memoryRequest: ""
   #cpuLimit: ""
   #cpuRequest: ""
+    # details about the kafka connection
+  kafka:
+    # will set this instance to auto provision an infra structure in the namespace
+    useKogitoInfra: true
