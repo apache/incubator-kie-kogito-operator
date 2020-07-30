@@ -126,10 +126,9 @@ $ minikube addons enable olm
 ```
 
 To launch the OLM console locally, clone the [operator-lifecycle-manager](https://github.com/operator-framework/operator-lifecycle-manager) repository and from the root of the project run: `$ make run-console-local`.
- 
 This will run the operatorhub console on http://localhost:9000 
 
-**Note**: You will need to have [`jq`](https://stedolan.github.io/jq/manual/) installed and 9000 port available on the system.
+**Note**: You will need to have [`jq`](https://stedolan.github.io/jq/manual/) and [`go`](https://golang.org/dl/) installed and 9000 port available on the system.
 
 Create a different namespace where `kogito-operator` and all the dependent operator(s) will run
 
@@ -137,7 +136,7 @@ Create a different namespace where `kogito-operator` and all the dependent opera
 $ kubectl create ns kogito
 ```
 
-Now open your browser and visit the OLM console on https://localhost:9000. Select `Operators > OperatorHub` and search for `kogito`.  
+Now open your browser and visit the OLM console on http://localhost:9000. Select `Operators > OperatorHub` and search for `kogito`.  
 Select the Kogito Operator by Red Hat and install it with defaults options, choose the namespace `kogito` which was created for this purpose
 
 You can see the pods by:
@@ -147,6 +146,8 @@ $ watch kubectl get pod -n kogito
 ```
 
 Wait until all pods are in running state (It is installing kogito-operator and all the dependent operator(s) for kogito)
+
+**Note**: Sometimes the operator doesn't show on the operator-hub when using the above method, in that case please consider using the alternative method mentioned below. 
 
 Alternatively, you can install the `Kogito Operator` from [here](https://operatorhub.io/operator/kogito-operator)
 
