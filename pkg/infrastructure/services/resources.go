@@ -115,12 +115,22 @@ func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, ins
 		if err != nil {
 			return err
 		}
-		framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
-		framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 		if len(dataIndexEndpoints.HTTPRouteURI) == 0 {
-			zeroReplicas := int32(0)
-			deployment.Spec.Replicas = &zeroReplicas
-			return newDataIndexNotReadyError(instance.GetNamespace(), instance.GetName())
+			// fallback to env vars directly set on service CR: KOGITO-2827
+			if len(framework.GetEnvVarFromContainer(dataIndexEndpoints.HTTPRouteEnv, &deployment.Spec.Template.Spec.Containers[0])) == 0 {
+				s.recorder.Eventf(s.client, instance,
+					corev1.EventTypeWarning,
+					"Failure",
+					"Not found Data Index external URL set on %s environment variable. Try setting the env var in '%s' manually using the Kogito service Custom Resource (CR)",
+					dataIndexEndpoints.HTTPRouteEnv,
+					instance.GetName())
+				zeroReplicas := int32(0)
+				deployment.Spec.Replicas = &zeroReplicas
+				return newDataIndexNotReadyError(instance.GetNamespace(), instance.GetName())
+			}
+		} else {
+			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
+			framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 		deployment.Spec.Replicas = instance.GetSpec().GetReplicas()
 	}

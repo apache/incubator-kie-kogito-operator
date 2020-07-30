@@ -135,6 +135,7 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 				NamespacedName: types.NamespacedName{Name: infrastructure.DefaultMgmtConsoleName, Namespace: t.Name()},
 			},
 		},
+		recorder: newRecorder(meta.GetRegisteredSchema(), infrastructure.DefaultMgmtConsoleName),
 	}
 	resources, reconcileAfter, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
