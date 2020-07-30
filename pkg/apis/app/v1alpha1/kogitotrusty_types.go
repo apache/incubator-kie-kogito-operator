@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 )
 
 // KogitoTrustyCRDName is the name of the Kogito Trusty CRD in the cluster.
-const KogitoTrustyCRDName = "kogitotrusty.app.kiegroup.org"
+const KogitoTrustyCRDName = "kogitotrusties.app.kiegroup.org"
 
 // KogitoTrustySpec defines the desired state of KogitoTrusty.
 // +k8s:openapi-gen=true
@@ -45,14 +45,13 @@ type KogitoTrustyStatus struct {
 
 // KogitoTrusty defines the Trusty Service infrastructure deployment.
 // +k8s:openapi-gen=true
-// +kubebuilder:resource:path=kogitotrusty,scope=Namespaced
+// +kubebuilder:resource:path=kogitotrusties,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Trusty"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMaps,v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="KafkaTopics,kafka.strimzi.io/v1beta1"
 type KogitoTrusty struct {

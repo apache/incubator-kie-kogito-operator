@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trusty
+package kogitotrusty
 
 import (
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -66,8 +66,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to KogitoApp since we need their runtime images to check for labels, persistence and so on
-	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoApp{}})
+	// TODO(user): Modify this to be the types you create that are owned by the primary resource
+	// Watch for changes to secondary resource Pods and requeue the owner KogitoTrusty
+	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &appv1alpha1.KogitoTrusty{},
+	})
 	if err != nil {
 		return err
 	}
@@ -89,7 +93,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			AddToScheme:  imgv1.Install,
 			Objects:      []runtime.Object{&imgv1.ImageStream{}},
 		},
-		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
+		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}}},
 	}
 	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoTrusty).client, mgr, c, &appv1alpha1.KogitoTrusty{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
@@ -115,7 +119,7 @@ type ReconcileKogitoTrusty struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileKogitoTrusty) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
+func (r *ReconcileKogitoTrusty) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling KogitoTrusty")
 

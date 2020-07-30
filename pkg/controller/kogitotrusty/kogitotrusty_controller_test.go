@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trusty
+package kogitotrusty
 
 import (
 	"testing"
@@ -27,8 +27,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
 	routev1 "github.com/openshift/api/route/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -36,7 +34,6 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -72,21 +69,9 @@ func TestReconcileKogitoTrusty_Reconcile(t *testing.T) {
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),
 	}
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name:      instance.Name,
-			Namespace: instance.Namespace,
-		},
-	}
 
 	// basic checks
-	res, err := r.Reconcile(req)
-	if err != nil {
-		t.Fatalf("reconcile: (%v)", err)
-	}
-	if !res.Requeue {
-		t.Error("reconcile did not requeue request as expected")
-	}
+	test.AssertReconcile(t, r, instance)
 
 	// check infra
 	infra, ready, err := infrastructure.EnsureKogitoInfra(ns, cli).WithInfinispan().Apply()
@@ -128,22 +113,12 @@ func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),
 	}
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name:      instance.Name,
-			Namespace: instance.Namespace,
-		},
-	}
 
-	// first reconcile
-	_, err := r.Reconcile(req)
-	assert.NoError(t, err)
+	test.AssertReconcile(t, r, instance)
 
 	// make sure HTTPPort env was added on the deployment
 	deployment := &appsv1.Deployment{}
-	exists, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
-	assert.True(t, exists)
-	assert.NoError(t, err)
+	test.AssertFetchWithKeyMustExist(t, cli, deployment, instance)
 
 	// make sure that the http port was correctly added.
 	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
@@ -158,53 +133,47 @@ func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace},
 	}
-	exists, err = kubernetes.ResourceC(cli).Fetch(service)
-	assert.True(t, exists)
-	assert.NoError(t, err)
+	test.AssertFetchMustExist(t, cli, service)
 	assert.Equal(t, int32(9090), service.Spec.Ports[0].TargetPort.IntVal)
 
 	// update the route
 	// reconcile and test
 	// compare the route http port
 	routeFromResource := &routev1.Route{}
-	routeFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeFromResource)
-	assert.NoError(t, err)
-	assert.True(t, routeFound)
+	test.AssertFetchWithKeyMustExist(t, cli, routeFromResource, instance)
+
 	// update http port on the given route
 	routeFromResource.Spec.Port.TargetPort.IntVal = 4000
-	err = kubernetes.ResourceC(cli).Update(routeFromResource)
+	err := kubernetes.ResourceC(cli).Update(routeFromResource)
 	assert.NoError(t, err)
+
 	// reconcile
-	_, err = r.Reconcile(req)
-	assert.NoError(t, err)
+	test.AssertReconcile(t, r, instance)
+
 	// get the route after reconcile
 	routeAfterReconcile := &routev1.Route{}
-	routeAfterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, routeAfterReconcile)
-	assert.True(t, routeAfterReconcileFound)
-	assert.NoError(t, err)
-	assert.True(t, routeAfterReconcileFound)
+	test.AssertFetchWithKeyMustExist(t, cli, routeAfterReconcile, instance)
 	assert.Equal(t, intstr.IntOrString{Type: 0, IntVal: 9090, StrVal: ""}, routeAfterReconcile.Spec.Port.TargetPort)
 
 	// update the service
 	// reconcile and test
 	// compare the service http and target port
 	serviceFromResource := &corev1.Service{}
-	serviceFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceFromResource)
-	assert.True(t, serviceFound)
-	assert.NoError(t, err)
+	test.AssertFetchWithKeyMustExist(t, cli, serviceFromResource, instance)
+
 	// update ports
 	serviceFromResource.Spec.Ports[0].Port = 4000
 	serviceFromResource.Spec.Ports[0].TargetPort = intstr.FromString("4000")
 	err = kubernetes.ResourceC(cli).Update(serviceFromResource)
 	assert.NoError(t, err)
+
 	// reconcile
-	_, err = r.Reconcile(req)
-	assert.NoError(t, err)
+	test.AssertReconcile(t, r, instance)
+
 	// get the service after reconcile
 	serviceAfterReconcile := &corev1.Service{}
-	serviceAfterReconcileFound, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, serviceAfterReconcile)
-	assert.True(t, serviceAfterReconcileFound)
-	assert.NoError(t, err)
+	test.AssertFetchWithKeyMustExist(t, cli, serviceAfterReconcile, instance)
+
 	// compare again if the port was updated after reconcile
 	assert.Equal(t, int32(9090), serviceAfterReconcile.Spec.Ports[0].Port)
 	assert.Equal(t, intstr.FromInt(9090), serviceAfterReconcile.Spec.Ports[0].TargetPort)

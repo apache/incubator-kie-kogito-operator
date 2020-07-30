@@ -1,0 +1,7 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoTrusty
+metadata:
+  name: example-kogitotrusty
+spec:
+  # Add fields here
+  size: 3
