@@ -33,7 +33,7 @@ Before proceeding, please read the README files on the following repositories to
 To generate the jar artifacts, you can just run the following command on each repository:
 
 ```shell-script
-mvn clean package -DskipTests #(For skipping tests)
+mvn clean package -DskipTests #(For skipping tests) -DskipTestsIT #(For verification)
 ```
 
 This will deploy your jar's in the target directory. For example, for jobs-service the jar would present at `/path/to/kogito-apps/jobs-service/target/jobs-service-8.0.0-SNAPSHOT-runner.jar`
@@ -162,7 +162,7 @@ metadata:
 spec:
   replicas: 1
   image:
-    registry: quay.io
+    domain: quay.io
     name: process-business-rules-quarkus
     tag: latest
     namespace: <your-quay-namespace>
@@ -184,7 +184,7 @@ $ kubectl get KogitoRuntime -n kogito
 Now expose the service on NodePort so it’s easily accessible.
 
 ```shell-script
-$ kubectl expose deployment process-business-rules-quarkus -n <operator-namespace>  --type=NodePort --name=process-business-rules-quarkus
-$ minikube service process-business-rules-quarkus -n <operator-namspace>
+$ kubectl expose deployment process-business-rules-quarkus -n kogito  --type=NodePort --name=process-business-rules-quarkus
+$ minikube service process-business-rules-quarkus -n kogito
 ```
 The above commands will expose the service on `nodePort`  and open the exposed service in your default browser.
