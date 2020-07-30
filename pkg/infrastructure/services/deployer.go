@@ -115,7 +115,14 @@ type ServiceDeployer interface {
 // NewSingletonServiceDeployer creates a new ServiceDeployer to handle Singleton Kogito Services instances to be handled by Operator SDK controller
 func NewSingletonServiceDeployer(definition ServiceDefinition, serviceList v1alpha1.KogitoServiceList, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
 	builderCheck(definition)
-	return &serviceDeployer{definition: definition, instanceList: serviceList, client: cli, scheme: scheme, singleton: true}
+	return &serviceDeployer{
+		definition:   definition,
+		instanceList: serviceList,
+		client:       cli,
+		scheme:       scheme,
+		singleton:    true,
+		recorder:     newRecorder(scheme, definition.Request.Name),
+	}
 }
 
 // NewCustomServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
@@ -123,7 +130,18 @@ func NewSingletonServiceDeployer(definition ServiceDefinition, serviceList v1alp
 func NewCustomServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
 	builderCheck(definition)
 	definition.customService = true
-	return &serviceDeployer{definition: definition, instance: serviceType, client: cli, scheme: scheme, singleton: false}
+	return &serviceDeployer{
+		definition: definition,
+		instance:   serviceType,
+		client:     cli,
+		scheme:     scheme,
+		singleton:  false,
+		recorder:   newRecorder(scheme, definition.Request.Name),
+	}
+}
+
+func newRecorder(scheme *runtime.Scheme, eventSourceName string) record.EventRecorder {
+	return record.NewRecorder(scheme, v1.EventSource{Component: eventSourceName, Host: record.GetHostName()})
 }
 
 func builderCheck(definition ServiceDefinition) {
@@ -149,8 +167,6 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	if err != nil || !found {
 		return reconcileAfter, err
 	}
-	s.recorder = record.NewRecorder(s.scheme, v1.EventSource{Component: s.instance.GetName(), Host: record.GetHostName()})
-
 	if s.instance.GetSpec().GetReplicas() == nil {
 		s.instance.GetSpec().SetReplicas(defaultReplicas)
 	}
