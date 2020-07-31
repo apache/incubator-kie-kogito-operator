@@ -124,8 +124,19 @@ First we would need to enable the OLM in our Minikube cluster. For that, just ru
 ```shell-script
 $ minikube addons enable olm
 ```
+After enabling the olm please wait till all pods in `olm` namepspace are in running state.
 
-To launch the OLM console locally, clone the [operator-lifecycle-manager](https://github.com/operator-framework/operator-lifecycle-manager) repository and from the root of the project run: `$ make run-console-local`.
+```shell-script
+$ watch kubectl get pods -n olm
+```
+**Note**: In some cases the `operator-catalog` pod state changes to `CrashBackLoopOff`, due to the failure in `readiness probe`. If that happens, please delete the olm namespace `$ kubectl delete namespace olm` and try installing the olm with this command. `$ curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/0.15.1/install.sh | bash -s 0.15.1` 
+
+To launch the OLM console locally, run the following command:
+
+ ```shell-script
+$ curl -L https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/scripts/run_console_local.sh | bash
+```
+
 This will run the operatorhub console on http://localhost:9000 
 
 **Note**: You will need to have [`jq`](https://stedolan.github.io/jq/manual/) and [`go`](https://golang.org/dl/) installed and 9000 port available on the system.
@@ -146,8 +157,6 @@ $ watch kubectl get pod -n kogito
 ```
 
 Wait until all pods are in running state (It is installing kogito-operator and all the dependent operator(s) for kogito)
-
-**Note**: Sometimes the operator doesn't show on the operator-hub when using the above method, in that case please consider using the alternative method mentioned below. 
 
 Alternatively, you can install the `Kogito Operator` from [here](https://operatorhub.io/operator/kogito-operator)
 
