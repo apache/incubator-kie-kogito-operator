@@ -979,10 +979,29 @@ spec:
           - app.kiegroup.org
           resources:
           - '*'
-          - kogitotrusties
           verbs:
           - '*'
         serviceAccountName: kogito-operator
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - services
+          verbs:
+          - list
+          - get
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - list
+          - get
+          - watch
+          - update
+          - patch
+        serviceAccountName: kogito-service-viewer
     strategy: deployment
   installModes:
   - supported: true
