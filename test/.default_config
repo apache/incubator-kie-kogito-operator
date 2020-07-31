@@ -1,7 +1,7 @@
-tests.build-image-version=1.0
+tests.build-image-version=latest
 tests.build-image-name-suffix=nightly
-tests.services-image-version=1.0
+tests.services-image-version=latest
 tests.services-image-name-suffix=nightly
 tests.runtime-application-image-name-suffix=nightly
-tests.runtime-application-image-version=1.0
-tests.examples-ref=1.0.x
+tests.runtime-application-image-version=latest
+tests.examples-ref=master
