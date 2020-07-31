@@ -19,11 +19,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	// LabelKeyAppName is the default label added to all resources
-	LabelKeyAppName = "app"
-)
-
 // KogitoBuildType describes the build types supported by the KogitoBuild CR
 type KogitoBuildType string
 
@@ -80,7 +75,7 @@ type KogitoBuildSpec struct {
 	// WebHooks secrets for source to image builds based on Git repositories (Remote Sources).
 	// +listType=atomic
 	// +optional
-	WebHooks []WebhookSecret `json:"webHooks,omitempty"`
+	WebHooks []WebHookSecret `json:"webHooks,omitempty"`
 
 	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus (Source to Image build only).
 	// For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
@@ -276,23 +271,23 @@ type Artifact struct {
 	Version string `json:"version,omitempty"`
 }
 
-// WebhookType literal type to distinguish between different types of webhooks.
-type WebhookType string
+// WebHookType literal type to distinguish between different types of webHooks.
+type WebHookType string
 
 const (
-	// GitHubWebhook GitHub webhook.
-	GitHubWebhook WebhookType = "GitHub"
-	// GenericWebhook Generic webhook.
-	GenericWebhook WebhookType = "Generic"
+	// GitHubWebHook GitHub webHook.
+	GitHubWebHook WebHookType = "GitHub"
+	// GenericWebHook Generic webHook.
+	GenericWebHook WebHookType = "Generic"
 )
 
-// WebhookSecret Secret to use for a given webhook.
+// WebHookSecret Secret to use for a given webHook.
 // +k8s:openapi-gen=true
-type WebhookSecret struct {
+type WebHookSecret struct {
 	// WebHook type, either GitHub or Generic.
 	// +kubebuilder:validation:Enum=GitHub;Generic
-	Type WebhookType `json:"type,omitempty"`
-	// Secret value for webhook
+	Type WebHookType `json:"type,omitempty"`
+	// Secret value for webHook
 	Secret string `json:"secret,omitempty"`
 }
 

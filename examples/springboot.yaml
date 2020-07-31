@@ -4,12 +4,22 @@ metadata:
   name: example-springboot
 spec:
   type: RemoteSource
-  gitSource:
-    contextDir: process-springboot-example
-    uri: 'https://github.com/kiegroup/kogito-examples'
   runtime: springboot
+  gitSource:
+    uri: https://github.com/kiegroup/kogito-examples
+    contextDir: process-springboot-example
+    reference: master
+  disableIncremental: false
+  envs:
+    - name: CI
+      value: "true"
 ---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoRuntime
 metadata:
   name: example-springboot
+spec:
+  runtime: springboot
+  envs:
+    - name: DEBUG
+      value: "true"

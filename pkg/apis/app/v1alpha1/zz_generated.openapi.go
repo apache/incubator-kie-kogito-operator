@@ -43,7 +43,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoJobsServiceStatus":        schema_pkg_apis_app_v1alpha1_KogitoJobsServiceStatus(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoMgmtConsole":              schema_pkg_apis_app_v1alpha1_KogitoMgmtConsole(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoRuntime":                  schema_pkg_apis_app_v1alpha1_KogitoRuntime(ref),
-		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebhookSecret":                  schema_pkg_apis_app_v1alpha1_WebhookSecret(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.WebHookSecret":                  schema_pkg_apis_app_v1alpha1_WebHookSecret(ref),
 	}
 }
 
@@ -1059,11 +1059,11 @@ func schema_pkg_apis_app_v1alpha1_KogitoRuntime(ref common.ReferenceCallback) co
 	}
 }
 
-func schema_pkg_apis_app_v1alpha1_WebhookSecret(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_app_v1alpha1_WebHookSecret(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "WebhookSecret Secret to use for a given webhook.",
+				Description: "WebHookSecret Secret to use for a given webHook.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"type": {
@@ -1075,7 +1075,7 @@ func schema_pkg_apis_app_v1alpha1_WebhookSecret(ref common.ReferenceCallback) co
 					},
 					"secret": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Secret value for webhook",
+							Description: "Secret value for webHook",
 							Type:        []string{"string"},
 							Format:      "",
 						},

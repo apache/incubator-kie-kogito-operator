@@ -7,12 +7,20 @@ spec:
   gitSource:
     uri: https://github.com/kiegroup/kogito-examples
     contextDir: onboarding-example/onboarding
+  # set your maven nexus repository to speed up the build time
+  #mavenMirrorURL:
 ---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoRuntime
 metadata:
   name: onboarding
 spec:
+  # uncomment to enable persistence
+  #envs:
+  #  - name: MAVEN_ARGS_APPEND
+  #    value: "-Ppersistence"
+  #infinispan:
+  #  useKogitoInfra: true
   serviceLabels:
     onboarding: process
   envs:
@@ -28,6 +36,8 @@ spec:
   gitSource:
     uri: https://github.com/kiegroup/kogito-examples
     contextDir: onboarding-example/hr
+  # set your maven nexus repository to speed up the build time
+  #mavenMirrorURL:
 ---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoRuntime
@@ -48,6 +58,8 @@ spec:
   gitSource:
     uri: https://github.com/kiegroup/kogito-examples
     contextDir: onboarding-example/payroll
+  # set your maven nexus repository to speed up the build time
+  #mavenMirrorURL:
 ---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoRuntime

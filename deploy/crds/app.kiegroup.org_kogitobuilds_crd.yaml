@@ -313,10 +313,10 @@ spec:
               description: WebHooks secrets for source to image builds based on Git
                 repositories (Remote Sources).
               items:
-                description: WebhookSecret Secret to use for a given webhook.
+                description: WebHookSecret Secret to use for a given webHook.
                 properties:
                   secret:
-                    description: Secret value for webhook
+                    description: Secret value for webHook
                     type: string
                   type:
                     description: WebHook type, either GitHub or Generic.
