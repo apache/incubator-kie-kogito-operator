@@ -4,84 +4,110 @@ metadata:
   creationTimestamp: null
   name: kogito-operator
 rules:
-- apiGroups:
-  - ""
-  - app.kiegroup.org
-  - apps.openshift.io
-  - image.openshift.io
-  - build.openshift.io
-  - rbac.authorization.k8s.io
-  - route.openshift.io
-  resources:
-  - '*'
-  verbs:
-  - '*'
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - statefulsets
-  - deployments
-  - replicasets
-  verbs:
-  - '*'
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  verbs:
-  - get
-  - create
-  - list
-  - delete
-- apiGroups:
-  - infinispan.org
-  resources:
-  - infinispans
-  verbs:
-  - get
-  - create
-  - list
-  - delete
-  - watch
-- apiGroups:
-  - kafka.strimzi.io
-  resources:
-  - kafkas
-  - kafkatopics
-  verbs:
-  - get
-  - create
-  - list
-  - delete
-  - watch
-- apiGroups:
-  - keycloak.org
-  resources:
-  - keycloaks
-  verbs:
-  - get
-  - create
-  - list
-  - delete
-  - watch
-- apiGroups:
-  - apps
-  resourceNames:
-  - kogito-operator
-  resources:
-  - deployments/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - app.kiegroup.org
-  resources:
-  - '*'
-  - kogitotrusties
-  verbs:
-  - '*'
+  - apiGroups:
+      - ""
+      - app.kiegroup.org
+      - apps.openshift.io
+      - image.openshift.io
+      - build.openshift.io
+      - rbac.authorization.k8s.io
+      - route.openshift.io
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+      - deployments
+      - replicasets
+    verbs:
+      - '*'
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - servicemonitors
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+  - apiGroups:
+      - infinispan.org
+    resources:
+      - infinispans
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+      - watch
+  - apiGroups:
+      - kafka.strimzi.io
+    resources:
+      - kafkas
+      - kafkatopics
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+      - watch
+  - apiGroups:
+      - keycloak.org
+    resources:
+      - keycloaks
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+      - watch
+  - apiGroups:
+      - apps
+    resourceNames:
+      - kogito-operator
+    resources:
+      - deployments/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - app.kiegroup.org
+    resources:
+      - '*'
+    verbs:
+      - '*'
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kogito-service-viewer
+  annotations:
+    org.kie.kogito/managed-by: Kogito Operator
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - list
+      - get
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - list
+      - get
+      - watch
+      - update
+      - patch

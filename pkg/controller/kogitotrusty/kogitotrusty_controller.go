@@ -132,7 +132,6 @@ func (r *ReconcileKogitoTrusty) Reconcile(request reconcile.Request) (reconcile.
 	definition := services.ServiceDefinition{
 		DefaultImageName:    infrastructure.DefaultTrustyImageName,
 		Request:             request,
-		OnDeploymentCreate:  r.onDeploymentCreate,
 		KafkaTopics:         kafkaTopics,
 		RequiresPersistence: true,
 		RequiresMessaging:   true,
@@ -154,8 +153,4 @@ const (
 
 var kafkaTopics = []services.KafkaTopicDefinition{
 	{TopicName: kafkaTopicNameTraceEvents, MessagingType: services.KafkaTopicIncoming},
-}
-
-func (r *ReconcileKogitoTrusty) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
-	return nil
 }
