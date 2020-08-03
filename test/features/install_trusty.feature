@@ -16,6 +16,7 @@ Feature: Kogito Trusty
 
   @externalcomponent
   @infinispan
+  @kafka
   Scenario: Install Kogito Trusty with persistence using external Infinispan
     Given Infinispan instance "external-infinispan" is deployed with configuration:
       | username | developer |
