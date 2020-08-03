@@ -7,18 +7,18 @@ labels:
   - paths:
       - cmd/**
     labels:
-      - cli
+      - 'cli 💻'
   - paths:
       - pkg/**
     labels:
-      - operator
+      - 'operator :cloud:'
   - paths:
       - test/**
     labels:
-      - bdd-tests
+      - 'bdd-tests 🧪'
   - paths:
       - Jenkinsfile
     labels:
-      - CI/CD
+      - 'CI/CD :loop:'
 default:
-  - needs review
+  - 'needs review :mag:'
