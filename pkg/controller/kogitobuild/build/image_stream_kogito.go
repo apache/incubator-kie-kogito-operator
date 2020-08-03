@@ -49,7 +49,7 @@ var (
 			true:  KogitoQuarkusUbi8s2iImage,
 			false: KogitoQuarkusJVMUbi8Image,
 		},
-		v1alpha1.SpringbootRuntimeType: {
+		v1alpha1.SpringBootRuntimeType: {
 			true:  KogitoSpringBootUbi8s2iImage,
 			false: KogitoSpringBootUbi8Image,
 		},

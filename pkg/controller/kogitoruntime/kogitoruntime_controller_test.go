@@ -85,7 +85,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	instance := &v1alpha1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoRuntimeSpec{
-			Runtime: v1alpha1.SpringbootRuntimeType,
+			Runtime: v1alpha1.SpringBootRuntimeType,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Image: v1alpha1.Image{

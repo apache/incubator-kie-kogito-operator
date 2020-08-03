@@ -32,6 +32,9 @@ const (
 
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
 	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
+	webSocketScheme       = "ws"
+	webSocketSecureScheme = "wss"
+	httpScheme            = "http"
 )
 
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one

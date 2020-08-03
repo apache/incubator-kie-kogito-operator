@@ -248,8 +248,8 @@ type RuntimeType string
 const (
 	// QuarkusRuntimeType Runtime for quarkus application
 	QuarkusRuntimeType RuntimeType = "quarkus"
-	// SpringbootRuntimeType Runtime for springboot application
-	SpringbootRuntimeType RuntimeType = "springboot"
+	// SpringBootRuntimeType Runtime for springboot application
+	SpringBootRuntimeType RuntimeType = "springboot"
 )
 
 // Artifact contains override information for building the Maven artifact.

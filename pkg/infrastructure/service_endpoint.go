@@ -14,12 +14,6 @@
 
 package infrastructure
 
-const (
-	webSocketScheme       = "ws"
-	webSocketSecureScheme = "wss"
-	httpScheme            = "http"
-)
-
 // ServiceEndpoints represents the endpoints for a deployed Kogito Data Index service
 type ServiceEndpoints struct {
 	// HTTPRouteURI ...

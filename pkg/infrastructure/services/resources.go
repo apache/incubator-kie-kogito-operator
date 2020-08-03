@@ -235,7 +235,7 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 
 	if len(URI) > 0 {
 		framework.SetEnvVar(enableEventsEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
-		if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringbootRuntimeType {
+		if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringBootRuntimeType {
 			appProps[SpringBootstrapAppProp] = URI
 		} else {
 			for _, kafkaTopic := range s.definition.KafkaTopics {

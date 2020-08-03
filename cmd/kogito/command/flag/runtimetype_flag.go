@@ -24,7 +24,7 @@ import (
 const defaultDeployRuntimeType = string(v1alpha1.QuarkusRuntimeType)
 
 var (
-	runtimeTypeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringbootRuntimeType)}
+	runtimeTypeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringBootRuntimeType)}
 )
 
 // RuntimeTypeFlags is common properties used to configure runtime properties
