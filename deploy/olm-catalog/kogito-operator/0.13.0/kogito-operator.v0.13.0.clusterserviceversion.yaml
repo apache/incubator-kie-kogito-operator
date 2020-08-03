@@ -958,4 +958,3 @@ spec:
     name: Red Hat
   replaces: kogito-operator.v0.12.0
   version: 0.13.0
-  
