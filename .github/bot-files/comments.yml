@@ -1,0 +1,13 @@
+### You can define all your comments in this file for various purposes
+# for now you'll need to difine every comment here, in the future comments will be optional.
+# please see the example for the file below
+
+prFirstTimeContributor: Many thanks for sending out the PR, Welcome to our Community
+
+prCiTrigger: Jenkins, test this
+
+prEdit: Looks like your edited the PR, I'll run the tests again and request reviews
+
+prReopen: Seems, like you've re-opened your PR.
+
+prDefault: Thanks for sending the PR.

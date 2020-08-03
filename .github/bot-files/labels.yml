@@ -1,0 +1,24 @@
+## Defines the list of labels to apply to a PR when there is a change in a specified path
+# the default label is applied to all the PRs, other labels will filter based on the files changed on the PR.
+# follows the same pattern as reviewers.yml.
+# please see the example for the file below
+
+labels:
+  - paths:
+      - cmd/**
+    labels:
+      - cli
+  - paths:
+      - pkg/**
+    labels:
+      - operator
+  - paths:
+      - test/**
+    labels:
+      - bdd-tests
+  - paths:
+      - Jenkinsfile
+    labels:
+      - CI/CD
+default:
+  - needs review
