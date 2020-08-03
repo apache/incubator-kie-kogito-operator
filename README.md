@@ -68,7 +68,7 @@ Before you start to work on a new proposed feature or on a fix for a bug, [open 
 
 After you update the source with your new proposed feature or bug fix, open a [pull request (PR)](https://help.github.com/en/articles/about-pull-requests) that meets the following requirements:
 
-- You have a JIRA associated with the PR.
+- You have a JIRA associated with the PR. 
 - Your PR has the name of the JIRA in the title, for example, `[KOGITO-XXX] - Awesome feature that solves it all`.
 - The PR solves only the problem described in the JIRA.
 - You have written unit tests for the particular fix or feature.
