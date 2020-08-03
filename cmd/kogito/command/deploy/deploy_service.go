@@ -86,6 +86,9 @@ func (i *deployCommand) RegisterHook() {
 			if len(args) == 0 {
 				return fmt.Errorf("the service requires a name ")
 			}
+			if len(args) == 1 && i.flags.BuildFlags.Native {
+				return fmt.Errorf("native builds currently only work with s2i. Please provide [SOURCE] argument")
+			}
 			if err := flag.CheckRuntimeTypeArgs(&i.flags.RuntimeTypeFlags); err != nil {
 				return err
 			}
