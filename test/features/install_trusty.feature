@@ -20,10 +20,10 @@ Feature: Kogito Trusty
     Given Infinispan instance "external-infinispan" is deployed with configuration:
       | username | developer |
       | password | mypass |
-
+    And Kafka instance "external-kafka" is deployed
     When Install Kogito Trusty with 1 replicas with configuration:
       | infinispan | username | developer                 |
       | infinispan | password | mypass                    |
       | infinispan | uri      | external-infinispan:11222 |
-
+      | kafka | externalURI | external-kafka-kafka-bootstrap:9092 |
     Then Kogito Trusty has 1 pods running within 10 minutes
