@@ -72,6 +72,8 @@ func TestSetProvisioningSkipUpdate(t *testing.T) {
 
 func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	now := metav1.Now()
+	// we set a sleep to not conflict the time
+	time.Sleep(1 * time.Second)
 	conditionsMeta := ConditionsMeta{}
 
 	assert.True(t, conditionsMeta.SetProvisioning())
@@ -82,8 +84,6 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	assert.Equal(t, 2, len(conditionsMeta.Conditions))
 	assert.Equal(t, ProvisioningConditionType, condition.Type)
 	assert.Equal(t, corev1.ConditionTrue, condition.Status)
-	// we set a sleep to not conflict the time
-	time.Sleep(1 * time.Second)
 	assert.True(t, now.Before(&condition.LastTransitionTime))
 
 	assert.Equal(t, DeployedConditionType, conditionsMeta.Conditions[1].Type)

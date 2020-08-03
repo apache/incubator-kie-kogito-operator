@@ -65,7 +65,7 @@ func AddBuildFlags(command *cobra.Command, flags *BuildFlags) {
 	AddWebHookFlags(command, &flags.WebHookFlags)
 	AddEnvVarFlags(command, &flags.EnvVarFlags, "build-env", "")
 	command.Flags().BoolVar(&flags.IncrementalBuild, "incremental-build", true, "Build should be incremental?")
-	command.Flags().BoolVar(&flags.Native, "native", false, "Use native builds? Be aware that native builds takes more time and consume much more resources from the cluster. Defaults to false")
+	command.Flags().BoolVar(&flags.Native, "native", false, "Use native builds? Be aware that native builds takes more time and consume much more resources from the cluster. Defaults to false. Currently only works with s2i (requires [SOURCE] argument).")
 	command.Flags().StringVar(&flags.MavenMirrorURL, "maven-mirror-url", "", "Internal Maven Mirror to be used during source-to-image builds to considerably increase build speed, e.g: https://my.internal.nexus/content/group/public")
 	command.Flags().StringVar(&flags.BuildImage, "image-s2i", "", "Custom image tag for the s2i build to build the application binaries, e.g: quay.io/mynamespace/myimage:latest")
 	command.Flags().StringVar(&flags.RuntimeImage, "image-runtime", "", "Custom image tag for the s2i build, e.g: quay.io/mynamespace/myimage:latest")
