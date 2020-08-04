@@ -1,0 +1,13 @@
+### You can define all your comments in this file for various purposes
+# for now you'll need to difine every comment here, in the future comments will be optional.
+# please see the example for the file below
+
+prFirstTimeContributor: Welcome to the Kogito Community!. Please make sure you've read the [contributors' guide](https://github.com/kiegroup/kogito-cloud-operator/blob/master/README.md#contributing-to-the-kogito-operator)
+
+prCiTrigger: Jenkins, test this.
+
+prEdit: Change detected in the PR, requesting reviews and running pipeline(if required) again
+
+prReopen: PR reopened. requesting reviews and running pipeline(if required) again
+
+prDefault: Thanks for sending the PR.
