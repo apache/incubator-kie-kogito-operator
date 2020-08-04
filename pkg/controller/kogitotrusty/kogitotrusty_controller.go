@@ -148,7 +148,7 @@ func (r *ReconcileKogitoTrusty) Reconcile(request reconcile.Request) (reconcile.
 
 const (
 	// Collection of kafka topics that should be handled by the Trusty
-	kafkaTopicNameTraceEvents string = "kogito-tracing-decision"
+	kafkaTopicNameTraceEvents string = "kogito-tracing"
 )
 
 var kafkaTopics = []services.KafkaTopicDefinition{
