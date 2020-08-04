@@ -1,13 +1,4 @@
-@Library('jenkins-pipeline-shared-libraries')_
-
-pipeline {
-    agent {
-        label 'kogito-operator-slave && !master'
-    }
-
-    // Needed for local build
-    tools {
-        jdk 'kie-jdk11'
+dk 'kie-jdk11'
     }
 
     parameters {
