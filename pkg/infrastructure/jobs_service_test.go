@@ -15,13 +15,13 @@
 package infrastructure
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
-	oappsv1 "github.com/openshift/api/apps/v1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,13 +46,13 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}
-	dc := &oappsv1.DeploymentConfig{
+	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
 			Name: app.Name,
 			UID:  app.UID,
 		}}},
-		Spec: oappsv1.DeploymentConfigSpec{
-			Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "the-app"}}}},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "the-app"}}}},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{app, dc, jobs}, nil, nil)
@@ -87,13 +87,13 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}
-	dc := &oappsv1.DeploymentConfig{
+	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
 			Name: app.Name,
 			UID:  app.UID,
 		}}},
-		Spec: oappsv1.DeploymentConfigSpec{
-			Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "the-app"}}}},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "the-app"}}}},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{app, dc, jobs}, nil, nil)
@@ -116,7 +116,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	err = InjectJobsServicesURLIntoKogitoRuntimeServices(cli, t.Name())
 	assert.NoError(t, err)
 
-	dc = &oappsv1.DeploymentConfig{ObjectMeta: metav1.ObjectMeta{Name: dc.Name, Namespace: dc.Namespace}}
+	dc = &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: dc.Name, Namespace: dc.Namespace}}
 	exists, err = kubernetes.ResourceC(cli).Fetch(dc)
 	assert.NoError(t, err)
 	assert.True(t, exists)

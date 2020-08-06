@@ -19,6 +19,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	v1 "k8s.io/api/apps/v1"
@@ -61,17 +62,6 @@ func onGetComparators(comparator compare.ResourceComparator) {
 			Build())
 }
 
-func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested resource.KubernetesResource) (equal bool) {
-	cmDeployed := deployed.(*corev1.ConfigMap)
-
-	// this update is made by the downward API inside the pod container
-	if strings.HasSuffix(cmDeployed.Name, protobufConfigMapSuffix) {
-		return true
-	}
-
-	return framework.CreateConfigMapComparator()(deployed, requested)
-}
-
 func onObjectsCreate(kogitoService v1alpha1.KogitoService) (map[reflect.Type][]resource.KubernetesResource, []runtime.Object, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
 	lists := []runtime.Object{&corev1.ConfigMapList{}}
@@ -89,8 +79,19 @@ func onObjectsCreate(kogitoService v1alpha1.KogitoService) (map[reflect.Type][]r
 	return resources, lists, nil
 }
 
+func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested resource.KubernetesResource) (equal bool) {
+	cmDeployed := deployed.(*corev1.ConfigMap)
+
+	// this update is made by the downward API inside the pod container
+	if strings.HasSuffix(cmDeployed.Name, protobufConfigMapSuffix) {
+		return true
+	}
+
+	return framework.CreateConfigMapComparator()(deployed, requested)
+}
+
 // onDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties to the deployment creation
-func onDeploymentCreate(deployment *v1.Deployment, kogitoService v1alpha1.KogitoService) error {
+func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoService v1alpha1.KogitoService) error {
 	kogitoRuntime := kogitoService.(*v1alpha1.KogitoRuntime)
 	// NAMESPACE service discovery
 	framework.SetEnvVar(envVarNamespace, kogitoService.GetNamespace(), &deployment.Spec.Template.Spec.Containers[0])
@@ -104,6 +105,15 @@ func onDeploymentCreate(deployment *v1.Deployment, kogitoService v1alpha1.Kogito
 	}
 	// protobuf
 	applyProtoBufConfigurations(deployment, kogitoService)
+
+	if err := infrastructure.InjectDataIndexURLIntoKogitoRuntimeDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+		return err
+	}
+
+	if err := infrastructure.InjectJobsServiceURLIntoKogitoRuntimeDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+		return err
+	}
+
 	return nil
 }
 

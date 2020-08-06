@@ -18,7 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	oappsv1 "github.com/openshift/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -36,9 +36,9 @@ func GetProtoBufConfigMaps(namespace string, cli *client.Client) (*v1.ConfigMapL
 	return cms, nil
 }
 
-// getKogitoRuntimeDCs gets all dcs owned by KogitoRuntime services within the given namespace
-func getKogitoRuntimeDCs(namespace string, cli *client.Client) ([]oappsv1.DeploymentConfig, error) {
-	var kdcs []oappsv1.DeploymentConfig
+// getKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
+func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1.Deployment, error) {
+	var kdcs []appsv1.Deployment
 	kogitoRuntimeServices := &v1alpha1.KogitoRuntimeList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoRuntimeServices); err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func getKogitoRuntimeDCs(namespace string, cli *client.Client) ([]oappsv1.Deploy
 	if len(kogitoRuntimeServices.Items) == 0 {
 		return kdcs, nil
 	}
-	dcs := &oappsv1.DeploymentConfigList{}
+	dcs := &appsv1.DeploymentList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
 		return nil, err
 	}

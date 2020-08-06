@@ -148,7 +148,7 @@ var kafkaTopics = []services.KafkaTopicDefinition{
 	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicOutgoing},
 }
 
-func onDeploymentCreate(deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
+func onDeploymentCreate(cli *kogitocli.Client, deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
 	jobService := service.(*appv1alpha1.KogitoJobsService)
 	if jobService.Spec.BackOffRetryMillis <= 0 {
 		jobService.Spec.BackOffRetryMillis = backOffRetryDefaultValue

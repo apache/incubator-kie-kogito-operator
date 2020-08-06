@@ -20,8 +20,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
-	oappsv1 "github.com/openshift/api/apps/v1"
 	"github.com/stretchr/testify/assert"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,10 +40,10 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	dc := &oappsv1.DeploymentConfig{
+	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: kogitoRuntime.Name, Namespace: kogitoRuntime.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoRuntime.UID}}},
-		Spec: oappsv1.DeploymentConfigSpec{
-			Template: &v1.PodTemplateSpec{
+		Spec: appsv1.DeploymentSpec{
+			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{Containers: []v1.Container{{Name: "test"}}},
 			},
 		},

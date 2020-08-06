@@ -36,7 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logger.GetLogger("controller_kogitodataindex")
+var log = logger.GetLogger("kogitodataindex_controller")
 
 // Add creates a new KogitoDataIndex Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -166,7 +166,7 @@ var kafkaTopics = []services.KafkaTopicDefinition{
 	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicIncoming},
 }
 
-func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
+func (r *ReconcileKogitoDataIndex) onDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		if err := r.mountProtoBufConfigMaps(deployment); err != nil {
 			return err

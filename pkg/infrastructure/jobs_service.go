@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 const (
@@ -35,33 +36,53 @@ const (
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectJobsServicesURLIntoKogitoRuntimeServices(cli *client.Client, namespace string) error {
 	log.Debugf("Querying KogitoRuntime services in the namespace '%s' to inject Jobs Service Route ", namespace)
-	dcs, err := getKogitoRuntimeDCs(namespace, cli)
+	deployments, err := getKogitoRuntimeDeployments(namespace, cli)
 	if err != nil {
 		return err
 	}
-	var endpoint ServiceEndpoints
-	if len(dcs) > 0 {
-		log.Debug("Querying Jobs Service URI to inject into KogitoRuntime ")
+	var jobServiceEndpoint ServiceEndpoints
+	if len(deployments) > 0 {
+		log.Debug("Querying Jobs Service route to inject into KogitoRuntime ")
 		var err error
-		endpoint, err = GetJobsServiceEndpoints(cli, namespace)
+		jobServiceEndpoint, err = GetJobsServiceEndpoints(cli, namespace)
 		if err != nil {
 			return err
 		}
-		log.Debugf("Jobs Services URI is '%s'", endpoint.HTTPRouteURI)
+		log.Debugf("Jobs Services URI is '%s'", jobServiceEndpoint.HTTPRouteURI)
 	}
 
-	for _, dc := range dcs {
-		// here we compare the current value to avoid updating the app every time
-		if len(dc.Spec.Template.Spec.Containers) > 0 &&
-			framework.GetEnvVarFromContainer(endpoint.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != endpoint.HTTPRouteURI {
-			log.Debugf("Updating KogitoRuntime's DC '%s' to inject route %s ", dc.GetName(), endpoint.HTTPRouteURI)
-			framework.SetEnvVar(endpoint.HTTPRouteEnv, endpoint.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
+	for _, dc := range deployments {
+		updateHTTP := updateJobsServiceURLIntoKogitoRuntimeEnv(&dc, jobServiceEndpoint)
+		if updateHTTP {
 			if err := kubernetes.ResourceC(cli).Update(&dc); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// InjectJobsServiceURLIntoKogitoRuntimeDeployment will inject jobs-service route URL in to kogito runtime deployment env var
+func InjectJobsServiceURLIntoKogitoRuntimeDeployment(client *client.Client, namespace string, runtimeDeployment *appsv1.Deployment) error {
+	log.Debug("Querying Jobs Service route to inject into Kogito runtime ")
+	jobServiceEndpoint, err := GetJobsServiceEndpoints(client, namespace)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Jobs service route is '%s'", jobServiceEndpoint.HTTPRouteURI)
+	updateJobsServiceURLIntoKogitoRuntimeEnv(runtimeDeployment, jobServiceEndpoint)
+	return nil
+}
+
+func updateJobsServiceURLIntoKogitoRuntimeEnv(dc *appsv1.Deployment, jobServiceEndpoint ServiceEndpoints) (updateHTTP bool) {
+	if len(dc.Spec.Template.Spec.Containers) > 0 {
+		updateHTTP = framework.GetEnvVarFromContainer(jobServiceEndpoint.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != jobServiceEndpoint.HTTPRouteURI
+		if updateHTTP {
+			log.Debugf("Updating KogitoRuntime's DC '%s' to inject route %s ", dc.GetName(), jobServiceEndpoint.HTTPRouteURI)
+			framework.SetEnvVar(jobServiceEndpoint.HTTPRouteEnv, jobServiceEndpoint.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
+		}
+	}
+	return
 }
 
 // GetJobsServiceEndpoints gets Jobs Services published external endpoints
