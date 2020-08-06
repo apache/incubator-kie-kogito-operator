@@ -605,6 +605,117 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 			reflect.TypeOf(apps.Deployment{}),
 			true,
 		},
+		{
+			"Knative injected an env var",
+			args{
+				deployed: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Name: "service",
+										Env: []v1.EnvVar{
+											CreateEnvVar(knativeKSINKEnvVar, "http://endpoint/"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Name: "service",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(apps.Deployment{}),
+			true,
+		},
+		{
+			"Knative injected only on request?",
+			args{
+				deployed: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Name: "service",
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Name: "service",
+										Env: []v1.EnvVar{
+											CreateEnvVar(knativeKSINKEnvVar, "http://endpoint/"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(apps.Deployment{}),
+			false,
+		},
+		{
+			"Knative with multiple containers",
+			args{
+				deployed: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Name: "service",
+										Env: []v1.EnvVar{
+											CreateEnvVar(knativeKSINKEnvVar, "http://endpoint/"),
+										},
+									},
+									{
+										Name: "service2",
+									},
+								},
+							},
+						},
+					},
+				},
+				requested: &apps.Deployment{
+					Spec: apps.DeploymentSpec{
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Name: "service",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			reflect.TypeOf(apps.Deployment{}),
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
