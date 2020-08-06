@@ -24,7 +24,8 @@ For information about the Kogito Operator architecture and instructions for usin
       * [Running performance tests](#running-performance-tests)
       * [List of test tags](#list-of-test-tags)
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
-
+  * [Guide for Kogito Developers](#guide-for-kogito-developers)
+  
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Contributing to the Kogito Operator
@@ -369,3 +370,7 @@ You can use the following command to vet, format, lint, and test your code:
 ```bash
 $ make test
 ```
+
+## Guide for Kogito Developers
+
+If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
