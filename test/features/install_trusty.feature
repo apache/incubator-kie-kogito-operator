@@ -48,7 +48,7 @@ Feature: Kogito Trusty
       | kafka | externalURI | external-kafka-kafka-bootstrap:9092 |
     And Deploy quarkus example service "dmn-tracing-quarkus" from runtime registry with configuration:
       | kafka | externalURI | external-kafka-kafka-bootstrap:9092 |
-    And Kogito application "dmn-tracing-quarkus" has 1 pods running within 10 minutes
+    And Kogito Runtime "dmn-tracing-quarkus" has 1 pods running within 10 minutes
     And HTTP POST request on service "dmn-tracing-quarkus" is successful within 2 minutes with path "LoanEligibility" and body:
       """json
       {
