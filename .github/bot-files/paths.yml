@@ -1,0 +1,11 @@
+---
+# Inside the files list, mention the file name or the directory name inside which if anything changes
+# pipeline needs to be run.
+# Paths can be specified as glob patterns
+# please see the example for the file below
+
+files:
+  - Jenkinsfile
+  - test/**
+  - cmd/**
+  - pkg/**

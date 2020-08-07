@@ -50,6 +50,7 @@ Feature: Deploy Kogito Build
       | runtime    | example-service            | native   | profile |
       | springboot | process-springboot-example | disabled | default |
 
+    @smoke
     @quarkus
     Examples:
       | runtime    | example-service         | native   | profile |
@@ -60,3 +61,14 @@ Feature: Deploy Kogito Build
     Examples:
       | runtime    | example-service         | native  | profile |
       | quarkus    | process-quarkus-example | enabled | native  |
+
+  Scenario Outline: Configure <type> webhook trigger in remote S2I using KogitoBuild
+    When Build quarkus example service "process-quarkus-example" with configuration:
+      | webhook | type   | <type>    |
+      | webhook | secret | <secret>  |
+    Then BuildConfig "process-quarkus-example" is created with webhooks within 2 minutes
+
+    Examples:
+      | type    | secret         | 
+      | GitHub  | github_secret  | 
+      | Generic | generic_secret | 

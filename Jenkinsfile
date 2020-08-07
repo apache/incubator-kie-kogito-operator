@@ -55,7 +55,7 @@ pipeline {
         stage("Build examples' images for testing"){
             steps {
                 // Do not build native images for the PR checks
-                sh "make build-examples-images tags='~@native' concurrent=1 ${getBDDParameters('never', false)}"
+                sh "make build-examples-images tags='~@native' concurrent=3 ${getBDDParameters('never', false)}"
             }
             post {
                 always {
@@ -64,10 +64,11 @@ pipeline {
                 }
             }
         }
-        stage('Running Smoke Testing') {
+        stage('Running Non native tests') {
             steps {
+                // Do not run native tests as the native images are not built in 'Build examples' images for testing'
                 sh """
-                    make run-smoke-tests concurrent=3 ${getBDDParameters('always', true)}
+                    make run-tests concurrent=5 tags='~@native' ${getBDDParameters('always', true)}
                 """
             }
             post {

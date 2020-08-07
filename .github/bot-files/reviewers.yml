@@ -1,0 +1,21 @@
+review:
+  - paths:
+      - cmd/**
+      - pkg/**
+    reviewers:
+      - ricardozanini
+      - spolti
+  - paths:
+      - test/**
+    reviewers:
+      - sutaakar
+      - radtriste
+      - Sgitario
+  - paths:
+      - Jenkinsfile
+    reviewers:
+      - radtriste
+      - Kaitou786
+default:
+  - ricardozanini
+  - spolti
