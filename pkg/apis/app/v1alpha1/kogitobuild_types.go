@@ -16,6 +16,7 @@ package v1alpha1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -143,6 +144,24 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Maven Download Output"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	EnableMavenDownloadOutput bool `json:"enableMavenDownloadOutput,omitempty"`
+}
+
+// AddResourceRequest adds new resource request. Works also on an uninitialized Requests field.
+func (k *KogitoBuildSpec) AddResourceRequest(name, value string) {
+	if k.Resources.Requests == nil {
+		k.Resources.Requests = corev1.ResourceList{}
+	}
+
+	k.Resources.Requests[corev1.ResourceName(name)] = resource.MustParse(value)
+}
+
+// AddResourceLimit adds new resource limit. Works also on an uninitialized Limits field.
+func (k *KogitoBuildSpec) AddResourceLimit(name, value string) {
+	if k.Resources.Limits == nil {
+		k.Resources.Limits = corev1.ResourceList{}
+	}
+
+	k.Resources.Limits[corev1.ResourceName(name)] = resource.MustParse(value)
 }
 
 // KogitoBuildStatus defines the observed state of KogitoBuild.

@@ -17,7 +17,7 @@ package mappers
 import (
 	"fmt"
 
-	"github.com/cucumber/messages-go/v10"
+	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/test/types"
 )
@@ -26,14 +26,19 @@ import (
 
 const (
 	// DataTable first column
-	kogitoBuildConfigKey = "config"
+	kogitoBuildConfigKey       = "config"
+	kogitoBuildWebhookKey      = "webhook"
+	kogitoBuildBuildRequestKey = "build-request"
+	kogitoBuildBuildLimitKey   = "build-limit"
 
 	// DataTable second column
 	kogitoBuildNativeKey = "native"
+	kogitoBuildTypeKey   = "type"
+	kogitoBuildSecretKey = "secret"
 )
 
 // MapKogitoBuildTable maps Cucumber table to KogitoBuildHolder
-func MapKogitoBuildTable(table *messages.PickleStepArgument_PickleTable, buildHolder *types.KogitoBuildHolder) error {
+func MapKogitoBuildTable(table *godog.Table, buildHolder *types.KogitoBuildHolder) error {
 	for _, row := range table.Rows {
 		// Try to map configuration row to KogitoServiceHolder
 		mappingFound, serviceMapErr := mapKogitoServiceTableRow(row, buildHolder.KogitoServiceHolder)
@@ -50,7 +55,7 @@ func MapKogitoBuildTable(table *messages.PickleStepArgument_PickleTable, buildHo
 }
 
 // mapKogitoBuildTableRow maps Cucumber table row to KogitoBuild
-func mapKogitoBuildTableRow(row *messages.PickleStepArgument_PickleTable_PickleTableRow, kogitoBuild *v1alpha1.KogitoBuild) (mappingFound bool, err error) {
+func mapKogitoBuildTableRow(row *TableRow, kogitoBuild *v1alpha1.KogitoBuild) (mappingFound bool, err error) {
 	if len(row.Cells) != 3 {
 		return false, fmt.Errorf("expected table to have exactly three columns")
 	}
@@ -61,12 +66,23 @@ func mapKogitoBuildTableRow(row *messages.PickleStepArgument_PickleTable_PickleT
 	case kogitoBuildConfigKey:
 		return mapKogitoBuildConfigTableRow(row, kogitoBuild)
 
+	case kogitoBuildWebhookKey:
+		return mapKogitoBuildWebhookTableRow(row, kogitoBuild)
+
+	case kogitoBuildBuildRequestKey:
+		kogitoBuild.Spec.AddResourceRequest(getSecondColumn(row), getThirdColumn(row))
+		return true, nil
+
+	case kogitoBuildBuildLimitKey:
+		kogitoBuild.Spec.AddResourceLimit(getSecondColumn(row), getThirdColumn(row))
+		return true, nil
+
 	default:
 		return false, fmt.Errorf("Unrecognized configuration option: %s", firstColumn)
 	}
 }
 
-func mapKogitoBuildConfigTableRow(row *messages.PickleStepArgument_PickleTable_PickleTableRow, kogitoBuild *v1alpha1.KogitoBuild) (mappingFound bool, err error) {
+func mapKogitoBuildConfigTableRow(row *TableRow, kogitoBuild *v1alpha1.KogitoBuild) (mappingFound bool, err error) {
 	secondColumn := getSecondColumn(row)
 
 	switch secondColumn {
@@ -75,6 +91,26 @@ func mapKogitoBuildConfigTableRow(row *messages.PickleStepArgument_PickleTable_P
 
 	default:
 		return false, fmt.Errorf("Unrecognized config configuration option: %s", secondColumn)
+	}
+
+	return true, nil
+}
+
+func mapKogitoBuildWebhookTableRow(row *TableRow, kogitoBuild *v1alpha1.KogitoBuild) (mappingFound bool, err error) {
+	secondColumn := getSecondColumn(row)
+
+	if len(kogitoBuild.Spec.WebHooks) == 0 {
+		kogitoBuild.Spec.WebHooks = []v1alpha1.WebHookSecret{{}}
+	}
+
+	switch secondColumn {
+	case kogitoBuildTypeKey:
+		kogitoBuild.Spec.WebHooks[0].Type = v1alpha1.WebHookType(getThirdColumn(row))
+	case kogitoBuildSecretKey:
+		kogitoBuild.Spec.WebHooks[0].Secret = getThirdColumn(row)
+
+	default:
+		return false, fmt.Errorf("Unrecognized webhook configuration option: %s", secondColumn)
 	}
 
 	return true, nil

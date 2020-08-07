@@ -107,8 +107,10 @@ type KogitoServiceSpecInterface interface {
 	AddResourceLimit(name, value string)
 	GetDeploymentLabels() map[string]string
 	SetDeploymentLabels(labels map[string]string)
+	AddDeploymentLabel(name, value string)
 	GetServiceLabels() map[string]string
 	SetServiceLabels(labels map[string]string)
+	AddServiceLabel(name, value string)
 	GetRuntime() RuntimeType
 	//Define port on which service will listen internally
 	GetHTTPPort() int32
@@ -251,11 +253,29 @@ func (k *KogitoServiceSpec) SetDeploymentLabels(labels map[string]string) {
 	k.DeploymentLabels = labels
 }
 
+// AddDeploymentLabel adds new deployment label. Works also on uninitialized DeploymentLabels field.
+func (k *KogitoServiceSpec) AddDeploymentLabel(name, value string) {
+	if k.DeploymentLabels == nil {
+		k.DeploymentLabels = make(map[string]string)
+	}
+
+	k.DeploymentLabels[name] = value
+}
+
 // GetServiceLabels ...
 func (k *KogitoServiceSpec) GetServiceLabels() map[string]string { return k.ServiceLabels }
 
 // SetServiceLabels ...
 func (k *KogitoServiceSpec) SetServiceLabels(labels map[string]string) { k.ServiceLabels = labels }
+
+// AddServiceLabel adds new service label. Works also on uninitialized ServiceLabels field.
+func (k *KogitoServiceSpec) AddServiceLabel(name, value string) {
+	if k.ServiceLabels == nil {
+		k.ServiceLabels = make(map[string]string)
+	}
+
+	k.ServiceLabels[name] = value
+}
 
 // IsInsecureImageRegistry ...
 func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureImageRegistry }

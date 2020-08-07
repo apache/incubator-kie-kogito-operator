@@ -17,7 +17,15 @@ package steps
 import (
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/test/steps/mappers"
+	v1 "k8s.io/api/core/v1"
 )
+
+/*
+	DataTable for BuildConfig build resources:
+	| build-request  | cpu/memory     | value  |
+	| build-limit    | cpu/memory     | value  |
+*/
 
 func registerOpenShiftSteps(ctx *godog.ScenarioContext, data *Data) {
 	// Build steps
@@ -28,6 +36,7 @@ func registerOpenShiftSteps(ctx *godog.ScenarioContext, data *Data) {
 	// BuildConfig steps
 	ctx.Step(`^BuildConfig "([^"]*)" is created after (\d+) minutes$`, data.buildConfigIsCreatedAfterMinutes)
 	ctx.Step(`^BuildConfig "([^"]*)" is created with build resources within (\d+) minutes:$`, data.buildConfigHasResourcesWithinMinutes)
+	ctx.Step(`^BuildConfig "([^"]*)" is created with webhooks within (\d+) minutes$`, data.buildConfigHasWebhooksWithinMinutes)
 }
 
 // Build steps
@@ -52,11 +61,22 @@ func (data *Data) buildConfigIsCreatedAfterMinutes(buildConfigName string, timeo
 }
 
 func (data *Data) buildConfigHasResourcesWithinMinutes(buildConfigName string, timeoutInMin int, dt *godog.Table) error {
-	requirements, _, err := parseResourceRequirementsTable(dt)
+	build := &v1.ResourceRequirements{Limits: v1.ResourceList{}, Requests: v1.ResourceList{}}
+	err := mappers.MapBuildResourceRequirementsTable(dt, build)
 
 	if err != nil {
 		return err
 	}
 
-	return framework.WaitForBuildConfigToHaveResources(data.Namespace, buildConfigName, *requirements, timeoutInMin)
+	return framework.WaitForBuildConfigToHaveResources(data.Namespace, buildConfigName, *build, timeoutInMin)
+}
+
+func (data *Data) buildConfigHasWebhooksWithinMinutes(buildConfigName string, timeoutInMin int) error {
+	kogitoBuild, err := framework.GetKogitoBuild(data.Namespace, buildConfigName)
+
+	if err != nil {
+		return err
+	}
+
+	return framework.WaitForBuildConfigCreatedWithWebhooks(data.Namespace, buildConfigName, kogitoBuild.Spec.WebHooks, timeoutInMin)
 }
