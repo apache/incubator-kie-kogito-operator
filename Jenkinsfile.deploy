@@ -111,8 +111,12 @@ pipeline {
                     // Need to login to Openshift Registry for application images to be pushed
                     loginOpenshiftRegistry()
 
-                    // Optaplanner taking a lot of resources, we should not build in parallel
-                    sh "make build-examples-images concurrent=1 ${getBDDParameters('never', false)}"
+                    try {
+                        // Optaplanner taking a lot of resources, we should not build in parallel
+                        sh "make build-examples-images concurrent=1 ${getBDDParameters('never', false)}"
+                    } catch(err) {
+                        unstable("Error building examples' images. Check the junit results.")
+                    }
                 }
             }
             post {
