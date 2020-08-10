@@ -55,9 +55,9 @@ type ServicesInstallation interface {
 	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
-
+	// InstallTrusty installs Trusty. If no reference provided, it will install the default instance.
+	// Depends on the Operator, install it first.
 	InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation
-
 	// InstallJobsService installs Jobs Service. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallJobsService(jobsService *v1alpha1.KogitoJobsService) ServicesInstallation

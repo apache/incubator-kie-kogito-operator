@@ -68,7 +68,9 @@ If kafka-instance is provided instead, the value will be used as the Strimzi Kaf
 Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given namespace.
 
 If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
-Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.`,
+Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.
+
+See https://github.com/kiegroup/kogito-apps/tree/master/trusty/README.md for more information about the trusty service.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
