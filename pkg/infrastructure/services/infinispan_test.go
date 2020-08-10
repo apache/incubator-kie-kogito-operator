@@ -57,9 +57,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 				secret:   nil,
 				appProps: map[string]string{},
 			},
-			[]corev1.EnvVar{
-				{Name: infinispanEnvKeyServerList, Value: "custom-uri:123"},
-			},
+			[]corev1.EnvVar{},
 			map[string]string{
 				PropertiesInfinispanQuarkus[AppPropInfinispanUseAuth]:    "false",
 				PropertiesInfinispanQuarkus[AppPropInfinispanServerList]: "custom-uri:123",
@@ -127,25 +125,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{
-					Name: infinispanEnvKeyUsername,
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  infrastructure.InfinispanSecretUsernameKey,
-						},
-					},
-				},
-				{
 					Name: PropertiesInfinispanQuarkus[EnvVarInfinispanPassword],
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  infrastructure.InfinispanSecretPasswordKey,
-						},
-					},
-				},
-				{
-					Name: infinispanEnvKeyPassword,
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
@@ -194,25 +174,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{
-					Name: infinispanEnvKeyUsername,
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  "custom-username",
-						},
-					},
-				},
-				{
 					Name: PropertiesInfinispanQuarkus[EnvVarInfinispanPassword],
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  "custom-password",
-						},
-					},
-				},
-				{
-					Name: infinispanEnvKeyPassword,
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
@@ -250,9 +212,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 				secret:   nil,
 				appProps: map[string]string{},
 			},
-			[]corev1.EnvVar{
-				{Name: infinispanEnvKeyServerList, Value: "custom-uri:123"},
-			},
+			[]corev1.EnvVar{},
 			map[string]string{
 				PropertiesInfinispanSpring[AppPropInfinispanUseAuth]:    "false",
 				PropertiesInfinispanSpring[AppPropInfinispanServerList]: "custom-uri:123",
@@ -322,25 +282,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{
-					Name: infinispanEnvKeyUsername,
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  infrastructure.InfinispanSecretUsernameKey,
-						},
-					},
-				},
-				{
 					Name: PropertiesInfinispanSpring[EnvVarInfinispanPassword],
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  infrastructure.InfinispanSecretPasswordKey,
-						},
-					},
-				},
-				{
-					Name: infinispanEnvKeyPassword,
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
@@ -389,25 +331,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 					},
 				},
 				{
-					Name: infinispanEnvKeyUsername,
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  "custom-username",
-						},
-					},
-				},
-				{
 					Name: PropertiesInfinispanSpring[EnvVarInfinispanPassword],
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
-							Key:                  "custom-password",
-						},
-					},
-				},
-				{
-					Name: infinispanEnvKeyPassword,
 					ValueFrom: &corev1.EnvVarSource{
 						SecretKeyRef: &corev1.SecretKeySelector{
 							LocalObjectReference: corev1.LocalObjectReference{Name: "custom-secret"},
