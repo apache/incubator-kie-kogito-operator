@@ -4,7 +4,7 @@
 
 prFirstTimeContributor: Welcome to the Kogito Community!. Please make sure you've read the [contributors' guide](https://github.com/kiegroup/kogito-cloud-operator/blob/master/README.md#contributing-to-the-kogito-operator)
 
-prCiTrigger: Jenkins, test this.
+prCiTrigger: Jenkins test this
 
 prEdit: Change detected in the PR, requesting reviews and running pipeline(if required) again
 
