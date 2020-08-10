@@ -99,7 +99,7 @@ func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps *v1alp
 		if len(infinispanProps.Credentials.PasswordKey) > 0 {
 			passwordValue = infinispanProps.Credentials.PasswordKey
 		}
-		framework.SetEnvVarFromSecret(vars[EnvVarInfinispanPassword], passwordValue, secret, container)
+		framework.SetEnvVarFromSecret(vars[EnvVarInfinispanPassword], passwordValue, secret, container) 
 
 		appProps[vars[AppPropInfinispanUseAuth]] = "true"
 
