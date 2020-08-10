@@ -4,6 +4,7 @@ def changeAuthor = env.ghprbPullAuthorLogin ?: CHANGE_AUTHOR
 def changeBranch = env.ghprbSourceBranch ?: CHANGE_BRANCH
 def changeTarget = env.ghprbTargetBranch ?: CHANGE_TARGET
 
+//just for testing please ignore me
 pipeline {
     agent { label 'operator-slave'}
     options {
