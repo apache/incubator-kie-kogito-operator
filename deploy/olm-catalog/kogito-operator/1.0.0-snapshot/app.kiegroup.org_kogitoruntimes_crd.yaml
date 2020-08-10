@@ -258,6 +258,19 @@ spec:
                     infrastructure.
                   type: boolean
               type: object
+            prometheus:
+              description: Create Service monitor instance use to connect with Prometheus
+              properties:
+                path:
+                  description: HTTP path to scrape for metrics.
+                  type: string
+                scheme:
+                  description: HTTP scheme to use for scraping.
+                  type: string
+                scrape:
+                  description: Flag to allow Prometheus to scraping Kogito service.
+                  type: boolean
+              type: object
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster. Default value: 1.'

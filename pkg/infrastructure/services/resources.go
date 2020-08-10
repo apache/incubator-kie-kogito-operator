@@ -15,12 +15,17 @@
 package services
 
 import (
+	"context"
+	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/prometheus"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
@@ -30,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
+	clientv1 "sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
 
@@ -98,7 +104,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		if s.client.IsOpenshift() {
 			resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(s.instance, service)}
 		}
-		if err := s.createAdditionalObjects(resources); err != nil {
+		if err := s.createAdditionalObjects(resources, s.client); err != nil {
 			return resources, reconcileAfter, err
 		}
 	}
@@ -151,11 +157,11 @@ func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deplo
 }
 
 // createAdditionalObjects calls the OnObjectsCreate hook for clients to add their custom objects/logic to the service
-func (s *serviceDeployer) createAdditionalObjects(resources map[reflect.Type][]resource.KubernetesResource) error {
+func (s *serviceDeployer) createAdditionalObjects(resources map[reflect.Type][]resource.KubernetesResource, cli *client.Client) error {
 	if s.definition.OnObjectsCreate != nil {
 		var additionalRes map[reflect.Type][]resource.KubernetesResource
 		var err error
-		additionalRes, s.definition.extraManagedObjectLists, err = s.definition.OnObjectsCreate(s.instance)
+		additionalRes, s.definition.extraManagedObjectLists, err = s.definition.OnObjectsCreate(cli, s.instance)
 		if err != nil {
 			return err
 		}
@@ -271,7 +277,7 @@ func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash s
 
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance
 func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	reader := read.New(s.client.ControlCli).WithNamespace(s.instance.GetNamespace()).WithOwnerObject(s.instance)
+	reader := read.New(&reader{s.client}).WithNamespace(s.instance.GetNamespace()).WithOwnerObject(s.instance)
 	var objectTypes []runtime.Object
 	if s.client.IsOpenshift() {
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}
@@ -281,6 +287,10 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 
 	if infrastructure.IsStrimziAvailable(s.client) {
 		objectTypes = append(objectTypes, &kafkabetav1.KafkaTopicList{})
+	}
+
+	if IsPrometheusAvailable(s.client) {
+		objectTypes = append(objectTypes, &monv1.ServiceMonitorList{})
 	}
 
 	if len(s.definition.extraManagedObjectLists) > 0 {

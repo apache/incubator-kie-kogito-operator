@@ -65,6 +65,7 @@ func (i runtimeServiceImpl) InstallRuntimeService(cli *client.Client, flags *fla
 		Spec: v1alpha1.KogitoRuntimeSpec{
 			EnableIstio: flags.EnableIstio,
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
+			Prometheus:  converter.FromPrometheusFlagToPrometheus(&flags.PrometheusFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
 				Envs:                  converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),

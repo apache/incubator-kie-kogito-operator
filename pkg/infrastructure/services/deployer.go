@@ -55,7 +55,7 @@ type ServiceDefinition struct {
 	// E.g. if you need an additional Kubernetes resource, just create your own map that the API will append to its managed resources.
 	// The "objectLists" array is the List object reference of the types created.
 	// For example: if a ConfigMap is created, then ConfigMapList empty reference should be added to this list
-	OnObjectsCreate func(kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
+	OnObjectsCreate func(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
 	// OnGetComparators is called during the deployment phase to compare the deployed resources against the created ones
 	// Use this hook to add your comparators to override a specific comparator or to add your own if you have created extra objects via OnObjectsCreate
 	// Use framework.NewComparatorBuilder() to build your own
@@ -207,21 +207,24 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	}
 
 	// create our resources
+	log.Info("going to create request resources")
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
 		return
 	}
+	log.Infof("requested resource : %v", requestedResources)
 
 	// get the deployed ones
 	deployedResources, err := s.getDeployedResources()
 	if err != nil {
 		return
 	}
+	log.Infof("deployed resource : %v", deployedResources)
 
 	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
 	comparator := s.getComparator()
 	deltas := comparator.Compare(deployedResources, requestedResources)
-	writer := write.New(s.client.ControlCli)
+	writer := write.New(&writer{s.client})
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
 			continue

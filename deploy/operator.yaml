@@ -35,4 +35,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.labels['name']
             - name: DEBUG
-              value: "false"
+              value: "true"

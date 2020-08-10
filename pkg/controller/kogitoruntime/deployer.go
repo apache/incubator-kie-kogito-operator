@@ -18,9 +18,12 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,6 +62,12 @@ func onGetComparators(comparator compare.ResourceComparator) {
 			WithType(reflect.TypeOf(corev1.ConfigMap{})).
 			WithCustomComparator(protoBufConfigMapComparator).
 			Build())
+
+	/*comparator.SetComparator(
+	framework.NewComparatorBuilder().
+		WithType(reflect.TypeOf(monv1.ServiceMonitor{})).
+		WithCustomComparator(framework.CreateServiceMonitorComparator).
+		Build())*/
 }
 
 func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested resource.KubernetesResource) (equal bool) {
@@ -72,9 +81,26 @@ func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested
 	return framework.CreateConfigMapComparator()(deployed, requested)
 }
 
-func onObjectsCreate(kogitoService v1alpha1.KogitoService) (map[reflect.Type][]resource.KubernetesResource, []runtime.Object, error) {
-	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	lists := []runtime.Object{&corev1.ConfigMapList{}}
+func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, lists []runtime.Object, err error) {
+	resources = make(map[reflect.Type][]resource.KubernetesResource)
+
+	resObjectList, resType, res := createProtoBufConfigMap(kogitoService)
+	lists = append(lists, resObjectList)
+	resources[resType] = []resource.KubernetesResource{res}
+
+	log.Info("going to create Prometheus service monitor")
+	resObjectList, resType, res = createPrometheusServiceMonitor(cli, kogitoService)
+	if resObjectList != nil {
+		lists = append(lists, resObjectList)
+		resources[resType] = []resource.KubernetesResource{res}
+	}
+	log.Info("Prometheus service monitor successfully created and added into resource list")
+	log.Infof("resources : %s", resources)
+	log.Infof("lists : %s", lists)
+	return
+}
+
+func createProtoBufConfigMap(kogitoService v1alpha1.KogitoService) (runtime.Object, reflect.Type, resource.KubernetesResource) {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: kogitoService.GetNamespace(),
@@ -85,8 +111,17 @@ func onObjectsCreate(kogitoService v1alpha1.KogitoService) (map[reflect.Type][]r
 			},
 		},
 	}
-	resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
-	return resources, lists, nil
+	return &corev1.ConfigMapList{}, reflect.TypeOf(corev1.ConfigMap{}), configMap
+}
+
+func createPrometheusServiceMonitor(cli *client.Client, kogitoService v1alpha1.KogitoService) (runtime.Object, reflect.Type, resource.KubernetesResource) {
+	if services.IsPrometheusAvailable(cli) {
+		kogitoRuntime := kogitoService.(*v1alpha1.KogitoRuntime)
+		if serviceMonitor := services.CreateServiceMonitor(kogitoRuntime); serviceMonitor != nil {
+			return &monv1.ServiceMonitorList{}, reflect.TypeOf(monv1.ServiceMonitor{}), serviceMonitor
+		}
+	}
+	return nil, nil, nil
 }
 
 // onDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties to the deployment creation
