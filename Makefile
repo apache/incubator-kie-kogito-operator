@@ -57,8 +57,8 @@ deploy-operator-on-ocp:
 	./hack/deploy-operator-on-ocp.sh $(image)
 
 .PHONY: build-cli
-release = false
-version = ""
+release=false
+version=""
 build-cli:
 	./hack/go-build-cli.sh $(release) $(version)
 

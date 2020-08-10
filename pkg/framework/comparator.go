@@ -30,6 +30,8 @@ import (
 	"reflect"
 )
 
+const knativeKSINKEnvVar = "K_SINK"
+
 // Comparator is a simple struct to encapsulate the complex elements from Operator Utils
 type Comparator struct {
 	ResourceType reflect.Type
@@ -120,6 +122,9 @@ func CreateDeploymentConfigComparator() func(deployed resource.KubernetesResourc
 	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		sortVolumes(&deployed.(*appsv1.DeploymentConfig).Spec.Template.Spec)
 		sortVolumes(&requested.(*appsv1.DeploymentConfig).Spec.Template.Spec)
+		ignoreKnativeInjectedVariables(
+			deployed.(*appsv1.DeploymentConfig).Spec.Template,
+			requested.(*appsv1.DeploymentConfig).Spec.Template)
 
 		dcDeployed := deployed.(*appsv1.DeploymentConfig)
 		dcRequested := requested.(*appsv1.DeploymentConfig).DeepCopy()
@@ -148,7 +153,9 @@ func CreateDeploymentComparator() func(deployed resource.KubernetesResource, req
 	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		sortVolumes(&deployed.(*apps.Deployment).Spec.Template.Spec)
 		sortVolumes(&requested.(*apps.Deployment).Spec.Template.Spec)
-
+		ignoreKnativeInjectedVariables(
+			&deployed.(*apps.Deployment).Spec.Template,
+			&requested.(*apps.Deployment).Spec.Template)
 		return true
 	}
 }
@@ -250,4 +257,27 @@ func CreateSharedImageStreamComparator() func(deployed resource.KubernetesResour
 		return CreateImageStreamComparator()(deployed, requested) &&
 			reflect.DeepEqual(deployed.GetOwnerReferences(), requested.GetOwnerReferences())
 	}
+}
+
+// ignoreKnativeInjectedVariables will fetch in deployed PodSpec for the Knative Eventing injected variable,
+// if found, this variable will be copied to the requested one. Pods with containers with different sizes will be ignored.
+// see: https://knative.dev/docs/eventing/
+func ignoreKnativeInjectedVariables(deployed *v1.PodTemplateSpec, requested *v1.PodTemplateSpec) {
+	if len(deployed.Spec.Containers) != len(requested.Spec.Containers) {
+		return
+	}
+	sortContainersByName(deployed)
+	sortContainersByName(requested)
+	for i := range deployed.Spec.Containers {
+		index := GetEnvVar(knativeKSINKEnvVar, deployed.Spec.Containers[i].Env)
+		if index >= 0 {
+			requested.Spec.Containers[i].Env = EnvOverride(requested.Spec.Containers[i].Env, deployed.Spec.Containers[i].Env[index])
+		}
+	}
+}
+
+func sortContainersByName(pod *v1.PodTemplateSpec) {
+	sort.Slice(pod.Spec.Containers, func(i, j int) bool {
+		return pod.Spec.Containers[i].Name < pod.Spec.Containers[j].Name
+	})
 }
