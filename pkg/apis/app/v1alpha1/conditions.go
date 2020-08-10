@@ -23,11 +23,11 @@ import (
 type ConditionType string
 
 const (
-	// DeployedConditionType - The KogitoRuntime is deployed
+	// DeployedConditionType - The KogitoService is deployed
 	DeployedConditionType ConditionType = "Deployed"
-	// ProvisioningConditionType - The KogitoRuntime is being provisioned
+	// ProvisioningConditionType - The KogitoService is being provisioned
 	ProvisioningConditionType ConditionType = "Provisioning"
-	// FailedConditionType - The KogitoRuntime is in a failed state
+	// FailedConditionType - The KogitoService is in a failed state
 	FailedConditionType ConditionType = "Failed"
 )
 
@@ -35,7 +35,7 @@ const (
 type ReasonType string
 
 const (
-	// ServicesIntegrationFailedReason - Unable to inject external services to KogitoRuntime
+	// ServicesIntegrationFailedReason - Unable to inject external services to KogitoService
 	ServicesIntegrationFailedReason ReasonType = "ServicesIntegrationFailed"
 	// ParseCRRequestFailedReason - Unable to resolve the CR request
 	ParseCRRequestFailedReason ReasonType = "ParseCRRequestFailed"
