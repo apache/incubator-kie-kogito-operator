@@ -31,25 +31,25 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// IBuildService is interface to perform Kogito Build
-type IBuildService interface {
+// BuildService is interface to perform Kogito Build
+type BuildService interface {
 	InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error)
 	DeleteBuildService(cli *client.Client, name, project string) (err error)
 }
 
-type buildServiceImpl struct {
+type buildService struct {
 	resourceCheckService shared.IResourceCheckService
 }
 
-// InitBuildService create and return buildServiceImpl value
-func InitBuildService() IBuildService {
-	return buildServiceImpl{
+// NewBuildService create and return buildService value
+func NewBuildService() BuildService {
+	return buildService{
 		resourceCheckService: shared.InitResourceCheckService(),
 	}
 }
 
 // InstallBuildService install Kogito build service
-func (i buildServiceImpl) InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error) {
+func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Installing Kogito build : %s", flags.Name)
 
@@ -111,7 +111,7 @@ func (i buildServiceImpl) InstallBuildService(cli *client.Client, flags *flag.Bu
 	return nil
 }
 
-func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.SugaredLogger, i buildServiceImpl) error {
+func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.SugaredLogger, i buildService) error {
 
 	if !cli.IsOpenshift() {
 		log.Info("Kogito Build is only supported on Openshift.")
@@ -131,7 +131,7 @@ func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.S
 }
 
 // DeleteBuildService delete Kogito build service
-func (i buildServiceImpl) DeleteBuildService(cli *client.Client, name, project string) (err error) {
+func (i buildService) DeleteBuildService(cli *client.Client, name, project string) (err error) {
 	log := context.GetDefaultLogger()
 
 	if !cli.IsOpenshift() {
@@ -233,11 +233,11 @@ func triggerBuild(name string, namespace string, fileReader io.Reader, fileName 
 		return err
 	}
 
-	_, err = openshift.BuildConfigC(cli).TriggerBuildFromFile(namespace, fileReader, options)
+	build, err := openshift.BuildConfigC(cli).TriggerBuildFromFile(namespace, fileReader, options)
 	if err != nil {
 		return err
 	}
 
-	log.Infof(message.KogitoBuildSuccessfullyUploadedFile, name, namespace)
+	log.Infof(message.KogitoBuildSuccessfullyUploadedFile, build.Name, name, namespace)
 	return nil
 }
