@@ -105,7 +105,7 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 	}
 
 	if err := createBuildIfRequires(flags.Name, flags.Project, resource, resourceType); err != nil {
-		return nil
+		return err
 	}
 
 	return nil
@@ -233,6 +233,7 @@ func triggerBuild(name string, namespace string, fileReader io.Reader, fileName 
 		return err
 	}
 
+	log.Info(message.BuildTriggeringNewBuild)
 	build, err := openshift.BuildConfigC(cli).TriggerBuildFromFile(namespace, fileReader, options)
 	if err != nil {
 		return err

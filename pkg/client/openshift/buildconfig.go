@@ -34,8 +34,9 @@ import (
 )
 
 const (
-	checkBcRetries         = 30
-	checkBcRetriesInterval = 2 * time.Second
+	// retry = 5 minutes
+	checkBcRetries         = 100
+	checkBcRetriesInterval = 3 * time.Second
 	// BuildConfigLabelSelector default build selector for buildconfigs
 	BuildConfigLabelSelector = "buildconfig"
 )

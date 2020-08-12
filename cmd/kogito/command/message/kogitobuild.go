@@ -41,4 +41,6 @@ var (
 	BuildServiceCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitobuild", "%s", "%s")
 	// BuildServiceNotInstalledNoKogitoOperator ...
 	BuildServiceNotInstalledNoKogitoOperator = fmt.Sprintf("Skipping deploy %s since Kogito Operator is not available.", "Build Service")
+	// BuildTriggeringNewBuild ...
+	BuildTriggeringNewBuild = "Triggering the new build"
 )
