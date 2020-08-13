@@ -36,7 +36,7 @@ import (
 	"time"
 )
 
-var log = logger.GetLogger("kogitoruntime_controller")
+var log = logger.GetLogger("kogitobuild_controller")
 
 const (
 	imageStreamCreationReconcileTimeout = 10 * time.Second

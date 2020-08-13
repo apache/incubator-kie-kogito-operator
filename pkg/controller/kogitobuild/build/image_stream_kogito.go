@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 )
@@ -252,9 +253,16 @@ func createRequiredKogitoImageStreamTag(requiredStream imgv1.ImageStream, client
 	// nor tag nor image stream exists, we can safely create a new one for us
 	if !tagExists && !exists {
 		if err := kubernetes.ResourceC(client).Create(&requiredStream); err != nil {
-			return created, err
+			// double check since the object could've been created in another thread
+			if errors.IsAlreadyExists(err) {
+				exists = true
+				created = false
+			} else {
+				return created, err
+			}
+		} else {
+			created = true
 		}
-		created = true
 	}
 	// the required tag is not there, let's just add the required tag and move on
 	if !tagExists && exists {
