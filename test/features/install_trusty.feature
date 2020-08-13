@@ -46,6 +46,7 @@ Feature: Kogito Trusty
       | infinispan | password | mypass                    |
       | infinispan | uri      | external-infinispan:11222 |
       | kafka | externalURI | external-kafka-kafka-bootstrap:9092 |
+    And Local example service "dmn-tracing-quarkus" is built by Maven using profile "default" and deployed to runtime registry
     And Deploy quarkus example service "dmn-tracing-quarkus" from runtime registry with configuration:
       | config | enableEvents | enabled                             |
       | kafka  | externalURI  | external-kafka-kafka-bootstrap:9092 |
