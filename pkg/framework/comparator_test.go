@@ -616,7 +616,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 									{
 										Name: "service",
 										Env: []v1.EnvVar{
-											CreateEnvVar(knativeKSINKEnvVar, "http://endpoint/"),
+											CreateEnvVar("K_SINK", "http://endpoint/"),
 										},
 									},
 								},
@@ -665,7 +665,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 									{
 										Name: "service",
 										Env: []v1.EnvVar{
-											CreateEnvVar(knativeKSINKEnvVar, "http://endpoint/"),
+											CreateEnvVar("K_SINK", "http://endpoint/"),
 										},
 									},
 								},
@@ -688,7 +688,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 									{
 										Name: "service",
 										Env: []v1.EnvVar{
-											CreateEnvVar(knativeKSINKEnvVar, "http://endpoint/"),
+											CreateEnvVar("K_SINK", "http://endpoint/"),
 										},
 									},
 									{

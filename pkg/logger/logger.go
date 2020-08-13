@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	defaultOutput = os.Stderr
+	defaultOutput = os.Stdout
 )
 
 // Logger shared logger struct

@@ -209,18 +209,13 @@ pipeline {
                     }
                     tagImage()
                     pushImage()
-                }
-            }
-            post {
-                success {
-                    script {
-                        // Store image deployment information
-                        String imgPrefix = 'kogito-cloud-operator.image'
-                        setDeployPropertyIfNeeded("${imgPrefix}.registry", getDeployImageRegistry())
-                        setDeployPropertyIfNeeded("${imgPrefix}.namespace", getDeployImageNamespace())
-                        setDeployPropertyIfNeeded("${imgPrefix}.name-suffix", getDeployImageNameSuffix())
-                        setDeployPropertyIfNeeded("${imgPrefix}.tag", getDeployImageTag())
-                    }
+
+                    // Store image deployment information
+                    String imgPrefix = 'kogito-cloud-operator.image'
+                    setDeployPropertyIfNeeded("${imgPrefix}.registry", getDeployImageRegistry())
+                    setDeployPropertyIfNeeded("${imgPrefix}.namespace", getDeployImageNamespace())
+                    setDeployPropertyIfNeeded("${imgPrefix}.name-suffix", getDeployImageNameSuffix())
+                    setDeployPropertyIfNeeded("${imgPrefix}.tag", getDeployImageTag())
                 }
             }
         }
@@ -236,16 +231,11 @@ pipeline {
                     githubscm.commitChanges(commitMsg, '.')
                     githubscm.pushObject('origin', getBotBranch(), env.BOT_CREDENTIALS_ID)
                     deployProperties['kogito-cloud-operator.pr.link'] = githubscm.createPR(commitMsg, prBody, getBuildBranch(), env.BOT_CREDENTIALS_ID)
-                }
-            }
-            post {
-                success {
-                    script {
-                        setDeployPropertyIfNeeded('kogito-cloud-operator.pr.source.uri', "https://github.com/${getBotAuthor()}/kogito-cloud-operator")
-                        setDeployPropertyIfNeeded('kogito-cloud-operator.pr.source.ref', getBotBranch())
-                        setDeployPropertyIfNeeded('kogito-cloud-operator.pr.target.uri', "https://github.com/${getGitAuthor()}/kogito-cloud-operator")
-                        setDeployPropertyIfNeeded('kogito-cloud-operator.pr.target.ref', getBuildBranch())
-                    }
+                    
+                    setDeployPropertyIfNeeded('kogito-cloud-operator.pr.source.uri', "https://github.com/${getBotAuthor()}/kogito-cloud-operator")
+                    setDeployPropertyIfNeeded('kogito-cloud-operator.pr.source.ref', getBotBranch())
+                    setDeployPropertyIfNeeded('kogito-cloud-operator.pr.target.uri', "https://github.com/${getGitAuthor()}/kogito-cloud-operator")
+                    setDeployPropertyIfNeeded('kogito-cloud-operator.pr.target.ref', getBuildBranch())
                 }
             }
         }

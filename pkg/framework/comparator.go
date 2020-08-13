@@ -30,8 +30,6 @@ import (
 	"reflect"
 )
 
-const knativeKSINKEnvVar = "K_SINK"
-
 // Comparator is a simple struct to encapsulate the complex elements from Operator Utils
 type Comparator struct {
 	ResourceType reflect.Type
@@ -122,7 +120,7 @@ func CreateDeploymentConfigComparator() func(deployed resource.KubernetesResourc
 	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		sortVolumes(&deployed.(*appsv1.DeploymentConfig).Spec.Template.Spec)
 		sortVolumes(&requested.(*appsv1.DeploymentConfig).Spec.Template.Spec)
-		ignoreKnativeInjectedVariables(
+		ignoreInjectedVariables(
 			deployed.(*appsv1.DeploymentConfig).Spec.Template,
 			requested.(*appsv1.DeploymentConfig).Spec.Template)
 
@@ -153,7 +151,7 @@ func CreateDeploymentComparator() func(deployed resource.KubernetesResource, req
 	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		sortVolumes(&deployed.(*apps.Deployment).Spec.Template.Spec)
 		sortVolumes(&requested.(*apps.Deployment).Spec.Template.Spec)
-		ignoreKnativeInjectedVariables(
+		ignoreInjectedVariables(
 			&deployed.(*apps.Deployment).Spec.Template,
 			&requested.(*apps.Deployment).Spec.Template)
 		return true
@@ -259,19 +257,25 @@ func CreateSharedImageStreamComparator() func(deployed resource.KubernetesResour
 	}
 }
 
-// ignoreKnativeInjectedVariables will fetch in deployed PodSpec for the Knative Eventing injected variable,
-// if found, this variable will be copied to the requested one. Pods with containers with different sizes will be ignored.
-// see: https://knative.dev/docs/eventing/
-func ignoreKnativeInjectedVariables(deployed *v1.PodTemplateSpec, requested *v1.PodTemplateSpec) {
+// ignoreInjectedVariables will fetch in deployed PodSpec for injected variables,
+// if found, these variable will be copied to the requested one.
+// Pods with containers with different sizes will be ignored.
+// For an example for such scenario, see: https://knative.dev/docs/eventing/samples/sinkbinding/ which is another operator injecting
+// variables in a given Deployment object. That object could be us.
+func ignoreInjectedVariables(deployed *v1.PodTemplateSpec, requested *v1.PodTemplateSpec) {
 	if len(deployed.Spec.Containers) != len(requested.Spec.Containers) {
 		return
 	}
 	sortContainersByName(deployed)
 	sortContainersByName(requested)
 	for i := range deployed.Spec.Containers {
-		index := GetEnvVar(knativeKSINKEnvVar, deployed.Spec.Containers[i].Env)
-		if index >= 0 {
-			requested.Spec.Containers[i].Env = EnvOverride(requested.Spec.Containers[i].Env, deployed.Spec.Containers[i].Env[index])
+		// there's more envs in the deployed object, let's take them to the requested one.
+		// all other scenarios (requested with more envs or equal elements are ignored since the equality will consider them not equal anyway)
+		if len(deployed.Spec.Containers[i].Env) > len(requested.Spec.Containers[i].Env) {
+			diff := DiffEnvVar(deployed.Spec.Containers[i].Env, requested.Spec.Containers[i].Env)
+			if len(diff) > 0 {
+				requested.Spec.Containers[i].Env = append(requested.Spec.Containers[i].Env, diff...)
+			}
 		}
 	}
 }

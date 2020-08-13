@@ -16,30 +16,7 @@ package framework
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	"reflect"
 )
-
-// EnvVarToMap converts an array of Env to a map
-func EnvVarToMap(env []corev1.EnvVar) map[string]string {
-	envMap := make(map[string]string, len(env))
-
-	for _, e := range env {
-		envMap[e.Name] = e.Value
-	}
-
-	return envMap
-}
-
-// EnvVarArrayEquals checks if the elements of two arrays of EnvVar are identical
-func EnvVarArrayEquals(array1 []corev1.EnvVar, array2 []corev1.EnvVar) bool {
-	if len(array1) != len(array2) {
-		return false
-	}
-
-	map1 := EnvVarToMap(array1)
-	map2 := EnvVarToMap(array2)
-	return reflect.DeepEqual(map1, map2)
-}
 
 // GetEnvVar returns the position of the EnvVar found by name
 func GetEnvVar(envName string, env []corev1.EnvVar) int {
@@ -116,34 +93,6 @@ func SetEnvVarFromSecret(key, secretKey string, secret *corev1.Secret, container
 	container.Env = append(container.Env, corev1.EnvVar{Name: key, ValueFrom: valueFrom})
 }
 
-// EnvVarCheck checks whether the src and dst []EnvVar have the same values
-func EnvVarCheck(dst, src []corev1.EnvVar) bool {
-	for _, denv := range dst {
-		if !envVarEqual(denv, src) {
-			return false
-		}
-	}
-	for _, senv := range src {
-		if !envVarEqual(senv, dst) {
-			return false
-		}
-	}
-	return true
-}
-
-func envVarEqual(env corev1.EnvVar, envList []corev1.EnvVar) bool {
-	match := false
-	for _, e := range envList {
-		if env.Name == e.Name {
-			if env.Value == e.Value {
-				match = true
-				break
-			}
-		}
-	}
-	return match
-}
-
 // CreateEnvVar will create EnvVar value for provided key/value pair
 func CreateEnvVar(key string, value string) corev1.EnvVar {
 	return corev1.EnvVar{
@@ -165,4 +114,19 @@ func CreateSecretEnvVar(variableName, secretName, secretKey string) corev1.EnvVa
 			},
 		},
 	}
+}
+
+// DiffEnvVar returns elements in `env1` that are not in `env2`
+func DiffEnvVar(env1 []corev1.EnvVar, env2 []corev1.EnvVar) []corev1.EnvVar {
+	eMap := make(map[string]corev1.EnvVar, len(env2))
+	for _, e := range env2 {
+		eMap[e.Name] = e
+	}
+	var diff []corev1.EnvVar
+	for _, e := range env1 {
+		if _, found := eMap[e.Name]; !found {
+			diff = append(diff, e)
+		}
+	}
+	return diff
 }
