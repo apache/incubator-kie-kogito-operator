@@ -12,7 +12,7 @@ review:
       - radtriste
       - Sgitario
   - paths:
-      - Jenkinsfile
+      - 'Jenkinsfile*'
     reviewers:
       - radtriste
       - Kaitou786
