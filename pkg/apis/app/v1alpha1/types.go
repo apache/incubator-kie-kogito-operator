@@ -189,3 +189,85 @@ func (k *KafkaMeta) AreKafkaPropertiesBlank() bool {
 		len(k.KafkaProperties.Instance) == 0 &&
 		!k.KafkaProperties.UseKogitoInfra
 }
+
+// PrometheusConnectionProperties has the data needed to connect to a Kafka cluster.
+type PrometheusConnectionProperties struct {
+	// +optional
+	// UseKogitoInfra flags if the instance will use a provided infrastructure by KogitoInfra CR.
+	// If running on Kubernetes without OLM installed, please install Prometheus Operator first.
+	// Set this to false and fill other properties to provide your own infrastructure.
+	UseKogitoInfra bool `json:"useKogitoInfra,omitempty"`
+}
+
+// PrometheusAware defines a spec with KafkaProperties awareness.
+type PrometheusAware interface {
+	// GetPrometheusProperties ...
+	GetPrometheusProperties() *PrometheusConnectionProperties
+	// SetPrometheusProperties ...
+	SetPrometheusProperties(props PrometheusConnectionProperties)
+	// ArePrometheusPropertiesBlank checks if the connection properties have been set.
+	ArePrometheusPropertiesBlank() bool
+}
+
+// PrometheusMeta defines a structure for specs that need PrometheusProperties integration.
+type PrometheusMeta struct {
+	// +optional
+	// Has the data used by the service to connect to the Prometheus cluster.
+	PrometheusProperties PrometheusConnectionProperties `json:"prometheus,omitempty"`
+}
+
+// GetPrometheusProperties ...
+func (k *PrometheusMeta) GetPrometheusProperties() *PrometheusConnectionProperties {
+	return &k.PrometheusProperties
+}
+
+// SetPrometheusProperties ...
+func (k *PrometheusMeta) SetPrometheusProperties(props PrometheusConnectionProperties) {
+	k.PrometheusProperties = props
+}
+
+// ArePrometheusPropertiesBlank checks if the connection properties have been set.
+func (k *PrometheusMeta) ArePrometheusPropertiesBlank() bool {
+	return !k.PrometheusProperties.UseKogitoInfra
+}
+
+// GrafanaConnectionProperties has the data needed to connect to a Kafka cluster.
+type GrafanaConnectionProperties struct {
+	// +optional
+	// UseKogitoInfra flags if the instance will use a provided infrastructure by KogitoInfra CR.
+	// If running on Kubernetes without OLM installed, please install Prometheus Operator first.
+	// Set this to false and fill other properties to provide your own infrastructure.
+	UseKogitoInfra bool `json:"useKogitoInfra,omitempty"`
+}
+
+// GrafanaAware defines a spec with KafkaProperties awareness.
+type GrafanaAware interface {
+	// GetGrafanaProperties ...
+	GetGrafanaProperties() *GrafanaConnectionProperties
+	// SetGrafanaProperties ...
+	SetGrafanaProperties(props GrafanaConnectionProperties)
+	// AreGrafanaPropertiesBlank checks if the connection properties have been set.
+	AreGrafanaPropertiesBlank() bool
+}
+
+// GrafanaMeta defines a structure for specs that need PrometheusProperties integration.
+type GrafanaMeta struct {
+	// +optional
+	// Has the data used by the service to connect to the Prometheus cluster.
+	GrafanaProperties GrafanaConnectionProperties `json:"grafana,omitempty"`
+}
+
+// GetGrafanaProperties ...
+func (k *GrafanaMeta) GetGrafanaProperties() *GrafanaConnectionProperties {
+	return &k.GrafanaProperties
+}
+
+// SetGrafanaProperties ...
+func (k *GrafanaMeta) SetGrafanaProperties(props GrafanaConnectionProperties) {
+	k.GrafanaProperties = props
+}
+
+// AreGrafanaPropertiesBlank checks if the connection properties have been set.
+func (k *GrafanaMeta) AreGrafanaPropertiesBlank() bool {
+	return !k.GrafanaProperties.UseKogitoInfra
+}

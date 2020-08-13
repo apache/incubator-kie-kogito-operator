@@ -740,6 +740,13 @@ func schema_pkg_apis_app_v1alpha1_KogitoAppSpec(ref common.ReferenceCallback) co
 							Format:      "",
 						},
 					},
+					"enableMonitoring": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Set this property to true to tell the operator to deploy an instance of Prometheus+Grafana via the operators and configure this service with the proper information to connect to the kogito application. Set to false or ignore it if your service does not need messaging or if you are going to configure the monitoring infrastructure yourself.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"build"},
 			},
@@ -1177,6 +1184,20 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 							Format:      "",
 						},
 					},
+					"installPrometheus": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether or not to install Prometheus using Prometheus Operator. Please note that the Prometheus Operator must be installed manually on environments that doesn't have OLM installed.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"installGrafana": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether or not to install Grafana using Grafana Operator. Please note that the Grafana Operator must be installed manually on environments that doesn't have OLM installed.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},
@@ -1206,6 +1227,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraStatus(ref common.ReferenceCallback
 						},
 					},
 					"keycloak": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfraComponentInstallStatusType"),
+						},
+					},
+					"prometheus": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfraComponentInstallStatusType"),
+						},
+					},
+					"grafana": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfraComponentInstallStatusType"),
 						},

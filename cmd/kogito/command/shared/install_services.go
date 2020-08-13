@@ -16,6 +16,7 @@ package shared
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -68,10 +69,14 @@ type ServicesInstallation interface {
 	InstallKeycloak() ServicesInstallation
 	// InstallKafka install a kafka instance.
 	InstallKafka() ServicesInstallation
+	// InstallPrometheus install a kafka instance.
+	InstallPrometheus() ServicesInstallation
+	// InstallGrafana install a kafka instance.
+	InstallGrafana() ServicesInstallation
 	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
 	SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation
 	// WarnIfDependenciesNotReady checks if the given dependencies are installed, warn if they are not ready
-	WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation
+	WarnIfDependenciesNotReady(infinispan, kafka, prometheus, grafana bool) ServicesInstallation
 	// GetError return any given error during the installation process
 	GetError() error
 }
@@ -85,7 +90,7 @@ func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) Ser
 	}
 }
 
-func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation {
+func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka, prometheus, grafana bool) ServicesInstallation {
 	log := context.GetDefaultLogger()
 	if infinispan {
 		if infrastructure.IsInfinispanAvailable(s.client) {
@@ -101,6 +106,16 @@ func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool
 	if kafka {
 		if available := infrastructure.IsStrimziAvailable(s.client); !available {
 			log.Infof(message.ServiceKafkaNotAvailable, s.namespace)
+		}
+	}
+	if prometheus {
+		if available := infrastructure.IsPrometheusAvailable(s.client); !available {
+			log.Infof(message.ServicePrometheusNotAvailable, s.namespace)
+		}
+	}
+	if grafana {
+		if available := infrastructure.IsStrimziAvailable(s.client); !available {
+			log.Infof(message.ServiceGrafanaNotAvailable, s.namespace)
 		}
 	}
 	return s
@@ -199,6 +214,20 @@ func (s *servicesInstallation) InstallKeycloak() ServicesInstallation {
 func (s *servicesInstallation) InstallKafka() ServicesInstallation {
 	if s.err == nil {
 		s.err = installKafka(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallPrometheus() ServicesInstallation {
+	if s.err == nil {
+		s.err = installPrometheus(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallGrafana() ServicesInstallation {
+	if s.err == nil {
+		s.err = installGrafana(s.client, s.namespace)
 	}
 	return s
 }

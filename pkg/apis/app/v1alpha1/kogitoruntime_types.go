@@ -22,6 +22,8 @@ import (
 type KogitoRuntimeSpec struct {
 	InfinispanMeta    `json:",inline"`
 	KafkaMeta         `json:",inline"`
+	PrometheusMeta    `json:",inline"`
+	GrafanaMeta       `json:",inline"`
 	KogitoServiceSpec `json:",inline"`
 
 	// Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.

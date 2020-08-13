@@ -159,6 +159,17 @@ spec:
                 type: object
               type: array
               x-kubernetes-list-type: atomic
+            grafana:
+              description: Has the data used by the service to connect to the Prometheus
+                cluster.
+              properties:
+                useKogitoInfra:
+                  description: UseKogitoInfra flags if the instance will use a provided
+                    infrastructure by KogitoInfra CR. If running on Kubernetes without
+                    OLM installed, please install Prometheus Operator first. Set this
+                    to false and fill other properties to provide your own infrastructure.
+                  type: boolean
+              type: object
             httpPort:
               description: HttpPort will set the environment env HTTP_PORT to define
                 which port service will listen internally.
@@ -256,6 +267,17 @@ spec:
                     without OLM installed, please install Strimzi Operator first.
                     Set this to false and fill other properties to provide your own
                     infrastructure.
+                  type: boolean
+              type: object
+            prometheus:
+              description: Has the data used by the service to connect to the Prometheus
+                cluster.
+              properties:
+                useKogitoInfra:
+                  description: UseKogitoInfra flags if the instance will use a provided
+                    infrastructure by KogitoInfra CR. If running on Kubernetes without
+                    OLM installed, please install Prometheus Operator first. Set this
+                    to false and fill other properties to provide your own infrastructure.
                   type: boolean
               type: object
             replicas:

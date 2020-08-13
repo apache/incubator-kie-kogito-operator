@@ -16,7 +16,12 @@ package kogitoinfra
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
+	prometheusv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	grafanav1 "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
@@ -24,7 +29,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"time"
 
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -55,6 +59,16 @@ var watchedObjects = []framework.WatchedObjects{
 		GroupVersion: kafkav1beta1.SchemeGroupVersion,
 		AddToScheme:  kafkav1beta1.SchemeBuilder.AddToScheme,
 		Objects:      []runtime.Object{&kafkav1beta1.Kafka{}},
+	},
+	{
+		GroupVersion: prometheusv1.SchemeGroupVersion,
+		AddToScheme:  prometheusv1.SchemeBuilder.AddToScheme,
+		Objects:      []runtime.Object{&prometheusv1.Prometheus{}},
+	},
+	{
+		GroupVersion: grafanav1.SchemeGroupVersion,
+		AddToScheme:  grafanav1.SchemeBuilder.AddToScheme,
+		Objects:      []runtime.Object{&grafanav1.Grafana{}},
 	},
 	{
 		Objects: []runtime.Object{&corev1.Secret{}},
@@ -134,11 +148,15 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		return reconcile.Result{}, nil
 	}
 
+	log.Warn("SUCA1")
+
 	// watcher will be nil on test env
 	if controllerWatcher != nil && !controllerWatcher.AreAllObjectsWatched() {
 		if (instance.Spec.InstallKafka && !controllerWatcher.IsGroupWatched(kafkav1beta1.SchemeGroupVersion.Group)) ||
 			(instance.Spec.InstallInfinispan && !controllerWatcher.IsGroupWatched(infinispanv1.SchemeGroupVersion.Group)) ||
-			(instance.Spec.InstallKeycloak && !controllerWatcher.IsGroupWatched(keycloakv1alpha1.SchemeGroupVersion.Group)) {
+			(instance.Spec.InstallKeycloak && !controllerWatcher.IsGroupWatched(keycloakv1alpha1.SchemeGroupVersion.Group)) ||
+			(instance.Spec.InstallPrometheus && !controllerWatcher.IsGroupWatched(prometheusv1.SchemeGroupVersion.Group)) ||
+			(instance.Spec.InstallGrafana && !controllerWatcher.IsGroupWatched(grafanav1.SchemeGroupVersion.Group)) {
 			// try to add them
 			if err := controllerWatcher.Watch(watchedObjects...); err != nil {
 				return reconcile.Result{}, err
@@ -171,6 +189,18 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 	// Verify Keycloak
 	if instance.Spec.InstallKeycloak && !infrastructure.IsKeycloakAvailable(r.client) {
 		resultErr = fmt.Errorf("Keycloak is not available in the namespace %s, impossible to continue ", instance.Namespace)
+		return
+	}
+
+	// Verify Prometheus
+	if instance.Spec.InstallPrometheus && !infrastructure.IsPrometheusAvailable(r.client) {
+		resultErr = fmt.Errorf("Prometheus is not available in the namespace %s, impossible to continue ", instance.Namespace)
+		return
+	}
+
+	// Verify Grafana
+	if instance.Spec.InstallGrafana && !infrastructure.IsGrafanaAvailable(r.client) {
+		resultErr = fmt.Errorf("Grafana is not available in the namespace %s, impossible to continue ", instance.Namespace)
 		return
 	}
 

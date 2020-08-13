@@ -208,6 +208,15 @@ spec:
         path: enableIstio
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Set this property to true to tell the operator to deploy an instance
+          of Prometheus+Grafana via the operators and configure this service with
+          the proper information to connect to the kogito application. Set to false
+          or ignore it if your service does not need messaging or if you are going
+          to configure the monitoring infrastructure yourself.
+        displayName: Enable Monitoring
+        path: enableMonitoring
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: 'Set this property to true to tell the operator to deploy an
           instance of Infinispan via the Infinispan Operator and configure this service
           to connect to the deployed server. For Quarkus runtime, it sets QUARKUS_INFINISPAN_CLIENT_*
@@ -473,6 +482,9 @@ spec:
       kind: KogitoInfra
       name: kogitoinfras.app.kiegroup.org
       resources:
+      - kind: Grafana
+        name: ""
+        version: integreatly.org/v1alpha
       - kind: Infinispans
         name: ""
         version: infinispan.org/v1
@@ -482,10 +494,20 @@ spec:
       - kind: Keycloaks
         name: ""
         version: keycloak.org/v1alpha1
+      - kind: Prometheus
+        name: ""
+        version: monitoring.coreos.com/v1
       - kind: Secrets
         name: ""
         version: v1
       specDescriptors:
+      - description: Whether or not to install Grafana using Grafana Operator. Please
+          note that the Grafana Operator must be installed manually on environments
+          that doesn't have OLM installed.
+        displayName: Install Grafana
+        path: installGrafana
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: Indicates if Infinispan should be installed or not using Infinispan
           Operator. Please note that the Infinispan Operator must be installed manually
           on environments that doesn't have OLM installed.
@@ -505,6 +527,13 @@ spec:
           that doesn't have OLM installed.
         displayName: Install Keycloak
         path: installKeycloak
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Whether or not to install Prometheus using Prometheus Operator.
+          Please note that the Prometheus Operator must be installed manually on environments
+          that doesn't have OLM installed.
+        displayName: Install Prometheus
+        path: installPrometheus
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       version: v1alpha1

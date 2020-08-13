@@ -18,9 +18,11 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/grafana"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/prometheus"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 
 	"reflect"
@@ -40,8 +42,16 @@ func (r *ReconcileKogitoInfra) getDeployedResources(instance *v1alpha1.KogitoInf
 	if err != nil {
 		return
 	}
-	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka)+len(resourcesKeycloak))
-	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan, resourcesKeycloak)
+	resourcesPrometheus, err := prometheus.GetDeployedResources(instance, r.client)
+	if err != nil {
+		return
+	}
+	resourcesGrafana, err := grafana.GetDeployedResources(instance, r.client)
+	if err != nil {
+		return
+	}
+	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka)+len(resourcesKeycloak)+len(resourcesPrometheus)+len(resourcesGrafana))
+	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan, resourcesKeycloak, resourcesPrometheus, resourcesGrafana)
 	return
 }
 
@@ -59,8 +69,16 @@ func (r *ReconcileKogitoInfra) createRequiredResources(instance *v1alpha1.Kogito
 	if err != nil {
 		return
 	}
-	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka)+len(resourcesKeycloak))
-	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan, resourcesKeycloak)
+	resourcesPrometheus, err := prometheus.CreateRequiredResources(instance)
+	if err != nil {
+		return
+	}
+	resourcesGrafana, err := grafana.CreateRequiredResources(instance)
+	if err != nil {
+		return
+	}
+	resources = make(map[reflect.Type][]resource.KubernetesResource, len(resourcesInfinispan)+len(resourcesKafka)+len(resourcesKeycloak)+len(resourcesPrometheus)+len(resourcesGrafana))
+	mergeResourceMaps(resources, resourcesKafka, resourcesInfinispan, resourcesKeycloak, resourcesPrometheus, resourcesGrafana)
 	return
 }
 
@@ -70,6 +88,8 @@ func (r *ReconcileKogitoInfra) getComparator() compare.MapComparator {
 	comparators = append(comparators, infinispan.GetComparators()...)
 	comparators = append(comparators, kafka.GetComparators()...)
 	comparators = append(comparators, keycloak.GetComparators()...)
+	comparators = append(comparators, prometheus.GetComparators()...)
+	comparators = append(comparators, grafana.GetComparators()...)
 
 	resourceComparator := compare.DefaultComparator()
 	for _, comparator := range comparators {

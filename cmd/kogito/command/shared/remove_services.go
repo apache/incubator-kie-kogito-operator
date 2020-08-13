@@ -32,6 +32,10 @@ type ServicesRemoval interface {
 	RemoveKeycloak() ServicesRemoval
 	// RemoveKafka removes the installed kafka instance.
 	RemoveKafka() ServicesRemoval
+	// RemovePrometheus removes the installed kafka instance.
+	RemovePrometheus() ServicesRemoval
+	// RemoveGrafana removes the installed kafka instance.
+	RemoveGrafana() ServicesRemoval
 	// GetError return any given error during the installation process
 	GetError() error
 }
@@ -53,6 +57,20 @@ func (s servicesRemoval) RemoveKeycloak() ServicesRemoval {
 func (s servicesRemoval) RemoveKafka() ServicesRemoval {
 	if s.err == nil {
 		s.err = removeKafka(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s servicesRemoval) RemovePrometheus() ServicesRemoval {
+	if s.err == nil {
+		s.err = removePrometheus(s.client, s.namespace)
+	}
+	return s
+}
+
+func (s servicesRemoval) RemoveGrafana() ServicesRemoval {
+	if s.err == nil {
+		s.err = removeGrafana(s.client, s.namespace)
 	}
 	return s
 }

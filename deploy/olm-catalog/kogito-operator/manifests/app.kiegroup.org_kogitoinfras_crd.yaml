@@ -16,6 +16,14 @@ spec:
     description: Keycloak should be installed
     name: Keycloak
     type: boolean
+  - JSONPath: .spec.installPrometheus
+    description: Prometheus should be installed
+    name: Prometheus
+    type: boolean
+  - JSONPath: .spec.installGrafana
+    description: Grafana should be installed
+    name: Grafana
+    type: boolean
   group: app.kiegroup.org
   names:
     kind: KogitoInfra
@@ -47,6 +55,11 @@ spec:
         spec:
           description: KogitoInfraSpec defines the desired state of KogitoInfra.
           properties:
+            installGrafana:
+              description: Whether or not to install Grafana using Grafana Operator.
+                Please note that the Grafana Operator must be installed manually on
+                environments that doesn't have OLM installed.
+              type: boolean
             installInfinispan:
               description: Indicates if Infinispan should be installed or not using
                 Infinispan Operator. Please note that the Infinispan Operator must
@@ -60,6 +73,11 @@ spec:
             installKeycloak:
               description: Whether or not to install Keycloak using Keycloak Operator.
                 Please note that the Keycloak Operator must be installed manually
+                on environments that doesn't have OLM installed.
+              type: boolean
+            installPrometheus:
+              description: Whether or not to install Prometheus using Prometheus Operator.
+                Please note that the Prometheus Operator must be installed manually
                 on environments that doesn't have OLM installed.
               type: boolean
           type: object
@@ -81,6 +99,36 @@ spec:
               required:
               - status
               - type
+              type: object
+            grafana:
+              description: InfraComponentInstallStatusType is the base structure to
+                define the status for an actor in the infrastructure.
+              properties:
+                condition:
+                  items:
+                    description: InstallCondition defines the installation condition
+                      for the infrastructure actor.
+                    properties:
+                      lastTransitionTime:
+                        format: date-time
+                        type: string
+                      message:
+                        type: string
+                      status:
+                        type: string
+                      type:
+                        description: InstallConditionType defines the possibles conditions
+                          that a install might have.
+                        type: string
+                    required:
+                    - status
+                    - type
+                    type: object
+                  type: array
+                name:
+                  type: string
+                service:
+                  type: string
               type: object
             infinispan:
               description: InfinispanInstallStatus defines the Infinispan installation
@@ -145,6 +193,36 @@ spec:
                   type: string
               type: object
             keycloak:
+              description: InfraComponentInstallStatusType is the base structure to
+                define the status for an actor in the infrastructure.
+              properties:
+                condition:
+                  items:
+                    description: InstallCondition defines the installation condition
+                      for the infrastructure actor.
+                    properties:
+                      lastTransitionTime:
+                        format: date-time
+                        type: string
+                      message:
+                        type: string
+                      status:
+                        type: string
+                      type:
+                        description: InstallConditionType defines the possibles conditions
+                          that a install might have.
+                        type: string
+                    required:
+                    - status
+                    - type
+                    type: object
+                  type: array
+                name:
+                  type: string
+                service:
+                  type: string
+              type: object
+            prometheus:
               description: InfraComponentInstallStatusType is the base structure to
                 define the status for an actor in the infrastructure.
               properties:

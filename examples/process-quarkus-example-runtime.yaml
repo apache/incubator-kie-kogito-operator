@@ -4,6 +4,12 @@ metadata:
   name: process-quarkus-example
 spec:
   replicas: 1
+  enableMonitoring: true
+  prometheus:
+    useKogitoInfra: true
+  grafana:
+    useKogitoInfra: true
+
   image:
     domain: quay.io
     namespace: kiegroup

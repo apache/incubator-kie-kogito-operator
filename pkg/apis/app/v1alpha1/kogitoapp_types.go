@@ -68,6 +68,14 @@ type KogitoAppSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Events"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	EnableEvents bool `json:"enableEvents,omitempty"`
+
+	// Set this property to true to tell the operator to deploy an instance of Prometheus+Grafana via the operators and configure this service with
+	// the proper information to connect to the kogito application.
+	// Set to false or ignore it if your service does not need messaging or if you are going to configure the monitoring infrastructure yourself.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Monitoring"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	EnableMonitoring bool `json:"enableMonitoring,omitempty"`
 }
 
 // GetRuntime ...
@@ -303,6 +311,7 @@ type Builds struct {
 // +kubebuilder:printcolumn:name="Runtime",type="string",JSONPath=".spec.runtime",description="Runtime used to build the service"
 // +kubebuilder:printcolumn:name="Enable Persistence",type="boolean",JSONPath=".spec.enablePersistence",description="Indicates if persistence is enabled"
 // +kubebuilder:printcolumn:name="Enable Events",type="boolean",JSONPath=".spec.enableEvents",description="Indicates if events is enabled"
+// +kubebuilder:printcolumn:name="Enable Monitoring",type="boolean",JSONPath=".spec.enableMonitoring",description="Indicates if monitoring is enabled"
 // +kubebuilder:printcolumn:name="Image Version",type="string",JSONPath=".spec.build.imageVersion",description="Build image version"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.route",description="External URI to access this service"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Application"

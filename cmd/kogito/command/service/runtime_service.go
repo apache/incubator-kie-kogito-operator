@@ -25,7 +25,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // IRuntimeService is interface to perform Kogito Runtime
@@ -89,7 +89,7 @@ func (i runtimeServiceImpl) InstallRuntimeService(cli *client.Client, flags *fla
 	err = shared.
 		ServicesInstallationBuilder(cli, flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(flags.Channel)).
-		WarnIfDependenciesNotReady(flags.InfinispanFlags.UseKogitoInfra, flags.KafkaFlags.UseKogitoInfra).
+		WarnIfDependenciesNotReady(flags.InfinispanFlags.UseKogitoInfra, flags.KafkaFlags.UseKogitoInfra, flags.EnableMonitoring, flags.EnableMonitoring).
 		InstallRuntimeService(&kogitoRuntime).
 		GetError()
 	if err != nil {

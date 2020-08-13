@@ -360,7 +360,17 @@ func (r *ReconcileKogitoApp) ensureKogitoInfra(instance *v1alpha1.KogitoApp, app
 		return false, err
 	}
 
-	return requeueInfinispan || requeueKafka, nil
+	requeuePrometheus, err := r.ensurePrometheus(instance, appProps)
+	if err != nil {
+		return false, err
+	}
+
+	requeueGrafana, err := r.ensureGrafana(instance, appProps)
+	if err != nil {
+		return false, err
+	}
+
+	return requeueInfinispan || requeueKafka || requeuePrometheus || requeueGrafana, nil
 }
 
 func (r *ReconcileKogitoApp) ensureInfinispan(instance *v1alpha1.KogitoApp, runtimeImage *docker10.DockerImage, appProps map[string]string) (requeue bool, err error) {
@@ -404,6 +414,42 @@ func (r *ReconcileKogitoApp) ensureKafka(instance *v1alpha1.KogitoApp, appProps 
 			if err = mergo.Merge(&appProps, aps, mergo.WithOverride); err != nil {
 				return true, err
 			}
+			log.Debug("KogitoInfra is ready, proceed!")
+			return false, nil
+		} else if !ready {
+			log.Debug("KogitoInfra is not ready, requeue")
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (r *ReconcileKogitoApp) ensurePrometheus(instance *v1alpha1.KogitoApp, appProps map[string]string) (requeue bool, err error) {
+	log.Debug("Verify if we need to deploy Prometheus")
+	if instance.Spec.EnableMonitoring {
+		_, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithPrometheus().Apply()
+		if err != nil {
+			return true, err
+		}
+		if ready {
+			log.Debug("KogitoInfra is ready, proceed!")
+			return false, nil
+		} else if !ready {
+			log.Debug("KogitoInfra is not ready, requeue")
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (r *ReconcileKogitoApp) ensureGrafana(instance *v1alpha1.KogitoApp, appProps map[string]string) (requeue bool, err error) {
+	log.Debug("Verify if we need to deploy Grafana")
+	if instance.Spec.EnableMonitoring {
+		_, ready, err := infrastructure.EnsureKogitoInfra(instance.Namespace, r.client).WithGrafana().Apply()
+		if err != nil {
+			return true, err
+		}
+		if ready {
 			log.Debug("KogitoInfra is ready, proceed!")
 			return false, nil
 		} else if !ready {

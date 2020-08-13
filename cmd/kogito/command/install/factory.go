@@ -27,6 +27,8 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	initInstallJobsServiceCommand(ctx, installCmd.Command())
 	initInstallInfinispanCommand(ctx, installCmd.Command())
 	initInstallKeycloakCommand(ctx, installCmd.Command())
+	initInstallPrometheusCommand(ctx, installCmd.Command())
+	initInstallGrafanaCommand(ctx, installCmd.Command())
 	initInstallKafkaCommand(ctx, installCmd.Command())
 	initInstallMgmtConsoleCommand(ctx, installCmd.Command())
 }

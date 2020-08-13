@@ -41,6 +41,8 @@ type ensureComponent struct {
 	infinispan componentState
 	kafka      componentState
 	keycloak   componentState
+	prometheus componentState
+	grafana    componentState
 }
 
 // EnsureComponent interface to control how to provision an infra with a given component
@@ -51,6 +53,10 @@ type EnsureComponent interface {
 	WithKafka() EnsureComponent
 	// WithKeycloak creates a new instance of KogitoInfra if not exists with a Keycloak deployed if not exists. If exists, checks if Keycloak is deployed.
 	WithKeycloak() EnsureComponent
+	// WithPrometheus creates a new instance of KogitoInfra if not exists with a Prometheus deployed if not exists. If exists, checks if Prometheus is deployed.
+	WithPrometheus() EnsureComponent
+	// WithGrafana creates a new instance of KogitoInfra if not exists with a Grafana deployed if not exists. If exists, checks if Grafana is deployed.
+	WithGrafana() EnsureComponent
 
 	// WithoutInfinispan deletes instance of Infinispan if exists.
 	WithoutInfinispan() EnsureComponent
@@ -58,6 +64,10 @@ type EnsureComponent interface {
 	WithoutKafka() EnsureComponent
 	// WithoutKeycloak deletes instance of Keycloak if exists.
 	WithoutKeycloak() EnsureComponent
+	// WithoutPrometheus deletes instance of Prometheus if exists.
+	WithoutPrometheus() EnsureComponent
+	// WithoutGrafana deletes instance of Grafana if exists.
+	WithoutGrafana() EnsureComponent
 
 	Apply() (infra *v1alpha1.KogitoInfra, ready bool, err error)
 }
@@ -77,6 +87,16 @@ func (k *ensureComponent) WithKeycloak() EnsureComponent {
 	return k
 }
 
+func (k *ensureComponent) WithPrometheus() EnsureComponent {
+	k.prometheus = installComponentState
+	return k
+}
+
+func (k *ensureComponent) WithGrafana() EnsureComponent {
+	k.grafana = installComponentState
+	return k
+}
+
 func (k *ensureComponent) WithoutInfinispan() EnsureComponent {
 	k.infinispan = removeComponentState
 	return k
@@ -89,6 +109,16 @@ func (k *ensureComponent) WithoutKafka() EnsureComponent {
 
 func (k *ensureComponent) WithoutKeycloak() EnsureComponent {
 	k.keycloak = removeComponentState
+	return k
+}
+
+func (k *ensureComponent) WithoutPrometheus() EnsureComponent {
+	k.prometheus = removeComponentState
+	return k
+}
+
+func (k *ensureComponent) WithoutGrafana() EnsureComponent {
+	k.prometheus = removeComponentState
 	return k
 }
 
@@ -116,7 +146,16 @@ func (k *ensureComponent) Apply() (*v1alpha1.KogitoInfra, bool, error) {
 	} else if k.keycloak == removeComponentState && deployed {
 		ready = false
 	}
-
+	if deployed := isPrometheusDeployed(infra); k.prometheus == installComponentState && !deployed {
+		ready = false
+	} else if k.prometheus == removeComponentState && deployed {
+		ready = false
+	}
+	if deployed := isGrafanaDeployed(infra); k.grafana == installComponentState && !deployed {
+		ready = false
+	} else if k.grafana == removeComponentState && deployed {
+		ready = false
+	}
 	return infra, ready, nil
 }
 
@@ -142,6 +181,8 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 		infraChanged = updateInstallValueIfNeeded(k.infinispan, &infra.Spec.InstallInfinispan) || infraChanged
 		infraChanged = updateInstallValueIfNeeded(k.kafka, &infra.Spec.InstallKafka) || infraChanged
 		infraChanged = updateInstallValueIfNeeded(k.keycloak, &infra.Spec.InstallKeycloak) || infraChanged
+		infraChanged = updateInstallValueIfNeeded(k.prometheus, &infra.Spec.InstallPrometheus) || infraChanged
+		infraChanged = updateInstallValueIfNeeded(k.grafana, &infra.Spec.InstallGrafana) || infraChanged
 		if infraChanged {
 			if err := kubernetes.ResourceC(k.client).Update(infra); err != nil {
 				return nil, err
@@ -155,6 +196,8 @@ func (k *ensureComponent) createOrUpdateInfra() (*v1alpha1.KogitoInfra, error) {
 				InstallInfinispan: getInstallValue(k.infinispan),
 				InstallKafka:      getInstallValue(k.kafka),
 				InstallKeycloak:   getInstallValue(k.keycloak),
+				InstallPrometheus: getInstallValue(k.prometheus),
+				InstallGrafana:    getInstallValue(k.grafana),
 			},
 		}
 		log.Debug("We don't have KogitoInfra deployed, trying to create a new one")
@@ -196,6 +239,20 @@ func isKeycloakDeployed(infra *v1alpha1.KogitoInfra) bool {
 	return false
 }
 
+func isPrometheusDeployed(infra *v1alpha1.KogitoInfra) bool {
+	if infra != nil {
+		return isInfraComponentDeployed(&infra.Status.Prometheus)
+	}
+	return false
+}
+
+func isGrafanaDeployed(infra *v1alpha1.KogitoInfra) bool {
+	if infra != nil {
+		return isInfraComponentDeployed(&infra.Status.Grafana)
+	}
+	return false
+}
+
 // EnsureKogitoInfra will create the KogitoInfra instance with default values if does not exist and return the handle to specify which component should be created
 func EnsureKogitoInfra(namespace string, cli *client.Client) EnsureComponent {
 	ensure := &ensureComponent{
@@ -205,6 +262,8 @@ func EnsureKogitoInfra(namespace string, cli *client.Client) EnsureComponent {
 		infinispan: noActionComponentState,
 		kafka:      noActionComponentState,
 		keycloak:   noActionComponentState,
+		prometheus: noActionComponentState,
+		grafana:    noActionComponentState,
 	}
 	return ensure
 }

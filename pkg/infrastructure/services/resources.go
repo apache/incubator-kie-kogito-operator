@@ -15,6 +15,9 @@
 package services
 
 import (
+	"reflect"
+	"time"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
@@ -27,10 +30,8 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
-	"time"
 )
 
 const (
@@ -79,6 +80,16 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		}
 		if s.definition.kafkaAware {
 			if err = s.applyKafkaConfigurations(deployment, appProps, s.instance); err != nil {
+				return resources, reconcileAfter, err
+			}
+		}
+		if s.definition.prometheusAware {
+			if err = s.applyPrometheusConfigurations(deployment, appProps, s.instance); err != nil {
+				return resources, reconcileAfter, err
+			}
+		}
+		if s.definition.grafanaAware {
+			if err = s.applyGrafanaConfigurations(deployment, appProps, s.instance); err != nil {
 				return resources, reconcileAfter, err
 			}
 		}
@@ -247,6 +258,54 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 	} else {
 		framework.SetEnvVar(enableEventsEnvKey, "false", &deployment.Spec.Template.Spec.Containers[0])
 	}
+
+	return nil
+}
+
+func (s *serviceDeployer) applyPrometheusConfigurations(deployment *appsv1.Deployment, appProps map[string]string, instance v1alpha1.KogitoService) error {
+	// URI, err := getKafkaServerURI(*instance.GetSpec().(v1alpha1.PrometheusAware).GetPrometheusProperties(), s.getNamespace(), s.client)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if len(URI) > 0 {
+	// 	framework.SetEnvVar(enableEventsEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
+	// 	if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringbootRuntimeType {
+	// 		appProps[SpringBootstrapAppProp] = URI
+	// 	} else {
+	// 		for _, kafkaTopic := range s.definition.KafkaTopics {
+	// 			appProps[fromKafkaTopicToQuarkusAppProp(kafkaTopic)] = URI
+	// 		}
+	// 		appProps[QuarkusBootstrapAppProp] = URI
+	// 		framework.SetEnvVar(quarkusBootstrapEnvVar, URI, &deployment.Spec.Template.Spec.Containers[0])
+	// 	}
+	// } else {
+	// 	framework.SetEnvVar(enableEventsEnvKey, "false", &deployment.Spec.Template.Spec.Containers[0])
+	// }
+
+	return nil
+}
+
+func (s *serviceDeployer) applyGrafanaConfigurations(deployment *appsv1.Deployment, appProps map[string]string, instance v1alpha1.KogitoService) error {
+	// URI, err := getKafkaServerURI(*instance.GetSpec().(v1alpha1.PrometheusAware).GetPrometheusProperties(), s.getNamespace(), s.client)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if len(URI) > 0 {
+	// 	framework.SetEnvVar(enableEventsEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
+	// 	if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringbootRuntimeType {
+	// 		appProps[SpringBootstrapAppProp] = URI
+	// 	} else {
+	// 		for _, kafkaTopic := range s.definition.KafkaTopics {
+	// 			appProps[fromKafkaTopicToQuarkusAppProp(kafkaTopic)] = URI
+	// 		}
+	// 		appProps[QuarkusBootstrapAppProp] = URI
+	// 		framework.SetEnvVar(quarkusBootstrapEnvVar, URI, &deployment.Spec.Template.Spec.Containers[0])
+	// 	}
+	// } else {
+	// 	framework.SetEnvVar(enableEventsEnvKey, "false", &deployment.Spec.Template.Spec.Containers[0])
+	// }
 
 	return nil
 }

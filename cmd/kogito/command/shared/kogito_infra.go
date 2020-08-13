@@ -45,6 +45,22 @@ func installKeycloak(cli *client.Client, namespace string) error {
 	return nil
 }
 
+func installPrometheus(cli *client.Client, namespace string) error {
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithPrometheus().Apply(); err != nil {
+		return err
+	}
+	context.GetDefaultLogger().Infof(message.PrometheusSuccessfulInstalled, namespace)
+	return nil
+}
+
+func installGrafana(cli *client.Client, namespace string) error {
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithGrafana().Apply(); err != nil {
+		return err
+	}
+	context.GetDefaultLogger().Infof(message.GrafanaSuccessfulInstalled, namespace)
+	return nil
+}
+
 func removeInfinispan(cli *client.Client, namespace string) error {
 	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutInfinispan().Apply(); err != nil {
 		return err
@@ -65,5 +81,21 @@ func removeKafka(cli *client.Client, namespace string) error {
 		return err
 	}
 	context.GetDefaultLogger().Infof(message.KafkaSuccessfulRemoved, namespace)
+	return nil
+}
+
+func removePrometheus(cli *client.Client, namespace string) error {
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutPrometheus().Apply(); err != nil {
+		return err
+	}
+	context.GetDefaultLogger().Infof(message.PrometheusSuccessfulRemoved, namespace)
+	return nil
+}
+
+func removeGrafana(cli *client.Client, namespace string) error {
+	if _, _, err := infrastructure.EnsureKogitoInfra(namespace, cli).WithoutGrafana().Apply(); err != nil {
+		return err
+	}
+	context.GetDefaultLogger().Infof(message.GrafanaSuccessfulRemoved, namespace)
 	return nil
 }

@@ -16,6 +16,7 @@ package install
 
 import (
 	"errors"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
@@ -33,6 +34,7 @@ type installKogitoOperatorFlags struct {
 	force              bool
 	enablePersistence  bool
 	enableEvents       bool
+	enableMonitoring   bool
 }
 
 type installKogitoOperatorCommand struct {
@@ -92,6 +94,7 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
 	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same project and inject the environment variables to configure the service connection to the Infinispan server.")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
+	i.command.Flags().BoolVar(&i.flags.enableMonitoring, "enable-monitoring", false, "If set will install a Prometheus+Grafana cluster via the operators.")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {

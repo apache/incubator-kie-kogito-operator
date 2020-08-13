@@ -137,7 +137,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
-		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra).
+		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra, false, false).
 		InstallJobsService(&kogitoJobsService).
 		GetError()
 }

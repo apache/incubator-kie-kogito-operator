@@ -16,10 +16,11 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
-	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"time"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -79,6 +80,10 @@ type ServiceDefinition struct {
 	infinispanAware bool
 	// kafkaAware whether or not to handle Kafka integration in this service (inject variables, deploy if needed, and so on)
 	kafkaAware bool
+	// prometheusAware whether or not to handle Prometheus integration in this service (inject variables, deploy if needed, and so on)
+	prometheusAware bool
+	// grafanaAware whether or not to handle Grafana integration in this service (inject variables, deploy if needed, and so on)
+	grafanaAware bool
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
 	extraManagedObjectLists []runtime.Object
 }
@@ -185,6 +190,14 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		log.Debugf("Kogito Service %s supports Kafka", s.instance.GetName())
 		s.definition.kafkaAware = true
 	}
+	if _, isPrometheus := s.instance.GetSpec().(v1alpha1.PrometheusAware); isPrometheus {
+		log.Debugf("Kogito Service %s supports Prometheus", s.instance.GetName())
+		s.definition.prometheusAware = true
+	}
+	if _, isGrafana := s.instance.GetSpec().(v1alpha1.GrafanaAware); isGrafana {
+		log.Debugf("Kogito Service %s supports Grafana", s.instance.GetName())
+		s.definition.grafanaAware = true
+	}
 
 	// deploy Infinispan
 	if s.definition.infinispanAware {
@@ -199,6 +212,28 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// deploy Kafka
 	if s.definition.kafkaAware {
 		reconcileAfter, err = s.deployKafka()
+		if err != nil {
+			return
+		} else if reconcileAfter > 0 {
+			return
+		}
+	}
+
+	// deploy Prometheus
+	if s.definition.prometheusAware {
+		log.Debugf("Prometheus in", s.instance.GetName())
+		reconcileAfter, err = s.deployPrometheus()
+		if err != nil {
+			return
+		} else if reconcileAfter > 0 {
+			return
+		}
+	}
+
+	// deploy Grafana
+	if s.definition.prometheusAware {
+		log.Debugf("Grafana in", s.instance.GetName())
+		reconcileAfter, err = s.deployGrafana()
 		if err != nil {
 			return
 		} else if reconcileAfter > 0 {
@@ -358,6 +393,54 @@ func (s *serviceDeployer) deployKafka() (requeueAfter time.Duration, err error) 
 	needUpdate := false
 	if needUpdate, requeueAfter, err =
 		infrastructure.DeployKafkaWithKogitoInfra(kafkaAware, s.instance.GetNamespace(), s.client); err != nil {
+		return
+	} else if needUpdate {
+		if err = s.update(); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (s *serviceDeployer) deployPrometheus() (requeueAfter time.Duration, err error) {
+	requeueAfter = 0
+	prometheusAware := s.instance.GetSpec().(v1alpha1.PrometheusAware)
+
+	if !prometheusAware.GetPrometheusProperties().UseKogitoInfra {
+		return
+	}
+	if !infrastructure.IsPrometheusAvailable(s.client) {
+		log.Warnf("Looks like that the service %s requires Prometheus, but there's no Prometheus CRD in the namespace %s. Aborting installation.", s.instance.GetName(), s.instance.GetNamespace())
+		return
+	}
+
+	needUpdate := false
+	if needUpdate, requeueAfter, err =
+		infrastructure.DeployPrometheusWithKogitoInfra(prometheusAware, s.instance.GetNamespace(), s.client); err != nil {
+		return
+	} else if needUpdate {
+		if err = s.update(); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (s *serviceDeployer) deployGrafana() (requeueAfter time.Duration, err error) {
+	requeueAfter = 0
+	grafanaAware := s.instance.GetSpec().(v1alpha1.GrafanaAware)
+
+	if !grafanaAware.GetGrafanaProperties().UseKogitoInfra {
+		return
+	}
+	if !infrastructure.IsGrafanaAvailable(s.client) {
+		log.Warnf("Looks like that the service %s requires Grafana, but there's no Grafana CRD in the namespace %s. Aborting installation.", s.instance.GetName(), s.instance.GetNamespace())
+		return
+	}
+
+	needUpdate := false
+	if needUpdate, requeueAfter, err =
+		infrastructure.DeployGrafanaWithKogitoInfra(grafanaAware, s.instance.GetNamespace(), s.client); err != nil {
 		return
 	} else if needUpdate {
 		if err = s.update(); err != nil {

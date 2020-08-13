@@ -31,6 +31,7 @@ type projectFlags struct {
 	installAll               bool
 	enablePersistence        bool
 	enableEvents             bool
+	enableMonitoring         bool
 }
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
@@ -41,14 +42,14 @@ func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
 	command.Flags().BoolVar(&pFlags.installManagementConsole, "install-mgmt-console", false, message.InstallMgmtConsole)
 	command.Flags().BoolVar(&pFlags.installAll, "install-all", false, message.InstallAllServices)
 	command.Flags().BoolVar(&pFlags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
-	command.Flags().BoolVar(&pFlags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
+	command.Flags().BoolVar(&pFlags.enableMonitoring, "enable-monitoring", false, "If set will install a prometheus+grafana cluster via the operators. ")
 }
 
 func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error {
 	install := shared.
 		ServicesInstallationBuilder(cli, pFlags.project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(pFlags.Channel)).
-		WarnIfDependenciesNotReady(pFlags.installDataIndex, pFlags.installDataIndex)
+		WarnIfDependenciesNotReady(pFlags.installDataIndex, pFlags.installDataIndex, pFlags.enableMonitoring, pFlags.enableMonitoring)
 
 	if pFlags.installAll || pFlags.installDataIndex {
 		dataIndex := shared.GetDefaultDataIndex(pFlags.project)

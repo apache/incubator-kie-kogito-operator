@@ -24,4 +24,10 @@ const (
 
 	KeycloakSuccessfulInstalled = "Keycloak has been successfully installed in the Project %s."
 	KeycloakSuccessfulRemoved   = "Keycloak has been successfully removed from the Project %s."
+
+	PrometheusSuccessfulInstalled = "Prometheus has been successfully installed in the Project %s."
+	PrometheusSuccessfulRemoved   = "Prometheus has been successfully removed from the Project %s."
+
+	GrafanaSuccessfulInstalled = "Grafana has been successfully installed in the Project %s."
+	GrafanaSuccessfulRemoved   = "Grafana has been successfully removed from the Project %s."
 )

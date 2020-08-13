@@ -20,6 +20,10 @@ spec:
     description: Indicates if events is enabled
     name: Enable Events
     type: boolean
+  - JSONPath: .spec.enableMonitoring
+    description: Indicates if monitoring is enabled
+    name: Enable Monitoring
+    type: boolean
   - JSONPath: .spec.build.imageVersion
     description: Build image version
     name: Image Version
@@ -298,6 +302,14 @@ spec:
               description: Annotates the pods managed by the operator with the required
                 metadata for Istio to setup its sidecars, enabling the mesh. Defaults
                 to false.
+              type: boolean
+            enableMonitoring:
+              description: Set this property to true to tell the operator to deploy
+                an instance of Prometheus+Grafana via the operators and configure
+                this service with the proper information to connect to the kogito
+                application. Set to false or ignore it if your service does not need
+                messaging or if you are going to configure the monitoring infrastructure
+                yourself.
               type: boolean
             enablePersistence:
               description: 'Set this property to true to tell the operator to deploy

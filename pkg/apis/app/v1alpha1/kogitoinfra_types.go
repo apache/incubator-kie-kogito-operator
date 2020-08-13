@@ -49,6 +49,18 @@ type KogitoInfraSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Keycloak"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	InstallKeycloak bool `json:"installKeycloak,omitempty"`
+	// Whether or not to install Prometheus using Prometheus Operator.
+	// Please note that the Prometheus Operator must be installed manually on environments that doesn't have OLM installed.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Prometheus"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	InstallPrometheus bool `json:"installPrometheus,omitempty"`
+	// Whether or not to install Grafana using Grafana Operator.
+	// Please note that the Grafana Operator must be installed manually on environments that doesn't have OLM installed.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Grafana"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	InstallGrafana bool `json:"installGrafana,omitempty"`
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra.
@@ -58,6 +70,8 @@ type KogitoInfraStatus struct {
 	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
 	Kafka      InfraComponentInstallStatusType `json:"kafka,omitempty"`
 	Keycloak   InfraComponentInstallStatusType `json:"keycloak,omitempty"`
+	Prometheus InfraComponentInstallStatusType `json:"prometheus,omitempty"`
+	Grafana    InfraComponentInstallStatusType `json:"grafana,omitempty"`
 }
 
 /*
@@ -121,10 +135,14 @@ const (
 // +kubebuilder:printcolumn:name="Infinispan",type="boolean",JSONPath=".spec.installInfinispan",description="Infinispan should be installed"
 // +kubebuilder:printcolumn:name="Kafka",type="boolean",JSONPath=".spec.installKafka",description="Kafka should be installed"
 // +kubebuilder:printcolumn:name="Keycloak",type="boolean",JSONPath=".spec.installKeycloak",description="Keycloak should be installed"
+// +kubebuilder:printcolumn:name="Prometheus",type="boolean",JSONPath=".spec.installPrometheus",description="Prometheus should be installed"
+// +kubebuilder:printcolumn:name="Grafana",type="boolean",JSONPath=".spec.installGrafana",description="Grafana should be installed"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispans,infinispan.org/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloaks,keycloak.org/v1alpha1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Prometheus,monitoring.coreos.com/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Grafana,integreatly.org/v1alpha"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Secrets,v1"
 type KogitoInfra struct {
 	metav1.TypeMeta   `json:",inline"`
