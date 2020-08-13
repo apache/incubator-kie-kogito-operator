@@ -17,7 +17,7 @@ labels:
     labels:
       - 'bdd-tests 🧪'
   - paths:
-      - Jenkinsfile
+      - 'Jenkinsfile*'
     labels:
       - 'CI/CD :loop:'
 default:
