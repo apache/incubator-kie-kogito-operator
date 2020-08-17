@@ -4,30 +4,30 @@ metadata:
   name: kogitobuilds.app.kiegroup.org
 spec:
   additionalPrinterColumns:
-    - JSONPath: .spec.type
-      description: Type of this build instance
-      name: Type
-      type: string
-    - JSONPath: .spec.runtime
-      description: Runtime used to build the service
-      name: Runtime
-      type: string
-    - JSONPath: .spec.native
-      description: Indicates it's a native build
-      name: Native
-      type: boolean
-    - JSONPath: .spec.mavenMirrorURL
-      description: URL for the proxy Maven repository
-      name: Maven URL
-      type: string
-    - JSONPath: .spec.targetKogitoRuntime
-      description: Target KogitoRuntime for this build
-      name: Kogito Runtime
-      type: string
-    - JSONPath: .spec.gitSource.uri
-      description: Git repository URL (RemoteSource builds only)
-      name: Git Repository
-      type: string
+  - JSONPath: .spec.type
+    description: Type of this build instance
+    name: Type
+    type: string
+  - JSONPath: .spec.runtime
+    description: Runtime used to build the service
+    name: Runtime
+    type: string
+  - JSONPath: .spec.native
+    description: Indicates it's a native build
+    name: Native
+    type: boolean
+  - JSONPath: .spec.mavenMirrorURL
+    description: URL for the proxy Maven repository
+    name: Maven URL
+    type: string
+  - JSONPath: .spec.targetKogitoRuntime
+    description: Target KogitoRuntime for this build
+    name: Kogito Runtime
+    type: string
+  - JSONPath: .spec.gitSource.uri
+    description: Git repository URL (RemoteSource builds only)
+    name: Git Repository
+    type: string
   group: app.kiegroup.org
   names:
     kind: KogitoBuild
@@ -138,7 +138,7 @@ spec:
                               must be defined
                             type: boolean
                         required:
-                          - key
+                        - key
                         type: object
                       fieldRef:
                         description: 'Selects a field of the pod: supports metadata.name,
@@ -155,7 +155,7 @@ spec:
                               API version.
                             type: string
                         required:
-                          - fieldPath
+                        - fieldPath
                         type: object
                       resourceFieldRef:
                         description: 'Selects a resource of the container: only resources
@@ -169,8 +169,8 @@ spec:
                             type: string
                           divisor:
                             anyOf:
-                              - type: integer
-                              - type: string
+                            - type: integer
+                            - type: string
                             description: Specifies the output format of the exposed
                               resources, defaults to "1"
                             pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
@@ -179,7 +179,7 @@ spec:
                             description: 'Required: resource to select'
                             type: string
                         required:
-                          - resource
+                        - resource
                         type: object
                       secretKeyRef:
                         description: Selects a key of a secret in the pod's namespace
@@ -197,11 +197,11 @@ spec:
                               be defined
                             type: boolean
                         required:
-                          - key
+                        - key
                         type: object
                     type: object
                 required:
-                  - name
+                - name
                 type: object
               type: array
               x-kubernetes-list-type: atomic
@@ -220,7 +220,7 @@ spec:
                   description: Git URI for the s2i source.
                   type: string
               required:
-                - uri
+              - uri
               type: object
             mavenMirrorURL:
               description: Maven Mirror URL to be used during source-to-image builds
@@ -237,8 +237,8 @@ spec:
                 limits:
                   additionalProperties:
                     anyOf:
-                      - type: integer
-                      - type: string
+                    - type: integer
+                    - type: string
                     pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                     x-kubernetes-int-or-string: true
                   description: 'Limits describes the maximum amount of compute resources
@@ -247,8 +247,8 @@ spec:
                 requests:
                   additionalProperties:
                     anyOf:
-                      - type: integer
-                      - type: string
+                    - type: integer
+                    - type: string
                     pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                     x-kubernetes-int-or-string: true
                   description: 'Requests describes the minimum amount of compute resources
@@ -262,8 +262,8 @@ spec:
                 the Kogito service. If "BuildImage" is set, this value is ignored
                 by the operator. Default value: quarkus.'
               enum:
-                - quarkus
-                - springboot
+              - quarkus
+              - springboot
               type: string
             runtimeImage:
               description: 'Image used as the base image for the final Kogito service.
@@ -305,9 +305,9 @@ spec:
                 as DRL (rules), DMN (decision) or BPMN (process), builds the binary
                 and the final Kogito service image.'
               enum:
-                - Binary
-                - RemoteSource
-                - LocalSource
+              - Binary
+              - RemoteSource
+              - LocalSource
               type: string
             webHooks:
               description: WebHooks secrets for source to image builds based on Git
@@ -321,14 +321,14 @@ spec:
                   type:
                     description: WebHook type, either GitHub or Generic.
                     enum:
-                      - GitHub
-                      - Generic
+                    - GitHub
+                    - Generic
                     type: string
                 type: object
               type: array
               x-kubernetes-list-type: atomic
           required:
-            - type
+          - type
           type: object
         status:
           description: KogitoBuildStatus defines the observed state of KogitoBuild.
@@ -403,20 +403,20 @@ spec:
                     description: Type of this condition
                     type: string
                 required:
-                  - status
-                  - type
+                - status
+                - type
                 type: object
               type: array
               x-kubernetes-list-type: atomic
             latestBuild:
               type: string
           required:
-            - builds
-            - conditions
+          - builds
+          - conditions
           type: object
       type: object
   version: v1alpha1
   versions:
-    - name: v1alpha1
-      served: true
-      storage: true
+  - name: v1alpha1
+    served: true
+    storage: true
