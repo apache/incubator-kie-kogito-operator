@@ -18,7 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	oappsv1 "github.com/openshift/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -36,25 +36,25 @@ func GetProtoBufConfigMaps(namespace string, cli *client.Client) (*v1.ConfigMapL
 	return cms, nil
 }
 
-// getKogitoAppsDCs gets all dcs owned by KogitoApps within the given namespace
-func getKogitoAppsDCs(namespace string, cli *client.Client) ([]oappsv1.DeploymentConfig, error) {
-	var kdcs []oappsv1.DeploymentConfig
-	kogitoApps := &v1alpha1.KogitoAppList{}
-	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoApps); err != nil {
+// getKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
+func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1.Deployment, error) {
+	var kdcs []appsv1.Deployment
+	kogitoRuntimeServices := &v1alpha1.KogitoRuntimeList{}
+	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoRuntimeServices); err != nil {
 		return nil, err
 	}
-	log.Debugf("Found %d KogitoApps in the namespace '%s' ", len(kogitoApps.Items), namespace)
-	if len(kogitoApps.Items) == 0 {
+	log.Debugf("Found %d KogitoRuntime services in the namespace '%s' ", len(kogitoRuntimeServices.Items), namespace)
+	if len(kogitoRuntimeServices.Items) == 0 {
 		return kdcs, nil
 	}
-	dcs := &oappsv1.DeploymentConfigList{}
+	dcs := &appsv1.DeploymentList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
 		return nil, err
 	}
-	log.Debug("Looking for DeploymentConfigs owned by KogitoApps")
+	log.Debug("Looking for DeploymentConfigs owned by KogitoRuntime")
 	for _, dc := range dcs.Items {
 		for _, owner := range dc.OwnerReferences {
-			for _, app := range kogitoApps.Items {
+			for _, app := range kogitoRuntimeServices.Items {
 				if owner.UID == app.UID {
 					kdcs = append(kdcs, dc)
 					break

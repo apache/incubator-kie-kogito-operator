@@ -28,5 +28,5 @@ func Test_FromRuntimeFlagsToRuntimeType(t *testing.T) {
 
 	runtimeType := FromRuntimeFlagsToRuntimeType(flags)
 	assert.NotNil(t, runtimeType)
-	assert.Equal(t, v1alpha1.SpringbootRuntimeType, runtimeType)
+	assert.Equal(t, v1alpha1.SpringBootRuntimeType, runtimeType)
 }

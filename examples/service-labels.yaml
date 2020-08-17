@@ -1,13 +1,18 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoApp
+kind: KogitoBuild
 metadata:
   name: example-quarkus
 spec:
-  build:
-    gitSource:
-      uri: https://github.com/kiegroup/kogito-examples
-      contextDir: process-quarkus-example
-  service:
-    labels:
-      operator: abc-operator
-      app: abc-test
+  type: RemoteSource
+  gitSource:
+    uri: https://github.com/kiegroup/kogito-examples
+    contextDir: process-quarkus-example
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: example-quarkus
+spec:
+  serviceLabels:
+    operator: abc-operator
+    app: abc-test

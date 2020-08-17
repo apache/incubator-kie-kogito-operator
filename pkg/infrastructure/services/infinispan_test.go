@@ -230,7 +230,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		{
 			"EmptyProperties, Spring",
 			args{
-				runtime:              v1alpha1.SpringbootRuntimeType,
+				runtime:              v1alpha1.SpringBootRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{},
 				secret:               nil,
 				appProps:             map[string]string{},
@@ -243,7 +243,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		{
 			"Uri, Spring",
 			args{
-				runtime: v1alpha1.SpringbootRuntimeType,
+				runtime: v1alpha1.SpringBootRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					URI: "custom-uri:123",
 				},
@@ -261,7 +261,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		{
 			"AuthRealm, Spring",
 			args{
-				runtime: v1alpha1.SpringbootRuntimeType,
+				runtime: v1alpha1.SpringBootRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					AuthRealm: "custom-realm",
 				},
@@ -277,7 +277,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		{
 			"SaslMechanism, Spring",
 			args{
-				runtime: v1alpha1.SpringbootRuntimeType,
+				runtime: v1alpha1.SpringBootRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					SaslMechanism: "DIGEST-MD5",
 				},
@@ -293,7 +293,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		{
 			"CustomSecretDefaultKeys, Spring",
 			args{
-				runtime: v1alpha1.SpringbootRuntimeType,
+				runtime: v1alpha1.SpringBootRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					Credentials: v1alpha1.SecretCredentialsType{
 						SecretName: "custom-secret",
@@ -358,7 +358,7 @@ func Test_SetInfinispanVariables(t *testing.T) {
 		{
 			"CustomSecretCustomKeys, Spring",
 			args{
-				runtime: v1alpha1.SpringbootRuntimeType,
+				runtime: v1alpha1.SpringBootRuntimeType,
 				connectionProperties: v1alpha1.InfinispanConnectionProperties{
 					Credentials: v1alpha1.SecretCredentialsType{
 						SecretName:  "custom-secret",

@@ -40,13 +40,13 @@ func getSingletonKogitoServiceRoute(client *client.Client, namespace string, ser
 func injectURLIntoKogitoApps(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, serviceListRef v1alpha1.KogitoServiceList) error {
 	log.Debugf("Querying KogitoApps in the namespace '%s' to inject a route ", namespace)
 
-	dcs, err := getKogitoAppsDCs(namespace, client)
+	deployments, err := getKogitoRuntimeDeployments(namespace, client)
 	if err != nil {
 		return err
 	}
-	log.Debugf("Found %s KogitoApps in the namespace '%s' ", len(dcs), namespace)
+	log.Debugf("Found %s KogitoApps in the namespace '%s' ", len(deployments), namespace)
 	var serviceEndpoints ServiceEndpoints
-	if len(dcs) > 0 {
+	if len(deployments) > 0 {
 		log.Debug("Querying route to inject into KogitoApps")
 		serviceEndpoints, err = getServiceEndpoints(client, namespace, serviceHTTPRouteEnv, serviceWSRouteEnv, serviceListRef)
 		if err != nil {
@@ -55,7 +55,7 @@ func injectURLIntoKogitoApps(client *client.Client, namespace string, serviceHTT
 		log.Debugf("The route is '%s'", serviceEndpoints.HTTPRouteURI)
 	}
 
-	for _, dc := range dcs {
+	for _, dc := range deployments {
 		// here we compare the current value to avoid updating the app every time
 		if len(dc.Spec.Template.Spec.Containers) == 0 {
 			break

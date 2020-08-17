@@ -29,8 +29,8 @@ const (
 	trustyWSRouteEnv   = "KOGITO_TRUSTY_WS_URL"
 )
 
-// InjectTrustyURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Trusty route to each one
-// Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
+// InjectTrustyURLIntoKogitoApps will query for every KogitoRuntime in the given namespace to inject the Trusty route to each one
+// Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectTrustyURLIntoKogitoApps(client *client.Client, namespace string) error {
 	log.Debugf("Injecting Trusty Route in kogito apps")
 	return injectURLIntoKogitoApps(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, &v1alpha1.KogitoTrustyList{})

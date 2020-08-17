@@ -39,7 +39,7 @@ func Test_controllerWatcher_WatchWithOCPObjectsOnKubernetes(t *testing.T) {
 		},
 	}
 
-	watcher := NewControllerWatcher(cli, manager, controller, &v1alpha1.KogitoApp{})
+	watcher := NewControllerWatcher(cli, manager, controller, &v1alpha1.KogitoRuntime{})
 	assert.NotNil(t, watcher)
 
 	err := watcher.Watch(requiredObjects...)
@@ -65,7 +65,7 @@ func Test_controllerWatcher_WatchWithOCPObjectsOnOpenShift(t *testing.T) {
 		},
 	}
 
-	watcher := NewControllerWatcher(cli, manager, controller, &v1alpha1.KogitoApp{})
+	watcher := NewControllerWatcher(cli, manager, controller, &v1alpha1.KogitoRuntime{})
 	assert.NotNil(t, watcher)
 
 	err := watcher.Watch(requiredObjects...)

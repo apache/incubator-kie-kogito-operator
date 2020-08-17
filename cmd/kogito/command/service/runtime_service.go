@@ -28,25 +28,25 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// IRuntimeService is interface to perform Kogito Runtime
-type IRuntimeService interface {
+// RuntimeService is interface to perform Kogito Runtime
+type RuntimeService interface {
 	InstallRuntimeService(cli *client.Client, flags *flag.RuntimeFlags) (err error)
 	DeleteRuntimeService(cli *client.Client, name, project string) (err error)
 }
 
-type runtimeServiceImpl struct {
+type runtimeService struct {
 	resourceCheckService shared.IResourceCheckService
 }
 
-// InitRuntimeService create and return runtimeServiceImpl value
-func InitRuntimeService() IRuntimeService {
-	return runtimeServiceImpl{
+// NewRuntimeService create and return runtimeService value
+func NewRuntimeService() RuntimeService {
+	return runtimeService{
 		resourceCheckService: shared.InitResourceCheckService(),
 	}
 }
 
 // InstallRuntimeService install Kogito runtime service
-func (i runtimeServiceImpl) InstallRuntimeService(cli *client.Client, flags *flag.RuntimeFlags) (err error) {
+func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.RuntimeFlags) (err error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Installing Kogito Runtime : %s", flags.Name)
 	if err := i.resourceCheckService.CheckKogitoRuntimeNotExists(cli, flags.Name, flags.Project); err != nil {
@@ -116,7 +116,7 @@ func printMgmtConsoleInfo(client *client.Client, project string) error {
 }
 
 // DeleteRuntimeService delete Kogito runtime service
-func (i runtimeServiceImpl) DeleteRuntimeService(cli *client.Client, name, project string) (err error) {
+func (i runtimeService) DeleteRuntimeService(cli *client.Client, name, project string) (err error) {
 	log := context.GetDefaultLogger()
 	if err := i.resourceCheckService.CheckKogitoRuntimeExists(cli, name, project); err != nil {
 		return err

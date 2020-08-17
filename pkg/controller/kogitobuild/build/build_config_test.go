@@ -85,9 +85,9 @@ func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
 func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
 	kogitoBuild := &v1alpha1.KogitoBuild{
 		Spec: v1alpha1.KogitoBuildSpec{
-			WebHooks: []v1alpha1.WebhookSecret{
+			WebHooks: []v1alpha1.WebHookSecret{
 				{
-					Type:   v1alpha1.GitHubWebhook,
+					Type:   v1alpha1.GitHubWebHook,
 					Secret: "github_secret",
 				},
 			},
@@ -105,9 +105,9 @@ func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
 func Test_decoratorForRemoteSourceBuilder_genericWebHook(t *testing.T) {
 	kogitoBuild := &v1alpha1.KogitoBuild{
 		Spec: v1alpha1.KogitoBuildSpec{
-			WebHooks: []v1alpha1.WebhookSecret{
+			WebHooks: []v1alpha1.WebHookSecret{
 				{
-					Type:   v1alpha1.GenericWebhook,
+					Type:   v1alpha1.GenericWebHook,
 					Secret: "generic_secret",
 				},
 			},

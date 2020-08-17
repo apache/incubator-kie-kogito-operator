@@ -12,26 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package converter
+package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func Test_FromWebHookFlagsToWebHookSecret(t *testing.T) {
-	flags := &flag.WebHookFlags{
-		WebHook: []string{
-			"GitHub=53537568546353",
-		},
+func Test_ServiceEndPoint_String(t *testing.T) {
+	serviceEndPoint := infrastructure.ServiceEndpoints{
+		HTTPRouteURI: "HTTPRouteURI",
+		HTTPRouteEnv: "HTTPRouteEnv",
+		WSRouteURI:   "WSRouteURI",
+		WSRouteEnv:   "WSRouteEnv",
 	}
 
-	webHookSecrets := FromWebHookFlagsToWebHookSecret(flags)
-	assert.NotNil(t, webHookSecrets)
-	assert.Equal(t, 1, len(webHookSecrets))
-	webHookSecret := webHookSecrets[0]
-	assert.Equal(t, v1alpha1.GitHubWebHook, webHookSecret.Type)
-	assert.Equal(t, "53537568546353", webHookSecret.Secret)
+	assert.Equal(t, serviceEndPoint.HTTPRouteURI, serviceEndPoint.String())
+}
+
+func Test_ServiceEndPoint_IsEmpty(t *testing.T) {
+	serviceEndPoint := infrastructure.ServiceEndpoints{
+		HTTPRouteEnv: "HTTPRouteEnv",
+		WSRouteEnv:   "WSRouteEnv",
+	}
+
+	assert.True(t, serviceEndPoint.IsEmpty())
 }
