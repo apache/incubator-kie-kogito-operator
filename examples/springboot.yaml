@@ -1,5 +1,21 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoApp
+kind: KogitoBuild
+metadata:
+  name: example-springboot
+spec:
+  type: RemoteSource
+  runtime: springboot
+  gitSource:
+    uri: https://github.com/kiegroup/kogito-examples
+    contextDir: process-springboot-example
+    reference: master
+  disableIncremental: false
+  envs:
+    - name: CI
+      value: "true"
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
 metadata:
   name: example-springboot
 spec:
@@ -7,12 +23,3 @@ spec:
   envs:
     - name: DEBUG
       value: "true"
-  build:
-    gitSource:
-      uri: https://github.com/kiegroup/kogito-examples
-      contextDir: process-springboot-example
-      reference: master
-    incremental: true
-    envs:
-      - name: CI
-        value: "true"

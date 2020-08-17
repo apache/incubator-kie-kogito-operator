@@ -20,15 +20,15 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
-// FromWebHookFlagsToWebHookSecret converts given WebHookFlags into WebhookSecret
-func FromWebHookFlagsToWebHookSecret(flags *flag.WebHookFlags) (webHooks []v1alpha1.WebhookSecret) {
+// FromWebHookFlagsToWebHookSecret converts given WebHookFlags into WebHookSecret
+func FromWebHookFlagsToWebHookSecret(flags *flag.WebHookFlags) (webHooks []v1alpha1.WebHookSecret) {
 	if flags.WebHook == nil {
 		return nil
 	}
 	webHookMap := util.FromStringsKeyPairToMap(flags.WebHook)
 	for webHookType, secret := range webHookMap {
-		webHooks = append(webHooks, v1alpha1.WebhookSecret{
-			Type:   v1alpha1.WebhookType(webHookType),
+		webHooks = append(webHooks, v1alpha1.WebHookSecret{
+			Type:   v1alpha1.WebHookType(webHookType),
 			Secret: secret,
 		})
 	}

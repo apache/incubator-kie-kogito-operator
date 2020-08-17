@@ -16,6 +16,7 @@ package infrastructure
 
 import (
 	"fmt"
+	appsv1 "k8s.io/api/apps/v1"
 	"net/url"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -32,21 +33,24 @@ const (
 
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
 	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
+	webSocketScheme       = "ws"
+	webSocketSecureScheme = "wss"
+	httpScheme            = "http"
 )
 
-// InjectDataIndexURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Data Index route to each one
-// Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
-func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) error {
-	log.Debugf("Querying KogitoApps in the namespace '%s' to inject Data Index Route ", namespace)
+// InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
+// Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
+func InjectDataIndexURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
+	log.Debugf("Querying Kogito runtime services in the namespace '%s' to inject Data Index Route ", namespace)
 
-	dcs, err := getKogitoAppsDCs(namespace, client)
+	deployments, err := getKogitoRuntimeDeployments(namespace, client)
 	if err != nil {
 		return err
 	}
-	log.Debugf("Found %s KogitoApps in the namespace '%s' ", len(dcs), namespace)
+	log.Debugf("Found %s KogitoRuntime services in the namespace '%s' ", len(deployments), namespace)
 	var dataIndexEndpoints ServiceEndpoints
-	if len(dcs) > 0 {
-		log.Debug("Querying Data Index route to inject into KogitoApps ")
+	if len(deployments) > 0 {
+		log.Debug("Querying Data Index route to inject into Kogito runtime ")
 		dataIndexEndpoints, err = GetDataIndexEndpoints(client, namespace)
 		if err != nil {
 			return err
@@ -54,21 +58,8 @@ func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) e
 		log.Debugf("Data Index route is '%s'", dataIndexEndpoints.HTTPRouteURI)
 	}
 
-	for _, dc := range dcs {
-		// here we compare the current value to avoid updating the app every time
-		if len(dc.Spec.Template.Spec.Containers) == 0 {
-			break
-		}
-		updateHTTP := framework.GetEnvVarFromContainer(dataIndexEndpoints.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.HTTPRouteURI
-		updateWS := framework.GetEnvVarFromContainer(dataIndexEndpoints.WSRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.WSRouteURI
-		if updateHTTP {
-			log.Debugf("Updating dc '%s' to inject route %s ", dc.GetName(), dataIndexEndpoints.HTTPRouteURI)
-			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
-		}
-		if updateWS {
-			log.Debugf("Updating dc '%s' to inject route %s ", dc.GetName(), dataIndexEndpoints.WSRouteURI)
-			framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &dc.Spec.Template.Spec.Containers[0])
-		}
+	for _, dc := range deployments {
+		updateHTTP, updateWS := updateDataIndexURLIntoKogitoRuntimeEnv(&dc, dataIndexEndpoints)
 		// update only once
 		if updateWS || updateHTTP {
 			if err := kubernetes.ResourceC(client).Update(&dc); err != nil {
@@ -77,6 +68,35 @@ func InjectDataIndexURLIntoKogitoApps(client *client.Client, namespace string) e
 		}
 	}
 	return nil
+}
+
+// InjectDataIndexURLIntoKogitoRuntimeDeployment will inject data-index route URL in to kogito runtime deployment env var
+func InjectDataIndexURLIntoKogitoRuntimeDeployment(client *client.Client, namespace string, runtimeDeployment *appsv1.Deployment) error {
+	log.Debug("Querying Data Index route to inject into Kogito runtime ")
+	dataIndexEndpoints, err := GetDataIndexEndpoints(client, namespace)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Data Index route is '%s'", dataIndexEndpoints.HTTPRouteURI)
+	updateDataIndexURLIntoKogitoRuntimeEnv(runtimeDeployment, dataIndexEndpoints)
+	return nil
+}
+
+func updateDataIndexURLIntoKogitoRuntimeEnv(deployment *appsv1.Deployment, dataIndexEndpoints ServiceEndpoints) (updateHTTP bool, updateWS bool) {
+	// here we compare the current value to avoid updating the app every time
+	if len(deployment.Spec.Template.Spec.Containers) > 0 {
+		updateHTTP = framework.GetEnvVarFromContainer(dataIndexEndpoints.HTTPRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.HTTPRouteURI
+		updateWS = framework.GetEnvVarFromContainer(dataIndexEndpoints.WSRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.WSRouteURI
+		if updateHTTP {
+			log.Debugf("Updating dc '%s' to inject route %s ", deployment.GetName(), dataIndexEndpoints.HTTPRouteURI)
+			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
+		}
+		if updateWS {
+			log.Debugf("Updating dc '%s' to inject route %s ", deployment.GetName(), dataIndexEndpoints.WSRouteURI)
+			framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
+		}
+	}
+	return
 }
 
 // GetDataIndexEndpoints queries for the Data Index URIs

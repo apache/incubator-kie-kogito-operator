@@ -61,7 +61,7 @@ For adding the `golangci-lint` with VScode, install the [Go Plugin](https://mark
 
 For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://sdk.operatorframework.io/docs/golang/legacy/unit-testing/).
 
-In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitoapp_controller_test.go`](../master/pkg/controller/kogitoapp/kogitoapp_controller_test.go) test file.
+In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitobuild_controller_test.go`](../master/pkg/controller/kogitobuild/kogitobuild_controller_test.go) test file.
 
 ### Kogito Operator collaboration and pull requests
 
@@ -69,7 +69,7 @@ Before you start to work on a new proposed feature or on a fix for a bug, [open 
 
 After you update the source with your new proposed feature or bug fix, open a [pull request (PR)](https://help.github.com/en/articles/about-pull-requests) that meets the following requirements:
 
-- You have a JIRA associated with the PR.
+- You have a JIRA associated with the PR. 
 - Your PR has the name of the JIRA in the title, for example, `[KOGITO-XXX] - Awesome feature that solves it all`.
 - The PR solves only the problem described in the JIRA.
 - You have written unit tests for the particular fix or feature.
