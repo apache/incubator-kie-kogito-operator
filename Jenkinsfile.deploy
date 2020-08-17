@@ -98,7 +98,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Prepare for PR'){
             when {
                 expression { return isRelease() }
@@ -161,10 +161,16 @@ pipeline {
                     loginOpenshiftRegistry()
 
                     try {
-                        // Optaplanner taking a lot of resources, we should not build in parallel
-                        sh "make build-examples-images concurrent=1 ${getBDDParameters('never', false)}"
+                        sh "make build-examples-images tags='~@native' concurrent=3 ${getBDDParameters('never', false)}"
                     } catch(err) {
-                        unstable("Error building examples' images. Check the junit results.")
+                        unstable("Error building non-native examples' images. Check the junit results.")
+                    }
+                    
+                    try {
+                        // Optaplanner taking a lot of resources, we should not build in parallel
+                        sh "make build-examples-images tags='@native' concurrent=1 ${getBDDParameters('never', false)}"
+                    } catch(err) {
+                        unstable("Error building native examples' images. Check the junit results.")
                     }
                 }
             }
@@ -175,6 +181,7 @@ pipeline {
                 }
             }
         }
+
         stage('Run Full Testing') {
             when {
                 expression { return shouldLaunchTests() }
