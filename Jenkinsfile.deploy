@@ -159,6 +159,8 @@ pipeline {
                 script {
                     // Need to login to Openshift Registry for application images to be pushed
                     loginOpenshiftRegistry()
+                    // Needed for the native builds (see comment below)
+                    loginDockerToOpenshiftRegistry()
 
                     try {
                         sh "make build-examples-images tags='~@native' concurrent=3 ${getBDDParameters('never', false)}"
@@ -168,7 +170,8 @@ pipeline {
                     
                     try {
                         // Optaplanner taking a lot of resources, we should not build in parallel
-                        sh "make build-examples-images tags='@native' concurrent=1 ${getBDDParameters('never', false)}"
+			// There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+                        sh "make build-examples-images tags='@native' concurrent=1 ${getBDDParameters('never', false, 'docker')}"
                     } catch(err) {
                         unstable("Error building native examples' images. Check the junit results.")
                     }
@@ -191,7 +194,8 @@ pipeline {
                     // Catch and set unstable so the temp image is still pushed and we get the deployment properties, 
                     // in case we decide to continue in the release
                     try {
-                        sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true)}"
+                        // TODO remove tags
+                        sh "make run-tests tags=@native timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true)}"
                     } catch(err) {
                         unstable("Tests are failing")
                     }
@@ -314,6 +318,12 @@ void loginOpenshiftRegistry(){
     sh "set +x && podman login -u anything -p \$(oc whoami -t) --tls-verify=false ${env.OPENSHIFT_REGISTRY}"
 }
 
+void loginDockerToOpenshiftRegistry(){
+    loginOpenshift()
+    // username can be anything. See https://docs.openshift.com/container-platform/4.4/registry/accessing-the-registry.html#registry-accessing-directly_accessing-the-registry
+    sh "set +x && docker login -u anything -p \$(oc whoami -t) ${env.OPENSHIFT_REGISTRY}"
+}
+
 void loginContainerRegistry(String registry, String credsId){
     withCredentials([usernamePassword(credentialsId: credsId, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PWD')]) {
         sh "podman login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} --tls-verify=false ${registry}"
@@ -399,7 +409,7 @@ boolean shouldLaunchTests(){
 // BDD parameters
 ////////////////////////////////////////////////////////////////////////
 
-String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false) {
+String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false, String container_engine='podman') {
     testParamsMap = [:]
 
     testParamsMap['load_default_config'] = true
@@ -457,7 +467,7 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     }
     
     // Use podman container engine in tests
-    testParamsMap['container_engine'] = 'podman'
+    testParamsMap['container_engine'] = container_engine
 
     String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
     echo "BDD parameters = ${testParams}"
