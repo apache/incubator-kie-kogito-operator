@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.8
 	github.com/infinispan/infinispan-operator v0.0.0-20191028165532-917f400bee62
-	github.com/karrick/godirwalk v1.15.6 // indirect
+	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/keycloak/keycloak-operator v0.0.0-20200110072234-2e9a66d4cae6
 	github.com/machinebox/graphql v0.2.2
 	github.com/matryer/is v1.2.0 // indirect
@@ -30,8 +30,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
-	golang.org/x/sys v0.0.0-20200802091954-4b90ce9b60b3 // indirect
-	golang.org/x/tools v0.0.0-20200731060945-b5fad4ed8dd6 // indirect
+	golang.org/x/sys v0.0.0-20200817155316-9781c653f443 // indirect
+	golang.org/x/tools v0.0.0-20200818005847-188abfa75333 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.18.4
