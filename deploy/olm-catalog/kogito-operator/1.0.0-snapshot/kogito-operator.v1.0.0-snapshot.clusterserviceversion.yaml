@@ -647,7 +647,7 @@ spec:
                     fieldRef:
                       fieldPath: metadata.labels['name']
                 - name: DEBUG
-                  value: "true"
+                  value: "false"
                 image: quay.io/kiegroup/kogito-cloud-operator:1.0.0-snapshot
                 imagePullPolicy: Always
                 name: kogito-cloud-operator

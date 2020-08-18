@@ -62,12 +62,6 @@ func onGetComparators(comparator compare.ResourceComparator) {
 			WithType(reflect.TypeOf(corev1.ConfigMap{})).
 			WithCustomComparator(protoBufConfigMapComparator).
 			Build())
-
-	/*comparator.SetComparator(
-	framework.NewComparatorBuilder().
-		WithType(reflect.TypeOf(monv1.ServiceMonitor{})).
-		WithCustomComparator(framework.CreateServiceMonitorComparator).
-		Build())*/
 }
 
 func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, lists []runtime.Object, err error) {
