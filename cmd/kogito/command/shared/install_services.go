@@ -16,6 +16,7 @@ package shared
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -54,6 +55,9 @@ type ServicesInstallation interface {
 	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
+	// InstallTrusty installs Trusty. If no reference provided, it will install the default instance.
+	// Depends on the Operator, install it first.
+	InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation
 	// InstallJobsService installs Jobs Service. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallJobsService(jobsService *v1alpha1.KogitoJobsService) ServicesInstallation
@@ -140,6 +144,19 @@ func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIn
 				installed:                    message.DataIndexSuccessfulInstalled,
 				checkStatus:                  message.DataIndexCheckStatus,
 				notInstalledNoKogitoOperator: message.DataIndexNotInstalledNoKogitoOperator,
+			})
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(trusty,
+			serviceInfoMessages{
+				errCreating:                  message.TrustyErrCreating,
+				installed:                    message.TrustySuccessfulInstalled,
+				checkStatus:                  message.TrustyCheckStatus,
+				notInstalledNoKogitoOperator: message.TrustyNotInstalledNoKogitoOperator,
 			})
 	}
 	return s

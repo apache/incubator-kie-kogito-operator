@@ -1,0 +1,27 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoTrusty
+metadata:
+  name: trusty
+spec:
+  # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
+  #env:
+    # - name: JAVA_OPTIONS
+    #    value: "-Dquarkus.log.level=DEBUG"
+  # number of pods to be deployed
+  replicas: 1
+  # the http port that the dataindex image will listen internally
+  #httpPort: 9090
+  # Limits and requests for the Data Index pod
+  #memoryLimit: ""
+  #memoryRequest: ""
+  #cpuLimit: ""
+  #cpuRequest: ""
+  # details about the kafka connection
+  kafka:
+    # will set this instance to auto provision an infra structure in the namespace
+    useKogitoInfra: true
+  # details about the connected infinispan
+  infinispan:
+    # will set this instance to auto provision an infra structure in the namespace and attach Infinispan credentials to it
+    useKogitoInfra: true
+
