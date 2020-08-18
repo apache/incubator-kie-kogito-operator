@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 )
@@ -43,13 +44,13 @@ const (
 )
 
 var (
-	// kogitoImages maps the default Kogito Images on a matrix of RuntimeType and its purpose
-	kogitoImages = map[v1alpha1.RuntimeType]map[bool]string{
+	// KogitoImages maps the default Kogito Images on a matrix of RuntimeType and its purpose
+	KogitoImages = map[v1alpha1.RuntimeType]map[bool]string{
 		v1alpha1.QuarkusRuntimeType: {
 			true:  KogitoQuarkusUbi8s2iImage,
 			false: KogitoQuarkusJVMUbi8Image,
 		},
-		v1alpha1.SpringbootRuntimeType: {
+		v1alpha1.SpringBootRuntimeType: {
 			true:  KogitoSpringBootUbi8s2iImage,
 			false: KogitoSpringBootUbi8Image,
 		},
@@ -143,7 +144,7 @@ func resolveKogitoImageName(build *v1alpha1.KogitoBuild, isBuilder bool) string 
 	if len(image.Name) > 0 {
 		return image.Name
 	}
-	imageName := kogitoImages[build.Spec.Runtime][isBuilder]
+	imageName := KogitoImages[build.Spec.Runtime][isBuilder]
 	if build.Spec.Native && !isBuilder {
 		imageName = KogitoQuarkusUbi8Image
 	}
@@ -252,9 +253,16 @@ func createRequiredKogitoImageStreamTag(requiredStream imgv1.ImageStream, client
 	// nor tag nor image stream exists, we can safely create a new one for us
 	if !tagExists && !exists {
 		if err := kubernetes.ResourceC(client).Create(&requiredStream); err != nil {
-			return created, err
+			// double check since the object could've been created in another thread
+			if errors.IsAlreadyExists(err) {
+				exists = true
+				created = false
+			} else {
+				return created, err
+			}
+		} else {
+			created = true
 		}
-		created = true
 	}
 	// the required tag is not there, let's just add the required tag and move on
 	if !tagExists && exists {

@@ -15,8 +15,6 @@
 package services
 
 import (
-	"context"
-	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
@@ -25,7 +23,6 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/prometheus"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
@@ -35,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
-	clientv1 "sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
 
@@ -149,7 +145,7 @@ func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deplo
 		deployment.Annotations = map[string]string{key: value}
 	}
 	if s.definition.OnDeploymentCreate != nil {
-		if err := s.definition.OnDeploymentCreate(deployment, s.instance); err != nil {
+		if err := s.definition.OnDeploymentCreate(s.client, deployment, s.instance); err != nil {
 			return err
 		}
 	}
@@ -241,7 +237,7 @@ func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment
 
 	if len(URI) > 0 {
 		framework.SetEnvVar(enableEventsEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
-		if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringbootRuntimeType {
+		if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringBootRuntimeType {
 			appProps[SpringBootstrapAppProp] = URI
 		} else {
 			for _, kafkaTopic := range s.definition.KafkaTopics {

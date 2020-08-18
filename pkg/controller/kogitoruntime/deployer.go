@@ -70,17 +70,6 @@ func onGetComparators(comparator compare.ResourceComparator) {
 		Build())*/
 }
 
-func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested resource.KubernetesResource) (equal bool) {
-	cmDeployed := deployed.(*corev1.ConfigMap)
-
-	// this update is made by the downward API inside the pod container
-	if strings.HasSuffix(cmDeployed.Name, protobufConfigMapSuffix) {
-		return true
-	}
-
-	return framework.CreateConfigMapComparator()(deployed, requested)
-}
-
 func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, lists []runtime.Object, err error) {
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
 
@@ -124,8 +113,19 @@ func createPrometheusServiceMonitor(cli *client.Client, kogitoService v1alpha1.K
 	return nil, nil, nil
 }
 
+func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested resource.KubernetesResource) (equal bool) {
+	cmDeployed := deployed.(*corev1.ConfigMap)
+
+	// this update is made by the downward API inside the pod container
+	if strings.HasSuffix(cmDeployed.Name, protobufConfigMapSuffix) {
+		return true
+	}
+
+	return framework.CreateConfigMapComparator()(deployed, requested)
+}
+
 // onDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties to the deployment creation
-func onDeploymentCreate(deployment *v1.Deployment, kogitoService v1alpha1.KogitoService) error {
+func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoService v1alpha1.KogitoService) error {
 	kogitoRuntime := kogitoService.(*v1alpha1.KogitoRuntime)
 	// NAMESPACE service discovery
 	framework.SetEnvVar(envVarNamespace, kogitoService.GetNamespace(), &deployment.Spec.Template.Spec.Containers[0])
@@ -139,6 +139,15 @@ func onDeploymentCreate(deployment *v1.Deployment, kogitoService v1alpha1.Kogito
 	}
 	// protobuf
 	applyProtoBufConfigurations(deployment, kogitoService)
+
+	if err := infrastructure.InjectDataIndexURLIntoKogitoRuntimeDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+		return err
+	}
+
+	if err := infrastructure.InjectJobsServiceURLIntoKogitoRuntimeDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+		return err
+	}
+
 	return nil
 }
 

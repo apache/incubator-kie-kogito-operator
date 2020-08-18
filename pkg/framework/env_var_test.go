@@ -21,105 +21,6 @@ import (
 	"testing"
 )
 
-func Test_EnvVarToMap(t *testing.T) {
-	type args struct {
-		env []corev1.EnvVar
-	}
-	tests := []struct {
-		name string
-		args args
-		want map[string]string
-	}{
-		{"TestEnvVarToMap",
-			args{
-				[]corev1.EnvVar{
-					{Name: "test1", Value: "test1"},
-					{Name: "test2", Value: "test2"},
-				}},
-			map[string]string{
-				"test1": "test1",
-				"test2": "test2",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := EnvVarToMap(tt.args.env); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("envVarToMap() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestEnvVarArrayEquals(t *testing.T) {
-	type args struct {
-		array1 []corev1.EnvVar
-		array2 []corev1.EnvVar
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			"Equals",
-			args{
-				[]corev1.EnvVar{
-					{Name: "test1", Value: "test1"},
-					{Name: "test2", Value: "test2"},
-					{Name: "test3", Value: "test3"},
-				},
-				[]corev1.EnvVar{
-					{Name: "test3", Value: "test3"},
-					{Name: "test1", Value: "test1"},
-					{Name: "test2", Value: "test2"},
-				},
-			},
-			true,
-		},
-		{
-			"NotEqual",
-			args{
-				[]corev1.EnvVar{
-					{Name: "test1", Value: "test2"},
-					{Name: "test2", Value: "test1"},
-					{Name: "test3", Value: "test3"},
-				},
-				[]corev1.EnvVar{
-					{Name: "test3", Value: "test3"},
-					{Name: "test1", Value: "test1"},
-					{Name: "test2", Value: "test2"},
-				},
-			},
-			false,
-		},
-		{
-			"NotEqualLength",
-			args{
-				[]corev1.EnvVar{
-					{Name: "test1", Value: "test1"},
-					{Name: "test2", Value: "test2"},
-					{Name: "test3", Value: "test3"},
-					{Name: "test1", Value: "test1"},
-				},
-				[]corev1.EnvVar{
-					{Name: "test3", Value: "test3"},
-					{Name: "test1", Value: "test1"},
-					{Name: "test2", Value: "test2"},
-				},
-			},
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := EnvVarArrayEquals(tt.args.array1, tt.args.array2); got != tt.want {
-				t.Errorf("EnvVarArrayEquals() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestEnvOverride(t *testing.T) {
 	src := []corev1.EnvVar{
 		{
@@ -166,32 +67,6 @@ func TestGetEnvVar(t *testing.T) {
 	assert.Equal(t, -1, pos)
 }
 
-func TestEnvVarCheck(t *testing.T) {
-	empty := []corev1.EnvVar{}
-	a := []corev1.EnvVar{
-		{Name: "A", Value: "1"},
-	}
-	b := []corev1.EnvVar{
-		{Name: "A", Value: "2"},
-	}
-	c := []corev1.EnvVar{
-		{Name: "A", Value: "1"},
-		{Name: "B", Value: "1"},
-	}
-
-	assert.True(t, EnvVarCheck(empty, empty))
-	assert.True(t, EnvVarCheck(a, a))
-
-	assert.False(t, EnvVarCheck(empty, a))
-	assert.False(t, EnvVarCheck(a, empty))
-
-	assert.False(t, EnvVarCheck(a, b))
-	assert.False(t, EnvVarCheck(b, a))
-
-	assert.False(t, EnvVarCheck(a, c))
-	assert.False(t, EnvVarCheck(c, b))
-}
-
 func Test_CreateEnvVar(t *testing.T) {
 	envVar := CreateEnvVar("key", "value")
 	assert.NotNil(t, envVar)
@@ -205,4 +80,111 @@ func Test_CreateSecretEnvVar(t *testing.T) {
 	assert.Equal(t, "var", envVar.Name)
 	assert.Equal(t, "key", envVar.ValueFrom.SecretKeyRef.Key)
 	assert.Equal(t, "name", envVar.ValueFrom.SecretKeyRef.LocalObjectReference.Name)
+}
+
+func TestDiffEnvVar(t *testing.T) {
+	type args struct {
+		env1 []corev1.EnvVar
+		env2 []corev1.EnvVar
+	}
+	tests := []struct {
+		name string
+		args args
+		want []corev1.EnvVar
+	}{
+		{"Common case",
+			args{
+				env1: []corev1.EnvVar{{
+					Name:  "Var1",
+					Value: "Value1",
+				}},
+				env2: []corev1.EnvVar{{
+					Name:  "Var2",
+					Value: "Value2",
+				}},
+			},
+			[]corev1.EnvVar{{
+				Name:  "Var1",
+				Value: "Value1",
+			}},
+		},
+		{"A little bit more",
+			args{
+				env1: []corev1.EnvVar{{
+					Name:  "Var2",
+					Value: "Value2",
+				}, {
+					Name:  "Var3",
+					Value: "Value3",
+				}, {
+					Name:  "Var4",
+					Value: "Value4",
+				}},
+				env2: []corev1.EnvVar{{
+					Name:  "Var1",
+					Value: "Value1",
+				}, {
+					Name:  "Var2",
+					Value: "Value2",
+				}},
+			},
+			[]corev1.EnvVar{{
+				Name:  "Var3",
+				Value: "Value3",
+			}, {
+				Name:  "Var4",
+				Value: "Value4",
+			}},
+		},
+		{"Nothing here",
+			args{
+				env1: nil,
+				env2: nil,
+			},
+			nil,
+		},
+		{"Nothing in there",
+			args{
+				env1: nil,
+				env2: []corev1.EnvVar{{
+					Name:  "Var2",
+					Value: "Value2",
+				}},
+			},
+			nil,
+		},
+		{"Give what you have",
+			args{
+				env1: []corev1.EnvVar{{
+					Name:  "Var2",
+					Value: "Value2",
+				}},
+				env2: nil,
+			},
+			[]corev1.EnvVar{{
+				Name:  "Var2",
+				Value: "Value2",
+			}},
+		},
+		{"We are the same",
+			args{
+				env1: []corev1.EnvVar{{
+					Name:  "Var2",
+					Value: "Value2",
+				}},
+				env2: []corev1.EnvVar{{
+					Name:  "Var2",
+					Value: "Value2",
+				}},
+			},
+			nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := DiffEnvVar(tt.args.env1, tt.args.env2); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DiffEnvVar() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

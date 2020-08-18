@@ -34,8 +34,9 @@ import (
 )
 
 const (
-	checkBcRetries         = 30
-	checkBcRetriesInterval = 2 * time.Second
+	// retry = 5 minutes
+	checkBcRetries         = 100
+	checkBcRetriesInterval = 3 * time.Second
 	// BuildConfigLabelSelector default build selector for buildconfigs
 	BuildConfigLabelSelector = "buildconfig"
 )
@@ -58,12 +59,26 @@ type BuildConfigInterface interface {
 func newBuildConfig(c *client.Client) BuildConfigInterface {
 	client.MustEnsureClient(c)
 	return &buildConfig{
-		client: c,
+		client:                 c,
+		checkBcRetries:         checkBcRetries,
+		checkBcRetriesInterval: checkBcRetriesInterval,
+	}
+}
+
+// internal use for unit tests, do not make it public
+func newBuildConfigWithBCRetries(c *client.Client, retries int, retriesInterval time.Duration) BuildConfigInterface {
+	client.MustEnsureClient(c)
+	return &buildConfig{
+		client:                 c,
+		checkBcRetries:         retries,
+		checkBcRetriesInterval: retriesInterval,
 	}
 }
 
 type buildConfig struct {
-	client *client.Client
+	client                 *client.Client
+	checkBcRetries         int
+	checkBcRetriesInterval time.Duration
 }
 
 // EnsureImageBuild checks for the corresponding image for the build and retrieves the status of the builds.
@@ -123,12 +138,15 @@ func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader,
 	buildName := fmt.Sprintf("%s%s", options.Name, "-builder")
 
 	// before upload the file, make sure that the build exist
-	err := b.waitForBuildConfig(checkBcRetries, checkBcRetriesInterval, func() (err error) {
-		if targetBuildConfig, err := b.client.BuildCli.BuildConfigs(namespace).Get(context.TODO(), buildName, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
-			log.Debugf("BuildConfig %s not found in the %s namespace", targetBuildConfig.Name, targetBuildConfig.Namespace)
+	err := b.waitForBuildConfig(b.checkBcRetries, b.checkBcRetriesInterval, func() error {
+		if _, err := b.client.BuildCli.BuildConfigs(namespace).Get(context.TODO(), buildName, metav1.GetOptions{}); errors.IsNotFound(err) {
+			log.Debugf("BuildConfig %s not found in the %s namespace", buildName, namespace)
+			return err
+		} else if err != nil {
+			log.Debugf("Error while retrieving BuildConfig %s in namespace %s", buildName, namespace)
 			return err
 		}
-		return
+		return nil
 	})
 	if err != nil {
 		return nil, err

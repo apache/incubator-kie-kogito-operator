@@ -36,7 +36,7 @@ import (
 	"time"
 )
 
-var log = logger.GetLogger("kogitoruntime_controller")
+var log = logger.GetLogger("kogitobuild_controller")
 
 const (
 	imageStreamCreationReconcileTimeout = 10 * time.Second
@@ -102,7 +102,7 @@ type ReconcileKogitoBuild struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileKogitoBuild) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
-	log.Infof("Reconciling KogitoRuntime for %s in %s", request.Name, request.Namespace)
+	log.Infof("Reconciling KogitoBuild for %s in %s", request.Name, request.Namespace)
 
 	// fetch the requested instance
 	instance := &appv1alpha1.KogitoBuild{}

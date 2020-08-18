@@ -36,8 +36,8 @@ type deployCommand struct {
 	flags                *deployFlags
 	Parent               *cobra.Command
 	resourceCheckService shared.IResourceCheckService
-	buildService         service.IBuildService
-	runtimeService       service.IRuntimeService
+	buildService         service.BuildService
+	runtimeService       service.RuntimeService
 }
 
 // initDeployCommand is the constructor for the deploy command
@@ -46,8 +46,8 @@ func initDeployCommand(ctx *context.CommandContext, parent *cobra.Command) conte
 		CommandContext:       *ctx,
 		Parent:               parent,
 		resourceCheckService: shared.InitResourceCheckService(),
-		buildService:         service.InitBuildService(),
-		runtimeService:       service.InitRuntimeService(),
+		buildService:         service.NewBuildService(),
+		runtimeService:       service.NewRuntimeService(),
 	}
 
 	cmd.RegisterHook()

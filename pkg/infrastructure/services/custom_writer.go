@@ -29,57 +29,57 @@ type writer struct {
 
 // Create saves the object obj in the Kubernetes cluster.
 func (w *writer) Create(ctx context.Context, obj runtime.Object, opts ...clientv1.CreateOption) error {
-	switch obj.(type) {
+	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
 		return prometheus.ServiceMonitorC(w.client).Create(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.Create(ctx, obj, opts...)
+		return w.client.ControlCli.Create(ctx, o, opts...)
 	}
 }
 
 // Delete deletes the given obj from Kubernetes cluster.
 func (w *writer) Delete(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteOption) error {
-	switch obj.(type) {
+	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
 		return prometheus.ServiceMonitorC(w.client).Delete(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.Delete(ctx, obj, opts...)
+		return w.client.ControlCli.Delete(ctx, o, opts...)
 	}
 }
 
 // Update updates the given obj in the Kubernetes cluster. obj must be a
 // struct pointer so that obj can be updated with the content returned by the Server.
 func (w *writer) Update(ctx context.Context, obj runtime.Object, opts ...clientv1.UpdateOption) error {
-	switch obj.(type) {
+	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
 		return prometheus.ServiceMonitorC(w.client).Update(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.Update(ctx, obj, opts...)
+		return w.client.ControlCli.Update(ctx, o, opts...)
 	}
 }
 
 // Patch patches the given obj in the Kubernetes cluster. obj must be a
 // struct pointer so that obj can be updated with the content returned by the Server.
 func (w *writer) Patch(ctx context.Context, obj runtime.Object, patch clientv1.Patch, opts ...clientv1.PatchOption) error {
-	switch obj.(type) {
+	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
 		return prometheus.ServiceMonitorC(w.client).Patch(ctx, serviceMonitor, patch, opts...)
 	default:
-		return w.client.ControlCli.Patch(ctx, obj, patch, opts...)
+		return w.client.ControlCli.Patch(ctx, o, patch, opts...)
 	}
 }
 
 // DeleteAllOf deletes all objects of the given type matching the given options.
 func (w *writer) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteAllOfOption) error {
-	switch obj.(type) {
+	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
 		return prometheus.ServiceMonitorC(w.client).DeleteAllOf(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.DeleteAllOf(ctx, obj, opts...)
+		return w.client.ControlCli.DeleteAllOf(ctx, o, opts...)
 	}
 }

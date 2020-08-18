@@ -45,13 +45,6 @@ const (
 	EnvVarInfinispanPassword
 
 	infinispanEnvKeyCredSecret string = "INFINISPAN_CREDENTIAL_SECRET"
-
-	// Deprecated, keep it for Job Service scripts
-	infinispanEnvKeyServerList string = "INFINISPAN_CLIENT_SERVER_LIST"
-	// Deprecated, keep it for Data Index and Job Service scripts
-	infinispanEnvKeyUsername string = "INFINISPAN_USERNAME"
-	// Deprecated, keep it for Data Index and Job Service scripts
-	infinispanEnvKeyPassword string = "INFINISPAN_PASSWORD"
 )
 
 var (
@@ -87,7 +80,7 @@ var (
 // If credentials are enabled, uses the given secret as a reference (use FetchInfinispanCredentials to get the secret)
 func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps *v1alpha1.InfinispanConnectionProperties, secret *corev1.Secret, container *corev1.Container, appProps map[string]string) {
 	vars := PropertiesInfinispanQuarkus
-	if runtime == v1alpha1.SpringbootRuntimeType {
+	if runtime == v1alpha1.SpringBootRuntimeType {
 		vars = PropertiesInfinispanSpring
 	}
 
@@ -101,14 +94,12 @@ func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps *v1alp
 			usernameValue = infinispanProps.Credentials.UsernameKey
 		}
 		framework.SetEnvVarFromSecret(vars[EnvVarInfinispanUser], usernameValue, secret, container)
-		framework.SetEnvVarFromSecret(infinispanEnvKeyUsername, usernameValue, secret, container)
 
 		passwordValue := infrastructure.InfinispanSecretPasswordKey
 		if len(infinispanProps.Credentials.PasswordKey) > 0 {
 			passwordValue = infinispanProps.Credentials.PasswordKey
 		}
 		framework.SetEnvVarFromSecret(vars[EnvVarInfinispanPassword], passwordValue, secret, container)
-		framework.SetEnvVarFromSecret(infinispanEnvKeyPassword, passwordValue, secret, container)
 
 		appProps[vars[AppPropInfinispanUseAuth]] = "true"
 
@@ -126,7 +117,6 @@ func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps *v1alp
 		appProps[vars[AppPropInfinispanSaslMechanism]] = string(infinispanProps.SaslMechanism)
 	}
 	if len(infinispanProps.URI) > 0 {
-		framework.SetEnvVar(infinispanEnvKeyServerList, infinispanProps.URI, container)
 		appProps[vars[AppPropInfinispanServerList]] = infinispanProps.URI
 	}
 }
