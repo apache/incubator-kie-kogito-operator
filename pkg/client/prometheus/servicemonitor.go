@@ -17,7 +17,7 @@ package prometheus
 import (
 	"context"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientv1 "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -32,20 +32,19 @@ type ServiceMonitorInterface interface {
 	Patch(ctx context.Context, serviceMonitor *monv1.ServiceMonitor, patch clientv1.Patch, opts ...clientv1.PatchOption) error
 }
 type serviceMonitor struct {
-	client *client.Client
+	prometheusCli monclientv1.MonitoringV1Interface
 }
 
-func newServiceMonitor(c *client.Client) ServiceMonitorInterface {
-	client.MustEnsureClient(c)
+func newServiceMonitor(c monclientv1.MonitoringV1Interface) ServiceMonitorInterface {
 	return &serviceMonitor{
-		client: c,
+		prometheusCli: c,
 	}
 }
 
 func (s *serviceMonitor) List(namespace string) (*monv1.ServiceMonitorList, error) {
 	log.Debugf("List service monitor instances from namespace %s", namespace)
 
-	pList, err := s.client.PrometheusCli.ServiceMonitors(namespace).List(context.TODO(), metav1.ListOptions{})
+	pList, err := s.prometheusCli.ServiceMonitors(namespace).List(context.TODO(), metav1.ListOptions{})
 
 	if err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func (s *serviceMonitor) Create(ctx context.Context, serviceMonitor *monv1.Servi
 	log.Debugf("Create service monitor instance : %s", serviceMonitor)
 	createOpts := &clientv1.CreateOptions{}
 	createOpts.ApplyOptions(opts)
-	_, err := s.client.PrometheusCli.ServiceMonitors(serviceMonitor.Namespace).Create(ctx, serviceMonitor, *createOpts.AsCreateOptions())
+	_, err := s.prometheusCli.ServiceMonitors(serviceMonitor.Namespace).Create(ctx, serviceMonitor, *createOpts.AsCreateOptions())
 	return err
 }
 
@@ -67,7 +66,7 @@ func (s *serviceMonitor) Update(ctx context.Context, serviceMonitor *monv1.Servi
 	log.Debugf("Update service monitor instance : %s", serviceMonitor)
 	updateOpts := &clientv1.UpdateOptions{}
 	updateOpts.ApplyOptions(opts)
-	_, err := s.client.PrometheusCli.ServiceMonitors(serviceMonitor.Namespace).Update(ctx, serviceMonitor, *updateOpts.AsUpdateOptions())
+	_, err := s.prometheusCli.ServiceMonitors(serviceMonitor.Namespace).Update(ctx, serviceMonitor, *updateOpts.AsUpdateOptions())
 	return err
 }
 
@@ -75,14 +74,14 @@ func (s *serviceMonitor) Delete(ctx context.Context, serviceMonitor *monv1.Servi
 	log.Debugf("Delete service monitor instance : %s", serviceMonitor)
 	DeleteOpts := &clientv1.DeleteOptions{}
 	DeleteOpts.ApplyOptions(opts)
-	err := s.client.PrometheusCli.ServiceMonitors(serviceMonitor.Namespace).Delete(ctx, serviceMonitor.Name, *DeleteOpts.AsDeleteOptions())
+	err := s.prometheusCli.ServiceMonitors(serviceMonitor.Namespace).Delete(ctx, serviceMonitor.Name, *DeleteOpts.AsDeleteOptions())
 	return err
 }
 
 func (s *serviceMonitor) DeleteAllOf(ctx context.Context, serviceMonitor *monv1.ServiceMonitor, opts ...clientv1.DeleteAllOfOption) error {
 	DeleteAllOpts := &clientv1.DeleteAllOfOptions{}
 	DeleteAllOpts.ApplyOptions(opts)
-	err := s.client.PrometheusCli.ServiceMonitors(serviceMonitor.Namespace).DeleteCollection(ctx, *DeleteAllOpts.AsDeleteOptions(), *DeleteAllOpts.AsListOptions())
+	err := s.prometheusCli.ServiceMonitors(serviceMonitor.Namespace).DeleteCollection(ctx, *DeleteAllOpts.AsDeleteOptions(), *DeleteAllOpts.AsListOptions())
 	return err
 }
 
@@ -94,6 +93,6 @@ func (s *serviceMonitor) Patch(ctx context.Context, serviceMonitor *monv1.Servic
 	if err != nil {
 		return err
 	}
-	_, err = s.client.PrometheusCli.ServiceMonitors(serviceMonitor.Namespace).Patch(ctx, serviceMonitor.Name, patch.Type(), data, *PatchOpts.AsPatchOptions(), "")
+	_, err = s.prometheusCli.ServiceMonitors(serviceMonitor.Namespace).Patch(ctx, serviceMonitor.Name, patch.Type(), data, *PatchOpts.AsPatchOptions(), "")
 	return err
 }

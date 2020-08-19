@@ -15,18 +15,13 @@
 package prometheus
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 )
 
 var log = logger.GetLogger("prometheus_client")
 
-// ServiceMonitor will call ServiceMonitor custom resource API
-func ServiceMonitor() ServiceMonitorInterface {
-	return newServiceMonitor(&client.Client{})
-}
-
 // ServiceMonitorC will call ServiceMonitor custom resource API with the given client
-func ServiceMonitorC(c *client.Client) ServiceMonitorInterface {
+func ServiceMonitorC(c monclientv1.MonitoringV1Interface) ServiceMonitorInterface {
 	return newServiceMonitor(c)
 }

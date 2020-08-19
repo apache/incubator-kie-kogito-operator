@@ -12,28 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package services
+package client
 
 import (
 	"context"
 	"fmt"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/prometheus"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientv1 "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type reader struct {
-	client *client.Client
+// CustomReader provides capability to identify client at runtime
+type CustomReader struct {
+	Client *Client
 }
 
-func (r *reader) List(ctx context.Context, list runtime.Object, opts ...clientv1.ListOption) error {
+// List retrieves list of objects for a given namespace and list options.
+func (r *CustomReader) List(ctx context.Context, list runtime.Object, opts ...clientv1.ListOption) error {
 	switch l := list.(type) {
 	case *monv1.ServiceMonitorList:
 		for _, opt := range opts {
 			if namespace, ok := opt.(clientv1.InNamespace); ok {
-				sList, err := prometheus.ServiceMonitorC(r.client).List(string(namespace))
+				sList, err := prometheus.ServiceMonitorC(r.Client.PrometheusCli).List(string(namespace))
 				if err != nil {
 					return err
 				}
@@ -44,10 +45,11 @@ func (r *reader) List(ctx context.Context, list runtime.Object, opts ...clientv1
 		}
 		return fmt.Errorf("namespace is not specified, cannot list prometheuses")
 	default:
-		return r.client.ControlCli.List(ctx, l, opts...)
+		return r.Client.ControlCli.List(ctx, l, opts...)
 	}
 }
 
-func (r *reader) Get(ctx context.Context, key clientv1.ObjectKey, obj runtime.Object) error {
-	return r.client.ControlCli.Get(ctx, key, obj)
+// Get retrieves an obj for the given object key from the Kubernetes Cluster.
+func (r *CustomReader) Get(ctx context.Context, key clientv1.ObjectKey, obj runtime.Object) error {
+	return r.Client.ControlCli.Get(ctx, key, obj)
 }

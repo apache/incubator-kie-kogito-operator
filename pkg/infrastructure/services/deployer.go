@@ -224,7 +224,7 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
 	comparator := s.getComparator()
 	deltas := comparator.Compare(deployedResources, requestedResources)
-	writer := write.New(&writer{s.client})
+	writer := write.New(&client.CustomWriter{Client: s.client})
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
 			continue

@@ -12,74 +12,74 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package services
+package client
 
 import (
 	"context"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/prometheus"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientv1 "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type writer struct {
-	client *client.Client
+// CustomWriter provides capability to identify client at runtime
+type CustomWriter struct {
+	Client *Client
 }
 
 // Create saves the object obj in the Kubernetes cluster.
-func (w *writer) Create(ctx context.Context, obj runtime.Object, opts ...clientv1.CreateOption) error {
+func (w *CustomWriter) Create(ctx context.Context, obj runtime.Object, opts ...clientv1.CreateOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
-		return prometheus.ServiceMonitorC(w.client).Create(ctx, serviceMonitor, opts...)
+		return prometheus.ServiceMonitorC(w.Client.PrometheusCli).Create(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.Create(ctx, o, opts...)
+		return w.Client.ControlCli.Create(ctx, o, opts...)
 	}
 }
 
 // Delete deletes the given obj from Kubernetes cluster.
-func (w *writer) Delete(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteOption) error {
+func (w *CustomWriter) Delete(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
-		return prometheus.ServiceMonitorC(w.client).Delete(ctx, serviceMonitor, opts...)
+		return prometheus.ServiceMonitorC(w.Client.PrometheusCli).Delete(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.Delete(ctx, o, opts...)
+		return w.Client.ControlCli.Delete(ctx, o, opts...)
 	}
 }
 
 // Update updates the given obj in the Kubernetes cluster. obj must be a
 // struct pointer so that obj can be updated with the content returned by the Server.
-func (w *writer) Update(ctx context.Context, obj runtime.Object, opts ...clientv1.UpdateOption) error {
+func (w *CustomWriter) Update(ctx context.Context, obj runtime.Object, opts ...clientv1.UpdateOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
-		return prometheus.ServiceMonitorC(w.client).Update(ctx, serviceMonitor, opts...)
+		return prometheus.ServiceMonitorC(w.Client.PrometheusCli).Update(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.Update(ctx, o, opts...)
+		return w.Client.ControlCli.Update(ctx, o, opts...)
 	}
 }
 
 // Patch patches the given obj in the Kubernetes cluster. obj must be a
 // struct pointer so that obj can be updated with the content returned by the Server.
-func (w *writer) Patch(ctx context.Context, obj runtime.Object, patch clientv1.Patch, opts ...clientv1.PatchOption) error {
+func (w *CustomWriter) Patch(ctx context.Context, obj runtime.Object, patch clientv1.Patch, opts ...clientv1.PatchOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
-		return prometheus.ServiceMonitorC(w.client).Patch(ctx, serviceMonitor, patch, opts...)
+		return prometheus.ServiceMonitorC(w.Client.PrometheusCli).Patch(ctx, serviceMonitor, patch, opts...)
 	default:
-		return w.client.ControlCli.Patch(ctx, o, patch, opts...)
+		return w.Client.ControlCli.Patch(ctx, o, patch, opts...)
 	}
 }
 
 // DeleteAllOf deletes all objects of the given type matching the given options.
-func (w *writer) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteAllOfOption) error {
+func (w *CustomWriter) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteAllOfOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
-		return prometheus.ServiceMonitorC(w.client).DeleteAllOf(ctx, serviceMonitor, opts...)
+		return prometheus.ServiceMonitorC(w.Client.PrometheusCli).DeleteAllOf(ctx, serviceMonitor, opts...)
 	default:
-		return w.client.ControlCli.DeleteAllOf(ctx, o, opts...)
+		return w.Client.ControlCli.DeleteAllOf(ctx, o, opts...)
 	}
 }

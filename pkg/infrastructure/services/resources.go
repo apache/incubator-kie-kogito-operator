@@ -273,7 +273,7 @@ func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash s
 
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance
 func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	reader := read.New(&reader{s.client}).WithNamespace(s.instance.GetNamespace()).WithOwnerObject(s.instance)
+	reader := read.New(&client.CustomReader{Client: s.client}).WithNamespace(s.instance.GetNamespace()).WithOwnerObject(s.instance)
 	var objectTypes []runtime.Object
 	if s.client.IsOpenshift() {
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}

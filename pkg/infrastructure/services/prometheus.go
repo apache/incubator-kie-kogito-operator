@@ -18,6 +18,8 @@ import (
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -48,10 +50,17 @@ func CreateServiceMonitor(kogitoRuntime *v1alpha1.KogitoRuntime) *monv1.ServiceM
 			endPoint.Scheme = v1alpha1.PrometheusDefaultScheme
 		}
 
+		serviceSelectorLabels := make(map[string]string)
+		serviceSelectorLabels[framework.LabelAppKey] = kogitoRuntime.GetName()
+
+		serviceMonitorLabels := make(map[string]string)
+		serviceMonitorLabels["name"] = operator.Name
+
 		sm := &monv1.ServiceMonitor{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      kogitoRuntime.Name,
 				Namespace: kogitoRuntime.Namespace,
+				Labels:    serviceMonitorLabels,
 			},
 			Spec: monv1.ServiceMonitorSpec{
 				NamespaceSelector: monv1.NamespaceSelector{
@@ -60,7 +69,7 @@ func CreateServiceMonitor(kogitoRuntime *v1alpha1.KogitoRuntime) *monv1.ServiceM
 					},
 				},
 				Selector: metav1.LabelSelector{
-					MatchLabels: kogitoRuntime.ObjectMeta.Labels,
+					MatchLabels: serviceSelectorLabels,
 				},
 				Endpoints: []monv1.Endpoint{
 					endPoint,

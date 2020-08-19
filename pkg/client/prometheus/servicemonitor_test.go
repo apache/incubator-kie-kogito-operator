@@ -15,17 +15,14 @@
 package prometheus
 
 import (
+	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	"reflect"
 	"testing"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	monfake "github.com/coreos/prometheus-operator/pkg/client/versioned/fake"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func Test_serviceMonitor_List(t *testing.T) {
@@ -51,7 +48,7 @@ func Test_serviceMonitor_List(t *testing.T) {
 	}
 
 	type fields struct {
-		client *client.Client
+		prometheusCli monclientv1.MonitoringV1Interface
 	}
 	type args struct {
 		namespace string
@@ -66,10 +63,7 @@ func Test_serviceMonitor_List(t *testing.T) {
 		{
 			"ListServiceMonitor",
 			fields{
-				client: &client.Client{
-					ControlCli:    fake.NewFakeClient(),
-					PrometheusCli: monfake.NewSimpleClientset(&sm1, &sm2, &sm3).MonitoringV1(),
-				},
+				prometheusCli: monfake.NewSimpleClientset(&sm1, &sm2, &sm3).MonitoringV1(),
 			},
 			args{
 				"test",
@@ -86,7 +80,7 @@ func Test_serviceMonitor_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &serviceMonitor{
-				client: tt.fields.client,
+				prometheusCli: tt.fields.prometheusCli,
 			}
 			got, err := s.List(tt.args.namespace)
 			if (err != nil) != tt.wantErr {

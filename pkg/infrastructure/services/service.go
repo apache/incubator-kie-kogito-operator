@@ -29,11 +29,18 @@ func createRequiredService(instance v1alpha1.KogitoService, deployment *appsv1.D
 		log.Warnf("The deployment spec '%s' doesn't have any ports exposed. Won't be possible to create a new service.", deployment.Name)
 		return nil
 	}
+
+	labels := instance.GetSpec().GetServiceLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	labels[framework.LabelAppKey] = instance.GetName()
+
 	svc := corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.GetName(),
 			Namespace: instance.GetNamespace(),
-			Labels:    instance.GetSpec().GetServiceLabels(),
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports:    ports,
