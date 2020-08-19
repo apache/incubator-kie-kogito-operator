@@ -116,7 +116,7 @@ pipeline {
                 expression { return getProjectVersion() != '' }
             }
             steps {
-                sh "./hack/bump-version.sh ${getProjectVersion()} ${isRelease()}"
+                sh "./hack/bump-version.sh ${getProjectVersion()} ${isRelease()} ${getBuildBranch() == 'master'}"
             }
         }
 
