@@ -4,4 +4,4 @@ tests.services-image-version=0.14
 tests.services-image-name-suffix=nightly
 tests.runtime-application-image-name-suffix=nightly
 tests.runtime-application-image-version=0.14
-tests.examples-ref=master
+tests.examples-ref=0.14.x
