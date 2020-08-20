@@ -170,7 +170,7 @@ pipeline {
                     
                     try {
                         // Optaplanner taking a lot of resources, we should not build in parallel
-			// There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+			  // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
                         sh "make build-examples-images tags='@native' concurrent=1 ${getBDDParameters('never', false, 'docker')}"
                     } catch(err) {
                         unstable("Error building native examples' images. Check the junit results.")
