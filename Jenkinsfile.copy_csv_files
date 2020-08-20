@@ -23,7 +23,6 @@ pipeline {
         OLM_BASE_FOLDER = "deploy/olm-catalog/kogito-operator"
         // OLM_VERSION_FOLDER => will be set in Initialization phase
 
-        // TODO uncomment
         BOT_CREDENTIALS_ID = 'bsig-gh-bot'
         BOT_BRANCH_HASH = "${util.generateHash(10)}"
     }
