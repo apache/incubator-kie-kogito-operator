@@ -170,7 +170,7 @@ pipeline {
                     
                     try {
                         // Optaplanner taking a lot of resources, we should not build in parallel
-			  // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+			// There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
                         sh "make build-examples-images tags='@native' concurrent=1 ${getBDDParameters('never', false, 'docker')}"
                     } catch(err) {
                         unstable("Error building native examples' images. Check the junit results.")
@@ -194,8 +194,7 @@ pipeline {
                     // Catch and set unstable so the temp image is still pushed and we get the deployment properties, 
                     // in case we decide to continue in the release
                     try {
-                        // TODO remove tags
-                        sh "make run-tests tags=@native timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true)}"
+                        sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true)}"
                     } catch(err) {
                         unstable("Tests are failing")
                     }
