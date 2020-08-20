@@ -73,7 +73,7 @@ pipeline {
         stage('Copy files') {
             steps {
                 script {
-                    sh "rsync -av --progress operator-branch/${env.OLM_VERSION_FOLDER} operator-master/${env.OLM_VERSION_FOLDER}"
+                    sh "rsync -av --progress operator-branch/${env.OLM_VERSION_FOLDER} operator-master/${env.OLM_BASE_FOLDER}"
                 }
             }
         }
