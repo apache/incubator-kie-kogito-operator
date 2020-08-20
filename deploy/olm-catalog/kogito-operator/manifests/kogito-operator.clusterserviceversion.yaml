@@ -545,7 +545,7 @@ spec:
           image.'
         displayName: Image
         path: image
-      - description: Create Service monitor instance use to connect with Prometheus
+      - description: Create Service monitor instance to connect with Prometheus
         displayName: Prometheus
         path: prometheus
         x-descriptors:
