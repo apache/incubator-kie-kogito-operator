@@ -24,6 +24,7 @@ import (
 
 // ServiceMonitorInterface has functions that interact with Service Monitor instances in the Kubernetes cluster
 type ServiceMonitorInterface interface {
+	Get(ctx context.Context, key clientv1.ObjectKey) (*monv1.ServiceMonitor, error)
 	List(namespace string) (*monv1.ServiceMonitorList, error)
 	Create(ctx context.Context, serviceMonitor *monv1.ServiceMonitor, opts ...clientv1.CreateOption) error
 	Update(ctx context.Context, serviceMonitor *monv1.ServiceMonitor, opts ...clientv1.UpdateOption) error
@@ -41,16 +42,14 @@ func newServiceMonitor(c monclientv1.MonitoringV1Interface) ServiceMonitorInterf
 	}
 }
 
+func (s *serviceMonitor) Get(ctx context.Context, key clientv1.ObjectKey) (*monv1.ServiceMonitor, error) {
+	log.Debugf("Get service monitor instance : %s", key.Name)
+	return s.prometheusCli.ServiceMonitors(key.Namespace).Get(ctx, key.Name, metav1.GetOptions{})
+}
+
 func (s *serviceMonitor) List(namespace string) (*monv1.ServiceMonitorList, error) {
 	log.Debugf("List service monitor instances from namespace %s", namespace)
-
-	pList, err := s.prometheusCli.ServiceMonitors(namespace).List(context.TODO(), metav1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return pList, nil
+	return s.prometheusCli.ServiceMonitors(namespace).List(context.TODO(), metav1.ListOptions{})
 }
 
 // Create implements client.Client

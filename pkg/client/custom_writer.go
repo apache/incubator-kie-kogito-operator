@@ -23,12 +23,19 @@ import (
 )
 
 // CustomWriter provides capability to identify client at runtime
-type CustomWriter struct {
+type customWriter struct {
 	Client *Client
 }
 
+// CustomWriterC provide writer reference for given client
+func CustomWriterC(cli *Client) clientv1.Writer {
+	return &customWriter{
+		Client: cli,
+	}
+}
+
 // Create saves the object obj in the Kubernetes cluster.
-func (w *CustomWriter) Create(ctx context.Context, obj runtime.Object, opts ...clientv1.CreateOption) error {
+func (w *customWriter) Create(ctx context.Context, obj runtime.Object, opts ...clientv1.CreateOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
@@ -39,7 +46,7 @@ func (w *CustomWriter) Create(ctx context.Context, obj runtime.Object, opts ...c
 }
 
 // Delete deletes the given obj from Kubernetes cluster.
-func (w *CustomWriter) Delete(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteOption) error {
+func (w *customWriter) Delete(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
@@ -51,7 +58,7 @@ func (w *CustomWriter) Delete(ctx context.Context, obj runtime.Object, opts ...c
 
 // Update updates the given obj in the Kubernetes cluster. obj must be a
 // struct pointer so that obj can be updated with the content returned by the Server.
-func (w *CustomWriter) Update(ctx context.Context, obj runtime.Object, opts ...clientv1.UpdateOption) error {
+func (w *customWriter) Update(ctx context.Context, obj runtime.Object, opts ...clientv1.UpdateOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
@@ -63,7 +70,7 @@ func (w *CustomWriter) Update(ctx context.Context, obj runtime.Object, opts ...c
 
 // Patch patches the given obj in the Kubernetes cluster. obj must be a
 // struct pointer so that obj can be updated with the content returned by the Server.
-func (w *CustomWriter) Patch(ctx context.Context, obj runtime.Object, patch clientv1.Patch, opts ...clientv1.PatchOption) error {
+func (w *customWriter) Patch(ctx context.Context, obj runtime.Object, patch clientv1.Patch, opts ...clientv1.PatchOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)
@@ -74,7 +81,7 @@ func (w *CustomWriter) Patch(ctx context.Context, obj runtime.Object, patch clie
 }
 
 // DeleteAllOf deletes all objects of the given type matching the given options.
-func (w *CustomWriter) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteAllOfOption) error {
+func (w *customWriter) DeleteAllOf(ctx context.Context, obj runtime.Object, opts ...clientv1.DeleteAllOfOption) error {
 	switch o := obj.(type) {
 	case *monv1.ServiceMonitor:
 		serviceMonitor := obj.(*monv1.ServiceMonitor)

@@ -28,6 +28,13 @@ type CustomReader struct {
 	Client *Client
 }
 
+// CustomReaderC provide reader reference for given client
+func CustomReaderC(cli *Client) clientv1.Reader {
+	return &CustomReader{
+		Client: cli,
+	}
+}
+
 // List retrieves list of objects for a given namespace and list options.
 func (r *CustomReader) List(ctx context.Context, list runtime.Object, opts ...clientv1.ListOption) error {
 	switch l := list.(type) {
@@ -51,5 +58,16 @@ func (r *CustomReader) List(ctx context.Context, list runtime.Object, opts ...cl
 
 // Get retrieves an obj for the given object key from the Kubernetes Cluster.
 func (r *CustomReader) Get(ctx context.Context, key clientv1.ObjectKey, obj runtime.Object) error {
-	return r.Client.ControlCli.Get(ctx, key, obj)
+	switch o := obj.(type) {
+	case *monv1.ServiceMonitor:
+		sObj, err := prometheus.ServiceMonitorC(r.Client.PrometheusCli).Get(ctx, key)
+		if err != nil {
+			return err
+		}
+		serviceMonitor := obj.(*monv1.ServiceMonitor)
+		*serviceMonitor = *sObj
+		return nil
+	default:
+		return r.Client.ControlCli.Get(ctx, key, o)
+	}
 }
