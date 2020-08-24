@@ -23,7 +23,8 @@ spec:
     plural: kogitoruntimes
     singular: kogitoruntime
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoRuntime is a custom Kogito service.

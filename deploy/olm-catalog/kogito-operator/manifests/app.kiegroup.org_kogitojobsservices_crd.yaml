@@ -23,7 +23,8 @@ spec:
     plural: kogitojobsservices
     singular: kogitojobsservice
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoJobsService deploys the Kogito Jobs Service in the given

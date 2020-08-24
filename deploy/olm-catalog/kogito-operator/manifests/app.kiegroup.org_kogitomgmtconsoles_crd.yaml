@@ -23,7 +23,8 @@ spec:
     plural: kogitomgmtconsoles
     singular: kogitomgmtconsole
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoMgmtConsole deploys the Kogito Management Console service

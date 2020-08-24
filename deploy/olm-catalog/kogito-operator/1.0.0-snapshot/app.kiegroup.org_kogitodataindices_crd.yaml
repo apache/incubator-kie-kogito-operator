@@ -23,7 +23,8 @@ spec:
     plural: kogitodataindices
     singular: kogitodataindex
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoDataIndex defines the Data Index Service infrastructure deployment.

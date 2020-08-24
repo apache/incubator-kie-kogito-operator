@@ -46,6 +46,7 @@ type KogitoTrustyStatus struct {
 // KogitoTrusty defines the Trusty Service infrastructure deployment.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitotrusties,scope=Namespaced
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"

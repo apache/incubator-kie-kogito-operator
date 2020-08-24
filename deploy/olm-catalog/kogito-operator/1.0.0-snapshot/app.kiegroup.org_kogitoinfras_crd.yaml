@@ -23,7 +23,8 @@ spec:
     plural: kogitoinfras
     singular: kogitoinfra
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoInfra will be managed automatically by the operator, don't

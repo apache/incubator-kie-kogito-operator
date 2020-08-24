@@ -23,7 +23,8 @@ spec:
     plural: kogitotrusties
     singular: kogitotrusty
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoTrusty defines the Trusty Service infrastructure deployment.

@@ -49,6 +49,7 @@ type KogitoRuntimeStatus struct {
 // KogitoRuntime is a custom Kogito service.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoruntimes,scope=Namespaced
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Image of this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"

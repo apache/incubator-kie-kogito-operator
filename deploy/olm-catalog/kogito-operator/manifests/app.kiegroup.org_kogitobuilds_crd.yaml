@@ -35,7 +35,8 @@ spec:
     plural: kogitobuilds
     singular: kogitobuild
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift

@@ -314,6 +314,7 @@ type WebHookSecret struct {
 
 // KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 // +kubebuilder:resource:path=kogitobuilds,scope=Namespaced
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type",description="Type of this build instance"
 // +kubebuilder:printcolumn:name="Runtime",type="string",JSONPath=".spec.runtime",description="Runtime used to build the service"
