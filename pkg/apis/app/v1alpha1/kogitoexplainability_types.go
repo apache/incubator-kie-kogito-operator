@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 )
 
 // KogitoExplainabilityCRDName is the name of the Kogito Explainability CRD in the cluster.
-const KogitoExplainabilityCRDName = "kogitoexplainability.app.kiegroup.org"
+const KogitoExplainabilityCRDName = "kogitoexplainabilities.app.kiegroup.org"
 
 // KogitoExplainabilitySpec defines the desired state of KogitoExplainability.
 // +k8s:openapi-gen=true
@@ -44,14 +44,13 @@ type KogitoExplainabilityStatus struct {
 
 // KogitoExplainability defines the Explainability Service infrastructure deployment.
 // +k8s:openapi-gen=true
-// +kubebuilder:resource:path=kogitoexplainability,scope=Namespaced
+// +kubebuilder:resource:path=kogitoexplainabilities,scope=Namespaced
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Explainability"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMaps,v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="KafkaTopics,kafka.strimzi.io/v1beta1"
 type KogitoExplainability struct {

@@ -35,17 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-const (
-	// Collection of kafka topics that should be handled by the Explainability service
-	kafkaTopicNameExplainabilityRequest string = "trusty-explainability-request"
-	kafkaTopicNameExplainabilityResult  string = "trusty-explainability-result"
-)
-
-var kafkaTopics = []services.KafkaTopicDefinition{
-	{TopicName: kafkaTopicNameExplainabilityRequest, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameExplainabilityResult, MessagingType: services.KafkaTopicOutgoing},
-}
-
 var log = logger.GetLogger("controller_kogitoexplainability")
 
 // Add creates a new KogitoExplainability Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -77,8 +66,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to KogitoApp since we need their runtime images to check for labels, persistence and so on
-	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoApp{}})
+	// TODO(user): Modify this to be the types you create that are owned by the primary resource
+	// Watch for changes to secondary resource Pods and requeue the owner KogitoExplainability
+	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &appv1alpha1.KogitoTrusty{},
+	})
 	if err != nil {
 		return err
 	}
@@ -100,7 +93,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			AddToScheme:  imgv1.Install,
 			Objects:      []runtime.Object{&imgv1.ImageStream{}},
 		},
-		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
+		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}}},
 	}
 	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoExplainability).client, mgr, c, &appv1alpha1.KogitoExplainability{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
@@ -134,7 +127,6 @@ func (r *ReconcileKogitoExplainability) Reconcile(request reconcile.Request) (re
 	definition := services.ServiceDefinition{
 		DefaultImageName:    infrastructure.DefaultExplainabilityImageName,
 		Request:             request,
-		OnDeploymentCreate:  r.onDeploymentCreate,
 		KafkaTopics:         kafkaTopics,
 		RequiresPersistence: false,
 		RequiresMessaging:   true,
@@ -149,8 +141,13 @@ func (r *ReconcileKogitoExplainability) Reconcile(request reconcile.Request) (re
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileKogitoExplainability) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
-	log.Warnf("No container definition for service %s. OnDeploymentCreate", kogitoService.GetName())
+const (
+	// Collection of kafka topics that should be handled by the Explainability service
+	kafkaTopicNameExplainabilityRequest string = "trusty-explainability-request"
+	kafkaTopicNameExplainabilityResult  string = "trusty-explainability-result"
+)
 
-	return nil
+var kafkaTopics = []services.KafkaTopicDefinition{
+	{TopicName: kafkaTopicNameExplainabilityRequest, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameExplainabilityResult, MessagingType: services.KafkaTopicOutgoing},
 }

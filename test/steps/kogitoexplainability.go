@@ -17,6 +17,8 @@ package steps
 import (
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/test/steps/mappers"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 )
 
 /*
@@ -24,6 +26,8 @@ import (
 	| runtime-request | cpu/memory  | value                     |
 	| runtime-limit   | cpu/memory  | value                     |
 	| runtime-env     | varName     | varValue                  |
+	| kafka           | externalURI | kafka-bootstrap:9092      |
+	| kafka           | instance    | external-kafka            |
 */
 
 func registerKogitoExplainabilityServiceSteps(ctx *godog.ScenarioContext, data *Data) {
@@ -34,15 +38,15 @@ func registerKogitoExplainabilityServiceSteps(ctx *godog.ScenarioContext, data *
 
 func (data *Data) installKogitoExplainabilityServiceWithReplicas(replicas int) error {
 	explainability := framework.GetKogitoExplainabilityResourceStub(data.Namespace, replicas)
-	return framework.InstallKogitoExplainabilityService(data.Namespace, framework.GetDefaultInstallerType(), &framework.KogitoServiceHolder{KogitoService: explainability})
+	return framework.InstallKogitoExplainabilityService(data.Namespace, framework.GetDefaultInstallerType(), &bddtypes.KogitoServiceHolder{KogitoService: explainability})
 }
 
 func (data *Data) installKogitoExplainabilityServiceWithReplicasWithConfiguration(replicas int, table *godog.Table) error {
-	explainability := &framework.KogitoServiceHolder{
+	explainability := &bddtypes.KogitoServiceHolder{
 		KogitoService: framework.GetKogitoExplainabilityResourceStub(data.Namespace, replicas),
 	}
 
-	if err := configureKogitoServiceFromTable(table, explainability); err != nil {
+	if err := mappers.MapKogitoServiceTable(table, explainability); err != nil {
 		return err
 	}
 

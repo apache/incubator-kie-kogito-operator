@@ -18,10 +18,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 )
 
 // InstallKogitoExplainabilityService install the Kogito Explainability service
-func InstallKogitoExplainabilityService(namespace string, installerType InstallerType, explainability *KogitoServiceHolder) error {
+func InstallKogitoExplainabilityService(namespace string, installerType InstallerType, explainability *bddtypes.KogitoServiceHolder) error {
 	// Persistence is already configured internally by the Explainability service, so we don't need to add any additional persistence step here.
 	return InstallService(explainability, installerType, "explainability")
 }

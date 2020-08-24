@@ -1,7 +1,7 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: kogitoexplainability.app.kiegroup.org
+  name: kogitoexplainabilities.app.kiegroup.org
 spec:
   additionalPrinterColumns:
   - JSONPath: .spec.replicas
@@ -20,7 +20,7 @@ spec:
   names:
     kind: KogitoExplainability
     listKind: KogitoExplainabilityList
-    plural: kogitoexplainability
+    plural: kogitoexplainabilities
     singular: kogitoexplainability
   scope: Namespaced
   subresources: {}
