@@ -50,7 +50,7 @@ type ServiceDefinition struct {
 	// Request made for the service
 	Request controller.Request
 	// OnDeploymentCreate applies custom deployment configuration in the required Deployment resource
-	OnDeploymentCreate func(deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error
+	OnDeploymentCreate func(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error
 	// OnObjectsCreate applies custom object creation in the service deployment logic.
 	// E.g. if you need an additional Kubernetes resource, just create your own map that the API will append to its managed resources.
 	// The "objectLists" array is the List object reference of the types created.

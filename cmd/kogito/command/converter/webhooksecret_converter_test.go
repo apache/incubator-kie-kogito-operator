@@ -32,6 +32,6 @@ func Test_FromWebHookFlagsToWebHookSecret(t *testing.T) {
 	assert.NotNil(t, webHookSecrets)
 	assert.Equal(t, 1, len(webHookSecrets))
 	webHookSecret := webHookSecrets[0]
-	assert.Equal(t, v1alpha1.GitHubWebhook, webHookSecret.Type)
+	assert.Equal(t, v1alpha1.GitHubWebHook, webHookSecret.Type)
 	assert.Equal(t, "53537568546353", webHookSecret.Secret)
 }

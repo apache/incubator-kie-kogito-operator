@@ -15,9 +15,13 @@
 package infrastructure
 
 import (
+	"fmt"
+	"net/url"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 )
 
 // getSingletonKogitoServiceRoute gets the route from a kogito service that's unique in the given namespace
@@ -29,4 +33,73 @@ func getSingletonKogitoServiceRoute(client *client.Client, namespace string, ser
 		return serviceListRef.GetItemAt(0).GetStatus().GetExternalURI(), nil
 	}
 	return "", nil
+}
+
+// injectURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Data Index route to each one
+// Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
+func injectURLIntoKogitoApps(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, serviceListRef v1alpha1.KogitoServiceList) error {
+	log.Debugf("Querying KogitoApps in the namespace '%s' to inject a route ", namespace)
+
+	deployments, err := getKogitoRuntimeDeployments(namespace, client)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Found %s KogitoApps in the namespace '%s' ", len(deployments), namespace)
+	var serviceEndpoints ServiceEndpoints
+	if len(deployments) > 0 {
+		log.Debug("Querying route to inject into KogitoApps")
+		serviceEndpoints, err = getServiceEndpoints(client, namespace, serviceHTTPRouteEnv, serviceWSRouteEnv, serviceListRef)
+		if err != nil {
+			return err
+		}
+		log.Debugf("The route is '%s'", serviceEndpoints.HTTPRouteURI)
+	}
+
+	for _, dc := range deployments {
+		// here we compare the current value to avoid updating the app every time
+		if len(dc.Spec.Template.Spec.Containers) == 0 {
+			break
+		}
+		updateHTTP := framework.GetEnvVarFromContainer(serviceEndpoints.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != serviceEndpoints.HTTPRouteURI
+		updateWS := framework.GetEnvVarFromContainer(serviceEndpoints.WSRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != serviceEndpoints.WSRouteURI
+		if updateHTTP {
+			log.Debugf("Updating dc '%s' to inject route %s ", dc.GetName(), serviceEndpoints.HTTPRouteURI)
+			framework.SetEnvVar(serviceEndpoints.HTTPRouteEnv, serviceEndpoints.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
+		}
+		if updateWS {
+			log.Debugf("Updating dc '%s' to inject route %s ", dc.GetName(), serviceEndpoints.WSRouteURI)
+			framework.SetEnvVar(serviceEndpoints.WSRouteEnv, serviceEndpoints.WSRouteURI, &dc.Spec.Template.Spec.Containers[0])
+		}
+		// update only once
+		if updateWS || updateHTTP {
+			if err := kubernetes.ResourceC(client).Update(&dc); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, serviceListRef v1alpha1.KogitoServiceList) (endpoints ServiceEndpoints, err error) {
+	route := ""
+	endpoints = ServiceEndpoints{HTTPRouteEnv: serviceHTTPRouteEnv, WSRouteEnv: serviceWSRouteEnv}
+	route, err = getSingletonKogitoServiceRoute(client, namespace, serviceListRef)
+	if err != nil {
+		return
+	}
+	if len(route) > 0 {
+		var routeURL *url.URL
+		routeURL, err = url.Parse(route)
+		if err != nil {
+			log.Warnf("Failed to parse route url (%s), set to empty: %s", route, err)
+			return
+		}
+		endpoints.HTTPRouteURI = routeURL.String()
+		if httpScheme == routeURL.Scheme {
+			endpoints.WSRouteURI = fmt.Sprintf("%s://%s", webSocketScheme, routeURL.Host)
+		} else {
+			endpoints.WSRouteURI = fmt.Sprintf("%s://%s", webSocketSecureScheme, routeURL.Host)
+		}
+	}
+	return
 }

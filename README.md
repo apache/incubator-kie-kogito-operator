@@ -24,7 +24,8 @@ For information about the Kogito Operator architecture and instructions for usin
       * [Running performance tests](#running-performance-tests)
       * [List of test tags](#list-of-test-tags)
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
-
+  * [Guide for Kogito Developers](#guide-for-kogito-developers)
+  
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Contributing to the Kogito Operator
@@ -60,7 +61,7 @@ For adding the `golangci-lint` with VScode, install the [Go Plugin](https://mark
 
 For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://sdk.operatorframework.io/docs/golang/legacy/unit-testing/).
 
-In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitoapp_controller_test.go`](../master/pkg/controller/kogitoapp/kogitoapp_controller_test.go) test file.
+In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitobuild_controller_test.go`](../master/pkg/controller/kogitobuild/kogitobuild_controller_test.go) test file.
 
 ### Kogito Operator collaboration and pull requests
 
@@ -68,7 +69,7 @@ Before you start to work on a new proposed feature or on a fix for a bug, [open 
 
 After you update the source with your new proposed feature or bug fix, open a [pull request (PR)](https://help.github.com/en/articles/about-pull-requests) that meets the following requirements:
 
-- You have a JIRA associated with the PR.
+- You have a JIRA associated with the PR. 
 - Your PR has the name of the JIRA in the title, for example, `[KOGITO-XXX] - Awesome feature that solves it all`.
 - The PR solves only the problem described in the JIRA.
 - You have written unit tests for the particular fix or feature.
@@ -109,7 +110,7 @@ account to create an application repository.
 
 Follow the steps below:
 
-1. Run `make prepare-olm version=0.13.0`. Bear in mind that if there're different versions
+1. Run `make prepare-olm version=1.0.0-snapshot`. Bear in mind that if there're different versions
 in the `deploy/olm-catalog/kogito-operator/kogito-operator.package.yaml` file, every CSV must
 be included in the output folder. At this time, the script did not copy previous CSV versions to the
 output folder, so it must be copied manually.
@@ -135,7 +136,7 @@ $ AUTH_TOKEN=$(curl -sH "Content-Type: application/json" -XPOST https://quay.io/
 $ export OPERATOR_DIR=build/_output/operatorhub/
 $ export QUAY_NAMESPACE=kiegroup # should be different in your environment
 $ export PACKAGE_NAME=kogito-operator
-$ export PACKAGE_VERSION=0.13.0
+$ export PACKAGE_VERSION=1.0.0-snapshot
 $ export TOKEN=$AUTH_TOKEN
 ```
 
@@ -236,6 +237,7 @@ You can set those optional keys:
 - `services_image_namespace` sets the services (jobs-service, data-index, ...) image namespace.
 - `services_image_registry` sets the services (jobs-service, data-index, ...) image registry.
 - `data_index_image_tag` sets the Kogito Data Index image tag ('services_image_version' is ignored)
+- `trusty_image_tag` sets the Kogito Trusty image tag ('services_image_version' is ignored)
 - `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
 - `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
 <!--- build -->
@@ -284,8 +286,8 @@ make run-tests 2>&1 | tee log.out
 
 ```
 $ make
-$ docker tag quay.io/kiegroup/kogito-cloud-operator:0.13.0 quay.io/{USERNAME}/kogito-cloud-operator:0.13.0
-$ docker push quay.io/{USERNAME}/kogito-cloud-operator:0.13.0
+$ docker tag quay.io/kiegroup/kogito-cloud-operator:1.0.0-snapshot quay.io/{USERNAME}/kogito-cloud-operator:1.0.0-snapshot
+$ docker push quay.io/{USERNAME}/kogito-cloud-operator:1.0.0-snapshot
 $ make run-tests operator_image=quay.io/{USERNAME}/kogito-cloud-operator
 ```
 
@@ -338,6 +340,7 @@ All options from BDD tests do also apply here.
 | @quarkus           | Quarkus tests                                                                      |
 |                    |                                                                                    |
 | @dataindex         | Tests including DataIndex                                                          |
+| @trusty            | Tests including Trusty                                                             |
 | @jobsservice       | Tests including Jobs service                                                       |
 | @managementconsole | Tests including Management console                                                 |
 | @infra             | Tests checking KogitoInfra functionality                                           |
@@ -369,3 +372,7 @@ You can use the following command to vet, format, lint, and test your code:
 ```bash
 $ make test
 ```
+
+## Guide for Kogito Developers
+
+If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.

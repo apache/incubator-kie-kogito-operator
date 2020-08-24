@@ -16,16 +16,18 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitobuild/build"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework/mappers"
 	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // DeployKogitoBuild deploy a KogitoBuild
@@ -90,6 +92,17 @@ func GetKogitoBuildStub(namespace, runtimeType, name string) *v1alpha1.KogitoBui
 	return kogitoBuild
 }
 
+// GetKogitoBuild returns the KogitoBuild type
+func GetKogitoBuild(namespace, buildName string) (*v1alpha1.KogitoBuild, error) {
+	build := &v1alpha1.KogitoBuild{}
+	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: buildName, Namespace: namespace}, build); err != nil && !errors.IsNotFound(err) {
+		return nil, fmt.Errorf("Error while trying to look for KogitoBuild %s: %v ", buildName, err)
+	} else if errors.IsNotFound(err) || !exists {
+		return nil, nil
+	}
+	return build, nil
+}
+
 // SetupKogitoBuildImageStreams sets the correct images for the KogitoBuild
 func SetupKogitoBuildImageStreams(kogitoBuild *v1alpha1.KogitoBuild) {
 	kogitoBuild.Spec.BuildImage = getKogitoBuildS2IImage(kogitoBuild)
@@ -101,20 +114,18 @@ func getKogitoBuildS2IImage(kogitoBuild *v1alpha1.KogitoBuild) v1alpha1.Image {
 		return framework.ConvertImageTagToImage(config.GetBuildS2IImageStreamTag())
 	}
 
-	return getKogitoBuildImage(resource.BuildImageStreams[resource.BuildTypeS2I][kogitoBuild.Spec.Runtime])
+	return getKogitoBuildImage(build.KogitoImages[kogitoBuild.Spec.Runtime][true])
 }
 
 func getKogitoBuildRuntimeImage(kogitoBuild *v1alpha1.KogitoBuild) v1alpha1.Image {
 	if len(config.GetBuildRuntimeImageStreamTag()) > 0 {
 		return framework.ConvertImageTagToImage(config.GetBuildRuntimeImageStreamTag())
 	}
-
-	buildType := resource.BuildTypeRuntime
-	if kogitoBuild.Spec.Runtime == v1alpha1.QuarkusRuntimeType && !kogitoBuild.Spec.Native {
-		buildType = resource.BuildTypeRuntimeJvm
+	imageName := build.KogitoImages[kogitoBuild.Spec.Runtime][false]
+	if kogitoBuild.Spec.Native {
+		imageName = build.KogitoQuarkusUbi8Image
 	}
-
-	return getKogitoBuildImage(resource.BuildImageStreams[buildType][kogitoBuild.Spec.Runtime])
+	return getKogitoBuildImage(imageName)
 }
 
 // getKogitoBuildImage returns a build image with defaults set

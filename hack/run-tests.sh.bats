@@ -464,6 +464,23 @@ setup() {
     run ${BATS_TEST_DIRNAME}/run-tests.sh --explainability_image_tag "" --dry_run
     [ "$status" -eq 0 ]
     [[ "${output}" != *"--tests.explainability-image-tag"* ]]
+
+@test "invoke run-tests with trusty_image_tag" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --trusty_image_tag tag --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.trusty-image-tag=tag" ]]
+}
+
+@test "invoke run-tests with trusty_image_tag missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --trusty_image_tag --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.trusty-image-tag"* ]]
+}
+
+@test "invoke run-tests with trusty_image_tag empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --trusty_image_tag "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.trusty-image-tag"* ]]
 }
 
 @test "invoke run-tests with jobs_service_image_tag" {

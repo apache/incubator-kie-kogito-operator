@@ -41,31 +41,40 @@ func (i *completionCommand) Command() *cobra.Command {
 
 func (i *completionCommand) RegisterHook() {
 	i.command = &cobra.Command{
-		Use:     "completion (bash | zsh)",
-		Short:   "Generates a completion script for the given shell (bash or zsh)",
+		Use:     "completion (bash | zsh | fish)",
+		Short:   "Generates a completion script for the given shell (bash, zsh or fish)",
 		Aliases: []string{"comp"},
 		Long: `Description:
-  Generates a completion script for the given shell (bash or zsh)
+  Generates a completion script for the given shell (bash, zsh or fish)
 
-Bash:
-  To load in the current session:
-  . <(kogito completion bash)
-
-  To load in all new sessions:
-  echo ". <(kogito completion bash)" >> ~/.bashrc
-
-  To load in all new sessions for all users:
-  kogito completion bash | sudo tee /etc/bash_completion.d/kogito
-
-Zsh:
-  To load in the current session:
-  . <(kogito completion zsh); compdef _kogito kogito
-
-  To load in all new sessions:
-  echo ". <(kogito completion zsh); compdef _kogito kogito" >> ~/.zshrc
-
-  To load in all new sessions for all users:
-  kogito completion zsh | sudo tee /usr/share/zsh/site-functions/_kogito
+  Bash:
+  
+    $ source <(kogito completion bash)
+    
+    # To load completions for each session, execute once:
+    Linux:
+      $ kogito completion bash > /etc/bash_completion.d/kogito
+    MacOS:
+      $ kogito completion bash > /usr/local/etc/bash_completion.d/kogito
+  
+  Zsh:
+  
+    # If shell completion is not already enabled in your environment you will need
+    # to enable it.  You can execute the following once:
+    
+    $ echo "autoload -U compinit; compinit" >> ~/.zshrc
+    
+    # To load completions for each session, execute once:
+    $ kogito completion zsh > "${fpath[1]}/_kogito"
+    
+    # You will need to start a new shell for this setup to take effect.
+  
+  Fish:
+  
+    $ kogito completion fish | source
+    
+    # To load completions for each session, execute once:
+    $ kogito completion fish > ~/.config/fish/completions/kogito.fish
         `,
 		RunE: i.Exec,
 		// Args validation
@@ -73,8 +82,8 @@ Zsh:
 			if len(args) != 1 {
 				return fmt.Errorf("requires 1 arg, received %v", len(args))
 			}
-			if args[0] != "bash" && args[0] != "zsh" {
-				return fmt.Errorf("argument must be 'bash' or 'zsh', received %s", args[0])
+			if args[0] != "bash" && args[0] != "zsh" && args[0] != "fish" {
+				return fmt.Errorf("argument must be 'bash', 'zsh' or 'fish', received %s", args[0])
 			}
 			return nil
 		},
@@ -87,15 +96,18 @@ func (i *completionCommand) InitHook() {
 
 func (i *completionCommand) Exec(cmd *cobra.Command, args []string) error {
 	shell := args[0]
+	var err error
 
-	if shell == "bash" {
-		if err := cmd.Root().GenBashCompletion(os.Stdout); err != nil {
-			return fmt.Errorf("Error in creating bash completion file: %v", err)
-		}
-	} else if shell == "zsh" {
-		if err := cmd.Root().GenZshCompletion(os.Stdout); err != nil {
-			return fmt.Errorf("Error in creating zsh completion file: %v", err)
-		}
+	switch shell {
+	case "bash":
+		err = cmd.Root().GenBashCompletion(os.Stdout)
+	case "zsh":
+		err = cmd.Root().GenZshCompletion(os.Stdout)
+	case "fish":
+		err = cmd.Root().GenFishCompletion(os.Stdout, true)
+	}
+	if err != nil {
+		return fmt.Errorf("Error in creating %s completion file: %v", shell, err)
 	}
 
 	return nil

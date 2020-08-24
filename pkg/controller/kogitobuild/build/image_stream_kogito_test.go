@@ -32,7 +32,7 @@ func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
 	}
 	buildSpringBoot := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBoot", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringbootRuntimeType},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType},
 	}
 	buildQuarkusCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusCustom", Namespace: t.Name()},
@@ -40,7 +40,7 @@ func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
 	}
 	buildSpringBootCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBootCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringbootRuntimeType, BuildImage: v1alpha1.Image{Name: "my-image"}},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: v1alpha1.Image{Name: "my-image"}},
 	}
 	tag := ":" + infrastructure.GetKogitoImageVersion()
 	type args struct {
@@ -81,7 +81,7 @@ func Test_resolveKogitoImageStreamName(t *testing.T) {
 	}
 	buildSpringBoot := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBoot", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringbootRuntimeType},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType},
 	}
 	buildQuarkusCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusCustom", Namespace: t.Name()},
@@ -89,7 +89,7 @@ func Test_resolveKogitoImageStreamName(t *testing.T) {
 	}
 	buildSpringBootCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBootCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringbootRuntimeType, BuildImage: v1alpha1.Image{Name: "my-image"}},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: v1alpha1.Image{Name: "my-image"}},
 	}
 	type args struct {
 		build     *v1alpha1.KogitoBuild

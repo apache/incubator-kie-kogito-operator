@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"go.uber.org/zap"
 	"io"
+	"os"
 )
 
 var (
@@ -38,14 +39,17 @@ func getDefaultLoggerWithOut(verbose bool, outputFormat string, commandOutput io
 		badOutputFormatMsg = "'" + outputFormat + "' is not a supported output format"
 		outputFormat = ""
 	}
-	logger := logger.GetLoggerWithOptions("kogito-cli", &logger.Opts{
+	if commandOutput == nil {
+		commandOutput = os.Stdout
+	}
+	log := logger.GetLoggerWithOptions("kogito-cli", &logger.Opts{
 		Output:       commandOutput,
 		OutputFormat: outputFormat,
 		Verbose:      verbose,
 		Console:      true,
 	})
 	if len(badOutputFormatMsg) > 0 {
-		logger.Warn(badOutputFormatMsg)
+		log.Warn(badOutputFormatMsg)
 	}
-	return logger
+	return log
 }

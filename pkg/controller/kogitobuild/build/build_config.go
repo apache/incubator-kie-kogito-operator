@@ -60,7 +60,7 @@ func decoratorForRemoteSourceBuilder() decorator {
 		for _, hook := range build.Spec.WebHooks {
 			var triggerPolicy buildv1.BuildTriggerPolicy
 			trigger := &buildv1.WebHookTrigger{SecretReference: &buildv1.SecretLocalReference{Name: hook.Secret}}
-			if hook.Type == v1alpha1.GitHubWebhook {
+			if hook.Type == v1alpha1.GitHubWebHook {
 				triggerPolicy = buildv1.BuildTriggerPolicy{GitHubWebHook: trigger, Type: buildv1.GitHubWebHookBuildTriggerType}
 			} else {
 				trigger.AllowEnv = true

@@ -50,13 +50,3 @@ func Route() RouteInterface {
 func RouteC(c *client.Client) RouteInterface {
 	return newRoute(c)
 }
-
-// Deployment calls DeploymentConfig OpenShift APIs
-func Deployment() DeploymentConfigInterface {
-	return newDeploymentConfig(&client.Client{})
-}
-
-// DeploymentC calls DeploymentConfig APIs with the given client
-func DeploymentC(c *client.Client) DeploymentConfigInterface {
-	return newDeploymentConfig(c)
-}

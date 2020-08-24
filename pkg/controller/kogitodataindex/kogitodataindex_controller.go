@@ -36,7 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logger.GetLogger("controller_kogitodataindex")
+var log = logger.GetLogger("kogitodataindex_controller")
 
 // Add creates a new KogitoDataIndex Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -67,8 +67,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to KogitoApp since we need their runtime images to check for labels, persistence and so on
-	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoApp{}})
+	// Watch for changes to Kogito Runtime since we need their runtime images to check for labels, persistence and so on
+	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{IsController: true, OwnerType: &appv1alpha1.KogitoRuntime{}})
 	if err != nil {
 		return err
 	}
@@ -120,8 +120,8 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 	reqLogger := log.With("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling KogitoDataIndex")
 
-	reqLogger.Infof("Injecting Data Index URL into KogitoApps in the namespace '%s'", request.Namespace)
-	if err := infrastructure.InjectDataIndexURLIntoKogitoApps(r.client, request.Namespace); err != nil {
+	reqLogger.Infof("Injecting Data Index URL into KogitoRuntime services in the namespace '%s'", request.Namespace)
+	if err := infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(r.client, request.Namespace); err != nil {
 		return reconcile.Result{}, err
 	}
 
@@ -166,7 +166,7 @@ var kafkaTopics = []services.KafkaTopicDefinition{
 	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicIncoming},
 }
 
-func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
+func (r *ReconcileKogitoDataIndex) onDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		if err := r.mountProtoBufConfigMaps(deployment); err != nil {
 			return err
@@ -178,7 +178,7 @@ func (r *ReconcileKogitoDataIndex) onDeploymentCreate(deployment *appsv1.Deploym
 	return nil
 }
 
-// mountProtoBufConfigMaps mounts protobuf configMaps from KogitoApps into the given deployment
+// mountProtoBufConfigMaps mounts protobuf configMaps from KogitoRuntime services into the given deployment
 func (r *ReconcileKogitoDataIndex) mountProtoBufConfigMaps(deployment *appsv1.Deployment) (err error) {
 	var cms *corev1.ConfigMapList
 	configMapDefaultMode := protoBufConfigMapVolumeDefaultMode

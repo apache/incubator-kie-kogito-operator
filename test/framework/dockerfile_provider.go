@@ -21,13 +21,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoapp/resource"
+	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitobuild/build"
+)
+
+const (
+	quarkusJVMApplicationBinarySuffix    = "-runner.jar"
+	quarkusNativeApplicationBinarySuffix = "-runner"
+	springBootApplicationBinarySuffix    = ".jar"
 )
 
 // KogitoApplicationDockerfileProvider is the API to provide Dockerfile content for image creation based on built project content
 type KogitoApplicationDockerfileProvider interface {
 	// GetDockerfileContent returns Dockerfile content for image creation
-	GetDockerfileContent() string
+	GetDockerfileContent() (string, error)
 }
 
 type kogitoApplicationDockerfileProviderStruct struct {
@@ -39,19 +45,19 @@ type kogitoApplicationDockerfileProviderStruct struct {
 
 var quarkusNonNativeKogitoApplicationDockerfileProvider = kogitoApplicationDockerfileProviderStruct{
 	imageName:               kogitores.KogitoQuarkusJVMUbi8Image,
-	applicationBinarySuffix: "-runner.jar",
+	applicationBinarySuffix: quarkusJVMApplicationBinarySuffix,
 	libFolderNeeded:         true,
 }
 
 var quarkusNativeKogitoApplicationDockerfileProvider = kogitoApplicationDockerfileProviderStruct{
 	imageName:               kogitores.KogitoQuarkusUbi8Image,
-	applicationBinarySuffix: "-runner",
+	applicationBinarySuffix: quarkusNativeApplicationBinarySuffix,
 	libFolderNeeded:         false,
 }
 
 var springbootKogitoApplicationDockerfileProvider = kogitoApplicationDockerfileProviderStruct{
-	imageName:               kogitores.KogitoSpringbootUbi8Image,
-	applicationBinarySuffix: ".jar",
+	imageName:               kogitores.KogitoSpringBootUbi8Image,
+	applicationBinarySuffix: springBootApplicationBinarySuffix,
 	libFolderNeeded:         false,
 }
 
@@ -70,7 +76,7 @@ func GetKogitoApplicationDockerfileProvider(projectLocation string) KogitoApplic
 	return dockerfileProvider
 }
 
-func (dockerfileProvider *kogitoApplicationDockerfileProviderStruct) GetDockerfileContent() string {
+func (dockerfileProvider *kogitoApplicationDockerfileProviderStruct) GetDockerfileContent() (string, error) {
 	// Declare base image to build from
 	dockerfileContent := fmt.Sprintf("FROM %s\n", GetBuildImage(dockerfileProvider.imageName))
 
@@ -89,7 +95,7 @@ func (dockerfileProvider *kogitoApplicationDockerfileProviderStruct) GetDockerfi
 		dockerfileContent += "COPY target/classes/persistence/ $KOGITO_HOME/data/protobufs"
 	}
 
-	return dockerfileContent
+	return dockerfileContent, nil
 }
 
 func fileWithSuffixExists(scannedDirectory, fileSuffix string) bool {

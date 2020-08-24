@@ -24,6 +24,7 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	installCmd := initInstallCommand(ctx, rootCommand)
 	initInstallKogitoOperatorCommand(ctx, installCmd.Command())
 	initInstallDataIndexCommand(ctx, installCmd.Command())
+	initInstallTrustyCommand(ctx, installCmd.Command())
 	initInstallJobsServiceCommand(ctx, installCmd.Command())
 	initInstallInfinispanCommand(ctx, installCmd.Command())
 	initInstallKeycloakCommand(ctx, installCmd.Command())

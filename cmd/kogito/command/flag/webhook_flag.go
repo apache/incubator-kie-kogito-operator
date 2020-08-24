@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	validWebHookTypes = []string{string(v1alpha1.GitHubWebhook), string(v1alpha1.GenericWebhook)}
+	validWebHookTypes = []string{string(v1alpha1.GitHubWebHook), string(v1alpha1.GenericWebHook)}
 )
 
 // WebHookFlags is common properties used to configure Git

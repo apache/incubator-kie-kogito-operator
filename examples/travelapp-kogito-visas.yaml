@@ -1,21 +1,22 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoApp
+kind: KogitoBuild
 metadata:
   name: kogito-visas
 spec:
-  enableEvents: true
-  enablePersistence: true
-  envs:
-    - name: MP_MESSAGING_INCOMING_VISAAPPLICATIONS_BOOTSTRAP_SERVERS
-    - name: MP_MESSAGING_OUTGOING_VISASAPPROVED_BOOTSTRAP_SERVERS
-    - name: MP_MESSAGING_OUTGOING_VISASREJECTED_BOOTSTRAP_SERVERS
-    - name: MP_MESSAGING_OUTGOING_KOGITO_PROCESSINSTANCES_EVENTS_BOOTSTRAP_SERVERS
-    - name: MP_MESSAGING_OUTGOING_KOGITO_USERTASKINSTANCES_EVENTS_BOOTSTRAP_SERVERS
-  build:
-    gitSource:
-      contextDir: 06-kogito-visas
-      uri: "https://github.com/kiegroup/kogito-travel-agency-tutorial/"
-    # set your maven nexus repository
-    #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
-    # enable to print maven transfer logs in console
-    #enableMavenDownloadOutput: true
+  type: RemoteSource
+  gitSource:
+    uri: "https://github.com/kiegroup/kogito-examples/"
+    contextDir: extended/kogito-travel-agency/visas
+    reference: master
+  # set your maven nexus repository
+  #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: kogito-visas
+spec:
+  infinispan:
+    useKogitoInfra: true
+  kafka:
+    UseKogitoInfra: true

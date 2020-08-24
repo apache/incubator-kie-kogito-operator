@@ -15,35 +15,36 @@
 package infrastructure
 
 import (
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
-	oappsv1 "github.com/openshift/api/apps/v1"
 	"github.com/stretchr/testify/assert"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"testing"
 )
 
-func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
+func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	ns := t.Name()
 	name := "my-kogito-app"
 	expectedRoute := "http://dataindex-route.com"
-	kogitoApp := &v1alpha1.KogitoApp{
+	kogitoRuntime := &v1alpha1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	dc := &oappsv1.DeploymentConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: kogitoApp.Name, Namespace: kogitoApp.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoApp.UID}}},
-		Spec: oappsv1.DeploymentConfigSpec{
-			Template: &v1.PodTemplateSpec{
+	dc := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoRuntime.Name, Namespace: kogitoRuntime.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoRuntime.UID}}},
+		Spec: appsv1.DeploymentSpec{
+			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{Containers: []v1.Container{{Name: "test"}}},
 			},
 		},
@@ -61,9 +62,9 @@ func TestInjectDataIndexURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{kogitoApp, dataIndexes, dc}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{kogitoRuntime, dataIndexes, dc}, nil, nil)
 
-	err := InjectDataIndexURLIntoKogitoApps(cli, ns)
+	err := InjectDataIndexURLIntoKogitoRuntimeServices(cli, ns)
 	assert.NoError(t, err)
 
 	exist, err := kubernetes.ResourceC(cli).Fetch(dc)
