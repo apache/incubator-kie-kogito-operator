@@ -98,7 +98,10 @@ func (data *Data) explainabilityResultIsAvailable(timeoutInMin int) error {
 	}
 
 	executionsResponse := new(executionsResponse)
-	getJSON(response, &executionsResponse)
+	err = getJSON(response, &executionsResponse)
+	if err != nil {
+		return err
+	}
 
 	executionID := executionsResponse.Executions[0].ExecutionID
 
