@@ -33,5 +33,5 @@ const (
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectTrustyURLIntoKogitoApps(client *client.Client, namespace string) error {
 	log.Debugf("Injecting Trusty Route in kogito apps")
-	return injectURLIntoKogitoApps(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, &v1alpha1.KogitoTrustyList{})
+	return injectURLIntoKogitoApps(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, &v1alpha1.KogitoTrustyList{}, getKogitoRuntimeDeployments)
 }

@@ -15,6 +15,10 @@
 package steps
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/steps/mappers"
@@ -34,6 +38,7 @@ func registerKogitoExplainabilityServiceSteps(ctx *godog.ScenarioContext, data *
 	ctx.Step(`^Install Kogito Explainability with (\d+) replicas$`, data.installKogitoExplainabilityServiceWithReplicas)
 	ctx.Step(`^Install Kogito Explainability with (\d+) replicas with configuration:$`, data.installKogitoExplainabilityServiceWithReplicasWithConfiguration)
 	ctx.Step(`^Kogito Explainability has (\d+) pods running within (\d+) minutes$`, data.kogitoExplainabilityHasPodsRunningWithinMinutes)
+	ctx.Step(`^Explainability result is available in the Trusty service within (\d+) minutes$`, data.explainabilityResultIsAvailable)
 }
 
 func (data *Data) installKogitoExplainabilityServiceWithReplicas(replicas int) error {
@@ -55,4 +60,68 @@ func (data *Data) installKogitoExplainabilityServiceWithReplicasWithConfiguratio
 
 func (data *Data) kogitoExplainabilityHasPodsRunningWithinMinutes(podNb, timeoutInMin int) error {
 	return framework.WaitForKogitoExplainabilityService(data.Namespace, podNb, timeoutInMin)
+}
+
+type executionsResponse struct {
+	Executions []execution `json:"executions"`
+}
+
+type execution struct {
+	ExecutionID string `json:"executionId"`
+}
+
+func (data *Data) explainabilityResultIsAvailable(timeoutInMin int) error {
+	// Retrieve the execution id from the trusty service
+	executionsPath := "/executions"
+	responseContent := "DECISION"
+	trustyServiceName := "trusty"
+	uri, err := framework.WaitAndRetrieveEndpointURI(data.Namespace, trustyServiceName)
+	if err != nil {
+		return err
+	}
+
+	executionsPath = data.ResolveWithScenarioContext(executionsPath)
+	requestInfo := framework.NewGETHTTPRequestInfo(uri, executionsPath)
+	responseContent = data.ResolveWithScenarioContext(responseContent)
+	err = framework.WaitForOnOpenshift(data.Namespace, fmt.Sprintf("GET request on path %s to return response content '%s'", executionsPath, responseContent), timeoutInMin,
+		func() (bool, error) {
+			return framework.DoesHTTPResponseContain(data.Namespace, requestInfo, responseContent)
+		})
+
+	if err != nil {
+		return err
+	}
+
+	response, err := framework.ExecuteHTTPRequest(data.Namespace, requestInfo)
+	if err != nil {
+		return err
+	}
+
+	executionsResponse := new(executionsResponse)
+	getJSON(response, &executionsResponse)
+
+	executionID := executionsResponse.Executions[0].ExecutionID
+
+	// Retrieve explainability result for the given execution ID
+	executionsPath = fmt.Sprintf("/executions/%s/featureImportance", executionID)
+	responseContent = "Age"
+	explainabilityServiceName := "explainability"
+
+	uri, err = framework.WaitAndRetrieveEndpointURI(data.Namespace, explainabilityServiceName)
+	if err != nil {
+		return err
+	}
+	executionsPath = data.ResolveWithScenarioContext(executionsPath)
+	requestInfo = framework.NewGETHTTPRequestInfo(uri, executionsPath)
+	responseContent = data.ResolveWithScenarioContext(responseContent)
+	return framework.WaitForOnOpenshift(data.Namespace, fmt.Sprintf("GET request on path %s to return response content '%s'", executionsPath, responseContent), timeoutInMin,
+		func() (bool, error) {
+			return framework.DoesHTTPResponseContain(data.Namespace, requestInfo, responseContent)
+		})
+}
+
+func getJSON(r *http.Response, target interface{}) error {
+	defer r.Body.Close()
+
+	return json.NewDecoder(r.Body).Decode(target)
 }
