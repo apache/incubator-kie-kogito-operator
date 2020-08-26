@@ -38,7 +38,7 @@ const (
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectDataIndexURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
 	log.Debugf("Injecting Data-Index Route in kogito apps")
-	return injectURLIntoKogitoApps(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, &v1alpha1.KogitoDataIndexList{}, getKogitoRuntimeDeployments)
+	return injectURLIntoKogitoApps(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, &v1alpha1.KogitoDataIndexList{})
 }
 
 // InjectDataIndexURLIntoKogitoRuntimeDeployment will inject data-index route URL in to kogito runtime deployment env var

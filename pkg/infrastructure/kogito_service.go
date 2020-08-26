@@ -22,7 +22,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
 // getSingletonKogitoServiceRoute gets the route from a kogito service that's unique in the given namespace
@@ -38,10 +37,10 @@ func getSingletonKogitoServiceRoute(client *client.Client, namespace string, ser
 
 // injectURLIntoKogitoApps will query for every KogitoApp in the given namespace to inject the Data Index route to each one
 // Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
-func injectURLIntoKogitoApps(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, serviceListRef v1alpha1.KogitoServiceList, deploymentLookUp func(namespace string, cli *client.Client) ([]appsv1.Deployment, error)) error {
+func injectURLIntoKogitoApps(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, serviceListRef v1alpha1.KogitoServiceList) error {
 	log.Debugf("Querying KogitoApps in the namespace '%s' to inject a route ", namespace)
 
-	deployments, err := deploymentLookUp(namespace, client)
+	deployments, err := getKogitoRuntimeDeployments(namespace, client)
 	if err != nil {
 		return err
 	}

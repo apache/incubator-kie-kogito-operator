@@ -99,11 +99,6 @@ type ReconcileKogitoRuntime struct {
 func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	log.Infof("Reconciling KogitoRuntime for %s in %s", request.Name, request.Namespace)
 
-	log.Infof("Injecting KogitoRuntime URL into KogitoExplainability in the namespace '%s'", request.Namespace)
-	if err := infrastructure.InjectKogitoRuntimeURLIntoKogitoExplainability(r.client, request.Namespace); err != nil {
-		return reconcile.Result{}, err
-	}
-
 	definition := services.ServiceDefinition{
 		Request:            request,
 		DefaultImageTag:    infrastructure.LatestTag,
