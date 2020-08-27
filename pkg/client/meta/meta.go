@@ -38,7 +38,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 )
@@ -100,7 +99,7 @@ func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		infinispanv1.AddToScheme,
 		keycloakv1alpha1.SchemeBuilder.AddToScheme,
 		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
-		monv1.AddToScheme)
+		monv1.SchemeBuilder.AddToScheme)
 }
 
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on

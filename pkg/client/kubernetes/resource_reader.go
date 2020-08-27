@@ -59,7 +59,7 @@ func (r *resourceReader) Fetch(resource meta.ResourceObject) (bool, error) {
 
 func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (bool, error) {
 	log.Debugf("About to fetch object '%s' on namespace '%s'", key.Name, key.Namespace)
-	err := client.CustomReaderC(r.client).Get(context.TODO(), key, resource)
+	err := r.client.ControlCli.Get(context.TODO(), key, resource)
 	if err != nil && errors.IsNotFound(err) {
 		return false, nil
 	} else if err != nil {
@@ -74,7 +74,7 @@ func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource meta.Re
 }
 
 func (r *resourceReader) ListWithNamespace(namespace string, list runtime.Object) error {
-	err := client.CustomReaderC(r.client).List(context.TODO(), list, runtimecli.InNamespace(namespace))
+	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(namespace))
 	if err != nil {
 		log.Debug("Failed to list resource. ", err)
 		return err
@@ -83,7 +83,7 @@ func (r *resourceReader) ListWithNamespace(namespace string, list runtime.Object
 }
 
 func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list runtime.Object, labels map[string]string) error {
-	err := client.CustomReaderC(r.client).List(context.TODO(), list, runtimecli.InNamespace(namespace), runtimecli.MatchingLabels(labels))
+	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(namespace), runtimecli.MatchingLabels(labels))
 	if err != nil {
 		log.Debug("Failed to list resource. ", err)
 		return err
@@ -92,6 +92,6 @@ func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list runtim
 }
 
 func (r *resourceReader) ListALL(objectTypes []runtime.Object, namespace string, ownerObject metav1.Object) (map[reflect.Type][]resource2.KubernetesResource, error) {
-	reader := read.New(&client.CustomReader{Client: r.client}).WithNamespace(namespace).WithOwnerObject(ownerObject)
+	reader := read.New(r.client.ControlCli).WithNamespace(namespace).WithOwnerObject(ownerObject)
 	return reader.ListAll(objectTypes...)
 }

@@ -55,7 +55,7 @@ type resourceWriter struct {
 func (r *resourceWriter) Create(resource meta.ResourceObject) error {
 	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 	log.Debug("Creating")
-	if err := client.CustomWriterC(r.client).Create(context.TODO(), resource); err != nil {
+	if err := r.client.ControlCli.Create(context.TODO(), resource); err != nil {
 		log.Debug("Failed to create object. ", err)
 		return err
 	}
@@ -64,7 +64,7 @@ func (r *resourceWriter) Create(resource meta.ResourceObject) error {
 
 func (r *resourceWriter) Update(resource meta.ResourceObject) error {
 	log.Debugf("About to update object %s on namespace %s", resource.GetName(), resource.GetNamespace())
-	if err := client.CustomWriterC(r.client).Update(context.TODO(), resource); err != nil {
+	if err := r.client.ControlCli.Update(context.TODO(), resource); err != nil {
 		return err
 	}
 	log.Debugf("Object %s updated. Creation Timestamp: %s", resource.GetName(), resource.GetCreationTimestamp())
@@ -72,7 +72,7 @@ func (r *resourceWriter) Update(resource meta.ResourceObject) error {
 }
 
 func (r *resourceWriter) Delete(resource meta.ResourceObject) error {
-	if err := client.CustomWriterC(r.client).Delete(context.TODO(), resource); err != nil {
+	if err := r.client.ControlCli.Delete(context.TODO(), resource); err != nil {
 		return err
 	}
 	log.Debugf("Failed to delete resource %s", resource.GetName())
@@ -90,16 +90,16 @@ func (r *resourceWriter) UpdateStatus(resource meta.ResourceObject) error {
 }
 
 func (r *resourceWriter) CreateResources(resources []resource2.KubernetesResource) (bool, error) {
-	writer := write.New(client.CustomWriterC(r.client))
+	writer := write.New(r.client.ControlCli)
 	return writer.AddResources(resources)
 }
 
 func (r *resourceWriter) UpdateResources(existing []resource2.KubernetesResource, resources []resource2.KubernetesResource) (bool, error) {
-	writer := write.New(client.CustomWriterC(r.client))
+	writer := write.New(r.client.ControlCli)
 	return writer.UpdateResources(existing, resources)
 }
 
 func (r *resourceWriter) DeleteResources(resources []resource2.KubernetesResource) (bool, error) {
-	writer := write.New(client.CustomWriterC(r.client))
+	writer := write.New(r.client.ControlCli)
 	return writer.RemoveResources(resources)
 }

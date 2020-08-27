@@ -75,8 +75,8 @@ func NewForConsole() *Client {
 
 // NewForController creates a new client based on the rest config and the controller client created by Operator SDK
 // Panic if something goes wrong
-func NewForController(config *restclient.Config, client controllercli.Client) *Client {
-	newClient, err := NewClientBuilder().WithAllClients().UseConfig(config).UseControllerClient(client).Build()
+func NewForController(config *restclient.Config) *Client {
+	newClient, err := NewClientBuilder().WithAllClients().UseConfig(config).Build()
 	if err != nil {
 		panic(err)
 	}
