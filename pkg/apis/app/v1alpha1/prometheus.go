@@ -25,9 +25,6 @@ const (
 
 // Prometheus properties to connect with prometheus
 type Prometheus struct {
-	// Flag to allow Prometheus to scraping Kogito service.
-	Scrape bool `json:"scrape,omitempty"`
-
 	// HTTP scheme to use for scraping.
 	// +optional
 	Scheme string `json:"scheme,omitempty"`

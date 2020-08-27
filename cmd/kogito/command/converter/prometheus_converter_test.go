@@ -22,13 +22,11 @@ import (
 
 func Test_FromPrometheusFlagToPrometheus(t *testing.T) {
 	prometheusFlags := &flag.PrometheusFlags{
-		Scrape: true,
 		Scheme: "http",
 		Path:   "/metrix",
 	}
 
 	prometheus := FromPrometheusFlagToPrometheus(prometheusFlags)
-	assert.True(t, prometheus.Scrape)
 	assert.Equal(t, "http", prometheus.Scheme)
 	assert.Equal(t, "/metrix", prometheus.Path)
 }

@@ -22,7 +22,6 @@ import (
 // FromPrometheusFlagToPrometheus converts given PrometheusFlags into Prometheus
 func FromPrometheusFlagToPrometheus(prometheusFlags *flag.PrometheusFlags) v1alpha1.Prometheus {
 	return v1alpha1.Prometheus{
-		Scrape: prometheusFlags.Scrape,
 		Scheme: prometheusFlags.Scheme,
 		Path:   prometheusFlags.Path,
 	}

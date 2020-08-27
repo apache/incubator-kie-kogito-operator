@@ -15,21 +15,20 @@
 package flag
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/spf13/cobra"
 )
 
 // PrometheusFlags is common properties used to configure Prometheus
 type PrometheusFlags struct {
-	Scrape bool
 	Scheme string
 	Path   string
 }
 
 // AddPrometheusFlags adds the prometheus flags to the given command
 func AddPrometheusFlags(command *cobra.Command, flags *PrometheusFlags) {
-	command.Flags().BoolVar(&flags.Scrape, "prome-scrape", false, "Flag to allow Prometheus to scraping Kogito service")
-	command.Flags().StringVar(&flags.Scheme, "prome-scheme", "http", "HTTP scheme to use for scraping.")
-	command.Flags().StringVar(&flags.Path, "prome-path", "/metrics", "HTTP path to scrape for metrics")
+	command.Flags().StringVar(&flags.Scheme, "prome-scheme", v1alpha1.PrometheusDefaultScheme, "HTTP scheme to use for scraping.")
+	command.Flags().StringVar(&flags.Path, "prome-path", v1alpha1.PrometheusDefaultPath, "HTTP path to scrape for metrics")
 }
 
 // CheckPrometheusArgs validates the PrometheusFlags flags

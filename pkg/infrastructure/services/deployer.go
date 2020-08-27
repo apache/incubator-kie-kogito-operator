@@ -206,19 +206,16 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	}
 
 	// create our resources
-	log.Info("going to create request resources")
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
 		return
 	}
-	log.Infof("requested resource : %v", requestedResources)
 
 	// get the deployed ones
 	deployedResources, err := s.getDeployedResources()
 	if err != nil {
 		return
 	}
-	log.Infof("deployed resource : %v", deployedResources)
 
 	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
 	comparator := s.getComparator()

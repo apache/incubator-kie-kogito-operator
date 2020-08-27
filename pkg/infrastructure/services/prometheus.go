@@ -34,49 +34,46 @@ func IsPrometheusAvailable(client *client.Client) bool {
 // CreateServiceMonitor create ServiceMonitor used for scraping by prometheus for kogito service
 func CreateServiceMonitor(kogitoRuntime *v1alpha1.KogitoRuntime) *monv1.ServiceMonitor {
 	prometheus := kogitoRuntime.Spec.Prometheus
-	if prometheus.Scrape {
-		endPoint := monv1.Endpoint{}
-		endPoint.TargetPort = &intstr.IntOrString{IntVal: getServiceHTTPPort(kogitoRuntime)}
+	endPoint := monv1.Endpoint{}
+	endPoint.TargetPort = &intstr.IntOrString{IntVal: getServiceHTTPPort(kogitoRuntime)}
 
-		if len(prometheus.Path) > 0 {
-			endPoint.Path = prometheus.Path
-		} else {
-			endPoint.Path = v1alpha1.PrometheusDefaultPath
-		}
-
-		if len(prometheus.Scheme) > 0 {
-			endPoint.Scheme = prometheus.Scheme
-		} else {
-			endPoint.Scheme = v1alpha1.PrometheusDefaultScheme
-		}
-
-		serviceSelectorLabels := make(map[string]string)
-		serviceSelectorLabels[framework.LabelAppKey] = kogitoRuntime.GetName()
-
-		serviceMonitorLabels := make(map[string]string)
-		serviceMonitorLabels["name"] = operator.Name
-
-		sm := &monv1.ServiceMonitor{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      kogitoRuntime.Name,
-				Namespace: kogitoRuntime.Namespace,
-				Labels:    serviceMonitorLabels,
-			},
-			Spec: monv1.ServiceMonitorSpec{
-				NamespaceSelector: monv1.NamespaceSelector{
-					MatchNames: []string{
-						kogitoRuntime.Namespace,
-					},
-				},
-				Selector: metav1.LabelSelector{
-					MatchLabels: serviceSelectorLabels,
-				},
-				Endpoints: []monv1.Endpoint{
-					endPoint,
-				},
-			},
-		}
-		return sm
+	if len(prometheus.Path) > 0 {
+		endPoint.Path = prometheus.Path
+	} else {
+		endPoint.Path = v1alpha1.PrometheusDefaultPath
 	}
-	return nil
+
+	if len(prometheus.Scheme) > 0 {
+		endPoint.Scheme = prometheus.Scheme
+	} else {
+		endPoint.Scheme = v1alpha1.PrometheusDefaultScheme
+	}
+
+	serviceSelectorLabels := make(map[string]string)
+	serviceSelectorLabels[framework.LabelAppKey] = kogitoRuntime.GetName()
+
+	serviceMonitorLabels := make(map[string]string)
+	serviceMonitorLabels["name"] = operator.Name
+
+	sm := &monv1.ServiceMonitor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kogitoRuntime.Name,
+			Namespace: kogitoRuntime.Namespace,
+			Labels:    serviceMonitorLabels,
+		},
+		Spec: monv1.ServiceMonitorSpec{
+			NamespaceSelector: monv1.NamespaceSelector{
+				MatchNames: []string{
+					kogitoRuntime.Namespace,
+				},
+			},
+			Selector: metav1.LabelSelector{
+				MatchLabels: serviceSelectorLabels,
+			},
+			Endpoints: []monv1.Endpoint{
+				endPoint,
+			},
+		},
+	}
+	return sm
 }
