@@ -54,7 +54,9 @@ func (i *installInfinispanCommand) RegisterHook() {
 		Use:     "infinispan [flags]",
 		Short:   "Installs an infinispan instance into the OpenShift/Kubernetes cluster",
 		Example: "install infinispan -p my-project",
-		Long:    `Installs an infinispan instance via custom Kubernetes resources. This feature won't create custom subscriptions with the OLM.`,
+		Long:    `Installs an infinispan instance via custom Kubernetes resources. 
+Requires Infinispan Operator to be installed, please make sure that you've installed it before proceeding. 
+This feature won't create custom subscriptions with the OLM.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
@@ -72,7 +74,7 @@ func (i *installInfinispanCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	flag.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 
-	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the Infinispan server will be deployed")
 }
 
 func (i *installInfinispanCommand) Exec(cmd *cobra.Command, args []string) error {
