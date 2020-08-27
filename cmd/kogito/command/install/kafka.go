@@ -54,7 +54,7 @@ func (i *installKafkaCommand) RegisterHook() {
 		Use:     "kafka [flags]",
 		Short:   "Installs a kafka instance into the OpenShift/Kubernetes cluster",
 		Example: "install kafka -p my-project",
-		Long:    `Installs a kafka instance via custom Kubernetes resources. 
+		Long: `Installs a kafka instance via custom Kubernetes resources. 
 Requires Strimzi to be installed, please make sure that you've installed it before proceeding.
 This feature won't create custom subscriptions with the OLM.`,
 		RunE:    i.Exec,

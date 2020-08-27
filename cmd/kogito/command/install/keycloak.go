@@ -54,7 +54,7 @@ func (i *installKeycloakCommand) RegisterHook() {
 		Use:     "keycloak [flags]",
 		Short:   "Installs a keycloak instance into the OpenShift/Kubernetes cluster",
 		Example: "install keycloak -p my-project",
-		Long:    `Installs a keycloak instance via custom Kubernetes resources.
+		Long: `Installs a keycloak instance via custom Kubernetes resources.
 Requires Keycloak Operator to be installed, please make sure that you've installed it before proceeding.
 This feature won't create custom subscriptions with the OLM.`,
 		RunE:    i.Exec,

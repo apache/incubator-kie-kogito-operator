@@ -54,7 +54,7 @@ func (i *installInfinispanCommand) RegisterHook() {
 		Use:     "infinispan [flags]",
 		Short:   "Installs an infinispan instance into the OpenShift/Kubernetes cluster",
 		Example: "install infinispan -p my-project",
-		Long:    `Installs an infinispan instance via custom Kubernetes resources. 
+		Long: `Installs an infinispan instance via custom Kubernetes resources. 
 Requires Infinispan Operator to be installed, please make sure that you've installed it before proceeding. 
 This feature won't create custom subscriptions with the OLM.`,
 		RunE:    i.Exec,
