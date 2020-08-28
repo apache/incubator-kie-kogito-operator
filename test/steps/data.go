@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/api/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 	imgv1 "github.com/openshift/api/image/v1"

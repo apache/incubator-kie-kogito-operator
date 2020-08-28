@@ -19,7 +19,7 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/external/kafka/v1beta1"
 )
 
 // DeployKafkaInstance deploys an instance of Kafka

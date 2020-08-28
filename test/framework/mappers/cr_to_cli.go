@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 )

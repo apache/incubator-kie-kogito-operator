@@ -1,0 +1,24 @@
+# permissions for end users to edit kogitodataindices.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kogitodataindex-editor-role
+rules:
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitodataindices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitodataindices/status
+  verbs:
+  - get

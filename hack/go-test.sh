@@ -33,4 +33,5 @@ if [[ "${coverage}" == "true" ]]; then
 else
   go test ./cmd/... -count=1 -p=1
   go test ./pkg/... -count=1
+  go test ./controllers/... -count=1 -p=1
 fi

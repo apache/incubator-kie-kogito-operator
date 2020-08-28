@@ -1,0 +1,7 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: kogitoruntime-sample
+spec:
+  # Add fields here
+  foo: bar

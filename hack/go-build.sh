@@ -80,6 +80,6 @@ if [[ -z ${BUILDER} ]]; then
     BUILDER=podman
 fi
 
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -o ${BINARY_OUTPUT} github.com/kiegroup/kogito-cloud-operator/cmd/manager
+make manifests
 
-operator-sdk build "${CUSTOM_IMAGE_TAG}" --image-builder ${BUILDER}
+make docker-build IMG="${CUSTOM_IMAGE_TAG}"

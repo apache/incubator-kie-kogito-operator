@@ -1,0 +1,24 @@
+# permissions for end users to edit kogitotrusties.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kogitotrusty-editor-role
+rules:
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitotrusties
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitotrusties/status
+  verbs:
+  - get

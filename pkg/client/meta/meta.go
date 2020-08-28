@@ -17,8 +17,8 @@ package meta
 import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/external/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -59,17 +59,17 @@ var (
 	// KindService for service
 	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
 	// KindBuildConfig for a buildConfig
-	KindBuildConfig = DefinitionKind{"BuildConfig", true, buildv1.SchemeGroupVersion}
+	KindBuildConfig = DefinitionKind{"BuildConfig", true, buildv1.GroupVersion}
 	// KindDeploymentConfig for a DeploymentConfig
-	KindDeploymentConfig = DefinitionKind{"DeploymentConfig", true, appsv1.SchemeGroupVersion}
+	KindDeploymentConfig = DefinitionKind{"DeploymentConfig", true, appsv1.GroupVersion}
 	// KindRoute for a Route
-	KindRoute = DefinitionKind{"Route", true, routev1.SchemeGroupVersion}
+	KindRoute = DefinitionKind{"Route", true, routev1.GroupVersion}
 	// KindImageStream for a ImageStream
-	KindImageStream = DefinitionKind{"ImageStream", true, imgv1.SchemeGroupVersion}
+	KindImageStream = DefinitionKind{"ImageStream", true, imgv1.GroupVersion}
 	// KindBuildRequest for a BuildRequest
-	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.SchemeGroupVersion}
+	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.GroupVersion}
 	// KindKogitoDataIndex for a KindKogitoDataIndex controller
-	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
+	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.GroupVersion}
 	// KindServiceMonitor ...
 	KindServiceMonitor = DefinitionKind{"ServiceMonitor", false, monv1.SchemeGroupVersion}
 )
@@ -114,7 +114,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	}
 
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
-	metav1.AddToGroupVersion(s, v1alpha1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, v1alpha1.GroupVersion)
 	// https://issues.jboss.org/browse/KOGITO-617
 	metav1.AddToGroupVersion(s, apiextensionsv1beta1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, operatormkt.SchemeGroupVersion)

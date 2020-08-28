@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	kogitores "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitobuild/build"
+	kogitores "github.com/kiegroup/kogito-cloud-operator/services/kogitobuild"
 )
 
 const (

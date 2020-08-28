@@ -16,9 +16,9 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/external/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 

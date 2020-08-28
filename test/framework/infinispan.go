@@ -23,7 +23,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	infinispaninfra "github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
+	infinispaninfra "github.com/kiegroup/kogito-cloud-operator/services/kogitoinfra/infinispan"
 )
 
 // DeployInfinispanInstance deploys an instance of Infinispan

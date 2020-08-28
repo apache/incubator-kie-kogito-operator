@@ -1,0 +1,20 @@
+# permissions for end users to view kogitodataindices.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kogitodataindex-viewer-role
+rules:
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitodataindices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitodataindices/status
+  verbs:
+  - get

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: kogito-operator
+  name: system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kogito-operator
+  namespace: system
+  labels:
+    control-plane: kogito-operator
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      control-plane: kogito-operator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: kogito-operator
+    spec:
+      containers:
+      - command:
+        - /kogito-cloud-operator
+        args:
+        - --enable-leader-election
+        image: controller:latest
+        name: manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10

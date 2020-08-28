@@ -14,6 +14,6 @@
 # limitations under the License.
 
 
-CONTAINER_IMAGE=$(grep -m 1 'image: ' ./deploy/operator.yaml) && CONTAINER_IMAGE=$(echo ${CONTAINER_IMAGE#*:} | tr -d '"')
+CONTAINER_IMAGE=$(grep -m 1 'image: ' ./config/manager/manager.yaml) && CONTAINER_IMAGE=$(echo ${CONTAINER_IMAGE#*:} | tr -d '"')
 
 echo "Container image is ${CONTAINER_IMAGE}"

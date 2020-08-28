@@ -16,12 +16,11 @@ package client
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -34,7 +33,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
@@ -196,7 +195,7 @@ func (r *restScope) Name() apimeta.RESTScopeName {
 func newControllerCliOptions() controllercli.Options {
 	options := controllercli.Options{}
 	builder := meta.GetRegisteredSchemeBuilder()
-	gvks, err := k8sutil.GetGVKsFromAddToScheme(builder.AddToScheme)
+	gvks, err := getGVKsFromAddToScheme(builder.AddToScheme)
 	if err != nil {
 		log.Fatalf("Error while creating SchemeBuilder for Kubernetes client: %v", err)
 		panic(err)
@@ -204,7 +203,7 @@ func newControllerCliOptions() controllercli.Options {
 	mapper := apimeta.NewDefaultRESTMapper([]schema.GroupVersion{})
 	for _, gvk := range gvks {
 		// we will handle this manually later
-		if gvk.GroupVersion() == v1alpha1.SchemeGroupVersion && gvk.Kind == "KogitoDataIndex" {
+		if gvk.GroupVersion() == v1alpha1.GroupVersion && gvk.Kind == "KogitoDataIndex" {
 			continue
 		}
 		// namespaced resources
@@ -216,7 +215,7 @@ func newControllerCliOptions() controllercli.Options {
 		}
 	}
 	// the kube client is having problems with plural: kogitodataindexs :(
-	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
+	mapper.AddSpecific(v1alpha1.GroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
 		schema.GroupVersionResource{
 			Group:    meta.KindKogitoDataIndex.GroupVersion.Group,
 			Version:  meta.KindKogitoDataIndex.GroupVersion.Version,
@@ -232,4 +231,44 @@ func newControllerCliOptions() controllercli.Options {
 	options.Scheme = meta.GetRegisteredSchema()
 	options.Mapper = mapper
 	return options
+}
+
+// GetGVKsFromAddToScheme takes in the runtime scheme and filters out all generic apimachinery meta types.
+// It returns just the GVK specific to this scheme.
+func getGVKsFromAddToScheme(addToSchemeFunc func(*runtime.Scheme) error) ([]schema.GroupVersionKind, error) {
+	s := runtime.NewScheme()
+	err := addToSchemeFunc(s)
+	if err != nil {
+		return nil, err
+	}
+	schemeAllKnownTypes := s.AllKnownTypes()
+	ownGVKs := []schema.GroupVersionKind{}
+	for gvk := range schemeAllKnownTypes {
+		if !isKubeMetaKind(gvk.Kind) {
+			ownGVKs = append(ownGVKs, gvk)
+		}
+	}
+
+	return ownGVKs, nil
+}
+
+func isKubeMetaKind(kind string) bool {
+	if strings.HasSuffix(kind, "List") ||
+		kind == "PatchOptions" ||
+		kind == "GetOptions" ||
+		kind == "DeleteOptions" ||
+		kind == "ExportOptions" ||
+		kind == "APIVersions" ||
+		kind == "APIGroupList" ||
+		kind == "APIResourceList" ||
+		kind == "UpdateOptions" ||
+		kind == "CreateOptions" ||
+		kind == "Status" ||
+		kind == "WatchEvent" ||
+		kind == "ListOptions" ||
+		kind == "APIGroup" {
+		return true
+	}
+
+	return false
 }

@@ -17,4 +17,4 @@
 
 source ./hack/export-version.sh
 
-operator-sdk generate csv --csv-version "$OP_VERSION" --verbose --update-crds --operator-name kogito-operator
+operator-sdk generate bundle --manifests --deploy-dir=config --metadata --crds-dir=config/crd/bases/ --version="$OP_VERSION"
