@@ -54,3 +54,7 @@ jobs:
           flags: operator
           name: operator-test
           fail_ci_if_error: true
+
+      - name: Test controllers dir
+        run: |
+          go test ./controllers/... -p=1 -count=1 -coverprofile=controllers-coverage.txt -covermode=atomic

@@ -51,7 +51,7 @@ func TestReconcileKogitoInfra_Reconcile_AllInstalled(t *testing.T) {
 	scheme := meta.GetRegisteredSchema()
 	request := reconcile.Request{NamespacedName: types.NamespacedName{Name: kogitoInfra.Name, Namespace: kogitoInfra.Namespace}}
 
-	r := KogitoInfraReconciler{Client: client, Scheme: scheme}
+	r := KogitoInfraReconciler{Client: client, Scheme: scheme, Log: test_log}
 
 	res, err := r.Reconcile(request)
 	assert.NoError(t, err)
@@ -81,7 +81,7 @@ func TestReconcileKogitoInfra_Reconcile_Keycloak(t *testing.T) {
 	scheme := meta.GetRegisteredSchema()
 	request := reconcile.Request{NamespacedName: types.NamespacedName{Name: kogitoInfra.Name, Namespace: kogitoInfra.Namespace}}
 
-	r := KogitoInfraReconciler{Client: client, Scheme: scheme}
+	r := KogitoInfraReconciler{Client: client, Scheme: scheme, Log: test_log}
 
 	res, err := r.Reconcile(request)
 	assert.NoError(t, err)

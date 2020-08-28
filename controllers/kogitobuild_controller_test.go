@@ -58,7 +58,7 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
-	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}
 
 	// first reconciliation
 	result := test.AssertReconcileMustRequeue(t, &r, instance)
@@ -140,7 +140,7 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instanceRemote, instanceLocal}, nil, nil)
-	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}
 
 	// first reconciliation
 	result := test.AssertReconcileMustRequeue(t, &r, instanceRemote)

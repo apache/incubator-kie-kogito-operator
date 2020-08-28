@@ -71,6 +71,7 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 	r := &KogitoDataIndexReconciler{
 		Client: cli,
 		Scheme: meta.GetRegisteredSchema(),
+		Log: test_log,
 	}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
@@ -127,6 +128,7 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	r := &KogitoDataIndexReconciler{
 		Client: cli,
 		Scheme: meta.GetRegisteredSchema(),
+		Log: test_log,
 	}
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
@@ -228,6 +230,7 @@ func TestReconcileKogitoDataIndex_mountProtoBufConfigMaps(t *testing.T) {
 	reconcileDataIndex := KogitoDataIndexReconciler{
 		Client: cli,
 		Scheme: meta.GetRegisteredSchema(),
+		Log: test_log,
 	}
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: infrastructure.DefaultDataIndexName},
@@ -289,6 +292,7 @@ func TestReconcileKogitoDataIndex_MultipleProtoBufCMs(t *testing.T) {
 	r := &KogitoDataIndexReconciler{
 		Client: cli,
 		Scheme: meta.GetRegisteredSchema(),
+		Log: test_log,
 	}
 	test.AssertReconcileMustNotRequeue(t, r, instance)
 	test.AssertReconcileMustNotRequeue(t, r, instance)

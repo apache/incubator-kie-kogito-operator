@@ -37,7 +37,7 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
 
-	r := KogitoJobsServiceReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := KogitoJobsServiceReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}
 
 	// first reconciliation
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
@@ -63,7 +63,7 @@ func TestReconcileKogitoJobsService_Reconcile_WithInfinispan(t *testing.T) {
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
 
-	r := KogitoJobsServiceReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := KogitoJobsServiceReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}
 
 	test.AssertReconcileMustRequeue(t, &r, instance)
 	test.AssertReconcileMustRequeue(t, &r, instance)

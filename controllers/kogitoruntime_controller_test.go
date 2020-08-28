@@ -43,7 +43,7 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	}
 	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
 
-	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}
 
 	// first reconciliation
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
@@ -100,7 +100,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
 
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}, instance)
 
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)

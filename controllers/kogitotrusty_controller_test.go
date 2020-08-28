@@ -68,6 +68,7 @@ func TestReconcileKogitoTrusty_Reconcile(t *testing.T) {
 	r := &KogitoTrustyReconciler{
 		Client: cli,
 		Scheme: meta.GetRegisteredSchema(),
+		Log: test_log,
 	}
 
 	// basic checks
@@ -112,6 +113,7 @@ func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
 	r := &KogitoTrustyReconciler{
 		Client: cli,
 		Scheme: meta.GetRegisteredSchema(),
+		Log: test_log,
 	}
 
 	test.AssertReconcile(t, r, instance)

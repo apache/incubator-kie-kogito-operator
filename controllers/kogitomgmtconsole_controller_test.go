@@ -37,7 +37,7 @@ func TestReconcileKogitoMgmtConsole_Reconcile(t *testing.T) {
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
 
-	r := KogitoMgmtConsoleReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := KogitoMgmtConsoleReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}
 
 	// first reconciliation
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
@@ -68,7 +68,7 @@ func TestReconcileKogitoMgmtConsole_CustomImage(t *testing.T) {
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
-	test.AssertReconcileMustNotRequeue(t, &KogitoMgmtConsoleReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoMgmtConsoleReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test_log}, instance)
 	// image stream
 	is := imagev1.ImageStream{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleImageName, Namespace: instance.Namespace},
