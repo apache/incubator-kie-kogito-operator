@@ -98,7 +98,6 @@ type ReconcileKogitoRuntime struct {
 // and what is in the KogitoRuntime.Spec
 func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	log.Infof("Reconciling KogitoRuntime for %s in %s", request.Name, request.Namespace)
-
 	definition := services.ServiceDefinition{
 		Request:            request,
 		DefaultImageTag:    infrastructure.LatestTag,
