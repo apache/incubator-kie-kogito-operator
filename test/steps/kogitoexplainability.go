@@ -106,8 +106,8 @@ func (data *Data) explainabilityResultIsAvailable(timeoutInMin int) error {
 	executionID := executionsResponse.Executions[0].ExecutionID
 
 	// Retrieve explainability result for the given execution ID
-	executionsPath = fmt.Sprintf("/executions/%s/featureImportance", executionID)
-	responseContent = "Age"
+	executionsPath = fmt.Sprintf("/executions/decisions/%s/saliencies", executionID)
+	responseContent = "Judgement"
 	explainabilityServiceName := "explainability"
 
 	uri, err = framework.WaitAndRetrieveEndpointURI(data.Namespace, explainabilityServiceName)
