@@ -38,9 +38,9 @@ type KogitoRuntimeSpec struct {
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime RuntimeType `json:"runtime,omitempty"`
 
-	// Create Service monitor instance to connect with Prometheus
+	// Create Service monitor instance to connect with Monitoring service
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Prometheus"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Monitoring"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	Monitoring Monitoring `json:"monitoring,omitempty"`
 }

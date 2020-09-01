@@ -259,7 +259,8 @@ spec:
                   type: boolean
               type: object
             monitoring:
-              description: Create Service monitor instance to connect with Prometheus
+              description: Create Service monitor instance to connect with Monitoring
+                service
               properties:
                 path:
                   description: HTTP path to scrape for metrics.
