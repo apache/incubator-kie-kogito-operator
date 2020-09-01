@@ -545,9 +545,9 @@ spec:
           image.'
         displayName: Image
         path: image
-      - description: Create Service monitor instance use to connect with Prometheus
+      - description: Create Service monitor instance to connect with Prometheus
         displayName: Prometheus
-        path: prometheus
+        path: monitoring
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
       - description: 'Number of replicas that the service will have deployed in the

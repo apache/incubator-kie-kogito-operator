@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -49,10 +49,9 @@ type manager struct {
 }
 
 func (m *manager) GetDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
-	reader := read.New(m.client.ControlCli).WithNamespace(m.kogitoBuild.Namespace).WithOwnerObject(m.kogitoBuild)
 	objectTypes := []runtime.Object{&buildv1.BuildConfigList{}}
 	objectTypes = append(objectTypes, &imgv1.ImageStreamList{})
-	resources, err := reader.ListAll(objectTypes...)
+	resources, err := kubernetes.ResourceC(m.client).ListALL(objectTypes, m.kogitoBuild.Namespace, m.kogitoBuild)
 	if err != nil {
 		return nil, err
 	}

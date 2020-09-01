@@ -20,15 +20,15 @@ import (
 	"testing"
 )
 
-func Test_FromPrometheusFlagToPrometheus(t *testing.T) {
-	prometheusFlags := &flag.PrometheusFlags{
+func Test_FromMonitoringFlagToMonitoring(t *testing.T) {
+	monitoringFlags := &flag.MonitoringFlags{
 		Scrape: true,
 		Scheme: "http",
 		Path:   "/metrix",
 	}
 
-	prometheus := FromPrometheusFlagToPrometheus(prometheusFlags)
-	assert.True(t, prometheus.Scrape)
-	assert.Equal(t, "http", prometheus.Scheme)
-	assert.Equal(t, "/metrix", prometheus.Path)
+	monitoring := FromMonitoringFlagToMonitoring(monitoringFlags)
+	assert.True(t, monitoring.Scrape)
+	assert.Equal(t, "http", monitoring.Scheme)
+	assert.Equal(t, "/metrix", monitoring.Path)
 }

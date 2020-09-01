@@ -17,6 +17,7 @@ package framework
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
+	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -284,4 +285,14 @@ func sortContainersByName(pod *v1.PodTemplateSpec) {
 	sort.Slice(pod.Spec.Containers, func(i, j int) bool {
 		return pod.Spec.Containers[i].Name < pod.Spec.Containers[j].Name
 	})
+}
+
+// CreateServiceMonitorComparator creates a new comparator for ServiceMonitor using Label
+func CreateServiceMonitorComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		smDeployed := deployed.(*monv1.ServiceMonitor)
+		smRequested := requested.(*monv1.ServiceMonitor).DeepCopy()
+
+		return containAllLabels(smDeployed, smRequested)
+	}
 }

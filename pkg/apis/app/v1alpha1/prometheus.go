@@ -16,16 +16,16 @@ package v1alpha1
 
 const (
 
-	// PrometheusDefaultPath default path
-	PrometheusDefaultPath = "/metrics"
+	// MonitoringDefaultPath default path
+	MonitoringDefaultPath = "/metrics"
 
-	// PrometheusDefaultScheme default scheme
-	PrometheusDefaultScheme = "http"
+	// MonitoringDefaultScheme default scheme
+	MonitoringDefaultScheme = "http"
 )
 
-// Prometheus properties to connect with prometheus
-type Prometheus struct {
-	// Flag to allow Prometheus to scraping Kogito service.
+// Monitoring properties to connect with Monitoring service
+type Monitoring struct {
+	// Flag to allow Monitoring to scraping Kogito service.
 	Scrape bool `json:"scrape,omitempty"`
 
 	// HTTP scheme to use for scraping.

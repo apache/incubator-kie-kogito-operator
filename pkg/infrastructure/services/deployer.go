@@ -23,7 +23,6 @@ import (
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -207,41 +206,37 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	}
 
 	// create our resources
-	log.Info("going to create request resources")
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
 		return
 	}
-	log.Infof("requested resource : %v", requestedResources)
 
 	// get the deployed ones
 	deployedResources, err := s.getDeployedResources()
 	if err != nil {
 		return
 	}
-	log.Infof("deployed resource : %v", deployedResources)
 
 	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
 	comparator := s.getComparator()
 	deltas := comparator.Compare(deployedResources, requestedResources)
-	writer := write.New(&writer{s.client})
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
 			continue
 		}
 		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
 
-		if _, err = writer.AddResources(delta.Added); err != nil {
+		if _, err = kubernetes.ResourceC(s.client).CreateResources(delta.Added); err != nil {
 			return
 		}
 		s.generateEventForDeltaResources("Created", resourceType, delta.Added)
 
-		if _, err = writer.UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
+		if _, err = kubernetes.ResourceC(s.client).UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
 			return
 		}
 		s.generateEventForDeltaResources("Updated", resourceType, delta.Updated)
 
-		if _, err = writer.RemoveResources(delta.Removed); err != nil {
+		if _, err = kubernetes.ResourceC(s.client).DeleteResources(delta.Removed); err != nil {
 			return
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)

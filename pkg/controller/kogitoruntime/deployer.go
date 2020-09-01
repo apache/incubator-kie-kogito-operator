@@ -62,6 +62,12 @@ func onGetComparators(comparator compare.ResourceComparator) {
 			WithType(reflect.TypeOf(corev1.ConfigMap{})).
 			WithCustomComparator(protoBufConfigMapComparator).
 			Build())
+
+	comparator.SetComparator(
+		framework.NewComparatorBuilder().
+			WithType(reflect.TypeOf(monv1.ServiceMonitor{})).
+			WithCustomComparator(framework.CreateServiceMonitorComparator()).
+			Build())
 }
 
 func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, lists []runtime.Object, err error) {
@@ -71,15 +77,11 @@ func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (
 	lists = append(lists, resObjectList)
 	resources[resType] = []resource.KubernetesResource{res}
 
-	log.Info("going to create Prometheus service monitor")
 	resObjectList, resType, res = createPrometheusServiceMonitor(cli, kogitoService)
 	if resObjectList != nil {
 		lists = append(lists, resObjectList)
 		resources[resType] = []resource.KubernetesResource{res}
 	}
-	log.Info("Prometheus service monitor successfully created and added into resource list")
-	log.Infof("resources : %s", resources)
-	log.Infof("lists : %s", lists)
 	return
 }
 

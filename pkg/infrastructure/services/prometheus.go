@@ -18,6 +18,8 @@ import (
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -31,27 +33,35 @@ func IsPrometheusAvailable(client *client.Client) bool {
 
 // CreateServiceMonitor create ServiceMonitor used for scraping by prometheus for kogito service
 func CreateServiceMonitor(kogitoRuntime *v1alpha1.KogitoRuntime) *monv1.ServiceMonitor {
-	prometheus := kogitoRuntime.Spec.Prometheus
-	if prometheus.Scrape {
+	monitoring := kogitoRuntime.Spec.Monitoring
+	if monitoring.Scrape {
 		endPoint := monv1.Endpoint{}
 		endPoint.TargetPort = &intstr.IntOrString{IntVal: getServiceHTTPPort(kogitoRuntime)}
 
-		if len(prometheus.Path) > 0 {
-			endPoint.Path = prometheus.Path
+		if len(monitoring.Path) > 0 {
+			endPoint.Path = monitoring.Path
 		} else {
-			endPoint.Path = v1alpha1.PrometheusDefaultPath
+			endPoint.Path = v1alpha1.MonitoringDefaultPath
 		}
 
-		if len(prometheus.Scheme) > 0 {
-			endPoint.Scheme = prometheus.Scheme
+		if len(monitoring.Scheme) > 0 {
+			endPoint.Scheme = monitoring.Scheme
 		} else {
-			endPoint.Scheme = v1alpha1.PrometheusDefaultScheme
+			endPoint.Scheme = v1alpha1.MonitoringDefaultScheme
 		}
+
+		serviceSelectorLabels := make(map[string]string)
+		serviceSelectorLabels[framework.LabelAppKey] = kogitoRuntime.GetName()
+
+		serviceMonitorLabels := make(map[string]string)
+		serviceMonitorLabels["name"] = operator.Name
+		serviceMonitorLabels[framework.LabelAppKey] = kogitoRuntime.GetName()
 
 		sm := &monv1.ServiceMonitor{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      kogitoRuntime.Name,
 				Namespace: kogitoRuntime.Namespace,
+				Labels:    serviceMonitorLabels,
 			},
 			Spec: monv1.ServiceMonitorSpec{
 				NamespaceSelector: monv1.NamespaceSelector{
@@ -60,7 +70,7 @@ func CreateServiceMonitor(kogitoRuntime *v1alpha1.KogitoRuntime) *monv1.ServiceM
 					},
 				},
 				Selector: metav1.LabelSelector{
-					MatchLabels: kogitoRuntime.ObjectMeta.Labels,
+					MatchLabels: serviceSelectorLabels,
 				},
 				Endpoints: []monv1.Endpoint{
 					endPoint,

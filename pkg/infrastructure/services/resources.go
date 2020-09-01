@@ -17,7 +17,6 @@ package services
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
@@ -273,7 +272,6 @@ func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash s
 
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance
 func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	reader := read.New(&reader{s.client}).WithNamespace(s.instance.GetNamespace()).WithOwnerObject(s.instance)
 	var objectTypes []runtime.Object
 	if s.client.IsOpenshift() {
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}
@@ -293,7 +291,7 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 		objectTypes = append(objectTypes, s.definition.extraManagedObjectLists...)
 	}
 
-	resources, err = reader.ListAll(objectTypes...)
+	resources, err = kubernetes.ResourceC(s.client).ListALL(objectTypes, s.instance.GetNamespace(), s.instance)
 	if err != nil {
 		return
 	}
