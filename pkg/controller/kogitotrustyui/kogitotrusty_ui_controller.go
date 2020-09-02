@@ -113,10 +113,10 @@ type ReconcileKogitoTrustyUI struct {
 func (r *ReconcileKogitoTrustyUI) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	log.Infof("Reconciling KogitoTrustyUI for %s in %s", request.Name, request.Namespace)
 	definition := services.ServiceDefinition{
-		DefaultImageName:  infrastructure.DefaultTrustyUIImageName,
-		Request:           request,
-		SingleReplica:     false,
-		RequiresDataIndex: true,
+		DefaultImageName: infrastructure.DefaultTrustyUIImageName,
+		Request:          request,
+		SingleReplica:    false,
+		RequiresTrusty:   true,
 	}
 	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, &appv1alpha1.KogitoTrustyUIList{}, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err

@@ -35,3 +35,8 @@ func InjectTrustyURLIntoKogitoApps(client *client.Client, namespace string) erro
 	log.Debugf("Injecting Trusty Route in kogito apps")
 	return injectURLIntoKogitoApps(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, &v1alpha1.KogitoTrustyList{})
 }
+
+// GetTrustyEndpoints queries for the Trusty URIs
+func GetTrustyEndpoints(client *client.Client, namespace string) (trustyEndpoints ServiceEndpoints, err error) {
+	return getServiceEndpoints(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, &v1alpha1.KogitoTrustyList{})
+}

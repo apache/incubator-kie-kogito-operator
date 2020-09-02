@@ -16,10 +16,11 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
-	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"time"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -69,6 +70,9 @@ type ServiceDefinition struct {
 	// RequiresDataIndex when set to true, the Data Index instance is queried in the given namespace and its Route injected in this service.
 	// The service is not deployed until the data index service is found
 	RequiresDataIndex bool
+	// RequiresTrusty when set to true, the Trusty instance is queried in the given namespace and its Route injected in this service.
+	// The service is not deployed until the trusty service is found
+	RequiresTrusty bool
 	// KafkaTopics is a collection of Kafka Topics to be created within the service
 	KafkaTopics []KafkaTopicDefinition
 	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe

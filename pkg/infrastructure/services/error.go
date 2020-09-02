@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	dataIndexNotReadyMessage          = "Data Index service not found in namespace %s and it's required for %s. Replicas will be set to 0."
-	dataIndexDependencyReconcileAfter = time.Minute * 2
+	serviceNotReadyMessage          = "%s service not found in namespace %s and it's required for %s. Replicas will be set to 0."
+	serviceDependencyReconcileAfter = time.Minute * 2
 )
 
 // requiresReconciliationError indicates that something went wrong and the controller needs a new reconciliation after a given time
@@ -51,9 +51,9 @@ func (r requiredServiceNotReadyError) GetReconcileAfter() time.Duration {
 	return r.reconcileAfter
 }
 
-func newDataIndexNotReadyError(namespace, serviceName string) requiredServiceNotReadyError {
+func newKogitoServiceNotReadyError(namespace, serviceName string, requiredServiceName string) requiredServiceNotReadyError {
 	return requiredServiceNotReadyError{
-		message:        fmt.Sprintf(dataIndexNotReadyMessage, namespace, serviceName),
-		reconcileAfter: dataIndexDependencyReconcileAfter,
+		message:        fmt.Sprintf(serviceNotReadyMessage, requiredServiceName, namespace, serviceName),
+		reconcileAfter: serviceDependencyReconcileAfter,
 	}
 }
