@@ -657,28 +657,6 @@ spec:
         displayName: Image
         path: image
       version: v1alpha1
-    required:
-    - description: Represents a Infinispan cluster used internally by Kogito Data
-        Index Service
-      displayName: Infinispan Cluster
-      kind: Infinispan
-      name: infinispans.infinispan.org
-      version: v1
-    - description: Represents a Kafka cluster
-      displayName: Kafka
-      kind: Kafka
-      name: kafkas.kafka.strimzi.io
-      version: v1beta1
-    - description: Represents a topic inside a Kafka cluster
-      displayName: Kafka Topic
-      kind: KafkaTopic
-      name: kafkatopics.kafka.strimzi.io
-      version: v1beta1
-    - description: Represents a Keycloak server to provide SSO for Kogito Services
-      displayName: Keycloak
-      kind: Keycloak
-      name: keycloaks.keycloak.org
-      version: v1alpha1
   description: |-
     Kogito Operator is designed to deploy Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
 

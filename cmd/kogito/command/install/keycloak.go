@@ -54,7 +54,9 @@ func (i *installKeycloakCommand) RegisterHook() {
 		Use:     "keycloak [flags]",
 		Short:   "Installs a keycloak instance into the OpenShift/Kubernetes cluster",
 		Example: "install keycloak -p my-project",
-		Long:    `Installs a keycloak instance via custom Kubernetes resources. This feature won't create custom subscriptions with the OLM.`,
+		Long: `Installs a keycloak instance via custom Kubernetes resources.
+Requires Keycloak Operator to be installed, please make sure that you've installed it before proceeding.
+This feature won't create custom subscriptions with the OLM.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
@@ -72,7 +74,7 @@ func (i *installKeycloakCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	flag.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 
-	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the operator will be deployed")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name where the Keycloak server will be deployed")
 }
 
 func (i *installKeycloakCommand) Exec(cmd *cobra.Command, args []string) error {
