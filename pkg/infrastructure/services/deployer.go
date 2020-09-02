@@ -23,7 +23,6 @@ import (
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -55,7 +54,7 @@ type ServiceDefinition struct {
 	// E.g. if you need an additional Kubernetes resource, just create your own map that the API will append to its managed resources.
 	// The "objectLists" array is the List object reference of the types created.
 	// For example: if a ConfigMap is created, then ConfigMapList empty reference should be added to this list
-	OnObjectsCreate func(kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
+	OnObjectsCreate func(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
 	// OnGetComparators is called during the deployment phase to compare the deployed resources against the created ones
 	// Use this hook to add your comparators to override a specific comparator or to add your own if you have created extra objects via OnObjectsCreate
 	// Use framework.NewComparatorBuilder() to build your own
@@ -221,24 +220,23 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
 	comparator := s.getComparator()
 	deltas := comparator.Compare(deployedResources, requestedResources)
-	writer := write.New(s.client.ControlCli)
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
 			continue
 		}
 		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
 
-		if _, err = writer.AddResources(delta.Added); err != nil {
+		if _, err = kubernetes.ResourceC(s.client).CreateResources(delta.Added); err != nil {
 			return
 		}
 		s.generateEventForDeltaResources("Created", resourceType, delta.Added)
 
-		if _, err = writer.UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
+		if _, err = kubernetes.ResourceC(s.client).UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
 			return
 		}
 		s.generateEventForDeltaResources("Updated", resourceType, delta.Updated)
 
-		if _, err = writer.RemoveResources(delta.Removed); err != nil {
+		if _, err = kubernetes.ResourceC(s.client).DeleteResources(delta.Removed); err != nil {
 			return
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)

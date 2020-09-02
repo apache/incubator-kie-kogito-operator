@@ -47,7 +47,7 @@ func Add(mgr manager.Manager) error {
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileKogitoDataIndex{
-		client: client.NewForController(mgr.GetConfig(), mgr.GetClient()),
+		client: client.NewForController(mgr.GetConfig()),
 		scheme: mgr.GetScheme(),
 	}
 }

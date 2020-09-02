@@ -545,6 +545,11 @@ spec:
           image.'
         displayName: Image
         path: image
+      - description: Create Service monitor instance to connect with Monitoring service
+        displayName: Monitoring
+        path: monitoring
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:label
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas
