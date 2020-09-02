@@ -28,7 +28,7 @@ type MonitoringFlags struct {
 
 // AddMonitoringFlags adds the monitoring flags to the given command
 func AddMonitoringFlags(command *cobra.Command, flags *MonitoringFlags) {
-	command.Flags().BoolVar(&flags.Scrape, "monitoring-scrape", false, "Flag to allow Kogito operator to expose Kogito service for scraping")
+	command.Flags().BoolVar(&flags.Scrape, "scrape", false, "Flag to allow Kogito operator to expose Kogito service for scraping")
 	command.Flags().StringVar(&flags.Scheme, "monitoring-scheme", v1alpha1.MonitoringDefaultScheme, "HTTP scheme to use for scraping.")
 	command.Flags().StringVar(&flags.Path, "monitoring-path", v1alpha1.MonitoringDefaultPath, "HTTP path to scrape for metrics")
 }
