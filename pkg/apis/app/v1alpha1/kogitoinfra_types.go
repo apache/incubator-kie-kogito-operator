@@ -122,10 +122,10 @@ const (
 // +kubebuilder:printcolumn:name="Kafka",type="boolean",JSONPath=".spec.installKafka",description="Kafka should be installed"
 // +kubebuilder:printcolumn:name="Keycloak",type="boolean",JSONPath=".spec.installKeycloak",description="Keycloak should be installed"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispans,infinispan.org/v1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloaks,keycloak.org/v1alpha1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Secrets,v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1,\"A Kafka instance\""
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispan,infinispan.org/v1,\"A Infinispan instance\""
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloak,keycloak.org/v1alpha1,\"A Keycloak Instance\""
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Secret,v1,\"A Kubernetes Secret\""
 type KogitoInfra struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

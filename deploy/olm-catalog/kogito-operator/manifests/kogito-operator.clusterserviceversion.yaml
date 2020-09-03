@@ -122,11 +122,11 @@ spec:
       kind: KogitoBuild
       name: kogitobuilds.app.kiegroup.org
       resources:
-      - kind: BuildConfigs
-        name: ""
+      - kind: BuildConfig
+        name: A Openshift Build Config
         version: build.openshift.io/v1
-      - kind: ImageStreams
-        name: ""
+      - kind: ImageStream
+        name: A Openshift Image Stream
         version: image.openshift.io/v1
       specDescriptors:
       - description: Artifact contains override information for building the Maven
@@ -241,20 +241,20 @@ spec:
       kind: KogitoDataIndex
       name: kogitodataindices.app.kiegroup.org
       resources:
-      - kind: ConfigMaps
-        name: ""
+      - kind: ConfigMap
+        name: A Kubernetes ConfigMap
         version: v1
-      - kind: Deployments
-        name: ""
+      - kind: Deployment
+        name: A Kubernetes Deployment
         version: apps/v1
-      - kind: KafkaTopics
-        name: ""
+      - kind: KafkaTopic
+        name: A Kafka Topic
         version: kafka.strimzi.io/v1beta1
-      - kind: Routes
-        name: ""
+      - kind: Route
+        name: A Openshift Route
         version: route.openshift.io/v1
-      - kind: Services
-        name: ""
+      - kind: Service
+        name: A Kubernetes Service
         version: v1
       specDescriptors:
       - description: Additional labels to be added to the Deployment and Pods managed
@@ -318,17 +318,17 @@ spec:
       kind: KogitoInfra
       name: kogitoinfras.app.kiegroup.org
       resources:
-      - kind: Infinispans
-        name: ""
+      - kind: Infinispan
+        name: A Infinispan instance
         version: infinispan.org/v1
       - kind: Kafka
-        name: ""
+        name: A Kafka instance
         version: ksafka.strimzi.io/v1beta1
-      - kind: Keycloaks
-        name: ""
+      - kind: Keycloak
+        name: A Keycloak Instance
         version: keycloak.org/v1alpha1
-      - kind: Secrets
-        name: ""
+      - kind: Secret
+        name: A Kubernetes Secret
         version: v1
       specDescriptors:
       - description: Indicates if Infinispan should be installed or not using Infinispan
@@ -359,17 +359,17 @@ spec:
       kind: KogitoJobsService
       name: kogitojobsservices.app.kiegroup.org
       resources:
-      - kind: Deployments
-        name: ""
+      - kind: Deployment
+        name: A Kubernetes Deployment
         version: apps/v1
-      - kind: ImageStreams
-        name: ""
+      - kind: ImageStream
+        name: A Openshift ImageStream
         version: image.openshift.io/v1
-      - kind: Routes
-        name: ""
+      - kind: Route
+        name: A Openshift Route
         version: route.openshift.io/v1
-      - kind: Services
-        name: ""
+      - kind: Service
+        name: A Kubernetes Service
         version: v1
       specDescriptors:
       - description: 'Retry backOff time in milliseconds between the job execution
@@ -439,17 +439,17 @@ spec:
       kind: KogitoMgmtConsole
       name: kogitomgmtconsoles.app.kiegroup.org
       resources:
-      - kind: Deployments
-        name: ""
+      - kind: Deployment
+        name: A Kubernetes Deployment
         version: apps/v1
-      - kind: ImageStreams
-        name: ""
+      - kind: ImageStream
+        name: A Openshift ImageStream
         version: image.openshift.io/v1
-      - kind: Routes
-        name: ""
+      - kind: Route
+        name: A Openshift Route
         version: route.openshift.io/v1
-      - kind: Services
-        name: ""
+      - kind: Service
+        name: A Kubernetes Service
         version: v1
       specDescriptors:
       - description: Additional labels to be added to the Deployment and Pods managed
@@ -509,17 +509,17 @@ spec:
       kind: KogitoRuntime
       name: kogitoruntimes.app.kiegroup.org
       resources:
-      - kind: ConfigMaps
-        name: ""
+      - kind: ConfigMap
+        name: A Kubernetes ConfigMap
         version: v1
-      - kind: Deployments
-        name: ""
+      - kind: Deployment
+        name: A Kubernetes Deployment
         version: apps/v1
-      - kind: Routes
-        name: ""
+      - kind: Route
+        name: A Openshift Route
         version: route.openshift.io/v1
-      - kind: Services
-        name: ""
+      - kind: Service
+        name: A Kubernetes Service
         version: v1
       specDescriptors:
       - description: Additional labels to be added to the Deployment and Pods managed
@@ -597,17 +597,17 @@ spec:
       kind: KogitoTrusty
       name: kogitotrusties.app.kiegroup.org
       resources:
-      - kind: Deployments
-        name: ""
+      - kind: Deployment
+        name: A Kubernetes Deployment
         version: apps/v1
-      - kind: KafkaTopics
-        name: ""
+      - kind: KafkaTopic
+        name: A Kafka topic
         version: kafka.strimzi.io/v1beta1
-      - kind: Routes
-        name: ""
+      - kind: Route
+        name: A Openshift Route
         version: route.openshift.io/v1
-      - kind: Services
-        name: ""
+      - kind: Service
+        name: A Kubernetes Service
         version: v1
       specDescriptors:
       - description: Additional labels to be added to the Deployment and Pods managed
