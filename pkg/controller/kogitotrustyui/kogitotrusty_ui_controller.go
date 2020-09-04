@@ -15,6 +15,7 @@
 package kogitotrustyui
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -44,7 +45,10 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileKogitoTrustyUI{client: kogitocli.NewForController(mgr.GetConfig(), mgr.GetClient()), scheme: mgr.GetScheme()}
+	return &ReconcileKogitoTrustyUI{
+		client: client.NewForController(mgr.GetConfig()),
+		scheme: mgr.GetScheme(),
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler

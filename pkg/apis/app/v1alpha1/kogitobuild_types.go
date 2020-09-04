@@ -321,8 +321,8 @@ type WebHookSecret struct {
 // +kubebuilder:printcolumn:name="Maven URL",type="string",JSONPath=".spec.mavenMirrorURL",description="URL for the proxy Maven repository"
 // +kubebuilder:printcolumn:name="Kogito Runtime",type="string",JSONPath=".spec.targetKogitoRuntime",description="Target KogitoRuntime for this build"
 // +kubebuilder:printcolumn:name="Git Repository",type="string",JSONPath=".spec.gitSource.uri",description="Git repository URL (RemoteSource builds only)"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStreams,image.openshift.io/v1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="BuildConfigs,build.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStream,image.openshift.io/v1,\" A Openshift Image Stream\""
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="BuildConfig,build.openshift.io/v1,\" A Openshift Build Config\""
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Build"
 type KogitoBuild struct {
 	metav1.TypeMeta   `json:",inline"`

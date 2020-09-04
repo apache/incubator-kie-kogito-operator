@@ -17,7 +17,6 @@ package kogitobuild
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -50,7 +49,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileKogitoBuild{client: kogitocli.NewForController(mgr.GetConfig(), mgr.GetClient()), scheme: mgr.GetScheme()}
+	return &ReconcileKogitoBuild{client: kogitocli.NewForController(mgr.GetConfig()), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -153,21 +152,20 @@ func (r *ReconcileKogitoBuild) Reconcile(request reconcile.Request) (result reco
 	//let's compare
 	comparator := buildMgr.GetComparator()
 	deltas := comparator.Compare(deployed, requested)
-	writer := write.New(r.client.ControlCli)
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
 			continue
 		}
 		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
-		_, resultErr = writer.AddResources(delta.Added)
+		_, resultErr = kubernetes.ResourceC(r.client).CreateResources(delta.Added)
 		if resultErr != nil {
 			return
 		}
-		_, resultErr = writer.UpdateResources(deployed[resourceType], delta.Updated)
+		_, resultErr = kubernetes.ResourceC(r.client).UpdateResources(deployed[resourceType], delta.Updated)
 		if resultErr != nil {
 			return
 		}
-		_, resultErr = writer.RemoveResources(delta.Removed)
+		_, resultErr = kubernetes.ResourceC(r.client).DeleteResources(delta.Removed)
 		if resultErr != nil {
 			return
 		}
