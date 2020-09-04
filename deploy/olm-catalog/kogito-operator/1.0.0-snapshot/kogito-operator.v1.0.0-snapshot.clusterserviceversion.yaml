@@ -328,16 +328,16 @@ spec:
       kind: KogitoExplainability
       name: kogitoexplainabilities.app.kiegroup.org
       resources:
-      - kind: Deployments
+      - kind: Deployment
         name: ""
         version: apps/v1
-      - kind: KafkaTopics
+      - kind: KafkaTopic
         name: ""
         version: kafka.strimzi.io/v1beta1
-      - kind: Routes
+      - kind: Route
         name: ""
         version: route.openshift.io/v1
-      - kind: Services
+      - kind: Service
         name: ""
         version: v1
       specDescriptors:
