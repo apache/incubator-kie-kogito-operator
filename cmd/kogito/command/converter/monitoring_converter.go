@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package prometheus
+package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
-var log = logger.GetLogger("prometheus_client")
-
-// ServiceMonitor will call ServiceMonitor custom resource API
-func ServiceMonitor() ServiceMonitorInterface {
-	return newServiceMonitor(&client.Client{})
-}
-
-// ServiceMonitorC will call ServiceMonitor custom resource API with the given client
-func ServiceMonitorC(c *client.Client) ServiceMonitorInterface {
-	return newServiceMonitor(c)
+// FromMonitoringFlagToMonitoring converts given MonitoringFlags into Monitoring
+func FromMonitoringFlagToMonitoring(monitoringFlags *flag.MonitoringFlags) v1alpha1.Monitoring {
+	return v1alpha1.Monitoring{
+		Scrape: monitoringFlags.Scrape,
+		Scheme: monitoringFlags.Scheme,
+		Path:   monitoringFlags.Path,
+	}
 }
