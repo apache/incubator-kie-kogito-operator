@@ -14,25 +14,9 @@
 
 package infrastructure
 
-import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-)
-
 const (
 	// DefaultTrustyUIName ...
 	DefaultTrustyUIName = "trusty-ui"
 	// DefaultTrustyUIImageName ...
 	DefaultTrustyUIImageName = "kogito-trusty-ui"
 )
-
-// GetTrustyUIEndpoint gets the route for the Trusty UI deployed in the given namespace
-func GetTrustyUIEndpoint(client *client.Client, namespace string) (ServiceEndpoints, error) {
-	endpoints := ServiceEndpoints{}
-	route, err := getSingletonKogitoServiceRoute(client, namespace, &v1alpha1.KogitoTrustyUIList{})
-	if err != nil {
-		return endpoints, err
-	}
-	endpoints.HTTPRouteURI = route
-	return endpoints, nil
-}

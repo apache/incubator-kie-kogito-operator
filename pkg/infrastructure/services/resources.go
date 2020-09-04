@@ -69,12 +69,6 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		} else if err != nil {
 			return resources, reconcileAfter, err
 		}
-		if err = s.applyTrustyRoute(deployment, s.instance); isRequiresReconciliationError(err) {
-			log.Warn(err)
-			reconcileAfter = err.(requiresReconciliationError).GetReconcileAfter()
-		} else if err != nil {
-			return resources, reconcileAfter, err
-		}
 
 		service := createRequiredService(s.instance, deployment)
 
@@ -139,34 +133,6 @@ func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, ins
 		} else {
 			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 			framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
-		}
-		deployment.Spec.Replicas = instance.GetSpec().GetReplicas()
-	}
-	return nil
-}
-
-func (s *serviceDeployer) applyTrustyRoute(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {
-	if s.definition.RequiresTrusty {
-		trustyEndpoints, err := infrastructure.GetTrustyEndpoints(s.client, s.definition.Request.Namespace)
-		if err != nil {
-			return err
-		}
-		if len(trustyEndpoints.HTTPRouteURI) == 0 {
-			// fallback to env vars directly set on service CR: KOGITO-2827
-			if len(framework.GetEnvVarFromContainer(trustyEndpoints.HTTPRouteEnv, &deployment.Spec.Template.Spec.Containers[0])) == 0 {
-				s.recorder.Eventf(s.client, instance,
-					corev1.EventTypeWarning,
-					"Failure",
-					"Not found Trusty external URL set on %s environment variable. Try setting the env var in '%s' manually using the Kogito service Custom Resource (CR)",
-					trustyEndpoints.HTTPRouteEnv,
-					instance.GetName())
-				zeroReplicas := int32(0)
-				deployment.Spec.Replicas = &zeroReplicas
-				return newKogitoServiceNotReadyError(instance.GetNamespace(), instance.GetName(), "Trusty")
-			}
-		} else {
-			framework.SetEnvVar(trustyEndpoints.HTTPRouteEnv, trustyEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
-			framework.SetEnvVar(trustyEndpoints.WSRouteEnv, trustyEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 		deployment.Spec.Replicas = instance.GetSpec().GetReplicas()
 	}
