@@ -279,6 +279,10 @@ case $1 in
     shift
     if addParamKeyValueIfAccepted "--tests.management-console-image-tag" ${1}; then shift; fi
   ;;
+  --trusty_ui_image_tag)
+    shift
+    if addParamKeyValueIfAccepted "--tests.trusty-ui-image-tag" ${1}; then shift; fi
+  ;;
   --runtime_application_image_registry)
     shift
     if addParamKeyValueIfAccepted "--tests.runtime-application-image-registry" ${1}; then shift; fi
