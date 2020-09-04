@@ -49,10 +49,10 @@ type KogitoExplainabilityStatus struct {
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Explainability"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployments,apps/v1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Routes,route.openshift.io/v1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Services,v1"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="KafkaTopics,kafka.strimzi.io/v1beta1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployment,apps/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Route,route.openshift.io/v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Service,v1"
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="KafkaTopic,kafka.strimzi.io/v1beta1"
 type KogitoExplainability struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
