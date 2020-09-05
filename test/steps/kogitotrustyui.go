@@ -71,6 +71,6 @@ func addTrustyIngressURIEnvVariable(namespace string, trustyUI *bddtypes.KogitoS
 	if err != nil {
 		return err
 	}
-	trustyUI.KogitoService.GetSpec().AddEnvironmentVariable("KOGITO_TRUSTY_HTTP_URL", trustyURI)
+	trustyUI.KogitoService.GetSpec().AddEnvironmentVariable("KOGITO_TRUSTY_ENDPOINT", trustyURI)
 	return nil
 }
