@@ -70,7 +70,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to secondary resource Pods and requeue the owner KogitoExplainability
 	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &appv1alpha1.KogitoTrusty{},
+		OwnerType:    &appv1alpha1.KogitoExplainability{},
 	})
 	if err != nil {
 		return err
