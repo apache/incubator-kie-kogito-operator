@@ -63,7 +63,7 @@ func (data *Data) kogitoExplainabilityHasPodsRunningWithinMinutes(podNb, timeout
 }
 
 type executionsResponse struct {
-	Executions []execution `json:"executions"`
+	Executions []execution `json:"headers"`
 }
 
 type execution struct {
