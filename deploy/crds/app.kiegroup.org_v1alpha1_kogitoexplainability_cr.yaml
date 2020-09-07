@@ -12,4 +12,3 @@ spec:
   kafka:
     # let's leave this burden to KogitoInfra CR to deploy a new Kafka instance for us
     useKogitoInfra: false
-  # details about the connected infinispan
