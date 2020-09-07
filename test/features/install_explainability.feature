@@ -1,6 +1,6 @@
 @explainability
 @kafka
-Feature: Kogito Data Index
+Feature: Kogito Explainability service
 
   Background:
     Given Namespace is created
