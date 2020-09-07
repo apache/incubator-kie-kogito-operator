@@ -152,7 +152,7 @@ func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIn
 	return s
 }
 
-func (s *servicesInstallation) InstallExplainability(trusty *v1alpha1.KogitoExplainability) ServicesInstallation {
+func (s *servicesInstallation) InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(explainability,
 			serviceInfoMessages{
