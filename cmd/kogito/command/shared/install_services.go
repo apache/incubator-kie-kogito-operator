@@ -57,7 +57,7 @@ type ServicesInstallation interface {
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
 	// InstallExplainability installs Explainability. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
-	InstallExplainability(trusty *v1alpha1.KogitoExplainability) ServicesInstallation
+	InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation
 	// InstallTrusty installs Trusty. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation
