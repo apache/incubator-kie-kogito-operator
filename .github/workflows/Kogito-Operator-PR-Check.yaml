@@ -78,3 +78,84 @@ jobs:
           cd bats-core && ./install.sh $HOME
       - name: Run Bats
         run: $HOME/bin/bats hack/*.bats
+  bdd_tests:
+    name: BDD tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod/cache
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache-
+      - name: Cache the binaries
+        uses: actions/cache@v1
+        with:
+          path: ~/go/bin/
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}
+      - name: Cache Go mod
+        uses: actions/cache@v1
+        with:
+          path: go.mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+              ${{ runner.os }}-go-mod-
+
+      - run: go mod tidy
+      - name: Intall Operator-sdk
+        run: ./hack/ci/install-operator-sdk.sh
+      - name: Install Kind
+        run: ./hack/ci/install-kind.sh
+      - name: Start Kind with Ingress and internal registry conf
+        run: ./hack/ci/kind-with-registry-and-ingress.sh
+      - name: Install Ingress Controller
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
+          kubectl wait --namespace ingress-nginx \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/component=controller \
+            --timeout=3m
+      - name: Update Ingress CM
+        run: kubectl patch configmaps ingress-nginx-controller --patch "$(cat hack/ci/config-map-patch.yaml)" -n ingress-nginx
+      - name: Verfify CM update
+        run: kubectl get cm/ingress-nginx-controller -o yaml -n ingress-nginx | grep data -A2
+      - name: Install OLM
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/crds.yaml
+          sleep 5
+          kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml
+      - name: Wait OLM to be ready
+        run: |
+          kubectl wait --namespace olm \
+          --for=condition=ready pod \
+          --selector=app=olm-operator \
+          --timeout=3m
+      - name: Genrate Manifests
+        run: ./hack/generate-manifests.sh
+      - name: Build Operator Image
+        env:
+          BUILDER: docker
+        run: ./hack/go-build.sh
+      - name: Tag Operator Image to registry
+        run: |
+          source ./hack/export-version.sh
+          docker tag quay.io/kiegroup/kogito-cloud-operator:"${OP_VERSION}" localhost:5000/kiegroup/kogito-cloud-operator
+      - name: Push operator image to internal registry
+        run: docker push localhost:5000/kiegroup/kogito-cloud-operator
+      - name: Setup JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+          java-package: jdk
+      - name: Build example images
+        run: ./hack/ci/build-image-examples-kind.sh
