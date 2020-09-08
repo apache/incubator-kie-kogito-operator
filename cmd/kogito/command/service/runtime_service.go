@@ -35,13 +35,13 @@ type RuntimeService interface {
 }
 
 type runtimeService struct {
-	resourceCheckService shared.IResourceCheckService
+	resourceCheckService shared.ResourceCheckService
 }
 
 // NewRuntimeService create and return runtimeService value
 func NewRuntimeService() RuntimeService {
 	return runtimeService{
-		resourceCheckService: shared.InitResourceCheckService(),
+		resourceCheckService: shared.NewResourceCheckService(),
 	}
 }
 

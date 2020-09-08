@@ -35,7 +35,7 @@ type deployCommand struct {
 	command              *cobra.Command
 	flags                *deployFlags
 	Parent               *cobra.Command
-	resourceCheckService shared.IResourceCheckService
+	resourceCheckService shared.ResourceCheckService
 	buildService         service.BuildService
 	runtimeService       service.RuntimeService
 }
@@ -45,7 +45,7 @@ func initDeployCommand(ctx *context.CommandContext, parent *cobra.Command) conte
 	cmd := &deployCommand{
 		CommandContext:       *ctx,
 		Parent:               parent,
-		resourceCheckService: shared.InitResourceCheckService(),
+		resourceCheckService: shared.NewResourceCheckService(),
 		buildService:         service.NewBuildService(),
 		runtimeService:       service.NewRuntimeService(),
 	}

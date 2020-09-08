@@ -27,24 +27,26 @@ const (
 	kubeConfigContextSep = "/"
 )
 
-// GetCurrentNamespaceFromKubeConfig gets the current namespace from the .kubeconfig file registered in the local machine
-func GetCurrentNamespaceFromKubeConfig() string {
-	file := client.GetKubeConfigFile()
-	config := clientcmd.GetConfigFromFileOrDie(file)
+func getCurrentNamespaceFromKubeConfig(filename string) string {
+	config := clientcmd.GetConfigFromFileOrDie(filename)
 	if len(config.CurrentContext) == 0 || config.Contexts[config.CurrentContext] == nil {
-		context.GetDefaultLogger().Warnf(message.KubeConfigNoContext, file)
+		context.GetDefaultLogger().Warnf(message.KubeConfigNoContext, filename)
 		return ""
 	}
 	return config.Contexts[config.CurrentContext].Namespace
 }
 
-// SetCurrentNamespaceToKubeConfig sets the current namespace to the .kubeconfig file
-func SetCurrentNamespaceToKubeConfig(namespace string) error {
-	file := client.GetKubeConfigFile()
-	config := clientcmd.GetConfigFromFileOrDie(file)
+// GetCurrentNamespaceFromKubeConfig gets the current namespace from the .kubeconfig file registered in the local machine
+func GetCurrentNamespaceFromKubeConfig() string {
+	filename := client.GetKubeConfigFile()
+	return getCurrentNamespaceFromKubeConfig(filename)
+}
+
+func setCurrentNamespaceToKubeConfig(filename, namespace string) error {
+	config := clientcmd.GetConfigFromFileOrDie(filename)
 
 	if len(config.CurrentContext) == 0 {
-		return fmt.Errorf(message.KubeConfigNoContext, file)
+		return fmt.Errorf(message.KubeConfigNoContext, filename)
 	}
 
 	currentContext := strings.Split(config.CurrentContext, kubeConfigContextSep)
@@ -56,9 +58,15 @@ func SetCurrentNamespaceToKubeConfig(namespace string) error {
 		config.Contexts[newContext] = newContextRef
 	}
 	config.CurrentContext = newContext
-	if err := clientcmd.WriteToFile(*config, file); err != nil {
-		return fmt.Errorf(message.KubeConfigErrorWriteFile, file, err)
+	if err := clientcmd.WriteToFile(*config, filename); err != nil {
+		return fmt.Errorf(message.KubeConfigErrorWriteFile, filename, err)
 	}
 	context.GetDefaultLogger().Debugf("Successfully set current namespace to %s", namespace)
 	return nil
+}
+
+// SetCurrentNamespaceToKubeConfig sets the current namespace to the .kubeconfig file
+func SetCurrentNamespaceToKubeConfig(namespace string) error {
+	filename := client.GetKubeConfigFile()
+	return setCurrentNamespaceToKubeConfig(filename, namespace)
 }
