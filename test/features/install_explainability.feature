@@ -32,6 +32,7 @@ Feature: Kogito Explainability service
     And Local example service "dmn-tracing-quarkus" is built by Maven using profile "default" and deployed to runtime registry
     And Deploy quarkus example service "dmn-tracing-quarkus" from runtime registry with configuration:
       | config | enableEvents | enabled                             |
+      | config | externalURI  | http://dmn-tracing-quarkus:8080     |
       | kafka  | externalURI  | external-kafka-kafka-bootstrap:9092 |
     And Kogito Runtime "dmn-tracing-quarkus" has 1 pods running within 10 minutes
     And HTTP POST request on service "dmn-tracing-quarkus" is successful within 2 minutes with path "LoanEligibility" and body:
