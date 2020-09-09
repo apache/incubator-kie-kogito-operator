@@ -85,7 +85,7 @@ func Test_CheckKogitoRuntimeExists_exists(t *testing.T) {
 			Namespace: ns,
 		},
 	})
-	resourceCheckService := InitResourceCheckService()
+	resourceCheckService := NewResourceCheckService()
 
 	err := resourceCheckService.CheckKogitoRuntimeExists(kubeCli, runtimeServiceName, ns)
 	assert.Nil(t, err)
@@ -99,7 +99,7 @@ func Test_CheckKogitoRuntimeExists_notExists(t *testing.T) {
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
 		ObjectMeta: v12.ObjectMeta{Name: ns},
 	})
-	resourceCheckService := InitResourceCheckService()
+	resourceCheckService := NewResourceCheckService()
 
 	err := resourceCheckService.CheckKogitoRuntimeExists(kubeCli, runtimeServiceName, ns)
 	assert.NotNil(t, err)
@@ -118,7 +118,7 @@ func Test_CheckKogitoBuildExists_exists(t *testing.T) {
 			Namespace: ns,
 		},
 	})
-	resourceCheckService := InitResourceCheckService()
+	resourceCheckService := NewResourceCheckService()
 
 	err := resourceCheckService.CheckKogitoBuildExists(kubeCli, buildServiceName, ns)
 	assert.Nil(t, err)
@@ -132,7 +132,7 @@ func Test_CheckKogitoBuildExists_notExists(t *testing.T) {
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
 		ObjectMeta: v12.ObjectMeta{Name: ns},
 	})
-	resourceCheckService := InitResourceCheckService()
+	resourceCheckService := NewResourceCheckService()
 
 	err := resourceCheckService.CheckKogitoBuildExists(kubeCli, buildServiceName, ns)
 	assert.NotNil(t, err)

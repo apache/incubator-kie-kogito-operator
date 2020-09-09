@@ -26,7 +26,7 @@ const (
 	// ProjectNotFound in: project name, project name
 	ProjectNotFound = "Project '%s' not found. Try running 'kogito new-project %s' to create your Project first "
 	// ProjectNoContext ...
-	ProjectNoContext = "Couldn't find any project in the current context. Make sure to connect to the cluster first "
+	ProjectNoContext = "Couldn't find any project in the current context. Make sure to connect to the cluster first or use `kogito use-project NAME` "
 	// ProjectCantIdentifyContext ...
 	ProjectCantIdentifyContext = "Can't identify the current context "
 	// ProjectCurrentContextInfo in: current context

@@ -26,8 +26,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// IResourceCheckService is interface to check K8 resource existence
-type IResourceCheckService interface {
+// ResourceCheckService is interface to check K8 resource existence
+type ResourceCheckService interface {
 	EnsureProject(kubeCli *client.Client, project string) (string, error)
 	CheckKogitoRuntimeExists(kubeCli *client.Client, name string, namespace string) error
 	CheckKogitoRuntimeNotExists(kubeCli *client.Client, name string, namespace string) error
@@ -37,8 +37,8 @@ type IResourceCheckService interface {
 
 type resourceCheckServiceImpl struct{}
 
-// InitResourceCheckService create and return resourceCheckServiceImpl value
-func InitResourceCheckService() IResourceCheckService {
+// NewResourceCheckService create and return resourceCheckServiceImpl value
+func NewResourceCheckService() ResourceCheckService {
 	return resourceCheckServiceImpl{}
 }
 
@@ -51,7 +51,8 @@ func (r resourceCheckServiceImpl) EnsureProject(kubeCli *client.Client, project 
 func EnsureProject(kubeCli *client.Client, project string) (string, error) {
 	log := context.GetDefaultLogger()
 	projectInContext := GetCurrentNamespaceFromKubeConfig()
-	if len(projectInContext) == 0 {
+	// we don't care if it's not in the context if a project is given to us
+	if len(projectInContext) == 0 && len(project) == 0 {
 		return "", fmt.Errorf(message.ProjectNoContext)
 	}
 	if len(project) == 0 {
