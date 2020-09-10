@@ -22,7 +22,10 @@ import (
 )
 
 const (
-	dockerTagRegx = `(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9](?::[0-9]{0,5})?/)?(?P<namespace>[a-z0-9-]+/)?(?P<image>[a-z0-9-]+)(?P<tag>:[a-z0-9\.-]+)?`
+	// dockerTagRegx matches a docker image name, to test it check: https://regex101.com/r/lAJKau/2.
+	// this is a super relax regexp, since we accept pretty much anything see the test cases on image_test.go
+	// see: https://github.com/docker/distribution/blob/master/reference/regexp.go
+	dockerTagRegx = `(?P<domain>(?:[a-z0-9]?:{0,1}\.?-?_?)+\/)?(?P<ns>(?:[a-z0-9]|[._]|__|[-]*)+\/)?(?P<image>[^:]+)(?P<tag>:.+)?`
 )
 
 var (
@@ -72,11 +75,13 @@ func splitImageTag(imageTag string) (domain, namespace, name, tag string) {
 		}
 
 		imageMatch := DockerTagRegxCompiled.FindStringSubmatch(imageTag)
-		if len(imageMatch[1]) > 0 {
+		// domain and namespace have basically the same group match, we only have them when both are informed
+		if len(imageMatch[1]) > 0 && len(imageMatch[2]) > 0 {
 			domain = strings.Split(imageMatch[1], "/")[0]
-		}
-		if len(imageMatch[2]) > 0 {
 			namespace = strings.Split(imageMatch[2], "/")[0]
+		} else if len(imageMatch[1]) > 0 {
+			// when we only have a match in the first case, we consider being namespace, domain should be the platform default
+			namespace = strings.Split(imageMatch[1], "/")[0]
 		}
 		name = imageMatch[3]
 		tag = strings.ReplaceAll(imageMatch[4], ":", "")
