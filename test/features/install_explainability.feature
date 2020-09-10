@@ -6,6 +6,8 @@ Feature: Kogito Explainability service
     Given Namespace is created
 
   @smoke
+  # Disabled as long as https://issues.redhat.com/browse/KOGITO-3176 is not solved
+  @disabled
   Scenario: Install Kogito Explainability
     Given Kogito Operator is deployed with Kafka operator
     And Install Kogito Explainability with 1 replicas
