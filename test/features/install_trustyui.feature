@@ -1,6 +1,4 @@
 @trustyui
-@infinispan
-@kafka
 Feature: Install Kogito Trusty UI
 
   Background:
