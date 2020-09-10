@@ -3,7 +3,7 @@ Feature: Install Kogito Trusty UI
 
   Background:
     Given Namespace is created
-    And Kogito Operator is deployed with Infinispan and Kafka operators
+    And Kogito Operator is deployed
 
   @smoke
   Scenario: Install Kogito Trusty UI
