@@ -116,6 +116,7 @@ type KogitoServiceSpecInterface interface {
 	GetHTTPPort() int32
 	SetHTTPPort(httpPort int32)
 	IsInsecureImageRegistry() bool
+	GetInfra() []string
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -168,6 +169,10 @@ type KogitoServiceSpec struct {
 	// HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.
 	// +optional
 	HTTPPort int32 `json:"httpPort,omitempty"`
+
+	// Infra provides list of dependent KogitoInfra objects.
+	// +optional
+	Infra []string `json:"infra,omitempty"`
 }
 
 // GetReplicas ...
@@ -279,3 +284,6 @@ func (k *KogitoServiceSpec) AddServiceLabel(name, value string) {
 
 // IsInsecureImageRegistry ...
 func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureImageRegistry }
+
+// GetInfra ...
+func (k *KogitoServiceSpec) GetInfra() []string { return k.Infra }

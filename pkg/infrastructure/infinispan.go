@@ -22,6 +22,7 @@ import (
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -104,4 +105,21 @@ func GetInfinispanCredentialsSecret(cli *client.Client, infra *v1alpha1.KogitoIn
 	}
 	_, err = kubernetes.ResourceC(cli).Fetch(secret)
 	return
+}
+
+// FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name
+func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, namespace string) (string, error) {
+	service := &corev1.Service{}
+	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, service); err != nil {
+		return "", err
+	} else if !exits {
+		return "", fmt.Errorf("service with name %s not exist for Infinispan instance in given namespace %s", instanceName, namespace)
+	} else {
+		for _, port := range service.Spec.Ports {
+			if port.TargetPort.IntVal == defaultInfinispanPort {
+				return fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal), nil
+			}
+		}
+		return "", fmt.Errorf("Infinispan default port (%d) not found in service %s ", defaultInfinispanPort, service.Name)
+	}
 }

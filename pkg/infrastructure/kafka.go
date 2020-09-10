@@ -106,14 +106,14 @@ func GetKafkaServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri st
 }
 
 // GetReadyKafkaInstanceName fetches for the Kafka Instance linked with the given Kogito and checks if it is ready
-func GetReadyKafkaInstanceName(cli *client.Client, infra *v1alpha1.KogitoInfra) (kafka string, err error) {
+func GetReadyKafkaInstanceName(cli *client.Client, kafkaInstanceName, namespace string) (kafka string, err error) {
 	kafka = ""
 	err = nil
-	if infra == nil || len(infra.Status.Kafka.Name) == 0 {
+	if len(kafkaInstanceName) == 0 {
 		return
 	}
 
-	instance, err := GetKafkaInstanceWithName(infra.Status.Kafka.Name, infra.Namespace, cli)
+	instance, err := GetKafkaInstanceWithName(kafkaInstanceName, namespace, cli)
 	if err != nil {
 		return
 	}
@@ -164,6 +164,17 @@ func GetKafkaInstanceWithName(name string, namespace string, client *client.Clie
 		return kafka, nil
 	}
 	return nil, nil
+}
+
+// GetKafkaServerURI provide kafka URI for given kafka instance name
+func GetKafkaServerURI(kafkaInstanceName string, namespace string, client *client.Client) (string, error) {
+	if kafkaInstance, err := GetKafkaInstanceWithName(kafkaInstanceName, namespace, client); err != nil {
+		return "", err
+	} else if kafkaInstance == nil {
+		return "", fmt.Errorf("kafka instance not found with name %s in namespace %s", kafkaInstanceName, namespace)
+	} else {
+		return ResolveKafkaServerURI(kafkaInstance), nil
+	}
 }
 
 // GetKafkaDefaultResource returns a Kafka resource with default configuration

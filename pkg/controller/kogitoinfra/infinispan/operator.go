@@ -16,7 +16,6 @@ package infinispan
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	corev1 "k8s.io/api/core/v1"
@@ -29,12 +28,12 @@ const (
 )
 
 // getOperatorGeneratedSecret will fetch for the generated secret created by the Infinispan Operator
-func getOperatorGeneratedSecret(infra *v1alpha1.KogitoInfra, cli *client.Client) (*corev1.Secret, error) {
+func getOperatorGeneratedSecret(cli *client.Client, namespace string) (*corev1.Secret, error) {
 	secretNames := getInfinispanGeneratedSecretName()
 	for _, secretName := range secretNames {
 		secret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: infra.Namespace,
+				Namespace: namespace,
 				Name:      secretName,
 			},
 			Data: map[string][]byte{},
@@ -47,13 +46,7 @@ func getOperatorGeneratedSecret(infra *v1alpha1.KogitoInfra, cli *client.Client)
 		}
 	}
 	// return the supposed generated default one, in the next reconcile phase will get the managed by the Operator
-	return &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: infra.Namespace,
-			Name:      secretNames[0],
-		},
-		Data: map[string][]byte{},
-	}, nil
+	return createEmptySecret(secretNames[0], namespace), nil
 }
 
 // getInfinispanGeneratedSecretName gets the formatted name for the generated Infinispan Operator secret
@@ -61,5 +54,15 @@ func getInfinispanGeneratedSecretName() []string {
 	return []string{
 		fmt.Sprintf(infinispanOperatorGeneratedSecret, InstanceName),
 		fmt.Sprintf(infinispanOperatorAppRealmGeneratedSecret, InstanceName),
+	}
+}
+
+func createEmptySecret(secretName, secretNamespace string) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: secretNamespace,
+			Name:      secretName,
+		},
+		Data: map[string][]byte{},
 	}
 }

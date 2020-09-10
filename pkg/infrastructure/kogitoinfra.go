@@ -184,7 +184,7 @@ func isInfinispanDeployed(infra *v1alpha1.KogitoInfra) bool {
 
 func isKafkaDeployed(infra *v1alpha1.KogitoInfra) bool {
 	if infra != nil {
-		return isInfraComponentDeployed(&infra.Status.Kafka)
+		return isInfraComponentDeployed(&infra.Status.Kafka.InfraComponentInstallStatusType)
 	}
 	return false
 }

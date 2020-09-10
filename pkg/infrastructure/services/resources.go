@@ -22,8 +22,10 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -71,27 +73,24 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 
 		service := createRequiredService(s.instance, deployment)
 
-		appProps := map[string]string{}
-
-		if s.definition.infinispanAware {
-			if err = s.applyInfinispanConfigurations(deployment, appProps, s.instance); err != nil {
+		if len(s.instance.GetSpec().GetInfra()) > 0 {
+			log.Debugf("Infra references are provided")
+			appProps, envProperties, err := s.fetchKogitoInfraProperties(s.instance.GetSpec().GetInfra())
+			if err != nil {
 				return resources, reconcileAfter, err
 			}
-		}
-		if s.definition.kafkaAware {
-			if err = s.applyKafkaConfigurations(deployment, appProps, s.instance); err != nil {
+
+			s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
+
+			// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998
+			contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), appProps, s.client)
+			if err != nil {
 				return resources, reconcileAfter, err
 			}
-		}
-
-		// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998
-		contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), appProps, s.client)
-		if err != nil {
-			return resources, reconcileAfter, err
-		}
-		s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
-		if configMap != nil {
-			resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
+			s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
+			if configMap != nil {
+				resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
+			}
 		}
 
 		resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}
@@ -338,4 +337,28 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 	}
 
 	return compare.MapComparator{Comparator: resourceComparator}
+}
+
+func (s *serviceDeployer) fetchKogitoInfraProperties(kogitoInfraReferences []string) (map[string]string, []corev1.EnvVar, error) {
+	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
+	consolidateAppProperties := map[string]string{}
+	var consolidateEnvProperties []corev1.EnvVar
+	for _, kogitoInfraName := range kogitoInfraReferences {
+		// load infra resource
+		appProp, envProp, err := kogitoinfra.FetchKogitoInfraProperties(s.client, kogitoInfraName, s.instance.GetNamespace(), s.instance.GetSpec().GetRuntime())
+		if err != nil {
+			return nil, nil, err
+		}
+		util.AppendToStringMap(appProp, consolidateAppProperties)
+		consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
+
+	}
+	return consolidateAppProperties, consolidateEnvProperties, nil
+}
+
+func (s *serviceDeployer) applyEnvironmentPropertiesConfiguration(envProps []corev1.EnvVar, deployment *appsv1.Deployment) {
+	container := &deployment.Spec.Template.Spec.Containers[0]
+	for _, envProp := range envProps {
+		container.Env = append(container.Env, envProp)
+	}
 }

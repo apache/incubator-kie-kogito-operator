@@ -44,6 +44,24 @@ const (
 	kafkaBootstrapSvcSuffix = "-kafka-bootstrap"
 )
 
+// UpdateBaseStatus updates the base status for the KogitoInfra instance
+func UpdateBaseStatus(client *client.Client, instance *v1alpha1.KogitoInfra, err *error) {
+	log.Info("Updating Kogito Infra status")
+	if *err != nil {
+		log.Warn("Seems that an error occurred, setting failure state: ", *err)
+		if statusErr := SetResourceFailed(instance, client, *err); statusErr != nil {
+			err = &statusErr
+			log.Errorf("Error in setting status failes: %v", *err)
+		}
+	} else {
+		log.Info("Kogito Infra successfully reconciled")
+		if statusErr := SetResourceSuccess(instance, client); statusErr != nil {
+			err = &statusErr
+			log.Errorf("Error in setting status failes: %v", *err)
+		}
+	}
+}
+
 // SetResourceFailed sets the instance as failed
 func SetResourceFailed(instance *v1alpha1.KogitoInfra, cli *client.Client, err error) error {
 	if instance.Status.Condition.Message != err.Error() {
@@ -139,7 +157,7 @@ func ensureKafka(instance *v1alpha1.KogitoInfra, cli *client.Client) (update, re
 	log.Debug("Trying to update Kafka conditions")
 	if !instance.Spec.InstallKafka {
 		if (len(instance.Status.Kafka.Name) > 0 || len(instance.Status.Kafka.Service) > 0) && len(instance.Status.Kafka.Condition) > 0 {
-			instance.Status.Kafka = v1alpha1.InfraComponentInstallStatusType{}
+			instance.Status.Kafka = v1alpha1.KafkaInstallStatus{}
 			update = true
 		}
 		return
@@ -152,12 +170,12 @@ func ensureKafka(instance *v1alpha1.KogitoInfra, cli *client.Client) (update, re
 		return
 	}
 
-	if update, requeue = updateNameStatus(instance.Spec.InstallKafka, reflect.TypeOf(kafkabetav1.Kafka{}), &instance.Status.Kafka, resources); requeue {
+	if update, requeue = updateNameStatus(instance.Spec.InstallKafka, reflect.TypeOf(kafkabetav1.Kafka{}), &instance.Status.Kafka.InfraComponentInstallStatusType, resources); requeue {
 		return
 	}
 
 	updateSvc, requeue :=
-		updateServiceStatus(instance, cli, &instance.Status.Kafka, fmt.Sprintf("%s%s", kafka.InstanceName, kafkaBootstrapSvcSuffix))
+		updateServiceStatus(instance, cli, &instance.Status.Kafka.InfraComponentInstallStatusType, fmt.Sprintf("%s%s", kafka.InstanceName, kafkaBootstrapSvcSuffix))
 	update = updateSvc || update
 
 	return

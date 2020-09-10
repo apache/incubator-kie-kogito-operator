@@ -132,11 +132,13 @@ func TestDeployKafkaWithKogitoInfra(t *testing.T) {
 							InstallKafka: true,
 						},
 						Status: v1alpha1.KogitoInfraStatus{
-							Kafka: v1alpha1.InfraComponentInstallStatusType{
-								Name: "test",
-								Condition: []v1alpha1.InstallCondition{
-									{
-										Type: v1alpha1.ProvisioningInstallConditionType,
+							Kafka: v1alpha1.KafkaInstallStatus{
+								InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+									Name: "test",
+									Condition: []v1alpha1.InstallCondition{
+										{
+											Type: v1alpha1.ProvisioningInstallConditionType,
+										},
 									},
 								},
 							},
@@ -175,12 +177,14 @@ func TestDeployKafkaWithKogitoInfra(t *testing.T) {
 							InstallKafka: true,
 						},
 						Status: v1alpha1.KogitoInfraStatus{
-							Kafka: v1alpha1.InfraComponentInstallStatusType{
-								Service: "test",
-								Name:    "test",
-								Condition: []v1alpha1.InstallCondition{
-									{
-										Type: v1alpha1.SuccessInstallConditionType,
+							Kafka: v1alpha1.KafkaInstallStatus{
+								InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+									Service: "test",
+									Name:    "test",
+									Condition: []v1alpha1.InstallCondition{
+										{
+											Type: v1alpha1.SuccessInstallConditionType,
+										},
 									},
 								},
 							},
@@ -241,12 +245,14 @@ func TestDeployKafkaWithKogitoInfra(t *testing.T) {
 							InstallKafka: true,
 						},
 						Status: v1alpha1.KogitoInfraStatus{
-							Kafka: v1alpha1.InfraComponentInstallStatusType{
-								Service: "test",
-								Name:    "test",
-								Condition: []v1alpha1.InstallCondition{
-									{
-										Type: v1alpha1.SuccessInstallConditionType,
+							Kafka: v1alpha1.KafkaInstallStatus{
+								InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+									Service: "test",
+									Name:    "test",
+									Condition: []v1alpha1.InstallCondition{
+										{
+											Type: v1alpha1.SuccessInstallConditionType,
+										},
 									},
 								},
 							},
@@ -306,12 +312,14 @@ func TestDeployKafkaWithKogitoInfra(t *testing.T) {
 							InstallKafka: true,
 						},
 						Status: v1alpha1.KogitoInfraStatus{
-							Kafka: v1alpha1.InfraComponentInstallStatusType{
-								Service: "test",
-								Name:    "test",
-								Condition: []v1alpha1.InstallCondition{
-									{
-										Type: v1alpha1.SuccessInstallConditionType,
+							Kafka: v1alpha1.KafkaInstallStatus{
+								InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+									Service: "test",
+									Name:    "test",
+									Condition: []v1alpha1.InstallCondition{
+										{
+											Type: v1alpha1.SuccessInstallConditionType,
+										},
 									},
 								},
 							},

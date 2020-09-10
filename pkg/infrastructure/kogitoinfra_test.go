@@ -150,7 +150,9 @@ func Test_EnsureKogitoInfra_Exists_NoChange(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: v1alpha1.KafkaInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
 			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
 		},
 	}
@@ -223,7 +225,9 @@ func Test_EnsureKogitoInfra_Exists_RemoveKafka(t *testing.T) {
 			InstallKafka: true,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
-			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: v1alpha1.KafkaInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -298,7 +302,9 @@ func Test_EnsureKogitoInfra_Exists_RemoveAllComponents(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: v1alpha1.KafkaInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
 			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
 		},
 	}
@@ -341,7 +347,9 @@ func Test_EnsureKogitoInfra_Exists_WithKafkaButAlreadyInstalled(t *testing.T) {
 			InstallKafka: true,
 		},
 		Status: v1alpha1.KogitoInfraStatus{
-			Kafka: fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: v1alpha1.KafkaInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{infra}, nil, nil)
@@ -386,7 +394,9 @@ func Test_EnsureKogitoInfra_Exists_RemoveOnlyKafka(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: v1alpha1.KafkaInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
 			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
 		},
 	}
@@ -412,7 +422,9 @@ func Test_EnsureKogitoInfra_Exists_RemoveOnlyInfinispan(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: v1alpha1.KafkaInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
 			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
 		},
 	}
@@ -438,7 +450,9 @@ func Test_EnsureKogitoInfra_Exists_RemoveOnlyKeycloak(t *testing.T) {
 			Infinispan: v1alpha1.InfinispanInstallStatus{
 				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
 			},
-			Kafka:    fakeInstalledInfraComponentInstallStatusType(),
+			Kafka: v1alpha1.KafkaInstallStatus{
+				InfraComponentInstallStatusType: fakeInstalledInfraComponentInstallStatusType(),
+			},
 			Keycloak: fakeInstalledInfraComponentInstallStatusType(),
 		},
 	}

@@ -19,6 +19,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Resource provide reference infra resource
+type Resource struct {
+
+	// Kind describe the kind of referred resource for example, app.infinispan.org/v1
+	Kind string `json:"kind,omitempty"`
+
+	// Namespace where referred resource exists
+	Namespace string `json:"namespace,omitempty"`
+
+	// Name of referred resource
+	Name string `json:"name,omitempty"`
+}
+
 // InfraComponentInstallStatusType is the base structure to define the status for an actor in the infrastructure.
 type InfraComponentInstallStatusType struct {
 	Service   string             `json:"service,omitempty"`
@@ -30,6 +43,11 @@ type InfraComponentInstallStatusType struct {
 // +k8s:openapi-gen=true
 type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+
+	// +optional
+	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	Resource Resource `json:"resource,omitempty"`
 
 	// Indicates if Infinispan should be installed or not using Infinispan Operator.
 	// Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.
@@ -56,7 +74,7 @@ type KogitoInfraSpec struct {
 type KogitoInfraStatus struct {
 	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
 	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
-	Kafka      InfraComponentInstallStatusType `json:"kafka,omitempty"`
+	Kafka      KafkaInstallStatus              `json:"kafka,omitempty"`
 	Keycloak   InfraComponentInstallStatusType `json:"keycloak,omitempty"`
 }
 
@@ -77,6 +95,13 @@ type KogitoInfraCondition struct {
 type InfinispanInstallStatus struct {
 	InfraComponentInstallStatusType `json:",inline"`
 	CredentialSecret                string `json:"credentialSecret,omitempty"`
+	InfinispanMeta                  `json:",inline"`
+}
+
+// KafkaInstallStatus defines the Kafka installation status.
+type KafkaInstallStatus struct {
+	InfraComponentInstallStatusType `json:",inline"`
+	KafkaMeta                       `json:",inline"`
 }
 
 // InstallCondition defines the installation condition for the infrastructure actor.

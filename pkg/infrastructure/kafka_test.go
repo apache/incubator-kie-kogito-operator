@@ -213,8 +213,10 @@ func TestGetReadyKafkaInstanceName(t *testing.T) {
 						Namespace: "test",
 					},
 					Status: v1alpha1.KogitoInfraStatus{
-						Kafka: v1alpha1.InfraComponentInstallStatusType{
-							Name: "test",
+						Kafka: v1alpha1.KafkaInstallStatus{
+							InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+								Name: "test",
+							},
 						},
 					},
 				},
@@ -242,8 +244,10 @@ func TestGetReadyKafkaInstanceName(t *testing.T) {
 						Namespace: "test",
 					},
 					Status: v1alpha1.KogitoInfraStatus{
-						Kafka: v1alpha1.InfraComponentInstallStatusType{
-							Name: "test",
+						Kafka: v1alpha1.KafkaInstallStatus{
+							InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+								Name: "test",
+							},
 						},
 					},
 				},
@@ -292,8 +296,10 @@ func TestGetReadyKafkaInstanceName(t *testing.T) {
 						Namespace: "test",
 					},
 					Status: v1alpha1.KogitoInfraStatus{
-						Kafka: v1alpha1.InfraComponentInstallStatusType{
-							Name: "test",
+						Kafka: v1alpha1.KafkaInstallStatus{
+							InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+								Name: "test",
+							},
 						},
 					},
 				},
@@ -304,7 +310,7 @@ func TestGetReadyKafkaInstanceName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotKafka, err := GetReadyKafkaInstanceName(tt.args.cli, tt.args.infra)
+			gotKafka, err := GetReadyKafkaInstanceName(tt.args.cli, tt.args.infra.Status.Kafka.Name, tt.args.infra.Namespace)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetReadyKafkaInstanceName() error = %v, wantErr %v", err, tt.wantErr)
 				return

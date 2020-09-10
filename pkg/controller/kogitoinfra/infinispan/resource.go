@@ -15,7 +15,11 @@
 package infinispan
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
@@ -40,7 +44,7 @@ const (
 	replicasSize     = 1
 )
 
-var log = logger.GetLogger("kogitoinfra_resource")
+var log = logger.GetLogger("kogitoinfinispan_resource")
 
 // GetDeployedResources will fetch for every resource already deployed using kogitoInfra instance as a reference
 func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
@@ -125,7 +129,7 @@ func newInfinispanResource(kogitoInfra *v1alpha1.KogitoInfra) *infinispan.Infini
 // newInfinispanLinkedSecret will create a new secret based on the generated identity secret by the Infinispan Operator
 // this secret will be used later by any client services in the namespace to connect to the Infinispan instance
 func newInfinispanLinkedSecret(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (*v1.Secret, error) {
-	infinispanSecret, err := getOperatorGeneratedSecret(kogitoInfra, cli)
+	infinispanSecret, err := getOperatorGeneratedSecret(cli, kogitoInfra.Namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -145,4 +149,118 @@ func newInfinispanLinkedSecret(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Cl
 		},
 	}
 	return secret, nil
+}
+
+func loadDefaultKogitoInfinispanInstance(cli *client.Client, namespace string) (*infinispan.Infinispan, error) {
+	return loadDeployedInfinispanInstance(cli, InstanceName, namespace)
+}
+
+func loadDeployedInfinispanInstance(cli *client.Client, instanceName string, namespace string) (*infinispan.Infinispan, error) {
+	log.Debug("fetching deployed kogito infinispan instance")
+	infinispanInstance := &infinispan.Infinispan{}
+	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, infinispanInstance); err != nil {
+		log.Error("Error occurs while fetching kogito infinispan instance")
+		return nil, err
+	} else if !exits {
+		log.Debug("Kogito infinispan instance is not exists")
+		return nil, nil
+	} else {
+		log.Debug("Kogito infinispan instance found")
+		return infinispanInstance, nil
+	}
+}
+
+func createNewInfinispanInstance(cli *client.Client, name string, namespace string, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*infinispan.Infinispan, error) {
+	log.Debug("Going to create kogito infinispan instance")
+	infinispanRes := &infinispan.Infinispan{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+		},
+		Spec: infinispan.InfinispanSpec{
+			Replicas: replicasSize,
+			// ignoring generating secrets for now: https://github.com/infinispan/infinispan-operator/issues/211
+			//Security: infinispan.InfinispanSecurity{
+			//	EndpointSecretName: secret.Name,
+			//},
+		},
+	}
+	if err := controllerutil.SetOwnerReference(instance, infinispanRes, scheme); err != nil {
+		return nil, err
+	}
+	if err := kubernetes.ResourceC(cli).Create(infinispanRes); err != nil {
+		log.Error("Error occurs while creating kogito infinispan instance")
+		return nil, err
+	}
+	log.Debug("Kogito infinispan instance created successfully")
+	return infinispanRes, nil
+}
+
+func loadCustomKogitoInfinispanSecret(cli *client.Client, namespace string) (*v1.Secret, error) {
+	return loadSecret(cli, secretName, namespace)
+}
+
+func loadSecret(cli *client.Client, name string, namespace string) (*v1.Secret, error) {
+	log.Debugf("Fetching %s ", name)
+	secret := &v1.Secret{}
+	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, secret); err != nil {
+		log.Errorf("Error occurs while fetching %s", name)
+		return nil, err
+	} else if !exits {
+		log.Errorf("%s not found", name)
+		return nil, nil
+	} else {
+		log.Errorf("%s fetch successfully", name)
+		return secret, nil
+	}
+}
+
+func createCustomKogitoInfinispanSecret(cli *client.Client, namespace string, infinispanInstance *infinispan.Infinispan, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*v1.Secret, error) {
+	log.Debugf("Creating new secret %s", secretName)
+
+	infinispanSecret, err := getInfinispanSecret(cli, infinispanInstance)
+	if err != nil {
+		return nil, err
+	}
+	credentials, err := getDeveloperCredential(infinispanSecret)
+	if err != nil {
+		return nil, err
+	}
+
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: namespace,
+		},
+		Type: v1.SecretTypeOpaque,
+		StringData: map[string]string{
+			infrastructure.InfinispanSecretUsernameKey: credentials.Username,
+			infrastructure.InfinispanSecretPasswordKey: credentials.Password,
+		},
+	}
+
+	if err := controllerutil.SetOwnerReference(instance, secret, scheme); err != nil {
+		return nil, err
+	}
+	if err := kubernetes.ResourceC(cli).Create(secret); err != nil {
+		log.Errorf("Error occurs while creating %s", secret)
+		return nil, err
+	}
+	log.Debug("%s created successfully", secret)
+	return secret, nil
+}
+
+func getInfinispanSecret(cli *client.Client, infinispanInstance *infinispan.Infinispan) (*v1.Secret, error) {
+	// Get operator generated infinispan secret
+	secretName := infinispanInstance.Spec.Security.EndpointSecretName
+	secretNamespace := infinispanInstance.Namespace
+	infinispanSecret, err := loadSecret(cli, secretName, secretNamespace)
+	if err != nil {
+		return nil, err
+	}
+
+	if infinispanSecret == nil {
+		infinispanSecret = createEmptySecret(secretName, secretNamespace)
+	}
+	return infinispanSecret, nil
 }

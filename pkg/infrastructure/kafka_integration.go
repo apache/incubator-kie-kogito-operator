@@ -37,7 +37,7 @@ func DeployKafkaWithKogitoInfra(instance v1alpha1.KafkaAware, namespace string, 
 
 		log.Debugf("Checking KogitoInfra status to make sure we are ready to use Kafka. Status are: %s", infra.Status.Kafka)
 		if ready {
-			kafka, err := GetReadyKafkaInstanceName(cli, infra)
+			kafka, err := GetReadyKafkaInstanceName(cli, infra.Status.Kafka.Name, infra.Namespace)
 			if err != nil {
 				return false, 0, err
 			}

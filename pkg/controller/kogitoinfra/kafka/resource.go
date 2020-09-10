@@ -20,19 +20,23 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"reflect"
 )
-
-var log = logger.GetLogger("kogitoinfra_resource")
 
 const (
 	// InstanceName is the default name for the Kafka cluster managed by KogitoInfra
 	InstanceName    = "kogito-kafka"
 	defaultReplicas = 1
 )
+
+var log = logger.GetLogger("kogitokafka_resource")
 
 // GetDeployedResources gets the resources deployed as is
 func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
@@ -59,4 +63,33 @@ func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra) (resources map[r
 	}
 
 	return
+}
+
+func loadDeployedKafkaInstance(cli *client.Client, name string, namespace string) (*kafkabetav1.Kafka, error) {
+	log.Debug("fetching deployed kogito kafka instance")
+	kafkaInstance := &kafkabetav1.Kafka{}
+	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafkaInstance); err != nil {
+		log.Error("Error occurs while fetching kogito kafka instance")
+		return nil, err
+	} else if !exits {
+		log.Debug("Kogito kafka instance is not exists")
+		return nil, nil
+	} else {
+		log.Debug("Kogito kafka instance found")
+		return kafkaInstance, nil
+	}
+}
+
+func createNewKafkaInstance(cli *client.Client, name, namespace string, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*kafkabetav1.Kafka, error) {
+	log.Debug("Going to create kogito Kafka instance")
+	kafkaInstance := infrastructure.GetKafkaDefaultResource(name, namespace, defaultReplicas)
+	if err := controllerutil.SetOwnerReference(instance, kafkaInstance, scheme); err != nil {
+		return nil, err
+	}
+	if err := kubernetes.ResourceC(cli).Create(kafkaInstance); err != nil {
+		log.Error("Error occurs while creating kogito Kafka instance")
+		return nil, err
+	}
+	log.Debug("Kogito Kafka instance created successfully")
+	return kafkaInstance, nil
 }
