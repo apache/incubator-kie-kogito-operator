@@ -351,11 +351,13 @@ All options from BDD tests do also apply here.
 | @events            | Tests verifying eventing capabilities                                              |
 | @discovery         | Tests checking service discovery functionality                                     |
 | @usertasks         | Tests interacting with user tasks to check authentication/authorization            |
+| @security          | Tests verifying security capabilities                                              |
 |                    |                                                                                    |
 | @resources         | Tests checking resource requests and limits                                        |
 |                    |                                                                                    |
 | @infinispan        | Tests using the infinispan operator                                                |
 | @kafka             | Tests using the kafka operator                                                     |
+| @keycloak          | Tests using the keycloak operator                                                  |
 
 ### Running the Kogito Operator locally
 
