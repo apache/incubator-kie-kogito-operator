@@ -66,10 +66,46 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 func Test_DeployCmd_NativeBuildWithoutSource(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf(`deploy-service native-build --native --project %s`, ns)
-	test.SetupCliTest(cli,
+	_ = test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Error: native builds currently only work with s2i. Please provide [SOURCE] argument")
+}
+
+func Test_DeployCmd_WithCustomImage(t *testing.T) {
+	ns := t.Name()
+	cli := fmt.Sprintf(`deploy-service process-business-rules-quarkus --image localhost:5000/kiegroup/process-business-rules-quarkus --project %s`, ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Image details are provided, skipping to install kogito build")
+	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
+
+	// This should be created, given the command above
+	kogitoRuntime := &v1alpha1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "process-business-rules-quarkus",
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoRuntime)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.Equal(t, "localhost:5000", kogitoRuntime.Spec.Image.Domain)
+	assert.Equal(t, "kiegroup", kogitoRuntime.Spec.Image.Namespace)
+	assert.Equal(t, "process-business-rules-quarkus", kogitoRuntime.Spec.Image.Name)
+	assert.Equal(t, "latest", kogitoRuntime.Spec.Image.Tag)
+	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.False(t, kogitoRuntime.Spec.InfinispanMeta.InfinispanProperties.UseKogitoInfra)
+	assert.False(t, kogitoRuntime.Spec.KafkaMeta.KafkaProperties.UseKogitoInfra)
+	assert.False(t, kogitoRuntime.Spec.EnableIstio)
+	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
+	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
+	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
+	assert.Equal(t, 0, len(kogitoRuntime.Spec.Envs))
 }
