@@ -69,7 +69,8 @@ func (data *Data) kogitoTrustyUIHasPodsRunningWithinMinutes(pods, timeoutInMin i
 func addTrustyIngressURIEnvVariable(namespace string, trustyUI *bddtypes.KogitoServiceHolder) error {
 	trustyURI, err := framework.GetIngressURI(namespace, "trusty")
 	if err != nil {
-		return err
+		framework.GetLogger(namespace).Warnf("Error while retrieving Ingress route with name trusty, skipping trusty endpoint configuration in Trusty UI: %v", err)
+		return nil
 	}
 	trustyUI.KogitoService.GetSpec().AddEnvironmentVariable("KOGITO_TRUSTY_ENDPOINT", trustyURI)
 	return nil
