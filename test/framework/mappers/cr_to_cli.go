@@ -36,10 +36,6 @@ func GetServiceCLIFlags(serviceHolder *bddtypes.KogitoServiceHolder) []string {
 	if serviceHolder.EnablePersistence {
 		cmd = append(cmd, "--enable-persistence")
 	}
-	
-	if externalURI := serviceHolder.GetStatus().GetExternalURI(); externalURI != "" {
-		cmd = append(cmd, "--externalURI", externalURI)
-	}
 
 	for _, envVar := range serviceHolder.GetSpec().GetEnvs() {
 		cmd = append(cmd, "--env", fmt.Sprintf("%s=%s", envVar.Name, envVar.Value))
