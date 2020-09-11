@@ -15,6 +15,8 @@
 package infinispan
 
 import (
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"reflect"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
@@ -24,9 +26,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"k8s.io/apimachinery/pkg/api/errors"
-
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,10 +33,7 @@ const (
 	// InstanceName is the default name for the Infinispan provisioned instance
 	InstanceName = "kogito-infinispan"
 	secretName   = "kogito-infinispan-credential"
-	// IdentityFileName is the name of YAML file containing list of Infinispan credentials
-	IdentityFileName = "identities.yaml"
-	annotationKeyMD5 = "org.kie.kogito/infraInfinispanCredentialsFileHash"
-	replicasSize     = 1
+	replicasSize = 1
 )
 
 var log = logger.GetLogger("kogitoinfra_resource")
@@ -68,35 +64,16 @@ func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client)
 // CreateRequiredResources will create all resources needed for the deployment of Infinispan based on its operator.
 // Return an empty array if `.Spec.InstallInfinispan` is set to `false`
 func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	resources = make(map[reflect.Type][]resource.KubernetesResource, 2)
+	resources = make(map[reflect.Type][]resource.KubernetesResource)
 	if kogitoInfra.Spec.InstallInfinispan {
 		log.Debugf("Creating default resources for Infinispan installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
-		// ignoring custom secrets for now: https://github.com/infinispan/infinispan-operator/issues/211
-		/*
-			secret := &v1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: kogitoInfra.Namespace, Name: secretName}}
-			secretExists := false
-			if secretExists, err = kubernetes.ResourceC(cli).Fetch(secret); err != nil {
-				return resources, err
-			} else if !secretExists ||
-				len(secret.Data[identityFileName]) == 0 ||
-				!hasKogitoUser(secret.Data[identityFileName]) {
-				// we only generated a new one if there's no one created for us since each time we will have a new one because of the random password
-				secret, err = newInfinispanCredentials(kogitoInfra)
-				if err != nil {
-					return resources, err
-				}
-			} else {
-				// the md5 should correspond to the credential file set
-				// if the user just changed the secret arbitrarily to add more users or to change the existent password,
-				// we correct the md5 and the operator will change the secret correctly
-				secret.Annotations[annotationKeyMD5] = getMD5FromBytes(secret.Data[identityFileName])
-			}
-		*/
 		secret, err := newInfinispanLinkedSecret(kogitoInfra, cli)
 		if err != nil {
 			return nil, err
 		}
-		resources[reflect.TypeOf(v1.Secret{})] = []resource.KubernetesResource{secret}
+		if secret != nil {
+			resources[reflect.TypeOf(v1.Secret{})] = []resource.KubernetesResource{secret}
+		}
 		resources[reflect.TypeOf(infinispan.Infinispan{})] = []resource.KubernetesResource{newInfinispanResource(kogitoInfra)}
 		log.Debugf("Requested objects created as %s", resources)
 	}
@@ -105,44 +82,33 @@ func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Clie
 }
 
 func newInfinispanResource(kogitoInfra *v1alpha1.KogitoInfra) *infinispan.Infinispan {
-	infinispanRes := &infinispan.Infinispan{
+	return &infinispan.Infinispan{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: kogitoInfra.Namespace,
 			Name:      InstanceName,
 		},
 		Spec: infinispan.InfinispanSpec{
 			Replicas: replicasSize,
-			// ignoring generating secrets for now: https://github.com/infinispan/infinispan-operator/issues/211
-			//Security: infinispan.InfinispanSecurity{
-			//	EndpointSecretName: secret.Name,
-			//},
 		},
 	}
-
-	return infinispanRes
 }
 
 // newInfinispanLinkedSecret will create a new secret based on the generated identity secret by the Infinispan Operator
 // this secret will be used later by any client services in the namespace to connect to the Infinispan instance
 func newInfinispanLinkedSecret(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (*v1.Secret, error) {
-	infinispanSecret, err := getOperatorGeneratedSecret(kogitoInfra, cli)
-	if err != nil {
-		return nil, err
-	}
-	credentials, err := getDeveloperCredential(infinispanSecret)
+	credentials, err := infrastructure.GetInfinispanCredential(cli, kogitoInfra)
 	if err != nil {
 		return nil, err
 	}
 	secret := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: kogitoInfra.Namespace,
-		},
-		Type: v1.SecretTypeOpaque,
-		StringData: map[string]string{
+		ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: kogitoInfra.Namespace},
+		Type:       v1.SecretTypeOpaque,
+	}
+	if credentials != nil {
+		secret.StringData = map[string]string{
 			infrastructure.InfinispanSecretUsernameKey: credentials.Username,
 			infrastructure.InfinispanSecretPasswordKey: credentials.Password,
-		},
+		}
 	}
 	return secret, nil
 }
