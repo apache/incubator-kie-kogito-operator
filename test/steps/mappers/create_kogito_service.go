@@ -45,7 +45,6 @@ const (
 	kogitoServiceKafkaExternalURIKey            = "externalURI"
 	kogitoServiceKafkaInstanceKey               = "instance"
 	kogitoServiceHTTPPortKey                    = "httpPort"
-	kogitoServiceExternalURIKey                 = "externalURI"
 	kogitoServiceInfinispanEnablePersistenceKey = "enablePersistence"
 	kogitoServiceInfinispanEnableEventsKey      = "enableEvents"
 	kogitoServiceMonitoringScrapeKey            = "scrape"
@@ -167,9 +166,6 @@ func mapKogitoServiceConfigTableRow(row *TableRow, kogitoService *bddtypes.Kogit
 
 	case kogitoServiceInfinispanEnableEventsKey:
 		kogitoService.EnableEvents = MustParseEnabledDisabled(getThirdColumn(row))
-
-	case kogitoServiceExternalURIKey:
-		kogitoService.KogitoService.GetStatus().SetExternalURI(getThirdColumn(row))
 
 	default:
 		return false, fmt.Errorf("Unrecognized config configuration option: %s", secondColumn)
