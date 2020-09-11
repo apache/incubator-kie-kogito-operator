@@ -72,7 +72,7 @@ type execution struct {
 
 func (data *Data) explainabilityResultIsAvailable(timeoutInMin int) error {
 	// Retrieve the execution id from the trusty service
-	executionsPath := "/executions"
+	executionsPath := "executions"
 	responseContent := "DECISION"
 	trustyServiceName := "trusty"
 	uri, err := framework.WaitAndRetrieveEndpointURI(data.Namespace, trustyServiceName)
@@ -106,11 +106,10 @@ func (data *Data) explainabilityResultIsAvailable(timeoutInMin int) error {
 	executionID := executionsResponse.Executions[0].ExecutionID
 
 	// Retrieve explainability result for the given execution ID
-	executionsPath = fmt.Sprintf("/executions/decisions/%s/saliencies", executionID)
+	executionsPath = fmt.Sprintf("executions/decisions/%s/explanations/saliencies", executionID)
 	responseContent = "Judgement"
-	explainabilityServiceName := "explainability"
 
-	uri, err = framework.WaitAndRetrieveEndpointURI(data.Namespace, explainabilityServiceName)
+	uri, err = framework.WaitAndRetrieveEndpointURI(data.Namespace, trustyServiceName)
 	if err != nil {
 		return err
 	}
