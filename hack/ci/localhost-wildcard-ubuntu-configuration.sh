@@ -13,20 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+sudo sed -i '1s/^/nameserver 127.0.0.1\n/' /etc/resolv.conf
+cat /etc/resolv.conf
+sudo apt update -y
+sudo apt install dnsmasq -y
 
-./hack/run-tests.sh \
-	--feature scripts/examples \
-	--tags "~@native" \
-	--concurrent 3 \
-	--timeout 240 \
-	--ci ghactions \
-	--operator_image localhost:5000/kiegroup/kogito-cloud-operator \
-	--operator_tag latest \
-	--runtime_application_image_registry localhost:5000 \
-	--runtime_application_image_namespace kiegroup \
-	--runtime_application_image_version latest \
-	--load_factor 3 \
-	--container_engine docker \
-	--domain_suffix example.com  \
-	--cr_deployment_only \
-	--load_default_config
+
+#Configure example.com
+echo 'address=/example.com/127.0.0.1' | sudo tee /etc/dnsmasq.d/example-com
+
+#Reload Network services
+sudo systemctl restart dnsmasq
+
+#verification
+nslookup www.google.com
+
+nslookup test.example.com
+nslookup a.test.example.com

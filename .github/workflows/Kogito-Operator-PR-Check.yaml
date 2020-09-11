@@ -81,9 +81,13 @@ jobs:
   bdd_tests:
     name: BDD tests
     runs-on: ubuntu-latest
+    env:
+      JDK_VERSION: 11
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+      - name: Setup DNS Wildcard
+        run: ./hack/ci/localhost-wildcard-ubuntu-configuration.sh
       - name: Setup Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v2
         with:
@@ -110,8 +114,19 @@ jobs:
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod') }}
           restore-keys: |
               ${{ runner.os }}-go-mod-
-
+      - name: Cache Maven Repositories
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository/
+          key: ${{ runner.os }}-maven-${{ env.JDK_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ env.JDK_VERSION }}
       - run: go mod tidy
+      - name: Build Kogito-cli
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -o build/_output/bin/kogito github.com/kiegroup/kogito-cloud-operator/cmd/kogito
+      - name: Copy kogito in path
+        run: cp ./build/_output/bin/kogito $(go env GOPATH)/bin/
+      - run: ls -l $(go env GOPATH)/bin/
       - name: Intall Operator-sdk
         run: ./hack/ci/install-operator-sdk.sh
       - name: Install Kind
@@ -155,7 +170,18 @@ jobs:
       - name: Setup JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: '11'
+          java-version: ${{ env.JDK_VERSION }}
           java-package: jdk
       - name: Build example images
         run: ./hack/ci/build-image-examples-kind.sh
+      - name: Run Tests
+        run: ./hack/ci/run-tests-kind.sh
+      - name: Always archive Kind logs
+        if: ${{ always() }}
+        run: kind export logs --name bdd-tests kind-logs/
+      - name: Upload kind logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: kind-artifact
+          path: kind-logs/

@@ -15,18 +15,21 @@
 
 
 ./hack/run-tests.sh \
-	--feature scripts/examples \
 	--tags "~@native" \
-	--concurrent 3 \
-	--timeout 240 \
+	--smoke \
+	--concurrent 1 \
 	--ci ghactions \
+	--load_factor 1 \
 	--operator_image localhost:5000/kiegroup/kogito-cloud-operator \
 	--operator_tag latest \
+	--image_cache_mode always \
+	--domain_suffix example.com  \
 	--runtime_application_image_registry localhost:5000 \
 	--runtime_application_image_namespace kiegroup \
 	--runtime_application_image_version latest \
-	--load_factor 3 \
 	--container_engine docker \
-	--domain_suffix example.com  \
-	--cr_deployment_only \
 	--load_default_config
+
+
+
+

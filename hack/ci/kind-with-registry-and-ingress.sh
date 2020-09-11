@@ -62,6 +62,9 @@ nodes:
   - containerPort: 443
     hostPort: 443
     protocol: TCP
+networking:
+  apiServerAddress: "127.0.0.1"
+  apiServerPort: 6443
 EOF
 
 # connect the registry to the cluster network
