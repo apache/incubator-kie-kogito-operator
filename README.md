@@ -250,6 +250,7 @@ You can set those optional keys:
 - `build_image_version` sets the build image version
 - `build_s2i_image_tag` sets the build S2I image full tag.
 - `build_runtime_image_tag` sets the build Runtime image full tag.
+- `disable_maven_native_build_container` disables the default Maven native build done in container.
 <!--- examples repository -->
 - `examples_uri` sets the URI for the kogito-examples repository.  
   *Default is https://github.com/kiegroup/kogito-examples*.

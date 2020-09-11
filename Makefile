@@ -120,6 +120,7 @@ build_image_name_suffix=
 build_image_version=
 build_s2i_image_tag=
 build_runtime_image_tag=
+disable_maven_native_build_container=false
 # examples repository
 examples_uri=
 examples_ref=
@@ -145,6 +146,7 @@ run-tests:
 	&& if [ "${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
 	&& if [ "${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
 	&& if [ "${load_default_config}" = "true" ]; then opts+=("--load_default_config"); fi \
+	&& if [ "${disable_maven_native_build_container}" = "true" ]; then opts+=("--disable_maven_native_build_container"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ./hack/run-tests.sh \
 		--feature ${feature} \
