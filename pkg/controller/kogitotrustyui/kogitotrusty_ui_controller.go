@@ -84,11 +84,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			GroupVersion: routev1.GroupVersion,
 			AddToScheme:  routev1.Install,
 			Objects:      []runtime.Object{&routev1.Route{}},
-			Owner:        &appv1alpha1.KogitoDataIndex{},
+			Owner:        &appv1alpha1.KogitoTrustyUI{},
 		},
 		{
 			Objects: []runtime.Object{&corev1.Service{}},
-			Owner:   &appv1alpha1.KogitoDataIndex{},
+			Owner:   &appv1alpha1.KogitoTrustyUI{},
 		},
 	}
 	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoTrustyUI).client, mgr, c, &appv1alpha1.KogitoTrustyUI{})
