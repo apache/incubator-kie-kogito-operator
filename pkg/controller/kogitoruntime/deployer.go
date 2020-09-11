@@ -126,7 +126,7 @@ func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoSer
 	// NAMESPACE service discovery
 	framework.SetEnvVar(envVarNamespace, kogitoService.GetNamespace(), &deployment.Spec.Template.Spec.Containers[0])
 	// external URL
-	if (kogitoService.GetStatus().GetExternalURI() != ""){
+	if kogitoService.GetStatus().GetExternalURI() != "" {
 		framework.SetEnvVar(envVarExternalURL, kogitoService.GetStatus().GetExternalURI(), &deployment.Spec.Template.Spec.Containers[0])
 	}
 	// sa
