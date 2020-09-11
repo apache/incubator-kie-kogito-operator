@@ -109,7 +109,6 @@ func (data *Data) explainabilityResultIsAvailable(timeoutInMin int) error {
 	executionsPath = fmt.Sprintf("executions/decisions/%s/explanations/saliencies", executionID)
 	responseContent = "Judgement"
 
-	uri, err = framework.WaitAndRetrieveEndpointURI(data.Namespace, trustyServiceName)
 	if err != nil {
 		return err
 	}
