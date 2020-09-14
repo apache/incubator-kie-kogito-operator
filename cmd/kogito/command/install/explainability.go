@@ -69,7 +69,7 @@ func (i *installExplainabilityCommand) RegisterHook() {
 		Long: `'install explainability' will deploy the Explainability service to provide analysis on the decisions that have been taken by a kogito runtime application.
 
 If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other project or infrastructure.
-If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Explainability service's project.
+If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the deployed Kafka server in the Explainability service's project.
 Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given project.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
