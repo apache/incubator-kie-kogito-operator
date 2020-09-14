@@ -71,9 +71,7 @@ func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Clie
 		if err != nil {
 			return nil, err
 		}
-		if secret != nil {
-			resources[reflect.TypeOf(v1.Secret{})] = []resource.KubernetesResource{secret}
-		}
+		resources[reflect.TypeOf(v1.Secret{})] = []resource.KubernetesResource{secret}
 		resources[reflect.TypeOf(infinispan.Infinispan{})] = []resource.KubernetesResource{newInfinispanResource(kogitoInfra)}
 		log.Debugf("Requested objects created as %s", resources)
 	}
