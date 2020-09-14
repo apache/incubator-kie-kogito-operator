@@ -107,7 +107,7 @@ func (data *Data) explainabilityResultIsAvailable(timeoutInMin int) error {
 
 	// Retrieve explainability result for the given execution ID
 	executionsPath = fmt.Sprintf("executions/decisions/%s/explanations/saliencies", executionID)
-	responseContent = "Judgement"
+	responseContent = "SUCCEEDED"
 
 	if err != nil {
 		return err
