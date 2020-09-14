@@ -16,6 +16,9 @@ package kogitoruntime
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -24,13 +27,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
-	"strings"
 )
 
 const (
@@ -55,8 +55,6 @@ var (
 	downwardAPIDefaultMode = int32(420)
 
 	podStartExecCommand = []string{"/bin/bash", "-c", "if [ -x " + postHookPersistenceScript + " ]; then " + postHookPersistenceScript + "; fi"}
-	
-	log = logger.GetLogger("kogitoruntime_deployer")
 )
 
 func onGetComparators(comparator compare.ResourceComparator) {
@@ -129,9 +127,7 @@ func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoSer
 	// NAMESPACE service discovery
 	framework.SetEnvVar(envVarNamespace, kogitoService.GetNamespace(), &deployment.Spec.Template.Spec.Containers[0])
 	// external URL
-	log.Info("The external uri is: " + kogitoService.GetStatus().GetExternalURI())
 	if kogitoService.GetStatus().GetExternalURI() != "" {
-		log.Info("Setting env variable KOGITO_SERVICE_URL")
 		framework.SetEnvVar(envVarExternalURL, kogitoService.GetStatus().GetExternalURI(), &deployment.Spec.Template.Spec.Containers[0])
 	}
 	// sa
