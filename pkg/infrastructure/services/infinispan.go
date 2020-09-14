@@ -83,12 +83,12 @@ func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps *v1alp
 	if runtime == v1alpha1.SpringBootRuntimeType {
 		vars = PropertiesInfinispanSpring
 	}
+	appProps[vars[AppPropInfinispanUseAuth]] = "false"
+	if infinispanProps == nil {
+		return
+	}
 
-	if infinispanProps != nil &&
-		len(infinispanProps.Credentials.SecretName) > 0 &&
-		secret != nil &&
-		container != nil {
-
+	if len(infinispanProps.Credentials.SecretName) > 0 && secret != nil && container != nil {
 		usernameValue := infrastructure.InfinispanSecretUsernameKey
 		if len(infinispanProps.Credentials.UsernameKey) > 0 {
 			usernameValue = infinispanProps.Credentials.UsernameKey
@@ -107,9 +107,8 @@ func setInfinispanVariables(runtime v1alpha1.RuntimeType, infinispanProps *v1alp
 		if len(infinispanProps.SaslMechanism) == 0 {
 			infinispanProps.SaslMechanism = v1alpha1.SASLPlain
 		}
-	} else {
-		appProps[vars[AppPropInfinispanUseAuth]] = "false"
 	}
+
 	if len(infinispanProps.AuthRealm) > 0 {
 		appProps[vars[AppPropInfinispanAuthRealm]] = infinispanProps.AuthRealm
 	}
@@ -137,7 +136,6 @@ func fetchInfinispanCredentials(instance v1alpha1.InfinispanAware, namespace str
 			return nil, nil
 		}
 	}
-
 	return secret, nil
 }
 

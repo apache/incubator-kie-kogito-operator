@@ -16,9 +16,11 @@ package infrastructure
 
 import (
 	"fmt"
+	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"gopkg.in/yaml.v2"
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,7 +35,21 @@ const (
 	InfinispanSecretUsernameKey = "username"
 	// InfinispanSecretPasswordKey is the secret password key set in the linked secret
 	InfinispanSecretPasswordKey = "password"
+	defaultInfinispanUser       = "developer"
+	// InfinispanIdentityFileName is the name of YAML file containing list of Infinispan credentials
+	InfinispanIdentityFileName = "identities.yaml"
 )
+
+// InfinispanIdentity is the struct for the secret holding the credential for the Infinispan server
+type InfinispanIdentity struct {
+	Credentials []InfinispanCredential `yaml:"credentials"`
+}
+
+// InfinispanCredential holds the information to authenticate into an infinispan server
+type InfinispanCredential struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
 
 // IsInfinispanAvailable checks whether Infinispan CRD is available or not
 func IsInfinispanAvailable(cli *client.Client) bool {
@@ -93,15 +109,51 @@ func GetInfinispanServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (u
 	return "", nil
 }
 
-// GetInfinispanCredentialsSecret will fetch for the secret created to hold Infinispan credentials
-func GetInfinispanCredentialsSecret(cli *client.Client, infra *v1alpha1.KogitoInfra) (secret *corev1.Secret, err error) {
-	err = nil
-	if len(infra.Status.Infinispan.Name) == 0 && len(infra.Status.Infinispan.Service) == 0 {
-		return
+// GetInfinispanCredential gets the credential of the Infinispan server deployed with the Kogito Operator
+// For KOGITO-3039: this function would fetch the credential for the linked resource in a given KogitoInfra.
+func GetInfinispanCredential(cli *client.Client, infra *v1alpha1.KogitoInfra) (*InfinispanCredential, error) {
+	if infra != nil && len(infra.Status.Infinispan.Name) > 0 {
+		infinispan := &ispn.Infinispan{ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.Name, Namespace: infra.Namespace}}
+		if exists, err := kubernetes.ResourceC(cli).Fetch(infinispan); err != nil {
+			return nil, err
+		} else if exists {
+			secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: infinispan.Spec.Security.EndpointSecretName, Namespace: infra.Namespace}}
+			if exists, err := kubernetes.ResourceC(cli).Fetch(secret); err != nil {
+				return nil, err
+			} else if exists {
+				return getDefaultInfinispanCredential(secret)
+			}
+		}
 	}
-	secret = &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.CredentialSecret, Namespace: infra.Namespace},
+	return nil, nil
+}
+
+// findInfinispanCredentialByUsernameOrFirst fetches the default credential in a infinispan operator generated cluster or first one found
+func findInfinispanCredentialByUsernameOrFirst(username string, infinispanSecret *corev1.Secret) (*InfinispanCredential, error) {
+	secretFileData := infinispanSecret.Data[InfinispanIdentityFileName]
+	identity := &InfinispanIdentity{}
+	if len(secretFileData) == 0 {
+		return &InfinispanCredential{
+			Username: string(infinispanSecret.Data[InfinispanSecretUsernameKey]),
+			Password: string(infinispanSecret.Data[InfinispanSecretPasswordKey]),
+		}, nil
 	}
-	_, err = kubernetes.ResourceC(cli).Fetch(secret)
-	return
+	err := yaml.Unmarshal(secretFileData, identity)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range identity.Credentials {
+		if c.Username == username {
+			return &c, nil
+		}
+	}
+	if len(identity.Credentials) == 1 {
+		return &identity.Credentials[0], nil
+	}
+	return nil, nil
+}
+
+// getDefaultInfinispanCredential will return the credential to be used by internal services
+func getDefaultInfinispanCredential(infinispanSecret *corev1.Secret) (*InfinispanCredential, error) {
+	return findInfinispanCredentialByUsernameOrFirst(defaultInfinispanUser, infinispanSecret)
 }
