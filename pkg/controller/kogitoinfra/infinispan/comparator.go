@@ -34,16 +34,10 @@ func GetComparators() []framework.Comparator {
 
 func createSecretComparator(resourceComparator compare.ResourceComparator) framework.Comparator {
 	secretType := reflect.TypeOf(v1.Secret{})
-	defaultSecretComparator := resourceComparator.GetComparator(secretType)
 
 	return framework.Comparator{
 		ResourceType: secretType,
-		CompFunc: func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
-			if !reflect.DeepEqual(deployed.GetAnnotations()[annotationKeyMD5], requested.GetAnnotations()[annotationKeyMD5]) {
-				return false
-			}
-			return defaultSecretComparator(deployed, requested)
-		},
+		CompFunc:     resourceComparator.GetComparator(secretType),
 	}
 }
 

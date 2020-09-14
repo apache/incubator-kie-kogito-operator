@@ -38,13 +38,25 @@ func Test_CreateRequiredInfinispanResources_NewResources(t *testing.T) {
 			InstallInfinispan: true,
 		},
 	}
+	infinispan := &infinispanv1.Infinispan{
+		ObjectMeta: v1.ObjectMeta{
+			Namespace: t.Name(),
+			Name:      InstanceName,
+		},
+		Spec: infinispanv1.InfinispanSpec{
+			Replicas: 1,
+			Security: infinispanv1.InfinispanSecurity{
+				EndpointSecretName: fmt.Sprintf("my-infinispan-%s", InstanceName),
+			},
+		},
+	}
 	infinispanSecret := &corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      fmt.Sprintf(infinispanOperatorGeneratedSecret, InstanceName),
+			Name:      fmt.Sprintf("my-infinispan-%s", InstanceName),
 			Namespace: t.Name(),
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{kogitoInfra, infinispanSecret}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{kogitoInfra, infinispanSecret, infinispan}, nil, nil)
 	resources, err := CreateRequiredResources(kogitoInfra, cli)
 
 	assert.NoError(t, err)
@@ -55,8 +67,11 @@ func Test_CreateRequiredInfinispanResources_NewResources(t *testing.T) {
 
 func Test_CreateRequiredInfinispanResources_HaveGeneratedSecret(t *testing.T) {
 	secreteMap := make(map[string][]byte)
-	secreteMap[infrastructure.InfinispanSecretPasswordKey] = []byte("password")
-	secreteMap[infrastructure.InfinispanSecretUsernameKey] = []byte(kogitoInfinispanUser)
+	secreteMap[infrastructure.InfinispanIdentityFileName] =
+		[]byte(`
+credentials:
+- username: testuser
+  password: testpassword`)
 
 	kogitoInfra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
@@ -66,19 +81,38 @@ func Test_CreateRequiredInfinispanResources_HaveGeneratedSecret(t *testing.T) {
 		Spec: v1alpha1.KogitoInfraSpec{
 			InstallInfinispan: true,
 		},
+		Status: v1alpha1.KogitoInfraStatus{
+			Infinispan: v1alpha1.InfinispanInstallStatus{
+				InfraComponentInstallStatusType: v1alpha1.InfraComponentInstallStatusType{
+					Name: InstanceName,
+				},
+			},
+		},
+	}
+	infinispan := &infinispanv1.Infinispan{
+		ObjectMeta: v1.ObjectMeta{
+			Namespace: t.Name(),
+			Name:      InstanceName,
+		},
+		Spec: infinispanv1.InfinispanSpec{
+			Replicas: 1,
+			Security: infinispanv1.InfinispanSecurity{
+				EndpointSecretName: fmt.Sprintf("my-infinispan-%s", InstanceName),
+			},
+		},
 	}
 	infinispanSecret := &corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      getInfinispanGeneratedSecretName()[0],
+			Name:      fmt.Sprintf("my-infinispan-%s", InstanceName),
 			Namespace: t.Name(),
 		},
 		Data: secreteMap,
 	}
-	cli := test.CreateFakeClient([]runtime.Object{kogitoInfra, infinispanSecret}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{kogitoInfra, infinispanSecret, infinispan}, nil, nil)
 	secret, err := newInfinispanLinkedSecret(kogitoInfra, cli)
 	assert.NoError(t, err)
-	assert.True(t, len(secret.StringData[infrastructure.InfinispanSecretPasswordKey]) > 0)
-	assert.Equal(t, kogitoInfinispanUser, string(secret.StringData[infrastructure.InfinispanSecretUsernameKey]))
+	assert.Equal(t, "testuser", secret.StringData[infrastructure.InfinispanSecretUsernameKey])
+	assert.Equal(t, "testpassword", secret.StringData[infrastructure.InfinispanSecretPasswordKey])
 
 	resources, err := CreateRequiredResources(kogitoInfra, cli)
 	assert.NoError(t, err)
