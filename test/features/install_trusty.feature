@@ -14,6 +14,8 @@ Feature: Kogito Trusty
     
 #####
 
+  # Disabled as long as https://issues.redhat.com/browse/KOGITO-3176 is not solved
+  @disabled
   @externalcomponent
   @infinispan
   @kafka
