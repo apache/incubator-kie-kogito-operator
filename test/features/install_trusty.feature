@@ -7,6 +7,7 @@ Feature: Kogito Trusty
     Given Namespace is created
     And Kogito Operator is deployed with Infinispan and Kafka operators
 
+  @disabled
   @smoke
   Scenario: Install Kogito Trusty
     When Install Kogito Trusty with 1 replicas
