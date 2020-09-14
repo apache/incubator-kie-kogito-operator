@@ -16,9 +16,6 @@ package kogitoruntime
 
 import (
 	"fmt"
-	"reflect"
-	"strings"
-
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -58,9 +55,9 @@ var (
 	downwardAPIDefaultMode = int32(420)
 
 	podStartExecCommand = []string{"/bin/bash", "-c", "if [ -x " + postHookPersistenceScript + " ]; then " + postHookPersistenceScript + "; fi"}
+	
+	log = logger.GetLogger("kogitoruntime_deployer")
 )
-
-var log = logger.GetLogger("kogitoruntime_deployer")
 
 func onGetComparators(comparator compare.ResourceComparator) {
 	comparator.SetComparator(
