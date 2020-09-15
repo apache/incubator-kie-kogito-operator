@@ -62,7 +62,7 @@ func (i *installTrustyUICommand) RegisterHook() {
 
 Please note that Trusty UI relies on Trusty (https://github.com/kiegroup/kogito-apps/tree/master/trusty) to retrieve the information to be displayed.
 You won't be able to use the Trusty UI if Trusty is not deployed in the same project either using Kogito CLI or the Kogito Operator. 
-In addition to that, it is mandatory to set the environment variable KOGITO_TRUSTY_ENDPOINT trusty-ui service. The value of that variable should be the endpoint of the trusty service.`,
+In addition to that, it is mandatory to set the environment variable KOGITO_TRUSTY_ENDPOINT in the trusty-ui service. The value of that variable should be the endpoint of the trusty service.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
