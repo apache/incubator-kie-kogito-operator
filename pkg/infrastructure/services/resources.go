@@ -15,6 +15,9 @@
 package services
 
 import (
+	"reflect"
+	"time"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -28,10 +31,8 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
-	"time"
 )
 
 const (
@@ -127,7 +128,7 @@ func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, ins
 					instance.GetName())
 				zeroReplicas := int32(0)
 				deployment.Spec.Replicas = &zeroReplicas
-				return newDataIndexNotReadyError(instance.GetNamespace(), instance.GetName())
+				return newKogitoServiceNotReadyError(instance.GetNamespace(), instance.GetName(), "Data Index")
 			}
 		} else {
 			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
