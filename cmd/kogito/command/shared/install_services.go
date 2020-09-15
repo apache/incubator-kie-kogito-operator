@@ -64,6 +64,9 @@ type ServicesInstallation interface {
 	// InstallMgmtConsole installs Management Console. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
+	// InstallTrustyUI installs Trusty UI. If no reference provided, it will install the default instance.
+	// Depends on the Operator, install it first.
+	InstallTrustyUI(trustyUI *v1alpha1.KogitoTrustyUI) ServicesInstallation
 	// InstallOperator installs the Operator.
 	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation
 	// InstallInfinispan install an infinispan instance.
@@ -183,6 +186,19 @@ func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMg
 				installed:                    message.MgmtConsoleSuccessfulInstalled,
 				checkStatus:                  message.MgmtConsoleCheckStatus,
 				notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
+			})
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallTrustyUI(trustyUI *v1alpha1.KogitoTrustyUI) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(trustyUI,
+			serviceInfoMessages{
+				errCreating:                  message.TrustyUIErrCreating,
+				installed:                    message.TrustyUISuccessfulInstalled,
+				checkStatus:                  message.TrustyUICheckStatus,
+				notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
 			})
 	}
 	return s

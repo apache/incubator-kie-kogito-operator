@@ -25,7 +25,7 @@ const (
 	// DefaultTrustyName is the default name for the Trusty instance service
 	DefaultTrustyName = "trusty"
 
-	trustyHTTPRouteEnv = "KOGITO_TRUSTY_HTTP_URL"
+	trustyHTTPRouteEnv = "KOGITO_TRUSTY_ENDPOINT"
 	trustyWSRouteEnv   = "KOGITO_TRUSTY_WS_URL"
 )
 
