@@ -54,8 +54,6 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.Equal(t, "drools-quarkus-example", kogitoRuntime.Spec.Image.Name)
 	assert.Equal(t, "1.0", kogitoRuntime.Spec.Image.Tag)
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
-	assert.False(t, kogitoRuntime.Spec.InfinispanMeta.InfinispanProperties.UseKogitoInfra)
-	assert.False(t, kogitoRuntime.Spec.KafkaMeta.KafkaProperties.UseKogitoInfra)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)

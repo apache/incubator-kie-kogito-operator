@@ -50,13 +50,13 @@ func GetKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, erro
 	switch {
 	case isInfinispanResource(instance):
 		log.Debugf("Kogito infra reference is for Infinispan resource")
-		return &infinispan.InfinispanResource{}, nil
+		return &infinispan.InfraResource{}, nil
 	case isKafkaResource(instance):
 		log.Debugf("Kogito infra reference is for Kafka resource")
-		return &kafka.KafkaResource{}, nil
+		return &kafka.InfraResource{}, nil
 	case isKeycloakResource(instance):
 		log.Debugf("Kogito infra reference is for Keycloak resource")
-		return &keycloak.KeycloakResource{}, nil
+		return &keycloak.InfraResource{}, nil
 	}
 	return nil, fmt.Errorf("no Kogito infra resource found for given definition, %s", instance.Name)
 }
@@ -80,13 +80,13 @@ func FetchKogitoInfraProperties(client *client.Client, name string, namespace st
 }
 
 func isInfinispanResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.Kind == infinispanv1.SchemeGroupVersion.String()
+	return instance.Spec.Resource.APIVersion == infinispanv1.SchemeGroupVersion.String() && instance.Spec.Resource.Kind == "Infinispan"
 }
 
 func isKafkaResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.Kind == kafkabetav1.SchemeGroupVersion.String()
+	return instance.Spec.Resource.APIVersion == kafkabetav1.SchemeGroupVersion.String() && instance.Spec.Resource.Kind == "Kafka"
 }
 
 func isKeycloakResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.Kind == keycloakv1alpha1.SchemeGroupVersion.String()
+	return instance.Spec.Resource.APIVersion == keycloakv1alpha1.SchemeGroupVersion.String() && instance.Spec.Resource.Kind == "Keycloak"
 }

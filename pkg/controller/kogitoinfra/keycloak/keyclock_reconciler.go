@@ -18,37 +18,35 @@ import (
 	"fmt"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// KeycloakResource implementation of KogitoInfraResource
-type KeycloakResource struct {
+// InfraResource implementation of KogitoInfraResource
+type InfraResource struct {
 }
 
 // GetWatchedObjects provide list of object that needs to be watched to maintain Keycloak kogitoInfra resource
 func GetWatchedObjects() []framework.WatchedObjects {
 	return []framework.WatchedObjects{
 		{
-			GroupVersion: kafkav1beta1.SchemeGroupVersion,
-			AddToScheme:  kafkav1beta1.SchemeBuilder.AddToScheme,
-			Objects:      []runtime.Object{&kafkav1beta1.Kafka{}},
+			GroupVersion: keycloakv1alpha1.SchemeGroupVersion,
+			AddToScheme:  keycloakv1alpha1.SchemeBuilder.AddToScheme,
+			Objects:      []runtime.Object{&keycloakv1alpha1.Keycloak{}},
 		},
 	}
 }
 
 // Reconcile reconcile Kogito infra object
-func (k *KeycloakResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
-
+func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
 	var keycloakInstance *keycloakv1alpha1.Keycloak
 
 	// Step 1: check whether user has provided custom keycloak instance reference
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {
-		log.Debugf("Custom kafka instance reference is provided")
+		log.Debugf("Custom Keycloak instance reference is provided")
 		resourceName := instance.Spec.Resource.Name
 		resourceNameSpace := instance.Spec.Resource.Namespace
 
@@ -60,11 +58,11 @@ func (k *KeycloakResource) Reconcile(client *client.Client, instance *v1alpha1.K
 			return false, fmt.Errorf("custom Keycloak instance(%s) not found in namespace %s", resourceName, resourceNameSpace)
 		}
 	} else {
-		log.Debugf("Custom kafka instance reference is not provided")
-		// if resource name is not provided then Infinispan instance should be created with default name = kogito-infinispan
+		log.Debugf("Custom Keycloak instance reference is not provided")
+		// if resource name is not provided then Keycloak instance should be created with default name = kogito-keycloak
 		resourceName := InstanceName
 
-		// if resource name is not provided then Infinispan instance should be created with default name = kogito-infinispan
+		// Keycloak resource should be created in same namespace as kogitoInfra
 		resourceNameSpace := instance.Namespace
 
 		// Step 1: Validation
@@ -81,8 +79,8 @@ func (k *KeycloakResource) Reconcile(client *client.Client, instance *v1alpha1.K
 		}
 
 		if keycloakInstance == nil {
-			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
-			keycloakInstance, resultErr = createNewKeycloakInstance(client, resourceName, resourceNameSpace, instance, scheme)
+			// if not exist then create new Keycloak instance. Keycloak operator creates Keycloak instance, secret & service resource
+			_, resultErr = createNewKeycloakInstance(client, resourceName, resourceNameSpace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}

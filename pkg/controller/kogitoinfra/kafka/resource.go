@@ -15,8 +15,6 @@
 package kafka
 
 import (
-	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -26,8 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	"reflect"
 )
 
 const (
@@ -37,33 +33,6 @@ const (
 )
 
 var log = logger.GetLogger("kogitokafka_resource")
-
-// GetDeployedResources gets the resources deployed as is
-func GetDeployedResources(kogitoInfra *v1alpha1.KogitoInfra, cli *client.Client) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	if infrastructure.IsStrimziAvailable(cli) {
-		reader := read.New(cli.ControlCli).WithNamespace(kogitoInfra.Namespace).WithOwnerObject(kogitoInfra)
-		resources, err = reader.ListAll(&kafkabetav1.KafkaList{})
-		if err != nil {
-			log.Warn("Failed to list deployed objects. ", err)
-			return nil, err
-		}
-	}
-
-	return
-}
-
-// CreateRequiredResources creates the very basic resources to have Kafka in the namespace
-func CreateRequiredResources(kogitoInfra *v1alpha1.KogitoInfra) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	resources = make(map[reflect.Type][]resource.KubernetesResource, 1)
-	if kogitoInfra.Spec.InstallKafka {
-		log.Debugf("Creating default resources for Kafka installation for Kogito Infra on %s namespace", kogitoInfra.Namespace)
-		kafka := infrastructure.GetKafkaDefaultResource(InstanceName, kogitoInfra.Namespace, defaultReplicas)
-		resources[reflect.TypeOf(kafkabetav1.Kafka{})] = []resource.KubernetesResource{kafka}
-		log.Debugf("Requested objects created as %s", resources)
-	}
-
-	return
-}
 
 func loadDeployedKafkaInstance(cli *client.Client, name string, namespace string) (*kafkabetav1.Kafka, error) {
 	log.Debug("fetching deployed kogito kafka instance")

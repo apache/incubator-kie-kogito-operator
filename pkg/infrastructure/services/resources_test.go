@@ -41,12 +41,6 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-					UseKogitoInfra: false,
-					URI:            "another-uri:11222",
-				},
-			},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
@@ -80,12 +74,6 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-					UseKogitoInfra: false,
-					URI:            "another-uri:11222",
-				},
-			},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)

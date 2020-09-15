@@ -20,8 +20,6 @@ import (
 
 // KogitoRuntimeSpec defines the desired state of KogitoRuntime.
 type KogitoRuntimeSpec struct {
-	InfinispanMeta    `json:",inline"`
-	KafkaMeta         `json:",inline"`
 	KogitoServiceSpec `json:",inline"`
 
 	// Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.

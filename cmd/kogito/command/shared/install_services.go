@@ -23,7 +23,6 @@ import (
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
 var defaultReplicas = int32(1)
@@ -66,16 +65,8 @@ type ServicesInstallation interface {
 	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
 	// InstallOperator installs the Operator.
 	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation
-	// InstallInfinispan install an infinispan instance.
-	InstallInfinispan() ServicesInstallation
-	// InstallKeycloak install a keycloak instance.
-	InstallKeycloak() ServicesInstallation
-	// InstallKafka install a kafka instance.
-	InstallKafka() ServicesInstallation
 	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
 	SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation
-	// WarnIfDependenciesNotReady checks if the given dependencies are installed, warn if they are not ready
-	WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation
 	// GetError return any given error during the installation process
 	GetError() error
 }
@@ -87,27 +78,6 @@ func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) Ser
 		client:            client,
 		operatorInstalled: false,
 	}
-}
-
-func (s *servicesInstallation) WarnIfDependenciesNotReady(infinispan, kafka bool) ServicesInstallation {
-	log := context.GetDefaultLogger()
-	if infinispan {
-		if infrastructure.IsInfinispanAvailable(s.client) {
-			if available, err := infrastructure.IsInfinispanOperatorAvailable(s.client, s.namespace); err != nil {
-				s.err = err
-			} else if !available {
-				log.Info(message.ServiceInfinispanOperatorNotAvailable)
-			}
-		} else {
-			log.Infof(message.ServiceInfinispanNotAvailable, s.namespace)
-		}
-	}
-	if kafka {
-		if available := infrastructure.IsStrimziAvailable(s.client); !available {
-			log.Infof(message.ServiceKafkaNotAvailable, s.namespace)
-		}
-	}
-	return s
 }
 
 func (s *servicesInstallation) InstallBuildService(build *v1alpha1.KogitoBuild) ServicesInstallation {
@@ -197,27 +167,6 @@ func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorIma
 
 func (s servicesInstallation) SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation {
 	return s.InstallOperator(false, "", false, ch)
-}
-
-func (s *servicesInstallation) InstallInfinispan() ServicesInstallation {
-	if s.err == nil {
-		s.err = installInfinispan(s.client, s.namespace)
-	}
-	return s
-}
-
-func (s *servicesInstallation) InstallKeycloak() ServicesInstallation {
-	if s.err == nil {
-		s.err = installKeycloak(s.client, s.namespace)
-	}
-	return s
-}
-
-func (s *servicesInstallation) InstallKafka() ServicesInstallation {
-	if s.err == nil {
-		s.err = installKafka(s.client, s.namespace)
-	}
-	return s
 }
 
 func (s *servicesInstallation) GetError() error {

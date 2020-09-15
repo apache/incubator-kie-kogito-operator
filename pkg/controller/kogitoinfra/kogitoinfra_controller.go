@@ -18,7 +18,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/status"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"time"
@@ -114,7 +113,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		result.RequeueAfter = time.Second * 30
 		result.Requeue = true
 	}
-	defer status.UpdateBaseStatus(r.client, instance, &resultErr)
+	defer updateBaseStatus(r.client, instance, &resultErr)
 
 	return
 }

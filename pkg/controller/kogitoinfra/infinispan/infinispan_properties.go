@@ -20,14 +20,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// InfinispanProperty type for infinispan properties
-type InfinispanProperty int
-
 const (
 	// keys for infinispan vars definition
 
 	// AppPropInfinispanServerList application property for setting infinispan server
-	AppPropInfinispanServerList InfinispanProperty = iota
+	AppPropInfinispanServerList int = iota
 	// AppPropInfinispanUseAuth application property for enabling infinispan authentication
 	AppPropInfinispanUseAuth
 	// AppPropInfinispanSaslMechanism application property for setting infinispan SASL mechanism
@@ -39,19 +36,17 @@ const (
 	// EnvVarInfinispanPassword environment variable for setting infinispan password
 	EnvVarInfinispanPassword
 
-	infinispanEnvKeyCredSecret string = "INFINISPAN_CREDENTIAL_SECRET"
-	enablePersistenceEnvKey           = "ENABLE_PERSISTENCE"
+	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
+	enablePersistenceEnvKey    = "ENABLE_PERSISTENCE"
 )
 
 var (
-	/*
-		Infinispan variables for the KogitoInfra deployed infrastructure.
-		For Quarkus: https://quarkus.io/guides/infinispan-client#quarkus-infinispan-client_configuration
-		For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
-	*/
+	//Infinispan variables for the KogitoInfra deployed infrastructure.
+	//For Quarkus: https://quarkus.io/guides/infinispan-client#quarkus-infinispan-client_configuration
+	//For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
 
 	// PropertiesInfinispanQuarkus infinispan properties for quarkus runtime
-	PropertiesInfinispanQuarkus = map[InfinispanProperty]string{
+	PropertiesInfinispanQuarkus = map[int]string{
 		AppPropInfinispanServerList:    "quarkus.infinispan-client.server-list",
 		AppPropInfinispanUseAuth:       "quarkus.infinispan-client.use-auth",
 		AppPropInfinispanSaslMechanism: "quarkus.infinispan-client.sasl-mechanism",
@@ -61,7 +56,7 @@ var (
 		EnvVarInfinispanPassword: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
 	}
 	// PropertiesInfinispanSpring infinispan properties for spring boot runtime
-	PropertiesInfinispanSpring = map[InfinispanProperty]string{
+	PropertiesInfinispanSpring = map[int]string{
 		AppPropInfinispanServerList:    "infinispan.remote.server-list",
 		AppPropInfinispanUseAuth:       "infinispan.remote.use-auth",
 		AppPropInfinispanSaslMechanism: "infinispan.remote.sasl-mechanism",
@@ -72,8 +67,8 @@ var (
 	}
 )
 
-// FetchInfraProperties provide application/env properties of infra that need to be ser in kogitoRuntime object
-func (i *InfinispanResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
+// FetchInfraProperties provide application/env properties of infra that need to be set in the KogitoRuntime object
+func (i *InfraResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
 	log.Debugf("going to fetch infinispan infra properties for given kogito infra instance : %s", instance.Name)
 
 	appProps = map[string]string{}
@@ -83,7 +78,7 @@ func (i *InfinispanResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra
 	}
 
 	envProps = append(envProps, framework.CreateEnvVar(enablePersistenceEnvKey, "true"))
-	infinispanProps := instance.Status.Infinispan.InfinispanProperties
+	infinispanProps := instance.Status.InfinispanProperties
 	secretName := infinispanProps.Credentials.SecretName
 	if len(secretName) > 0 {
 		envProps = append(envProps, framework.CreateEnvVar(infinispanEnvKeyCredSecret, secretName))

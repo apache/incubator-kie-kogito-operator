@@ -30,10 +30,10 @@ const (
 	SpringBootstrapAppProp = "spring.kafka.bootstrap-servers"
 )
 
-// FetchInfraProperties provide application/env properties of infra that need to be ser in kogitoRuntime object
-func (i *KafkaResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
+// FetchInfraProperties provide application/env properties of infra that need to be set in the KogitoRuntime object
+func (i *InfraResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
 	appProps = map[string]string{}
-	kafkaProperties := instance.Status.Kafka.KafkaProperties
+	kafkaProperties := instance.Status.KafkaProperties
 
 	URI := kafkaProperties.ExternalURI
 	if len(URI) > 0 {

@@ -29,8 +29,6 @@ import (
 
 type installTrustyFlags struct {
 	flag.InstallFlags
-	flag.InfinispanFlags
-	flag.KafkaFlags
 }
 
 type installTrustyCommand struct {
@@ -78,12 +76,6 @@ See https://github.com/kiegroup/kogito-apps/tree/master/trusty/README.md for mor
 			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
 				return err
 			}
-			if err := flag.CheckInfinispanArgs(&i.flags.InfinispanFlags); err != nil {
-				return err
-			}
-			if err := flag.CheckKafkaArgs(&i.flags.KafkaFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -93,17 +85,11 @@ func (i *installTrustyCommand) InitHook() {
 	i.flags = installTrustyFlags{}
 	i.Parent.AddCommand(i.command)
 	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
-	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
-	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
 }
 
 func (i *installTrustyCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
-		return err
-	}
-	infinispanMeta, err := converter.FromInfinispanFlagsToInfinispanMeta(i.Client, i.flags.Project, &i.flags.InfinispanFlags, true)
-	if err != nil {
 		return err
 	}
 
@@ -118,8 +104,6 @@ func (i *installTrustyCommand) Exec(cmd *cobra.Command, args []string) error {
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 			},
-			InfinispanMeta: infinispanMeta,
-			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, true),
 		},
 		Status: v1alpha1.KogitoTrustyStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -131,7 +115,6 @@ func (i *installTrustyCommand) Exec(cmd *cobra.Command, args []string) error {
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
-		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra).
 		InstallTrusty(&kogitoTrusty).
 		GetError()
 }

@@ -65,16 +65,23 @@ spec:
             resource:
               description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak.'
               properties:
+                apiVersion:
+                  description: APIVersion describes the API Version of referred Kubernetes
+                    resource for example, app.infinispan.org/v1
+                  type: string
                 kind:
-                  description: Kind describe the kind of referred resource for example,
-                    app.infinispan.org/v1
+                  description: Kind describes the kind of referred Kubernetes resource
+                    for example, Infinispan
                   type: string
                 name:
-                  description: Name of referred resource
+                  description: Name of referred resource.
                   type: string
                 namespace:
-                  description: Namespace where referred resource exists
+                  description: Namespace where referred resource exists.
                   type: string
+              required:
+              - apiVersion
+              - kind
               type: object
           type: object
         status:
@@ -97,170 +104,78 @@ spec:
               - type
               type: object
             infinispan:
-              description: InfinispanInstallStatus defines the Infinispan installation
-                status.
+              description: Has the data used by the service to connect to the Infinispan
+                cluster.
               properties:
-                condition:
-                  items:
-                    description: InstallCondition defines the installation condition
-                      for the infrastructure actor.
-                    properties:
-                      lastTransitionTime:
-                        format: date-time
-                        type: string
-                      message:
-                        type: string
-                      status:
-                        type: string
-                      type:
-                        description: InstallConditionType defines the possibles conditions
-                          that a install might have.
-                        type: string
-                    required:
-                    - status
-                    - type
-                    type: object
-                  type: array
-                credentialSecret:
+                authRealm:
+                  description: Name of the Infinispan authentication realm. This sets
+                    the property infinispan.client.hotrod.auth_realm.
                   type: string
-                infinispan:
-                  description: Has the data used by the service to connect to the
-                    Infinispan cluster.
+                credentials:
+                  description: SecretCredentialsType is the data structure for specifying
+                    credentials within a Secret.
                   properties:
-                    authRealm:
-                      description: Name of the Infinispan authentication realm. This
-                        sets the property infinispan.client.hotrod.auth_realm.
+                    passwordKey:
+                      description: PasswordKey is the key pointing to a value in a
+                        Secret holding the password value.
                       type: string
-                    credentials:
-                      description: SecretCredentialsType is the data structure for
-                        specifying credentials within a Secret.
-                      properties:
-                        passwordKey:
-                          description: PasswordKey is the key pointing to a value
-                            in a Secret holding the password value.
-                          type: string
-                        secretName:
-                          description: SecretName is the name of the secret where
-                            the credentials are set.
-                          type: string
-                        usernameKey:
-                          description: UsernameKey is the key pointing to a value
-                            in a Secret holding the username value.
-                          type: string
-                      type: object
-                    saslMechanism:
-                      description: SaslMechanism defined for the authentication. This
-                        sets the property infinispan.client.hotrod.sasl_mechanism.
-                      enum:
-                      - PLAIN
-                      - DIGEST-MD5
+                    secretName:
+                      description: SecretName is the name of the secret where the
+                        credentials are set.
                       type: string
-                    uri:
-                      description: URI to connect to the Infinispan cluster (can it
-                        be an internal service or external URI), for example, myinfinispan-cluster:11222.
+                    usernameKey:
+                      description: UsernameKey is the key pointing to a value in a
+                        Secret holding the username value.
                       type: string
-                    useAuth:
-                      description: UseAuth is set to true if the credentials are set.
-                        This also sets the property infinispan.client.hotrod.use_auth.
-                      type: boolean
-                    useKogitoInfra:
-                      description: UseKogitoInfra flags if the instance will use a
-                        provided infrastructure by KogitoInfra CR. Setting this to
-                        true will deploy a new KogitoInfra CR into the namespace that
-                        will install Infinispan via Infinispan Operator. Infinispan
-                        Operator MUST be installed in the namespace for this to work.
-                        On OpenShift, OLM should install it for you. If running on
-                        Kubernetes without OLM installed, please install Infinispan
-                        Operator first. Set this to false and fill all other properties
-                        to provide your own infrastructure.
-                      type: boolean
                   type: object
-                name:
+                saslMechanism:
+                  description: SaslMechanism defined for the authentication. This
+                    sets the property infinispan.client.hotrod.sasl_mechanism.
+                  enum:
+                  - PLAIN
+                  - DIGEST-MD5
                   type: string
-                service:
+                uri:
+                  description: URI to connect to the Infinispan cluster (can it be
+                    an internal service or external URI), for example, myinfinispan-cluster:11222.
                   type: string
+                useAuth:
+                  description: UseAuth is set to true if the credentials are set.
+                    This also sets the property infinispan.client.hotrod.use_auth.
+                  type: boolean
+                useKogitoInfra:
+                  description: UseKogitoInfra flags if the instance will use a provided
+                    infrastructure by KogitoInfra CR. Setting this to true will deploy
+                    a new KogitoInfra CR into the namespace that will install Infinispan
+                    via Infinispan Operator. Infinispan Operator MUST be installed
+                    in the namespace for this to work. On OpenShift, OLM should install
+                    it for you. If running on Kubernetes without OLM installed, please
+                    install Infinispan Operator first. Set this to false and fill
+                    all other properties to provide your own infrastructure.
+                  type: boolean
               type: object
             kafka:
-              description: KafkaInstallStatus defines the Kafka installation status.
+              description: Has the data used by the service to connect to the Kafka
+                cluster.
               properties:
-                condition:
-                  items:
-                    description: InstallCondition defines the installation condition
-                      for the infrastructure actor.
-                    properties:
-                      lastTransitionTime:
-                        format: date-time
-                        type: string
-                      message:
-                        type: string
-                      status:
-                        type: string
-                      type:
-                        description: InstallConditionType defines the possibles conditions
-                          that a install might have.
-                        type: string
-                    required:
-                    - status
-                    - type
-                    type: object
-                  type: array
-                kafka:
-                  description: Has the data used by the service to connect to the
-                    Kafka cluster.
-                  properties:
-                    externalURI:
-                      description: URI is the service URI to connect to the Kafka
-                        cluster, for example, my-cluster-kafka-bootstrap:9092.
-                      type: string
-                    instance:
-                      description: Instance is the Kafka instance to be used, for
-                        example, kogito-kafka.
-                      type: string
-                    useKogitoInfra:
-                      description: UseKogitoInfra flags if the instance will use a
-                        provided infrastructure by KogitoInfra CR. Setting this to
-                        true will configure a KogitoInfra CR to install Kafka via
-                        Strimzi Operator. Strimzi Operator MUST be installed in the
-                        namespace for this to work. On OpenShift, OLM should install
-                        it for you. If running on Kubernetes without OLM installed,
-                        please install Strimzi Operator first. Set this to false and
-                        fill other properties to provide your own infrastructure.
-                      type: boolean
-                  type: object
-                name:
+                externalURI:
+                  description: URI is the service URI to connect to the Kafka cluster,
+                    for example, my-cluster-kafka-bootstrap:9092.
                   type: string
-                service:
+                instance:
+                  description: Instance is the Kafka instance to be used, for example,
+                    kogito-kafka.
                   type: string
-              type: object
-            keycloak:
-              description: InfraComponentInstallStatusType is the base structure to
-                define the status for an actor in the infrastructure.
-              properties:
-                condition:
-                  items:
-                    description: InstallCondition defines the installation condition
-                      for the infrastructure actor.
-                    properties:
-                      lastTransitionTime:
-                        format: date-time
-                        type: string
-                      message:
-                        type: string
-                      status:
-                        type: string
-                      type:
-                        description: InstallConditionType defines the possibles conditions
-                          that a install might have.
-                        type: string
-                    required:
-                    - status
-                    - type
-                    type: object
-                  type: array
-                name:
-                  type: string
-                service:
-                  type: string
+                useKogitoInfra:
+                  description: UseKogitoInfra flags if the instance will use a provided
+                    infrastructure by KogitoInfra CR. Setting this to true will configure
+                    a KogitoInfra CR to install Kafka via Strimzi Operator. Strimzi
+                    Operator MUST be installed in the namespace for this to work.
+                    On OpenShift, OLM should install it for you. If running on Kubernetes
+                    without OLM installed, please install Strimzi Operator first.
+                    Set this to false and fill other properties to provide your own
+                    infrastructure.
+                  type: boolean
               type: object
           type: object
       type: object

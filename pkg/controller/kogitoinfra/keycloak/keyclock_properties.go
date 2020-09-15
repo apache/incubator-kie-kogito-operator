@@ -19,7 +19,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// FetchInfraProperties provide application/env properties of infra that need to be ser in kogitoRuntime object
-func (k *KeycloakResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
+// FetchInfraProperties provide application/env properties of infra that need to be set in the KogitoRuntime object
+func (k *InfraResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
+	// No properties are required for Keycloak
 	return
 }

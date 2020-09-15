@@ -72,14 +72,6 @@ func TestReconcileKogitoTrusty_Reconcile(t *testing.T) {
 
 	// basic checks
 	test.AssertReconcile(t, r, instance)
-
-	// check infra
-	infra, ready, err := infrastructure.EnsureKogitoInfra(ns, cli).WithInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.False(t, ready)  // we don't have status defined since the KogitoInfra controller is not running
-	assert.NotNil(t, infra) // we have a infra instance created during reconciliation phase
-	assert.Equal(t, infrastructure.DefaultKogitoInfraName, infra.GetName())
-	assert.True(t, infra.Spec.InstallInfinispan)
 }
 
 func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {

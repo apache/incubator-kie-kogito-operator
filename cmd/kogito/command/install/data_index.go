@@ -28,8 +28,6 @@ import (
 
 type installDataIndexFlags struct {
 	flag.InstallFlags
-	flag.InfinispanFlags
-	flag.KafkaFlags
 }
 
 type installDataIndexCommand struct {
@@ -77,12 +75,6 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
 				return err
 			}
-			if err := flag.CheckInfinispanArgs(&i.flags.InfinispanFlags); err != nil {
-				return err
-			}
-			if err := flag.CheckKafkaArgs(&i.flags.KafkaFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -92,17 +84,11 @@ func (i *installDataIndexCommand) InitHook() {
 	i.flags = installDataIndexFlags{}
 	i.Parent.AddCommand(i.command)
 	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
-	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
-	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
 }
 
 func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
-		return err
-	}
-	infinispanMeta, err := converter.FromInfinispanFlagsToInfinispanMeta(i.Client, i.flags.Project, &i.flags.InfinispanFlags, true)
-	if err != nil {
 		return err
 	}
 
@@ -117,8 +103,6 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 			},
-			InfinispanMeta: infinispanMeta,
-			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, true),
 		},
 		Status: v1alpha1.KogitoDataIndexStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -130,7 +114,6 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
-		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra).
 		InstallDataIndex(&kogitoDataIndex).
 		GetError()
 }

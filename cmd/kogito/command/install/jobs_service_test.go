@@ -52,8 +52,6 @@ func Test_DeployJobServiceCmd_DefaultConfiguration(t *testing.T) {
 	assert.True(t, exist)
 	assert.NotNil(t, jobService)
 	assert.False(t, jobService.Spec.InsecureImageRegistry)
-	assert.False(t, jobService.Spec.InfinispanProperties.UseKogitoInfra)
-	assert.False(t, jobService.Spec.KafkaProperties.UseKogitoInfra)
 	assert.Equal(t, int64(0), jobService.Spec.BackOffRetryMillis)
 	assert.Equal(t, int64(0), jobService.Spec.MaxIntervalLimitToRetryMillis)
 }
@@ -82,8 +80,6 @@ func Test_DeployJobServiceCmd_CustomConfiguration(t *testing.T) {
 	assert.True(t, exist)
 	assert.NotNil(t, jobService)
 	assert.True(t, jobService.Spec.InsecureImageRegistry)
-	assert.False(t, jobService.Spec.InfinispanProperties.UseKogitoInfra)
-	assert.False(t, jobService.Spec.KafkaProperties.UseKogitoInfra)
 	assert.Equal(t, int32(9090), jobService.Spec.HTTPPort)
 	assert.Equal(t, int64(5), jobService.Spec.BackOffRetryMillis)
 	assert.Equal(t, int64(10), jobService.Spec.MaxIntervalLimitToRetryMillis)

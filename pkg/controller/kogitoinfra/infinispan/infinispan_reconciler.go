@@ -26,8 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// InfinispanResource implementation of KogitoInfraResource
-type InfinispanResource struct {
+// InfraResource implementation of KogitoInfraResource
+type InfraResource struct {
 }
 
 // GetWatchedObjects provide list of object that needs to be watched to maintain Infinispan kogitoInfra resource
@@ -45,7 +45,7 @@ func GetWatchedObjects() []framework.WatchedObjects {
 }
 
 // Reconcile reconcile Kogito infra object
-func (i *InfinispanResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
+func (i *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
 
 	var infinispanInstance *infinispanv1.Infinispan
 
@@ -66,10 +66,7 @@ func (i *InfinispanResource) Reconcile(client *client.Client, instance *v1alpha1
 	} else {
 		// create/refer kogito-infinispan instance
 		log.Debugf("Custom infinispan instance reference is not provided")
-		// if resource name is not provided then Infinispan instance should be created with default name = kogito-infinispan
 		resourceName := InstanceName
-
-		// if resource name is not provided then Infinispan instance should be created with default name = kogito-infinispan
 		resourceNameSpace := instance.Namespace
 
 		// Verify Infinispan
@@ -93,7 +90,7 @@ func (i *InfinispanResource) Reconcile(client *client.Client, instance *v1alpha1
 			infinispanInstance, resultErr = createNewInfinispanInstance(client, resourceName, resourceNameSpace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
-			} // provisioning
+			}
 			return true, nil
 		}
 
@@ -117,7 +114,7 @@ func (i *InfinispanResource) Reconcile(client *client.Client, instance *v1alpha1
 		return false, resultErr
 	}
 
-	infinispanProperties := &instance.Status.Infinispan.InfinispanProperties
+	infinispanProperties := &instance.Status.InfinispanProperties
 	infinispanProperties.URI = infinispanURI
 	infinispanProperties.Credentials.SecretName = customInfinispanSecret.Name
 	infinispanProperties.Credentials.UsernameKey = infrastructure.InfinispanSecretUsernameKey

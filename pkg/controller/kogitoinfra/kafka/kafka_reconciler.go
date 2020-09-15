@@ -25,8 +25,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// KafkaResource implementation of KogitoInfraResource
-type KafkaResource struct {
+// InfraResource implementation of KogitoInfraResource
+type InfraResource struct {
 }
 
 // GetWatchedObjects provide list of object that needs to be watched to maintain Kafka kogitoInfra resource
@@ -41,11 +41,11 @@ func GetWatchedObjects() []framework.WatchedObjects {
 }
 
 // Reconcile reconcile Kogito infra object
-func (k *KafkaResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
+func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
 
 	var kafkaInstance *kafkav1beta1.Kafka
 
-	// Step 1: check whether user has provided custom infinispan instance reference
+	// Step 1: check whether user has provided custom Kafka instance reference
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {
 		log.Debugf("Custom kafka instance reference is provided")
@@ -62,10 +62,10 @@ func (k *KafkaResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 	} else {
 		// create/refer kogito-kafka instance
 		log.Debugf("Custom kafka instance reference is not provided")
-		// if resource name is not provided then Infinispan instance should be created with default name = kogito-infinispan
+		// if resource name is not provided then Kafka instance should be created with default name = kogito-kafka
 		resourceName := InstanceName
 
-		// if resource name is not provided then Infinispan instance should be created with default name = kogito-infinispan
+		// Kafka resource should be created in same namespace as kogitoInfra
 		resourceNameSpace := instance.Namespace
 
 		// Verify kafka
@@ -75,13 +75,13 @@ func (k *KafkaResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		}
 
 		// check whether kafka instance exist
-		kafkaInstance, resultErr := loadDeployedKafkaInstance(client, resourceName, resourceNameSpace)
+		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, resourceName, resourceNameSpace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if kafkaInstance == nil {
-			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
+			// if not exist then create new Kafka instance. Strimzi operator creates Kafka instance, secret & service resource
 			kafkaInstance, resultErr = createNewKafkaInstance(client, resourceName, resourceNameSpace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
@@ -95,7 +95,7 @@ func (k *KafkaResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		return false, resultErr
 	}
 
-	kafkaProperties := &instance.Status.Kafka.KafkaProperties
+	kafkaProperties := &instance.Status.KafkaProperties
 	kafkaProperties.ExternalURI = uri
 
 	log.Debugf("Updating kogitoInfra(%s) value with new properties", instance.Name)
@@ -103,6 +103,6 @@ func (k *KafkaResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		log.Errorf("Error occurs while update kogitoInfra values")
 		return false, resultErr
 	}
-
+	log.Debugf("Successfully update kogito infra object")
 	return false, nil
 }

@@ -36,13 +36,7 @@ import (
 	"time"
 )
 
-const (
-	enablePersistenceEnvKey = "ENABLE_PERSISTENCE"
-	enableEventsEnvKey      = "ENABLE_EVENTS"
-)
-
 // TODO: review the way we create those resources on KOGITO-1998: reorganize all those functions on other files within the package
-
 // createRequiredResources creates the required resources given the KogitoService instance
 func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type][]resource.KubernetesResource, reconcileAfter time.Duration, err error) {
 	reconcileAfter = 0
@@ -207,50 +201,6 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 	return "", nil
 }
 
-func (s *serviceDeployer) applyInfinispanConfigurations(deployment *appsv1.Deployment, appProps map[string]string, instance v1alpha1.KogitoService) error {
-	var infinispanSecret *corev1.Secret
-	infinispanAware := instance.GetSpec().(v1alpha1.InfinispanAware)
-	infinispanSecret, err := fetchInfinispanCredentials(infinispanAware, instance.GetNamespace(), s.client)
-	if err != nil {
-		return err
-	}
-	setInfinispanVariables(
-		s.instance.GetSpec().GetRuntime(),
-		infinispanAware.GetInfinispanProperties(),
-		infinispanSecret,
-		&deployment.Spec.Template.Spec.Containers[0],
-		appProps)
-
-	if infinispanAware.GetInfinispanProperties().UseKogitoInfra || len(infinispanAware.GetInfinispanProperties().URI) > 0 {
-		framework.SetEnvVar(enablePersistenceEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
-	}
-	return nil
-}
-
-func (s *serviceDeployer) applyKafkaConfigurations(deployment *appsv1.Deployment, appProps map[string]string, instance v1alpha1.KogitoService) error {
-	URI, err := getKafkaServerURI(*instance.GetSpec().(v1alpha1.KafkaAware).GetKafkaProperties(), s.getNamespace(), s.client)
-	if err != nil {
-		return err
-	}
-
-	if len(URI) > 0 {
-		framework.SetEnvVar(enableEventsEnvKey, "true", &deployment.Spec.Template.Spec.Containers[0])
-		if s.instance.GetSpec().GetRuntime() == v1alpha1.SpringBootRuntimeType {
-			appProps[SpringBootstrapAppProp] = URI
-		} else {
-			for _, kafkaTopic := range s.definition.KafkaTopics {
-				appProps[fromKafkaTopicToQuarkusAppProp(kafkaTopic)] = URI
-			}
-			appProps[QuarkusBootstrapAppProp] = URI
-			framework.SetEnvVar(quarkusBootstrapEnvVar, URI, &deployment.Spec.Template.Spec.Containers[0])
-		}
-	} else {
-		framework.SetEnvVar(enableEventsEnvKey, "false", &deployment.Spec.Template.Spec.Containers[0])
-	}
-
-	return nil
-}
-
 func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash string, deployment *appsv1.Deployment, instance v1alpha1.KogitoService) {
 	if deployment.Spec.Template.Annotations == nil {
 		deployment.Spec.Template.Annotations = map[string]string{AppPropContentHashKey: contentHash}
@@ -358,7 +308,5 @@ func (s *serviceDeployer) fetchKogitoInfraProperties(kogitoInfraReferences []str
 
 func (s *serviceDeployer) applyEnvironmentPropertiesConfiguration(envProps []corev1.EnvVar, deployment *appsv1.Deployment) {
 	container := &deployment.Spec.Template.Spec.Containers[0]
-	for _, envProp := range envProps {
-		container.Env = append(container.Env, envProp)
-	}
+	container.Env = append(container.Env, envProps...)
 }

@@ -26,7 +26,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -68,16 +67,10 @@ type ServiceDefinition struct {
 	// RequiresDataIndex when set to true, the Data Index instance is queried in the given namespace and its Route injected in this service.
 	// The service is not deployed until the data index service is found
 	RequiresDataIndex bool
-	// KafkaTopics is a collection of Kafka Topics to be created within the service
-	KafkaTopics []KafkaTopicDefinition
 	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe
 	HealthCheckProbe HealthCheckProbeType
 	// customService indicates that the service can be built within the cluster
 	customService bool
-	// infinispanAware whether or not to handle Infinispan integration in this service (inject variables, deploy if needed, and so on)
-	infinispanAware bool
-	// kafkaAware whether or not to handle Kafka integration in this service (inject variables, deploy if needed, and so on)
-	kafkaAware bool
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
 	extraManagedObjectLists []runtime.Object
 }
@@ -176,35 +169,6 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// always update its status
 	defer s.updateStatus(s.instance, &err)
 
-	if _, isInfinispan := s.instance.GetSpec().(v1alpha1.InfinispanAware); isInfinispan {
-		log.Debugf("Kogito Service %s supports Infinispan", s.instance.GetName())
-		s.definition.infinispanAware = true
-	}
-	if _, isKafka := s.instance.GetSpec().(v1alpha1.KafkaAware); isKafka {
-		log.Debugf("Kogito Service %s supports Kafka", s.instance.GetName())
-		s.definition.kafkaAware = true
-	}
-
-	// deploy Infinispan
-	if s.definition.infinispanAware {
-		reconcileAfter, err = s.deployInfinispan()
-		if err != nil {
-			return
-		} else if reconcileAfter > 0 {
-			return
-		}
-	}
-
-	// deploy Kafka
-	if s.definition.kafkaAware {
-		reconcileAfter, err = s.deployKafka()
-		if err != nil {
-			return
-		} else if reconcileAfter > 0 {
-			return
-		}
-	}
-
 	// create our resources
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
@@ -293,76 +257,6 @@ func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *err
 	if *err != nil {
 		log.Errorf("Error while creating kogito service: %v", *err)
 	}
-}
-
-func (s *serviceDeployer) deployInfinispan() (requeueAfter time.Duration, err error) {
-	requeueAfter = 0
-	infinispanAware := s.instance.GetSpec().(v1alpha1.InfinispanAware)
-	if infinispanAware.GetInfinispanProperties() == nil {
-		if s.definition.RequiresPersistence {
-			infinispanAware.SetInfinispanProperties(v1alpha1.InfinispanConnectionProperties{UseKogitoInfra: true})
-		} else {
-			return
-		}
-	}
-	if s.definition.RequiresPersistence &&
-		!infinispanAware.GetInfinispanProperties().UseKogitoInfra &&
-		len(infinispanAware.GetInfinispanProperties().URI) == 0 {
-		log.Debugf("Service %s requires persistence and Infinispan URL is empty, deploying Kogito Infrastructure", s.instance.GetName())
-		infinispanAware.GetInfinispanProperties().UseKogitoInfra = true
-	} else if !infinispanAware.GetInfinispanProperties().UseKogitoInfra {
-		return
-	}
-	if !infrastructure.IsInfinispanAvailable(s.client) {
-		log.Warnf("Looks like that the service %s requires Infinispan, but there's no Infinispan CRD in the namespace %s. Aborting installation.", s.instance.GetName(), s.instance.GetNamespace())
-		return
-	}
-	needUpdate := false
-	if needUpdate, requeueAfter, err =
-		deployInfinispanWithKogitoInfra(infinispanAware, s.instance.GetNamespace(), s.client); err != nil {
-		return
-	} else if needUpdate {
-		if err = s.update(); err != nil {
-			return
-		}
-	}
-	return
-}
-
-func (s *serviceDeployer) deployKafka() (requeueAfter time.Duration, err error) {
-	requeueAfter = 0
-	kafkaAware := s.instance.GetSpec().(v1alpha1.KafkaAware)
-	if kafkaAware.GetKafkaProperties() == nil {
-		if s.definition.RequiresMessaging {
-			kafkaAware.SetKafkaProperties(v1alpha1.KafkaConnectionProperties{UseKogitoInfra: true})
-		} else {
-			return
-		}
-	}
-	if s.definition.RequiresMessaging &&
-		!kafkaAware.GetKafkaProperties().UseKogitoInfra &&
-		len(kafkaAware.GetKafkaProperties().ExternalURI) == 0 &&
-		len(kafkaAware.GetKafkaProperties().Instance) == 0 {
-		log.Debugf("Service %s requires messaging and Kafka URL is empty and kafka instance is not provided, deploying Kogito Infrastructure", s.instance.GetName())
-		kafkaAware.GetKafkaProperties().UseKogitoInfra = true
-	} else if !kafkaAware.GetKafkaProperties().UseKogitoInfra {
-		return
-	}
-	if !infrastructure.IsStrimziAvailable(s.client) {
-		log.Warnf("Looks like that the service %s requires Kafka, but there's no Kafka CRD in the namespace %s. Aborting installation.", s.instance.GetName(), s.instance.GetNamespace())
-		return
-	}
-
-	needUpdate := false
-	if needUpdate, requeueAfter, err =
-		infrastructure.DeployKafkaWithKogitoInfra(kafkaAware, s.instance.GetNamespace(), s.client); err != nil {
-		return
-	} else if needUpdate {
-		if err = s.update(); err != nil {
-			return
-		}
-	}
-	return
 }
 
 func (s *serviceDeployer) update() error {

@@ -22,21 +22,17 @@ import (
 // Resource provide reference infra resource
 type Resource struct {
 
-	// Kind describe the kind of referred resource for example, app.infinispan.org/v1
-	Kind string `json:"kind,omitempty"`
+	// APIVersion describes the API Version of referred Kubernetes resource for example, app.infinispan.org/v1
+	APIVersion string `json:"apiVersion"`
 
-	// Namespace where referred resource exists
+	// Kind describes the kind of referred Kubernetes resource for example, Infinispan
+	Kind string `json:"kind"`
+
+	// Namespace where referred resource exists.
 	Namespace string `json:"namespace,omitempty"`
 
-	// Name of referred resource
+	// Name of referred resource.
 	Name string `json:"name,omitempty"`
-}
-
-// InfraComponentInstallStatusType is the base structure to define the status for an actor in the infrastructure.
-type InfraComponentInstallStatusType struct {
-	Service   string             `json:"service,omitempty"`
-	Name      string             `json:"name,omitempty"`
-	Condition []InstallCondition `json:"condition,omitempty"`
 }
 
 // KogitoInfraSpec defines the desired state of KogitoInfra.
@@ -72,10 +68,9 @@ type KogitoInfraSpec struct {
 // KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
-	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
-	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
-	Kafka      KafkaInstallStatus              `json:"kafka,omitempty"`
-	Keycloak   InfraComponentInstallStatusType `json:"keycloak,omitempty"`
+	Condition      KogitoInfraCondition `json:"condition,omitempty"`
+	InfinispanMeta `json:",inline"`
+	KafkaMeta      `json:",inline"`
 }
 
 /*
@@ -90,39 +85,6 @@ type KogitoInfraCondition struct {
 	LastTransitionTime string                   `json:"lastTransitionTime,omitempty"`
 	Message            string                   `json:"message,omitempty"`
 }
-
-// InfinispanInstallStatus defines the Infinispan installation status.
-type InfinispanInstallStatus struct {
-	InfraComponentInstallStatusType `json:",inline"`
-	CredentialSecret                string `json:"credentialSecret,omitempty"`
-	InfinispanMeta                  `json:",inline"`
-}
-
-// KafkaInstallStatus defines the Kafka installation status.
-type KafkaInstallStatus struct {
-	InfraComponentInstallStatusType `json:",inline"`
-	KafkaMeta                       `json:",inline"`
-}
-
-// InstallCondition defines the installation condition for the infrastructure actor.
-type InstallCondition struct {
-	Type               InstallConditionType `json:"type"`
-	Status             v1.ConditionStatus   `json:"status"`
-	LastTransitionTime metav1.Time          `json:"lastTransitionTime,omitempty"`
-	Message            string               `json:"message,omitempty"`
-}
-
-// InstallConditionType defines the possibles conditions that a install might have.
-type InstallConditionType string
-
-const (
-	// FailedInstallConditionType indicates failed condition
-	FailedInstallConditionType InstallConditionType = "Failed"
-	// ProvisioningInstallConditionType indicates provisioning condition
-	ProvisioningInstallConditionType InstallConditionType = "Provisioning"
-	// SuccessInstallConditionType indicates success condition
-	SuccessInstallConditionType InstallConditionType = "Success"
-)
 
 // KogitoInfraConditionType ...
 type KogitoInfraConditionType string
