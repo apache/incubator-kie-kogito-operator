@@ -31,4 +31,5 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	initInstallKeycloakCommand(ctx, installCmd.Command())
 	initInstallKafkaCommand(ctx, installCmd.Command())
 	initInstallMgmtConsoleCommand(ctx, installCmd.Command())
+	initInstallTrustyUICommand(ctx, installCmd.Command())
 }

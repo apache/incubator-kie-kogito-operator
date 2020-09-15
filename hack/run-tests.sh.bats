@@ -519,6 +519,24 @@ setup() {
     [[ "${output}" != *"--tests.management-console-image-tag"* ]]
 }
 
+@test "invoke run-tests with trusty_ui_image_tag" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --trusty_ui_image_tag tag --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.trusty-ui-image-tag=tag" ]]
+}
+
+@test "invoke run-tests with trusty_ui_image_tag missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --trusty_ui_image_tag --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.trusty-ui-image-tag"* ]]
+}
+
+@test "invoke run-tests with trusty_ui_image_tag empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --trusty_ui_image_tag "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.trusty-ui-image-tag"* ]]
+}
+
 @test "invoke run-tests with runtime_application_image_registry" {
     run ${BATS_TEST_DIRNAME}/run-tests.sh --runtime_application_image_registry registry --dry_run
     [ "$status" -eq 0 ]
@@ -735,6 +753,18 @@ setup() {
     run ${BATS_TEST_DIRNAME}/run-tests.sh --build_runtime_image_tag "" --dry_run
     [ "$status" -eq 0 ]
     [[ "${output}" != *"--tests.build-runtime-image-tag"* ]]
+}
+
+@test "invoke run-tests with disable_maven_native_build_container" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --disable_maven_native_build_container --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.disable-maven-native-build-container" ]]
+}
+
+@test "invoke run-tests without disable_maven_native_build_container" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.disable-maven-native-build-container"* ]]
 }
 
 # examples repository

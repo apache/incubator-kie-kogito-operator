@@ -51,6 +51,7 @@ func (data *Data) RegisterAllSteps(ctx *godog.ScenarioContext) {
 	registerKogitoInfraSteps(ctx, data)
 	registerKogitoJobsServiceSteps(ctx, data)
 	registerKogitoManagementConsoleSteps(ctx, data)
+	registerKogitoTrustyUISteps(ctx, data)
 	registerKubernetesSteps(ctx, data)
 	registerMavenSteps(ctx, data)
 	registerOpenShiftSteps(ctx, data)
@@ -59,6 +60,7 @@ func (data *Data) RegisterAllSteps(ctx *godog.ScenarioContext) {
 	registerProcessSteps(ctx, data)
 	registerTaskSteps(ctx, data)
 	registerKogitoDeployFilesSteps(ctx, data)
+	registerKeycloakSteps(ctx, data)
 }
 
 // BeforeScenario configure the data before a scenario is launched

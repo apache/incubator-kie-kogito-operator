@@ -60,6 +60,14 @@ var removableRuntimeServices = []removableRuntimeService{
 		name: "explainability",
 		list: &v1alpha1.KogitoExplainabilityList{},
 	},
+	{
+		name: "trusty",
+		list: &v1alpha1.KogitoTrustyList{},
+	},
+	{
+		name: "trusty-ui",
+		list: &v1alpha1.KogitoTrustyUIList{},
+	},
 }
 
 func initRemoveRuntimeServiceCommands(ctx *context.CommandContext, parent *cobra.Command) []context.KogitoCommand {

@@ -108,6 +108,7 @@ explainability_image_tag=
 trusty_image_tag=
 jobs_service_image_tag=
 management_console_image_tag=
+trusty_ui_image_tag=
 runtime_application_image_registry=
 runtime_application_image_namespace=
 runtime_application_image_name_suffix=
@@ -121,6 +122,7 @@ build_image_name_suffix=
 build_image_version=
 build_s2i_image_tag=
 build_runtime_image_tag=
+disable_maven_native_build_container=false
 # examples repository
 examples_uri=
 examples_ref=
@@ -146,6 +148,7 @@ run-tests:
 	&& if [ "${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
 	&& if [ "${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
 	&& if [ "${load_default_config}" = "true" ]; then opts+=("--load_default_config"); fi \
+	&& if [ "${disable_maven_native_build_container}" = "true" ]; then opts+=("--disable_maven_native_build_container"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ./hack/run-tests.sh \
 		--feature ${feature} \
@@ -166,6 +169,7 @@ run-tests:
 		--trusty_image_tag ${trusty_image_tag} \
 		--jobs_service_image_tag ${jobs_service_image_tag} \
 		--management_console_image_tag ${management_console_image_tag} \
+		--trusty_ui_image_tag ${trusty_ui_image_tag} \
 		--runtime_application_image_registry ${runtime_application_image_registry} \
 		--runtime_application_image_namespace ${runtime_application_image_namespace} \
 		--runtime_application_image_name_suffix ${runtime_application_image_name_suffix} \

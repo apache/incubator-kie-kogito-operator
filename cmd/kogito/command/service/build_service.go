@@ -38,13 +38,13 @@ type BuildService interface {
 }
 
 type buildService struct {
-	resourceCheckService shared.IResourceCheckService
+	resourceCheckService shared.ResourceCheckService
 }
 
 // NewBuildService create and return buildService value
 func NewBuildService() BuildService {
 	return buildService{
-		resourceCheckService: shared.InitResourceCheckService(),
+		resourceCheckService: shared.NewResourceCheckService(),
 	}
 }
 

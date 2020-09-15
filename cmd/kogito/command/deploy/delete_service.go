@@ -31,7 +31,7 @@ func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command
 	cmd := &deleteServiceCommand{
 		CommandContext:       *ctx,
 		Parent:               parent,
-		resourceCheckService: shared.InitResourceCheckService(),
+		resourceCheckService: shared.NewResourceCheckService(),
 		buildService:         service.NewBuildService(),
 		runtimeService:       service.NewRuntimeService(),
 	}
@@ -45,7 +45,7 @@ type deleteServiceCommand struct {
 	command              *cobra.Command
 	flags                *deleteServiceFlags
 	Parent               *cobra.Command
-	resourceCheckService shared.IResourceCheckService
+	resourceCheckService shared.ResourceCheckService
 	buildService         service.BuildService
 	runtimeService       service.RuntimeService
 }

@@ -240,6 +240,7 @@ You can set those optional keys:
 - `trusty_image_tag` sets the Kogito Trusty image tag ('services_image_version' is ignored)
 - `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
 - `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
+- `trusty_ui_image_tag` sets the Kogito Trusty UI image tag ('services_image_version' is ignored)
 <!--- build -->
 - `custom_maven_repo` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information.
 - `maven_mirror` is the Maven mirror URL.  
@@ -250,6 +251,7 @@ You can set those optional keys:
 - `build_image_version` sets the build image version
 - `build_s2i_image_tag` sets the build S2I image full tag.
 - `build_runtime_image_tag` sets the build Runtime image full tag.
+- `disable_maven_native_build_container` disables the default Maven native build done in container.
 <!--- examples repository -->
 - `examples_uri` sets the URI for the kogito-examples repository.  
   *Default is https://github.com/kiegroup/kogito-examples*.
@@ -343,6 +345,7 @@ All options from BDD tests do also apply here.
 | @trusty            | Tests including Trusty                                                             |
 | @jobsservice       | Tests including Jobs service                                                       |
 | @managementconsole | Tests including Management console                                                 |
+| @trustyui          | Tests including Trusty UI                                                          |
 | @infra             | Tests checking KogitoInfra functionality                                           |
 |                    |                                                                                    |
 | @binary            | Tests using Kogito applications built locally and uploaded to OCP as a binary file |
@@ -351,11 +354,13 @@ All options from BDD tests do also apply here.
 | @events            | Tests verifying eventing capabilities                                              |
 | @discovery         | Tests checking service discovery functionality                                     |
 | @usertasks         | Tests interacting with user tasks to check authentication/authorization            |
+| @security          | Tests verifying security capabilities                                              |
 |                    |                                                                                    |
 | @resources         | Tests checking resource requests and limits                                        |
 |                    |                                                                                    |
 | @infinispan        | Tests using the infinispan operator                                                |
 | @kafka             | Tests using the kafka operator                                                     |
+| @keycloak          | Tests using the keycloak operator                                                  |
 
 ### Running the Kogito Operator locally
 

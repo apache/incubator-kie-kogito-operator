@@ -52,3 +52,33 @@ func Test_FromImageFlagToImage(t *testing.T) {
 	assert.Equal(t, "builder-image", image.Name)
 	assert.Equal(t, "1.0", image.Tag)
 }
+
+func Test_FromImageTagWithPortToImage(t *testing.T) {
+	buildImage := "mydomain.io:5050/mynamespace/builder-image:1.0"
+	image := FromImageTagToImage(buildImage, "2.0")
+	assert.NotNil(t, image)
+	assert.Equal(t, "mydomain.io:5050", image.Domain)
+	assert.Equal(t, "mynamespace", image.Namespace)
+	assert.Equal(t, "builder-image", image.Name)
+	assert.Equal(t, "1.0", image.Tag)
+}
+
+func Test_FromImageTagWithPortNoTagToImage(t *testing.T) {
+	buildImage := "mydomain.io:5050/mynamespace/builder-image"
+	image := FromImageTagToImage(buildImage, "2.0")
+	assert.NotNil(t, image)
+	assert.Equal(t, "mydomain.io:5050", image.Domain)
+	assert.Equal(t, "mynamespace", image.Namespace)
+	assert.Equal(t, "builder-image", image.Name)
+	assert.Equal(t, "latest", image.Tag)
+}
+
+func Test_FromImageTagWithPortNoLocalhostTagToImage(t *testing.T) {
+	buildImage := "localhost:5050/mynamespace/builder-image"
+	image := FromImageTagToImage(buildImage, "2.0")
+	assert.NotNil(t, image)
+	assert.Equal(t, "localhost:5050", image.Domain)
+	assert.Equal(t, "mynamespace", image.Namespace)
+	assert.Equal(t, "builder-image", image.Name)
+	assert.Equal(t, "latest", image.Tag)
+}
