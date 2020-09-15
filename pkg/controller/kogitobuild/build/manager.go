@@ -51,7 +51,7 @@ type manager struct {
 func (m *manager) GetDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	objectTypes := []runtime.Object{&buildv1.BuildConfigList{}}
 	objectTypes = append(objectTypes, &imgv1.ImageStreamList{})
-	resources, err := kubernetes.ResourceC(m.client).ListALL(objectTypes, m.kogitoBuild.Namespace, m.kogitoBuild)
+	resources, err := kubernetes.ResourceC(m.client).ListAll(objectTypes, m.kogitoBuild.Namespace, m.kogitoBuild)
 	if err != nil {
 		return nil, err
 	}

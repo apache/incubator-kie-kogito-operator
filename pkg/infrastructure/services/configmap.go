@@ -18,6 +18,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"github.com/imdario/mergo"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	corev1 "k8s.io/api/core/v1"
@@ -25,10 +26,6 @@ import (
 	"sort"
 	"strings"
 )
-
-/*
-TODO: review those functions/vars. Should all be private when fixing https://issues.redhat.com/browse/KOGITO-1998
-*/
 
 const (
 	appPropConfigMapSuffix = "-properties"
@@ -47,11 +44,11 @@ const (
 	appPropConcatPattern = "%s\n%s=%s"
 )
 
-// GetAppPropConfigMapContentHash calculates the hash of the application.properties contents in the ConfigMap
+// getAppPropConfigMapContentHash calculates the hash of the application.properties contents in the ConfigMap
 // If the ConfigMap doesn't exist, create a new one and return it.
-func GetAppPropConfigMapContentHash(name, namespace string, appProps map[string]string, cli *client.Client) (string, *corev1.ConfigMap, error) {
-	configMapName := GetAppPropConfigMapName(name)
-	configMap := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: configMapName, Namespace: namespace}}
+func getAppPropConfigMapContentHash(service v1alpha1.KogitoService, appProps map[string]string, cli *client.Client) (string, *corev1.ConfigMap, error) {
+	configMapName := getAppPropConfigMapName(service)
+	configMap := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: configMapName, Namespace: service.GetNamespace()}}
 
 	exist, err := kubernetes.ResourceC(cli).Fetch(configMap)
 	if err != nil {
@@ -83,13 +80,16 @@ func GetAppPropConfigMapContentHash(name, namespace string, appProps map[string]
 	return contentHash, configMap, nil
 }
 
-// GetAppPropConfigMapName generates the name of the config map for application.properties
-func GetAppPropConfigMapName(name string) string {
-	return name + appPropConfigMapSuffix
+// getAppPropConfigMapName gets the name of the config map for application.properties
+func getAppPropConfigMapName(service v1alpha1.KogitoService) string {
+	if len(service.GetSpec().GetPropertiesConfigMap()) > 0 {
+		return service.GetSpec().GetPropertiesConfigMap()
+	}
+	return service.GetName() + appPropConfigMapSuffix
 }
 
-// CreateAppPropVolumeMount creates a container volume mount for mounting application.properties
-func CreateAppPropVolumeMount() corev1.VolumeMount {
+// createAppPropVolumeMount creates a container volume mount for mounting application.properties
+func createAppPropVolumeMount() corev1.VolumeMount {
 	return corev1.VolumeMount{
 		Name:      AppPropVolumeName,
 		MountPath: appPropFilePath,
@@ -97,8 +97,8 @@ func CreateAppPropVolumeMount() corev1.VolumeMount {
 	}
 }
 
-// CreateAppPropVolume creates a volume for application.properties
-func CreateAppPropVolume(name string) corev1.Volume {
+// createAppPropVolume creates a volume for application.properties
+func createAppPropVolume(service v1alpha1.KogitoService) corev1.Volume {
 	defaultMode := appPropDefaultMode
 
 	return corev1.Volume{
@@ -106,7 +106,7 @@ func CreateAppPropVolume(name string) corev1.Volume {
 		VolumeSource: corev1.VolumeSource{
 			ConfigMap: &corev1.ConfigMapVolumeSource{
 				LocalObjectReference: corev1.LocalObjectReference{
-					Name: GetAppPropConfigMapName(name),
+					Name: getAppPropConfigMapName(service),
 				},
 				Items: []corev1.KeyToPath{
 					{

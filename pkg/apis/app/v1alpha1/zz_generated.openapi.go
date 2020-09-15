@@ -564,9 +564,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Description: "HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"propertiesConfigMap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 				},
@@ -1097,9 +1104,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Description: "HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"propertiesConfigMap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"backOffRetryMillis": {
@@ -1412,9 +1426,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Description: "HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"propertiesConfigMap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 				},
