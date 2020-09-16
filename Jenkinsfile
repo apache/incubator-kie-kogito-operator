@@ -106,8 +106,6 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
 
-    testParamsMap['feature'] = "features/operator"
-
     String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(" ")
     echo "BDD parameters = ${testParams}"
     return testParams
