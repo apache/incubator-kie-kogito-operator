@@ -55,6 +55,9 @@ type ServicesInstallation interface {
 	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
+	// InstallExplainability installs Explainability. If no reference provided, it will install the default instance.
+	// Depends on the Operator, install it first.
+	InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation
 	// InstallTrusty installs Trusty. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation
@@ -147,6 +150,19 @@ func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIn
 				installed:                    message.DataIndexSuccessfulInstalled,
 				checkStatus:                  message.DataIndexCheckStatus,
 				notInstalledNoKogitoOperator: message.DataIndexNotInstalledNoKogitoOperator,
+			})
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(explainability,
+			serviceInfoMessages{
+				errCreating:                  message.ExplainabilityErrCreating,
+				installed:                    message.ExplainabilitySuccessfulInstalled,
+				checkStatus:                  message.ExplainabilityCheckStatus,
+				notInstalledNoKogitoOperator: message.ExplainabilityNotInstalledNoKogitoOperator,
 			})
 	}
 	return s

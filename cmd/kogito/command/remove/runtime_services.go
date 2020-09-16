@@ -57,6 +57,10 @@ var removableRuntimeServices = []removableRuntimeService{
 		list: &v1alpha1.KogitoJobsServiceList{},
 	},
 	{
+		name: "explainability",
+		list: &v1alpha1.KogitoExplainabilityList{},
+	},
+	{
 		name: "trusty",
 		list: &v1alpha1.KogitoTrustyList{},
 	},
