@@ -111,6 +111,8 @@ Feature: Install Kogito Jobs Service
 
 #####
 
+  # Disabled due to KOGITO-3333. To be fixed in 0.16.
+  @disabled
   @externalcomponent
   @keycloak
   @security
