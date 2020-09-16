@@ -63,6 +63,9 @@ type ServicesInstallation interface {
 	// InstallMgmtConsole installs Management Console. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
+	// InstallInfraService install kogito Infra.
+	// Depends on the Operator, install it first.
+	InstallInfraService(infra *v1alpha1.KogitoInfra) ServicesInstallation
 	// InstallOperator installs the Operator.
 	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation
 	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
@@ -153,6 +156,19 @@ func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMg
 				installed:                    message.MgmtConsoleSuccessfulInstalled,
 				checkStatus:                  message.MgmtConsoleCheckStatus,
 				notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
+			})
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallInfraService(infra *v1alpha1.KogitoInfra) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(infra,
+			serviceInfoMessages{
+				errCreating:                  message.InfraServiceErrCreating,
+				installed:                    message.InfraServiceSuccessfulInstalled,
+				checkStatus:                  message.InfraServiceCheckStatus,
+				notInstalledNoKogitoOperator: message.InfraServiceNotInstalledNoKogitoOperator,
 			})
 	}
 	return s

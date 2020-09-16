@@ -47,21 +47,6 @@ spec:
         spec:
           description: KogitoInfraSpec defines the desired state of KogitoInfra.
           properties:
-            installInfinispan:
-              description: Indicates if Infinispan should be installed or not using
-                Infinispan Operator. Please note that the Infinispan Operator must
-                be installed manually on environments that doesn't have OLM installed.
-              type: boolean
-            installKafka:
-              description: Indicates if Kafka should be installed or not using Strimzi
-                (Kafka Operator). Please note that the Strimzi must be installed manually
-                on environments that doesn't have OLM installed.
-              type: boolean
-            installKeycloak:
-              description: Whether or not to install Keycloak using Keycloak Operator.
-                Please note that the Keycloak Operator must be installed manually
-                on environments that doesn't have OLM installed.
-              type: boolean
             resource:
               description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak.'
               properties:

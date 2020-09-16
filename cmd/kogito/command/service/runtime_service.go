@@ -69,6 +69,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				ServiceLabels:         util.FromStringsKeyPairToMap(flags.ServiceLabels),
 				HTTPPort:              flags.HTTPPort,
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
+				Infra:                 flags.Infra,
 			},
 		},
 		Status: v1alpha1.KogitoRuntimeStatus{

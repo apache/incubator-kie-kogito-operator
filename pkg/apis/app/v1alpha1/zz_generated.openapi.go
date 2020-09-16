@@ -693,27 +693,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resource"),
 						},
 					},
-					"installInfinispan": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Indicates if Infinispan should be installed or not using Infinispan Operator. Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"installKafka": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Indicates if Kafka should be installed or not using Strimzi (Kafka Operator). Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"installKeycloak": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Whether or not to install Keycloak using Keycloak Operator. Please note that the Keycloak Operator must be installed manually on environments that doesn't have OLM installed.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
 				},
 			},
 		},
@@ -1122,18 +1101,6 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 				Description: "KogitoTrustySpec defines the desired state of KogitoTrusty.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"infinispan": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Has the data used by the service to connect to the Infinispan cluster.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties"),
-						},
-					},
-					"kafka": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Has the data used by the service to connect to the Kafka cluster.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
-						},
-					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Number of replicas that the service will have deployed in the cluster. Default value: 1.",
@@ -1233,7 +1200,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

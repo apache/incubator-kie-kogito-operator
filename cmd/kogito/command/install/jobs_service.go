@@ -29,8 +29,6 @@ type installJobsServiceFlags struct {
 	flag.InstallFlags
 	backOffRetryMillis            int64
 	maxIntervalLimitToRetryMillis int64
-	enablePersistence             bool
-	enableEvents                  bool
 }
 
 type installJobsServiceCommand struct {
@@ -85,8 +83,6 @@ func (i *installJobsServiceCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
 
-	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
-	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "Enable persistence using Infinispan. Set also 'infinispan-url' to specify an instance URL. If left in blank the operator will provide one for you")
 	i.command.Flags().Int64Var(&i.flags.backOffRetryMillis, "backoff-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.backoffRetryMillis'")
 	i.command.Flags().Int64Var(&i.flags.maxIntervalLimitToRetryMillis, "max-internal-limit-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.maxIntervalLimitToRetryMillis'")
 }
@@ -107,6 +103,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
+				Infra:                 i.flags.Infra,
 			},
 			BackOffRetryMillis:            i.flags.backOffRetryMillis,
 			MaxIntervalLimitToRetryMillis: i.flags.maxIntervalLimitToRetryMillis,

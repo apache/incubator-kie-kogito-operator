@@ -103,6 +103,7 @@ func (i *installTrustyCommand) Exec(cmd *cobra.Command, args []string) error {
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
+				Infra:                 i.flags.Infra,
 			},
 		},
 		Status: v1alpha1.KogitoTrustyStatus{

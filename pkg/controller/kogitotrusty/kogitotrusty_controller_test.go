@@ -85,18 +85,6 @@ func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				HTTPPort: 9090,
 			},
-			KafkaMeta: v1alpha1.KafkaMeta{
-				KafkaProperties: v1alpha1.KafkaConnectionProperties{
-					UseKogitoInfra: false,
-					ExternalURI:    "my-uri:9022",
-				},
-			},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-					UseKogitoInfra: false,
-					URI:            "another-uri:11222",
-				},
-			},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultTrustyImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())

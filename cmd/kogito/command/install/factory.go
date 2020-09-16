@@ -27,4 +27,5 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	initInstallTrustyCommand(ctx, installCmd.Command())
 	initInstallJobsServiceCommand(ctx, installCmd.Command())
 	initInstallMgmtConsoleCommand(ctx, installCmd.Command())
+	initInfraCommand(ctx, installCmd.Command())
 }
