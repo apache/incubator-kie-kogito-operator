@@ -66,6 +66,7 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 
 // FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name
 func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, namespace string) (string, error) {
+	log.Debugf("Fetching kogito infinispan instance URI.")
 	service := &corev1.Service{}
 	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, service); err != nil {
 		return "", err
@@ -74,7 +75,9 @@ func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, n
 	} else {
 		for _, port := range service.Spec.Ports {
 			if port.TargetPort.IntVal == defaultInfinispanPort {
-				return fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal), nil
+				uri := fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal)
+				log.Debugf("kogito infinispan instance URI : %s", uri)
+				return uri, nil
 			}
 		}
 		return "", fmt.Errorf("Infinispan default port (%d) not found in service %s ", defaultInfinispanPort, service.Name)

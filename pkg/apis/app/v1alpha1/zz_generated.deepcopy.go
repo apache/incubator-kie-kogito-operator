@@ -465,7 +465,7 @@ func (in *KogitoInfra) DeepCopyInto(out *KogitoInfra) {
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 	out.Spec = in.Spec
-	out.Status = in.Status
+	in.Status.DeepCopyInto(&out.Status)
 	return
 }
 
@@ -557,8 +557,20 @@ func (in *KogitoInfraSpec) DeepCopy() *KogitoInfraSpec {
 func (in *KogitoInfraStatus) DeepCopyInto(out *KogitoInfraStatus) {
 	*out = *in
 	out.Condition = in.Condition
-	out.InfinispanMeta = in.InfinispanMeta
-	out.KafkaMeta = in.KafkaMeta
+	if in.AppProps != nil {
+		in, out := &in.AppProps, &out.AppProps
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.EnvVars != nil {
+		in, out := &in.EnvVars, &out.EnvVars
+		*out = make([]v1.EnvVar, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 

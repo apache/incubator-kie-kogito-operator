@@ -713,23 +713,44 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraStatus(ref common.ReferenceCallback
 							Ref: ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoInfraCondition"),
 						},
 					},
-					"infinispan": {
+					"appProps": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Has the data used by the service to connect to the Infinispan cluster.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties"),
+							Description: "Application properties to be added to the runtime container.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
-					"kafka": {
+					"envVars": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Has the data used by the service to connect to the Kafka cluster.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties"),
+							Description: "Environment variables to be added to the runtime container.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.EnvVar"),
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoInfraCondition"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoInfraCondition", "k8s.io/api/core/v1.EnvVar"},
 	}
 }
 

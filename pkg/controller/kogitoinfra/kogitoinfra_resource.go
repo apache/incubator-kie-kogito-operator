@@ -17,12 +17,10 @@ package kogitoinfra
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // InfraResource Interface to represent type of supported kogito infra resources like Infinispan, kafka & keycloak
 type InfraResource interface {
 	Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error)
-	FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar)
 }

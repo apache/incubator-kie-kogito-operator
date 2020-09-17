@@ -15,27 +15,30 @@
 package infinispan
 
 import (
+	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 const (
 	// keys for infinispan vars definition
 
-	// AppPropInfinispanServerList application property for setting infinispan server
-	AppPropInfinispanServerList int = iota
-	// AppPropInfinispanUseAuth application property for enabling infinispan authentication
-	AppPropInfinispanUseAuth
-	// AppPropInfinispanSaslMechanism application property for setting infinispan SASL mechanism
-	AppPropInfinispanSaslMechanism
-	// AppPropInfinispanAuthRealm application property for setting infinispan auth realm
-	AppPropInfinispanAuthRealm
-	// EnvVarInfinispanUser environment variable for setting infinispan username
-	EnvVarInfinispanUser
-	// EnvVarInfinispanPassword environment variable for setting infinispan password
-	EnvVarInfinispanPassword
-
+	// appPropInfinispanServerList application property for setting infinispan server
+	appPropInfinispanServerList int = iota
+	// appPropInfinispanUseAuth application property for enabling infinispan authentication
+	appPropInfinispanUseAuth
+	// appPropInfinispanSaslMechanism application property for setting infinispan SASL mechanism
+	appPropInfinispanSaslMechanism
+	// appPropInfinispanAuthRealm application property for setting infinispan auth realm
+	appPropInfinispanAuthRealm
+	// envVarInfinispanUser environment variable for setting infinispan username
+	envVarInfinispanUser
+	// envVarInfinispanPassword environment variable for setting infinispan password
+	envVarInfinispanPassword
 	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
 	enablePersistenceEnvKey    = "ENABLE_PERSISTENCE"
 )
@@ -45,59 +48,81 @@ var (
 	//For Quarkus: https://quarkus.io/guides/infinispan-client#quarkus-infinispan-client_configuration
 	//For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
 
-	// PropertiesInfinispanQuarkus infinispan properties for quarkus runtime
-	PropertiesInfinispanQuarkus = map[int]string{
-		AppPropInfinispanServerList:    "quarkus.infinispan-client.server-list",
-		AppPropInfinispanUseAuth:       "quarkus.infinispan-client.use-auth",
-		AppPropInfinispanSaslMechanism: "quarkus.infinispan-client.sasl-mechanism",
-		AppPropInfinispanAuthRealm:     "quarkus.infinispan-client.auth-realm",
+	// propertiesInfinispanQuarkus infinispan properties for quarkus runtime
+	propertiesInfinispanQuarkus = map[int]string{
+		appPropInfinispanServerList:    "quarkus.infinispan-client.server-list",
+		appPropInfinispanUseAuth:       "quarkus.infinispan-client.use-auth",
+		appPropInfinispanSaslMechanism: "quarkus.infinispan-client.sasl-mechanism",
+		appPropInfinispanAuthRealm:     "quarkus.infinispan-client.auth-realm",
 
-		EnvVarInfinispanUser:     "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
-		EnvVarInfinispanPassword: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
+		envVarInfinispanUser:     "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
+		envVarInfinispanPassword: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
 	}
-	// PropertiesInfinispanSpring infinispan properties for spring boot runtime
-	PropertiesInfinispanSpring = map[int]string{
-		AppPropInfinispanServerList:    "infinispan.remote.server-list",
-		AppPropInfinispanUseAuth:       "infinispan.remote.use-auth",
-		AppPropInfinispanSaslMechanism: "infinispan.remote.sasl-mechanism",
-		AppPropInfinispanAuthRealm:     "infinispan.remote.auth-realm",
+	// propertiesInfinispanSpring infinispan properties for spring boot runtime
+	propertiesInfinispanSpring = map[int]string{
+		appPropInfinispanServerList:    "infinispan.remote.server-list",
+		appPropInfinispanUseAuth:       "infinispan.remote.use-auth",
+		appPropInfinispanSaslMechanism: "infinispan.remote.sasl-mechanism",
+		appPropInfinispanAuthRealm:     "infinispan.remote.auth-realm",
 
-		EnvVarInfinispanUser:     "INFINISPAN_REMOTE_AUTH_USERNAME",
-		EnvVarInfinispanPassword: "INFINISPAN_REMOTE_AUTH_PASSWORD",
+		envVarInfinispanUser:     "INFINISPAN_REMOTE_AUTH_USERNAME",
+		envVarInfinispanPassword: "INFINISPAN_REMOTE_AUTH_PASSWORD",
 	}
 )
 
-// FetchInfraProperties provide application/env properties of infra that need to be set in the KogitoRuntime object
-func (i *InfraResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
-	log.Debugf("going to fetch infinispan infra properties for given kogito infra instance : %s", instance.Name)
+func getInfinispanSecretEnvVars(cli *client.Client, infinispanInstance *infinispan.Infinispan, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) ([]corev1.EnvVar, error) {
+	var envProps []corev1.EnvVar
 
-	appProps = map[string]string{}
-	vars := PropertiesInfinispanQuarkus
-	if runtimeType == v1alpha1.SpringBootRuntimeType {
-		vars = PropertiesInfinispanSpring
+	customInfinispanSecret, resultErr := loadCustomKogitoInfinispanSecret(cli, instance.Namespace)
+	if resultErr != nil {
+		return nil, resultErr
+	}
+
+	if customInfinispanSecret == nil {
+		customInfinispanSecret, resultErr = createCustomKogitoInfinispanSecret(cli, instance.Namespace, infinispanInstance, instance, scheme)
+		if resultErr != nil {
+			return nil, resultErr
+		}
 	}
 
 	envProps = append(envProps, framework.CreateEnvVar(enablePersistenceEnvKey, "true"))
-	infinispanProps := instance.Status.InfinispanProperties
-	secretName := infinispanProps.Credentials.SecretName
-	if len(secretName) > 0 {
-		envProps = append(envProps, framework.CreateEnvVar(infinispanEnvKeyCredSecret, secretName))
-		envProps = append(envProps, framework.CreateSecretEnvVar(vars[EnvVarInfinispanUser], secretName, infinispanProps.Credentials.UsernameKey))
-		envProps = append(envProps, framework.CreateSecretEnvVar(vars[EnvVarInfinispanPassword], secretName, infinispanProps.Credentials.PasswordKey))
+	secretName := customInfinispanSecret.Name
+	envProps = append(envProps, framework.CreateEnvVar(infinispanEnvKeyCredSecret, secretName))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanSpring[envVarInfinispanUser], secretName, infrastructure.InfinispanSecretUsernameKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanQuarkus[envVarInfinispanUser], secretName, infrastructure.InfinispanSecretUsernameKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanSpring[envVarInfinispanPassword], secretName, infrastructure.InfinispanSecretPasswordKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanQuarkus[envVarInfinispanPassword], secretName, infrastructure.InfinispanSecretPasswordKey))
+	return envProps, nil
+}
 
-		appProps[vars[AppPropInfinispanUseAuth]] = "true"
-	} else {
-		appProps[vars[AppPropInfinispanUseAuth]] = "false"
+func getInfinispanAppProps(cli *client.Client, name string, namespace string) (map[string]string, error) {
+	appProps := map[string]string{}
+
+	infinispanURI, resultErr := infrastructure.FetchKogitoInfinispanInstanceURI(cli, name, namespace)
+	if resultErr != nil {
+		return nil, resultErr
 	}
 
+	appProps[propertiesInfinispanSpring[appPropInfinispanUseAuth]] = "true"
+	appProps[propertiesInfinispanQuarkus[appPropInfinispanUseAuth]] = "true"
+	if len(infinispanURI) > 0 {
+		appProps[propertiesInfinispanSpring[appPropInfinispanServerList]] = infinispanURI
+		appProps[propertiesInfinispanQuarkus[appPropInfinispanServerList]] = infinispanURI
+	}
+
+	// TODO : Check requirement -> How operator could configure these properties as user don't provide any infinispan spec input
+	/*if len(secretName) > 0 {
+		appProps[propertiesInfinispanSpring[appPropInfinispanUseAuth]] = "true"
+		appProps[propertiesInfinispanQuarkus[appPropInfinispanUseAuth]] = "true"
+	}
 	if len(infinispanProps.AuthRealm) > 0 {
-		appProps[vars[AppPropInfinispanAuthRealm]] = infinispanProps.AuthRealm
+		appProps[vars[appPropInfinispanAuthRealm]] = infinispanProps.AuthRealm
 	}
 	if len(infinispanProps.SaslMechanism) > 0 {
-		appProps[vars[AppPropInfinispanSaslMechanism]] = string(infinispanProps.SaslMechanism)
+		appProps[vars[appPropInfinispanSaslMechanism]] = string(infinispanProps.SaslMechanism)
 	}
 	if len(infinispanProps.URI) > 0 {
-		appProps[vars[AppPropInfinispanServerList]] = infinispanProps.URI
-	}
-	return
+		appProps[vars[appPropInfinispanServerList]] = infinispanProps.URI
+	}*/
+	return appProps, nil
 }

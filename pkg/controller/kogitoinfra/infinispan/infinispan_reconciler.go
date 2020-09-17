@@ -19,7 +19,6 @@ import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	corev1 "k8s.io/api/core/v1"
@@ -87,44 +86,18 @@ func (i *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 
 		if infinispanInstance == nil {
 			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
-			infinispanInstance, resultErr = createNewInfinispanInstance(client, resourceName, resourceNameSpace, instance, scheme)
+			_, resultErr = createNewInfinispanInstance(client, resourceName, resourceNameSpace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}
 			return true, nil
 		}
-
 	}
-
-	customInfinispanSecret, resultErr := loadCustomKogitoInfinispanSecret(client, instance.Namespace)
-	if resultErr != nil {
-		return false, resultErr
+	if resultErr := updateAppPropsInStatus(client, infinispanInstance, instance); resultErr != nil {
+		return false, nil
 	}
-
-	if customInfinispanSecret == nil {
-		customInfinispanSecret, resultErr = createCustomKogitoInfinispanSecret(client, instance.Namespace, infinispanInstance, instance, scheme)
-		if resultErr != nil {
-			return false, resultErr
-		}
-		return true, nil
+	if resultErr := updateEnvVarsInStatus(client, infinispanInstance, instance, scheme); resultErr != nil {
+		return false, nil
 	}
-
-	infinispanURI, resultErr := infrastructure.FetchKogitoInfinispanInstanceURI(client, infinispanInstance.Name, infinispanInstance.Namespace)
-	if resultErr != nil {
-		return false, resultErr
-	}
-
-	infinispanProperties := &instance.Status.InfinispanProperties
-	infinispanProperties.URI = infinispanURI
-	infinispanProperties.Credentials.SecretName = customInfinispanSecret.Name
-	infinispanProperties.Credentials.UsernameKey = infrastructure.InfinispanSecretUsernameKey
-	infinispanProperties.Credentials.PasswordKey = infrastructure.InfinispanSecretPasswordKey
-
-	log.Debugf("Updating kogitoInfra(%s) value with new properties", instance.Name)
-	if resultErr = kubernetes.ResourceC(client).Update(instance); resultErr != nil {
-		log.Errorf("Error occurs while update kogitoInfra values", resultErr)
-		return false, resultErr
-	}
-
 	return false, resultErr
 }

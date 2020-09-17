@@ -98,6 +98,8 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		return reconcile.Result{}, resultErr
 	}
 
+	defer updateBaseStatus(r.client, instance, &resultErr)
+
 	infraResource, resultErr := GetKogitoInfraResource(instance)
 	if resultErr != nil {
 		return
@@ -113,7 +115,5 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		result.RequeueAfter = time.Second * 30
 		result.Requeue = true
 	}
-	defer updateBaseStatus(r.client, instance, &resultErr)
-
 	return
 }

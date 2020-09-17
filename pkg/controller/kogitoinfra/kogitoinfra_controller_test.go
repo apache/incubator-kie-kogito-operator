@@ -20,7 +20,6 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	v13 "k8s.io/api/core/v1"
@@ -73,8 +72,8 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	kafkaProperties := kogitoInfra.Status.KafkaProperties
-	assert.Equal(t, "kogito-kafka:9090", kafkaProperties.ExternalURI)
+	kafkaAppProps := kogitoInfra.Status.AppProps
+	assert.Contains(t, "kogito-kafka:9090", kafkaAppProps["kafka.bootstrap.servers"])
 }
 
 func Test_Reconcile_Infinispan(t *testing.T) {
@@ -125,9 +124,7 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	infinispanProperties := kogitoInfra.Status.InfinispanProperties
-	assert.Equal(t, "kogito-infinispan:11222", infinispanProperties.URI)
-	assert.Equal(t, "kogito-infinispan-credential", infinispanProperties.Credentials.SecretName)
-	assert.Equal(t, infrastructure.InfinispanSecretUsernameKey, infinispanProperties.Credentials.UsernameKey)
-	assert.Equal(t, infrastructure.InfinispanSecretPasswordKey, infinispanProperties.Credentials.PasswordKey)
+	infinispanAppProps := kogitoInfra.Status.AppProps
+	assert.Contains(t, "kogito-infinispan:11222", infinispanAppProps["quarkus.infinispan-client.server-list"])
+	assert.Contains(t, "true", infinispanAppProps["infinispan.remote.use-auth"])
 }

@@ -19,7 +19,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -82,27 +81,14 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 
 		if kafkaInstance == nil {
 			// if not exist then create new Kafka instance. Strimzi operator creates Kafka instance, secret & service resource
-			kafkaInstance, resultErr = createNewKafkaInstance(client, resourceName, resourceNameSpace, instance, scheme)
+			_, resultErr = createNewKafkaInstance(client, resourceName, resourceNameSpace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}
 			return true, nil
 		}
 	}
-
-	uri, resultErr := infrastructure.GetKafkaServerURI(kafkaInstance.Name, kafkaInstance.Namespace, client)
-	if resultErr != nil {
-		return false, resultErr
-	}
-
-	kafkaProperties := &instance.Status.KafkaProperties
-	kafkaProperties.ExternalURI = uri
-
-	log.Debugf("Updating kogitoInfra(%s) value with new properties", instance.Name)
-	if resultErr = kubernetes.ResourceC(client).Update(instance); resultErr != nil {
-		log.Errorf("Error occurs while update kogitoInfra values")
-		return false, resultErr
-	}
-	log.Debugf("Successfully update kogito infra object")
+	updateAppPropsInStatus(kafkaInstance, instance)
+	updateEnvVarsInStatus(kafkaInstance, instance)
 	return false, nil
 }

@@ -62,9 +62,9 @@ func (i *infraCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:   "infra NAME",
 		Short: "Deploys a new Kogito Infra Service into the given Project",
-		Long: `install-infra will create a new Kogito infra service in the Project context. 
+		Long: `install infra will create a new Kogito infra service in the Project context. 
 	If Resource Namespace & Resource Name is provided then Kogito Infra referred to provided resources.
-	If not, it will create new resource using resource operator in the Project context.
+	If not, it will create new resource using resource specific operator in the Project context.
 	
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".

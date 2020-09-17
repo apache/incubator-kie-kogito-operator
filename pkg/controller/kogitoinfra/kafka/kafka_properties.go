@@ -15,36 +15,39 @@
 package kafka
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	corev1 "k8s.io/api/core/v1"
 )
 
 const (
 	enableEventsEnvKey = "ENABLE_EVENTS"
 
-	// QuarkusBootstrapAppProp quarkus application property for setting kafka server
-	QuarkusBootstrapAppProp = "kafka.bootstrap.servers"
+	// quarkusBootstrapAppProp quarkus application property for setting kafka server
+	quarkusBootstrapAppProp = "kafka.bootstrap.servers"
 
-	// SpringBootstrapAppProp spring boot application property for setting kafka server
-	SpringBootstrapAppProp = "spring.kafka.bootstrap-servers"
+	// springBootstrapAppProp spring boot application property for setting kafka server
+	springBootstrapAppProp = "spring.kafka.bootstrap-servers"
 )
 
-// FetchInfraProperties provide application/env properties of infra that need to be set in the KogitoRuntime object
-func (i *InfraResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
-	appProps = map[string]string{}
-	kafkaProperties := instance.Status.KafkaProperties
-
-	URI := kafkaProperties.ExternalURI
-	if len(URI) > 0 {
+func getKafkaEnvVars(kafkaInstance *kafkabetav1.Kafka) []corev1.EnvVar {
+	kafkaURI := infrastructure.ResolveKafkaServerURI(kafkaInstance)
+	var envProps []corev1.EnvVar
+	if len(kafkaURI) > 0 {
 		envProps = append(envProps, framework.CreateEnvVar(enableEventsEnvKey, "true"))
-		if runtimeType == v1alpha1.SpringBootRuntimeType {
-			appProps[SpringBootstrapAppProp] = URI
-		} else {
-			appProps[QuarkusBootstrapAppProp] = URI
-		}
 	} else {
 		envProps = append(envProps, framework.CreateEnvVar(enableEventsEnvKey, "false"))
 	}
-	return
+	return envProps
+}
+
+func getKafkaAppProps(kafkaInstance *kafkabetav1.Kafka) map[string]string {
+	kafkaURI := infrastructure.ResolveKafkaServerURI(kafkaInstance)
+	appProps := map[string]string{}
+	if len(kafkaURI) > 0 {
+		appProps[springBootstrapAppProp] = kafkaURI
+		appProps[quarkusBootstrapAppProp] = kafkaURI
+	}
+	return appProps
 }

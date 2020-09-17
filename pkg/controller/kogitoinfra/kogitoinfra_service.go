@@ -62,21 +62,13 @@ func GetKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, erro
 }
 
 // FetchKogitoInfraProperties provide infra properties
-func FetchKogitoInfraProperties(client *client.Client, name string, namespace string, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar, err error) {
+func FetchKogitoInfraProperties(client *client.Client, name string, namespace string) (map[string]string, []corev1.EnvVar, error) {
 	log.Debug("Going to fetch kogito infra properties for reference %s in namespace %s", name, namespace)
 	kogitoInstance, err := FetchKogitoInfraInstance(client, name, namespace)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
-
-	kogitoResource, err := GetKogitoInfraResource(kogitoInstance)
-	if err != nil {
-		return
-	}
-
-	appProps, envProps = kogitoResource.FetchInfraProperties(kogitoInstance, runtimeType)
-	log.Debugf("Following infra properties are fetched : appProperties (%s) and envProp (%s)", appProps, envProps)
-	return appProps, envProps, nil
+	return kogitoInstance.Status.AppProps, kogitoInstance.Status.EnvVars, nil
 }
 
 func isInfinispanResource(instance *v1alpha1.KogitoInfra) bool {

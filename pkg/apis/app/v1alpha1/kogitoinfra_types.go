@@ -49,9 +49,19 @@ type KogitoInfraSpec struct {
 // KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
-	Condition      KogitoInfraCondition `json:"condition,omitempty"`
-	InfinispanMeta `json:",inline"`
-	KafkaMeta      `json:",inline"`
+	Condition KogitoInfraCondition `json:"condition,omitempty"`
+
+	// +optional
+	// +mapType=atomic
+	// Application properties to be added to the runtime container.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	AppProps map[string]string `json:"appProps,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// Environment variables to be added to the runtime container.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	EnvVars []v1.EnvVar `json:"envVars,omitempty"`
 }
 
 /*

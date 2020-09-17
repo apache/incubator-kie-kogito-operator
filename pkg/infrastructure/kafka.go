@@ -60,18 +60,6 @@ func IsStrimziAvailable(client *client.Client) bool {
 	return client.HasServerGroup(strimziServerGroup)
 }
 
-// GetKafkaServerURI provide kafka URI for given kafka instance name
-func GetKafkaServerURI(kafkaInstanceName string, namespace string, client *client.Client) (string, error) {
-	log.Debugf("Fetching Kafka server URI for instance %s in namespace %s", kafkaInstanceName, namespace)
-	if kafkaInstance, err := getKafkaInstanceWithName(kafkaInstanceName, namespace, client); err != nil {
-		return "", err
-	} else if kafkaInstance == nil {
-		return "", fmt.Errorf("kafka instance not found with name %s in namespace %s", kafkaInstanceName, namespace)
-	} else {
-		return resolveKafkaServerURI(kafkaInstance), nil
-	}
-}
-
 // GetKafkaDefaultResource returns a Kafka resource with default configuration
 func GetKafkaDefaultResource(name, namespace string, defaultReplicas int32) *v1beta1.Kafka {
 	return &v1beta1.Kafka{
@@ -107,8 +95,8 @@ func GetKafkaDefaultResource(name, namespace string, defaultReplicas int32) *v1b
 	}
 }
 
-// resolveKafkaServerURI returns the uri of the kafka instance
-func resolveKafkaServerURI(kafka *v1beta1.Kafka) string {
+// ResolveKafkaServerURI returns the uri of the kafka instance
+func ResolveKafkaServerURI(kafka *v1beta1.Kafka) string {
 	log.Debugf("Resolving kafka URI for given kafka instance %s", kafka.Name)
 	log.Debugf("kafka instance : %s", kafka)
 	log.Debugf("len(kafka.Status.Listeners) : %s", len(kafka.Status.Listeners))

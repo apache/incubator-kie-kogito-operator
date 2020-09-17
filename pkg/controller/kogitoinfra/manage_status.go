@@ -30,47 +30,35 @@ func updateBaseStatus(client *client.Client, instance *v1alpha1.KogitoInfra, err
 	log.Info("Updating Kogito Infra status")
 	if *err != nil {
 		log.Warn("Seems that an error occurred, setting failure state: ", *err)
-		if statusErr := setResourceFailed(instance, client, *err); statusErr != nil {
-			err = &statusErr
-			log.Errorf("Error in setting status failes: %v", *err)
-		}
+		setResourceFailed(instance, *err)
 	} else {
+		setResourceSuccess(instance)
 		log.Info("Kogito Infra successfully reconciled")
-		if statusErr := setResourceSuccess(instance, client); statusErr != nil {
-			err = &statusErr
-			log.Errorf("Error in setting status failes: %v", *err)
-		}
 	}
+	log.Infof("Updating kogitoInfra value with new properties : %s", instance.Name)
+	if resultErr := kubernetes.ResourceC(client).Update(instance); resultErr != nil {
+		log.Errorf("Error occurs while update kogitoInfra values", resultErr)
+	}
+	log.Info("Successfully Update Kogito Infra status")
 }
 
 // setResourceFailed sets the instance as failed
-func setResourceFailed(instance *v1alpha1.KogitoInfra, cli *client.Client, err error) error {
+func setResourceFailed(instance *v1alpha1.KogitoInfra, err error) {
 	if instance.Status.Condition.Message != err.Error() {
 		log.Warn("Setting instance as failed", err)
 		instance.Status.Condition.Type = v1alpha1.FailureInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionFalse
 		instance.Status.Condition.Message = err.Error()
 		instance.Status.Condition.LastTransitionTime = metav1.Now().Format(time.RFC3339)
-
-		if err := kubernetes.ResourceC(cli).Update(instance); err != nil {
-			return err
-		}
 	}
-
-	return nil
 }
 
 // setResourceSuccess sets the instance as success
-func setResourceSuccess(instance *v1alpha1.KogitoInfra, cli *client.Client) error {
+func setResourceSuccess(instance *v1alpha1.KogitoInfra) {
 	if instance.Status.Condition.Type != v1alpha1.SuccessInfraConditionType {
 		instance.Status.Condition.Type = v1alpha1.SuccessInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionTrue
 		instance.Status.Condition.Message = ""
 		instance.Status.Condition.LastTransitionTime = metav1.Now().Format(time.RFC3339)
-
-		if err := kubernetes.ResourceC(cli).Update(instance); err != nil {
-			return err
-		}
 	}
-	return nil
 }

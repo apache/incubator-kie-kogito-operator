@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package keycloak
+package kafka
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 )
 
-// FetchInfraProperties provide application/env properties of infra that need to be set in the KogitoRuntime object
-func (k *InfraResource) FetchInfraProperties(instance *v1alpha1.KogitoInfra, runtimeType v1alpha1.RuntimeType) (appProps map[string]string, envProps []corev1.EnvVar) {
-	// No properties are required for Keycloak
-	return
+func updateAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) {
+	appProps := getKafkaAppProps(kafkaInstance)
+	instance.Status.AppProps = appProps
+}
+
+func updateEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) {
+	envVars := getKafkaEnvVars(kafkaInstance)
+	instance.Status.EnvVars = envVars
 }

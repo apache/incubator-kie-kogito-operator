@@ -295,7 +295,7 @@ func (s *serviceDeployer) fetchKogitoInfraProperties(kogitoInfraReferences []str
 	var consolidateEnvProperties []corev1.EnvVar
 	for _, kogitoInfraName := range kogitoInfraReferences {
 		// load infra resource
-		appProp, envProp, err := kogitoinfra.FetchKogitoInfraProperties(s.client, kogitoInfraName, s.instance.GetNamespace(), s.instance.GetSpec().GetRuntime())
+		appProp, envProp, err := kogitoinfra.FetchKogitoInfraProperties(s.client, kogitoInfraName, s.instance.GetNamespace())
 		if err != nil {
 			return nil, nil, err
 		}

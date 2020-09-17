@@ -91,7 +91,7 @@ func loadSecret(cli *client.Client, name string, namespace string) (*v1.Secret, 
 		log.Errorf("%s not found", name)
 		return nil, nil
 	} else {
-		log.Errorf("%s successfully fetched", name)
+		log.Debugf("%s successfully fetched", name)
 		return secret, nil
 	}
 }

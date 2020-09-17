@@ -98,7 +98,7 @@ func Test_resolveKafkaServerURI(t *testing.T) {
 		want string
 	}{
 		{
-			"resolveKafkaServerURI",
+			"ResolveKafkaServerURI",
 			args{
 				&v1beta1.Kafka{
 					Status: v1beta1.KafkaStatus{
@@ -130,8 +130,8 @@ func Test_resolveKafkaServerURI(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := resolveKafkaServerURI(tt.args.kafka); got != tt.want {
-				t.Errorf("resolveKafkaServerURI() = %v, want %v", got, tt.want)
+			if got := ResolveKafkaServerURI(tt.args.kafka); got != tt.want {
+				t.Errorf("ResolveKafkaServerURI() = %v, want %v", got, tt.want)
 			}
 		})
 	}
