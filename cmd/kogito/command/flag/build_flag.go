@@ -24,15 +24,17 @@ import (
 type ResourceType string
 
 const (
-	// LocalFileResource Build using file on local system
+	// LocalFileResource build using file on local system
 	LocalFileResource ResourceType = "LocalFileResource"
-	// LocalDirectoryResource Build using directory on local system
+	// LocalDirectoryResource s2i build using directory on local system
 	LocalDirectoryResource ResourceType = "LocalDirectoryResource"
-	// GitFileResource Build using file in Git Repo
+	// LocalBinaryDirectoryResource binary build using directory on local system
+	LocalBinaryDirectoryResource ResourceType = "LocalBinaryDirectoryResource"
+	// GitFileResource build using file in Git Repo
 	GitFileResource ResourceType = "GitFileResource"
-	// GitRepositoryResource Build using Git Repo
+	// GitRepositoryResource build using Git Repo
 	GitRepositoryResource ResourceType = "GitRepositoryResource"
-	// BinaryResource Build using user generated binaries
+	// BinaryResource build using user generated binaries
 	BinaryResource ResourceType = "BinaryResource"
 )
 

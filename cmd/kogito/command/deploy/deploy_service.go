@@ -66,9 +66,8 @@ func (i *deployCommand) RegisterHook() {
 		Short:   "Deploys a new Kogito Service into the given Project",
 		Aliases: []string{"deploy"},
 		Long: `deploy-service will create a new Kogito service in the Project context. 
-	If the [SOURCE] is provided, the build will take place on the cluster.
-	If not, you can also provide a dmn/drl/bpmn/bpmn2 file or a directory containing one or more of those files, using the --from-file
-	Or you can also later upload directly the application binaries via "oc start-build [NAME-binary] --from-dir=target
+	Providing a dmn/drl/bpmn/bpmn2 file or a directory containing one or more of those files as [SOURCE] will create a s2i build on the cluster.
+	Providing a target directory (from mvn package) as [SOURCE] will directly upload the application binaries.
 			
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
@@ -81,13 +80,10 @@ func (i *deployCommand) RegisterHook() {
 		// Args validation
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 2 {
-				return fmt.Errorf("requires 1 arg, received %v", len(args))
+				return fmt.Errorf("requires 2 args maximum, received %v", len(args))
 			}
 			if len(args) == 0 {
 				return fmt.Errorf("the service requires a name ")
-			}
-			if len(args) == 1 && i.flags.BuildFlags.Native {
-				return fmt.Errorf("native builds currently only work with s2i. Please provide [SOURCE] argument")
 			}
 			if err := flag.CheckRuntimeTypeArgs(&i.flags.RuntimeTypeFlags); err != nil {
 				return err

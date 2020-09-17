@@ -19,16 +19,17 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
-// FromResourceTypeToKogitoBuildType converts given ResourceType into KogitoBuildType
-func FromResourceTypeToKogitoBuildType(resourceType flag.ResourceType) v1alpha1.KogitoBuildType {
-	switch resourceType {
-	case flag.LocalDirectoryResource, flag.LocalFileResource, flag.GitFileResource:
-		return v1alpha1.LocalSourceBuildType
-	case flag.GitRepositoryResource:
-		return v1alpha1.RemoteSourceBuildType
-	case flag.BinaryResource, flag.LocalBinaryDirectoryResource:
-		return v1alpha1.BinaryBuildType
-	default:
-		return v1alpha1.RemoteSourceBuildType
+// FromArgsToBinaryBuildType determines what kind of binary
+// build the user is creating based on their passed arguments.
+func FromArgsToBinaryBuildType(resourceType flag.ResourceType, runtime v1alpha1.RuntimeType, native bool) flag.BinaryBuildType {
+	if resourceType == flag.LocalBinaryDirectoryResource {
+		if runtime == v1alpha1.SpringBootRuntimeType {
+			return flag.BinarySpringBootJvmBuild
+		}
+		if native {
+			return flag.BinaryQuarkusNativeBuild
+		}
+		return flag.BinaryQuarkusJvmBuild
 	}
+	return flag.SourceToImageBuild
 }

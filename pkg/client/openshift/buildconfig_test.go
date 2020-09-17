@@ -29,10 +29,22 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFound(t *testing.T) {
 	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
 	buildCLI := newBuildConfigWithBCRetries(cli, 1, 1*time.Second)
 	buildOpts := &buildv1.BinaryBuildRequestOptions{AsFile: "myfile.dmn", ObjectMeta: v1.ObjectMeta{Name: "mybuild"}}
-	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts)
+	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, false)
 	// buildconfig is not there, raise an error
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "\"mybuild-builder\" not found")
+	// we should not have a build
+	assert.Nil(t, build)
+}
+
+func Test_buildConfig_TriggerBuildFromFile_BCNotFound_Binary(t *testing.T) {
+	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	buildCLI := newBuildConfigWithBCRetries(cli, 1, 1*time.Second)
+	buildOpts := &buildv1.BinaryBuildRequestOptions{AsFile: "target.tar.gz", ObjectMeta: v1.ObjectMeta{Name: "mybuild"}}
+	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, true)
+	// buildconfig is not there, raise an error
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "\"mybuild\" not found")
 	// we should not have a build
 	assert.Nil(t, build)
 }
@@ -49,7 +61,35 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFoundThenFound(t *testing.T) {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		_, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts)
+		_, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, false)
+		// we don't have an actual server to do the rest call, but we can confirm that it was called
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "unknown type used for body")
+	}()
+	// now we wait for a while and create the the BC
+	time.Sleep(3 * time.Second)
+	go func() {
+		defer wg.Done()
+		bc, err := cli.BuildCli.BuildConfigs(t.Name()).Create(context.TODO(), buildConfig, v1.CreateOptions{})
+		assert.NotNil(t, bc)
+		assert.NoError(t, err)
+	}()
+	wg.Wait()
+}
+
+func Test_buildConfig_TriggerBuildFromFile_BCNotFoundThenFound_Binary(t *testing.T) {
+	var wg sync.WaitGroup
+	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	buildCLI := newBuildConfig(cli)
+	buildConfig := &buildv1.BuildConfig{
+		ObjectMeta: v1.ObjectMeta{Name: "mybuild", Namespace: t.Name()},
+		Spec:       buildv1.BuildConfigSpec{},
+	}
+	buildOpts := &buildv1.BinaryBuildRequestOptions{AsFile: "target.tar.gz", ObjectMeta: v1.ObjectMeta{Name: "mybuild"}}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		_, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, true)
 		// we don't have an actual server to do the rest call, but we can confirm that it was called
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unknown type used for body")
