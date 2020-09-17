@@ -1018,5 +1018,5 @@ spec:
   maturity: alpha
   provider:
     name: Red Hat
-  replaces: kogito-operator.v1.0.0-snapshot
+  replaces: kogito-operator.v0.14.0
   version: 0.15.0
