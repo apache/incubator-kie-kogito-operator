@@ -24,8 +24,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
-
-	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 )
 
 // NewClientBuilder creates a builder to setup the client
@@ -45,8 +43,6 @@ type Builder interface {
 	WithBuildClient() Builder
 	// WithImageClient tells the builder to create the image client
 	WithImageClient() Builder
-	// WithPrometheusClient tells the builder to create the prometheus client
-	WithPrometheusClient() Builder
 	// WithDeploymentClient tells the builder to create the deployment client
 	WithDeploymentClient() Builder
 	// WithKubernetesClient tells the builder to create the kubernetes extension client
@@ -65,7 +61,6 @@ type builderStruct struct {
 	isDiscoveryClient           bool
 	isBuildClient               bool
 	isImageClient               bool
-	isPrometheusClient          bool
 	isDeploymentClient          bool
 	isKubernetesExtensionClient bool
 }
@@ -95,11 +90,6 @@ func (builder *builderStruct) WithImageClient() Builder {
 	return builder
 }
 
-func (builder *builderStruct) WithPrometheusClient() Builder {
-	builder.isPrometheusClient = true
-	return builder
-}
-
 func (builder *builderStruct) WithDeploymentClient() Builder {
 	builder.isDeploymentClient = true
 	return builder
@@ -114,7 +104,6 @@ func (builder *builderStruct) WithAllClients() Builder {
 	builder.WithBuildClient()
 	builder.WithDiscoveryClient()
 	builder.WithImageClient()
-	builder.WithPrometheusClient()
 	builder.WithDeploymentClient()
 	builder.WithKubernetesExtensionClient()
 	return builder
@@ -157,12 +146,6 @@ func (builder *builderStruct) Build() (*Client, error) {
 		client.ImageCli, err = imagev1.NewForConfig(config)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting image client: %v", err)
-		}
-	}
-	if builder.isPrometheusClient {
-		client.PrometheusCli, err = monclientv1.NewForConfig(config)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting prometheus client: %v", err)
 		}
 	}
 	if builder.isDeploymentClient {
