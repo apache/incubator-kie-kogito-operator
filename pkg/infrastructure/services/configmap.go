@@ -29,7 +29,6 @@ import (
 
 const (
 	appPropConfigMapSuffix = "-properties"
-	appPropContentKey      = "application.properties"
 	defaultAppPropContent  = ""
 
 	// AppPropContentHashKey is the annotation key for the content hash of application.properties
@@ -38,8 +37,9 @@ const (
 	AppPropVolumeName = "app-prop-config"
 
 	appPropDefaultMode = int32(420)
-	appPropFileName    = "application.properties"
-	appPropFilePath    = "/home/kogito/config"
+	// ConfigMapApplicationPropertyKey is the file name used as a key for ConfigMaps mounted in Kogito services deployments
+	ConfigMapApplicationPropertyKey = "application.properties"
+	appPropFilePath                 = "/home/kogito/config"
 
 	appPropConcatPattern = "%s\n%s=%s"
 )
@@ -72,10 +72,10 @@ func getAppPropConfigMapContentHash(service v1alpha1.KogitoService, appProps map
 		}
 	}
 	configMap.Data = map[string]string{
-		appPropContentKey: appPropContent,
+		ConfigMapApplicationPropertyKey: appPropContent,
 	}
 
-	contentHash := fmt.Sprintf("%x", md5.Sum([]byte(configMap.Data[appPropContentKey])))
+	contentHash := fmt.Sprintf("%x", md5.Sum([]byte(configMap.Data[ConfigMapApplicationPropertyKey])))
 
 	return contentHash, configMap, nil
 }
@@ -110,8 +110,8 @@ func createAppPropVolume(service v1alpha1.KogitoService) corev1.Volume {
 				},
 				Items: []corev1.KeyToPath{
 					{
-						Key:  appPropContentKey,
-						Path: appPropFileName,
+						Key:  ConfigMapApplicationPropertyKey,
+						Path: ConfigMapApplicationPropertyKey,
 					},
 				},
 				DefaultMode: &defaultMode,
@@ -124,8 +124,8 @@ func createAppPropVolume(service v1alpha1.KogitoService) corev1.Volume {
 func getAppPropsFromConfigMap(configMap *corev1.ConfigMap, exist bool) map[string]string {
 	appProps := map[string]string{}
 	if exist {
-		if _, ok := configMap.Data[appPropContentKey]; ok {
-			props := strings.Split(configMap.Data[appPropContentKey], "\n")
+		if _, ok := configMap.Data[ConfigMapApplicationPropertyKey]; ok {
+			props := strings.Split(configMap.Data[ConfigMapApplicationPropertyKey], "\n")
 			for _, p := range props {
 				ps := strings.Split(p, "=")
 				if len(ps) > 1 {

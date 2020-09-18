@@ -39,7 +39,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			Namespace: service.Namespace,
 		},
 		Data: map[string]string{
-			appPropFileName: defaultAppPropContent,
+			ConfigMapApplicationPropertyKey: defaultAppPropContent,
 		},
 	}
 
@@ -69,7 +69,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: defaultAppPropContent,
+					ConfigMapApplicationPropertyKey: defaultAppPropContent,
 				},
 			},
 			false,
@@ -88,7 +88,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: defaultAppPropContent,
+					ConfigMapApplicationPropertyKey: defaultAppPropContent,
 				},
 			},
 			false,
@@ -139,7 +139,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: "\ntest1=abc\ntest2=def\ntest3=ghi",
+					ConfigMapApplicationPropertyKey: "\ntest1=abc\ntest2=def\ntest3=ghi",
 				},
 			},
 			false,
@@ -155,7 +155,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 						Namespace: service.Namespace,
 					},
 					Data: map[string]string{
-						appPropFileName: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
+						ConfigMapApplicationPropertyKey: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
 					},
 				}}, nil, nil),
 			},
@@ -170,7 +170,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
+					ConfigMapApplicationPropertyKey: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
 				},
 			},
 			false,
@@ -191,7 +191,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 						Namespace: service.Namespace,
 					},
 					Data: map[string]string{
-						appPropFileName: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
+						ConfigMapApplicationPropertyKey: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
 					},
 				}}, nil, nil),
 			},
@@ -206,7 +206,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: "\ntest1=abc\ntest2=def\ntest3=ghi\ntest4=012\ntest5=345\ntest7=jkl",
+					ConfigMapApplicationPropertyKey: "\ntest1=abc\ntest2=def\ntest3=ghi\ntest4=012\ntest5=345\ntest7=jkl",
 				},
 			},
 			false,
@@ -261,7 +261,7 @@ func Test_getAppPropsFromConfigMap(t *testing.T) {
 			args{
 				&corev1.ConfigMap{
 					Data: map[string]string{
-						appPropContentKey: "",
+						ConfigMapApplicationPropertyKey: "",
 					},
 				},
 				true,
@@ -273,7 +273,7 @@ func Test_getAppPropsFromConfigMap(t *testing.T) {
 			args{
 				&corev1.ConfigMap{
 					Data: map[string]string{
-						appPropContentKey: "\ntest1=test1\ntest2=test2\ntest3=test3",
+						ConfigMapApplicationPropertyKey: "\ntest1=test1\ntest2=test2\ntest3=test3",
 					},
 				},
 				true,

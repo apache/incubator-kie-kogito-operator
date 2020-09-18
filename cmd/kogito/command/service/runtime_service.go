@@ -56,7 +56,10 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err != nil {
 		return err
 	}
-
+	configMap, err := createConfigMapFromFile(cli, flags)
+	if err != nil {
+		return err
+	}
 	kogitoRuntime := v1alpha1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      flags.Name,
@@ -74,6 +77,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				ServiceLabels:         util.FromStringsKeyPairToMap(flags.ServiceLabels),
 				HTTPPort:              flags.HTTPPort,
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
+				PropertiesConfigMap:   configMap,
 			},
 			InfinispanMeta: infinispanMeta,
 			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&flags.KafkaFlags, flags.EnableEvents),
