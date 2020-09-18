@@ -16,12 +16,12 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -64,44 +64,22 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 	return false, nil
 }
 
-// GetInfinispanServiceURI fetches for the Infinispan service linked with the given KogitoInfra and returns a formatted URI
-func GetInfinispanServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri string, err error) {
-	if len(infra.Status.Infinispan.Condition) == 0 &&
-		len(infra.Status.Infinispan.Service) == 0 &&
-		len(infra.Status.Infinispan.Name) == 0 &&
-		len(infra.Status.Infinispan.CredentialSecret) == 0 {
-		return "", nil
-	}
-
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.Service, Namespace: infra.Namespace},
-	}
-	exists := false
-	if exists, err = kubernetes.ResourceC(cli).Fetch(service); err != nil {
+// FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name
+func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, namespace string) (string, error) {
+	log.Debugf("Fetching kogito infinispan instance URI.")
+	service := &corev1.Service{}
+	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, service); err != nil {
 		return "", err
-	}
-
-	if exists {
+	} else if !exits {
+		return "", fmt.Errorf("service with name %s not exist for Infinispan instance in given namespace %s", instanceName, namespace)
+	} else {
 		for _, port := range service.Spec.Ports {
 			if port.TargetPort.IntVal == defaultInfinispanPort {
-				return fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal), nil
+				uri := fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal)
+				log.Debugf("kogito infinispan instance URI : %s", uri)
+				return uri, nil
 			}
 		}
 		return "", fmt.Errorf("Infinispan default port (%d) not found in service %s ", defaultInfinispanPort, service.Name)
 	}
-
-	return "", nil
-}
-
-// GetInfinispanCredentialsSecret will fetch for the secret created to hold Infinispan credentials
-func GetInfinispanCredentialsSecret(cli *client.Client, infra *v1alpha1.KogitoInfra) (secret *corev1.Secret, err error) {
-	err = nil
-	if len(infra.Status.Infinispan.Name) == 0 && len(infra.Status.Infinispan.Service) == 0 {
-		return
-	}
-	secret = &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.CredentialSecret, Namespace: infra.Namespace},
-	}
-	_, err = kubernetes.ResourceC(cli).Fetch(secret)
-	return
 }

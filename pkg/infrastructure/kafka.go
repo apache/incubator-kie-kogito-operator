@@ -18,12 +18,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	v1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -32,12 +30,7 @@ const (
 	strimziServerGroup = "kafka.strimzi.io"
 	// StrimziOperatorName is the default Strimzi operator name
 	StrimziOperatorName = "strimzi-cluster-operator"
-	// defaultKafkaPort default port for plain connections
-	defaultKafkaPort = 9092
 )
-
-// 9093 -> secure, 9091 -> fallback
-var kafkaFallbackPorts = []int32{9093, 9091}
 
 // IsStrimziOperatorAvailable verify if Strimzi Operator is running in the given namespace and the CRD is available
 // Deprecated: rethink the way we check for the operator since the deployment resource could be in another namespace if installed cluster wide
@@ -65,105 +58,6 @@ func IsStrimziOperatorAvailable(cli *client.Client, namespace string) (available
 // IsStrimziAvailable checks if Strimzi CRD is available in the cluster
 func IsStrimziAvailable(client *client.Client) bool {
 	return client.HasServerGroup(strimziServerGroup)
-}
-
-// GetKafkaServiceURI fetches for the Kafka service linked with the given Kogito
-// Infra and returns a formatted URI
-func GetKafkaServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri string, err error) {
-	uri = ""
-	err = nil
-	if infra == nil || len(infra.Status.Kafka.Service) == 0 {
-		return
-	}
-
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Kafka.Service, Namespace: infra.Namespace},
-	}
-	exists := false
-	if exists, err = kubernetes.ResourceC(cli).Fetch(service); err != nil {
-		return
-	}
-
-	if exists {
-		// prefer default port
-		for _, port := range service.Spec.Ports {
-			if port.TargetPort.IntVal == defaultKafkaPort {
-				return fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal), nil
-			}
-		}
-		log.Warnf("Kafka default port (%d) not found in service %s. Trying %s", defaultKafkaPort, service.Name, kafkaFallbackPorts)
-		// lets try others
-		for _, port := range service.Spec.Ports {
-			for _, kafkaPort := range kafkaFallbackPorts {
-				if port.TargetPort.IntVal == kafkaPort {
-					return fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal), nil
-				}
-			}
-		}
-		return "", fmt.Errorf("Kafka port (%d) not found in service %s ", defaultKafkaPort, service.Name)
-	}
-	return
-}
-
-// GetReadyKafkaInstanceName fetches for the Kafka Instance linked with the given Kogito and checks if it is ready
-func GetReadyKafkaInstanceName(cli *client.Client, infra *v1alpha1.KogitoInfra) (kafka string, err error) {
-	kafka = ""
-	err = nil
-	if infra == nil || len(infra.Status.Kafka.Name) == 0 {
-		return
-	}
-
-	instance, err := GetKafkaInstanceWithName(infra.Status.Kafka.Name, infra.Namespace, cli)
-	if err != nil {
-		return
-	}
-	if instance != nil {
-		uri := ResolveKafkaServerURI(instance)
-		if len(uri) > 0 {
-			kafka = instance.Name
-		}
-	}
-	return
-}
-
-// ResolveKafkaServerURI returns the uri of the kafka instance
-func ResolveKafkaServerURI(kafka *v1beta1.Kafka) string {
-	if kafka != nil {
-		if len(kafka.Status.Listeners) > 0 {
-			for _, listenerStatus := range kafka.Status.Listeners {
-				if listenerStatus.Type == "plain" && len(listenerStatus.Addresses) > 0 {
-					for _, listenerAddress := range listenerStatus.Addresses {
-						if len(listenerAddress.Host) > 0 && listenerAddress.Port > 0 {
-							return fmt.Sprintf("%s:%d", listenerAddress.Host, listenerAddress.Port)
-						}
-					}
-				}
-			}
-		}
-	}
-	return ""
-}
-
-// ResolveKafkaServerReplicas returns the number of replicas of the kafka instance
-func ResolveKafkaServerReplicas(kafka *v1beta1.Kafka) int32 {
-	if kafka != nil {
-		if kafka.Spec.Kafka.Replicas > 0 {
-			return kafka.Spec.Kafka.Replicas
-		}
-		return 1
-	}
-	return 0
-}
-
-// GetKafkaInstanceWithName fetches the Kafka instance of the given name
-func GetKafkaInstanceWithName(name string, namespace string, client *client.Client) (*v1beta1.Kafka, error) {
-	kafka := &v1beta1.Kafka{}
-	if exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafka); err != nil {
-		return nil, err
-	} else if exists {
-		return kafka, nil
-	}
-	return nil, nil
 }
 
 // GetKafkaDefaultResource returns a Kafka resource with default configuration
@@ -199,4 +93,43 @@ func GetKafkaDefaultResource(name, namespace string, defaultReplicas int32) *v1b
 			},
 		},
 	}
+}
+
+// ResolveKafkaServerURI returns the uri of the kafka instance
+func ResolveKafkaServerURI(kafka *v1beta1.Kafka) string {
+	log.Debugf("Resolving kafka URI for given kafka instance %s", kafka.Name)
+	log.Debugf("kafka instance : %s", kafka)
+	log.Debugf("len(kafka.Status.Listeners) : %s", len(kafka.Status.Listeners))
+	if len(kafka.Status.Listeners) > 0 {
+		for _, listenerStatus := range kafka.Status.Listeners {
+			log.Debugf("listenerStatus.Type : %s", listenerStatus.Type)
+			log.Debugf("len(listenerStatus.Addresses) : %s", len(listenerStatus.Addresses))
+			if listenerStatus.Type == "plain" && len(listenerStatus.Addresses) > 0 {
+				for _, listenerAddress := range listenerStatus.Addresses {
+					log.Debugf("listenerAddress.Host : %s, listenerAddress.Port : %s", listenerAddress.Host, listenerAddress.Port)
+					if len(listenerAddress.Host) > 0 && listenerAddress.Port > 0 {
+						kafkaURI := fmt.Sprintf("%s:%d", listenerAddress.Host, listenerAddress.Port)
+						log.Debugf("Success fetch kafka URI for kafka instance(%s) : %s", kafka.Name, kafkaURI)
+						return kafkaURI
+					}
+				}
+			}
+		}
+	}
+	log.Debug("Not able resolve URI for given kafka instance")
+	return ""
+}
+
+// getKafkaInstanceWithName fetches the Kafka instance of the given name
+func getKafkaInstanceWithName(name string, namespace string, client *client.Client) (*v1beta1.Kafka, error) {
+	log.Debugf("Fetching kafka instance for given instance %s", name)
+	kafka := &v1beta1.Kafka{}
+	if exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafka); err != nil {
+		return nil, err
+	} else if exists {
+		log.Debugf("Successfully fetched kafka instance %s", name)
+		return kafka, nil
+	}
+	log.Debugf("Kafka instance (%s) not found in namespace %s", name, namespace)
+	return nil, nil
 }

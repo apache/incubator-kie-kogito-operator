@@ -19,11 +19,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// InfraComponentInstallStatusType is the base structure to define the status for an actor in the infrastructure.
-type InfraComponentInstallStatusType struct {
-	Service   string             `json:"service,omitempty"`
-	Name      string             `json:"name,omitempty"`
-	Condition []InstallCondition `json:"condition,omitempty"`
+// Resource provide reference infra resource
+type Resource struct {
+
+	// APIVersion describes the API Version of referred Kubernetes resource for example, app.infinispan.org/v1
+	APIVersion string `json:"apiVersion"`
+
+	// Kind describes the kind of referred Kubernetes resource for example, Infinispan
+	Kind string `json:"kind"`
+
+	// Namespace where referred resource exists.
+	Namespace string `json:"namespace,omitempty"`
+
+	// Name of referred resource.
+	Name string `json:"name,omitempty"`
 }
 
 // KogitoInfraSpec defines the desired state of KogitoInfra.
@@ -31,33 +40,28 @@ type InfraComponentInstallStatusType struct {
 type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Indicates if Infinispan should be installed or not using Infinispan Operator.
-	// Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.
+	// +optional
+	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Infinispan"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	InstallInfinispan bool `json:"installInfinispan,omitempty"`
-	// Indicates if Kafka should be installed or not using Strimzi (Kafka Operator).
-	// Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Kafka"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	InstallKafka bool `json:"installKafka,omitempty"`
-	// Whether or not to install Keycloak using Keycloak Operator.
-	// Please note that the Keycloak Operator must be installed manually on environments that doesn't have OLM installed.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Keycloak"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	InstallKeycloak bool `json:"installKeycloak,omitempty"`
+	Resource Resource `json:"resource,omitempty"`
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
-	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
-	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
-	Kafka      InfraComponentInstallStatusType `json:"kafka,omitempty"`
-	Keycloak   InfraComponentInstallStatusType `json:"keycloak,omitempty"`
+	Condition KogitoInfraCondition `json:"condition,omitempty"`
+
+	// +optional
+	// +mapType=atomic
+	// Application properties to be added to the runtime container.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	AppProps map[string]string `json:"appProps,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// Environment variables to be added to the runtime container.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	EnvVars []v1.EnvVar `json:"envVars,omitempty"`
 }
 
 /*
@@ -72,32 +76,6 @@ type KogitoInfraCondition struct {
 	LastTransitionTime string                   `json:"lastTransitionTime,omitempty"`
 	Message            string                   `json:"message,omitempty"`
 }
-
-// InfinispanInstallStatus defines the Infinispan installation status.
-type InfinispanInstallStatus struct {
-	InfraComponentInstallStatusType `json:",inline"`
-	CredentialSecret                string `json:"credentialSecret,omitempty"`
-}
-
-// InstallCondition defines the installation condition for the infrastructure actor.
-type InstallCondition struct {
-	Type               InstallConditionType `json:"type"`
-	Status             v1.ConditionStatus   `json:"status"`
-	LastTransitionTime metav1.Time          `json:"lastTransitionTime,omitempty"`
-	Message            string               `json:"message,omitempty"`
-}
-
-// InstallConditionType defines the possibles conditions that a install might have.
-type InstallConditionType string
-
-const (
-	// FailedInstallConditionType indicates failed condition
-	FailedInstallConditionType InstallConditionType = "Failed"
-	// ProvisioningInstallConditionType indicates provisioning condition
-	ProvisioningInstallConditionType InstallConditionType = "Provisioning"
-	// SuccessInstallConditionType indicates success condition
-	SuccessInstallConditionType InstallConditionType = "Success"
-)
 
 // KogitoInfraConditionType ...
 type KogitoInfraConditionType string

@@ -132,7 +132,6 @@ func (r *ReconcileKogitoTrusty) Reconcile(request reconcile.Request) (reconcile.
 	definition := services.ServiceDefinition{
 		DefaultImageName:    infrastructure.DefaultTrustyImageName,
 		Request:             request,
-		KafkaTopics:         kafkaTopics,
 		RequiresPersistence: true,
 		RequiresMessaging:   true,
 		HealthCheckProbe:    services.QuarkusHealthCheckProbe,
@@ -144,19 +143,4 @@ func (r *ReconcileKogitoTrusty) Reconcile(request reconcile.Request) (reconcile.
 	}
 
 	return reconcile.Result{}, nil
-}
-
-const (
-	// Collection of kafka topics that should be handled by the Trusty
-	kafkaTopicNameTraceEvents                 string = "kogito-tracing-decision"
-	kafkaTopicNameModelEvents                 string = "kogito-tracing-model"
-	kafkaTopicNameExplainabilityResultEvents  string = "trusty-explainability-result"
-	kafkaTopicNameExplainabilityRequestEvents string = "trusty-explainability-request"
-)
-
-var kafkaTopics = []services.KafkaTopicDefinition{
-	{TopicName: kafkaTopicNameTraceEvents, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameModelEvents, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameExplainabilityResultEvents, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameExplainabilityRequestEvents, MessagingType: services.KafkaTopicOutgoing},
 }

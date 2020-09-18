@@ -34,12 +34,6 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-					UseKogitoInfra: false,
-					URI:            "another-uri:11222",
-				},
-			},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
@@ -61,12 +55,6 @@ func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T)
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-					UseKogitoInfra: false,
-					URI:            "another-uri:11222",
-				},
-			},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
@@ -87,12 +75,6 @@ func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-					UseKogitoInfra: false,
-					URI:            "another-uri:11222",
-				},
-			},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)

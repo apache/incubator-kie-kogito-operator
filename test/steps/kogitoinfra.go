@@ -14,7 +14,7 @@
 
 package steps
 
-import (
+/*import (
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 )
@@ -41,3 +41,4 @@ func (data *Data) kogitoInfraShouldBeRunningWithinMinutes(component string, time
 func (data *Data) kogitoInfraShouldNOTBeRunningWithinMinutes(component string, timeoutInMin int) error {
 	return framework.WaitForKogitoInfraComponent(data.Namespace, framework.ParseKogitoInfraComponent(component), false, timeoutInMin)
 }
+*/

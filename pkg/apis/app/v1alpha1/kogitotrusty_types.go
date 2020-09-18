@@ -24,8 +24,6 @@ const KogitoTrustyCRDName = "kogitotrusties.app.kiegroup.org"
 // KogitoTrustySpec defines the desired state of KogitoTrusty.
 // +k8s:openapi-gen=true
 type KogitoTrustySpec struct {
-	InfinispanMeta    `json:",inline"`
-	KafkaMeta         `json:",inline"`
 	KogitoServiceSpec `json:",inline"`
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }

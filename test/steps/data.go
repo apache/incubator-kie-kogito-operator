@@ -47,7 +47,7 @@ func (data *Data) RegisterAllSteps(ctx *godog.ScenarioContext) {
 	registerKogitoRuntimeSteps(ctx, data)
 	registerKogitoDataIndexServiceSteps(ctx, data)
 	registerKogitoTrustyServiceSteps(ctx, data)
-	registerKogitoInfraSteps(ctx, data)
+	//registerKogitoInfraSteps(ctx, data)
 	registerKogitoJobsServiceSteps(ctx, data)
 	registerKogitoManagementConsoleSteps(ctx, data)
 	registerKubernetesSteps(ctx, data)

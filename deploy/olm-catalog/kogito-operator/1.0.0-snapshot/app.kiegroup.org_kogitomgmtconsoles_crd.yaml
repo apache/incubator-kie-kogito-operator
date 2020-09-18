@@ -175,6 +175,11 @@ spec:
                 tag:
                   type: string
               type: object
+            infra:
+              description: Infra provides list of dependent KogitoInfra objects.
+              items:
+                type: string
+              type: array
             insecureImageRegistry:
               description: A flag indicating that image streams created by Kogito
                 Operator should be configured to allow pulling from insecure registries.
