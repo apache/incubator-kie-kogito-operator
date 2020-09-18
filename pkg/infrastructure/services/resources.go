@@ -67,24 +67,26 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 
 		service := createRequiredService(s.instance, deployment)
 
+		var appProps map[string]string
+		var envProperties []corev1.EnvVar
+
 		if len(s.instance.GetSpec().GetInfra()) > 0 {
 			log.Debugf("Infra references are provided")
-			appProps, envProperties, err := s.fetchKogitoInfraProperties(s.instance.GetSpec().GetInfra())
+			appProps, envProperties, err = s.fetchKogitoInfraProperties(s.instance.GetSpec().GetInfra())
 			if err != nil {
 				return resources, reconcileAfter, err
 			}
+		}
+		s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
 
-			s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
-
-			// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998
-			contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), appProps, s.client)
-			if err != nil {
-				return resources, reconcileAfter, err
-			}
-			s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
-			if configMap != nil {
-				resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
-			}
+		// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998
+		contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), appProps, s.client)
+		if err != nil {
+			return resources, reconcileAfter, err
+		}
+		s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
+		if configMap != nil {
+			resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
 		}
 
 		resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}

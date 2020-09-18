@@ -47,23 +47,16 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {
 		log.Debugf("Custom Keycloak instance reference is provided")
-		resourceName := instance.Spec.Resource.Name
-		resourceNameSpace := instance.Spec.Resource.Namespace
 
-		keycloakInstance, resultErr = loadDeployedKeycloakInstance(client, resourceName, resourceNameSpace)
+		keycloakInstance, resultErr = loadDeployedKeycloakInstance(client, instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 		if keycloakInstance == nil {
-			return false, fmt.Errorf("custom Keycloak instance(%s) not found in namespace %s", resourceName, resourceNameSpace)
+			return false, fmt.Errorf("custom Keycloak instance(%s) not found in namespace %s", instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
 		}
 	} else {
 		log.Debugf("Custom Keycloak instance reference is not provided")
-		// if resource name is not provided then Keycloak instance should be created with default name = kogito-keycloak
-		resourceName := InstanceName
-
-		// Keycloak resource should be created in same namespace as kogitoInfra
-		resourceNameSpace := instance.Namespace
 
 		// Step 1: Validation
 		keycloakAvailable := infrastructure.IsKeycloakAvailable(client)
@@ -73,14 +66,14 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		}
 
 		// check whether Keycloak instance exist
-		keycloakInstance, resultErr := loadDeployedKeycloakInstance(client, resourceName, resourceNameSpace)
+		keycloakInstance, resultErr := loadDeployedKeycloakInstance(client, InstanceName, instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if keycloakInstance == nil {
 			// if not exist then create new Keycloak instance. Keycloak operator creates Keycloak instance, secret & service resource
-			_, resultErr = createNewKeycloakInstance(client, resourceName, resourceNameSpace, instance, scheme)
+			_, resultErr = createNewKeycloakInstance(client, InstanceName, instance.Namespace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}

@@ -136,17 +136,26 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 
 func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *testing.T) {
 	replicas := int32(1)
+	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
+	kogitoInfinispan := test.CreateFakeKogitoInfinispan(t.Name())
+
 	instance := &v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &replicas,
+				Infra: []string{
+					kogitoKafka.Name,
+					kogitoInfinispan.Name,
+				},
+			},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is, kogitoKafka, kogitoInfinispan}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
 		client:       cli,
 		scheme:       meta.GetRegisteredSchema(),
@@ -183,7 +192,9 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoDataIndexSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &replicas,
+			},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())

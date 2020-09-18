@@ -48,40 +48,33 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {
 		log.Debugf("Custom kafka instance reference is provided")
-		resourceName := instance.Spec.Resource.Name
-		resourceNameSpace := instance.Spec.Resource.Namespace
 
-		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, resourceName, resourceNameSpace)
+		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 		if kafkaInstance == nil {
-			return false, fmt.Errorf("custom kafka instance(%s) not found in namespace %s", resourceName, resourceNameSpace)
+			return false, fmt.Errorf("custom kafka instance(%s) not found in namespace %s", instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
 		}
 	} else {
 		// create/refer kogito-kafka instance
 		log.Debugf("Custom kafka instance reference is not provided")
-		// if resource name is not provided then Kafka instance should be created with default name = kogito-kafka
-		resourceName := InstanceName
-
-		// Kafka resource should be created in same namespace as kogitoInfra
-		resourceNameSpace := instance.Namespace
 
 		// Verify kafka
 		if !infrastructure.IsStrimziAvailable(client) {
-			resultErr = fmt.Errorf("Kafka operator is not available in the namespace %s, impossible to continue ", resourceNameSpace)
+			resultErr = fmt.Errorf("Kafka operator is not available in the namespace %s, impossible to continue ", instance.Namespace)
 			return false, resultErr
 		}
 
 		// check whether kafka instance exist
-		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, resourceName, resourceNameSpace)
+		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, InstanceName, instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if kafkaInstance == nil {
 			// if not exist then create new Kafka instance. Strimzi operator creates Kafka instance, secret & service resource
-			_, resultErr = createNewKafkaInstance(client, resourceName, resourceNameSpace, instance, scheme)
+			_, resultErr = createNewKafkaInstance(client, InstanceName, instance.Namespace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}

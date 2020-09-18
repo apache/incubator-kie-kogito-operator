@@ -21,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -40,31 +39,22 @@ import (
 
 func TestReconcileKogitoTrusty_Reconcile(t *testing.T) {
 	ns := t.Name()
+	kogitoKafka := test.CreateFakeKogitoKafka(ns)
 	instance := &v1alpha1.KogitoTrusty{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-trusty",
 			Namespace: ns,
 		},
 		// We don't need to specify that we need Infinispan, it will figure out that alone :)
-		Spec: v1alpha1.KogitoTrustySpec{},
-	}
-	kafkaList := &kafkabetav1.KafkaList{
-		Items: []kafkabetav1.Kafka{
-			{
-				ObjectMeta: metav1.ObjectMeta{Name: "kafka", Namespace: ns},
-				Spec:       kafkabetav1.KafkaSpec{Kafka: kafkabetav1.KafkaClusterSpec{Replicas: 1}},
-				Status: kafkabetav1.KafkaStatus{
-					Listeners: []kafkabetav1.ListenerStatus{
-						{
-							Type:      "plain",
-							Addresses: []kafkabetav1.ListenerAddress{{Host: "kafka", Port: 9092}},
-						},
-					},
+		Spec: v1alpha1.KogitoTrustySpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Infra: []string{
+					kogitoKafka.Name,
 				},
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka}, nil, nil)
 	r := &ReconcileKogitoTrusty{
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),

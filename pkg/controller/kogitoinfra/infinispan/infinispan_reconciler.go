@@ -52,41 +52,37 @@ func (i *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {
 		log.Debugf("Custom infinispan instance reference is provided")
-		resourceName := instance.Spec.Resource.Name
-		resourceNameSpace := instance.Spec.Resource.Namespace
 
-		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, resourceName, resourceNameSpace)
+		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 		if infinispanInstance == nil {
-			return false, fmt.Errorf("custom Infinispan instance(%s) not found in namespace %s", resourceName, resourceNameSpace)
+			return false, fmt.Errorf("custom Infinispan instance(%s) not found in namespace %s", instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
 		}
 	} else {
 		// create/refer kogito-infinispan instance
 		log.Debugf("Custom infinispan instance reference is not provided")
-		resourceName := InstanceName
-		resourceNameSpace := instance.Namespace
 
 		// Verify Infinispan
-		infinispanAvailable, err := infrastructure.IsInfinispanOperatorAvailable(client, resourceNameSpace)
+		infinispanAvailable, err := infrastructure.IsInfinispanOperatorAvailable(client, instance.Namespace)
 		if err != nil {
 			return false, err
 		}
 		if !infinispanAvailable {
-			err = fmt.Errorf("Infinispan operator is not available in the namespace %s, impossible to continue ", resourceNameSpace)
+			err = fmt.Errorf("Infinispan operator is not available in the namespace %s, impossible to continue ", instance.Namespace)
 			return false, err
 		}
 
 		// Step 1: check whether infinispan instance exist
-		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, resourceName, resourceNameSpace)
+		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, InstanceName, instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if infinispanInstance == nil {
 			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
-			_, resultErr = createNewInfinispanInstance(client, resourceName, resourceNameSpace, instance, scheme)
+			_, resultErr = createNewInfinispanInstance(client, InstanceName, instance.Namespace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}
