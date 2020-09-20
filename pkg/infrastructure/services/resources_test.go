@@ -15,6 +15,10 @@
 package services
 
 import (
+	"reflect"
+	"testing"
+	"time"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -26,10 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
-	"time"
 )
 
 func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *testing.T) {
@@ -131,7 +132,7 @@ func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T
 	// we have the Image Stream, so other resources should have been created
 	assert.True(t, len(resources) > 1)
 	// we don't have data index set
-	assert.Equal(t, reconcileAfter, dataIndexDependencyReconcileAfter)
+	assert.Equal(t, reconcileAfter, serviceDependencyReconcileAfter)
 }
 
 func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *testing.T) {

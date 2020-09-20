@@ -15,11 +15,13 @@
 package services
 
 import (
+	"reflect"
+	"time"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra"
@@ -30,10 +32,8 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
-	"time"
 )
 
 // TODO: review the way we create those resources on KOGITO-1998: reorganize all those functions on other files within the package
@@ -122,7 +122,7 @@ func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, ins
 					instance.GetName())
 				zeroReplicas := int32(0)
 				deployment.Spec.Replicas = &zeroReplicas
-				return newDataIndexNotReadyError(instance.GetNamespace(), instance.GetName())
+				return newKogitoServiceNotReadyError(instance.GetNamespace(), instance.GetName(), "Data Index")
 			}
 		} else {
 			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
@@ -228,10 +228,6 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}
 	} else {
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}}
-	}
-
-	if infrastructure.IsStrimziAvailable(s.client) {
-		objectTypes = append(objectTypes, &kafkabetav1.KafkaTopicList{})
 	}
 
 	if IsPrometheusAvailable(s.client) {

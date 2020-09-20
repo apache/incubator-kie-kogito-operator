@@ -54,6 +54,9 @@ type ServicesInstallation interface {
 	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
+	// InstallExplainability installs Explainability. If no reference provided, it will install the default instance.
+	// Depends on the Operator, install it first.
+	InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation
 	// InstallTrusty installs Trusty. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation
@@ -63,6 +66,9 @@ type ServicesInstallation interface {
 	// InstallMgmtConsole installs Management Console. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
+	// InstallTrustyUI installs Trusty UI. If no reference provided, it will install the default instance.
+	// Depends on the Operator, install it first.
+	InstallTrustyUI(trustyUI *v1alpha1.KogitoTrustyUI) ServicesInstallation
 	// InstallInfraService install kogito Infra.
 	// Depends on the Operator, install it first.
 	InstallInfraService(infra *v1alpha1.KogitoInfra) ServicesInstallation
@@ -122,6 +128,19 @@ func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIn
 	return s
 }
 
+func (s *servicesInstallation) InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(explainability,
+			serviceInfoMessages{
+				errCreating:                  message.ExplainabilityErrCreating,
+				installed:                    message.ExplainabilitySuccessfulInstalled,
+				checkStatus:                  message.ExplainabilityCheckStatus,
+				notInstalledNoKogitoOperator: message.ExplainabilityNotInstalledNoKogitoOperator,
+			})
+	}
+	return s
+}
+
 func (s *servicesInstallation) InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(trusty,
@@ -156,6 +175,19 @@ func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMg
 				installed:                    message.MgmtConsoleSuccessfulInstalled,
 				checkStatus:                  message.MgmtConsoleCheckStatus,
 				notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
+			})
+	}
+	return s
+}
+
+func (s *servicesInstallation) InstallTrustyUI(trustyUI *v1alpha1.KogitoTrustyUI) ServicesInstallation {
+	if s.err == nil {
+		s.err = s.installKogitoService(trustyUI,
+			serviceInfoMessages{
+				errCreating:                  message.TrustyUIErrCreating,
+				installed:                    message.TrustyUISuccessfulInstalled,
+				checkStatus:                  message.TrustyUICheckStatus,
+				notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
 			})
 	}
 	return s

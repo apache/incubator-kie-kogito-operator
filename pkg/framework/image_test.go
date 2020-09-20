@@ -38,6 +38,9 @@ func TestFromStringToImage(t *testing.T) {
 		{"tag empty", args{"myimage"}, v1alpha1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
 		{"tag empty with a trick", args{"myimage:"}, v1alpha1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
 		{"just tag", args{":1.0"}, v1alpha1.Image{Name: "", Tag: "1.0", Namespace: "", Domain: ""}},
+		{"localhost domain", args{"localhost:6000/namespace/image"}, v1alpha1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "localhost:6000"}},
+		{"IP only", args{"10.10.2.1/namespace/image"}, v1alpha1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "10.10.2.1"}},
+		{"IP and port", args{"10.10.2.1:5000/namespace/image"}, v1alpha1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "10.10.2.1:5000"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

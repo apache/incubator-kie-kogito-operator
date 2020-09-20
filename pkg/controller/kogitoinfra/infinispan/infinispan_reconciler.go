@@ -75,14 +75,14 @@ func (i *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		}
 
 		// Step 1: check whether infinispan instance exist
-		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, InstanceName, instance.Namespace)
+		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, instanceName, instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if infinispanInstance == nil {
 			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
-			_, resultErr = createNewInfinispanInstance(client, InstanceName, instance.Namespace, instance, scheme)
+			_, resultErr = createNewInfinispanInstance(client, instanceName, instance.Namespace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}

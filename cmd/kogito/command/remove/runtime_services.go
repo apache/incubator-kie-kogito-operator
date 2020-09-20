@@ -16,6 +16,7 @@ package remove
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -54,6 +55,18 @@ var removableRuntimeServices = []removableRuntimeService{
 	{
 		name: "jobs-service",
 		list: &v1alpha1.KogitoJobsServiceList{},
+	},
+	{
+		name: "explainability",
+		list: &v1alpha1.KogitoExplainabilityList{},
+	},
+	{
+		name: "trusty",
+		list: &v1alpha1.KogitoTrustyList{},
+	},
+	{
+		name: "trusty-ui",
+		list: &v1alpha1.KogitoTrustyUIList{},
 	},
 }
 

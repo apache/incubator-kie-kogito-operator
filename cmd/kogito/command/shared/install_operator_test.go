@@ -81,7 +81,7 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 	crds := &apiextensionsv1beta1.CustomResourceDefinitionList{}
 	err = kubernetes.ResourceC(client).ListWithNamespace(ns, crds)
 	assert.NoError(t, err)
-	assert.Len(t, crds.Items, 8)
+	assert.Len(t, crds.Items, 10)
 	assert.Contains(t, crds.Items[0].Name, "app.kiegroup.org")
 	assert.Contains(t, crds.Items[1].Name, "app.kiegroup.org")
 	assert.Contains(t, crds.Items[2].Name, "app.kiegroup.org")

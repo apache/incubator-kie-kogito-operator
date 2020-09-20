@@ -15,27 +15,24 @@
 package infinispan
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
 	// InstanceName is the default name for the Infinispan provisioned instance
-	InstanceName = "kogito-infinispan"
+	instanceName = "kogito-infinispan"
 	secretName   = "kogito-infinispan-credential"
-	// IdentityFileName is the name of YAML file containing list of Infinispan credentials
-	IdentityFileName = "identities.yaml"
-	replicasSize     = 1
+	replicasSize = 1
 )
 
 var log = logger.GetLogger("kogitoinfinispan_resource")
@@ -78,20 +75,16 @@ func createNewInfinispanInstance(cli *client.Client, name string, namespace stri
 }
 
 func loadCustomKogitoInfinispanSecret(cli *client.Client, namespace string) (*v1.Secret, error) {
-	return loadSecret(cli, secretName, namespace)
-}
-
-func loadSecret(cli *client.Client, name string, namespace string) (*v1.Secret, error) {
-	log.Debugf("Fetching %s ", name)
+	log.Debugf("Fetching %s ", secretName)
 	secret := &v1.Secret{}
-	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, secret); err != nil {
-		log.Errorf("Error occurs while fetching %s", name)
+	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: secretName, Namespace: namespace}, secret); err != nil {
+		log.Errorf("Error occurs while fetching %s", secretName)
 		return nil, err
 	} else if !exits {
-		log.Errorf("%s not found", name)
+		log.Errorf("%s not found", secretName)
 		return nil, nil
 	} else {
-		log.Debugf("%s successfully fetched", name)
+		log.Debugf("%s successfully fetched", secretName)
 		return secret, nil
 	}
 }
@@ -99,27 +92,23 @@ func loadSecret(cli *client.Client, name string, namespace string) (*v1.Secret, 
 func createCustomKogitoInfinispanSecret(cli *client.Client, namespace string, infinispanInstance *infinispan.Infinispan, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*v1.Secret, error) {
 	log.Debugf("Creating new secret %s", secretName)
 
-	infinispanSecret, err := getInfinispanSecret(cli, infinispanInstance)
+	credentials, err := infrastructure.GetInfinispanCredential(cli, infinispanInstance)
 	if err != nil {
 		return nil, err
 	}
-	credentials, err := getDeveloperCredential(infinispanSecret)
-	if err != nil {
-		return nil, err
-	}
-
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: namespace,
 		},
 		Type: v1.SecretTypeOpaque,
-		StringData: map[string]string{
+	}
+	if credentials != nil {
+		secret.StringData = map[string]string{
 			infrastructure.InfinispanSecretUsernameKey: credentials.Username,
 			infrastructure.InfinispanSecretPasswordKey: credentials.Password,
-		},
+		}
 	}
-
 	if err := controllerutil.SetOwnerReference(instance, secret, scheme); err != nil {
 		return nil, err
 	}
@@ -129,29 +118,4 @@ func createCustomKogitoInfinispanSecret(cli *client.Client, namespace string, in
 	}
 	log.Debug("%s successfully created", secret)
 	return secret, nil
-}
-
-func getInfinispanSecret(cli *client.Client, infinispanInstance *infinispan.Infinispan) (*v1.Secret, error) {
-	// Get operator generated infinispan secret
-	secretName := infinispanInstance.Spec.Security.EndpointSecretName
-	secretNamespace := infinispanInstance.Namespace
-	infinispanSecret, err := loadSecret(cli, secretName, secretNamespace)
-	if err != nil {
-		return nil, err
-	}
-
-	if infinispanSecret == nil {
-		infinispanSecret = createEmptySecret(secretName, secretNamespace)
-	}
-	return infinispanSecret, nil
-}
-
-func createEmptySecret(secretName, secretNamespace string) *v1.Secret {
-	return &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: secretNamespace,
-			Name:      secretName,
-		},
-		Data: map[string][]byte{},
-	}
 }

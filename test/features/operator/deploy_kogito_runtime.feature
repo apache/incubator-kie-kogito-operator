@@ -84,6 +84,7 @@ Feature: Deploy Kogito Runtime
   Scenario Outline: Deploy <example-service> service with Jobs service and Maven profile <profile>
     Given Kogito Operator is deployed
     And Install Kogito Jobs Service with 1 replicas
+    And Kogito Jobs Service has 1 pods running within 10 minutes
     And Clone Kogito examples into local directory
     And Local example service "<example-service>" is built by Maven using profile "<profile>" and deployed to runtime registry
     And Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
@@ -192,6 +193,8 @@ Feature: Deploy Kogito Runtime
       | runtime    | example-service             | profile |
       | quarkus    | process-optaplanner-quarkus | default |
 
+    # Disabled due to https://issues.redhat.com/browse/PLANNER-2084
+    @disabled
     @quarkus
     @native
     Examples:
