@@ -116,6 +116,7 @@ type KogitoServiceSpecInterface interface {
 	GetHTTPPort() int32
 	SetHTTPPort(httpPort int32)
 	IsInsecureImageRegistry() bool
+	GetPropertiesConfigMap() string
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -145,6 +146,9 @@ type KogitoServiceSpec struct {
 	// A flag indicating that image streams created by Kogito Operator should be configured to allow pulling from insecure registries.
 	// Usable just on OpenShift.
 	// Defaults to 'false'.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Insecure Image Registry"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	InsecureImageRegistry bool `json:"insecureImageRegistry,omitempty"`
 
 	// Defined compute resource requirements for the deployed service.
@@ -165,9 +169,19 @@ type KogitoServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	ServiceLabels map[string]string `json:"serviceLabels,omitempty"`
 
-	// HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.
+	// HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.
 	// +optional
 	HTTPPort int32 `json:"httpPort,omitempty"`
+
+	// +optional
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="ConfigMap Properties"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// Custom ConfigMap with application.properties file to be mounted for the Kogito service.
+	// The ConfigMap must be created in the same namespace.
+	// Use this property if you need custom properties to be mounted before the application deployment.
+	// If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
+	PropertiesConfigMap string `json:"propertiesConfigMap,omitempty"`
 }
 
 // GetReplicas ...
@@ -279,3 +293,6 @@ func (k *KogitoServiceSpec) AddServiceLabel(name, value string) {
 
 // IsInsecureImageRegistry ...
 func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureImageRegistry }
+
+// GetPropertiesConfigMap ...
+func (k *KogitoServiceSpec) GetPropertiesConfigMap() string { return k.PropertiesConfigMap }

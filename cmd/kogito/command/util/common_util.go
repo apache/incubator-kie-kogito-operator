@@ -17,6 +17,7 @@ package util
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"os"
 	"strings"
 )
 
@@ -88,4 +89,19 @@ func FromStringsKeyPairToMap(array []string) map[string]string {
 		}
 	}
 	return keyPairMap
+}
+
+// CheckFileExists checks if the given path is valid
+func CheckFileExists(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if info.IsDir() {
+		return false, nil
+	}
+	return true, nil
 }

@@ -184,7 +184,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	assert.True(t, ok)
 	_, ok = deployment.Spec.Template.Annotations[AppPropContentHashKey]
 	assert.True(t, ok)
-	_, ok = resources[reflect.TypeOf(corev1.ConfigMap{})][0].(*corev1.ConfigMap).Data[appPropContentKey]
+	_, ok = resources[reflect.TypeOf(corev1.ConfigMap{})][0].(*corev1.ConfigMap).Data[ConfigMapApplicationPropertyKey]
 	assert.True(t, ok)
 }
 
@@ -210,7 +210,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 			Namespace: instance.Namespace,
 		},
 		Data: map[string]string{
-			appPropFileName: defaultAppPropContent,
+			ConfigMapApplicationPropertyKey: defaultAppPropContent,
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is, cm}, []runtime.Object{tag}, nil)

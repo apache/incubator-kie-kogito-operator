@@ -15,6 +15,7 @@
 package services
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	corev1 "k8s.io/api/core/v1"
@@ -25,27 +26,27 @@ import (
 )
 
 func TestGetAppPropConfigMapContentHash(t *testing.T) {
-	serviceName := "test"
-	serviceNamespace := "test"
+	service := &v1alpha1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "test"},
+	}
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName + appPropConfigMapSuffix,
-			Namespace: serviceNamespace,
+			Name:      service.Name + appPropConfigMapSuffix,
+			Namespace: service.Namespace,
 		},
 		Data: map[string]string{
-			appPropFileName: defaultAppPropContent,
+			ConfigMapApplicationPropertyKey: defaultAppPropContent,
 		},
 	}
 
 	type args struct {
-		name      string
-		namespace string
-		appProps  map[string]string
-		cli       *client.Client
+		instance v1alpha1.KogitoService
+		appProps map[string]string
+		cli      *client.Client
 	}
 	tests := []struct {
 		name    string
@@ -57,19 +58,18 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		{
 			"No ConfigMap, empty appProps",
 			args{
-				serviceName,
-				serviceNamespace,
+				service,
 				map[string]string{},
 				test.CreateFakeClientOnOpenShift([]runtime.Object{}, nil, nil),
 			},
 			"d41d8cd98f00b204e9800998ecf8427e",
 			&corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      serviceName + appPropConfigMapSuffix,
-					Namespace: serviceNamespace,
+					Name:      service.Name + appPropConfigMapSuffix,
+					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: defaultAppPropContent,
+					ConfigMapApplicationPropertyKey: defaultAppPropContent,
 				},
 			},
 			false,
@@ -77,19 +77,18 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		{
 			"No ConfigMap, nil appProps",
 			args{
-				serviceName,
-				serviceNamespace,
+				service,
 				nil,
 				test.CreateFakeClientOnOpenShift([]runtime.Object{}, nil, nil),
 			},
 			"d41d8cd98f00b204e9800998ecf8427e",
 			&corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      serviceName + appPropConfigMapSuffix,
-					Namespace: serviceNamespace,
+					Name:      service.Name + appPropConfigMapSuffix,
+					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: defaultAppPropContent,
+					ConfigMapApplicationPropertyKey: defaultAppPropContent,
 				},
 			},
 			false,
@@ -97,8 +96,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		{
 			"Default ConfigMap, empty appProps",
 			args{
-				serviceName,
-				serviceNamespace,
+				service,
 				map[string]string{},
 				test.CreateFakeClientOnOpenShift([]runtime.Object{cm}, nil, nil),
 			},
@@ -109,13 +107,12 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		{
 			"Empty ConfigMap, empty appProps",
 			args{
-				serviceName,
-				serviceNamespace,
+				service,
 				map[string]string{},
 				test.CreateFakeClientOnOpenShift([]runtime.Object{&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      serviceName + appPropConfigMapSuffix,
-						Namespace: serviceNamespace,
+						Name:      service.Name + appPropConfigMapSuffix,
+						Namespace: service.Namespace,
 					},
 					Data: map[string]string{},
 				}}, nil, nil),
@@ -127,8 +124,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		{
 			"No ConfigMap, appProps with data",
 			args{
-				serviceName,
-				serviceNamespace,
+				service,
 				map[string]string{
 					"test1": "abc",
 					"test2": "def",
@@ -139,11 +135,11 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			"bb2bea2d5b08e3d93142da5b17ed2af0",
 			&corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      serviceName + appPropConfigMapSuffix,
-					Namespace: serviceNamespace,
+					Name:      service.Name + appPropConfigMapSuffix,
+					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: "\ntest1=abc\ntest2=def\ntest3=ghi",
+					ConfigMapApplicationPropertyKey: "\ntest1=abc\ntest2=def\ntest3=ghi",
 				},
 			},
 			false,
@@ -151,16 +147,15 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		{
 			"ConfigMap with data, empty appProps",
 			args{
-				serviceName,
-				serviceNamespace,
+				service,
 				map[string]string{},
 				test.CreateFakeClientOnOpenShift([]runtime.Object{&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      serviceName + appPropConfigMapSuffix,
-						Namespace: serviceNamespace,
+						Name:      service.Name + appPropConfigMapSuffix,
+						Namespace: service.Namespace,
 					},
 					Data: map[string]string{
-						appPropFileName: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
+						ConfigMapApplicationPropertyKey: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
 					},
 				}}, nil, nil),
 			},
@@ -171,11 +166,11 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					APIVersion: "v1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      serviceName + appPropConfigMapSuffix,
-					Namespace: serviceNamespace,
+					Name:      service.Name + appPropConfigMapSuffix,
+					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
+					ConfigMapApplicationPropertyKey: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
 				},
 			},
 			false,
@@ -183,8 +178,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		{
 			"ConfigMap with data, appProps with data",
 			args{
-				serviceName,
-				serviceNamespace,
+				service,
 				map[string]string{
 					"test1": "abc",
 					"test2": "def",
@@ -193,11 +187,11 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 				},
 				test.CreateFakeClientOnOpenShift([]runtime.Object{&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      serviceName + appPropConfigMapSuffix,
-						Namespace: serviceNamespace,
+						Name:      service.Name + appPropConfigMapSuffix,
+						Namespace: service.Namespace,
 					},
 					Data: map[string]string{
-						appPropFileName: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
+						ConfigMapApplicationPropertyKey: "\ntest1=123\ntest2=456\ntest3=789\ntest4=012\ntest5=345",
 					},
 				}}, nil, nil),
 			},
@@ -208,11 +202,11 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					APIVersion: "v1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      serviceName + appPropConfigMapSuffix,
-					Namespace: serviceNamespace,
+					Name:      service.Name + appPropConfigMapSuffix,
+					Namespace: service.Namespace,
 				},
 				Data: map[string]string{
-					appPropFileName: "\ntest1=abc\ntest2=def\ntest3=ghi\ntest4=012\ntest5=345\ntest7=jkl",
+					ConfigMapApplicationPropertyKey: "\ntest1=abc\ntest2=def\ntest3=ghi\ntest4=012\ntest5=345\ntest7=jkl",
 				},
 			},
 			false,
@@ -220,17 +214,17 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := GetAppPropConfigMapContentHash(tt.args.name, tt.args.namespace, tt.args.appProps, tt.args.cli)
+			got, got1, err := getAppPropConfigMapContentHash(tt.args.instance, tt.args.appProps, tt.args.cli)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetAppPropConfigMapContentHash() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("getAppPropConfigMapContentHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("GetAppPropConfigMapContentHash() got = %v, want %v", got, tt.want)
+				t.Errorf("getAppPropConfigMapContentHash() got = %v, want %v", got, tt.want)
 				return
 			}
 			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("GetAppPropConfigMapContentHash() got1 = %v, want %v", got1, tt.want1)
+				t.Errorf("getAppPropConfigMapContentHash() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}
@@ -267,7 +261,7 @@ func Test_getAppPropsFromConfigMap(t *testing.T) {
 			args{
 				&corev1.ConfigMap{
 					Data: map[string]string{
-						appPropContentKey: "",
+						ConfigMapApplicationPropertyKey: "",
 					},
 				},
 				true,
@@ -279,7 +273,7 @@ func Test_getAppPropsFromConfigMap(t *testing.T) {
 			args{
 				&corev1.ConfigMap{
 					Data: map[string]string{
-						appPropContentKey: "\ntest1=test1\ntest2=test2\ntest3=test3",
+						ConfigMapApplicationPropertyKey: "\ntest1=test1\ntest2=test2\ntest3=test3",
 					},
 				},
 				true,

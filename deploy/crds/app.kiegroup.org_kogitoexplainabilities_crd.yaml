@@ -156,7 +156,7 @@ spec:
               type: array
               x-kubernetes-list-type: atomic
             httpPort:
-              description: HttpPort will set the environment env HTTP_PORT to define
+              description: HTTPPort will set the environment env HTTP_PORT to define
                 which port service will listen internally.
               format: int32
               type: integer
@@ -203,6 +203,14 @@ spec:
                     infrastructure.
                   type: boolean
               type: object
+            propertiesConfigMap:
+              description: Custom ConfigMap with application.properties file to be
+                mounted for the Kogito service. The ConfigMap must be created in the
+                same namespace. Use this property if you need custom properties to
+                be mounted before the application deployment. If left empty, one will
+                be created for you. Later it can be updated to add any custom properties
+                to apply to the service.
+              type: string
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster. Default value: 1.'

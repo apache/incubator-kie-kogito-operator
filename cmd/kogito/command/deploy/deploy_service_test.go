@@ -20,7 +20,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -108,4 +110,53 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
 	assert.Equal(t, 0, len(kogitoRuntime.Spec.Envs))
+}
+
+func Test_DeployCmd_WithCustomConfig(t *testing.T) {
+	tempFile, err := ioutil.TempFile("", "application.properties")
+	assert.NoError(t, err)
+	properties := `
+quarkus.log.level=DEBUG
+my.nice.property=socool
+`
+	err = ioutil.WriteFile(tempFile.Name(), []byte(properties), 0644)
+	assert.NoError(t, err)
+
+	ns := t.Name()
+	cli := fmt.Sprintf(`deploy-service process-business-rules-quarkus --image docker.io/ns/mycoolimage --config %s --project %s`, tempFile.Name(), ns)
+	ctx := test.SetupCliTest(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	lines, _, err := test.ExecuteCli()
+	assert.NoError(t, err)
+	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
+
+	// This should be created, given the command above
+	kogitoRuntime := &v1alpha1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "process-business-rules-quarkus",
+			Namespace: ns,
+		},
+	}
+
+	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoRuntime)
+	assert.NoError(t, err)
+	assert.True(t, exist)
+	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.False(t, kogitoRuntime.Spec.InfinispanMeta.InfinispanProperties.UseKogitoInfra)
+	assert.False(t, kogitoRuntime.Spec.KafkaMeta.KafkaProperties.UseKogitoInfra)
+	assert.False(t, kogitoRuntime.Spec.EnableIstio)
+	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
+	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
+	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
+	assert.Equal(t, 0, len(kogitoRuntime.Spec.Envs))
+	assert.NotEmpty(t, kogitoRuntime.Spec.PropertiesConfigMap)
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: kogitoRuntime.Spec.PropertiesConfigMap},
+	}
+	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(cm)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Contains(t, cm.Data[services.ConfigMapApplicationPropertyKey], "quarkus.log.level")
 }
