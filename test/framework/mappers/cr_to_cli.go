@@ -148,8 +148,6 @@ func GetBuildCLIFlags(kogitoBuild *v1alpha1.KogitoBuild) []string {
 		cmd = append(cmd, "--native")
 	}
 
-	image = kogitoBuild.Spec.RuntimeImage
-
 	// webhooks
 	if len(kogitoBuild.Spec.WebHooks) > 0 {
 		for _, webhook := range kogitoBuild.Spec.WebHooks {
