@@ -87,11 +87,7 @@ metadata:
             "name": "process-quarkus-example"
           },
           "spec": {
-            "image": {
-              "domain": "quay.io",
-              "name": "process-quarkus-example",
-              "namespace": "kiegroup"
-            },
+            "image": "quay.io/kiegroup/process-quarkus-example",
             "replicas": 1
           }
         },
