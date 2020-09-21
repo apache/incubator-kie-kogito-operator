@@ -34,8 +34,8 @@ var (
 )
 
 // ConvertImageTagToImage converts a plain string into an Image structure. For example, see https://regex101.com/r/1YX9rh/1.
-func ConvertImageTagToImage(imageTag string) v1alpha1.Image {
-	domain, ns, name, tag := SplitImageTag(imageTag)
+func ConvertImageTagToImage(imageName string) v1alpha1.Image {
+	domain, ns, name, tag := SplitImageTag(imageName)
 	image := v1alpha1.Image{
 		Domain:    domain,
 		Namespace: ns,

@@ -164,16 +164,7 @@ spec:
                 Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
                 an ImageStream will be created in the current namespace pointing to
                 the given image.'
-              properties:
-                domain:
-                  type: string
-                name:
-                  type: string
-                namespace:
-                  type: string
-                tag:
-                  type: string
-              type: object
+              type: string
             insecureImageRegistry:
               description: A flag indicating that image streams created by Kogito
                 Operator should be configured to allow pulling from insecure registries.

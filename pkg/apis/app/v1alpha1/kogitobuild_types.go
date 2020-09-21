@@ -106,7 +106,7 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Image"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +optional
-	BuildImage Image `json:"buildImage,omitempty"`
+	BuildImage string `json:"buildImage,omitempty"`
 
 	// Image used as the base image for the final Kogito service. This image only has the required packages to run the application.
 	// For example: quarkus based services will have only JVM installed, native services only the packages required by the OS.
@@ -116,7 +116,7 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Base Image"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +optional
-	RuntimeImage Image `json:"runtimeImage,omitempty"`
+	RuntimeImage string `json:"runtimeImage,omitempty"`
 
 	// Set this field targeting the desired KogitoRuntime when this KogitoBuild instance has a different name than the KogitoRuntime.
 	// By default this KogitoBuild instance will generate a final image named after its own name (.metadata.name).

@@ -169,16 +169,7 @@ spec:
                 Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
                 an ImageStream will be created in the current namespace pointing to
                 the given image.'
-              properties:
-                domain:
-                  type: string
-                name:
-                  type: string
-                namespace:
-                  type: string
-                tag:
-                  type: string
-              type: object
+              type: string
             infinispan:
               description: Has the data used by the service to connect to the Infinispan
                 cluster.
