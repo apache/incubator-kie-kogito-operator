@@ -19,12 +19,20 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 )
 
-func updateAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) {
-	appProps := getKafkaAppProps(kafkaInstance)
+func updateAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
+	appProps, err := getKafkaAppProps(kafkaInstance)
+	if err != nil {
+		return err
+	}
 	instance.Status.AppProps = appProps
+	return nil
 }
 
-func updateEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) {
-	envVars := getKafkaEnvVars(kafkaInstance)
+func updateEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
+	envVars, err := getKafkaEnvVars(kafkaInstance)
+	if err != nil {
+		return err
+	}
 	instance.Status.EnvVars = envVars
+	return nil
 }

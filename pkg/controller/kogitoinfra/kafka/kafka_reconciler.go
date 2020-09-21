@@ -81,7 +81,11 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 			return true, nil
 		}
 	}
-	updateAppPropsInStatus(kafkaInstance, instance)
-	updateEnvVarsInStatus(kafkaInstance, instance)
+	if resultErr = updateAppPropsInStatus(kafkaInstance, instance); resultErr != nil {
+		return true, resultErr
+	}
+	if resultErr = updateEnvVarsInStatus(kafkaInstance, instance); resultErr != nil {
+		return true, resultErr
+	}
 	return false, nil
 }

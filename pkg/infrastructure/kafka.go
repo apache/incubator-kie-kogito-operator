@@ -96,28 +96,23 @@ func GetKafkaDefaultResource(name, namespace string, defaultReplicas int32) *v1b
 }
 
 // ResolveKafkaServerURI returns the uri of the kafka instance
-func ResolveKafkaServerURI(kafka *v1beta1.Kafka) string {
+func ResolveKafkaServerURI(kafka *v1beta1.Kafka) (string, error) {
 	log.Debugf("Resolving kafka URI for given kafka instance %s", kafka.Name)
-	log.Debugf("kafka instance : %s", kafka)
-	log.Debugf("len(kafka.Status.Listeners) : %s", len(kafka.Status.Listeners))
 	if len(kafka.Status.Listeners) > 0 {
 		for _, listenerStatus := range kafka.Status.Listeners {
-			log.Debugf("listenerStatus.Type : %s", listenerStatus.Type)
-			log.Debugf("len(listenerStatus.Addresses) : %s", len(listenerStatus.Addresses))
 			if listenerStatus.Type == "plain" && len(listenerStatus.Addresses) > 0 {
 				for _, listenerAddress := range listenerStatus.Addresses {
-					log.Debugf("listenerAddress.Host : %s, listenerAddress.Port : %s", listenerAddress.Host, listenerAddress.Port)
 					if len(listenerAddress.Host) > 0 && listenerAddress.Port > 0 {
 						kafkaURI := fmt.Sprintf("%s:%d", listenerAddress.Host, listenerAddress.Port)
 						log.Debugf("Success fetch kafka URI for kafka instance(%s) : %s", kafka.Name, kafkaURI)
-						return kafkaURI
+						return kafkaURI, nil
 					}
 				}
 			}
 		}
 	}
 	log.Debug("Not able resolve URI for given kafka instance")
-	return ""
+	return "", fmt.Errorf("not able resolve URI for given kafka instance %s", kafka.Name)
 }
 
 // getKafkaInstanceWithName fetches the Kafka instance of the given name

@@ -31,23 +31,29 @@ const (
 	springBootstrapAppProp = "spring.kafka.bootstrap-servers"
 )
 
-func getKafkaEnvVars(kafkaInstance *kafkabetav1.Kafka) []corev1.EnvVar {
-	kafkaURI := infrastructure.ResolveKafkaServerURI(kafkaInstance)
+func getKafkaEnvVars(kafkaInstance *kafkabetav1.Kafka) ([]corev1.EnvVar, error) {
+	kafkaURI, err := infrastructure.ResolveKafkaServerURI(kafkaInstance)
+	if err != nil {
+		return nil, err
+	}
 	var envProps []corev1.EnvVar
 	if len(kafkaURI) > 0 {
 		envProps = append(envProps, framework.CreateEnvVar(enableEventsEnvKey, "true"))
 	} else {
 		envProps = append(envProps, framework.CreateEnvVar(enableEventsEnvKey, "false"))
 	}
-	return envProps
+	return envProps, nil
 }
 
-func getKafkaAppProps(kafkaInstance *kafkabetav1.Kafka) map[string]string {
-	kafkaURI := infrastructure.ResolveKafkaServerURI(kafkaInstance)
+func getKafkaAppProps(kafkaInstance *kafkabetav1.Kafka) (map[string]string, error) {
+	kafkaURI, err := infrastructure.ResolveKafkaServerURI(kafkaInstance)
+	if err != nil {
+		return nil, err
+	}
 	appProps := map[string]string{}
 	if len(kafkaURI) > 0 {
 		appProps[springBootstrapAppProp] = kafkaURI
 		appProps[quarkusBootstrapAppProp] = kafkaURI
 	}
-	return appProps
+	return appProps, nil
 }

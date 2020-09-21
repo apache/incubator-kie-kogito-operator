@@ -23,4 +23,5 @@ import (
 func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	removeCmd := initRemoveCommand(ctx, rootCommand)
 	initRemoveRuntimeServiceCommands(ctx, removeCmd.Command())
+	initDeleteKogitoInfraCommand(ctx, removeCmd.Command())
 }

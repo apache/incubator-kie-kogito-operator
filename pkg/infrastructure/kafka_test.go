@@ -130,7 +130,7 @@ func Test_resolveKafkaServerURI(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ResolveKafkaServerURI(tt.args.kafka); got != tt.want {
+			if got, _ := ResolveKafkaServerURI(tt.args.kafka); got != tt.want {
 				t.Errorf("ResolveKafkaServerURI() = %v, want %v", got, tt.want)
 			}
 		})

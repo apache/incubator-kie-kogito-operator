@@ -33,6 +33,7 @@ type ResourceCheckService interface {
 	CheckKogitoRuntimeNotExists(kubeCli *client.Client, name string, namespace string) error
 	CheckKogitoBuildExists(kubeCli *client.Client, name string, project string) error
 	CheckKogitoBuildNotExists(kubeCli *client.Client, name string, namespace string) error
+	CheckKogitoInfraExists(kubeCli *client.Client, name string, namespace string) error
 }
 
 type resourceCheckServiceImpl struct{}
@@ -165,4 +166,24 @@ func isKogitoBuildExists(kubeCli *client.Client, name string, namespace string) 
 		return false, fmt.Errorf("Error while trying to look for the KogitoBuild: %s ", err)
 	}
 	return exists, nil
+}
+
+// CheckKogitoInfraExists returns an error if the KogitoInfra not exists
+func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client, name string, namespace string) error {
+	log := context.GetDefaultLogger()
+	kogitoInfra := &v1alpha1.KogitoInfra{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+	exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoInfra)
+	if err != nil {
+		return err
+	} else if !exists {
+		return fmt.Errorf("Looks like a Kogito infra with the name '%s' doesn't exist in this project. Please try another name ", name)
+	} else {
+		log.Debugf("Kogito infra with name '%s' was found in the project '%s' ", name, namespace)
+		return nil
+	}
 }
