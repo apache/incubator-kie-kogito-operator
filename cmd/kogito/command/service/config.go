@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	configMapPrefix     = "-custom-properties"
+	configMapPrefix     = "custom-properties"
 	createdByAnnonKey   = "createdBy"
 	createdByAnnonValue = "Kogito CLI"
 )
