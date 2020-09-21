@@ -72,6 +72,14 @@ func GetResourceType(resource string) (ResourceType flag.ResourceType, err error
 	return "", fmt.Errorf("invalid resource %s", resource)
 }
 
+// getRawGitHubFileURL converts the GitHub URL of a file to
+// its raw URL for downloading purposes
+func getRawGitHubFileURL(resource string) string {
+	fileURL := strings.Replace(resource, "github.com", "raw.githubusercontent.com", 1)
+	fileURL = strings.Replace(fileURL, "blob/", "", 1)
+	return fileURL
+}
+
 // LoadGitFileIntoMemory reads file from remote Git location and load it in memory.
 func LoadGitFileIntoMemory(resource string) (io.Reader, string, error) {
 	log := context.GetDefaultLogger()
@@ -79,7 +87,12 @@ func LoadGitFileIntoMemory(resource string) (io.Reader, string, error) {
 	ff := strings.Split(parsedURL.Path, "/")
 	fileName := strings.Join(strings.Fields(ff[len(ff)-1]), "")
 
-	response, err := http.Get(resource)
+	fileURL := resource
+	if strings.Contains(resource, "github.com") {
+		fileURL = getRawGitHubFileURL(resource)
+	}
+
+	response, err := http.Get(fileURL)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to download %s, error message: %s", resource, err.Error())
 	}
