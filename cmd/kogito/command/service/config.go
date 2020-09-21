@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	configMapPrefix     = "custom-properties"
+	configMapSuffix     = "custom-properties"
 	createdByAnnonKey   = "createdBy"
 	createdByAnnonValue = "Kogito CLI"
 )
@@ -38,7 +38,7 @@ func createConfigMapFromFile(cli *client.Client, flags *flag.RuntimeFlags) (cmNa
 		return "", nil
 	}
 	cm := &v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-%s", flags.Name, configMapPrefix), Namespace: flags.Project},
+		ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-%s", flags.Name, configMapSuffix), Namespace: flags.Project},
 	}
 	fileContent, err := ioutil.ReadFile(flags.ConfigFile)
 	if err != nil {
