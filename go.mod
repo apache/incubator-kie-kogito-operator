@@ -2,18 +2,18 @@ module github.com/kiegroup/kogito-cloud-operator
 
 require (
 	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
-	github.com/coreos/prometheus-operator v0.38.1-0.20200424145508-7e176fda06cc
+	github.com/coreos/prometheus-operator v0.40.0
 	github.com/cucumber/gherkin-go/v11 v11.0.0
 	github.com/cucumber/godog v0.10.0
 	github.com/cucumber/messages-go/v10 v10.0.3
 	github.com/go-logr/logr v0.1.0
-	github.com/go-openapi/spec v0.19.4
+	github.com/go-openapi/spec v0.19.7
 	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.8
 	github.com/infinispan/infinispan-operator v0.0.0-20200803092941-2b0528367f08
 	github.com/karrick/godirwalk v1.16.1 // indirect
-	github.com/keycloak/keycloak-operator v0.0.0-20200110072234-2e9a66d4cae6
+	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/machinebox/graphql v0.2.2
 	github.com/matryer/is v1.2.0 // indirect
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
@@ -21,7 +21,7 @@ require (
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20200321030439-57b580e57e88
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/operator-framework/operator-sdk v0.18.2
-	github.com/prometheus/common v0.9.1
+	github.com/prometheus/common v0.10.0
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/spf13/cobra v1.0.0
