@@ -101,7 +101,7 @@ type KogitoBuildSpec struct {
 
 	// Image used to build the Kogito Service from source (Local and Remote).
 	// The operator will use the one provided by the Kogito Team based on the "Runtime" field.
-	// Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jvm-builder, Tag: latest.
+	// Example: "quay.io/kiegroup/kogito-jvm-builder:latest".
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Image"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
@@ -111,7 +111,7 @@ type KogitoBuildSpec struct {
 	// Image used as the base image for the final Kogito service. This image only has the required packages to run the application.
 	// For example: quarkus based services will have only JVM installed, native services only the packages required by the OS.
 	// The operator will use the one provided by the Kogito Team based on the "Runtime" field.
-	// Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jvm-builder, Tag: latest.
+	// Example: "quay.io/kiegroup/kogito-jvm-builder:latest".
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Base Image"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true

@@ -515,7 +515,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -724,7 +724,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1064,7 +1064,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1387,7 +1387,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
