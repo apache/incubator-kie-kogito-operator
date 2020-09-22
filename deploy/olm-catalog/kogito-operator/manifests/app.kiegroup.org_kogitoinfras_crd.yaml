@@ -3,19 +3,6 @@ kind: CustomResourceDefinition
 metadata:
   name: kogitoinfras.app.kiegroup.org
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.installInfinispan
-    description: Infinispan should be installed
-    name: Infinispan
-    type: boolean
-  - JSONPath: .spec.installKafka
-    description: Kafka should be installed
-    name: Kafka
-    type: boolean
-  - JSONPath: .spec.installKeycloak
-    description: Keycloak should be installed
-    name: Keycloak
-    type: boolean
   group: app.kiegroup.org
   names:
     kind: KogitoInfra
@@ -23,14 +10,14 @@ spec:
     plural: kogitoinfras
     singular: kogitoinfra
   scope: Namespaced
-  subresources: {}
   validation:
     openAPIV3Schema:
       description: KogitoInfra will be managed automatically by the operator, don't
         need to create it manually. Kogito Infra is responsible to delegate the creation
         of each infrastructure dependency (such as Infinispan) to a third party operator.
         It holds the deployment status of each infrastructure dependency and custom
-        resources needed to run Kogito Runtime and Kogito Data Index services.
+        resources needed to run Kogito Runtime and Kogito Data Index services. KafkaTopics
+        to be created for supporting services if KogitoInfra relates to a Kafka kind
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation

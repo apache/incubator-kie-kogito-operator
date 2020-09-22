@@ -407,7 +407,8 @@ spec:
         need to create it manually. Kogito Infra is responsible to delegate the creation
         of each infrastructure dependency (such as Infinispan) to a third party operator.
         It holds the deployment status of each infrastructure dependency and custom
-        resources needed to run Kogito Runtime and Kogito Data Index services.
+        resources needed to run Kogito Runtime and Kogito Data Index services. KafkaTopics
+        to be created for supporting services if KogitoInfra relates to a Kafka kind
       displayName: Kogito Infra
       kind: KogitoInfra
       name: kogitoinfras.app.kiegroup.org

@@ -71,6 +71,8 @@ type ServiceDefinition struct {
 	// RequiresTrusty when set to true, the Trusty instance is queried in the given namespace and its Route injected in this service.
 	// The service is not deployed until the trusty service is found
 	RequiresTrusty bool
+	// KafkaTopics is a collection of Kafka Topics to be created within the service
+	KafkaTopics []KafkaTopicDefinition
 	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe
 	HealthCheckProbe HealthCheckProbeType
 	// customService indicates that the service can be built within the cluster

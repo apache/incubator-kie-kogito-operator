@@ -2,7 +2,6 @@ module github.com/kiegroup/kogito-cloud-operator
 
 require (
 	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/coreos/prometheus-operator v0.40.0
 	github.com/cucumber/gherkin-go/v11 v11.0.0
 	github.com/cucumber/godog v0.10.0

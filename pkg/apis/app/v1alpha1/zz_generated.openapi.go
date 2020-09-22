@@ -803,7 +803,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfra(ref common.ReferenceCallback) comm
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "KogitoInfra will be managed automatically by the operator, don't need to create it manually. Kogito Infra is responsible to delegate the creation of each infrastructure dependency (such as Infinispan) to a third party operator. It holds the deployment status of each infrastructure dependency and custom resources needed to run Kogito Runtime and Kogito Data Index services.",
+				Description: "KogitoInfra will be managed automatically by the operator, don't need to create it manually. Kogito Infra is responsible to delegate the creation of each infrastructure dependency (such as Infinispan) to a third party operator. It holds the deployment status of each infrastructure dependency and custom resources needed to run Kogito Runtime and Kogito Data Index services. KafkaTopics to be created for supporting services if KogitoInfra relates to a Kafka kind",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {

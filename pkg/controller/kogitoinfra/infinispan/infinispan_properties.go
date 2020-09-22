@@ -109,20 +109,5 @@ func getInfinispanAppProps(cli *client.Client, name string, namespace string) (m
 		appProps[propertiesInfinispanSpring[appPropInfinispanServerList]] = infinispanURI
 		appProps[propertiesInfinispanQuarkus[appPropInfinispanServerList]] = infinispanURI
 	}
-
-	// TODO : Check requirement -> How operator could configure these properties as user don't provide any infinispan spec input
-	/*if len(secretName) > 0 {
-		appProps[propertiesInfinispanSpring[appPropInfinispanUseAuth]] = "true"
-		appProps[propertiesInfinispanQuarkus[appPropInfinispanUseAuth]] = "true"
-	}
-	if len(infinispanProps.AuthRealm) > 0 {
-		appProps[vars[appPropInfinispanAuthRealm]] = infinispanProps.AuthRealm
-	}
-	if len(infinispanProps.SaslMechanism) > 0 {
-		appProps[vars[appPropInfinispanSaslMechanism]] = string(infinispanProps.SaslMechanism)
-	}
-	if len(infinispanProps.URI) > 0 {
-		appProps[vars[appPropInfinispanServerList]] = infinispanProps.URI
-	}*/
 	return appProps, nil
 }

@@ -125,6 +125,7 @@ func (r *ReconcileKogitoJobsService) Reconcile(request reconcile.Request) (resul
 		RequiresPersistence: false,
 		RequiresMessaging:   false,
 		HealthCheckProbe:    services.QuarkusHealthCheckProbe,
+		KafkaTopics:         kafkaTopics,
 	}
 	if requeueAfter, err := services.NewSingletonServiceDeployer(definition, instances, r.client, r.scheme).Deploy(); err != nil {
 		return reconcile.Result{}, err
@@ -140,7 +141,12 @@ const (
 	maxIntervalLimitRetryEnvKey       = "MAX_INTERVAL_LIMIT_RETRY"
 	backOffRetryDefaultValue          = 1000
 	maxIntervalLimitRetryDefaultValue = 60000
+	kafkaTopicNameJobsEvents          = "kogito-job-service-job-status-events"
 )
+
+var kafkaTopics = []services.KafkaTopicDefinition{
+	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicOutgoing},
+}
 
 func onDeploymentCreate(cli *kogitocli.Client, deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
 	jobService := service.(*appv1alpha1.KogitoJobsService)

@@ -127,6 +127,7 @@ func (r *ReconcileKogitoExplainability) Reconcile(request reconcile.Request) (re
 	definition := services.ServiceDefinition{
 		DefaultImageName:    infrastructure.DefaultExplainabilityImageName,
 		Request:             request,
+		KafkaTopics:         kafkaTopics,
 		RequiresPersistence: false,
 		RequiresMessaging:   true,
 		HealthCheckProbe:    services.QuarkusHealthCheckProbe,
@@ -138,4 +139,15 @@ func (r *ReconcileKogitoExplainability) Reconcile(request reconcile.Request) (re
 	}
 
 	return reconcile.Result{}, nil
+}
+
+const (
+	// Collection of kafka topics that should be handled by the Explainability service
+	kafkaTopicNameExplainabilityRequest string = "trusty-explainability-request"
+	kafkaTopicNameExplainabilityResult  string = "trusty-explainability-result"
+)
+
+var kafkaTopics = []services.KafkaTopicDefinition{
+	{TopicName: kafkaTopicNameExplainabilityRequest, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameExplainabilityResult, MessagingType: services.KafkaTopicOutgoing},
 }

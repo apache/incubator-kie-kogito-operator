@@ -77,6 +77,9 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 				return resources, reconcileAfter, err
 			}
 		}
+
+		s.applyKafkaConfigurations(appProps)
+
 		s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
 
 		// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998

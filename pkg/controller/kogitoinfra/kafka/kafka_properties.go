@@ -24,11 +24,11 @@ import (
 const (
 	enableEventsEnvKey = "ENABLE_EVENTS"
 
-	// quarkusBootstrapAppProp quarkus application property for setting kafka server
-	quarkusBootstrapAppProp = "kafka.bootstrap.servers"
+	// QuarkusKafkaBootstrapAppProp quarkus application property for setting kafka server
+	QuarkusKafkaBootstrapAppProp = "kafka.bootstrap.servers"
 
-	// springBootstrapAppProp spring boot application property for setting kafka server
-	springBootstrapAppProp = "spring.kafka.bootstrap-servers"
+	// springKafkaBootstrapAppProp spring boot application property for setting kafka server
+	springKafkaBootstrapAppProp = "spring.kafka.bootstrap-servers"
 )
 
 func getKafkaEnvVars(kafkaInstance *kafkabetav1.Kafka) ([]corev1.EnvVar, error) {
@@ -52,8 +52,8 @@ func getKafkaAppProps(kafkaInstance *kafkabetav1.Kafka) (map[string]string, erro
 	}
 	appProps := map[string]string{}
 	if len(kafkaURI) > 0 {
-		appProps[springBootstrapAppProp] = kafkaURI
-		appProps[quarkusBootstrapAppProp] = kafkaURI
+		appProps[springKafkaBootstrapAppProp] = kafkaURI
+		appProps[QuarkusKafkaBootstrapAppProp] = kafkaURI
 	}
 	return appProps, nil
 }

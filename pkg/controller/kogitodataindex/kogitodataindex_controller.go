@@ -130,6 +130,7 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 		DefaultImageName:    infrastructure.DefaultDataIndexImageName,
 		Request:             request,
 		OnDeploymentCreate:  r.onDeploymentCreate,
+		KafkaTopics:         kafkaTopics,
 		RequiresPersistence: true,
 		RequiresMessaging:   true,
 		HealthCheckProbe:    services.QuarkusHealthCheckProbe,
@@ -148,7 +149,22 @@ const (
 	protoBufKeyFolder                  string = "KOGITO_PROTOBUF_FOLDER"
 	protoBufKeyWatch                   string = "KOGITO_PROTOBUF_WATCH"
 	protoBufConfigMapVolumeDefaultMode int32  = 420
+
+	// Collection of kafka topics that should be handled by the Data Index
+	kafkaTopicNameProcessInstances  string = "kogito-processinstances-events"
+	kafkaTopicNameUserTaskInstances string = "kogito-usertaskinstances-events"
+	kafkaTopicNameProcessDomain     string = "kogito-processdomain-events"
+	kafkaTopicNameUserTaskDomain    string = "kogito-usertaskdomain-events"
+	kafkaTopicNameJobsEvents        string = "kogito-jobs-events"
 )
+
+var kafkaTopics = []services.KafkaTopicDefinition{
+	{TopicName: kafkaTopicNameProcessInstances, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameUserTaskInstances, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameProcessDomain, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameUserTaskDomain, MessagingType: services.KafkaTopicIncoming},
+	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicIncoming},
+}
 
 func (r *ReconcileKogitoDataIndex) onDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {

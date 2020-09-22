@@ -94,11 +94,9 @@ const (
 // infrastructure dependency (such as Infinispan) to a third party operator.
 // It holds the deployment status of each infrastructure dependency and custom
 // resources needed to run Kogito Runtime and Kogito Data Index services.
+// KafkaTopics to be created for supporting services if KogitoInfra relates to a Kafka kind
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
-// +kubebuilder:printcolumn:name="Infinispan",type="boolean",JSONPath=".spec.installInfinispan",description="Infinispan should be installed"
-// +kubebuilder:printcolumn:name="Kafka",type="boolean",JSONPath=".spec.installKafka",description="Kafka should be installed"
-// +kubebuilder:printcolumn:name="Keycloak",type="boolean",JSONPath=".spec.installKeycloak",description="Keycloak should be installed"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1,\"A Kafka instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispan,infinispan.org/v1,\"A Infinispan instance\""
