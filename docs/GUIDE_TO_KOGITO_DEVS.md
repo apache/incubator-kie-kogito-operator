@@ -1,3 +1,4 @@
+#trigger bot test
 # Guide for Core/Runtimes team to Smoke test local changes on Openshift/k8s Cluster.
 
 This guide aims to help core/runtimes developer to test their local changes with respect to the operator.
