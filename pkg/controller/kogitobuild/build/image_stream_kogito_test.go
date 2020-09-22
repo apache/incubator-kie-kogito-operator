@@ -36,11 +36,11 @@ func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
 	}
 	buildQuarkusCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, RuntimeImage: v1alpha1.Image{Name: "my-image"}},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, RuntimeImage: "my-image:1.0"},
 	}
 	buildSpringBootCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBootCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: v1alpha1.Image{Name: "my-image"}},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: "my-image:1.0"},
 	}
 	tag := ":" + infrastructure.GetKogitoImageVersion()
 	type args struct {
@@ -85,11 +85,11 @@ func Test_resolveKogitoImageStreamName(t *testing.T) {
 	}
 	buildQuarkusCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, RuntimeImage: v1alpha1.Image{Name: "my-image"}},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, RuntimeImage: "my-image"},
 	}
 	buildSpringBootCustom := &v1alpha1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBootCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: v1alpha1.Image{Name: "my-image"}},
+		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: "my-image"},
 	}
 	type args struct {
 		build     *v1alpha1.KogitoBuild

@@ -165,20 +165,10 @@ spec:
               format: int32
               type: integer
             image:
-              description: 'Image definition for the service. Example: Domain: quay.io,
-                Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
-                an ImageStream will be created in the current namespace pointing to
-                the given image.'
-              properties:
-                domain:
-                  type: string
-                name:
-                  type: string
-                namespace:
-                  type: string
-                tag:
-                  type: string
-              type: object
+              description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+                On OpenShift an ImageStream will be created in the current namespace
+                pointing to the given image.'
+              type: string
             infinispan:
               description: Has the data used by the service to connect to the Infinispan
                 cluster.

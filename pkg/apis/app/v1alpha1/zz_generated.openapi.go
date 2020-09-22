@@ -515,8 +515,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -580,7 +581,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -723,8 +724,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -794,7 +796,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -1062,8 +1064,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -1141,7 +1144,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -1384,8 +1387,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -1449,7 +1453,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.InfinispanConnectionProperties", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KafkaConnectionProperties", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

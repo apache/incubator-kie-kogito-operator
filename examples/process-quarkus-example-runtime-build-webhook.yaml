@@ -6,14 +6,12 @@ kind: KogitoBuild
 metadata:
   name: process-quarkus-example
 spec:
-  buildImage:
-    tag: "0.12"
+  buildImage: quay.io/yournamespace/process-quarkus-example:0.12
   gitSource:
     contextDir: process-quarkus-example
     uri: https://github.com/kiegroup/kogito-examples
   runtime: quarkus
-  runtimeImage:
-    tag: "0.12"
+  runtimeImage: quay.io/yournamespace/process-quarkus-example:0.12
   type: RemoteSource
   webHooks:
     - type: "GitHub"

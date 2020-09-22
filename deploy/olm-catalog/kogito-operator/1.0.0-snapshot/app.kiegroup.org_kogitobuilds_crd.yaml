@@ -80,19 +80,10 @@ spec:
             buildImage:
               description: 'Image used to build the Kogito Service from source (Local
                 and Remote). The operator will use the one provided by the Kogito
-                Team based on the "Runtime" field. Example: Domain: quay.io, Namespace:
-                kiegroup, Name: kogito-jvm-builder, Tag: latest. On OpenShift an ImageStream
-                will be created in the current namespace pointing to the given image.'
-              properties:
-                domain:
-                  type: string
-                name:
-                  type: string
-                namespace:
-                  type: string
-                tag:
-                  type: string
-              type: object
+                Team based on the "Runtime" field. Example: "quay.io/kiegroup/kogito-jvm-builder:latest".
+                On OpenShift an ImageStream will be created in the current namespace
+                pointing to the given image.'
+              type: string
             disableIncremental:
               description: DisableIncremental indicates that source to image builds
                 should NOT be incremental. Defaults to false.
@@ -271,19 +262,10 @@ spec:
                 For example: quarkus based services will have only JVM installed,
                 native services only the packages required by the OS. The operator
                 will use the one provided by the Kogito Team based on the "Runtime"
-                field. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-jvm-builder,
-                Tag: latest. On OpenShift an ImageStream will be created in the current
-                namespace pointing to the given image.'
-              properties:
-                domain:
-                  type: string
-                name:
-                  type: string
-                namespace:
-                  type: string
-                tag:
-                  type: string
-              type: object
+                field. Example: "quay.io/kiegroup/kogito-jvm-builder:latest". On OpenShift
+                an ImageStream will be created in the current namespace pointing to
+                the given image.'
+              type: string
             targetKogitoRuntime:
               description: Set this field targeting the desired KogitoRuntime when
                 this KogitoBuild instance has a different name than the KogitoRuntime.

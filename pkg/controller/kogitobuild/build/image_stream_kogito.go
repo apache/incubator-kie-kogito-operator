@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
 	v1 "k8s.io/api/core/v1"
@@ -125,9 +126,9 @@ func resolveKogitoImageNameTag(build *v1alpha1.KogitoBuild, isBuilder bool) stri
 
 // resolveKogitoImageTag resolves the ImageTag to be used in the given build, e.g. 0.11
 func resolveKogitoImageTag(build *v1alpha1.KogitoBuild, isBuilder bool) string {
-	image := &build.Spec.RuntimeImage
+	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
 	if isBuilder {
-		image = &build.Spec.BuildImage
+		image = framework.ConvertImageTagToImage(build.Spec.BuildImage)
 	}
 	if len(image.Tag) > 0 {
 		return image.Tag
@@ -137,9 +138,9 @@ func resolveKogitoImageTag(build *v1alpha1.KogitoBuild, isBuilder bool) string {
 
 // resolveKogitoImageName resolves the ImageName to be used in the given build, e.g. kogito-quarkus-ubi8-s2i
 func resolveKogitoImageName(build *v1alpha1.KogitoBuild, isBuilder bool) string {
-	image := &build.Spec.RuntimeImage
+	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
 	if isBuilder {
-		image = &build.Spec.BuildImage
+		image = framework.ConvertImageTagToImage(build.Spec.BuildImage)
 	}
 	if len(image.Name) > 0 {
 		return image.Name
@@ -154,9 +155,9 @@ func resolveKogitoImageName(build *v1alpha1.KogitoBuild, isBuilder bool) string 
 // resolveKogitoImageName resolves the ImageName to be used in the given build, e.g. kogito-quarkus-ubi8-s2i
 func resolveKogitoImageStreamName(build *v1alpha1.KogitoBuild, isBuilder bool) string {
 	imageName := resolveKogitoImageName(build, isBuilder)
-	image := &build.Spec.RuntimeImage
+	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
 	if isBuilder {
-		image = &build.Spec.BuildImage
+		image = framework.ConvertImageTagToImage(build.Spec.BuildImage)
 	}
 	if len(image.Name) > 0 { // custom image
 		return strings.Join([]string{customKogitoImagePrefix, imageName}, "")
@@ -175,9 +176,9 @@ func resolveKogitoImageStreamTagName(build *v1alpha1.KogitoBuild, isBuilder bool
 func resolveKogitoImageRegistryNamespace(build *v1alpha1.KogitoBuild, isBuilder bool) string {
 	namespace := infrastructure.DefaultImageNamespace
 	registry := infrastructure.DefaultImageRegistry
-	image := &build.Spec.RuntimeImage
+	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
 	if isBuilder {
-		image = &build.Spec.BuildImage
+		image = framework.ConvertImageTagToImage(build.Spec.BuildImage)
 	}
 	if len(image.Domain) > 0 {
 		registry = image.Domain

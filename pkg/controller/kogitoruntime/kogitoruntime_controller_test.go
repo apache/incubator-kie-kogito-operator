@@ -88,12 +88,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 			Runtime: v1alpha1.SpringBootRuntimeType,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
-				Image: v1alpha1.Image{
-					Domain:    "quay.io",
-					Name:      "process-springboot-example-default",
-					Namespace: "custom",
-					Tag:       "latest",
-				},
+				Image:    "quay.io/custom/process-springboot-example-default:latest",
 			},
 		},
 	}

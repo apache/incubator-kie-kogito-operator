@@ -4,8 +4,7 @@ metadata:
   name: management-console
 spec:
   replicas: 1
-  image:
-    tag: "0.12"
+  image: quay.io/kiegroup/kogito-management-console:0.12
   # we use environment variables to set the external data index URL
   # this is needed for now since Management Console is a client application, we are working on having a local proxy to
   # use the Kubernetes service instead

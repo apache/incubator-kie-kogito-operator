@@ -58,12 +58,7 @@ func TestReconcileKogitoMgmtConsole_CustomImage(t *testing.T) {
 		Spec: v1alpha1.KogitoMgmtConsoleSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
-				Image: v1alpha1.Image{
-					Domain:    "quay.io",
-					Name:      "super-mgmt-console",
-					Namespace: "mynamespace",
-					Tag:       "0.1.3",
-				},
+				Image:    "quay.io/mynamespace/super-mgmt-console:0.1.3",
 			},
 		},
 	}
