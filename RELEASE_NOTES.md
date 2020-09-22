@@ -4,5 +4,5 @@
 
 ## Bug Fixes
 
-- 
+- [KOGITO-3382](https://issues.redhat.com/browse/KOGITO-3382) - Transitive dependency of Keycloak operator module missing
 
