@@ -59,7 +59,7 @@ pipeline {
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
                     junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
                 }
             }
@@ -73,9 +73,9 @@ pipeline {
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                     junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                      sh "cd test && go run scripts/prune_namespaces.go"
+                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                    sh "cd test && go run scripts/prune_namespaces.go"
                 }
             }
         }
