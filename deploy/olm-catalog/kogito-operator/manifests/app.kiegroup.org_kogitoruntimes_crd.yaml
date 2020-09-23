@@ -54,7 +54,7 @@ spec:
                 metadata for Istio to setup its sidecars, enabling the mesh. Defaults
                 to false.
               type: boolean
-            envs:
+            env:
               description: Environment variables to be added to the runtime container.
                 Keys must be a C_IDENTIFIER.
               items:

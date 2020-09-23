@@ -176,7 +176,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: Environment variables used during build time.
         displayName: Build Env Variables
-        path: envs
+        path: env
       - description: Context/subdirectory where the code is located, relative to the
           repo root.
         displayName: Git Context
@@ -284,7 +284,7 @@ spec:
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Envs
-        path: envs
+        path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
           to the given image.'
@@ -370,7 +370,7 @@ spec:
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Envs
-        path: envs
+        path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
           to the given image.'
@@ -505,7 +505,7 @@ spec:
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Envs
-        path: envs
+        path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
           to the given image.'
@@ -595,7 +595,7 @@ spec:
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Envs
-        path: envs
+        path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
           to the given image.'
@@ -687,7 +687,7 @@ spec:
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Envs
-        path: envs
+        path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
           to the given image.'
@@ -783,7 +783,7 @@ spec:
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Envs
-        path: envs
+        path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
           to the given image.'
@@ -868,7 +868,7 @@ spec:
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Envs
-        path: envs
+        path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
           to the given image.'

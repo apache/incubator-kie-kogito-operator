@@ -134,7 +134,7 @@ type KogitoServiceSpec struct {
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Envs []corev1.EnvVar `json:"envs,omitempty"`
+	Envs []corev1.EnvVar `json:"env,omitempty"`
 
 	// +optional
 	// Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
