@@ -64,11 +64,11 @@ pipeline {
                 }
             }
         }
-        stage('Running Non native tests') {
+        stage('Running smoke tests') {
             steps {
-                // Do not run native tests as the native images are not built in 'Build examples' images for testing'
+                // Run just smoke tests to verify basic operator functionality
                 sh """
-                    make run-tests concurrent=5 tags='~@native' ${getBDDParameters('always', true)}
+                    make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
                 """
             }
             post {
@@ -105,8 +105,6 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     testParamsMap["runtime_application_image_version"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
     
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
-
-    testParamsMap['feature'] = "features/operator"
 
     String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(" ")
     echo "BDD parameters = ${testParams}"
