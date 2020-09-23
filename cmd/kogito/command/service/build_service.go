@@ -59,11 +59,21 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 
 	resourceType, err := GetResourceType(resource)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if resourceType == flag.GitRepositoryResource {
 		flags.GitSourceFlags.Source = resource
+	}
+
+	native, err := converter.FromArgsToNative(flags.Native, resourceType, resource)
+	if err != nil {
+		return err
+	}
+
+	runtime, err := converter.FromArgsToRuntimeType(&flags.RuntimeTypeFlags, resourceType, resource)
+	if err != nil {
+		return err
 	}
 
 	kogitoBuild := v1alpha1.KogitoBuild{
@@ -76,9 +86,9 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 			DisableIncremental:        !flags.IncrementalBuild,
 			Envs:                      converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
 			GitSource:                 converter.FromGitSourceFlagsToGitSource(&flags.GitSourceFlags),
-			Runtime:                   converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
+			Runtime:                   runtime,
 			WebHooks:                  converter.FromWebHookFlagsToWebHookSecret(&flags.WebHookFlags),
-			Native:                    flags.Native,
+			Native:                    native,
 			Resources:                 converter.FromPodResourceFlagsToResourceRequirement(&flags.PodResourceFlags),
 			MavenMirrorURL:            flags.MavenMirrorURL,
 			BuildImage:                flags.BuildImage,
@@ -104,7 +114,8 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 		return err
 	}
 
-	if err := createBuildIfRequires(flags.Name, flags.Project, resource, resourceType); err != nil {
+	binaryBuildType := converter.FromArgsToBinaryBuildType(resourceType, runtime, native)
+	if err := createBuildIfRequires(flags.Name, flags.Project, resource, resourceType, binaryBuildType); err != nil {
 		return err
 	}
 
@@ -154,7 +165,7 @@ func (i buildService) DeleteBuildService(cli *client.Client, name, project strin
 	return nil
 }
 
-func createBuildIfRequires(name, namespace, resource string, resourceType flag.ResourceType) error {
+func createBuildIfRequires(name, namespace, resource string, resourceType flag.ResourceType, binaryBuildType flag.BinaryBuildType) error {
 	switch resourceType {
 	case flag.GitRepositoryResource:
 		handleGitRepositoryBuild(name, namespace)
@@ -162,8 +173,8 @@ func createBuildIfRequires(name, namespace, resource string, resourceType flag.R
 		if err := handleGitFileResourceBuild(name, namespace, resource); err != nil {
 			return err
 		}
-	case flag.LocalDirectoryResource:
-		if err := handleLocalDirectoryResourceBuild(name, namespace, resource); err != nil {
+	case flag.LocalDirectoryResource, flag.LocalBinaryDirectoryResource:
+		if err := handleLocalDirectoryResourceBuild(name, namespace, resource, binaryBuildType); err != nil {
 			return err
 		}
 	case flag.LocalFileResource:
@@ -187,18 +198,24 @@ func handleGitFileResourceBuild(name, namespace, resource string) error {
 	if err != nil {
 		return err
 	}
-	if err = triggerBuild(name, namespace, fileReader, fileName); err != nil {
+	if err = triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
 		return err
 	}
 	return nil
 }
 
-func handleLocalDirectoryResourceBuild(name, namespace, resource string) error {
-	fileReader, fileName, err := ZipAndLoadLocalDirectoryIntoMemory(resource)
+func handleLocalDirectoryResourceBuild(name, namespace, resource string, binaryBuildType flag.BinaryBuildType) error {
+	fileReader, fileName, err := ZipAndLoadLocalDirectoryIntoMemory(resource, binaryBuildType)
 	if err != nil {
 		return err
 	}
-	if err = triggerBuild(name, namespace, fileReader, fileName); err != nil {
+
+	binaryBuild := true
+	if binaryBuildType == flag.SourceToImageBuild {
+		binaryBuild = false
+	}
+
+	if err = triggerBuild(name, namespace, fileReader, fileName, binaryBuild); err != nil {
 		return err
 	}
 	return nil
@@ -209,7 +226,7 @@ func handleLocalFileResourceBuild(name, namespace, resource string) error {
 	if err != nil {
 		return err
 	}
-	if err = triggerBuild(name, namespace, fileReader, fileName); err != nil {
+	if err = triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
 		return err
 	}
 	return nil
@@ -220,7 +237,7 @@ func handleBinaryResourceBuild(name, namespace string) {
 	log.Infof(message.KogitoBuildUploadBinariesInstruction, name, namespace)
 }
 
-func triggerBuild(name string, namespace string, fileReader io.Reader, fileName string) error {
+func triggerBuild(name string, namespace string, fileReader io.Reader, fileName string, binaryBuild bool) error {
 	log := context.GetDefaultLogger()
 	options := &buildv1.BinaryBuildRequestOptions{}
 	options.Name = name
@@ -234,11 +251,15 @@ func triggerBuild(name string, namespace string, fileReader io.Reader, fileName 
 	}
 
 	log.Info(message.BuildTriggeringNewBuild)
-	build, err := openshift.BuildConfigC(cli).TriggerBuildFromFile(namespace, fileReader, options)
+	build, err := openshift.BuildConfigC(cli).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild)
 	if err != nil {
 		return err
 	}
 
-	log.Infof(message.KogitoBuildSuccessfullyUploadedFile, build.Name, name, namespace)
+	if binaryBuild {
+		log.Infof(message.KogitoBuildSuccessfullyUploadedBinaries, build.Name, name, namespace)
+	} else {
+		log.Infof(message.KogitoBuildSuccessfullyUploadedFile, build.Name, name, namespace)
+	}
 	return nil
 }

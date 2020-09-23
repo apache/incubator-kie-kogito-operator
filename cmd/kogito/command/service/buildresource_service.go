@@ -18,14 +18,16 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/iozip"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 )
+
+const localBinaryDirectoryName = "target"
 
 // GetResourceType drive resource type using provide resource URI.
 // If resource URI is not provided then its a Binary build request
@@ -49,7 +51,7 @@ func GetResourceType(resource string) (ResourceType flag.ResourceType, err error
 		// check whether resource is Git File or Git Repo
 		ff := strings.Split(resource, "/")
 		fileName := strings.Join(strings.Fields(ff[len(ff)-1]), "")
-		if util.IsSuffixSupported(fileName) {
+		if iozip.IsSuffixSupported(fileName, flag.SourceToImageBuild) {
 			return flag.GitFileResource, nil
 		}
 		return flag.GitRepositoryResource, nil
@@ -61,11 +63,14 @@ func GetResourceType(resource string) (ResourceType flag.ResourceType, err error
 		return
 	}
 	if fileInfo.Mode().IsRegular() {
-		if util.IsSuffixSupported(resource) {
+		if iozip.IsSuffixSupported(resource, flag.SourceToImageBuild) {
 			return flag.LocalFileResource, nil
 		}
 		return "", fmt.Errorf("invalid resource %s", resource)
 	} else if fileInfo.Mode().IsDir() {
+		if fileInfo.Name() == localBinaryDirectoryName {
+			return flag.LocalBinaryDirectoryResource, nil
+		}
 		return flag.LocalDirectoryResource, nil
 	}
 
@@ -114,10 +119,10 @@ func LoadLocalFileIntoMemory(resource string) (io.Reader, string, error) {
 }
 
 // ZipAndLoadLocalDirectoryIntoMemory zip the given directory URI and load it in memory.
-func ZipAndLoadLocalDirectoryIntoMemory(resource string) (io.Reader, string, error) {
+func ZipAndLoadLocalDirectoryIntoMemory(resource string, binaryBuildType flag.BinaryBuildType) (io.Reader, string, error) {
 	log := context.GetDefaultLogger()
 	log.Info(message.KogitoBuildProvidedFileIsDir)
-	ioTgzR, err := util.ProduceTGZfile(resource)
+	ioTgzR, err := iozip.CompressAsTGZ(resource, binaryBuildType)
 	if err != nil {
 		return nil, "", err
 	}

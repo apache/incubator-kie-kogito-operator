@@ -14,7 +14,7 @@ spec:
   type: RemoteSource
 ---
 # here we have an alternative way of building our fancy project, that's it from a local binary
-# we can start a new build with "oc start-build process-quarkus-example-binary --from-dir=target" from our project root
+# we can start a new build with "oc start-build process-quarkus-example --from-dir=target" from our project root
 # both builds will share the same ImageStream, so every time we build a new version of the project, it will redeploy the KogitoRuntime counterpart
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoBuild
