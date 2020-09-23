@@ -62,17 +62,6 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.Equal(t, 2, len(kogitoRuntime.Spec.Envs))
 }
 
-func Test_DeployCmd_NativeBuildWithoutSource(t *testing.T) {
-	ns := t.Name()
-	cli := fmt.Sprintf(`deploy-service native-build --native --project %s`, ns)
-	_ = test.SetupCliTest(cli,
-		context.CommandFactory{BuildCommands: BuildCommands},
-		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
-	assert.Error(t, err)
-	assert.Contains(t, lines, "Error: native builds currently only work with s2i. Please provide [SOURCE] argument")
-}
-
 func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf(`deploy-service process-business-rules-quarkus --image localhost:5000/kiegroup/process-business-rules-quarkus --project %s`, ns)

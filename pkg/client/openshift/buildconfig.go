@@ -51,7 +51,7 @@ type BuildState struct {
 type BuildConfigInterface interface {
 	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, imageName string) (BuildState, error)
 	TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) (bool, error)
-	TriggerBuildFromFile(namespace string, r io.Reader, options *buildv1.BinaryBuildRequestOptions) (*buildv1.Build, error)
+	TriggerBuildFromFile(namespace string, r io.Reader, options *buildv1.BinaryBuildRequestOptions, binaryBuild bool) (*buildv1.Build, error)
 	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error)
 	GetBuildsStatusByLabel(namespace, labelSelector string) (*v1alpha1.Builds, error)
 }
@@ -132,10 +132,13 @@ func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) 
 
 // TriggerBuildFromFile will be called by kogito-cli when a build from file is performed.
 // When called a new build will be triggered with the request kogito resource or a tgz file.
-func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader, options *buildv1.BinaryBuildRequestOptions) (*buildv1.Build, error) {
-
+func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader, options *buildv1.BinaryBuildRequestOptions, binaryBuild bool) (*buildv1.Build, error) {
 	result := &buildv1.Build{}
-	buildName := fmt.Sprintf("%s%s", options.Name, "-builder")
+
+	buildName := options.Name
+	if !binaryBuild {
+		buildName += "-builder"
+	}
 
 	// before upload the file, make sure that the build exist
 	err := b.waitForBuildConfig(b.checkBcRetries, b.checkBcRetriesInterval, func() error {

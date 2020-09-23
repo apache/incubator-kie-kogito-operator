@@ -17,9 +17,35 @@ package converter
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"io/ioutil"
+	"strings"
 )
 
 // FromRuntimeFlagsToRuntimeType converts given RuntimeTypeFlags into RuntimeType
 func FromRuntimeFlagsToRuntimeType(flags *flag.RuntimeTypeFlags) v1alpha1.RuntimeType {
 	return v1alpha1.RuntimeType(flags.Runtime)
+}
+
+// FromArgsToRuntimeType determines what the runtime is based on
+// arguments
+func FromArgsToRuntimeType(flags *flag.RuntimeTypeFlags, resourceType flag.ResourceType, resource string) (v1alpha1.RuntimeType, error) {
+	runtimeType := FromRuntimeFlagsToRuntimeType(flags)
+
+	// if given local binary directory, can determine what
+	// runtime type is needed based on presence of runner file
+	if resourceType == flag.LocalBinaryDirectoryResource {
+		files, err := ioutil.ReadDir(resource)
+		if err != nil {
+			return runtimeType, err
+		}
+
+		for _, file := range files {
+			if strings.HasSuffix(file.Name(), "-runner") || strings.HasSuffix(file.Name(), "-runner.jar") {
+				return v1alpha1.QuarkusRuntimeType, nil
+			}
+		}
+		return v1alpha1.SpringBootRuntimeType, nil
+	}
+
+	return runtimeType, nil
 }
