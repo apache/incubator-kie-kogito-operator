@@ -46,7 +46,7 @@ func Test_DeployTrustyUICmd_DefaultConfiguration(t *testing.T) {
 	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(trustyUI)
 	assert.NoError(t, err)
 	assert.True(t, exits)
-	assert.Equal(t, trustyUI.Spec.Image.Name, "")
+	assert.Equal(t, trustyUI.Spec.Image, "")
 	assert.False(t, trustyUI.Spec.InsecureImageRegistry)
 }
 
@@ -69,9 +69,6 @@ func Test_DeployTrustyUICmd_CustomConfiguration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exits)
 	assert.True(t, trustyUI.Spec.InsecureImageRegistry)
-	assert.Equal(t, "trusty-ui", trustyUI.Spec.Image.Name)
-	assert.Equal(t, "project", trustyUI.Spec.Image.Namespace)
-	assert.Equal(t, "docker.io", trustyUI.Spec.Image.Domain)
-	assert.Equal(t, "latest", trustyUI.Spec.Image.Tag)
+	assert.Equal(t, "docker.io/project/trusty-ui:latest", trustyUI.Spec.Image)
 	assert.Equal(t, int32(9090), trustyUI.Spec.HTTPPort)
 }

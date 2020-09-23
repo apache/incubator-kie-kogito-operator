@@ -87,11 +87,7 @@ metadata:
             "name": "process-quarkus-example"
           },
           "spec": {
-            "image": {
-              "domain": "quay.io",
-              "name": "process-quarkus-example",
-              "namespace": "kiegroup"
-            },
+            "image": "quay.io/kiegroup/process-quarkus-example",
             "replicas": 1
           }
         },
@@ -161,9 +157,9 @@ spec:
         path: artifact
       - description: 'Image used to build the Kogito Service from source (Local and
           Remote). The operator will use the one provided by the Kogito Team based
-          on the "Runtime" field. Example: Domain: quay.io, Namespace: kiegroup, Name:
-          kogito-jvm-builder, Tag: latest. On OpenShift an ImageStream will be created
-          in the current namespace pointing to the given image.'
+          on the "Runtime" field. Example: "quay.io/kiegroup/kogito-jvm-builder:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Build Image
         path: buildImage
       - description: DisableIncremental indicates that source to image builds should
@@ -220,10 +216,9 @@ spec:
           image only has the required packages to run the application. For example:
           quarkus based services will have only JVM installed, native services only
           the packages required by the OS. The operator will use the one provided
-          by the Kogito Team based on the "Runtime" field. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-jvm-builder, Tag: latest. On OpenShift
-          an ImageStream will be created in the current namespace pointing to the
-          given image.'
+          by the Kogito Team based on the "Runtime" field. Example: "quay.io/kiegroup/kogito-jvm-builder:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Base Image
         path: runtimeImage
       - description: Set this field targeting the desired KogitoRuntime when this
@@ -290,12 +285,27 @@ spec:
           must be a C_IDENTIFIER.
         displayName: Envs
         path: envs
-      - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
-          ImageStream will be created in the current namespace pointing to the given
-          image.'
+      - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Image
         path: image
+      - description: A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. Defaults to 'false'.
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. The ConfigMap must be created in the same namespace.
+          Use this property if you need custom properties to be mounted before the
+          application deployment. If left empty, one will be created for you. Later
+          it can be updated to add any custom properties to apply to the service.
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas
@@ -361,12 +371,27 @@ spec:
           must be a C_IDENTIFIER.
         displayName: Envs
         path: envs
-      - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
-          ImageStream will be created in the current namespace pointing to the given
-          image.'
+      - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Image
         path: image
+      - description: A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. Defaults to 'false'.
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. The ConfigMap must be created in the same namespace.
+          Use this property if you need custom properties to be mounted before the
+          application deployment. If left empty, one will be created for you. Later
+          it can be updated to add any custom properties to apply to the service.
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas
@@ -464,16 +489,31 @@ spec:
           must be a C_IDENTIFIER.
         displayName: Envs
         path: envs
-      - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
-          ImageStream will be created in the current namespace pointing to the given
-          image.'
+      - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Image
         path: image
+      - description: A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. Defaults to 'false'.
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: 'Maximum interval in milliseconds when retrying to execute jobs,
           in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
         displayName: Max Interval Limit To Retry Millis
         path: maxIntervalLimitToRetryMillis
+      - description: Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. The ConfigMap must be created in the same namespace.
+          Use this property if you need custom properties to be mounted before the
+          application deployment. If left empty, one will be created for you. Later
+          it can be updated to add any custom properties to apply to the service.
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas
@@ -539,12 +579,27 @@ spec:
           must be a C_IDENTIFIER.
         displayName: Envs
         path: envs
-      - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
-          ImageStream will be created in the current namespace pointing to the given
-          image.'
+      - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Image
         path: image
+      - description: A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. Defaults to 'false'.
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. The ConfigMap must be created in the same namespace.
+          Use this property if you need custom properties to be mounted before the
+          application deployment. If left empty, one will be created for you. Later
+          it can be updated to add any custom properties to apply to the service.
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas
@@ -616,17 +671,32 @@ spec:
           must be a C_IDENTIFIER.
         displayName: Envs
         path: envs
-      - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
-          ImageStream will be created in the current namespace pointing to the given
-          image.'
+      - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Image
         path: image
+      - description: A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. Defaults to 'false'.
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: Create Service monitor instance to connect with Monitoring service
         displayName: Monitoring
         path: monitoring
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
+      - description: Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. The ConfigMap must be created in the same namespace.
+          Use this property if you need custom properties to be mounted before the
+          application deployment. If left empty, one will be created for you. Later
+          it can be updated to add any custom properties to apply to the service.
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas
@@ -697,12 +767,27 @@ spec:
           must be a C_IDENTIFIER.
         displayName: Envs
         path: envs
-      - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
-          ImageStream will be created in the current namespace pointing to the given
-          image.'
+      - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Image
         path: image
+      - description: A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. Defaults to 'false'.
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. The ConfigMap must be created in the same namespace.
+          Use this property if you need custom properties to be mounted before the
+          application deployment. If left empty, one will be created for you. Later
+          it can be updated to add any custom properties to apply to the service.
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas
@@ -767,12 +852,27 @@ spec:
           must be a C_IDENTIFIER.
         displayName: Envs
         path: envs
-      - description: 'Image definition for the service. Example: Domain: quay.io,
-          Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an
-          ImageStream will be created in the current namespace pointing to the given
-          image.'
+      - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+          On OpenShift an ImageStream will be created in the current namespace pointing
+          to the given image.'
         displayName: Image
         path: image
+      - description: A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. Defaults to 'false'.
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. The ConfigMap must be created in the same namespace.
+          Use this property if you need custom properties to be mounted before the
+          application deployment. If left empty, one will be created for you. Later
+          it can be updated to add any custom properties to apply to the service.
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Number of replicas that the service will have deployed in the
           cluster. Default value: 1.'
         displayName: Replicas

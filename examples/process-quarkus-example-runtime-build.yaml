@@ -5,14 +5,12 @@ kind: KogitoBuild
 metadata:
   name: process-quarkus-example
 spec:
-  buildImage:
-    tag: "0.10"
+  buildImage: quay.io/yournamespace/process-quarkus-example:0.10
   gitSource:
     contextDir: process-quarkus-example
     uri: https://github.com/kiegroup/kogito-examples
   runtime: quarkus
-  runtimeImage:
-    tag: "0.10"
+  runtimeImage: quay.io/yournamespace/process-quarkus-example:0.10
   type: RemoteSource
 ---
 # here we have an alternative way of building our fancy project, that's it from a local binary
@@ -26,8 +24,7 @@ spec:
   # here we need to set a target runtime since we are targeting the same Runtime and our name differs from the KogitoRuntime defined below
   targetKogitoRuntime: process-quarkus-example
   runtime: quarkus
-  runtimeImage:
-    tag: "0.10"
+  runtimeImage: quay.io/yournamespace/process-quarkus-example-binary:0.10
   type: Binary
 ---
 apiVersion: app.kiegroup.org/v1alpha1

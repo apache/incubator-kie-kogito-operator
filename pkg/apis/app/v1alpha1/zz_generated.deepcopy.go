@@ -257,8 +257,6 @@ func (in *KogitoBuildSpec) DeepCopyInto(out *KogitoBuildSpec) {
 		copy(*out, *in)
 	}
 	in.Resources.DeepCopyInto(&out.Resources)
-	out.BuildImage = in.BuildImage
-	out.RuntimeImage = in.RuntimeImage
 	out.Artifact = in.Artifact
 	return
 }
@@ -913,7 +911,6 @@ func (in *KogitoServiceSpec) DeepCopyInto(out *KogitoServiceSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	out.Image = in.Image
 	in.Resources.DeepCopyInto(&out.Resources)
 	if in.DeploymentLabels != nil {
 		in, out := &in.DeploymentLabels, &out.DeploymentLabels

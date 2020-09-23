@@ -36,7 +36,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// TODO: review the way we create those resources on KOGITO-1998: reorganize all those functions on other files within the package
 // createRequiredResources creates the required resources given the KogitoService instance
 func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type][]resource.KubernetesResource, reconcileAfter time.Duration, err error) {
 	reconcileAfter = 0
@@ -82,8 +81,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 
 		s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
 
-		// TODO: refactor GetAppPropConfigMapContentHash to createConfigMap on KOGITO-1998
-		contentHash, configMap, err := GetAppPropConfigMapContentHash(s.instance.GetName(), s.instance.GetNamespace(), appProps, s.client)
+		contentHash, configMap, err := getAppPropConfigMapContentHash(s.instance, appProps, s.client)
 		if err != nil {
 			return resources, reconcileAfter, err
 		}
@@ -213,14 +211,14 @@ func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash s
 		deployment.Spec.Template.Annotations[AppPropContentHashKey] = contentHash
 	}
 	if deployment.Spec.Template.Spec.Volumes == nil {
-		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{CreateAppPropVolume(instance.GetName())}
+		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{createAppPropVolume(instance)}
 	} else {
-		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, CreateAppPropVolume(instance.GetName()))
+		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, createAppPropVolume(instance))
 	}
 	if deployment.Spec.Template.Spec.Containers[0].VolumeMounts == nil {
-		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{CreateAppPropVolumeMount()}
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{createAppPropVolumeMount()}
 	} else {
-		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, CreateAppPropVolumeMount())
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, createAppPropVolumeMount())
 	}
 }
 
@@ -241,7 +239,7 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 		objectTypes = append(objectTypes, s.definition.extraManagedObjectLists...)
 	}
 
-	resources, err = kubernetes.ResourceC(s.client).ListALL(objectTypes, s.instance.GetNamespace(), s.instance)
+	resources, err = kubernetes.ResourceC(s.client).ListAll(objectTypes, s.instance.GetNamespace(), s.instance)
 	if err != nil {
 		return
 	}

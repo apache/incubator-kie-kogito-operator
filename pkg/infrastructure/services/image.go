@@ -16,18 +16,18 @@ package services
 
 import (
 	"fmt"
-	"reflect"
-
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	imgv1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 )
 
 const (
@@ -186,19 +186,19 @@ func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cl
 }
 
 func newImageHandler(instance v1alpha1.KogitoService, definition ServiceDefinition, cli *client.Client) (*imageHandler, error) {
-	if instance.GetSpec().GetImage() == nil {
-		instance.GetSpec().SetImage(v1alpha1.Image{})
+	addDockerImageReference := len(instance.GetSpec().GetImage()) != 0 || !definition.customService
+	var image v1alpha1.Image
+	if len(instance.GetSpec().GetImage()) == 0 {
+		image = v1alpha1.Image{
+			Name: definition.DefaultImageName,
+			Tag:  definition.DefaultImageTag,
+		}
+	} else {
+		image = framework.ConvertImageTagToImage(instance.GetSpec().GetImage())
 	}
 
-	addDockerImageReference := !instance.GetSpec().GetImage().IsEmpty() || !definition.customService
-	if len(instance.GetSpec().GetImage().Tag) == 0 && len(definition.DefaultImageTag) > 0 {
-		instance.GetSpec().GetImage().Tag = definition.DefaultImageTag
-	}
-	if len(instance.GetSpec().GetImage().Name) == 0 {
-		instance.GetSpec().GetImage().Name = definition.DefaultImageName
-	}
 	handler := &imageHandler{
-		image:            instance.GetSpec().GetImage(),
+		image:            &image,
 		imageStream:      nil,
 		defaultImageName: definition.DefaultImageName,
 		imageStreamName:  definition.DefaultImageName,

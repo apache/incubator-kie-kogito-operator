@@ -39,7 +39,7 @@ type ResourceReader interface {
 	// ListWithNamespaceAndLabel same as ListWithNamespace, but also limit the query scope by the given labels
 	ListWithNamespaceAndLabel(namespace string, list runtime.Object, labels map[string]string) error
 	// ListAll returns a map of Kubernetes resources organized by type, based on provided List objects
-	ListALL(objectTypes []runtime.Object, namespace string, ownerObject metav1.Object) (map[reflect.Type][]resource2.KubernetesResource, error)
+	ListAll(objectTypes []runtime.Object, namespace string, ownerObject metav1.Object) (map[reflect.Type][]resource2.KubernetesResource, error)
 }
 
 // ResourceReaderC provide ResourceReader reference
@@ -91,7 +91,7 @@ func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list runtim
 	return nil
 }
 
-func (r *resourceReader) ListALL(objectTypes []runtime.Object, namespace string, ownerObject metav1.Object) (map[reflect.Type][]resource2.KubernetesResource, error) {
+func (r *resourceReader) ListAll(objectTypes []runtime.Object, namespace string, ownerObject metav1.Object) (map[reflect.Type][]resource2.KubernetesResource, error) {
 	reader := read.New(r.client.ControlCli).WithNamespace(namespace).WithOwnerObject(ownerObject)
 	return reader.ListAll(objectTypes...)
 }

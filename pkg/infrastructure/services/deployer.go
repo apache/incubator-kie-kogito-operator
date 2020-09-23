@@ -16,6 +16,8 @@ package services
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"time"
 
@@ -175,6 +177,16 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// always update its status
 	defer s.updateStatus(s.instance, &err)
 
+	// we need to take ownership of the custom configmap provided
+	if len(s.instance.GetSpec().GetPropertiesConfigMap()) > 0 {
+		reconcileAfter, err = s.takeCustomConfigMapOwnership()
+		if err != nil {
+			return
+		} else if reconcileAfter > 0 {
+			return
+		}
+	}
+
 	// create our resources
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
@@ -263,6 +275,28 @@ func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *err
 	if *err != nil {
 		log.Errorf("Error while creating kogito service: %v", *err)
 	}
+}
+
+func (s *serviceDeployer) takeCustomConfigMapOwnership() (time.Duration, error) {
+	cm := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: s.instance.GetSpec().GetPropertiesConfigMap(), Namespace: s.getNamespace()},
+	}
+	if exists, err := kubernetes.ResourceC(s.client).Fetch(cm); err != nil {
+		return 0, err
+	} else if !exists {
+		s.recorder.Eventf(s.client, s.instance, v1.EventTypeWarning, "NotExists", "ConfigMap %s does not exist a new one will be created", s.instance.GetSpec().GetPropertiesConfigMap())
+		return 0, nil
+	}
+	if framework.IsOwner(cm, s.instance) {
+		return 0, nil
+	}
+	if err := framework.AddOwnerReference(s.instance, s.scheme, cm); err != nil {
+		return 0, err
+	}
+	if err := kubernetes.ResourceC(s.client).Update(cm); err != nil {
+		return 0, err
+	}
+	return time.Second * 15, nil
 }
 
 func (s *serviceDeployer) update() error {

@@ -97,12 +97,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 			Runtime: v1alpha1.SpringBootRuntimeType,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
-				Image: v1alpha1.Image{
-					Domain:    "quay.io",
-					Name:      "process-springboot-example-default",
-					Namespace: "ksuta",
-					Tag:       "latest",
-				},
+				Image:    "quay.io/custom/process-springboot-example-default:latest",
 			},
 		},
 	}
@@ -124,5 +119,30 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, is.Spec.Tags, 1)
 	assert.Equal(t, "latest", is.Spec.Tags[0].Name)
-	assert.Equal(t, "quay.io/ksuta/process-springboot-example-default:latest", is.Spec.Tags[0].From.Name)
+	assert.Equal(t, "quay.io/custom/process-springboot-example-default:latest", is.Spec.Tags[0].From.Name)
+}
+
+func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
+	replicas := int32(1)
+	cm := &corev1.ConfigMap{
+		ObjectMeta: v1.ObjectMeta{Namespace: t.Name(), Name: "mysuper-cm"},
+	}
+	instance := &v1alpha1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		Spec: v1alpha1.KogitoRuntimeSpec{
+			Runtime: v1alpha1.SpringBootRuntimeType,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas:            &replicas,
+				PropertiesConfigMap: "mysuper-cm",
+			},
+		},
+	}
+	cli := test.CreateFakeClient([]runtime.Object{instance, cm}, nil, nil)
+	// we take the ownership of the custom cm
+	test.AssertReconcileMustRequeue(t, &ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}, instance)
+	// we requeue..
+	test.AssertReconcileMustNotRequeue(t, &ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}, instance)
+	_, err := kubernetes.ResourceC(cli).Fetch(cm)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, cm.OwnerReferences)
 }

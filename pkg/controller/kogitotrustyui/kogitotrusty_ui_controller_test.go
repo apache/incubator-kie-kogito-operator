@@ -59,12 +59,7 @@ func TestReconcileKogitoTrustyUI_CustomImage(t *testing.T) {
 		Spec: v1alpha1.KogitoTrustyUISpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
-				Image: v1alpha1.Image{
-					Domain:    "quay.io",
-					Name:      "awesome-trusty-ui",
-					Namespace: "mynamespace",
-					Tag:       "0.1.3",
-				},
+				Image:    "quay.io/mynamespace/awesome-trusty-ui:0.1.3",
 			},
 		},
 	}

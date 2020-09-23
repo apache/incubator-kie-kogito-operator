@@ -447,8 +447,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -496,9 +497,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Description: "HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"propertiesConfigMap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"infra": {
@@ -519,7 +527,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -662,8 +670,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -711,9 +720,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Description: "HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"propertiesConfigMap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"infra": {
@@ -734,7 +750,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -995,8 +1011,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -1044,9 +1061,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Description: "HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"propertiesConfigMap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"infra": {
@@ -1081,7 +1105,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -1312,8 +1336,9 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: Domain: quay.io, Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image"),
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
@@ -1361,9 +1386,16 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 					},
 					"httpPort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HttpPort will set the environment env HTTP_PORT to define which port service will listen internally.",
+							Description: "HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.",
 							Type:        []string{"integer"},
 							Format:      "int32",
+						},
+					},
+					"propertiesConfigMap": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"infra": {
@@ -1384,7 +1416,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Image", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

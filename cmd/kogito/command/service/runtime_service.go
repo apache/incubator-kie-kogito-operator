@@ -52,6 +52,10 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err := i.resourceCheckService.CheckKogitoRuntimeNotExists(cli, flags.Name, flags.Project); err != nil {
 		return err
 	}
+	configMap, err := createConfigMapFromFile(cli, flags)
+	if err != nil {
+		return err
+	}
 	kogitoRuntime := v1alpha1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      flags.Name,
@@ -64,11 +68,12 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
 				Envs:                  converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
-				Image:                 converter.FromImageFlagToImage(&flags.ImageFlags),
+				Image:                 flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&flags.PodResourceFlags),
 				ServiceLabels:         util.FromStringsKeyPairToMap(flags.ServiceLabels),
 				HTTPPort:              flags.HTTPPort,
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
+				PropertiesConfigMap:   configMap,
 				Infra:                 flags.Infra,
 			},
 		},

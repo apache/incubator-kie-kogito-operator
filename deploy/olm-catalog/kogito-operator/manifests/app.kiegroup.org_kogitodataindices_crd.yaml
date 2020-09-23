@@ -155,25 +155,15 @@ spec:
               type: array
               x-kubernetes-list-type: atomic
             httpPort:
-              description: HttpPort will set the environment env HTTP_PORT to define
+              description: HTTPPort will set the environment env HTTP_PORT to define
                 which port service will listen internally.
               format: int32
               type: integer
             image:
-              description: 'Image definition for the service. Example: Domain: quay.io,
-                Namespace: kiegroup, Name: kogito-service, Tag: latest. On OpenShift
-                an ImageStream will be created in the current namespace pointing to
-                the given image.'
-              properties:
-                domain:
-                  type: string
-                name:
-                  type: string
-                namespace:
-                  type: string
-                tag:
-                  type: string
-              type: object
+              description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+                On OpenShift an ImageStream will be created in the current namespace
+                pointing to the given image.'
+              type: string
             infra:
               description: Infra provides list of dependent KogitoInfra objects.
               items:
@@ -184,6 +174,14 @@ spec:
                 Operator should be configured to allow pulling from insecure registries.
                 Usable just on OpenShift. Defaults to 'false'.
               type: boolean
+            propertiesConfigMap:
+              description: Custom ConfigMap with application.properties file to be
+                mounted for the Kogito service. The ConfigMap must be created in the
+                same namespace. Use this property if you need custom properties to
+                be mounted before the application deployment. If left empty, one will
+                be created for you. Later it can be updated to add any custom properties
+                to apply to the service.
+              type: string
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster. Default value: 1.'

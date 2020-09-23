@@ -9,10 +9,7 @@ spec:
     - name: KOGITO_DATAINDEX_WS_URL
       value: ws://data-index.kogito
   replicas: 1
-  image:
-    domain: quay.io
-    namespace: kiegroup
-    name: kogito-travels
+  image: quay.io/kiegroup/kogito-travels
   kafka:
     useKogitoInfra: true
   infinispan:

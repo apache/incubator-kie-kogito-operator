@@ -39,8 +39,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-
-	monclientv1 "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 )
 
 var (
@@ -59,7 +57,6 @@ type Client struct {
 	BuildCli               buildv1.BuildV1Interface
 	ImageCli               imagev1.ImageV1Interface
 	Discovery              discovery.DiscoveryInterface
-	PrometheusCli          monclientv1.MonitoringV1Interface
 	DeploymentCli          appsv1.AppsV1Interface
 	KubernetesExtensionCli kubernetes.Interface
 }

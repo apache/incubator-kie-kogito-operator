@@ -16,6 +16,7 @@ package util
 
 import (
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"testing"
 )
 
@@ -63,4 +64,42 @@ func Test_ValidateImageTag_CorrectInput(t *testing.T) {
 	image := "quay.io/kiegroup/data_index:1.0"
 	err := CheckImageTag(image)
 	assert.NoError(t, err)
+}
+
+func TestCheckFileExists(t *testing.T) {
+	tempFile, err := ioutil.TempFile("", "application.properties")
+	assert.NoError(t, err)
+	tempDir, err := ioutil.TempDir("", "checkdir")
+	assert.NoError(t, err)
+	type args struct {
+		path string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			"File exists", args{path: tempFile.Name()}, true, false,
+		},
+		{
+			"It's a directory", args{path: tempDir}, false, false,
+		},
+		{
+			"File does not exists", args{"/an/imaginary/path"}, false, false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := CheckFileExists(tt.args.path)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CheckFileExists() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("CheckFileExists() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

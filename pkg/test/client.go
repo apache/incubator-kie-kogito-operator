@@ -25,7 +25,6 @@ import (
 	clienttesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	monfake "github.com/coreos/prometheus-operator/pkg/client/versioned/fake"
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
 )
 
@@ -48,11 +47,10 @@ func CreateFakeClientWithDisco(objects []runtime.Object, imageObjs []runtime.Obj
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
 	buildCli := newBuildFake(buildObjs...)
 	return &client.Client{
-		ControlCli:    cli,
-		BuildCli:      buildCli,
-		ImageCli:      imgCli,
-		PrometheusCli: monfake.NewSimpleClientset().MonitoringV1(),
-		Discovery:     CreateFakeDiscoveryClient(openshift),
+		ControlCli: cli,
+		BuildCli:   buildCli,
+		ImageCli:   imgCli,
+		Discovery:  CreateFakeDiscoveryClient(openshift),
 	}
 }
 

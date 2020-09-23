@@ -46,7 +46,7 @@ func Test_DeployMgmtConsoleCmd_DefaultConfiguration(t *testing.T) {
 	exits, err := kubernetes.ResourceC(ctx.Client).Fetch(mgmtConsole)
 	assert.NoError(t, err)
 	assert.True(t, exits)
-	assert.Equal(t, mgmtConsole.Spec.Image.Name, "")
+	assert.Equal(t, mgmtConsole.Spec.Image, "")
 	assert.False(t, mgmtConsole.Spec.InsecureImageRegistry)
 }
 
@@ -69,10 +69,7 @@ func Test_DeployMgmtConsoleCmd_CustomConfiguration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exits)
 	assert.True(t, mgmtConsole.Spec.InsecureImageRegistry)
-	assert.Equal(t, "mgmt-console", mgmtConsole.Spec.Image.Name)
-	assert.Equal(t, "project", mgmtConsole.Spec.Image.Namespace)
-	assert.Equal(t, "docker.io", mgmtConsole.Spec.Image.Domain)
-	assert.Equal(t, "latest", mgmtConsole.Spec.Image.Tag)
+	assert.Equal(t, "docker.io/project/mgmt-console:latest", mgmtConsole.Spec.Image)
 	assert.Equal(t, int32(9090), mgmtConsole.Spec.HTTPPort)
 
 }
