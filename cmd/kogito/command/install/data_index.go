@@ -111,7 +111,7 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 		Spec: v1alpha1.KogitoDataIndexSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &i.flags.Replicas,
-				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
+				Env:                   converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:                 i.flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,

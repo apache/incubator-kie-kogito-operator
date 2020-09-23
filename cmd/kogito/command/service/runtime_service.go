@@ -71,7 +71,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 			Monitoring:  converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
-				Envs:                  converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
+				Env:                   converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
 				Image:                 flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&flags.PodResourceFlags),
 				ServiceLabels:         util.FromStringsKeyPairToMap(flags.ServiceLabels),

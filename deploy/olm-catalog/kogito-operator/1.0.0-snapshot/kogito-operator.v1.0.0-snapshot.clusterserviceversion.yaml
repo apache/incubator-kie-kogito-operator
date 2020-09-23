@@ -283,7 +283,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
-        displayName: Envs
+        displayName: Env
         path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
@@ -369,7 +369,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
-        displayName: Envs
+        displayName: Env
         path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
@@ -504,7 +504,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
-        displayName: Envs
+        displayName: Env
         path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
@@ -594,7 +594,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
-        displayName: Envs
+        displayName: Env
         path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
@@ -686,7 +686,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
-        displayName: Envs
+        displayName: Env
         path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
@@ -782,7 +782,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
-        displayName: Envs
+        displayName: Env
         path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing
@@ -867,7 +867,7 @@ spec:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
-        displayName: Envs
+        displayName: Env
         path: env
       - description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
           On OpenShift an ImageStream will be created in the current namespace pointing

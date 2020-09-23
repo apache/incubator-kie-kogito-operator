@@ -56,7 +56,7 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Env Variables"
 	// +optional
-	Envs []corev1.EnvVar `json:"env,omitempty"`
+	Env []corev1.EnvVar `json:"env,omitempty"`
 
 	// Information about the git repository where the Kogito Service source code resides.
 	// Ignored for binary builds.
