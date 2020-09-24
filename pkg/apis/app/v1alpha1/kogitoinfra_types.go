@@ -22,7 +22,7 @@ import (
 // Resource provide reference infra resource
 type Resource struct {
 
-	// APIVersion describes the API Version of referred Kubernetes resource for example, app.infinispan.org/v1
+	// APIVersion describes the API Version of referred Kubernetes resource for example, infinispan.org/v1
 	APIVersion string `json:"apiVersion"`
 
 	// Kind describes the kind of referred Kubernetes resource for example, Infinispan

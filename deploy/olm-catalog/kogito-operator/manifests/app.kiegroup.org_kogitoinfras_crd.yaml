@@ -40,7 +40,7 @@ spec:
               properties:
                 apiVersion:
                   description: APIVersion describes the API Version of referred Kubernetes
-                    resource for example, app.infinispan.org/v1
+                    resource for example, infinispan.org/v1
                   type: string
                 kind:
                   description: Kind describes the kind of referred Kubernetes resource
