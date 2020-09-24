@@ -50,7 +50,7 @@ spec:
               description: Additional labels to be added to the Deployment and Pods
                 managed by the operator.
               type: object
-            envs:
+            env:
               description: Environment variables to be added to the runtime container.
                 Keys must be a C_IDENTIFIER.
               items:

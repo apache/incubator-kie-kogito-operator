@@ -10,7 +10,7 @@ spec:
     contextDir: process-springboot-example
     reference: master
   disableIncremental: false
-  envs:
+  env:
     - name: CI
       value: "true"
 ---
@@ -20,6 +20,6 @@ metadata:
   name: example-springboot
 spec:
   runtime: springboot
-  envs:
+  env:
     - name: DEBUG
       value: "true"

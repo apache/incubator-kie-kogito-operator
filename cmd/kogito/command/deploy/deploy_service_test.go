@@ -59,7 +59,7 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
-	assert.Equal(t, 2, len(kogitoRuntime.Spec.Envs))
+	assert.Equal(t, 2, len(kogitoRuntime.Spec.Env))
 }
 
 func Test_DeployCmd_WithCustomImage(t *testing.T) {
@@ -92,7 +92,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
-	assert.Equal(t, 0, len(kogitoRuntime.Spec.Envs))
+	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 }
 
 func Test_DeployCmd_WithCustomConfig(t *testing.T) {
@@ -132,7 +132,7 @@ my.nice.property=socool
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
-	assert.Equal(t, 0, len(kogitoRuntime.Spec.Envs))
+	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 	assert.NotEmpty(t, kogitoRuntime.Spec.PropertiesConfigMap)
 
 	cm := &corev1.ConfigMap{

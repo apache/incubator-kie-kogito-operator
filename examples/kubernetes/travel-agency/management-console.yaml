@@ -8,7 +8,7 @@ spec:
   # we use environment variables to set the external data index URL
   # this is needed for now since Management Console is a client application, we are working on having a local proxy to
   # use the Kubernetes service instead
-  envs:
+  env:
     - name: KOGITO_DATAINDEX_HTTP_URL
       value: http://data-index.kogito
     - name: KOGITO_DATAINDEX_WS_URL

@@ -9,7 +9,7 @@ spec:
   gitSource:
     contextDir: process-quarkus-example
     uri: 'https://github.com/kiegroup/kogito-examples'
-  envs:
+  env:
     # enable persistence
     - name: MAVEN_ARGS_APPEND
       value: "-Ppersistence,events"

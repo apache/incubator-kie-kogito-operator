@@ -134,7 +134,7 @@ type KogitoServiceSpec struct {
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Envs []corev1.EnvVar `json:"envs,omitempty"`
+	Env []corev1.EnvVar `json:"env,omitempty"`
 
 	// +optional
 	// Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
@@ -191,10 +191,10 @@ func (k *KogitoServiceSpec) GetReplicas() *int32 { return k.Replicas }
 func (k *KogitoServiceSpec) SetReplicas(replicas int32) { k.Replicas = &replicas }
 
 // GetEnvs ...
-func (k *KogitoServiceSpec) GetEnvs() []corev1.EnvVar { return k.Envs }
+func (k *KogitoServiceSpec) GetEnvs() []corev1.EnvVar { return k.Env }
 
 // SetEnvs ...
-func (k *KogitoServiceSpec) SetEnvs(envs []corev1.EnvVar) { k.Envs = envs }
+func (k *KogitoServiceSpec) SetEnvs(envs []corev1.EnvVar) { k.Env = envs }
 
 // GetImage ...
 func (k *KogitoServiceSpec) GetImage() string { return k.Image }
@@ -222,7 +222,7 @@ func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 		Name:  name,
 		Value: value,
 	}
-	k.Envs = append(k.Envs, env)
+	k.Env = append(k.Env, env)
 }
 
 // AddEnvironmentVariableFromSecret adds a new environment variable from the secret under the key.
@@ -238,7 +238,7 @@ func (k *KogitoServiceSpec) AddEnvironmentVariableFromSecret(variableName, secre
 			},
 		},
 	}
-	k.Envs = append(k.Envs, env)
+	k.Env = append(k.Env, env)
 }
 
 // AddResourceRequest adds new resource request. Works also on uninitialized Requests field.

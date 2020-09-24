@@ -116,7 +116,7 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &i.flags.Replicas,
-				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
+				Env:                   converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:                 i.flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,
