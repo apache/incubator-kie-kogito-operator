@@ -60,12 +60,17 @@ func (i *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 	if isCustomReferenceProvided {
 		log.Debugf("Custom infinispan instance reference is provided")
 
-		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
+		namespace := instance.Spec.Resource.Namespace
+		if len(namespace) == 0 {
+			namespace = instance.Namespace
+			log.Debugf("Namespace is not provided for custom resource, taking instance namespace(%s) as default", namespace)
+		}
+		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, instance.Spec.Resource.Name, namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 		if infinispanInstance == nil {
-			return false, fmt.Errorf("custom Infinispan instance(%s) not found in namespace %s", instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
+			return false, fmt.Errorf("custom Infinispan instance(%s) not found in namespace %s", instance.Spec.Resource.Name, namespace)
 		}
 	} else {
 		// create/refer kogito-infinispan instance

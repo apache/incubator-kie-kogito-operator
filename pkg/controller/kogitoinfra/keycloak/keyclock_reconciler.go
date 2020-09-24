@@ -54,13 +54,17 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {
 		log.Debugf("Custom Keycloak instance reference is provided")
-
-		keycloakInstance, resultErr = loadDeployedKeycloakInstance(client, instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
+		namespace := instance.Spec.Resource.Namespace
+		if len(namespace) == 0 {
+			namespace = instance.Namespace
+			log.Debugf("Namespace is not provided for custom resource, taking instance namespace(%s) as default", namespace)
+		}
+		keycloakInstance, resultErr = loadDeployedKeycloakInstance(client, instance.Spec.Resource.Name, namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 		if keycloakInstance == nil {
-			return false, fmt.Errorf("custom Keycloak instance(%s) not found in namespace %s", instance.Spec.Resource.Name, instance.Spec.Resource.Namespace)
+			return false, fmt.Errorf("custom Keycloak instance(%s) not found in namespace %s", instance.Spec.Resource.Name, namespace)
 		}
 	} else {
 		log.Debugf("Custom Keycloak instance reference is not provided")
