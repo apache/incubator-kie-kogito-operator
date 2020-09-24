@@ -38,7 +38,7 @@ func updateEnvVarsInStatus(cli *client.Client, infinispanInstance *infinispan.In
 	if err != nil {
 		return err
 	}
-	instance.Status.EnvVars = envVars
+	instance.Status.Env = envVars
 	log.Debugf("Following env properties are set infra status : %s", envVars)
 	return nil
 }

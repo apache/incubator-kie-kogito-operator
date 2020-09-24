@@ -12,12 +12,13 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: KogitoInfra will be managed automatically by the operator, don't
-        need to create it manually. Kogito Infra is responsible to delegate the creation
-        of each infrastructure dependency (such as Infinispan) to a third party operator.
-        It holds the deployment status of each infrastructure dependency and custom
-        resources needed to run Kogito Runtime and Kogito Data Index services. KafkaTopics
-        to be created for supporting services if KogitoInfra relates to a Kafka kind
+      description: 'KogitoInfra is the resource to bind a Custom Resource (CR) not
+        managed by Kogito Operator to a given deployed Kogito service. It holds the
+        reference of a CR managed by another operator such as Strimzi. For example:
+        one can create a Kafka CR via Strimzi and link this resource using KogitoInfra
+        to a given Kogito service (custom or supporting, such as Data Index). Please
+        refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/)
+        for more information.'
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -62,7 +63,8 @@ spec:
             appProps:
               additionalProperties:
                 type: string
-              description: Application properties to be added to the runtime container.
+              description: Application properties extracted from the linked resource
+                that will be added to the deployed Kogito service.
               type: object
               x-kubernetes-map-type: atomic
             condition:
@@ -81,8 +83,9 @@ spec:
               - status
               - type
               type: object
-            envVars:
-              description: Environment variables to be added to the runtime container.
+            env:
+              description: Environment variables extracted from the linked resource
+                that will be added to the deployed Kogito service.
               items:
                 description: EnvVar represents an environment variable present in
                   a Container.

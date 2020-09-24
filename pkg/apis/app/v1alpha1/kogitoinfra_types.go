@@ -53,15 +53,15 @@ type KogitoInfraStatus struct {
 
 	// +optional
 	// +mapType=atomic
-	// Application properties to be added to the runtime container.
+	// Application properties extracted from the linked resource that will be added to the deployed Kogito service.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	AppProps map[string]string `json:"appProps,omitempty"`
 
 	// +optional
 	// +listType=atomic
-	// Environment variables to be added to the runtime container.
+	// Environment variables extracted from the linked resource that will be added to the deployed Kogito service.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	EnvVars []v1.EnvVar `json:"envVars,omitempty"`
+	Env []v1.EnvVar `json:"env,omitempty"`
 }
 
 /*
@@ -89,12 +89,10 @@ const (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoInfra will be managed automatically by the operator, don't need to create it manually.
-// Kogito Infra is responsible to delegate the creation of each
-// infrastructure dependency (such as Infinispan) to a third party operator.
-// It holds the deployment status of each infrastructure dependency and custom
-// resources needed to run Kogito Runtime and Kogito Data Index services.
-// KafkaTopics to be created for supporting services if KogitoInfra relates to a Kafka kind
+// KogitoInfra is the resource to bind a Custom Resource (CR) not managed by Kogito Operator to a given deployed Kogito service.
+// It holds the reference of a CR managed by another operator such as Strimzi. For example: one can create a Kafka CR via Strimzi
+// and link this resource using KogitoInfra to a given Kogito service (custom or supporting, such as Data Index).
+// Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/) for more information.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"

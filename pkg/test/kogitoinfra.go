@@ -37,7 +37,7 @@ func CreateFakeKogitoKafka(namespace string) *v1alpha1.KogitoInfra {
 			AppProps: map[string]string{
 				"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.test.svc:9092",
 			},
-			EnvVars: []corev1.EnvVar{
+			Env: []corev1.EnvVar{
 				{
 					Name:  "ENABLE_EVENTS",
 					Value: "true",
@@ -64,7 +64,7 @@ func CreateFakeKogitoInfinispan(namespace string) *v1alpha1.KogitoInfra {
 			AppProps: map[string]string{
 				"quarkus.infinispan-client.server-list": "infinispanInstance:11222",
 			},
-			EnvVars: []corev1.EnvVar{
+			Env: []corev1.EnvVar{
 				{
 					Name:  "ENABLE_PERSISTENCE",
 					Value: "true",

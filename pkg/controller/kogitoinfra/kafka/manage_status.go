@@ -33,6 +33,6 @@ func updateEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.
 	if err != nil {
 		return err
 	}
-	instance.Status.EnvVars = envVars
+	instance.Status.Env = envVars
 	return nil
 }

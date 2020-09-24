@@ -68,7 +68,7 @@ func FetchKogitoInfraProperties(client *client.Client, name string, namespace st
 	if err != nil {
 		return nil, nil, err
 	}
-	return kogitoInstance.Status.AppProps, kogitoInstance.Status.EnvVars, nil
+	return kogitoInstance.Status.AppProps, kogitoInstance.Status.Env, nil
 }
 
 func isInfinispanResource(instance *v1alpha1.KogitoInfra) bool {
