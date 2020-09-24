@@ -25,6 +25,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+const (
+	// APIVersion refers to infinispan APIVersion
+	APIVersion = "app.infinispan.org/v1"
+	// Kind refers to infinispan Kind
+	Kind = "Infinispan"
+)
+
 // InfraResource implementation of KogitoInfraResource
 type InfraResource struct {
 }

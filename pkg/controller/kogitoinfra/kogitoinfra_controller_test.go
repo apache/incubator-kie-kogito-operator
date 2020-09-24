@@ -20,6 +20,8 @@ import (
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	v13 "k8s.io/api/core/v1"
@@ -34,8 +36,8 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoInfraSpec{
 			Resource: v1alpha1.Resource{
-				APIVersion: "kafka.strimzi.io/v1beta1",
-				Kind:       "Kafka",
+				APIVersion: kafka.APIVersion,
+				Kind:       kafka.Kind,
 				Name:       "kogito-kafka",
 				Namespace:  t.Name(),
 			},
@@ -82,8 +84,8 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoInfraSpec{
 			Resource: v1alpha1.Resource{
-				APIVersion: "infinispan.org/v1",
-				Kind:       "Infinispan",
+				APIVersion: infinispan.APIVersion,
+				Kind:       infinispan.Kind,
 				Name:       "kogito-infinispan",
 				Namespace:  t.Name(),
 			},

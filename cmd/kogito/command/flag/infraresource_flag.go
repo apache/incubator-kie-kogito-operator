@@ -16,6 +16,7 @@ package flag
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/spf13/cobra"
 )
 
@@ -29,8 +30,8 @@ type InfraResourceFlags struct {
 
 // AddInfraResourceFlags adds the Resource flags to the given command
 func AddInfraResourceFlags(command *cobra.Command, flags *InfraResourceFlags) {
-	command.Flags().StringVar(&flags.APIVersion, "apiVersion", "", "API Version of referred Kubernetes resource for example, app.infinispan.org/v1")
-	command.Flags().StringVar(&flags.Kind, "kind", "", "kind of referred Kubernetes resource for example, Infinispan")
+	command.Flags().StringVar(&flags.APIVersion, "apiVersion", "", "API Version of referred Kubernetes resource for example, "+infinispan.APIVersion)
+	command.Flags().StringVar(&flags.Kind, "kind", "", "kind of referred Kubernetes resource for example, "+infinispan.Kind)
 	command.Flags().StringVar(&flags.ResourceNamespace, "resource-namespace", "", "Namespace where referred resource exists")
 	command.Flags().StringVar(&flags.ResourceName, "resource-name", "", "Name of referred resource.")
 }

@@ -24,6 +24,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+const (
+	// APIVersion refers to kafka APIVersion
+	APIVersion = "keycloak.org/v1alpha1"
+	// Kind refers to kafka Kind
+	Kind = "Keycloak"
+)
+
 // InfraResource implementation of KogitoInfraResource
 type InfraResource struct {
 }

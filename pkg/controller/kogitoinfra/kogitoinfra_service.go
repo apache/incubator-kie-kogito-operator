@@ -16,10 +16,7 @@ package kogitoinfra
 
 import (
 	"fmt"
-	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
@@ -72,13 +69,13 @@ func FetchKogitoInfraProperties(client *client.Client, name string, namespace st
 }
 
 func isInfinispanResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == infinispanv1.SchemeGroupVersion.String() && instance.Spec.Resource.Kind == "Infinispan"
+	return instance.Spec.Resource.APIVersion == infinispan.APIVersion && instance.Spec.Resource.Kind == infinispan.Kind
 }
 
 func isKafkaResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == kafkabetav1.SchemeGroupVersion.String() && instance.Spec.Resource.Kind == "Kafka"
+	return instance.Spec.Resource.APIVersion == kafka.APIVersion && instance.Spec.Resource.Kind == kafka.Kind
 }
 
 func isKeycloakResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == keycloakv1alpha1.SchemeGroupVersion.String() && instance.Spec.Resource.Kind == "Keycloak"
+	return instance.Spec.Resource.APIVersion == keycloak.APIVersion && instance.Spec.Resource.Kind == keycloak.Kind
 }

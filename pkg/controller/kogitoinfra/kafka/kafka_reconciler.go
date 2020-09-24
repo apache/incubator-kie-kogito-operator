@@ -24,6 +24,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+const (
+	// APIVersion refers to kafka APIVersion
+	APIVersion = "kafka.strimzi.io/v1beta1"
+	// Kind refers to kafka Kind
+	Kind = "Kafka"
+)
+
 // InfraResource implementation of KogitoInfraResource
 type InfraResource struct {
 }
