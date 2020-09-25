@@ -30,6 +30,10 @@ const (
 	strimziServerGroup = "kafka.strimzi.io"
 	// StrimziOperatorName is the default Strimzi operator name
 	StrimziOperatorName = "strimzi-cluster-operator"
+
+	strimziBrokerLabel         = "strimzi.io/cluster"
+	defaultKafkaTopicPartition = 1
+	defaultKafkaTopicReplicas  = 1
 )
 
 // IsStrimziOperatorAvailable verify if Strimzi Operator is running in the given namespace and the CRD is available
@@ -91,6 +95,26 @@ func GetKafkaDefaultResource(name, namespace string, defaultReplicas int32) *v1b
 				Replicas: defaultReplicas,
 				Storage:  v1beta1.KafkaStorage{StorageType: v1beta1.KafkaEphemeralStorage},
 			},
+		},
+	}
+}
+
+// GetKafkaTopic returns a Kafka topic resource with default configuration
+func GetKafkaTopic(name, namespace, kafkaBroker string) *v1beta1.KafkaTopic {
+
+	labels := make(map[string]string)
+	labels[strimziBrokerLabel] = kafkaBroker
+
+	return &v1beta1.KafkaTopic{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labels,
+		},
+		Spec: v1beta1.KafkaTopicSpec{
+			Partitions: defaultKafkaTopicPartition,
+			Replicas:   defaultKafkaTopicReplicas,
+			TopicName:  name,
 		},
 	}
 }

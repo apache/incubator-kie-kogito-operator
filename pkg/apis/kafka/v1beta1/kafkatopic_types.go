@@ -23,6 +23,7 @@ type KafkaTopicSpec struct {
 	Partitions int32             `json:"partitions,omitempty"`
 	Replicas   int32             `json:"replicas,omitempty"`
 	Config     map[string]string `json:"config,omitempty"`
+	TopicName  string            `json:"topicName,omitempty"`
 }
 
 // KafkaTopicStatus defines the observed state of KafkaTopic

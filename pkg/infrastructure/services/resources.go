@@ -71,13 +71,11 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 
 		if len(s.instance.GetSpec().GetInfra()) > 0 {
 			log.Debugf("Infra references are provided")
-			appProps, envProperties, err = s.fetchKogitoInfraProperties(s.instance.GetSpec().GetInfra())
+			appProps, envProperties, err = s.fetchKogitoInfraProperties()
 			if err != nil {
 				return resources, reconcileAfter, err
 			}
 		}
-
-		s.applyKafkaConfigurations(appProps)
 
 		s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
 
@@ -288,19 +286,32 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 	return compare.MapComparator{Comparator: resourceComparator}
 }
 
-func (s *serviceDeployer) fetchKogitoInfraProperties(kogitoInfraReferences []string) (map[string]string, []corev1.EnvVar, error) {
+func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []corev1.EnvVar, error) {
+	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
 	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
 	consolidateAppProperties := map[string]string{}
 	var consolidateEnvProperties []corev1.EnvVar
 	for _, kogitoInfraName := range kogitoInfraReferences {
 		// load infra resource
-		appProp, envProp, err := kogitoinfra.FetchKogitoInfraProperties(s.client, kogitoInfraName, s.instance.GetNamespace())
+		kogitoInfraInstance, err := kogitoinfra.FetchKogitoInfraInstance(s.client, kogitoInfraName, s.instance.GetNamespace())
 		if err != nil {
 			return nil, nil, err
 		}
-		util.AppendToStringMap(appProp, consolidateAppProperties)
-		consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
 
+		// fetch app properties from Kogito infra instance
+		appProp := kogitoInfraInstance.Status.AppProps
+
+		// Special handling for Kafka Infra
+		if kogitoinfra.IsKafkaResource(kogitoInfraInstance) {
+			if err = s.applyKafkaTopicConfigurations(kogitoInfraInstance, appProp); err != nil {
+				return nil, nil, err
+			}
+		}
+		util.AppendToStringMap(appProp, consolidateAppProperties)
+
+		// fetch env properties from Kogito infra instance
+		envProp := kogitoInfraInstance.Status.Env
+		consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
 	}
 	return consolidateAppProperties, consolidateEnvProperties, nil
 }
