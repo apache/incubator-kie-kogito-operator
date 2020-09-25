@@ -118,6 +118,7 @@ type KogitoServiceSpecInterface interface {
 	IsInsecureImageRegistry() bool
 	GetPropertiesConfigMap() string
 	GetInfra() []string
+	AddInfra(name string)
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -304,3 +305,8 @@ func (k *KogitoServiceSpec) GetPropertiesConfigMap() string { return k.Propertie
 
 // GetInfra ...
 func (k *KogitoServiceSpec) GetInfra() []string { return k.Infra }
+
+// AddInfra ...
+func (k *KogitoServiceSpec) AddInfra(name string) {
+	k.Infra = append(k.Infra, name)
+}
