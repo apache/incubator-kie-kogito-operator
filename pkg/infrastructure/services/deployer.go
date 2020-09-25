@@ -257,6 +257,7 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
 	}
+	reconcileAfter, err = configurePrometheus(s.client, s.instance, s.scheme)
 	return
 }
 

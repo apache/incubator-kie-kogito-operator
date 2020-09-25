@@ -984,7 +984,6 @@ func (in *KogitoRuntimeSpec) DeepCopyInto(out *KogitoRuntimeSpec) {
 	out.InfinispanMeta = in.InfinispanMeta
 	out.KafkaMeta = in.KafkaMeta
 	in.KogitoServiceSpec.DeepCopyInto(&out.KogitoServiceSpec)
-	out.Monitoring = in.Monitoring
 	return
 }
 
@@ -1045,6 +1044,7 @@ func (in *KogitoServiceSpec) DeepCopyInto(out *KogitoServiceSpec) {
 			(*out)[key] = val
 		}
 	}
+	out.Monitoring = in.Monitoring
 	return
 }
 

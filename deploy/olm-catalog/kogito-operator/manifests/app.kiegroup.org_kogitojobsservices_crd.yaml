@@ -255,6 +255,17 @@ spec:
                 jobs, in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
               format: int64
               type: integer
+            monitoring:
+              description: Create Service monitor instance to connect with Monitoring
+                service
+              properties:
+                path:
+                  description: HTTP path to scrape for metrics.
+                  type: string
+                scheme:
+                  description: HTTP scheme to use for scraping.
+                  type: string
+              type: object
             propertiesConfigMap:
               description: Custom ConfigMap with application.properties file to be
                 mounted for the Kogito service. The ConfigMap must be created in the

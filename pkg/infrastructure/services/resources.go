@@ -20,7 +20,6 @@ import (
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -279,10 +278,6 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 
 	if infrastructure.IsStrimziAvailable(s.client) {
 		objectTypes = append(objectTypes, &kafkabetav1.KafkaTopicList{})
-	}
-
-	if IsPrometheusAvailable(s.client) {
-		objectTypes = append(objectTypes, &monv1.ServiceMonitorList{})
 	}
 
 	if len(s.definition.extraManagedObjectLists) > 0 {

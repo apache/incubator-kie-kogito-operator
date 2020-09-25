@@ -117,6 +117,7 @@ type KogitoServiceSpecInterface interface {
 	SetHTTPPort(httpPort int32)
 	IsInsecureImageRegistry() bool
 	GetPropertiesConfigMap() string
+	GetMonitoring() Monitoring
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -182,6 +183,12 @@ type KogitoServiceSpec struct {
 	// Use this property if you need custom properties to be mounted before the application deployment.
 	// If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
 	PropertiesConfigMap string `json:"propertiesConfigMap,omitempty"`
+
+	// Create Service monitor instance to connect with Monitoring service
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Monitoring"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
+	Monitoring Monitoring `json:"monitoring,omitempty"`
 }
 
 // GetReplicas ...
@@ -296,3 +303,6 @@ func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureIm
 
 // GetPropertiesConfigMap ...
 func (k *KogitoServiceSpec) GetPropertiesConfigMap() string { return k.PropertiesConfigMap }
+
+// GetMonitoring ...
+func (k *KogitoServiceSpec) GetMonitoring() Monitoring { return k.Monitoring }

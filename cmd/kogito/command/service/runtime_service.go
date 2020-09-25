@@ -68,7 +68,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 		Spec: v1alpha1.KogitoRuntimeSpec{
 			EnableIstio: flags.EnableIstio,
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
-			Monitoring:  converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
 				Envs:                  converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
@@ -78,6 +77,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				HTTPPort:              flags.HTTPPort,
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
 				PropertiesConfigMap:   configMap,
+				Monitoring:            converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
 			},
 			InfinispanMeta: infinispanMeta,
 			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&flags.KafkaFlags, flags.EnableEvents),

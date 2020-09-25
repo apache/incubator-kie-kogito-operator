@@ -36,7 +36,7 @@ const (
 	kogitoServiceRuntimeEnvKey      = "runtime-env"
 	kogitoServiceServiceLabelKey    = "service-label"
 	kogitoServiceDeploymentLabelKey = "deployment-label"
-	kogitoServiceMonitoringKey      = "monitoring"
+	//kogitoServiceMonitoringKey      = "monitoring"
 
 	// DataTable second column
 	kogitoServiceInfinispanUsernameKey          = "username"
@@ -47,7 +47,7 @@ const (
 	kogitoServiceHTTPPortKey                    = "httpPort"
 	kogitoServiceInfinispanEnablePersistenceKey = "enablePersistence"
 	kogitoServiceInfinispanEnableEventsKey      = "enableEvents"
-	kogitoServiceMonitoringScrapeKey            = "scrape"
+	//kogitoServiceMonitoringScrapeKey            = "scrape"
 )
 
 // MapKogitoServiceTable maps Cucumber table to KogitoServiceHolder
@@ -96,8 +96,8 @@ func mapKogitoServiceTableRow(row *TableRow, kogitoService *bddtypes.KogitoServi
 	case kogitoServiceConfigKey:
 		return mapKogitoServiceConfigTableRow(row, kogitoService)
 
-	case kogitoServiceMonitoringKey:
-		return mapKogitoServiceMonitoringTableRow(row, kogitoService)
+	//case kogitoServiceMonitoringKey:
+	//	return mapKogitoServiceMonitoringTableRow(row, kogitoService)
 
 	default:
 		return false, fmt.Errorf("Unrecognized configuration option: %s", firstColumn)
@@ -174,7 +174,7 @@ func mapKogitoServiceConfigTableRow(row *TableRow, kogitoService *bddtypes.Kogit
 	return true, nil
 }
 
-func mapKogitoServiceMonitoringTableRow(row *TableRow, kogitoService *bddtypes.KogitoServiceHolder) (mappingFound bool, err error) {
+/*func mapKogitoServiceMonitoringTableRow(row *TableRow, kogitoService *bddtypes.KogitoServiceHolder) (mappingFound bool, err error) {
 	secondColumn := getSecondColumn(row)
 
 	if kogitoRuntime, ok := kogitoService.KogitoService.(*v1alpha1.KogitoRuntime); ok {
@@ -190,4 +190,4 @@ func mapKogitoServiceMonitoringTableRow(row *TableRow, kogitoService *bddtypes.K
 	}
 
 	return true, nil
-}
+}*/

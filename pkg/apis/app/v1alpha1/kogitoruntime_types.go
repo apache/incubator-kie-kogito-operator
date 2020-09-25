@@ -37,12 +37,6 @@ type KogitoRuntimeSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime RuntimeType `json:"runtime,omitempty"`
-
-	// Create Service monitor instance to connect with Monitoring service
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Monitoring"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
-	Monitoring Monitoring `json:"monitoring,omitempty"`
 }
 
 // KogitoRuntimeStatus defines the observed state of KogitoRuntime.
