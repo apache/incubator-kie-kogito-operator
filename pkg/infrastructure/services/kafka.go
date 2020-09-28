@@ -15,7 +15,6 @@
 package services
 
 import (
-	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -25,36 +24,22 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-const (
-	quarkusTopicBootstrapAppProp = "mp.messaging.%s.%s.bootstrap.servers"
-)
+func getKafkaServerURIFromAppProps(appProps map[string]string) string {
+	return appProps[kafka.QuarkusKafkaBootstrapAppProp]
+}
 
-func (s *serviceDeployer) applyKafkaTopicConfigurations(kogitoInfraInstance *v1alpha1.KogitoInfra, appProps map[string]string) error {
+func (s *serviceDeployer) createKafkaTopics(kogitoInfraInstance *v1alpha1.KogitoInfra, kafkaURI string) error {
 	log.Debugf("Going to apply kafka topic configurations")
-	kafkaURI := getKafkaServerURIFromAppProps(appProps)
 	if len(kafkaURI) > 0 {
 		for _, kafkaTopic := range s.definition.KafkaTopics {
-			err := s.createKafkaTopicIfNotExists(kafkaTopic.TopicName, kogitoInfraInstance)
+			err := s.createKafkaTopicIfNotExists(kafkaTopic, kogitoInfraInstance)
 			if err != nil {
 				return err
 			}
-			appProps[fromKafkaTopicToQuarkusAppProp(kafkaTopic)] = kafkaURI
 		}
 	}
 	log.Debugf("Skipping to apply kafka topics configuration as kafka URI is not received in Infra app props")
 	return nil
-}
-
-// fromKafkaTopicToQuarkusAppProp transforms a given Kafka Topic name into a application properties to be read by Quarkus Kafka client used by Kogito Services
-func fromKafkaTopicToQuarkusAppProp(topic KafkaTopicDefinition) string {
-	if len(topic.TopicName) > 0 && len(topic.MessagingType) > 0 {
-		return fmt.Sprintf(quarkusTopicBootstrapAppProp, topic.MessagingType, topic.TopicName)
-	}
-	return ""
-}
-
-func getKafkaServerURIFromAppProps(appProps map[string]string) string {
-	return appProps[kafka.QuarkusKafkaBootstrapAppProp]
 }
 
 func (s *serviceDeployer) createKafkaTopicIfNotExists(topicName string, instance *v1alpha1.KogitoInfra) error {

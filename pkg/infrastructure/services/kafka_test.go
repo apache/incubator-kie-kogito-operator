@@ -26,7 +26,7 @@ import (
 	"testing"
 )
 
-func Test_applyKafkaTopicConfigurations(t *testing.T) {
+func Test_createKafkaTopics(t *testing.T) {
 
 	appProps := map[string]string{}
 	appProps[kafka.QuarkusKafkaBootstrapAppProp] = "kogito-kafka:9092"
@@ -49,15 +49,14 @@ func Test_applyKafkaTopicConfigurations(t *testing.T) {
 	serviceDeployer := serviceDeployer{
 		client: client,
 		definition: ServiceDefinition{
-			KafkaTopics: []KafkaTopicDefinition{
-				{TopicName: "kogito-processinstances-events", MessagingType: KafkaTopicIncoming},
+			KafkaTopics: []string{
+				"kogito-processinstances-events",
 			},
 		},
 	}
 
-	err := serviceDeployer.applyKafkaTopicConfigurations(kogitoInfraInstance, appProps)
+	err := serviceDeployer.createKafkaTopics(kogitoInfraInstance, "kogito-kafka:9092")
 	assert.NoError(t, err)
-	assert.Equal(t, "kogito-kafka:9092", appProps["mp.messaging.incoming.kogito-processinstances-events.bootstrap.servers"])
 
 	kafkaTopic := &v1beta1.KafkaTopic{}
 	exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Namespace: "mynamespace", Name: "kogito-processinstances-events"}, kafkaTopic)

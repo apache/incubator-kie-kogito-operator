@@ -300,18 +300,19 @@ func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []cor
 
 		// fetch app properties from Kogito infra instance
 		appProp := kogitoInfraInstance.Status.AppProps
-
-		// Special handling for Kafka Infra
-		if kogitoinfra.IsKafkaResource(kogitoInfraInstance) {
-			if err = s.applyKafkaTopicConfigurations(kogitoInfraInstance, appProp); err != nil {
-				return nil, nil, err
-			}
-		}
 		util.AppendToStringMap(appProp, consolidateAppProperties)
 
 		// fetch env properties from Kogito infra instance
 		envProp := kogitoInfraInstance.Status.Env
 		consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
+
+		// Special handling for Kafka Infra
+		if kogitoinfra.IsKafkaResource(kogitoInfraInstance) {
+			kafkaURI := getKafkaServerURIFromAppProps(appProp)
+			if err = s.createKafkaTopics(kogitoInfraInstance, kafkaURI); err != nil {
+				return nil, nil, err
+			}
+		}
 	}
 	return consolidateAppProperties, consolidateEnvProperties, nil
 }

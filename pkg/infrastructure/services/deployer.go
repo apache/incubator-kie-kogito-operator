@@ -74,7 +74,7 @@ type ServiceDefinition struct {
 	// The service is not deployed until the trusty service is found
 	RequiresTrusty bool
 	// KafkaTopics is a collection of Kafka Topics to be created within the service
-	KafkaTopics []KafkaTopicDefinition
+	KafkaTopics []string
 	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe
 	HealthCheckProbe HealthCheckProbeType
 	// customService indicates that the service can be built within the cluster
@@ -82,24 +82,6 @@ type ServiceDefinition struct {
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
 	extraManagedObjectLists []runtime.Object
 }
-
-// KafkaTopicDefinition ...
-type KafkaTopicDefinition struct {
-	// TopicName name of the given topic
-	TopicName string
-	// MessagingType is the type for the Kafka topic: INCOMING or OUTGOING
-	MessagingType KafkaTopicMessagingType
-}
-
-// KafkaTopicMessagingType ...
-type KafkaTopicMessagingType string
-
-const (
-	// KafkaTopicIncoming ...
-	KafkaTopicIncoming KafkaTopicMessagingType = "incoming"
-	// KafkaTopicOutgoing ...
-	KafkaTopicOutgoing KafkaTopicMessagingType = "outgoing"
-)
 
 const (
 	defaultReplicas             = int32(1)
