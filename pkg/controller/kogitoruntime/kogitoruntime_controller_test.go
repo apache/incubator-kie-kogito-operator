@@ -31,16 +31,25 @@ import (
 
 func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	replicas := int32(1)
+
+	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
+	kogitoInfinispan := test.CreateFakeKogitoInfinispan(t.Name())
+
 	instance := &v1alpha1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "example-quarkus", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoRuntimeSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:      &replicas,
 				ServiceLabels: map[string]string{"process": "example-quarkus"},
+				Infra: []string{
+					kogitoKafka.Name,
+					kogitoInfinispan.Name,
+				},
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+
+	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka, kogitoInfinispan}, nil, nil)
 
 	r := ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}
 

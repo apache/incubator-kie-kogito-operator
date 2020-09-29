@@ -15,7 +15,6 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -77,59 +76,13 @@ func Test_getKafkaInstanceWithName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetKafkaInstanceWithName(tt.args.name, tt.args.namespace, tt.args.client)
+			got, err := getKafkaInstanceWithName(tt.args.name, tt.args.namespace, tt.args.client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getKafkaInstanceWithName() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getKafkaInstanceWithName() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_resolveKafkaServerReplicas(t *testing.T) {
-	type args struct {
-		kafka *v1beta1.Kafka
-	}
-	tests := []struct {
-		name string
-		args args
-		want int32
-	}{
-		{
-			"NoReplicas",
-			args{
-				nil,
-			},
-			0,
-		},
-		{
-			"DefaultReplicas",
-			args{
-				&v1beta1.Kafka{},
-			},
-			1,
-		},
-		{
-			"ResolveReplicas",
-			args{
-				&v1beta1.Kafka{
-					Spec: v1beta1.KafkaSpec{
-						Kafka: v1beta1.KafkaClusterSpec{
-							Replicas: 2,
-						},
-					},
-				},
-			},
-			2,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := ResolveKafkaServerReplicas(tt.args.kafka); got != tt.want {
-				t.Errorf("resolveKafkaServerReplicas() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -177,140 +130,8 @@ func Test_resolveKafkaServerURI(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ResolveKafkaServerURI(tt.args.kafka); got != tt.want {
-				t.Errorf("resolveKafkaServerURI() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGetReadyKafkaInstanceName(t *testing.T) {
-	type args struct {
-		cli   *client.Client
-		infra *v1alpha1.KogitoInfra
-	}
-	tests := []struct {
-		name      string
-		args      args
-		wantKafka string
-		wantErr   bool
-	}{
-		{
-			"NoStatus",
-			args{
-				cli:   test.CreateFakeClient(nil, nil, nil),
-				infra: &v1alpha1.KogitoInfra{},
-			},
-			"",
-			false,
-		},
-		{
-			"NoInstance",
-			args{
-				cli: test.CreateFakeClient(nil, nil, nil),
-				infra: &v1alpha1.KogitoInfra{
-					ObjectMeta: v1.ObjectMeta{
-						Namespace: "test",
-					},
-					Status: v1alpha1.KogitoInfraStatus{
-						Kafka: v1alpha1.InfraComponentInstallStatusType{
-							Name: "test",
-						},
-					},
-				},
-			},
-			"",
-			false,
-		},
-		{
-			"NotReady",
-			args{
-				cli: test.CreateFakeClient(
-					[]runtime.Object{
-						&v1beta1.Kafka{
-							ObjectMeta: v1.ObjectMeta{
-								Name:      "test",
-								Namespace: "test",
-							},
-							Status: v1beta1.KafkaStatus{},
-						},
-					},
-					nil,
-					nil),
-				infra: &v1alpha1.KogitoInfra{
-					ObjectMeta: v1.ObjectMeta{
-						Namespace: "test",
-					},
-					Status: v1alpha1.KogitoInfraStatus{
-						Kafka: v1alpha1.InfraComponentInstallStatusType{
-							Name: "test",
-						},
-					},
-				},
-			},
-			"",
-			false,
-		},
-		{
-			"Ready",
-			args{
-				cli: test.CreateFakeClient(
-					[]runtime.Object{
-						&v1beta1.Kafka{
-							ObjectMeta: v1.ObjectMeta{
-								Name:      "test",
-								Namespace: "test",
-							},
-							Status: v1beta1.KafkaStatus{
-								Listeners: []v1beta1.ListenerStatus{
-									{
-										Type: "tls",
-										Addresses: []v1beta1.ListenerAddress{
-											{
-												Host: "kafka1",
-												Port: 9093,
-											},
-										},
-									},
-									{
-										Type: "plain",
-										Addresses: []v1beta1.ListenerAddress{
-											{
-												Host: "kafka",
-												Port: 9092,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					nil,
-					nil),
-				infra: &v1alpha1.KogitoInfra{
-					ObjectMeta: v1.ObjectMeta{
-						Namespace: "test",
-					},
-					Status: v1alpha1.KogitoInfraStatus{
-						Kafka: v1alpha1.InfraComponentInstallStatusType{
-							Name: "test",
-						},
-					},
-				},
-			},
-			"test",
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotKafka, err := GetReadyKafkaInstanceName(tt.args.cli, tt.args.infra)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetReadyKafkaInstanceName() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if gotKafka != tt.wantKafka {
-				t.Errorf("GetReadyKafkaInstanceName() gotKafka = %v, want %v", gotKafka, tt.wantKafka)
+			if got, _ := ResolveKafkaServerURI(tt.args.kafka); got != tt.want {
+				t.Errorf("ResolveKafkaServerURI() = %v, want %v", got, tt.want)
 			}
 		})
 	}

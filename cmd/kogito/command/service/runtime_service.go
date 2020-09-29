@@ -52,10 +52,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err := i.resourceCheckService.CheckKogitoRuntimeNotExists(cli, flags.Name, flags.Project); err != nil {
 		return err
 	}
-	infinispanMeta, err := converter.FromInfinispanFlagsToInfinispanMeta(cli, flags.Project, &flags.InfinispanFlags, flags.EnablePersistence)
-	if err != nil {
-		return err
-	}
 	configMap, err := createConfigMapFromFile(cli, flags)
 	if err != nil {
 		return err
@@ -78,9 +74,8 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				HTTPPort:              flags.HTTPPort,
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
 				PropertiesConfigMap:   configMap,
+				Infra:                 flags.Infra,
 			},
-			InfinispanMeta: infinispanMeta,
-			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&flags.KafkaFlags, flags.EnableEvents),
 		},
 		Status: v1alpha1.KogitoRuntimeStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -94,7 +89,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	err = shared.
 		ServicesInstallationBuilder(cli, flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(flags.Channel)).
-		WarnIfDependenciesNotReady(flags.InfinispanFlags.UseKogitoInfra, flags.KafkaFlags.UseKogitoInfra).
 		InstallRuntimeService(&kogitoRuntime).
 		GetError()
 	if err != nil {

@@ -49,29 +49,3 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, instance.Status.Conditions, 1)
 }
-
-func TestReconcileKogitoJobsService_Reconcile_WithInfinispan(t *testing.T) {
-	replicas := int32(1)
-	instance := &v1alpha1.KogitoJobsService{
-		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
-			InfinispanMeta: v1alpha1.InfinispanMeta{InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-				UseKogitoInfra: true,
-			}},
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-		},
-	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
-
-	r := ReconcileKogitoJobsService{client: cli, scheme: meta.GetRegisteredSchema()}
-
-	test.AssertReconcileMustRequeue(t, &r, instance)
-	test.AssertReconcileMustRequeue(t, &r, instance)
-
-	kogitoInfra := &v1alpha1.KogitoInfra{
-		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultKogitoInfraName, Namespace: instance.Namespace},
-	}
-	_, err := kubernetes.ResourceC(cli).Fetch(kogitoInfra)
-	assert.NoError(t, err)
-	assert.True(t, kogitoInfra.Spec.InstallInfinispan)
-}

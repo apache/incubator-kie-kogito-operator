@@ -117,6 +117,7 @@ type KogitoServiceSpecInterface interface {
 	SetHTTPPort(httpPort int32)
 	IsInsecureImageRegistry() bool
 	GetPropertiesConfigMap() string
+	GetInfra() []string
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -182,6 +183,10 @@ type KogitoServiceSpec struct {
 	// Use this property if you need custom properties to be mounted before the application deployment.
 	// If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
 	PropertiesConfigMap string `json:"propertiesConfigMap,omitempty"`
+
+	// Infra provides list of dependent KogitoInfra objects.
+	// +optional
+	Infra []string `json:"infra,omitempty"`
 }
 
 // GetReplicas ...
@@ -296,3 +301,6 @@ func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureIm
 
 // GetPropertiesConfigMap ...
 func (k *KogitoServiceSpec) GetPropertiesConfigMap() string { return k.PropertiesConfigMap }
+
+// GetInfra ...
+func (k *KogitoServiceSpec) GetInfra() []string { return k.Infra }

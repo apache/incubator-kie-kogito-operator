@@ -58,12 +58,11 @@ func Test_DeployExplainabilityCmd_DefaultConfiguration(t *testing.T) {
 	assert.True(t, exist)
 	assert.NotNil(t, explainability)
 	assert.False(t, explainability.Spec.InsecureImageRegistry)
-	assert.True(t, explainability.Spec.KafkaProperties.UseKogitoInfra)
 }
 
 func Test_DeployExplainabilityCmd_CustomConfiguration(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install explainability --project %s --kafka-url my-cluster:9092 --insecure-image-registry --http-port 9090", ns)
+	cli := fmt.Sprintf("install explainability --project %s --insecure-image-registry --http-port 9090 --infra kogito-kafka", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -86,6 +85,6 @@ func Test_DeployExplainabilityCmd_CustomConfiguration(t *testing.T) {
 	assert.True(t, exist)
 	assert.NotNil(t, explainability)
 	assert.True(t, explainability.Spec.InsecureImageRegistry)
-	assert.False(t, explainability.Spec.KafkaProperties.UseKogitoInfra)
+	assert.Contains(t, explainability.Spec.Infra, "kogito-kafka")
 	assert.Equal(t, int32(9090), explainability.Spec.HTTPPort)
 }

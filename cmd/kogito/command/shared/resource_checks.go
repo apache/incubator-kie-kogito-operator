@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -33,6 +34,7 @@ type ResourceCheckService interface {
 	CheckKogitoRuntimeNotExists(kubeCli *client.Client, name string, namespace string) error
 	CheckKogitoBuildExists(kubeCli *client.Client, name string, project string) error
 	CheckKogitoBuildNotExists(kubeCli *client.Client, name string, namespace string) error
+	CheckKogitoInfraExists(kubeCli *client.Client, name string, namespace string) error
 }
 
 type resourceCheckServiceImpl struct{}
@@ -165,4 +167,10 @@ func isKogitoBuildExists(kubeCli *client.Client, name string, namespace string) 
 		return false, fmt.Errorf("Error while trying to look for the KogitoBuild: %s ", err)
 	}
 	return exists, nil
+}
+
+// CheckKogitoInfraExists returns an error if the KogitoInfra not exists
+func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client, name string, namespace string) error {
+	_, err := infrastructure.FetchKogitoInfraInstance(kubeCli, name, namespace)
+	return err
 }

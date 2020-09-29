@@ -158,12 +158,12 @@ const (
 	kafkaTopicNameJobsEvents        string = "kogito-jobs-events"
 )
 
-var kafkaTopics = []services.KafkaTopicDefinition{
-	{TopicName: kafkaTopicNameProcessInstances, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameUserTaskInstances, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameProcessDomain, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameUserTaskDomain, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicIncoming},
+var kafkaTopics = []string{
+	kafkaTopicNameProcessInstances,
+	kafkaTopicNameUserTaskInstances,
+	kafkaTopicNameProcessDomain,
+	kafkaTopicNameUserTaskDomain,
+	kafkaTopicNameJobsEvents,
 }
 
 func (r *ReconcileKogitoDataIndex) onDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {

@@ -28,7 +28,6 @@ import (
 
 type installExplainabilityFlags struct {
 	flag.InstallFlags
-	flag.KafkaFlags
 }
 
 type installExplainabilityCommand struct {
@@ -54,7 +53,6 @@ func (i *installExplainabilityCommand) InitHook() {
 	i.flags = installExplainabilityFlags{}
 	i.Parent.AddCommand(i.command)
 	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
-	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
 }
 
 func (i *installExplainabilityCommand) Command() *cobra.Command {
@@ -78,9 +76,6 @@ Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator
 			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
 				return err
 			}
-			if err := flag.CheckKafkaArgs(&i.flags.KafkaFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -102,8 +97,8 @@ func (i *installExplainabilityCommand) Exec(cmd *cobra.Command, args []string) e
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
+				Infra:                 i.flags.Infra,
 			},
-			KafkaMeta: converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, true),
 		},
 		Status: v1alpha1.KogitoExplainabilityStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -115,7 +110,6 @@ func (i *installExplainabilityCommand) Exec(cmd *cobra.Command, args []string) e
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
-		WarnIfDependenciesNotReady(false, i.flags.KafkaFlags.UseKogitoInfra).
 		InstallExplainability(&kogitoExplainability).
 		GetError()
 }

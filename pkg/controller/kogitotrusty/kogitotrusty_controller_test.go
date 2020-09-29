@@ -21,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -40,31 +39,22 @@ import (
 
 func TestReconcileKogitoTrusty_Reconcile(t *testing.T) {
 	ns := t.Name()
+	kogitoKafka := test.CreateFakeKogitoKafka(ns)
 	instance := &v1alpha1.KogitoTrusty{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-trusty",
 			Namespace: ns,
 		},
 		// We don't need to specify that we need Infinispan, it will figure out that alone :)
-		Spec: v1alpha1.KogitoTrustySpec{},
-	}
-	kafkaList := &kafkabetav1.KafkaList{
-		Items: []kafkabetav1.Kafka{
-			{
-				ObjectMeta: metav1.ObjectMeta{Name: "kafka", Namespace: ns},
-				Spec:       kafkabetav1.KafkaSpec{Kafka: kafkabetav1.KafkaClusterSpec{Replicas: 1}},
-				Status: kafkabetav1.KafkaStatus{
-					Listeners: []kafkabetav1.ListenerStatus{
-						{
-							Type:      "plain",
-							Addresses: []kafkabetav1.ListenerAddress{{Host: "kafka", Port: 9092}},
-						},
-					},
+		Spec: v1alpha1.KogitoTrustySpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Infra: []string{
+					kogitoKafka.Name,
 				},
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka}, nil, nil)
 	r := &ReconcileKogitoTrusty{
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),
@@ -72,14 +62,6 @@ func TestReconcileKogitoTrusty_Reconcile(t *testing.T) {
 
 	// basic checks
 	test.AssertReconcile(t, r, instance)
-
-	// check infra
-	infra, ready, err := infrastructure.EnsureKogitoInfra(ns, cli).WithInfinispan().Apply()
-	assert.NoError(t, err)
-	assert.False(t, ready)  // we don't have status defined since the KogitoInfra controller is not running
-	assert.NotNil(t, infra) // we have a infra instance created during reconciliation phase
-	assert.Equal(t, infrastructure.DefaultKogitoInfraName, infra.GetName())
-	assert.True(t, infra.Spec.InstallInfinispan)
 }
 
 func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
@@ -92,18 +74,6 @@ func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
 		Spec: v1alpha1.KogitoTrustySpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				HTTPPort: 9090,
-			},
-			KafkaMeta: v1alpha1.KafkaMeta{
-				KafkaProperties: v1alpha1.KafkaConnectionProperties{
-					UseKogitoInfra: false,
-					ExternalURI:    "my-uri:9022",
-				},
-			},
-			InfinispanMeta: v1alpha1.InfinispanMeta{
-				InfinispanProperties: v1alpha1.InfinispanConnectionProperties{
-					UseKogitoInfra: false,
-					URI:            "another-uri:11222",
-				},
 			},
 		},
 	}
