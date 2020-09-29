@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"time"
 
@@ -93,7 +94,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 	log.Infof("Reconciling KogitoInfra for %s in %s", request.Name, request.Namespace)
 
 	// Fetch the KogitoInfra instance
-	instance, resultErr := FetchKogitoInfraInstance(r.client, request.Name, request.Namespace)
+	instance, resultErr := infrastructure.FetchKogitoInfraInstance(r.client, request.Name, request.Namespace)
 	if resultErr != nil {
 		return reconcile.Result{}, resultErr
 	}

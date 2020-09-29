@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -170,20 +171,6 @@ func isKogitoBuildExists(kubeCli *client.Client, name string, namespace string) 
 
 // CheckKogitoInfraExists returns an error if the KogitoInfra not exists
 func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client, name string, namespace string) error {
-	log := context.GetDefaultLogger()
-	kogitoInfra := &v1alpha1.KogitoInfra{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
-	exists, err := kubernetes.ResourceC(kubeCli).Fetch(kogitoInfra)
-	if err != nil {
-		return err
-	} else if !exists {
-		return fmt.Errorf("Looks like a Kogito infra with the name '%s' doesn't exist in this project. Please try another name ", name)
-	} else {
-		log.Debugf("Kogito infra with name '%s' was found in the project '%s' ", name, namespace)
-		return nil
-	}
+	_, err := infrastructure.FetchKogitoInfraInstance(kubeCli, name, namespace)
+	return err
 }

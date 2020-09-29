@@ -46,5 +46,5 @@ func Test_DeleteKogitoInfraCmd_Failure_ServiceDoesNotExist(t *testing.T) {
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
-	assert.Contains(t, lines, "with the name 'kafka-infra' doesn't exist")
+	assert.Contains(t, lines, "with name kafka-infra not found")
 }
