@@ -53,7 +53,7 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	deployer := NewSingletonServiceDeployer(definition, serviceList, cli, meta.GetRegisteredSchema())
 	reconcileAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
-	assert.Equal(t, time.Duration(0), reconcileAfter) // we just deployed Infinispan
+	assert.Equal(t, time.Duration(0), reconcileAfter)
 
 	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)
