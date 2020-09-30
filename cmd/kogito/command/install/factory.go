@@ -27,9 +27,7 @@ func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	initInstallExplainabilityCommand(ctx, installCmd.Command())
 	initInstallTrustyCommand(ctx, installCmd.Command())
 	initInstallJobsServiceCommand(ctx, installCmd.Command())
-	initInstallInfinispanCommand(ctx, installCmd.Command())
-	initInstallKeycloakCommand(ctx, installCmd.Command())
-	initInstallKafkaCommand(ctx, installCmd.Command())
 	initInstallMgmtConsoleCommand(ctx, installCmd.Command())
 	initInstallTrustyUICommand(ctx, installCmd.Command())
+	initInfraCommand(ctx, installCmd.Command())
 }

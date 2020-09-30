@@ -84,7 +84,7 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 		Spec: v1alpha1.KogitoBuildSpec{
 			Type:                      converter.FromResourceTypeToKogitoBuildType(resourceType),
 			DisableIncremental:        !flags.IncrementalBuild,
-			Envs:                      converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
+			Env:                       converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
 			GitSource:                 converter.FromGitSourceFlagsToGitSource(&flags.GitSourceFlags),
 			Runtime:                   runtime,
 			WebHooks:                  converter.FromWebHookFlagsToWebHookSecret(&flags.WebHookFlags),

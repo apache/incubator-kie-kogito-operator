@@ -117,6 +117,7 @@ type KogitoServiceSpecInterface interface {
 	SetHTTPPort(httpPort int32)
 	IsInsecureImageRegistry() bool
 	GetPropertiesConfigMap() string
+	GetInfra() []string
 	GetMonitoring() Monitoring
 }
 
@@ -135,7 +136,7 @@ type KogitoServiceSpec struct {
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Envs []corev1.EnvVar `json:"envs,omitempty"`
+	Env []corev1.EnvVar `json:"env,omitempty"`
 
 	// +optional
 	// Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
@@ -184,6 +185,10 @@ type KogitoServiceSpec struct {
 	// If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
 	PropertiesConfigMap string `json:"propertiesConfigMap,omitempty"`
 
+	// Infra provides list of dependent KogitoInfra objects.
+	// +optional
+	Infra []string `json:"infra,omitempty"`
+
 	// Create Service monitor instance to connect with Monitoring service
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Monitoring"
@@ -198,10 +203,10 @@ func (k *KogitoServiceSpec) GetReplicas() *int32 { return k.Replicas }
 func (k *KogitoServiceSpec) SetReplicas(replicas int32) { k.Replicas = &replicas }
 
 // GetEnvs ...
-func (k *KogitoServiceSpec) GetEnvs() []corev1.EnvVar { return k.Envs }
+func (k *KogitoServiceSpec) GetEnvs() []corev1.EnvVar { return k.Env }
 
 // SetEnvs ...
-func (k *KogitoServiceSpec) SetEnvs(envs []corev1.EnvVar) { k.Envs = envs }
+func (k *KogitoServiceSpec) SetEnvs(envs []corev1.EnvVar) { k.Env = envs }
 
 // GetImage ...
 func (k *KogitoServiceSpec) GetImage() string { return k.Image }
@@ -229,7 +234,7 @@ func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {
 		Name:  name,
 		Value: value,
 	}
-	k.Envs = append(k.Envs, env)
+	k.Env = append(k.Env, env)
 }
 
 // AddEnvironmentVariableFromSecret adds a new environment variable from the secret under the key.
@@ -245,7 +250,7 @@ func (k *KogitoServiceSpec) AddEnvironmentVariableFromSecret(variableName, secre
 			},
 		},
 	}
-	k.Envs = append(k.Envs, env)
+	k.Env = append(k.Env, env)
 }
 
 // AddResourceRequest adds new resource request. Works also on uninitialized Requests field.
@@ -303,6 +308,9 @@ func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureIm
 
 // GetPropertiesConfigMap ...
 func (k *KogitoServiceSpec) GetPropertiesConfigMap() string { return k.PropertiesConfigMap }
+
+// GetInfra ...
+func (k *KogitoServiceSpec) GetInfra() []string { return k.Infra }
 
 // GetMonitoring ...
 func (k *KogitoServiceSpec) GetMonitoring() Monitoring { return k.Monitoring }

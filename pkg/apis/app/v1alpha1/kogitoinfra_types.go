@@ -19,11 +19,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// InfraComponentInstallStatusType is the base structure to define the status for an actor in the infrastructure.
-type InfraComponentInstallStatusType struct {
-	Service   string             `json:"service,omitempty"`
-	Name      string             `json:"name,omitempty"`
-	Condition []InstallCondition `json:"condition,omitempty"`
+// Resource provide reference infra resource
+type Resource struct {
+
+	// APIVersion describes the API Version of referred Kubernetes resource for example, infinispan.org/v1
+	APIVersion string `json:"apiVersion"`
+
+	// Kind describes the kind of referred Kubernetes resource for example, Infinispan
+	Kind string `json:"kind"`
+
+	// Namespace where referred resource exists.
+	Namespace string `json:"namespace,omitempty"`
+
+	// Name of referred resource.
+	Name string `json:"name,omitempty"`
 }
 
 // KogitoInfraSpec defines the desired state of KogitoInfra.
@@ -31,33 +40,28 @@ type InfraComponentInstallStatusType struct {
 type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Indicates if Infinispan should be installed or not using Infinispan Operator.
-	// Please note that the Infinispan Operator must be installed manually on environments that doesn't have OLM installed.
+	// +optional
+	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Infinispan"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	InstallInfinispan bool `json:"installInfinispan,omitempty"`
-	// Indicates if Kafka should be installed or not using Strimzi (Kafka Operator).
-	// Please note that the Strimzi must be installed manually on environments that doesn't have OLM installed.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Kafka"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	InstallKafka bool `json:"installKafka,omitempty"`
-	// Whether or not to install Keycloak using Keycloak Operator.
-	// Please note that the Keycloak Operator must be installed manually on environments that doesn't have OLM installed.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Install Keycloak"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	InstallKeycloak bool `json:"installKeycloak,omitempty"`
+	Resource Resource `json:"resource,omitempty"`
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
-	Condition  KogitoInfraCondition            `json:"condition,omitempty"`
-	Infinispan InfinispanInstallStatus         `json:"infinispan,omitempty"`
-	Kafka      InfraComponentInstallStatusType `json:"kafka,omitempty"`
-	Keycloak   InfraComponentInstallStatusType `json:"keycloak,omitempty"`
+	Condition KogitoInfraCondition `json:"condition,omitempty"`
+
+	// +optional
+	// +mapType=atomic
+	// Application properties extracted from the linked resource that will be added to the deployed Kogito service.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	AppProps map[string]string `json:"appProps,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// Environment variables extracted from the linked resource that will be added to the deployed Kogito service.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	Env []v1.EnvVar `json:"env,omitempty"`
 }
 
 /*
@@ -73,32 +77,6 @@ type KogitoInfraCondition struct {
 	Message            string                   `json:"message,omitempty"`
 }
 
-// InfinispanInstallStatus defines the Infinispan installation status.
-type InfinispanInstallStatus struct {
-	InfraComponentInstallStatusType `json:",inline"`
-	CredentialSecret                string `json:"credentialSecret,omitempty"`
-}
-
-// InstallCondition defines the installation condition for the infrastructure actor.
-type InstallCondition struct {
-	Type               InstallConditionType `json:"type"`
-	Status             v1.ConditionStatus   `json:"status"`
-	LastTransitionTime metav1.Time          `json:"lastTransitionTime,omitempty"`
-	Message            string               `json:"message,omitempty"`
-}
-
-// InstallConditionType defines the possibles conditions that a install might have.
-type InstallConditionType string
-
-const (
-	// FailedInstallConditionType indicates failed condition
-	FailedInstallConditionType InstallConditionType = "Failed"
-	// ProvisioningInstallConditionType indicates provisioning condition
-	ProvisioningInstallConditionType InstallConditionType = "Provisioning"
-	// SuccessInstallConditionType indicates success condition
-	SuccessInstallConditionType InstallConditionType = "Success"
-)
-
 // KogitoInfraConditionType ...
 type KogitoInfraConditionType string
 
@@ -111,16 +89,12 @@ const (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// KogitoInfra will be managed automatically by the operator, don't need to create it manually.
-// Kogito Infra is responsible to delegate the creation of each
-// infrastructure dependency (such as Infinispan) to a third party operator.
-// It holds the deployment status of each infrastructure dependency and custom
-// resources needed to run Kogito Runtime and Kogito Data Index services.
+// KogitoInfra is the resource to bind a Custom Resource (CR) not managed by Kogito Operator to a given deployed Kogito service.
+// It holds the reference of a CR managed by another operator such as Strimzi. For example: one can create a Kafka CR via Strimzi
+// and link this resource using KogitoInfra to a given Kogito service (custom or supporting, such as Data Index).
+// Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/) for more information.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
-// +kubebuilder:printcolumn:name="Infinispan",type="boolean",JSONPath=".spec.installInfinispan",description="Infinispan should be installed"
-// +kubebuilder:printcolumn:name="Kafka",type="boolean",JSONPath=".spec.installKafka",description="Kafka should be installed"
-// +kubebuilder:printcolumn:name="Keycloak",type="boolean",JSONPath=".spec.installKeycloak",description="Keycloak should be installed"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1,\"A Kafka instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispan,infinispan.org/v1,\"A Infinispan instance\""

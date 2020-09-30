@@ -147,7 +147,7 @@ const (
 	kafkaTopicNameExplainabilityResult  string = "trusty-explainability-result"
 )
 
-var kafkaTopics = []services.KafkaTopicDefinition{
-	{TopicName: kafkaTopicNameExplainabilityRequest, MessagingType: services.KafkaTopicIncoming},
-	{TopicName: kafkaTopicNameExplainabilityResult, MessagingType: services.KafkaTopicOutgoing},
+var kafkaTopics = []string{
+	kafkaTopicNameExplainabilityRequest,
+	kafkaTopicNameExplainabilityResult,
 }

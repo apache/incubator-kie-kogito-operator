@@ -54,7 +54,7 @@ spec:
                 metadata for Istio to setup its sidecars, enabling the mesh. Defaults
                 to false.
               type: boolean
-            envs:
+            env:
               description: Environment variables to be added to the runtime container.
                 Keys must be a C_IDENTIFIER.
               items:
@@ -169,85 +169,16 @@ spec:
                 On OpenShift an ImageStream will be created in the current namespace
                 pointing to the given image.'
               type: string
-            infinispan:
-              description: Has the data used by the service to connect to the Infinispan
-                cluster.
-              properties:
-                authRealm:
-                  description: Name of the Infinispan authentication realm. This sets
-                    the property infinispan.client.hotrod.auth_realm.
-                  type: string
-                credentials:
-                  description: SecretCredentialsType is the data structure for specifying
-                    credentials within a Secret.
-                  properties:
-                    passwordKey:
-                      description: PasswordKey is the key pointing to a value in a
-                        Secret holding the password value.
-                      type: string
-                    secretName:
-                      description: SecretName is the name of the secret where the
-                        credentials are set.
-                      type: string
-                    usernameKey:
-                      description: UsernameKey is the key pointing to a value in a
-                        Secret holding the username value.
-                      type: string
-                  type: object
-                saslMechanism:
-                  description: SaslMechanism defined for the authentication. This
-                    sets the property infinispan.client.hotrod.sasl_mechanism.
-                  enum:
-                  - PLAIN
-                  - DIGEST-MD5
-                  type: string
-                uri:
-                  description: URI to connect to the Infinispan cluster (can it be
-                    an internal service or external URI), for example, myinfinispan-cluster:11222.
-                  type: string
-                useAuth:
-                  description: UseAuth is set to true if the credentials are set.
-                    This also sets the property infinispan.client.hotrod.use_auth.
-                  type: boolean
-                useKogitoInfra:
-                  description: UseKogitoInfra flags if the instance will use a provided
-                    infrastructure by KogitoInfra CR. Setting this to true will deploy
-                    a new KogitoInfra CR into the namespace that will install Infinispan
-                    via Infinispan Operator. Infinispan Operator MUST be installed
-                    in the namespace for this to work. On OpenShift, OLM should install
-                    it for you. If running on Kubernetes without OLM installed, please
-                    install Infinispan Operator first. Set this to false and fill
-                    all other properties to provide your own infrastructure.
-                  type: boolean
-              type: object
+            infra:
+              description: Infra provides list of dependent KogitoInfra objects.
+              items:
+                type: string
+              type: array
             insecureImageRegistry:
               description: A flag indicating that image streams created by Kogito
                 Operator should be configured to allow pulling from insecure registries.
                 Usable just on OpenShift. Defaults to 'false'.
               type: boolean
-            kafka:
-              description: Has the data used by the service to connect to the Kafka
-                cluster.
-              properties:
-                externalURI:
-                  description: URI is the service URI to connect to the Kafka cluster,
-                    for example, my-cluster-kafka-bootstrap:9092.
-                  type: string
-                instance:
-                  description: Instance is the Kafka instance to be used, for example,
-                    kogito-kafka.
-                  type: string
-                useKogitoInfra:
-                  description: UseKogitoInfra flags if the instance will use a provided
-                    infrastructure by KogitoInfra CR. Setting this to true will configure
-                    a KogitoInfra CR to install Kafka via Strimzi Operator. Strimzi
-                    Operator MUST be installed in the namespace for this to work.
-                    On OpenShift, OLM should install it for you. If running on Kubernetes
-                    without OLM installed, please install Strimzi Operator first.
-                    Set this to false and fill other properties to provide your own
-                    infrastructure.
-                  type: boolean
-              type: object
             monitoring:
               description: Create Service monitor instance to connect with Monitoring
                 service

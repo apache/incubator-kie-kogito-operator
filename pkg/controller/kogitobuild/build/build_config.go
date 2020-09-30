@@ -117,7 +117,7 @@ func decoratorForSourceBuilder() decorator {
 			{Type: buildv1.ImageChangeBuildTriggerType, ImageChange: &buildv1.ImageChangeTrigger{From: &baseImage}},
 		}
 		// apply the necessary environment variables
-		envs := build.Spec.Envs
+		envs := build.Spec.Env
 		if build.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
 			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(build.Spec.Native)})
 		}

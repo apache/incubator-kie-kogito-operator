@@ -21,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -40,31 +39,21 @@ import (
 
 func TestReconcileKogitoExplainability_Reconcile(t *testing.T) {
 	ns := t.Name()
+	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
 	instance := &v1alpha1.KogitoExplainability{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "expl",
 			Namespace: ns,
 		},
-		Spec: v1alpha1.KogitoExplainabilitySpec{},
-	}
-
-	kafkaList := &kafkabetav1.KafkaList{
-		Items: []kafkabetav1.Kafka{
-			{
-				ObjectMeta: metav1.ObjectMeta{Name: "kafka", Namespace: ns},
-				Spec:       kafkabetav1.KafkaSpec{Kafka: kafkabetav1.KafkaClusterSpec{Replicas: 1}},
-				Status: kafkabetav1.KafkaStatus{
-					Listeners: []kafkabetav1.ListenerStatus{
-						{
-							Type:      "plain",
-							Addresses: []kafkabetav1.ListenerAddress{{Host: "kafka", Port: 9092}},
-						},
-					},
+		Spec: v1alpha1.KogitoExplainabilitySpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Infra: []string{
+					kogitoKafka.Name,
 				},
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, kafkaList}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka}, nil, nil)
 
 	r := &ReconcileKogitoExplainability{
 		client: cli,
@@ -85,12 +74,6 @@ func TestReconcileKogitoExplainability_UpdateHTTPPort(t *testing.T) {
 		Spec: v1alpha1.KogitoExplainabilitySpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				HTTPPort: 9090,
-			},
-			KafkaMeta: v1alpha1.KafkaMeta{
-				KafkaProperties: v1alpha1.KafkaConnectionProperties{
-					UseKogitoInfra: false,
-					ExternalURI:    "my-uri:9022",
-				},
 			},
 		},
 	}

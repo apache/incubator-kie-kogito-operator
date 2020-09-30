@@ -52,10 +52,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err := i.resourceCheckService.CheckKogitoRuntimeNotExists(cli, flags.Name, flags.Project); err != nil {
 		return err
 	}
-	infinispanMeta, err := converter.FromInfinispanFlagsToInfinispanMeta(cli, flags.Project, &flags.InfinispanFlags, flags.EnablePersistence)
-	if err != nil {
-		return err
-	}
 	configMap, err := createConfigMapFromFile(cli, flags)
 	if err != nil {
 		return err
@@ -70,17 +66,16 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
-				Envs:                  converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
+				Env:                   converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
 				Image:                 flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&flags.PodResourceFlags),
 				ServiceLabels:         util.FromStringsKeyPairToMap(flags.ServiceLabels),
 				HTTPPort:              flags.HTTPPort,
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
 				PropertiesConfigMap:   configMap,
+				Infra:                 flags.Infra,
 				Monitoring:            converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
 			},
-			InfinispanMeta: infinispanMeta,
-			KafkaMeta:      converter.FromKafkaFlagsToKafkaMeta(&flags.KafkaFlags, flags.EnableEvents),
 		},
 		Status: v1alpha1.KogitoRuntimeStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -94,7 +89,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	err = shared.
 		ServicesInstallationBuilder(cli, flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(flags.Channel)).
-		WarnIfDependenciesNotReady(flags.InfinispanFlags.UseKogitoInfra, flags.KafkaFlags.UseKogitoInfra).
 		InstallRuntimeService(&kogitoRuntime).
 		GetError()
 	if err != nil {

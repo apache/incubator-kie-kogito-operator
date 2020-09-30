@@ -53,13 +53,11 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.True(t, exist)
 	assert.Equal(t, "quay.io/kiegroup/drools-quarkus-example:1.0", kogitoRuntime.Spec.Image)
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
-	assert.False(t, kogitoRuntime.Spec.InfinispanMeta.InfinispanProperties.UseKogitoInfra)
-	assert.False(t, kogitoRuntime.Spec.KafkaMeta.KafkaProperties.UseKogitoInfra)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
-	assert.Equal(t, 2, len(kogitoRuntime.Spec.Envs))
+	assert.Equal(t, 2, len(kogitoRuntime.Spec.Env))
 }
 
 func Test_DeployCmd_WithCustomImage(t *testing.T) {
@@ -86,13 +84,11 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.True(t, exist)
 	assert.Equal(t, "localhost:5000/kiegroup/process-business-rules-quarkus", kogitoRuntime.Spec.Image)
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
-	assert.False(t, kogitoRuntime.Spec.InfinispanMeta.InfinispanProperties.UseKogitoInfra)
-	assert.False(t, kogitoRuntime.Spec.KafkaMeta.KafkaProperties.UseKogitoInfra)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
-	assert.Equal(t, 0, len(kogitoRuntime.Spec.Envs))
+	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 }
 
 func Test_DeployCmd_WithCustomConfig(t *testing.T) {
@@ -126,13 +122,11 @@ my.nice.property=socool
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
-	assert.False(t, kogitoRuntime.Spec.InfinispanMeta.InfinispanProperties.UseKogitoInfra)
-	assert.False(t, kogitoRuntime.Spec.KafkaMeta.KafkaProperties.UseKogitoInfra)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
-	assert.Equal(t, 0, len(kogitoRuntime.Spec.Envs))
+	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 	assert.NotEmpty(t, kogitoRuntime.Spec.PropertiesConfigMap)
 
 	cm := &corev1.ConfigMap{

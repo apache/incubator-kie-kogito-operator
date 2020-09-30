@@ -27,12 +27,8 @@ import (
 
 type installJobsServiceFlags struct {
 	flag.InstallFlags
-	flag.InfinispanFlags
-	flag.KafkaFlags
 	backOffRetryMillis            int64
 	maxIntervalLimitToRetryMillis int64
-	enablePersistence             bool
-	enableEvents                  bool
 }
 
 type installJobsServiceCommand struct {
@@ -77,12 +73,6 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
 				return err
 			}
-			if err := flag.CheckInfinispanArgs(&i.flags.InfinispanFlags); err != nil {
-				return err
-			}
-			if err := flag.CheckKafkaArgs(&i.flags.KafkaFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -92,11 +82,7 @@ func (i *installJobsServiceCommand) InitHook() {
 	i.flags = installJobsServiceFlags{}
 	i.Parent.AddCommand(i.command)
 	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
-	flag.AddInfinispanFlags(i.command, &i.flags.InfinispanFlags)
-	flag.AddKafkaFlags(i.command, &i.flags.KafkaFlags)
 
-	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "Enable persistence using Kafka. Set also 'kafka-url' to specify an instance URL. If left in blank the operator will provide one for you")
-	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "Enable persistence using Infinispan. Set also 'infinispan-url' to specify an instance URL. If left in blank the operator will provide one for you")
 	i.command.Flags().Int64Var(&i.flags.backOffRetryMillis, "backoff-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.backoffRetryMillis'")
 	i.command.Flags().Int64Var(&i.flags.maxIntervalLimitToRetryMillis, "max-internal-limit-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.maxIntervalLimitToRetryMillis'")
 }
@@ -106,26 +92,21 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
-	infinispanMeta, err := converter.FromInfinispanFlagsToInfinispanMeta(i.Client, i.flags.Project, &i.flags.InfinispanFlags, i.flags.enablePersistence)
-	if err != nil {
-		return err
-	}
 
 	kogitoJobsService := v1alpha1.KogitoJobsService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoJobsServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &i.flags.Replicas,
-				Envs:                  converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
+				Env:                   converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:                 i.flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
+				Infra:                 i.flags.Infra,
 			},
 			BackOffRetryMillis:            i.flags.backOffRetryMillis,
 			MaxIntervalLimitToRetryMillis: i.flags.maxIntervalLimitToRetryMillis,
-			InfinispanMeta:                infinispanMeta,
-			KafkaMeta:                     converter.FromKafkaFlagsToKafkaMeta(&i.flags.KafkaFlags, i.flags.enableEvents),
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
@@ -137,7 +118,6 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
-		WarnIfDependenciesNotReady(i.flags.InfinispanFlags.UseKogitoInfra, i.flags.KafkaFlags.UseKogitoInfra).
 		InstallJobsService(&kogitoJobsService).
 		GetError()
 }

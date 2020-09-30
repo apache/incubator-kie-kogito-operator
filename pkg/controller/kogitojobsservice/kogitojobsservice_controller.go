@@ -144,8 +144,8 @@ const (
 	kafkaTopicNameJobsEvents          = "kogito-job-service-job-status-events"
 )
 
-var kafkaTopics = []services.KafkaTopicDefinition{
-	{TopicName: kafkaTopicNameJobsEvents, MessagingType: services.KafkaTopicOutgoing},
+var kafkaTopics = []string{
+	kafkaTopicNameJobsEvents,
 }
 
 func onDeploymentCreate(cli *kogitocli.Client, deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {

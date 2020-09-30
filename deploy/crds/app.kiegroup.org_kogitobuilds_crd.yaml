@@ -92,7 +92,7 @@ spec:
               description: If set to true will print the logs for downloading/uploading
                 of maven dependencies. Defaults to false.
               type: boolean
-            envs:
+            env:
               description: Environment variables used during build time.
               items:
                 description: EnvVar represents an environment variable present in

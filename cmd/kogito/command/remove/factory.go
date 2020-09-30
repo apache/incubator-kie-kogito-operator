@@ -22,8 +22,6 @@ import (
 // BuildCommands creates the commands available in this package
 func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	removeCmd := initRemoveCommand(ctx, rootCommand)
-	initRemoveInfinispanCommand(ctx, removeCmd.Command())
-	initRemoveKeycloakCommand(ctx, removeCmd.Command())
-	initRemoveKafkaCommand(ctx, removeCmd.Command())
 	initRemoveRuntimeServiceCommands(ctx, removeCmd.Command())
+	initDeleteKogitoInfraCommand(ctx, removeCmd.Command())
 }

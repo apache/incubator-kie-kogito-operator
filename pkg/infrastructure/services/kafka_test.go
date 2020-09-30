@@ -14,27 +14,52 @@
 
 package services
 
-import "testing"
+import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"testing"
+)
 
-func Test_fromKafkaTopicToQuarkusEnvVar(t *testing.T) {
-	type args struct {
-		topic KafkaTopicDefinition
+func Test_createKafkaTopics(t *testing.T) {
+
+	appProps := map[string]string{}
+	appProps[kafka.QuarkusKafkaBootstrapAppProp] = "kogito-kafka:9092"
+
+	kogitoInfraInstance := &v1alpha1.KogitoInfra{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kogito-kafka",
+			Namespace: "mynamespace",
+		},
+		Spec: v1alpha1.KogitoInfraSpec{
+			Resource: v1alpha1.Resource{
+				APIVersion: kafka.APIVersion,
+				Kind:       kafka.Kind,
+			},
+		},
 	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{"Incoming Topic", args{topic: KafkaTopicDefinition{TopicName: "kogito-processinstances-events", MessagingType: KafkaTopicIncoming}}, "mp.messaging.incoming.kogito-processinstances-events.bootstrap.servers"},
-		{"Outgoing Topic", args{topic: KafkaTopicDefinition{TopicName: "kogito-job-service-job-status-events", MessagingType: KafkaTopicOutgoing}}, "mp.messaging.outgoing.kogito-job-service-job-status-events.bootstrap.servers"},
-		{"Blank", args{topic: KafkaTopicDefinition{TopicName: "", MessagingType: ""}}, ""},
-		{"Nil", args{}, ""},
+
+	client := test.CreateFakeClient(nil, nil, nil)
+
+	serviceDeployer := serviceDeployer{
+		client: client,
+		definition: ServiceDefinition{
+			KafkaTopics: []string{
+				"kogito-processinstances-events",
+			},
+		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := fromKafkaTopicToQuarkusAppProp(tt.args.topic); got != tt.want {
-				t.Errorf("fromKafkaTopicToQuarkusAppProp() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+
+	err := serviceDeployer.createKafkaTopics(kogitoInfraInstance, "kogito-kafka:9092")
+	assert.NoError(t, err)
+
+	kafkaTopic := &v1beta1.KafkaTopic{}
+	exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Namespace: "mynamespace", Name: "kogito-processinstances-events"}, kafkaTopic)
+	assert.NoError(t, err)
+	assert.True(t, exists)
 }

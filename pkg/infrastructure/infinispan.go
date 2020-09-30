@@ -17,13 +17,13 @@ package infrastructure
 import (
 	"fmt"
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"gopkg.in/yaml.v2"
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -80,52 +80,40 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 	return false, nil
 }
 
-// GetInfinispanServiceURI fetches for the Infinispan service linked with the given KogitoInfra and returns a formatted URI
-func GetInfinispanServiceURI(cli *client.Client, infra *v1alpha1.KogitoInfra) (uri string, err error) {
-	if len(infra.Status.Infinispan.Condition) == 0 &&
-		len(infra.Status.Infinispan.Service) == 0 &&
-		len(infra.Status.Infinispan.Name) == 0 &&
-		len(infra.Status.Infinispan.CredentialSecret) == 0 {
-		return "", nil
-	}
-
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.Service, Namespace: infra.Namespace},
-	}
-	exists := false
-	if exists, err = kubernetes.ResourceC(cli).Fetch(service); err != nil {
+// FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name
+func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, namespace string) (string, error) {
+	log.Debugf("Fetching kogito infinispan instance URI.")
+	service := &corev1.Service{}
+	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, service); err != nil {
 		return "", err
-	}
-
-	if exists {
+	} else if !exits {
+		return "", fmt.Errorf("service with name %s not exist for Infinispan instance in given namespace %s", instanceName, namespace)
+	} else {
 		for _, port := range service.Spec.Ports {
 			if port.TargetPort.IntVal == defaultInfinispanPort {
-				return fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal), nil
+				uri := fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal)
+				log.Debugf("kogito infinispan instance URI : %s", uri)
+				return uri, nil
 			}
 		}
 		return "", fmt.Errorf("Infinispan default port (%d) not found in service %s ", defaultInfinispanPort, service.Name)
 	}
-
-	return "", nil
 }
 
 // GetInfinispanCredential gets the credential of the Infinispan server deployed with the Kogito Operator
-// For KOGITO-3039: this function would fetch the credential for the linked resource in a given KogitoInfra.
-func GetInfinispanCredential(cli *client.Client, infra *v1alpha1.KogitoInfra) (*InfinispanCredential, error) {
-	if infra != nil && len(infra.Status.Infinispan.Name) > 0 {
-		infinispan := &ispn.Infinispan{ObjectMeta: metav1.ObjectMeta{Name: infra.Status.Infinispan.Name, Namespace: infra.Namespace}}
-		if exists, err := kubernetes.ResourceC(cli).Fetch(infinispan); err != nil {
-			return nil, err
-		} else if exists {
-			secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: infinispan.Spec.Security.EndpointSecretName, Namespace: infra.Namespace}}
-			if exists, err := kubernetes.ResourceC(cli).Fetch(secret); err != nil {
-				return nil, err
-			} else if exists {
-				return getDefaultInfinispanCredential(secret)
-			}
-		}
+func GetInfinispanCredential(cli *client.Client, infinispanInstance *ispn.Infinispan) (*InfinispanCredential, error) {
+	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: infinispanInstance.Spec.Security.EndpointSecretName, Namespace: infinispanInstance.Namespace}}
+	if exists, err := kubernetes.ResourceC(cli).Fetch(secret); err != nil {
+		return nil, err
+	} else if exists {
+		return getDefaultInfinispanCredential(secret)
 	}
 	return nil, nil
+}
+
+// getDefaultInfinispanCredential will return the credential to be used by internal services
+func getDefaultInfinispanCredential(infinispanSecret *corev1.Secret) (*InfinispanCredential, error) {
+	return findInfinispanCredentialByUsernameOrFirst(defaultInfinispanUser, infinispanSecret)
 }
 
 // findInfinispanCredentialByUsernameOrFirst fetches the default credential in a infinispan operator generated cluster or first one found
@@ -151,9 +139,4 @@ func findInfinispanCredentialByUsernameOrFirst(username string, infinispanSecret
 		return &identity.Credentials[0], nil
 	}
 	return nil, nil
-}
-
-// getDefaultInfinispanCredential will return the credential to be used by internal services
-func getDefaultInfinispanCredential(infinispanSecret *corev1.Secret) (*InfinispanCredential, error) {
-	return findInfinispanCredentialByUsernameOrFirst(defaultInfinispanUser, infinispanSecret)
 }

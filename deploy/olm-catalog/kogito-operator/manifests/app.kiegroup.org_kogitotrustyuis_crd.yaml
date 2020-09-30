@@ -49,7 +49,7 @@ spec:
               description: Additional labels to be added to the Deployment and Pods
                 managed by the operator.
               type: object
-            envs:
+            env:
               description: Environment variables to be added to the runtime container.
                 Keys must be a C_IDENTIFIER.
               items:
@@ -164,6 +164,11 @@ spec:
                 On OpenShift an ImageStream will be created in the current namespace
                 pointing to the given image.'
               type: string
+            infra:
+              description: Infra provides list of dependent KogitoInfra objects.
+              items:
+                type: string
+              type: array
             insecureImageRegistry:
               description: A flag indicating that image streams created by Kogito
                 Operator should be configured to allow pulling from insecure registries.
