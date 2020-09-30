@@ -64,6 +64,7 @@ if [ "${no_release_branch}" = "true" ]; then
     image_version="latest"
   fi
 fi
+echo "Set test config with image version ${image_version} and branch ${branch}"
 sed -i "s|tests.build-image-version=.*|tests.build-image-version=${image_version}|g" ${test_config_file}
 sed -i "s|tests.services-image-version=.*|tests.services-image-version=${image_version}|g" ${test_config_file}
 sed -i "s|tests.runtime-application-image-version=.*|tests.runtime-application-image-version=${image_version}|g" ${test_config_file}
