@@ -43,8 +43,8 @@ const (
 	envVarInfinispanPassword
 	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
 	enablePersistenceEnvKey    = "ENABLE_PERSISTENCE"
-	// SASLPlain is the PLAIN type.
-	SASLPlain string = "PLAIN"
+	// saslPlain is the PLAIN type.
+	saslPlain string = "PLAIN"
 )
 
 var (
@@ -113,7 +113,7 @@ func getInfinispanAppProps(cli *client.Client, name string, namespace string) (m
 		appProps[propertiesInfinispanSpring[appPropInfinispanServerList]] = infinispanURI
 		appProps[propertiesInfinispanQuarkus[appPropInfinispanServerList]] = infinispanURI
 	}
-	appProps[propertiesInfinispanSpring[appPropInfinispanSaslMechanism]] = SASLPlain
-	appProps[propertiesInfinispanQuarkus[appPropInfinispanSaslMechanism]] = SASLPlain
+	appProps[propertiesInfinispanSpring[appPropInfinispanSaslMechanism]] = saslPlain
+	appProps[propertiesInfinispanQuarkus[appPropInfinispanSaslMechanism]] = saslPlain
 	return appProps, nil
 }
