@@ -116,7 +116,9 @@ func FetchKogitoServiceURI(cli *client.Client, name, namespace string) (string, 
 		return "", fmt.Errorf("service with name %s not exist for Kogito service instance in given namespace %s", name, namespace)
 	}
 	port := service.Spec.Ports[0]
-	uri := fmt.Sprintf("%s://%s:%d", port.Name, service.Name, port.TargetPort.IntVal)
+	// resolves to http://dataindex.mynamespace.svc.cluster.local:8080 for example
+	uri := fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", service.Name, service.Namespace, port.TargetPort.IntVal)
+	//uri := fmt.Sprintf("%s://%s:%d", port.Name, service.Name, port.TargetPort.IntVal)
 	log.Debugf("kogito service instance URI : %s", uri)
 	return uri, nil
 }
