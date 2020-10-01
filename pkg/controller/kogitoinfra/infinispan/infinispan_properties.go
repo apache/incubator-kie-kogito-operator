@@ -32,6 +32,8 @@ const (
 	// appPropInfinispanUseAuth application property for enabling infinispan authentication
 	appPropInfinispanUseAuth
 	// appPropInfinispanSaslMechanism application property for setting infinispan SASL mechanism
+	// InfinispanSaslMechanismType is the possible SASL Mechanism used during infinispan connection.
+	// For more information, see https://en.wikipedia.org/wiki/Simple_Authentication_and_Security_Layer#SASL_mechanisms.
 	appPropInfinispanSaslMechanism
 	// appPropInfinispanAuthRealm application property for setting infinispan auth realm
 	appPropInfinispanAuthRealm
@@ -41,6 +43,8 @@ const (
 	envVarInfinispanPassword
 	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
 	enablePersistenceEnvKey    = "ENABLE_PERSISTENCE"
+	// SASLPlain is the PLAIN type.
+	SASLPlain string = "PLAIN"
 )
 
 var (
@@ -109,5 +113,7 @@ func getInfinispanAppProps(cli *client.Client, name string, namespace string) (m
 		appProps[propertiesInfinispanSpring[appPropInfinispanServerList]] = infinispanURI
 		appProps[propertiesInfinispanQuarkus[appPropInfinispanServerList]] = infinispanURI
 	}
+	appProps[propertiesInfinispanSpring[appPropInfinispanSaslMechanism]] = SASLPlain
+	appProps[propertiesInfinispanQuarkus[appPropInfinispanSaslMechanism]] = SASLPlain
 	return appProps, nil
 }

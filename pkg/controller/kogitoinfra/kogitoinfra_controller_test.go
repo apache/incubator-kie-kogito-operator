@@ -127,6 +127,8 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	infinispanAppProps := kogitoInfra.Status.AppProps
-	assert.Contains(t, "kogito-infinispan:11222", infinispanAppProps["quarkus.infinispan-client.server-list"])
-	assert.Contains(t, "true", infinispanAppProps["infinispan.remote.use-auth"])
+	assert.Equal(t, "kogito-infinispan:11222", infinispanAppProps["quarkus.infinispan-client.server-list"])
+	assert.Equal(t, "true", infinispanAppProps["quarkus.infinispan-client.use-auth"])
+	assert.Equal(t, "PLAIN", infinispanAppProps["quarkus.infinispan-client.sasl-mechanism"])
+	assert.Empty(t, infinispanAppProps["quarkus.infinispan-client.auth-realm"])
 }
