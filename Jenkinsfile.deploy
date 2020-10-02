@@ -164,15 +164,14 @@ pipeline {
                     loginDockerToOpenshiftRegistry()
 
                     try {
-                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        sh "make build-examples-images tags='~@native' concurrent=3 ${getBDDParameters('never', false, 'docker')}"
+                        sh "make build-examples-images tags='~@native' concurrent=3 ${getBDDParameters('never', false)}"
                     } catch(err) {
                         unstable("Error building non-native examples' images. Check the junit results.")
                     }
                     
                     try {
                         // Optaplanner taking a lot of resources, we should not build in parallel
-                        // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+			// There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
                         sh "make build-examples-images tags='@native' concurrent=1 ${getBDDParameters('never', false, 'docker')}"
                     } catch(err) {
                         unstable("Error building native examples' images. Check the junit results.")
@@ -196,8 +195,7 @@ pipeline {
                     // Catch and set unstable so the temp image is still pushed and we get the deployment properties, 
                     // in case we decide to continue in the release
                     try {
-                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true, 'docker')}"
+                        sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true)}"
                     } catch(err) {
                         unstable("Tests are failing")
                     }
