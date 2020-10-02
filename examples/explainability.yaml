@@ -1,3 +1,15 @@
+---
+#Strimzi operator should be pre-installed in namespace
+# will set this instance to auto provision an infra structure in the namespace
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoInfra
+metadata:
+  name: kogito-kafka-infra
+spec:
+  resource:
+    apiVersion: kafka.strimzi.io/v1beta1
+    kind: Kafka
+---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoExplainability
 metadata:
@@ -16,7 +28,6 @@ spec:
   #memoryRequest: ""
   #cpuLimit: ""
   #cpuRequest: ""
-    # details about the kafka connection
-  kafka:
-    # will set this instance to auto provision an infra structure in the namespace
-    useKogitoInfra: true
+  # details about the kogito infra
+  infra:
+    - kogito-kafka-infra

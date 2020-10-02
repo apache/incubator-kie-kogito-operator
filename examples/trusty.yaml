@@ -1,3 +1,26 @@
+---
+#Strimzi operator should be pre-installed in namespace
+# will set this instance to auto provision an infra structure in the namespace
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoInfra
+metadata:
+  name: kogito-kafka-infra
+spec:
+  resource:
+    apiVersion: kafka.strimzi.io/v1beta1
+    kind: Kafka
+---
+#Infinispan operator should be pre-installed in namespace
+# will set this instance to auto provision an infra structure in the namespace and attach Infinispan credentials to it
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoInfra
+metadata:
+  name: kogito-infinispan-infra
+spec:
+  resource:
+    apiVersion: infinispan.org/v1
+    kind: Infinispan
+---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoTrusty
 metadata:
@@ -16,12 +39,8 @@ spec:
   #memoryRequest: ""
   #cpuLimit: ""
   #cpuRequest: ""
-  # details about the kafka connection
-  kafka:
-    # will set this instance to auto provision an infra structure in the namespace
-    useKogitoInfra: true
-  # details about the connected infinispan
-  infinispan:
-    # will set this instance to auto provision an infra structure in the namespace and attach Infinispan credentials to it
-    useKogitoInfra: true
+  # details about the kogito infra
+  infra:
+    - kogito-kafka-infra
+    - kogito-infinispan-infra
 
