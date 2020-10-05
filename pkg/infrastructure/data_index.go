@@ -26,12 +26,36 @@ const (
 	DefaultDataIndexImageName = "kogito-data-index"
 	// DefaultDataIndexName is the default name for the Data Index instance service
 	DefaultDataIndexName = "data-index"
+	// DefaultDataIndexPersistence Defines which Data Index Service persistence implementation will be used.
+	// If empty the kogito-data-index image defaults to 'infinispan'. Allowed types are 'infinispan' and 'mongodb'.
+	DefaultDataIndexPersistence = "infinispan"
+	// DataIndexPersistenceTypeProp Defines the system property to be injected on runtime services to define the
+	// persistence type
+	DataIndexPersistenceTypeProp = "kogito.persistence.type"
+	// DataIndexPersistenceEnv Holds the environment variable name to be used by the data-index image
+	DataIndexPersistenceEnv = "DATA_INDEX_PERSISTENCE"
+	// infinispanPersistenceProvider Infinispan Persistence Provider
+	infinispanPersistenceProvider = DefaultDataIndexPersistence
+	// mongoDBPersistenceProvider MongoDB Persistence Provider
+	mongoDBPersistenceProvider = "mongodb"
 
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
 	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
+
 	webSocketScheme       = "ws"
 	webSocketSecureScheme = "wss"
 	httpScheme            = "http"
+)
+
+// PersistenceProvider describes the possible persistence provider
+type PersistenceProvider string
+
+var (
+	// PersistenceProviders Map holds the supported persistence providers
+	PersistenceProviders = map[PersistenceProvider]string{
+		infinispanPersistenceProvider: "infinispan",
+		mongoDBPersistenceProvider:    "mongodb",
+	}
 )
 
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one

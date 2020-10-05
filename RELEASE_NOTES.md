@@ -4,6 +4,7 @@
 - [KOGITO-2905](https://issues.redhat.com/browse/KOGITO-2905) - Change in image definition in the CRDs
 - [KOGITO-3039](https://issues.redhat.com/browse/KOGITO-3039) - Agnostic infrastructure layer configuration on Operator
 - [KOGITO-2113](https://issues.redhat.com/browse/KOGITO-2113) - Simplify binary build deployment
+- [KOGITO-3094](https://issues.redhat.com/browse/KOGITO-3094) - Enable persistence selection in Data Index controller
 
 
 ## Bug Fixes
