@@ -23,7 +23,6 @@ import (
 	"k8s.io/client-go/discovery"
 	discfake "k8s.io/client-go/discovery/fake"
 	clienttesting "k8s.io/client-go/testing"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
@@ -34,7 +33,6 @@ type FakeClientBuilder interface {
 	AddK8sObjects(objects []runtime.Object) FakeClientBuilder
 	AddImageObjects(imageObjs []runtime.Object) FakeClientBuilder
 	AddBuildObjects(buildObjs []runtime.Object) FakeClientBuilder
-	AddHTTPObjects(httpObjs map[*http.Request]DoFunc) FakeClientBuilder
 	OnOpenShift() FakeClientBuilder
 	SupportPrometheus() FakeClientBuilder
 	Build() *client.Client
@@ -49,7 +47,6 @@ type fakeClientStruct struct {
 	objects    []runtime.Object
 	imageObjs  []runtime.Object
 	buildObjs  []runtime.Object
-	httpObjs   map[*http.Request]DoFunc
 	openShift  bool
 	prometheus bool
 }
@@ -72,12 +69,6 @@ func (f *fakeClientStruct) AddBuildObjects(buildObjs []runtime.Object) FakeClien
 	return f
 }
 
-// AddHTTPObjects add http object
-func (f *fakeClientStruct) AddHTTPObjects(httpObjs map[*http.Request]DoFunc) FakeClientBuilder {
-	f.httpObjs = httpObjs
-	return f
-}
-
 func (f *fakeClientStruct) SupportPrometheus() FakeClientBuilder {
 	f.prometheus = true
 	return f
@@ -97,14 +88,11 @@ func (f *fakeClientStruct) Build() *client.Client {
 	imgCli := imgfake.NewSimpleClientset(f.imageObjs...).ImageV1()
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
 	buildCli := newBuildFake(f.buildObjs...)
-	// Fake HTTP client
-	httpCli := newFakeHTTPClient(f.httpObjs)
 
 	return &client.Client{
 		ControlCli: cli,
 		BuildCli:   buildCli,
 		ImageCli:   imgCli,
-		HTTPCli:    httpCli,
 		Discovery:  f.createFakeDiscoveryClient(),
 	}
 }

@@ -16,8 +16,6 @@ package client
 
 import (
 	"fmt"
-	"net/http"
-
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
@@ -130,8 +128,6 @@ func (builder *builderStruct) Build() (*Client, error) {
 			return nil, fmt.Errorf("Impossible to create new Kubernetes client: %v", err)
 		}
 	}
-
-	client.HTTPCli = &http.Client{}
 
 	if builder.isDiscoveryClient {
 		client.Discovery, err = discovery.NewDiscoveryClientForConfig(config)

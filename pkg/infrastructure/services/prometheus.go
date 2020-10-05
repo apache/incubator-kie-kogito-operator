@@ -38,6 +38,16 @@ func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoSer
 		log.Debugf("prometheus operator not available in namespace")
 		return
 	}
+
+	deploymentAvailable, err := isDeploymentAvailable(client, kogitoService.GetName(), kogitoService.GetNamespace())
+	if err != nil {
+		return
+	}
+	if !deploymentAvailable {
+		log.Debugf("Deployment is currently not available, will try in next reconciliation loop")
+		return
+	}
+
 	prometheusAddOnAvailable, err := isPrometheusAddOnAvailable(client, kogitoService)
 	if err != nil {
 		reconcileAfter = time.Second * 10
@@ -63,11 +73,7 @@ func isPrometheusAddOnAvailable(client *client.Client, kogitoService v1alpha1.Ko
 	}
 
 	url = url + getMonitoringPath(kogitoService.GetSpec().GetMonitoring())
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return false, err
-	}
-	if resp, err := client.HTTPCli.Do(req); err != nil {
+	if resp, err := http.Get(url); err != nil {
 		return false, err
 	} else if resp.StatusCode == http.StatusOK {
 		return true, nil

@@ -16,7 +16,6 @@ package client
 
 import (
 	"fmt"
-	restclient2 "github.com/kiegroup/kogito-cloud-operator/pkg/client/restclient"
 	"os"
 	"path/filepath"
 	"strings"
@@ -59,7 +58,6 @@ type Client struct {
 	Discovery              discovery.DiscoveryInterface
 	DeploymentCli          appsv1.AppsV1Interface
 	KubernetesExtensionCli kubernetes.Interface
-	HTTPCli                restclient2.HTTPClient
 }
 
 // NewForConsole will create a brand new client using the local machine
