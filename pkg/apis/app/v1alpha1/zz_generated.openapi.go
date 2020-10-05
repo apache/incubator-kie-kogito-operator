@@ -893,6 +893,11 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraStatus(ref common.ReferenceCallback
 						},
 					},
 					"appProps": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-map-type": "atomic",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
 							Description: "Application properties extracted from the linked resource that will be added to the deployed Kogito service.",
 							Type:        []string{"object"},

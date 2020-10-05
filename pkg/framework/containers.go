@@ -19,6 +19,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+const (
+	defaultHTTPPort = 80
+)
+
 // ExtractPortsFromContainer converts ports defined in the given container to ServicePorts
 func ExtractPortsFromContainer(container *corev1.Container) []corev1.ServicePort {
 	if container == nil {
@@ -29,7 +33,7 @@ func ExtractPortsFromContainer(container *corev1.Container) []corev1.ServicePort
 		svcPorts[i] = corev1.ServicePort{
 			Name:       port.Name,
 			Protocol:   port.Protocol,
-			Port:       port.ContainerPort,
+			Port:       defaultHTTPPort,
 			TargetPort: intstr.FromInt(int(port.ContainerPort)),
 		}
 	}

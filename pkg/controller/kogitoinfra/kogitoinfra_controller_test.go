@@ -105,7 +105,7 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 		Spec: v13.ServiceSpec{
 			Ports: []v13.ServicePort{
 				{
-					TargetPort: intstr.IntOrString{IntVal: 11222},
+					TargetPort: intstr.FromInt(11222),
 				},
 			},
 		},

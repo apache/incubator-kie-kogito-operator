@@ -122,7 +122,7 @@ func TestReconcileKogitoExplainability_UpdateHTTPPort(t *testing.T) {
 	// get the route after reconcile
 	routeAfterReconcile := &routev1.Route{}
 	test.AssertFetchWithKeyMustExist(t, cli, routeAfterReconcile, instance)
-	assert.Equal(t, intstr.IntOrString{Type: 0, IntVal: 9090, StrVal: ""}, routeAfterReconcile.Spec.Port.TargetPort)
+	assert.Equal(t, "http", routeAfterReconcile.Spec.Port.TargetPort.StrVal)
 
 	// update the service
 	// reconcile and test
@@ -144,6 +144,6 @@ func TestReconcileKogitoExplainability_UpdateHTTPPort(t *testing.T) {
 	test.AssertFetchWithKeyMustExist(t, cli, serviceAfterReconcile, instance)
 
 	// compare again if the port was updated after reconcile
-	assert.Equal(t, int32(9090), serviceAfterReconcile.Spec.Ports[0].Port)
+	assert.Equal(t, int32(80), serviceAfterReconcile.Spec.Ports[0].Port)
 	assert.Equal(t, intstr.FromInt(9090), serviceAfterReconcile.Spec.Ports[0].TargetPort)
 }
