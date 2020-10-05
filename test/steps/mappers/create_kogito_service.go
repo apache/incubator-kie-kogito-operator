@@ -33,13 +33,10 @@ const (
 	kogitoServiceRuntimeEnvKey      = "runtime-env"
 	kogitoServiceServiceLabelKey    = "service-label"
 	kogitoServiceDeploymentLabelKey = "deployment-label"
-	//kogitoServiceMonitoringKey      = "monitoring"
 
 	// DataTable second column
-	kogitoServiceHTTPPortKey                    = "httpPort"
-	kogitoServiceInfinispanEnablePersistenceKey = "enablePersistence"
-	kogitoServiceInfinispanEnableEventsKey      = "enableEvents"
-	//kogitoServiceMonitoringScrapeKey            = "scrape"
+	kogitoServiceHTTPPortKey         = "httpPort"
+	kogitoServiceInfraKey            = "infra"
 )
 
 // MapKogitoServiceTable maps Cucumber table to KogitoServiceHolder
@@ -82,9 +79,6 @@ func mapKogitoServiceTableRow(row *TableRow, kogitoService *bddtypes.KogitoServi
 	case kogitoServiceConfigKey:
 		return mapKogitoServiceConfigTableRow(row, kogitoService)
 
-	//case kogitoServiceMonitoringKey:
-	//	return mapKogitoServiceMonitoringTableRow(row, kogitoService)
-
 	default:
 		return false, fmt.Errorf("Unrecognized configuration option: %s", firstColumn)
 	}
@@ -104,11 +98,8 @@ func mapKogitoServiceConfigTableRow(row *TableRow, kogitoService *bddtypes.Kogit
 
 		kogitoService.KogitoService.GetSpec().SetHTTPPort(int32(httpPort))
 
-	case kogitoServiceInfinispanEnablePersistenceKey:
-		kogitoService.EnablePersistence = MustParseEnabledDisabled(getThirdColumn(row))
-
-	case kogitoServiceInfinispanEnableEventsKey:
-		kogitoService.EnableEvents = MustParseEnabledDisabled(getThirdColumn(row))
+	case kogitoServiceInfraKey:
+		kogitoService.KogitoService.GetSpec().AddInfra(getThirdColumn(row))
 
 	default:
 		return false, fmt.Errorf("Unrecognized config configuration option: %s", secondColumn)
@@ -116,21 +107,3 @@ func mapKogitoServiceConfigTableRow(row *TableRow, kogitoService *bddtypes.Kogit
 
 	return true, nil
 }
-
-/*func mapKogitoServiceMonitoringTableRow(row *TableRow, kogitoService *bddtypes.KogitoServiceHolder) (mappingFound bool, err error) {
-	secondColumn := getSecondColumn(row)
-
-	if kogitoRuntime, ok := kogitoService.KogitoService.(*v1alpha1.KogitoRuntime); ok {
-		switch secondColumn {
-		case kogitoServiceMonitoringScrapeKey:
-			kogitoRuntime.Spec.Monitoring.Scrape = MustParseEnabledDisabled(getThirdColumn(row))
-
-		default:
-			return false, fmt.Errorf("Unrecognized monitoring configuration option: %s", secondColumn)
-		}
-	} else {
-		return false, fmt.Errorf("Kogito service %s doesn't support monitoring configuration", kogitoService.KogitoService.GetName())
-	}
-
-	return true, nil
-}*/

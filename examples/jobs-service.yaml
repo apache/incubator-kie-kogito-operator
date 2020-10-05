@@ -14,9 +14,4 @@ spec:
   #memoryRequest: ""
   #cpuLimit: ""
   #cpuRequest: ""
-  # details about the kafka connection
-  kafka:
-    useKogitoInfra: false
-  infinispan:
-    useKogitoInfra: false
 
