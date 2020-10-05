@@ -80,6 +80,134 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 	}
 }
 
+func TestReconcileKogitoDataIndex_ReconcileDefaultPersistenceProvider(t *testing.T) {
+	ns := t.Name()
+
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{},
+		},
+	}
+
+	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+	r := &ReconcileKogitoDataIndex{
+		client: cli,
+		scheme: meta.GetRegisteredSchema(),
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+	}
+
+	// basic checks
+	_, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+
+	deployment := &appsv1.Deployment{}
+	exists, _ := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
+	assert.True(t, exists)
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		Name:  infrastructure.DataIndexPersistenceEnv,
+		Value: "infinispan",
+	})
+}
+
+func TestReconcileKogitoDataIndex_ReconcileMongodbPersistenceProvider(t *testing.T) {
+	ns := t.Name()
+
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Config: map[string]string{
+					infrastructure.DataIndexPersistenceTypeProp: infrastructure.PersistenceProviders["mongodb"],
+				},
+			},
+		},
+	}
+
+	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+	r := &ReconcileKogitoDataIndex{
+		client: cli,
+		scheme: meta.GetRegisteredSchema(),
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+	}
+
+	// basic checks
+	_, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+
+	deployment := &appsv1.Deployment{}
+	exists, _ := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
+	assert.True(t, exists)
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		Name:  infrastructure.DataIndexPersistenceEnv,
+		Value: "mongodb",
+	})
+}
+
+func TestReconcileKogitoDataIndex_ReconcileInvalidPersistenceProvider(t *testing.T) {
+	ns := t.Name()
+
+	instance := &v1alpha1.KogitoDataIndex{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-data-index",
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoDataIndexSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Config: map[string]string{
+					infrastructure.DataIndexPersistenceTypeProp: "someValue",
+				},
+			},
+		},
+	}
+
+	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
+	r := &ReconcileKogitoDataIndex{
+		client: cli,
+		scheme: meta.GetRegisteredSchema(),
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+	}
+
+	// basic checks
+	_, err := r.Reconcile(req)
+	if err != nil {
+		t.Fatalf("reconcile: (%v)", err)
+	}
+
+	deployment := &appsv1.Deployment{}
+	exists, _ := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, deployment)
+	assert.True(t, exists)
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+		Name:  infrastructure.DataIndexPersistenceEnv,
+		Value: "infinispan",
+	})
+}
+
 func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 	ns := t.Name()
 	instance := &v1alpha1.KogitoDataIndex{

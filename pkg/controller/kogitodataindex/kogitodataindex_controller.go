@@ -25,9 +25,8 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"path"
-
 	"k8s.io/apimachinery/pkg/runtime"
+	"path"
 
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -175,6 +174,26 @@ func (r *ReconcileKogitoDataIndex) onDeploymentCreate(cli *client.Client, deploy
 		log.Warnf("No container definition for service %s. Skipping applying custom Data Index deployment configuration", kogitoService.GetName())
 	}
 
+	dataIndex := kogitoService.(*appv1alpha1.KogitoDataIndex)
+	// set to the default.
+	persistenceProvider := infrastructure.DefaultDataIndexPersistence
+	if propValue, ok := dataIndex.Spec.Config[infrastructure.DataIndexPersistenceTypeProp]; ok {
+		foundPersistenceType := infrastructure.PersistenceProvider(propValue)
+		if _, ok := infrastructure.PersistenceProviders[foundPersistenceType]; ok {
+			persistenceProvider = infrastructure.PersistenceProviders[foundPersistenceType]
+		} else {
+			log.Warnf("the persistence type %s is invalid, valid are %s, defaulting to %s",
+				foundPersistenceType,
+				infrastructure.PersistenceProviders,
+				persistenceProvider)
+		}
+	} else {
+		log.Infof("the % property was not found, defaulting persistence provider to %s",
+			infrastructure.DataIndexPersistenceTypeProp, persistenceProvider)
+	}
+
+	log.Infof("injecting %s with the persistence provider %s.", infrastructure.DataIndexPersistenceEnv, persistenceProvider)
+	framework.SetEnvVar(infrastructure.DataIndexPersistenceEnv, persistenceProvider, &deployment.Spec.Template.Spec.Containers[0])
 	return nil
 }
 
