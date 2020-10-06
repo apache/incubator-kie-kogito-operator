@@ -35,8 +35,8 @@ const (
 	kogitoServiceDeploymentLabelKey = "deployment-label"
 
 	// DataTable second column
-	kogitoServiceHTTPPortKey         = "httpPort"
-	kogitoServiceInfraKey            = "infra"
+	kogitoServiceHTTPPortKey = "httpPort"
+	kogitoServiceInfraKey    = "infra"
 )
 
 // MapKogitoServiceTable maps Cucumber table to KogitoServiceHolder

@@ -173,6 +173,8 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
 		return
+	} else if reconcileAfter > 0 {
+		return
 	}
 
 	// get the deployed ones
