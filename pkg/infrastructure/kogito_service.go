@@ -16,8 +16,6 @@ package infrastructure
 
 import (
 	"fmt"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"net/url"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -106,18 +104,11 @@ func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRou
 	return
 }
 
-// FetchKogitoServiceURI provide kogito service URI for given instance name
-func FetchKogitoServiceURI(cli *client.Client, name, namespace string) (string, error) {
-	log.Debugf("Fetching kogito service instance URI.")
-	service := &v1.Service{}
-	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, service); err != nil {
-		return "", err
-	} else if !exits {
-		return "", fmt.Errorf("service with name %s not exist for Kogito service instance in given namespace %s", name, namespace)
-	}
-	port := service.Spec.Ports[0]
+// CreateKogitoServiceURI provide kogito service URI for given instance name
+func CreateKogitoServiceURI(name, namespace string) (string, error) {
+	log.Debugf("Creating kogito service instance URI.")
 	// resolves to http://dataindex.mynamespace:8080 for example
-	uri := fmt.Sprintf("http://%s.%s:%d", service.Name, service.Namespace, port.Port)
+	uri := fmt.Sprintf("http://%s.%s:%d", name, namespace, framework.DefaultServiceHTTPPort)
 	log.Debugf("kogito service instance URI : %s", uri)
 	return uri, nil
 }

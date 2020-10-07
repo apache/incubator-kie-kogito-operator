@@ -191,9 +191,7 @@ type KogitoServiceSpec struct {
 	Infra []string `json:"infra,omitempty"`
 
 	// Create Service monitor instance to connect with Monitoring service
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Monitoring"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
+	// +optional
 	Monitoring Monitoring `json:"monitoring,omitempty"`
 }
 

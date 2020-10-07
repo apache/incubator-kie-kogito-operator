@@ -67,7 +67,7 @@ func isPrometheusAvailable(client *client.Client) bool {
 }
 
 func isPrometheusAddOnAvailable(client *client.Client, kogitoService v1alpha1.KogitoService) (bool, error) {
-	url, err := infrastructure.FetchKogitoServiceURI(client, kogitoService.GetName(), kogitoService.GetNamespace())
+	url, err := infrastructure.CreateKogitoServiceURI(kogitoService.GetName(), kogitoService.GetNamespace())
 	if err != nil {
 		return false, err
 	}
@@ -115,7 +115,7 @@ func loadDeployedServiceMonitor(client *client.Client, instanceName, namespace s
 func createServiceMonitor(cli *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (*monv1.ServiceMonitor, error) {
 	monitoring := kogitoService.GetSpec().GetMonitoring()
 	endPoint := monv1.Endpoint{}
-	endPoint.TargetPort = &intstr.IntOrString{IntVal: getServiceHTTPPort(kogitoService)}
+	endPoint.TargetPort = &intstr.IntOrString{IntVal: framework.DefaultServiceHTTPPort}
 	endPoint.Path = getMonitoringPath(monitoring)
 	endPoint.Scheme = getMonitoringScheme(monitoring)
 
