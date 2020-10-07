@@ -47,6 +47,10 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 	}
 	labels[framework.LabelAppKey] = service.GetName()
 
+	// clone env var slice so that any changes in deployment env var should not reflect in kogitoInstance env var
+	env := make([]corev1.EnvVar, len(service.GetSpec().GetEnvs()))
+	copy(env, service.GetSpec().GetEnvs())
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: service.GetName(), Namespace: service.GetNamespace(), Labels: labels},
 		Spec: appsv1.DeploymentSpec{
@@ -65,7 +69,7 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 									Protocol:      corev1.ProtocolTCP,
 								},
 							},
-							Env:             service.GetSpec().GetEnvs(),
+							Env:             env,
 							Resources:       service.GetSpec().GetResources(),
 							LivenessProbe:   probes.liveness,
 							ReadinessProbe:  probes.readiness,

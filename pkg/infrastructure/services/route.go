@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // createRequiredRoute creates a new Route resource based on the given Service
@@ -32,7 +33,7 @@ func createRequiredRoute(instance v1alpha1.KogitoService, service *corev1.Servic
 		ObjectMeta: service.ObjectMeta,
 		Spec: routev1.RouteSpec{
 			Port: &routev1.RoutePort{
-				TargetPort: service.Spec.Ports[0].TargetPort,
+				TargetPort: intstr.FromString(service.Spec.Ports[0].Name),
 			},
 			To: routev1.RouteTargetReference{
 				Kind: meta.KindService.Name,
