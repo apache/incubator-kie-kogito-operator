@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	// Default service HTTP port
+	// DefaultServiceHTTPPort specify default exposed port
 	DefaultServiceHTTPPort = 80
 )
 

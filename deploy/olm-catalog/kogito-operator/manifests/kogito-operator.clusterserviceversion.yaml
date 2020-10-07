@@ -297,11 +297,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Create Service monitor instance to connect with Monitoring service
-        displayName: Monitoring
-        path: monitoring
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -388,11 +383,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Create Service monitor instance to connect with Monitoring service
-        displayName: Monitoring
-        path: monitoring
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -516,11 +506,6 @@ spec:
           in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
         displayName: Max Interval Limit To Retry Millis
         path: maxIntervalLimitToRetryMillis
-      - description: Create Service monitor instance to connect with Monitoring service
-        displayName: Monitoring
-        path: monitoring
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -607,11 +592,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Create Service monitor instance to connect with Monitoring service
-        displayName: Monitoring
-        path: monitoring
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -704,11 +684,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Create Service monitor instance to connect with Monitoring service
-        displayName: Monitoring
-        path: monitoring
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -800,11 +775,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Create Service monitor instance to connect with Monitoring service
-        displayName: Monitoring
-        path: monitoring
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -890,11 +860,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: Create Service monitor instance to connect with Monitoring service
-        displayName: Monitoring
-        path: monitoring
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:label
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
