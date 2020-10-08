@@ -16,6 +16,8 @@ package services
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -106,4 +108,13 @@ func setHTTPPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
 	envs := kogitoService.GetSpec().GetEnvs()
 	modifiedEnv := framework.EnvOverride(envs, httpPortEnvVar)
 	kogitoService.GetSpec().SetEnvs(modifiedEnv)
+}
+
+func isDeploymentAvailable(cli *client.Client, name, namespace string) (bool, error) {
+	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace}}
+	if _, err := kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
+		return false, err
+	}
+
+	return deployment.Status.AvailableReplicas > 0, nil
 }

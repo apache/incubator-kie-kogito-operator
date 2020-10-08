@@ -189,9 +189,6 @@ spec:
                 scheme:
                   description: HTTP scheme to use for scraping.
                   type: string
-                scrape:
-                  description: Flag to allow Monitoring to scraping Kogito service.
-                  type: boolean
               type: object
             propertiesConfigMap:
               description: Custom ConfigMap with application.properties file to be

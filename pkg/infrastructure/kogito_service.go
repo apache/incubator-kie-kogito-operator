@@ -103,3 +103,12 @@ func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRou
 	}
 	return
 }
+
+// CreateKogitoServiceURI provide kogito service URI for given instance name
+func CreateKogitoServiceURI(name, namespace string) (string, error) {
+	log.Debugf("Creating kogito service instance URI.")
+	// resolves to http://dataindex.mynamespace:8080 for example
+	uri := fmt.Sprintf("http://%s.%s", name, namespace)
+	log.Debugf("kogito service instance URI : %s", uri)
+	return uri, nil
+}
