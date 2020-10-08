@@ -20,8 +20,7 @@ import (
 )
 
 const (
-	// DefaultServiceHTTPPort specify default exposed port
-	DefaultServiceHTTPPort = 80
+	defaultHTTPPort = 80
 )
 
 // ExtractPortsFromContainer converts ports defined in the given container to ServicePorts
@@ -34,7 +33,7 @@ func ExtractPortsFromContainer(container *corev1.Container) []corev1.ServicePort
 		svcPorts[i] = corev1.ServicePort{
 			Name:       port.Name,
 			Protocol:   port.Protocol,
-			Port:       DefaultServiceHTTPPort,
+			Port:       defaultHTTPPort,
 			TargetPort: intstr.FromInt(int(port.ContainerPort)),
 		}
 	}

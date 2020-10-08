@@ -25,7 +25,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"net/http"
 	"time"
 )
@@ -48,7 +47,7 @@ func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoSer
 		return
 	}
 
-	prometheusAddOnAvailable, err := isPrometheusAddOnAvailable(client, kogitoService)
+	prometheusAddOnAvailable, err := isPrometheusAddOnAvailable(kogitoService)
 	if err != nil {
 		reconcileAfter = time.Second * 10
 		return
@@ -66,7 +65,7 @@ func isPrometheusAvailable(client *client.Client) bool {
 	return client.HasServerGroup(prometheusServerGroup)
 }
 
-func isPrometheusAddOnAvailable(client *client.Client, kogitoService v1alpha1.KogitoService) (bool, error) {
+func isPrometheusAddOnAvailable(kogitoService v1alpha1.KogitoService) (bool, error) {
 	url, err := infrastructure.CreateKogitoServiceURI(kogitoService.GetName(), kogitoService.GetNamespace())
 	if err != nil {
 		return false, err
@@ -115,7 +114,6 @@ func loadDeployedServiceMonitor(client *client.Client, instanceName, namespace s
 func createServiceMonitor(cli *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (*monv1.ServiceMonitor, error) {
 	monitoring := kogitoService.GetSpec().GetMonitoring()
 	endPoint := monv1.Endpoint{}
-	endPoint.TargetPort = &intstr.IntOrString{IntVal: framework.DefaultServiceHTTPPort}
 	endPoint.Path = getMonitoringPath(monitoring)
 	endPoint.Scheme = getMonitoringScheme(monitoring)
 
