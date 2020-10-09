@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-EXAMPLES_DIR=./deploy/examples
+EXAMPLES_DIR=./examples
 TARGET_DIR="${EXAMPLES_DIR}/kubernetes/travel-agency"
 STRIMZI_VERSION=0.17.0
 INFINISPAN_VERSION=1.1.1.Final
