@@ -41,7 +41,7 @@ type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// +optional
-	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
+	// Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Resource Resource `json:"resource,omitempty"`
 }
@@ -99,6 +99,7 @@ const (
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1,\"A Kafka instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispan,infinispan.org/v1,\"A Infinispan instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloak,keycloak.org/v1alpha1,\"A Keycloak Instance\""
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Grafana,integreatly.org/v1alpha,\"A Grafana Instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Secret,v1,\"A Kubernetes Secret\""
 type KogitoInfra struct {
 	metav1.TypeMeta   `json:",inline"`

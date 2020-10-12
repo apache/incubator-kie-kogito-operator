@@ -439,6 +439,9 @@ spec:
       kind: KogitoInfra
       name: kogitoinfras.app.kiegroup.org
       resources:
+      - kind: Grafana
+        name: A Grafana Instance
+        version: integreatly.org/v1alpha
       - kind: Infinispan
         name: A Infinispan instance
         version: infinispan.org/v1
@@ -452,7 +455,7 @@ spec:
         name: A Kubernetes Secret
         version: v1
       specDescriptors:
-      - description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak.'
+      - description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.'
         displayName: Resource
         path: resource
       version: v1alpha1

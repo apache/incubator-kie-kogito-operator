@@ -12,6 +12,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.8
 	github.com/infinispan/infinispan-operator v0.0.0-20200803092941-2b0528367f08
+	github.com/integr8ly/grafana-operator v2.0.0+incompatible
 	github.com/karrick/godirwalk v1.15.6 // indirect
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/machinebox/graphql v0.2.2

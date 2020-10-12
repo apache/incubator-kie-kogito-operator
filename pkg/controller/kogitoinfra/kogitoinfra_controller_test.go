@@ -15,11 +15,15 @@
 package kogitoinfra
 
 import (
+	"testing"
+
 	v12 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	v14 "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/grafana"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -28,7 +32,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"testing"
 )
 
 func Test_Reconcile_KafkaResource(t *testing.T) {
@@ -131,4 +134,49 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	assert.Equal(t, "true", infinispanAppProps["quarkus.infinispan-client.use-auth"])
 	assert.Equal(t, "PLAIN", infinispanAppProps["quarkus.infinispan-client.sasl-mechanism"])
 	assert.Empty(t, infinispanAppProps["quarkus.infinispan-client.auth-realm"])
+}
+
+func Test_Reconcile_Grafana(t *testing.T) {
+
+	kogitoInfra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-grafana", Namespace: t.Name()},
+		Spec: v1alpha1.KogitoInfraSpec{
+			Resource: v1alpha1.Resource{
+				APIVersion: grafana.APIVersion,
+				Kind:       grafana.Kind,
+				Name:       "kogito-grafana",
+				Namespace:  t.Name(),
+			},
+		},
+	}
+
+	deployedGrafana := &v14.Grafana{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-grafana", Namespace: t.Name()},
+	}
+
+	grafanaService := &v13.Service{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-grafana", Namespace: t.Name()},
+		Spec: v13.ServiceSpec{
+			Ports: []v13.ServicePort{
+				{
+					TargetPort: intstr.FromInt(11222),
+				},
+			},
+		},
+	}
+
+	client := test.CreateFakeClient([]runtime.Object{
+		kogitoInfra,
+		deployedGrafana,
+		grafanaService,
+	}, nil, nil)
+
+	scheme := meta.GetRegisteredSchema()
+	r := &ReconcileKogitoInfra{client: client, scheme: scheme}
+	// basic checks
+	test.AssertReconcile(t, r, kogitoInfra)
+
+	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
+	assert.NoError(t, err)
+	assert.True(t, exists)
 }

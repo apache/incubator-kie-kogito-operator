@@ -16,7 +16,9 @@ package kogitoinfra
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/grafana"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
@@ -35,6 +37,9 @@ func GetKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, erro
 	case isKeycloakResource(instance):
 		log.Debugf("Kogito infra reference is for Keycloak resource")
 		return &keycloak.InfraResource{}, nil
+	case isGrafanaResource(instance):
+		log.Debugf("Kogito infra reference is for Grafana resource")
+		return &grafana.InfraResource{}, nil
 	}
 	return nil, fmt.Errorf("no Kogito infra resource found for given definition, %s", instance.Name)
 }
@@ -52,4 +57,9 @@ func IsKafkaResource(instance *v1alpha1.KogitoInfra) bool {
 // isKeycloakResource check if provided KogitoInfra instance is for Keycloak resource
 func isKeycloakResource(instance *v1alpha1.KogitoInfra) bool {
 	return instance.Spec.Resource.APIVersion == keycloak.APIVersion && instance.Spec.Resource.Kind == keycloak.Kind
+}
+
+// isGrafanaResource check if provided KogitoInfra instance is for Keycloak resource
+func isGrafanaResource(instance *v1alpha1.KogitoInfra) bool {
+	return instance.Spec.Resource.APIVersion == grafana.APIVersion && instance.Spec.Resource.Kind == grafana.Kind
 }

@@ -36,7 +36,7 @@ spec:
           description: KogitoInfraSpec defines the desired state of KogitoInfra.
           properties:
             resource:
-              description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak.'
+              description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.'
               properties:
                 apiVersion:
                   description: APIVersion describes the API Version of referred Kubernetes

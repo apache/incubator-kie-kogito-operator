@@ -15,13 +15,15 @@
 package kogitoinfra
 
 import (
+	"time"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/grafana"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"time"
 
 	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -73,6 +75,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	watchedObjects = append(watchedObjects, infinispan.GetWatchedObjects()...)
 	watchedObjects = append(watchedObjects, kafka.GetWatchedObjects()...)
 	watchedObjects = append(watchedObjects, keycloak.GetWatchedObjects()...)
+	watchedObjects = append(watchedObjects, grafana.GetWatchedObjects()...)
 
 	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoInfra).client, mgr, c, &appv1alpha1.KogitoInfra{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {

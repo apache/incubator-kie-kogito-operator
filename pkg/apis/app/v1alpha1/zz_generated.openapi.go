@@ -868,7 +868,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 				Properties: map[string]spec.Schema{
 					"resource": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak.",
+							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resource"),
 						},
 					},

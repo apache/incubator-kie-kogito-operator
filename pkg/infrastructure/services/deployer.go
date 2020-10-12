@@ -16,10 +16,11 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"time"
+
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
 	v1 "k8s.io/api/core/v1"
@@ -65,6 +66,8 @@ type ServiceDefinition struct {
 	SingleReplica bool
 	// RequiresPersistence forces the deployer to deploy an Infinispan instance if none is provided
 	RequiresPersistence bool
+	// RequiresGrafana forces the deployer to deploy an Infinispan instance if none is provided
+	RequiresGrafana bool
 	// RequiresMessaging forces the deployer to deploy a Kafka instance if none is provided
 	RequiresMessaging bool
 	// RequiresDataIndex when set to true, the Data Index instance is queried in the given namespace and its Route injected in this service.
