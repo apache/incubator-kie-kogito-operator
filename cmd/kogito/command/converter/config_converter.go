@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service
+package converter
 
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
@@ -31,14 +32,19 @@ const (
 	createdByAnnonValue = "Kogito CLI"
 )
 
-// createConfigMapFromFile creates the custom ConfigMap based in the configuration file given in the flags parameter.
+// FromConfigFlagsToMap converts a config flag in the format of key=value pairs to map
+func FromConfigFlagsToMap(flag *flag.ConfigFlags) map[string]string {
+	return util.FromStringsKeyPairToMap(flag.Config)
+}
+
+// CreateConfigMapFromFile creates the custom ConfigMap based in the configuration file given in the flags parameter.
 // Does nothing if the config file path is empty
-func createConfigMapFromFile(cli *client.Client, flags *flag.RuntimeFlags) (cmName string, err error) {
+func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *flag.ConfigFlags) (cmName string, err error) {
 	if len(flags.ConfigFile) == 0 {
 		return "", nil
 	}
 	cm := &v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-%s", flags.Name, configMapSuffix), Namespace: flags.Project},
+		ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-%s", name, configMapSuffix), Namespace: project},
 	}
 	fileContent, err := ioutil.ReadFile(flags.ConfigFile)
 	if err != nil {

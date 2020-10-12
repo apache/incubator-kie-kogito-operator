@@ -931,6 +931,13 @@ func (in *KogitoServiceSpec) DeepCopyInto(out *KogitoServiceSpec) {
 		copy(*out, *in)
 	}
 	out.Monitoring = in.Monitoring
+	if in.Config != nil {
+		in, out := &in.Config, &out.Config
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

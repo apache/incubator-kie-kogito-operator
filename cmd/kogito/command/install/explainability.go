@@ -86,6 +86,10 @@ func (i *installExplainabilityCommand) Exec(cmd *cobra.Command, args []string) e
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
+	configMap, err := converter.CreateConfigMapFromFile(i.Client, infrastructure.DefaultExplainabilityName, i.flags.Project, &i.flags.ConfigFlags)
+	if err != nil {
+		return err
+	}
 
 	kogitoExplainability := v1alpha1.KogitoExplainability{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultExplainabilityName, Namespace: i.flags.Project},
@@ -98,6 +102,8 @@ func (i *installExplainabilityCommand) Exec(cmd *cobra.Command, args []string) e
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 				Infra:                 i.flags.Infra,
+				PropertiesConfigMap:   configMap,
+				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
 			},
 		},
 		Status: v1alpha1.KogitoExplainabilityStatus{
