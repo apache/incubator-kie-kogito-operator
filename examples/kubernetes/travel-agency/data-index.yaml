@@ -1,3 +1,23 @@
+#Strimzi operator should be pre-installed in namespace
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoInfra
+metadata:
+  name: kogito-kafka-infra
+spec:
+  resource:
+    apiVersion: kafka.strimzi.io/v1beta1
+    kind: Kafka
+---
+#Infinispan operator should be pre-installed in namespace
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoInfra
+metadata:
+  name: kogito-infinispan-infra
+spec:
+  resource:
+    apiVersion: infinispan.org/v1
+    kind: Infinispan
+---
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoDataIndex
 metadata:
@@ -5,8 +25,7 @@ metadata:
 spec:
   replicas: 1
   image: quay.io/kiegroup/kogito-data-index:0.12
-  kafka:
-    useKogitoInfra: true
-  infinispan:
-    useKogitoInfra: true
+  infra:
+    - kogito-kafka-infra
+    - kogito-infinispan-infra
 

@@ -23,15 +23,23 @@ import (
 type Resource struct {
 
 	// APIVersion describes the API Version of referred Kubernetes resource for example, infinispan.org/v1
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="APIVersion"
 	APIVersion string `json:"apiVersion"`
 
 	// Kind describes the kind of referred Kubernetes resource for example, Infinispan
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Kind"
 	Kind string `json:"kind"`
 
 	// Namespace where referred resource exists.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Namespace"
 	Namespace string `json:"namespace,omitempty"`
 
 	// Name of referred resource.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Name"
 	Name string `json:"name,omitempty"`
 }
 
@@ -40,7 +48,6 @@ type Resource struct {
 type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// +optional
 	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Resource Resource `json:"resource,omitempty"`

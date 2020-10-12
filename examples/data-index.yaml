@@ -1,4 +1,3 @@
----
 #Strimzi operator should be pre-installed in namespace
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoInfra
