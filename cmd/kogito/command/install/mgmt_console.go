@@ -87,6 +87,10 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
+	configMap, err := converter.CreateConfigMapFromFile(i.Client, infrastructure.DefaultMgmtConsoleName, i.flags.Project, &i.flags.ConfigFlags)
+	if err != nil {
+		return err
+	}
 
 	kogitoMgmtConsole := v1alpha1.KogitoMgmtConsole{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: i.flags.Project},
@@ -99,6 +103,8 @@ func (i *installMgmtConsoleCommand) Exec(cmd *cobra.Command, args []string) erro
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 				Infra:                 i.flags.Infra,
+				PropertiesConfigMap:   configMap,
+				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
 			},
 		},
 		Status: v1alpha1.KogitoMgmtConsoleStatus{

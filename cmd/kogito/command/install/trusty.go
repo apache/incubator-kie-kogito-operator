@@ -92,6 +92,10 @@ func (i *installTrustyCommand) Exec(cmd *cobra.Command, args []string) error {
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
+	configMap, err := converter.CreateConfigMapFromFile(i.Client, infrastructure.DefaultTrustyName, i.flags.Project, &i.flags.ConfigFlags)
+	if err != nil {
+		return err
+	}
 
 	kogitoTrusty := v1alpha1.KogitoTrusty{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultTrustyName, Namespace: i.flags.Project},
@@ -104,6 +108,8 @@ func (i *installTrustyCommand) Exec(cmd *cobra.Command, args []string) error {
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 				Infra:                 i.flags.Infra,
+				PropertiesConfigMap:   configMap,
+				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
 			},
 		},
 		Status: v1alpha1.KogitoTrustyStatus{

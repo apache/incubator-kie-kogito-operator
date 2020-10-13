@@ -43,6 +43,12 @@ spec:
         spec:
           description: KogitoRuntimeSpec defines the desired state of KogitoRuntime.
           properties:
+            config:
+              additionalProperties:
+                type: string
+              description: 'Application properties that will be set to the service.
+                For example ''MY_VAR: my_value''.'
+              type: object
             deploymentLabels:
               additionalProperties:
                 type: string

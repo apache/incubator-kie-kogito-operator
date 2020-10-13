@@ -120,6 +120,7 @@ type KogitoServiceSpecInterface interface {
 	GetInfra() []string
 	AddInfra(name string)
 	GetMonitoring() Monitoring
+	GetConfig() map[string]string
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -193,6 +194,13 @@ type KogitoServiceSpec struct {
 	// Create Service monitor instance to connect with Monitoring service
 	// +optional
 	Monitoring Monitoring `json:"monitoring,omitempty"`
+
+	// +optional
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Configs"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// Application properties that will be set to the service. For example 'MY_VAR: my_value'.
+	Config map[string]string `json:"config,omitempty"`
 }
 
 // GetReplicas ...
@@ -318,3 +326,8 @@ func (k *KogitoServiceSpec) AddInfra(name string) {
 
 // GetMonitoring ...
 func (k *KogitoServiceSpec) GetMonitoring() Monitoring { return k.Monitoring }
+
+// GetConfig ...
+func (k *KogitoServiceSpec) GetConfig() map[string]string {
+	return k.Config
+}

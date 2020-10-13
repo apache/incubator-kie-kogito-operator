@@ -91,7 +91,10 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
-
+	configMap, err := converter.CreateConfigMapFromFile(i.Client, infrastructure.DefaultDataIndexName, i.flags.Project, &i.flags.ConfigFlags)
+	if err != nil {
+		return err
+	}
 	kogitoDataIndex := v1alpha1.KogitoDataIndex{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: i.flags.Project},
 		Spec: v1alpha1.KogitoDataIndexSpec{
@@ -103,6 +106,8 @@ func (i *installDataIndexCommand) Exec(cmd *cobra.Command, args []string) error 
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 				Infra:                 i.flags.Infra,
+				PropertiesConfigMap:   configMap,
+				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
 			},
 		},
 		Status: v1alpha1.KogitoDataIndexStatus{

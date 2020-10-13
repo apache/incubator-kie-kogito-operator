@@ -275,6 +275,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -361,6 +367,12 @@ spec:
         name: ""
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -475,11 +487,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
-      - description: 'Retry backOff time in milliseconds between the job execution
-          attempts, in case of execution failure. Default to service default, see:
-          https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-        displayName: Back Off Retry Millis
-        path: backOffRetryMillis
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -502,10 +515,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: 'Maximum interval in milliseconds when retrying to execute jobs,
-          in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-        displayName: Max Interval Limit To Retry Millis
-        path: maxIntervalLimitToRetryMillis
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -570,6 +579,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -655,6 +670,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -753,6 +774,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -838,6 +865,12 @@ spec:
         name: ""
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels

@@ -22,19 +22,6 @@ import (
 // +k8s:openapi-gen=true
 type KogitoJobsServiceSpec struct {
 	KogitoServiceSpec `json:",inline"`
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-
-	// +optional
-	// Retry backOff time in milliseconds between the job execution attempts, in case of execution failure.
-	// Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	BackOffRetryMillis int64 `json:"backOffRetryMillis,omitempty"`
-
-	// +optional
-	// Maximum interval in milliseconds when retrying to execute jobs, in case of failures.
-	// Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	MaxIntervalLimitToRetryMillis int64 `json:"maxIntervalLimitToRetryMillis,omitempty"`
 }
 
 // GetRuntime ...

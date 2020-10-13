@@ -27,8 +27,6 @@ import (
 
 type installJobsServiceFlags struct {
 	flag.InstallFlags
-	backOffRetryMillis            int64
-	maxIntervalLimitToRetryMillis int64
 }
 
 type installJobsServiceCommand struct {
@@ -82,14 +80,15 @@ func (i *installJobsServiceCommand) InitHook() {
 	i.flags = installJobsServiceFlags{}
 	i.Parent.AddCommand(i.command)
 	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
-
-	i.command.Flags().Int64Var(&i.flags.backOffRetryMillis, "backoff-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.backoffRetryMillis'")
-	i.command.Flags().Int64Var(&i.flags.maxIntervalLimitToRetryMillis, "max-internal-limit-retry-millis", 0, "Sets the internal property 'kogito.jobs-service.maxIntervalLimitToRetryMillis'")
 }
 
 func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
+		return err
+	}
+	configMap, err := converter.CreateConfigMapFromFile(i.Client, infrastructure.DefaultJobsServiceName, i.flags.Project, &i.flags.ConfigFlags)
+	if err != nil {
 		return err
 	}
 
@@ -104,9 +103,9 @@ func (i *installJobsServiceCommand) Exec(cmd *cobra.Command, args []string) erro
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 				Infra:                 i.flags.Infra,
+				PropertiesConfigMap:   configMap,
+				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
 			},
-			BackOffRetryMillis:            i.flags.backOffRetryMillis,
-			MaxIntervalLimitToRetryMillis: i.flags.maxIntervalLimitToRetryMillis,
 		},
 		Status: v1alpha1.KogitoJobsServiceStatus{
 			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
