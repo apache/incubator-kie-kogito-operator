@@ -17,6 +17,7 @@ package steps
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cucumber/godog"
@@ -27,7 +28,7 @@ import (
 )
 
 var (
-	namespacesCreated []string
+	namespacesCreated sync.Map
 )
 
 // Data contains all data needed by Gherkin steps to run
@@ -99,17 +100,13 @@ func generateNamespaceName() string {
 	for isNamespaceAlreadyCreated(ns) {
 		ns = framework.GenerateNamespaceName("cucumber")
 	}
-	namespacesCreated = append(namespacesCreated, ns)
+	namespacesCreated.Store(ns, true)
 	return ns
 }
 
 func isNamespaceAlreadyCreated(namespace string) bool {
-	for _, ns := range namespacesCreated {
-		if ns == namespace {
-			return true
-		}
-	}
-	return false
+	_, exists := namespacesCreated.Load(namespace)
+	return exists
 }
 
 func createTemporaryFolder() string {
