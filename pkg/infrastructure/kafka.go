@@ -34,6 +34,14 @@ const (
 	strimziBrokerLabel         = "strimzi.io/cluster"
 	defaultKafkaTopicPartition = 1
 	defaultKafkaTopicReplicas  = 1
+
+	// APIVersion refers to kafka APIVersion
+	KafkaAPIVersion = "kafka.strimzi.io/v1beta1"
+	// Kind refers to kafka Kind
+	KafkaKind = "Kafka"
+
+	// InstanceName is the default name for the Kafka cluster managed by KogitoInfra
+	KafkaInstanceName = "kogito-kafka"
 )
 
 // IsStrimziOperatorAvailable verify if Strimzi Operator is running in the given namespace and the CRD is available

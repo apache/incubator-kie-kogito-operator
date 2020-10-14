@@ -16,6 +16,8 @@ package build
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -25,57 +27,33 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 const (
-	// KogitoQuarkusUbi8Image Quarkus runtime builder image
-	KogitoQuarkusUbi8Image = "kogito-quarkus-ubi8"
-	// KogitoQuarkusJVMUbi8Image Quarkus jvm runtime builder image
-	KogitoQuarkusJVMUbi8Image = "kogito-quarkus-jvm-ubi8"
-	// KogitoQuarkusUbi8s2iImage Quarkus s2i builder image
-	KogitoQuarkusUbi8s2iImage = "kogito-quarkus-ubi8-s2i"
-	// KogitoSpringBootUbi8Image SpringBoot runtime builder image
-	KogitoSpringBootUbi8Image = "kogito-springboot-ubi8"
-	// KogitoSpringBootUbi8s2iImage SpringBoot s2i builder image
-	KogitoSpringBootUbi8s2iImage = "kogito-springboot-ubi8-s2i"
-
 	customKogitoImagePrefix = "custom-"
 	labelKeyVersion         = "version"
 )
 
 var (
-	// KogitoImages maps the default Kogito Images on a matrix of RuntimeType and its purpose
-	KogitoImages = map[v1alpha1.RuntimeType]map[bool]string{
-		v1alpha1.QuarkusRuntimeType: {
-			true:  KogitoQuarkusUbi8s2iImage,
-			false: KogitoQuarkusJVMUbi8Image,
-		},
-		v1alpha1.SpringBootRuntimeType: {
-			true:  KogitoSpringBootUbi8s2iImage,
-			false: KogitoSpringBootUbi8Image,
-		},
-	}
-
 	// imageStreamDefaultAnnotations lists the default annotations for ImageStreams
 	imageStreamDefaultAnnotations = map[string]map[string]string{
-		KogitoQuarkusUbi8Image: {
+		infrastructure.KogitoQuarkusUbi8Image: {
 			"openshift.io/provider-display-name": "KIE Group",
 			"openshift.io/display-name":          "Runtime image for Kogito based on Quarkus native image",
 		},
-		KogitoQuarkusJVMUbi8Image: {
+		infrastructure.KogitoQuarkusJVMUbi8Image: {
 			"openshift.io/provider-display-name": "KIE Group",
 			"openshift.io/display-name":          "Runtime image for Kogito based on Quarkus JVM image",
 		},
-		KogitoQuarkusUbi8s2iImage: {
+		infrastructure.KogitoQuarkusUbi8s2iImage: {
 			"openshift.io/provider-display-name": "KIE Group",
 			"openshift.io/display-name":          "Platform for building Kogito based on Quarkus",
 		},
-		KogitoSpringBootUbi8Image: {
+		infrastructure.KogitoSpringBootUbi8Image: {
 			"openshift.io/provider-display-name": "KIE Group",
 			"openshift.io/display-name":          "Runtime image for Kogito based on SpringBoot",
 		},
-		KogitoSpringBootUbi8s2iImage: {
+		infrastructure.KogitoSpringBootUbi8s2iImage: {
 			"openshift.io/provider-display-name": "KIE Group",
 			"openshift.io/display-name":          "Platform for building Kogito based on SpringBoot",
 		},
@@ -83,31 +61,31 @@ var (
 
 	//tagDefaultAnnotations lists the default annotations for ImageStreamTags
 	tagDefaultAnnotations = map[string]map[string]string{
-		KogitoQuarkusUbi8Image: {
+		infrastructure.KogitoQuarkusUbi8Image: {
 			"iconClass":   "icon-jbpm",
 			"description": "Runtime image for Kogito based on Quarkus native image",
 			"tags":        "runtime,kogito,quarkus",
 			"supports":    "quarkus",
 		},
-		KogitoQuarkusJVMUbi8Image: {
+		infrastructure.KogitoQuarkusJVMUbi8Image: {
 			"iconClass":   "icon-jbpm",
 			"description": "Runtime image for Kogito based on Quarkus JVM image",
 			"tags":        "runtime,kogito,quarkus,jvm",
 			"supports":    "quarkus",
 		},
-		KogitoQuarkusUbi8s2iImage: {
+		infrastructure.KogitoQuarkusUbi8s2iImage: {
 			"iconClass":   "icon-jbpm",
 			"description": "Platform for building Kogito based on Quarkus",
 			"tags":        "builder,kogito,quarkus",
 			"supports":    "quarkus",
 		},
-		KogitoSpringBootUbi8Image: {
+		infrastructure.KogitoSpringBootUbi8Image: {
 			"iconClass":   "icon-jbpm",
 			"description": "Runtime image for Kogito based on SpringBoot",
 			"tags":        "runtime,kogito,springboot",
 			"supports":    "springboot",
 		},
-		KogitoSpringBootUbi8s2iImage: {
+		infrastructure.KogitoSpringBootUbi8s2iImage: {
 			"iconClass":   "icon-jbpm",
 			"description": "Platform for building Kogito based on SpringBoot",
 			"tags":        "builder,kogito,springboot",
@@ -145,9 +123,9 @@ func resolveKogitoImageName(build *v1alpha1.KogitoBuild, isBuilder bool) string 
 	if len(image.Name) > 0 {
 		return image.Name
 	}
-	imageName := KogitoImages[build.Spec.Runtime][isBuilder]
+	imageName := infrastructure.KogitoImages[build.Spec.Runtime][isBuilder]
 	if build.Spec.Native && !isBuilder {
-		imageName = KogitoQuarkusUbi8Image
+		imageName = infrastructure.KogitoQuarkusUbi8Image
 	}
 	return imageName
 }

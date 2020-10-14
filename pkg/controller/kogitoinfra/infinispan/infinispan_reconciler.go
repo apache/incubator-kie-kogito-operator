@@ -16,6 +16,7 @@ package infinispan
 
 import (
 	"fmt"
+
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -23,13 +24,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-)
-
-const (
-	// APIVersion refers to infinispan APIVersion
-	APIVersion = "infinispan.org/v1"
-	// Kind refers to infinispan Kind
-	Kind = "Infinispan"
 )
 
 // InfraResource implementation of KogitoInfraResource
@@ -87,14 +81,14 @@ func (i *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		}
 
 		// Step 1: check whether infinispan instance exist
-		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, instanceName, instance.Namespace)
+		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, infrastructure.InfinispanInstanceName, instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if infinispanInstance == nil {
 			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
-			_, resultErr = createNewInfinispanInstance(client, instanceName, instance.Namespace, instance, scheme)
+			_, resultErr = createNewInfinispanInstance(client, infrastructure.InfinispanInstanceName, instance.Namespace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}

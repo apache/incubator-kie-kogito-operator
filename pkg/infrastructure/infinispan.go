@@ -16,11 +16,12 @@ package infrastructure
 
 import (
 	"fmt"
+
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"gopkg.in/yaml.v2"
-	"k8s.io/api/apps/v1"
+	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -38,6 +39,13 @@ const (
 	defaultInfinispanUser       = "developer"
 	// InfinispanIdentityFileName is the name of YAML file containing list of Infinispan credentials
 	InfinispanIdentityFileName = "identities.yaml"
+
+	// APIVersion refers to infinispan APIVersion
+	InfinispanAPIVersion = "infinispan.org/v1"
+	// Kind refers to infinispan Kind
+	InfinispanKind = "Infinispan"
+
+	InfinispanInstanceName = "kogito-infinispan"
 )
 
 // InfinispanIdentity is the struct for the secret holding the credential for the Infinispan server

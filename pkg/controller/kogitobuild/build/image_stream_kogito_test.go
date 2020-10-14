@@ -15,10 +15,11 @@
 package build
 
 import (
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
@@ -52,12 +53,12 @@ func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
 		args args
 		want string
 	}{
-		{"Quarkus Non Native Builder", args{buildQuarkusNonNative, true}, KogitoQuarkusUbi8s2iImage + tag},
-		{"Quarkus Non Native Base", args{buildQuarkusNonNative, false}, KogitoQuarkusJVMUbi8Image + tag},
-		{"Quarkus Native Builder", args{buildQuarkusNative, true}, KogitoQuarkusUbi8s2iImage + tag},
-		{"Quarkus Native Base", args{buildQuarkusNative, false}, KogitoQuarkusUbi8Image + tag},
-		{"SpringBoot Builder", args{buildSpringBoot, true}, KogitoSpringBootUbi8s2iImage + tag},
-		{"SpringBoot Base", args{buildSpringBoot, false}, KogitoSpringBootUbi8Image + tag},
+		{"Quarkus Non Native Builder", args{buildQuarkusNonNative, true}, infrastructure.KogitoQuarkusUbi8s2iImage + tag},
+		{"Quarkus Non Native Base", args{buildQuarkusNonNative, false}, infrastructure.KogitoQuarkusJVMUbi8Image + tag},
+		{"Quarkus Native Builder", args{buildQuarkusNative, true}, infrastructure.KogitoQuarkusUbi8s2iImage + tag},
+		{"Quarkus Native Base", args{buildQuarkusNative, false}, infrastructure.KogitoQuarkusUbi8Image + tag},
+		{"SpringBoot Builder", args{buildSpringBoot, true}, infrastructure.KogitoSpringBootUbi8s2iImage + tag},
+		{"SpringBoot Base", args{buildSpringBoot, false}, infrastructure.KogitoSpringBootUbi8Image + tag},
 		{"SpringBoot Custom Builder", args{buildSpringBootCustom, true}, "my-image" + tag},
 		{"Quarkus Custom Base", args{buildQuarkusCustom, false}, "my-image" + tag},
 	}
@@ -100,12 +101,12 @@ func Test_resolveKogitoImageStreamName(t *testing.T) {
 		args args
 		want string
 	}{
-		{"Quarkus Non Native Builder", args{buildQuarkusNonNative, true}, KogitoQuarkusUbi8s2iImage},
-		{"Quarkus Non Native Base", args{buildQuarkusNonNative, false}, KogitoQuarkusJVMUbi8Image},
-		{"Quarkus Native Builder", args{buildQuarkusNative, true}, KogitoQuarkusUbi8s2iImage},
-		{"Quarkus Native Base", args{buildQuarkusNative, false}, KogitoQuarkusUbi8Image},
-		{"SpringBoot Builder", args{buildSpringBoot, true}, KogitoSpringBootUbi8s2iImage},
-		{"SpringBoot Base", args{buildSpringBoot, false}, KogitoSpringBootUbi8Image},
+		{"Quarkus Non Native Builder", args{buildQuarkusNonNative, true}, infrastructure.KogitoQuarkusUbi8s2iImage},
+		{"Quarkus Non Native Base", args{buildQuarkusNonNative, false}, infrastructure.KogitoQuarkusJVMUbi8Image},
+		{"Quarkus Native Builder", args{buildQuarkusNative, true}, infrastructure.KogitoQuarkusUbi8s2iImage},
+		{"Quarkus Native Base", args{buildQuarkusNative, false}, infrastructure.KogitoQuarkusUbi8Image},
+		{"SpringBoot Builder", args{buildSpringBoot, true}, infrastructure.KogitoSpringBootUbi8s2iImage},
+		{"SpringBoot Base", args{buildSpringBoot, false}, infrastructure.KogitoSpringBootUbi8Image},
 		{"SpringBoot Custom Builder", args{buildSpringBootCustom, true}, "custom-my-image"},
 		{"Quarkus Custom Base", args{buildQuarkusCustom, false}, "custom-my-image"},
 	}

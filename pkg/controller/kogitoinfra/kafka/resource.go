@@ -27,8 +27,6 @@ import (
 )
 
 const (
-	// InstanceName is the default name for the Kafka cluster managed by KogitoInfra
-	InstanceName    = "kogito-kafka"
 	defaultReplicas = 1
 )
 
