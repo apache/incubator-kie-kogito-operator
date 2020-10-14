@@ -26,6 +26,10 @@ import (
 	imgv1 "github.com/openshift/api/image/v1"
 )
 
+var (
+	namespacesCreated []string
+)
+
 // Data contains all data needed by Gherkin steps to run
 type Data struct {
 	Namespace              string
@@ -87,7 +91,25 @@ func getNamespaceName() string {
 	if namespaceName := config.GetNamespaceName(); len(namespaceName) > 0 {
 		return namespaceName
 	}
-	return framework.GenerateNamespaceName("cucumber")
+	return generateNamespaceName()
+}
+
+func generateNamespaceName() string {
+	ns := framework.GenerateNamespaceName("cucumber")
+	for isNamespaceAlreadyCreated(ns) {
+		ns = framework.GenerateNamespaceName("cucumber")
+	}
+	namespacesCreated = append(namespacesCreated, ns)
+	return ns
+}
+
+func isNamespaceAlreadyCreated(namespace string) bool {
+	for _, ns := range namespacesCreated {
+		if ns == namespace {
+			return true
+		}
+	}
+	return false
 }
 
 func createTemporaryFolder() string {
