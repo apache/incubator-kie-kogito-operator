@@ -19,12 +19,12 @@ import "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 const (
 	keycloakServerGroup = "keycloak.org"
 
-	// APIVersion refers to kafka APIVersion
+	// KeycloakAPIVersion refers to kafka APIVersion
 	KeycloakAPIVersion = "keycloak.org/v1alpha1"
-	// Kind refers to kafka Kind
+	// KeycloakKind refers to kafka Kind
 	KeycloakKind = "Keycloak"
 
-	// InstanceName is the default instance name for Keycloak CR managed by Kogito
+	// KeycloakInstanceName is the default instance name for Keycloak CR managed by Kogito
 	KeycloakInstanceName = "kogito-keycloak"
 )
 

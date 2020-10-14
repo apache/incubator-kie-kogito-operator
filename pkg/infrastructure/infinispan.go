@@ -40,11 +40,12 @@ const (
 	// InfinispanIdentityFileName is the name of YAML file containing list of Infinispan credentials
 	InfinispanIdentityFileName = "identities.yaml"
 
-	// APIVersion refers to infinispan APIVersion
+	// InfinispanAPIVersion refers to infinispan APIVersion
 	InfinispanAPIVersion = "infinispan.org/v1"
-	// Kind refers to infinispan Kind
+	// InfinispanKind refers to infinispan Kind
 	InfinispanKind = "Infinispan"
 
+	// InfinispanInstanceName is the default name for Infinispan managed by KogitoInfra
 	InfinispanInstanceName = "kogito-infinispan"
 )
 
