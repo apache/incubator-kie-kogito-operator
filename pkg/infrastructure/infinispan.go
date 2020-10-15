@@ -40,13 +40,16 @@ const (
 	// InfinispanIdentityFileName is the name of YAML file containing list of Infinispan credentials
 	InfinispanIdentityFileName = "identities.yaml"
 
-	// InfinispanAPIVersion refers to infinispan APIVersion
-	InfinispanAPIVersion = "infinispan.org/v1"
 	// InfinispanKind refers to infinispan Kind
 	InfinispanKind = "Infinispan"
 
 	// InfinispanInstanceName is the default name for Infinispan managed by KogitoInfra
 	InfinispanInstanceName = "kogito-infinispan"
+)
+
+var (
+	// InfinispanAPIVersion CRD API group version for Infinispan server (as defined by Infinispan Operator)
+	InfinispanAPIVersion = ispn.SchemeGroupVersion.String()
 )
 
 // InfinispanIdentity is the struct for the secret holding the credential for the Infinispan server
