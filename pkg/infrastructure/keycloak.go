@@ -20,8 +20,6 @@ import (
 )
 
 const (
-	keycloakServerGroup = v1alpha1.SchemeGroupVersion.Group
-
 	// KeycloakKind refers to Keycloak Kind
 	KeycloakKind = "Keycloak"
 
@@ -32,6 +30,8 @@ const (
 var (
 	// KeycloakAPIVersion refers to kafka APIVersion
 	KeycloakAPIVersion = v1alpha1.SchemeGroupVersion.String()
+
+	keycloakServerGroup = v1alpha1.SchemeGroupVersion.Group
 )
 
 // IsKeycloakAvailable checks if Strimzi CRD is available in the cluster
