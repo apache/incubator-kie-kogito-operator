@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	keycloakServerGroup = "keycloak.org"
+	keycloakServerGroup = v1alpha1.SchemeGroupVersion.Group
 
 	// KeycloakKind refers to Keycloak Kind
 	KeycloakKind = "Keycloak"
