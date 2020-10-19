@@ -76,7 +76,7 @@ func getKafkaInstanceNamespaceName(instance *v1alpha1.KogitoInfra) *types.Namesp
 	}
 	// create/refer kogito-kafka instance
 	log.Debugf("Custom kafka instance reference is not provided")
-	return &types.NamespacedName{Namespace: instance.Namespace, Name: kafka.InstanceName}
+	return &types.NamespacedName{Namespace: instance.Namespace, Name: infrastructure.KafkaInstanceName}
 }
 
 func loadDeployedKafkaTopic(cli *client.Client, topicName, kafkaNamespace string) (*kafkav1beta1.KafkaTopic, error) {

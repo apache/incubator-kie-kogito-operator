@@ -17,6 +17,7 @@ package infrastructure
 import (
 	"strings"
 
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/version"
 )
 
@@ -28,6 +29,31 @@ const (
 	DefaultImageRegistry = "quay.io"
 	// DefaultImageNamespace the default services image namespace
 	DefaultImageNamespace = "kiegroup"
+
+	// KogitoQuarkusUbi8Image Quarkus runtime builder image
+	KogitoQuarkusUbi8Image = "kogito-quarkus-ubi8"
+	// KogitoQuarkusJVMUbi8Image Quarkus jvm runtime builder image
+	KogitoQuarkusJVMUbi8Image = "kogito-quarkus-jvm-ubi8"
+	// KogitoQuarkusUbi8s2iImage Quarkus s2i builder image
+	KogitoQuarkusUbi8s2iImage = "kogito-quarkus-ubi8-s2i"
+	// KogitoSpringBootUbi8Image SpringBoot runtime builder image
+	KogitoSpringBootUbi8Image = "kogito-springboot-ubi8"
+	// KogitoSpringBootUbi8s2iImage SpringBoot s2i builder image
+	KogitoSpringBootUbi8s2iImage = "kogito-springboot-ubi8-s2i"
+)
+
+var (
+	// KogitoImages maps the default Kogito Images on a matrix of RuntimeType and its purpose
+	KogitoImages = map[v1alpha1.RuntimeType]map[bool]string{
+		v1alpha1.QuarkusRuntimeType: {
+			true:  KogitoQuarkusUbi8s2iImage,
+			false: KogitoQuarkusJVMUbi8Image,
+		},
+		v1alpha1.SpringBootRuntimeType: {
+			true:  KogitoSpringBootUbi8s2iImage,
+			false: KogitoSpringBootUbi8Image,
+		},
+	}
 )
 
 // GetKogitoImageVersion gets the Kogito Runtime latest micro version based on the Operator current version
