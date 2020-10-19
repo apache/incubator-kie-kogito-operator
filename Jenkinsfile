@@ -96,7 +96,11 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
 
     testParamsMap["operator_image"] = "${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator"
     testParamsMap["operator_tag"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
-    testParamsMap["maven_mirror"] = env.MAVEN_MIRROR_REPOSITORY
+    
+    if(env.MAVEN_MIRROR_REPOSITORY){
+        testParamsMap["maven_mirror"] = env.MAVEN_MIRROR_REPOSITORY
+        testParamsMap["maven_ignore_self_signed_certificate"] = true
+    }
     
     // runtime_application_image are built in this pipeline so we can just use Openshift registry for them
     testParamsMap["image_cache_mode"] = image_cache_mode

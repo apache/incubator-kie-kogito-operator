@@ -116,6 +116,7 @@ runtime_application_image_version=
 # build
 custom_maven_repo=
 maven_mirror=
+maven_ignore_self_signed_certificate=false
 build_image_registry=
 build_image_namespace=
 build_image_name_suffix=
@@ -148,6 +149,7 @@ run-tests:
 	&& if [ "${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
 	&& if [ "${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
 	&& if [ "${load_default_config}" = "true" ]; then opts+=("--load_default_config"); fi \
+	&& if [ "${maven_ignore_self_signed_certificate}" = "true" ]; then opts+=("--maven_ignore_self_signed_certificate"); fi \
 	&& if [ "${disable_maven_native_build_container}" = "true" ]; then opts+=("--disable_maven_native_build_container"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ./hack/run-tests.sh \
