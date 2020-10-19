@@ -523,11 +523,32 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 							},
 						},
 					},
+					"monitoring": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Create Service monitor instance to connect with Monitoring service",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
+						},
+					},
+					"config": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -746,11 +767,32 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 							},
 						},
 					},
+					"monitoring": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Create Service monitor instance to connect with Monitoring service",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
+						},
+					},
+					"config": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -868,7 +910,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoInfraSpec(ref common.ReferenceCallback) 
 				Properties: map[string]spec.Schema{
 					"resource": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.",
+							Description: "Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Resource"),
 						},
 					},
@@ -1087,25 +1129,32 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 							},
 						},
 					},
-					"backOffRetryMillis": {
+					"monitoring": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Retry backOff time in milliseconds between the job execution attempts, in case of execution failure. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties",
-							Type:        []string{"integer"},
-							Format:      "int64",
+							Description: "Create Service monitor instance to connect with Monitoring service",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
 						},
 					},
-					"maxIntervalLimitToRetryMillis": {
+					"config": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Maximum interval in milliseconds when retrying to execute jobs, in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties",
-							Type:        []string{"integer"},
-							Format:      "int64",
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -1412,11 +1461,32 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 							},
 						},
 					},
+					"monitoring": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Create Service monitor instance to connect with Monitoring service",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
+						},
+					},
+					"config": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

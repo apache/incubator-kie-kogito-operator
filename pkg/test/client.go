@@ -28,38 +28,90 @@ import (
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
 )
 
-// CreateFakeClient will create a fake client for mock test on Kubernetes env, use cases that depends on OpenShift should use CreateFakeClientOnOpenShift
-func CreateFakeClient(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
-	return CreateFakeClientWithDisco(objects, imageObjs, buildObjs, false)
+// FakeClientBuilder create client object for tests
+type FakeClientBuilder interface {
+	AddK8sObjects(objects []runtime.Object) FakeClientBuilder
+	AddImageObjects(imageObjs []runtime.Object) FakeClientBuilder
+	AddBuildObjects(buildObjs []runtime.Object) FakeClientBuilder
+	OnOpenShift() FakeClientBuilder
+	SupportPrometheus() FakeClientBuilder
+	Build() *client.Client
 }
 
-// CreateFakeClientOnOpenShift same as CreateFakeClientWithDisco setting openshift flag to true
-func CreateFakeClientOnOpenShift(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
-	return CreateFakeClientWithDisco(objects, imageObjs, buildObjs, true)
+// NewFakeClientBuilder provide new object FakeClientBuilder
+func NewFakeClientBuilder() FakeClientBuilder {
+	return &fakeClientStruct{}
 }
 
-// CreateFakeClientWithDisco controls if the Discovery API should return true for `IsOpenShift` calls
-func CreateFakeClientWithDisco(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object, openshift bool) *client.Client {
+type fakeClientStruct struct {
+	objects    []runtime.Object
+	imageObjs  []runtime.Object
+	buildObjs  []runtime.Object
+	openShift  bool
+	prometheus bool
+}
+
+// AddK8sObjects ...
+func (f *fakeClientStruct) AddK8sObjects(objects []runtime.Object) FakeClientBuilder {
+	f.objects = objects
+	return f
+}
+
+// AddImageObjects add image objects
+func (f *fakeClientStruct) AddImageObjects(imageObjs []runtime.Object) FakeClientBuilder {
+	f.imageObjs = imageObjs
+	return f
+}
+
+// AddBuildObjects add build object
+func (f *fakeClientStruct) AddBuildObjects(buildObjs []runtime.Object) FakeClientBuilder {
+	f.buildObjs = buildObjs
+	return f
+}
+
+func (f *fakeClientStruct) SupportPrometheus() FakeClientBuilder {
+	f.prometheus = true
+	return f
+}
+
+// OnOpenShift ...
+func (f *fakeClientStruct) OnOpenShift() FakeClientBuilder {
+	f.openShift = true
+	return f
+}
+
+// Build ...
+func (f *fakeClientStruct) Build() *client.Client {
 	// Create a fake client to mock API calls.
-	cli := fake.NewFakeClientWithScheme(meta.GetRegisteredSchema(), objects...)
+	cli := fake.NewFakeClientWithScheme(meta.GetRegisteredSchema(), f.objects...)
 	// OpenShift Image Client Fake with image tag defined and image built
-	imgCli := imgfake.NewSimpleClientset(imageObjs...).ImageV1()
+	imgCli := imgfake.NewSimpleClientset(f.imageObjs...).ImageV1()
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
-	buildCli := newBuildFake(buildObjs...)
+	buildCli := newBuildFake(f.buildObjs...)
+
 	return &client.Client{
 		ControlCli: cli,
 		BuildCli:   buildCli,
 		ImageCli:   imgCli,
-		Discovery:  CreateFakeDiscoveryClient(openshift),
+		Discovery:  f.createFakeDiscoveryClient(),
 	}
 }
 
+// CreateFakeClient will create a fake client for mock test on Kubernetes env, use cases that depends on OpenShift should use CreateFakeClientOnOpenShift
+func CreateFakeClient(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
+	return NewFakeClientBuilder().AddK8sObjects(objects).AddImageObjects(imageObjs).AddBuildObjects(buildObjs).Build()
+}
+
+// CreateFakeClientOnOpenShift same as CreateFakeClientWithDisco setting openshift flag to true
+func CreateFakeClientOnOpenShift(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
+	return NewFakeClientBuilder().AddK8sObjects(objects).AddImageObjects(imageObjs).AddBuildObjects(buildObjs).OnOpenShift().Build()
+}
+
 // CreateFakeDiscoveryClient creates a fake discovery client that supports prometheus, infinispan, strimzi api
-func CreateFakeDiscoveryClient(openshift bool) discovery.DiscoveryInterface {
+func (f *fakeClientStruct) createFakeDiscoveryClient() discovery.DiscoveryInterface {
 	disco := &discfake.FakeDiscovery{
 		Fake: &clienttesting.Fake{
 			Resources: []*metav1.APIResourceList{
-				{GroupVersion: "monitoring.coreos.com/v1alpha1"},
 				{GroupVersion: "infinispan.org/v1"},
 				{GroupVersion: "kafka.strimzi.io/v1beta1"},
 				{GroupVersion: "keycloak.org/v1alpha1"},
@@ -67,7 +119,13 @@ func CreateFakeDiscoveryClient(openshift bool) discovery.DiscoveryInterface {
 			},
 		},
 	}
-	if openshift {
+
+	if f.prometheus {
+		disco.Fake.Resources = append(disco.Fake.Resources,
+			&metav1.APIResourceList{GroupVersion: "monitoring.coreos.com/v1alpha1"})
+	}
+
+	if f.openShift {
 		disco.Fake.Resources = append(disco.Fake.Resources,
 			&metav1.APIResourceList{GroupVersion: "openshift.io/v1"},
 			&metav1.APIResourceList{GroupVersion: "build.openshift.io/v1"})

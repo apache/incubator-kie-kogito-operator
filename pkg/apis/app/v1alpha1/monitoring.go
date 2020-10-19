@@ -25,9 +25,6 @@ const (
 
 // Monitoring properties to connect with Monitoring service
 type Monitoring struct {
-	// Flag to allow Monitoring to scraping Kogito service.
-	Scrape bool `json:"scrape,omitempty"`
-
 	// HTTP scheme to use for scraping.
 	// +optional
 	Scheme string `json:"scheme,omitempty"`

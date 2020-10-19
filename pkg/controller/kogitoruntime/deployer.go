@@ -26,7 +26,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,12 +76,6 @@ func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (
 	resObjectList, resType, res := createProtoBufConfigMap(kogitoService)
 	lists = append(lists, resObjectList)
 	resources[resType] = []resource.KubernetesResource{res}
-
-	resObjectList, resType, res = createPrometheusServiceMonitor(cli, kogitoService)
-	if resObjectList != nil {
-		lists = append(lists, resObjectList)
-		resources[resType] = []resource.KubernetesResource{res}
-	}
 	return
 }
 
@@ -98,16 +91,6 @@ func createProtoBufConfigMap(kogitoService v1alpha1.KogitoService) (runtime.Obje
 		},
 	}
 	return &corev1.ConfigMapList{}, reflect.TypeOf(corev1.ConfigMap{}), configMap
-}
-
-func createPrometheusServiceMonitor(cli *client.Client, kogitoService v1alpha1.KogitoService) (runtime.Object, reflect.Type, resource.KubernetesResource) {
-	if services.IsPrometheusAvailable(cli) {
-		kogitoRuntime := kogitoService.(*v1alpha1.KogitoRuntime)
-		if serviceMonitor := services.CreateServiceMonitor(kogitoRuntime); serviceMonitor != nil {
-			return &monv1.ServiceMonitorList{}, reflect.TypeOf(monv1.ServiceMonitor{}), serviceMonitor
-		}
-	}
-	return nil, nil, nil
 }
 
 func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested resource.KubernetesResource) (equal bool) {

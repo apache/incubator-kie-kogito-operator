@@ -14,10 +14,24 @@
 
 package infrastructure
 
-import "github.com/kiegroup/kogito-cloud-operator/pkg/client"
+import (
+	"github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+)
 
 const (
-	keycloakServerGroup = "keycloak.org"
+	// KeycloakKind refers to Keycloak Kind
+	KeycloakKind = "Keycloak"
+
+	// KeycloakInstanceName is the default instance name for Keycloak CR managed by Kogito
+	KeycloakInstanceName = "kogito-keycloak"
+)
+
+var (
+	// KeycloakAPIVersion refers to kafka APIVersion
+	KeycloakAPIVersion = v1alpha1.SchemeGroupVersion.String()
+
+	keycloakServerGroup = v1alpha1.SchemeGroupVersion.Group
 )
 
 // IsKeycloakAvailable checks if Strimzi CRD is available in the cluster

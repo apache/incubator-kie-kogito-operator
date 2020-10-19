@@ -16,7 +16,6 @@ package client
 
 import (
 	"fmt"
-
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"

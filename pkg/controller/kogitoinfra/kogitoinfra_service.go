@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
 // GetKogitoInfraResource identify and return request kogito infra resource on bases of information provided in kogitoInfra value
@@ -46,17 +47,17 @@ func GetKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, erro
 
 // isInfinispanResource check if provided KogitoInfra instance is for Infinispan resource
 func isInfinispanResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == infinispan.APIVersion && instance.Spec.Resource.Kind == infinispan.Kind
+	return instance.Spec.Resource.APIVersion == infrastructure.InfinispanAPIVersion && instance.Spec.Resource.Kind == infrastructure.InfinispanKind
 }
 
 // IsKafkaResource check if provided KogitoInfra instance is for kafka resource
 func IsKafkaResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == kafka.APIVersion && instance.Spec.Resource.Kind == kafka.Kind
+	return instance.Spec.Resource.APIVersion == infrastructure.KafkaAPIVersion && instance.Spec.Resource.Kind == infrastructure.KafkaKind
 }
 
 // isKeycloakResource check if provided KogitoInfra instance is for Keycloak resource
 func isKeycloakResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == keycloak.APIVersion && instance.Spec.Resource.Kind == keycloak.Kind
+	return instance.Spec.Resource.APIVersion == infrastructure.KeycloakAPIVersion && instance.Spec.Resource.Kind == infrastructure.KeycloakKind
 }
 
 // isGrafanaResource check if provided KogitoInfra instance is for Keycloak resource

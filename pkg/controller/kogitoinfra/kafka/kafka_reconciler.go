@@ -16,19 +16,13 @@ package kafka
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
-)
-
-const (
-	// APIVersion refers to kafka APIVersion
-	APIVersion = "kafka.strimzi.io/v1beta1"
-	// Kind refers to kafka Kind
-	Kind = "Kafka"
 )
 
 // InfraResource implementation of KogitoInfraResource
@@ -78,14 +72,14 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		}
 
 		// check whether kafka instance exist
-		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, InstanceName, instance.Namespace)
+		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, infrastructure.KafkaInstanceName, instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if kafkaInstance == nil {
 			// if not exist then create new Kafka instance. Strimzi operator creates Kafka instance, secret & service resource
-			_, resultErr = createNewKafkaInstance(client, InstanceName, instance.Namespace, instance, scheme)
+			_, resultErr = createNewKafkaInstance(client, infrastructure.KafkaInstanceName, instance.Namespace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}

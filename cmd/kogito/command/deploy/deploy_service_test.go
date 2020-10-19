@@ -102,7 +102,7 @@ my.nice.property=socool
 	assert.NoError(t, err)
 
 	ns := t.Name()
-	cli := fmt.Sprintf(`deploy-service process-business-rules-quarkus --image docker.io/ns/mycoolimage --config %s --project %s`, tempFile.Name(), ns)
+	cli := fmt.Sprintf(`deploy-service process-business-rules-quarkus --image docker.io/ns/mycoolimage --config-file %s --project %s`, tempFile.Name(), ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})

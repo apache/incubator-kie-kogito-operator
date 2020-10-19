@@ -52,7 +52,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err := i.resourceCheckService.CheckKogitoRuntimeNotExists(cli, flags.Name, flags.Project); err != nil {
 		return err
 	}
-	configMap, err := createConfigMapFromFile(cli, flags)
+	configMap, err := converter.CreateConfigMapFromFile(cli, flags.Name, flags.Project, &flags.ConfigFlags)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 		Spec: v1alpha1.KogitoRuntimeSpec{
 			EnableIstio: flags.EnableIstio,
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
-			Monitoring:  converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
 				Env:                   converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
@@ -75,6 +74,8 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
 				PropertiesConfigMap:   configMap,
 				Infra:                 flags.Infra,
+				Monitoring:            converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
+				Config:                converter.FromConfigFlagsToMap(&flags.ConfigFlags),
 			},
 		},
 		Status: v1alpha1.KogitoRuntimeStatus{

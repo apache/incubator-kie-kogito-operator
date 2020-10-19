@@ -20,7 +20,6 @@ import (
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -66,15 +65,22 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 
 		service := createRequiredService(s.instance, deployment)
 
-		var appProps map[string]string
+		appProps := map[string]string{}
 		var envProperties []corev1.EnvVar
 
 		if len(s.instance.GetSpec().GetInfra()) > 0 {
 			log.Debugf("Infra references are provided")
-			appProps, envProperties, err = s.fetchKogitoInfraProperties()
+			infraAppProps, infraEnvProp, err := s.fetchKogitoInfraProperties()
 			if err != nil {
 				return resources, reconcileAfter, err
 			}
+			util.AppendToStringMap(infraAppProps, appProps)
+			envProperties = append(envProperties, infraEnvProp...)
+		}
+
+		if len(s.instance.GetSpec().GetConfig()) > 0 {
+			log.Debugf("custom app properties are provided")
+			util.AppendToStringMap(s.instance.GetSpec().GetConfig(), appProps)
 		}
 
 		s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
@@ -227,10 +233,6 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}, &routev1.RouteList{}, &imgv1.ImageStreamList{}}
 	} else {
 		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &corev1.ConfigMapList{}}
-	}
-
-	if IsPrometheusAvailable(s.client) {
-		objectTypes = append(objectTypes, &monv1.ServiceMonitorList{})
 	}
 
 	if len(s.definition.extraManagedObjectLists) > 0 {

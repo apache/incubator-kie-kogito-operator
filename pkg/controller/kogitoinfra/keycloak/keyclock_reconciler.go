@@ -16,19 +16,13 @@ package keycloak
 
 import (
 	"fmt"
+
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
-)
-
-const (
-	// APIVersion refers to kafka APIVersion
-	APIVersion = "keycloak.org/v1alpha1"
-	// Kind refers to kafka Kind
-	Kind = "Keycloak"
 )
 
 // InfraResource implementation of KogitoInfraResource
@@ -77,14 +71,14 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		}
 
 		// check whether Keycloak instance exist
-		keycloakInstance, resultErr := loadDeployedKeycloakInstance(client, InstanceName, instance.Namespace)
+		keycloakInstance, resultErr := loadDeployedKeycloakInstance(client, infrastructure.KeycloakInstanceName, instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if keycloakInstance == nil {
 			// if not exist then create new Keycloak instance. Keycloak operator creates Keycloak instance, secret & service resource
-			_, resultErr = createNewKeycloakInstance(client, InstanceName, instance.Namespace, instance, scheme)
+			_, resultErr = createNewKeycloakInstance(client, infrastructure.KeycloakInstanceName, instance.Namespace, instance, scheme)
 			if resultErr != nil {
 				return false, resultErr
 			}

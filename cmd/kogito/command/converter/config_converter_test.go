@@ -16,13 +16,20 @@ package converter
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-// FromMonitoringFlagToMonitoring converts given MonitoringFlags into Monitoring
-func FromMonitoringFlagToMonitoring(monitoringFlags *flag.MonitoringFlags) v1alpha1.Monitoring {
-	return v1alpha1.Monitoring{
-		Scheme: monitoringFlags.Scheme,
-		Path:   monitoringFlags.Path,
+func Test_FromConfigFlagsToMap(t *testing.T) {
+	configFlag := &flag.ConfigFlags{
+		Config: []string{
+			"key1=value1",
+			"key2=value2",
+		},
 	}
+
+	configMap := FromConfigFlagsToMap(configFlag)
+	assert.NotNil(t, configMap)
+	assert.Equal(t, "value1", configMap["key1"])
+	assert.Equal(t, "value2", configMap["key2"])
 }

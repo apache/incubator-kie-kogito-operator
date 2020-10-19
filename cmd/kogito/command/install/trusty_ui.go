@@ -86,6 +86,10 @@ func (i *installTrustyUICommand) Exec(cmd *cobra.Command, args []string) error {
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
+	configMap, err := converter.CreateConfigMapFromFile(i.Client, infrastructure.DefaultTrustyName, i.flags.Project, &i.flags.ConfigFlags)
+	if err != nil {
+		return err
+	}
 
 	kogitoTrustyUI := v1alpha1.KogitoTrustyUI{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultTrustyUIName, Namespace: i.flags.Project},
@@ -97,6 +101,8 @@ func (i *installTrustyUICommand) Exec(cmd *cobra.Command, args []string) error {
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
+				PropertiesConfigMap:   configMap,
+				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
 			},
 		},
 		Status: v1alpha1.KogitoTrustyUIStatus{

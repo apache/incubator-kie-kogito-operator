@@ -66,8 +66,6 @@ type ServiceDefinition struct {
 	SingleReplica bool
 	// RequiresPersistence forces the deployer to deploy an Infinispan instance if none is provided
 	RequiresPersistence bool
-	// RequiresGrafana forces the deployer to deploy an Infinispan instance if none is provided
-	RequiresGrafana bool
 	// RequiresMessaging forces the deployer to deploy a Kafka instance if none is provided
 	RequiresMessaging bool
 	// RequiresDataIndex when set to true, the Data Index instance is queried in the given namespace and its Route injected in this service.
@@ -176,6 +174,8 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
 		return
+	} else if reconcileAfter > 0 {
+		return
 	}
 
 	// get the deployed ones
@@ -208,6 +208,7 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
 	}
+	reconcileAfter, err = configurePrometheus(s.client, s.instance, s.scheme)
 	return
 }
 

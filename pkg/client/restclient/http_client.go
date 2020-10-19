@@ -12,17 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package converter
+package restclient
 
-import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-)
+import "net/http"
 
-// FromMonitoringFlagToMonitoring converts given MonitoringFlags into Monitoring
-func FromMonitoringFlagToMonitoring(monitoringFlags *flag.MonitoringFlags) v1alpha1.Monitoring {
-	return v1alpha1.Monitoring{
-		Scheme: monitoringFlags.Scheme,
-		Path:   monitoringFlags.Path,
-	}
+// HTTPClient interface
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }

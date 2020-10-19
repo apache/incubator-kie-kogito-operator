@@ -15,15 +15,17 @@
 package services
 
 import (
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"testing"
 )
 
 func Test_createKafkaTopics(t *testing.T) {
@@ -38,8 +40,8 @@ func Test_createKafkaTopics(t *testing.T) {
 		},
 		Spec: v1alpha1.KogitoInfraSpec{
 			Resource: v1alpha1.Resource{
-				APIVersion: kafka.APIVersion,
-				Kind:       kafka.Kind,
+				APIVersion: infrastructure.KafkaAPIVersion,
+				Kind:       infrastructure.KafkaKind,
 			},
 		},
 	}

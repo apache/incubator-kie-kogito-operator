@@ -24,11 +24,10 @@ func Test_FromMonitoringFlagToMonitoring(t *testing.T) {
 	monitoringFlags := &flag.MonitoringFlags{
 		Scrape: true,
 		Scheme: "http",
-		Path:   "/metrix",
+		Path:   "/metrics",
 	}
 
 	monitoring := FromMonitoringFlagToMonitoring(monitoringFlags)
-	assert.True(t, monitoring.Scrape)
 	assert.Equal(t, "http", monitoring.Scheme)
-	assert.Equal(t, "/metrix", monitoring.Path)
+	assert.Equal(t, "/metrics", monitoring.Path)
 }

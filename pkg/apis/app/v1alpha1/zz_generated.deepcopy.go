@@ -865,7 +865,6 @@ func (in *KogitoRuntimeList) DeepCopyObject() runtime.Object {
 func (in *KogitoRuntimeSpec) DeepCopyInto(out *KogitoRuntimeSpec) {
 	*out = *in
 	in.KogitoServiceSpec.DeepCopyInto(&out.KogitoServiceSpec)
-	out.Monitoring = in.Monitoring
 	return
 }
 
@@ -930,6 +929,14 @@ func (in *KogitoServiceSpec) DeepCopyInto(out *KogitoServiceSpec) {
 		in, out := &in.Infra, &out.Infra
 		*out = make([]string, len(*in))
 		copy(*out, *in)
+	}
+	out.Monitoring = in.Monitoring
+	if in.Config != nil {
+		in, out := &in.Config, &out.Config
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	return
 }
