@@ -36,8 +36,7 @@ spec:
           description: KogitoInfraSpec defines the desired state of KogitoInfra.
           properties:
             resource:
-              description: 'Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-                Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.'
+              description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.'
               properties:
                 apiVersion:
                   description: APIVersion describes the API Version of referred Kubernetes

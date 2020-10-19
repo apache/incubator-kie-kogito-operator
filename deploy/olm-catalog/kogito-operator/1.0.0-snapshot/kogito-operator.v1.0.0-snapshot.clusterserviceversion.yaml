@@ -467,8 +467,7 @@ spec:
         name: A Kubernetes Secret
         version: v1
       specDescriptors:
-      - description: 'Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-          Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.'
+      - description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak/Grafana.'
         displayName: Resource
         path: resource
       - description: APIVersion describes the API Version of referred Kubernetes resource
