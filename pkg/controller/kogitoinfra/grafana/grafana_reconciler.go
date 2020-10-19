@@ -17,7 +17,7 @@ package grafana
 import (
 	"fmt"
 
-	grafana "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -75,11 +75,11 @@ func (k *InfraResource) Reconcile(client *client.Client, instance *v1alpha1.Kogi
 		// Verify grafana
 		grafanaAvailable, err := infrastructure.IsGrafanaOperatorAvailable(client, instance.Namespace)
 		if err != nil {
-			resultErr = fmt.Errorf("Grafana operator is not available in the namespace %s, impossible to continue ", instance.Namespace)
+			resultErr = fmt.Errorf("Grafana operator is not available in the namespace %s, impossible to continue ERROR", instance.Namespace)
 			return false, resultErr
 		}
 		if !grafanaAvailable {
-			err = fmt.Errorf("Grafana operator is not available in the namespace %s, impossible to continue ", instance.Namespace)
+			err = fmt.Errorf("Grafana operator is not available in the namespace %s, impossible to continue NOT AVAILABLE", instance.Namespace)
 			return false, err
 		}
 

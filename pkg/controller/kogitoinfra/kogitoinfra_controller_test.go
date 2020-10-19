@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	v12 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	v14 "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	v14 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"

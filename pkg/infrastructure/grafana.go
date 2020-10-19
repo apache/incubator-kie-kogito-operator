@@ -15,9 +15,7 @@
 package infrastructure
 
 import (
-	"strings"
-
-	grafana "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	v1 "k8s.io/api/apps/v1"
@@ -37,19 +35,22 @@ func IsGrafanaOperatorAvailable(cli *client.Client, namespace string) (available
 	available = false
 	if IsGrafanaAvailable(cli) {
 		log.Debugf("Grafana CRDs available. Checking if Grafana Operator is deployed in the namespace %s", namespace)
-		list := &v1.DeploymentList{}
-		if err = kubernetes.ResourceC(cli).ListWithNamespace(namespace, list); err != nil {
-			return
+		// then check if there's an Grafana Operator deployed
+		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: GrafanaOperatorName}}
+		exists := false
+		var err error
+		if exists, err = kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
+			return false, nil
 		}
-		for _, grafana := range list.Items {
-			for _, owner := range grafana.OwnerReferences {
-				if strings.HasPrefix(owner.Name, GrafanaOperatorName) {
-					available = true
-					return
-				}
-			}
+		if exists {
+			log.Debugf("Grafana Operator is available in the namespace %s", namespace)
+			return true, nil
 		}
+	} else {
+		log.Debug("Couldn't find Grafana CRDs")
 	}
+	log.Debugf("Looks like Grafana Operator is not available in the namespace %s", namespace)
+
 	return
 }
 
@@ -59,12 +60,29 @@ func IsGrafanaAvailable(client *client.Client) bool {
 }
 
 // GetGrafanaDefaultResource returns a Grafana resource with default configuration
-func GetGrafanaDefaultResource(name, namespace string, defaultReplicas int32) *grafana.Grafana {
+func GetGrafanaDefaultResource(name, namespace string) *grafana.Grafana {
 	return &grafana.Grafana{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: grafana.GrafanaSpec{},
+		Spec: grafana.GrafanaSpec{
+			Config: grafana.GrafanaConfig{
+				Auth: &grafana.GrafanaConfigAuth{
+					DisableSignoutMenu: newTrue(),
+				},
+				AuthAnonymous: &grafana.GrafanaConfigAuthAnonymous{
+					Enabled: newTrue(),
+				},
+			},
+			Ingress: &grafana.GrafanaIngress{
+				Enabled: true,
+			},
+		},
 	}
+}
+
+func newTrue() *bool {
+	b := true
+	return &b
 }

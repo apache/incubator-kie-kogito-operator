@@ -15,12 +15,12 @@
 package grafana
 
 import (
-	grafana "github.com/integr8ly/grafana-operator/pkg/apis/integreatly/v1alpha1"
+	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -37,7 +37,7 @@ func loadDeployedGrafanaInstance(cli *client.Client, instanceName string, namesp
 	log.Debug("fetching deployed kogito grafana instance")
 	grafanaInstance := &grafana.Grafana{}
 	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, grafanaInstance); err != nil {
-		log.Error("Error occurs while fetching kogito grafana instance")
+		log.Error(err, "Error occurs while fetching kogito grafana instance")
 		return nil, err
 	} else if !exits {
 		log.Debug("Kogito grafana instance is not exists")
@@ -50,13 +50,7 @@ func loadDeployedGrafanaInstance(cli *client.Client, instanceName string, namesp
 
 func createNewGrafanaInstance(cli *client.Client, name string, namespace string, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*grafana.Grafana, error) {
 	log.Debug("Going to create kogito grafana instance")
-	grafanaRes := &grafana.Grafana{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-		Spec: grafana.GrafanaSpec{},
-	}
+	grafanaRes := infrastructure.GetGrafanaDefaultResource(name, namespace)
 	if err := controllerutil.SetOwnerReference(instance, grafanaRes, scheme); err != nil {
 		return nil, err
 	}

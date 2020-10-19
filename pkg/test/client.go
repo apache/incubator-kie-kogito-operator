@@ -63,6 +63,7 @@ func CreateFakeDiscoveryClient(openshift bool) discovery.DiscoveryInterface {
 				{GroupVersion: "infinispan.org/v1"},
 				{GroupVersion: "kafka.strimzi.io/v1beta1"},
 				{GroupVersion: "keycloak.org/v1alpha1"},
+				{GroupVersion: "intergr8ly.org/v1alpha1"},
 			},
 		},
 	}
