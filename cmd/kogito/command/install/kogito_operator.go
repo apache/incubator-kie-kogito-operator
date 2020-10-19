@@ -34,7 +34,6 @@ type installKogitoOperatorFlags struct {
 	force              bool
 	enablePersistence  bool
 	enableEvents       bool
-	enableGrafana      bool
 }
 
 type installKogitoOperatorCommand struct {
@@ -94,7 +93,6 @@ func (i *installKogitoOperatorCommand) InitHook() {
 	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
 	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same project and inject the environment variables to configure the service connection to the Infinispan server.")
 	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
-	i.command.Flags().BoolVar(&i.flags.enableGrafana, "enable-grafana", false, "If set to true, deployed Kogito service will support integration with Grafana for monitoring. Default to false")
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {

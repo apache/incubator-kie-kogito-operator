@@ -31,7 +31,6 @@ type projectFlags struct {
 	installAll               bool
 	enablePersistence        bool
 	enableEvents             bool
-	enableGrafana            bool
 }
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
@@ -43,7 +42,6 @@ func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
 	command.Flags().BoolVar(&pFlags.installAll, "install-all", false, message.InstallAllServices)
 	command.Flags().BoolVar(&pFlags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
 	command.Flags().BoolVar(&pFlags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
-	command.Flags().BoolVar(&pFlags.enableGrafana, "enable-grafana", false, "If set to true, deployed Kogito service will support integration with Grafana for monitoring. Default to false")
 }
 
 func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error {
