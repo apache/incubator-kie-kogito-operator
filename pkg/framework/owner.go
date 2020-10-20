@@ -52,11 +52,12 @@ func AddOwnerReference(owner resource.KubernetesResource, scheme *runtime.Scheme
 		if !IsOwner(res, owner) {
 			owners := res.GetOwnerReferences()
 			falseValue := false
+			trueValue := true
 			owners = append(owners, v1.OwnerReference{
 				APIVersion:         gvk.GroupVersion().String(),
 				Kind:               gvk.Kind,
 				Name:               owner.GetName(),
-				Controller:         &falseValue,
+				Controller:         &trueValue,
 				BlockOwnerDeletion: &falseValue,
 				UID:                owner.GetUID(),
 			})

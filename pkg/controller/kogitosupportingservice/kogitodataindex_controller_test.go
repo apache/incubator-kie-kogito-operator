@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dataindex
+package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -56,7 +56,7 @@ func TestKogitoSupportingServiceDataIndex_Reconcile(t *testing.T) {
 	}
 
 	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka, kogitoInfinispan}, nil, nil)
-	r := &SupportingServiceResource{}
+	r := &DataIndexSupportingServiceResource{}
 	// basic checks
 	_, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	if err != nil {
@@ -80,7 +80,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_UpdateHTTPPort(t *testing.T) 
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
-	r := &SupportingServiceResource{}
+	r := &DataIndexSupportingServiceResource{}
 
 	// first reconcile
 	_, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
@@ -228,7 +228,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_MultipleProtoBufCMs(t *testin
 		Data: map[string]string{fileName2: "This is a protobuf file"},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{instance, cm1, cm2}, nil, nil)
-	r := &SupportingServiceResource{}
+	r := &DataIndexSupportingServiceResource{}
 	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.False(t, requeue)
 	assert.NoError(t, err)

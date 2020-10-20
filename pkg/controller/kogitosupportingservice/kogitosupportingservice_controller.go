@@ -88,28 +88,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			AddToScheme:  routev1.Install,
 			Objects:      []runtime.Object{&routev1.Route{}},
 		},
-
-		{
-			Objects:      []runtime.Object{&appv1alpha1.KogitoInfra{}},
-			Owner: 	&appv1alpha1.KogitoSupportingService{},
-			Predicate: predicate.Funcs{
-				CreateFunc: func(e event.CreateEvent) bool {
-					return true
-				},
-				UpdateFunc: func(e event.UpdateEvent) bool {
-					return true
-				},
-				DeleteFunc: func(e event.DeleteEvent) bool {
-					return true
-				},
-			},
-		},
 		{
 			GroupVersion: imgv1.GroupVersion,
 			AddToScheme:  imgv1.Install,
 			Objects:      []runtime.Object{&imgv1.ImageStream{}},
 		},
-		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
+		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}, &appv1alpha1.KogitoInfra{}}},
 	}
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
@@ -140,6 +124,7 @@ func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) 
 	if resultErr != nil {
 		return
 	}
+	log.Debugf("Going to reconcile resource of type %s", instance.Spec.ServiceType)
 
 	if resultErr = ensureSingletonService(r.client, request.Namespace, instance.Spec.ServiceType); resultErr != nil {
 		return

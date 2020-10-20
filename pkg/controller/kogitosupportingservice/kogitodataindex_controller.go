@@ -15,11 +15,14 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitosupportingservice/dataindex"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"path"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
@@ -32,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	controller1 "sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -86,10 +90,13 @@ func addDataIndex(mgr manager.Manager, r reconcile.Reconciler) error {
 			AddToScheme:  imgv1.Install,
 			Objects:      []runtime.Object{&imgv1.ImageStream{}},
 		},
-		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
+		{
+			GroupVersion: corev1.SchemeGroupVersion,
+			Objects:      []runtime.Object{&corev1.ConfigMap{}},
+			Owner:        &appv1alpha1.KogitoRuntime{},
+		},
+		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}, &appv1alpha1.KogitoInfra{}}},
 	}
-	resource := &dataindex.SupportingServiceResource{}
-	watchedObjects = append(watchedObjects, resource.GetWatchedObjects()...)
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}
@@ -113,7 +120,7 @@ type ReconcileKogitoDataIndex struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
-	log.Infof("Reconciling KogitoSupportingService for %s in %s", request.Name, request.Namespace)
+	log.Infof("Reconciling KogitoDataIndex for %s in %s", request.Name, request.Namespace)
 
 	instance, resultErr := fetchKogitoSupportingService(r.client, request.Name, request.Namespace)
 	if resultErr != nil {
@@ -124,8 +131,7 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 		return
 	}
 
-	supportingResource := &dataindex.SupportingServiceResource{}
-
+	supportingResource := &DataIndexSupportingServiceResource{}
 	requeue, resultErr := supportingResource.Reconcile(r.client, instance, r.scheme)
 	if resultErr != nil {
 		return
@@ -137,4 +143,94 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 		result.Requeue = true
 	}
 	return
+}
+
+// DataIndexSupportingServiceResource implementation of DataIndexSupportingServiceResource
+type DataIndexSupportingServiceResource struct {
+}
+
+// Reconcile reconcile Data index service
+func (*DataIndexSupportingServiceResource) Reconcile(client *client.Client, instance *appv1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+	log.Infof("Injecting Data Index URL into KogitoRuntime services in the namespace '%s'", instance.Namespace)
+	if err = infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
+		return
+	}
+	if err = infrastructure.InjectDataIndexURLIntoMgmtConsole(client, instance.Namespace); err != nil {
+		return
+	}
+
+	definition := services.ServiceDefinition{
+		DefaultImageName:   infrastructure.DefaultDataIndexImageName,
+		OnDeploymentCreate: onDeploymentCreate,
+		KafkaTopics:        kafkaTopics,
+		Request:            controller1.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}},
+		HealthCheckProbe:   services.QuarkusHealthCheckProbe,
+	}
+	return services.NewServiceDeployer(definition, instance, client, scheme).Deploy()
+}
+
+// Collection of kafka topics that should be handled by the Data-Index service
+var kafkaTopics = []string{
+	"kogito-processinstances-events",
+	"kogito-usertaskinstances-events",
+	"kogito-processdomain-events",
+	"kogito-usertaskdomain-events",
+	"kogito-jobs-events",
+}
+
+const (
+	defaultProtobufMountPath                  = "/home/kogito/data/protobufs"
+	protoBufKeyFolder                  string = "KOGITO_PROTOBUF_FOLDER"
+	protoBufKeyWatch                   string = "KOGITO_PROTOBUF_WATCH"
+	protoBufConfigMapVolumeDefaultMode int32  = 420
+)
+
+func onDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
+	if len(deployment.Spec.Template.Spec.Containers) > 0 {
+		if err := mountProtoBufConfigMaps(deployment, cli); err != nil {
+			return err
+		}
+	} else {
+		log.Warnf("No container definition for service %s. Skipping applying custom Data Index deployment configuration", kogitoService.GetName())
+	}
+
+	return nil
+}
+
+// mountProtoBufConfigMaps mounts protobuf configMaps from KogitoRuntime services into the given deployment
+func mountProtoBufConfigMaps(deployment *appsv1.Deployment, client *client.Client) (err error) {
+	var cms *corev1.ConfigMapList
+	configMapDefaultMode := protoBufConfigMapVolumeDefaultMode
+	if cms, err = infrastructure.GetProtoBufConfigMaps(deployment.Namespace, client); err != nil {
+		return err
+	}
+	for _, cm := range cms.Items {
+		deployment.Spec.Template.Spec.Volumes =
+			append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
+				Name: cm.Name,
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						DefaultMode: &configMapDefaultMode,
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: cm.Name,
+						},
+					},
+				},
+			})
+		for fileName := range cm.Data {
+			deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
+				append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts,
+					corev1.VolumeMount{Name: cm.Name, MountPath: path.Join(defaultProtobufMountPath, cm.Labels["app"], fileName), SubPath: fileName})
+		}
+	}
+
+	if len(deployment.Spec.Template.Spec.Volumes) > 0 {
+		framework.SetEnvVar(protoBufKeyWatch, "true", &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(protoBufKeyFolder, defaultProtobufMountPath, &deployment.Spec.Template.Spec.Containers[0])
+	} else {
+		framework.SetEnvVar(protoBufKeyWatch, "false", &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(protoBufKeyFolder, "", &deployment.Spec.Template.Spec.Containers[0])
+	}
+
+	return nil
 }

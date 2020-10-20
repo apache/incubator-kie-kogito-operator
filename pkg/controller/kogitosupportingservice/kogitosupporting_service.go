@@ -19,14 +19,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitosupportingservice/dataindex"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitosupportingservice/explainability"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitosupportingservice/jobsservice"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitosupportingservice/mgmtconsole"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitosupportingservice/trustyai"
 	"k8s.io/apimachinery/pkg/types"
 )
-
 
 func fetchKogitoSupportingService(client *client.Client, name string, namespace string) (*v1alpha1.KogitoSupportingService, error) {
 	log.Debugf("going to fetch deployed kogito supporting service instance %s in namespace %s", name, namespace)
@@ -47,7 +45,7 @@ func getKogitoSupportingResource(instance *v1alpha1.KogitoSupportingService) Sup
 	switch instance.Spec.ServiceType {
 	case v1alpha1.DataIndex:
 		log.Debugf("Kogito Supporting Service reference is for Data Index")
-		return &dataindex.SupportingServiceResource{}
+		return &DataIndexSupportingServiceResource{}
 	case v1alpha1.JobsService:
 		log.Debugf("Kogito Supporting Service reference is for Jobs Service")
 		return &jobsservice.SupportingServiceResource{}
