@@ -8,28 +8,24 @@ spec:
     apiVersion: kafka.strimzi.io/v1beta1
     kind: Kafka
 ---
-#Infinispan operator should be pre-installed in namespace
-apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoInfra
-metadata:
-  name: kogito-infinispan-infra
-spec:
-  resource:
-    apiVersion: infinispan.org/v1
-    kind: Infinispan
----
+# requires a existing mongodb instance running on the target namespace
 apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoDataIndex
 metadata:
   name: data-index
 spec:
+  image: quay.io/kiegroup/kogito-data-index-mongodb:latest
+  config:
+    quarkus.mongodb.connection-string: 'mongodb://mongodb-service7:27017'
+    quarkus.mongodb.credentials.password: kogito_user
+    quarkus.mongodb.credentials.username: kogito_pwd
+    quarkus.mongodb.database: kogito_dataindex
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS
     #    value: "-Dquarkus.log.level=DEBUG"
   # number of pods to be deployed
   replicas: 1
-  image: quay.io/kiegroup/kogito-data-index-infinispan:latest
   # the http port that the dataindex image will listen internally
   #httpPort: 9090
   # Limits and requests for the Data Index pod
@@ -40,5 +36,4 @@ spec:
   # details about the kogito infra
   infra:
     - kogito-kafka-infra
-    - kogito-infinispan-infra
 

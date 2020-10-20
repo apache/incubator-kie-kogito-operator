@@ -24,7 +24,7 @@ metadata:
   name: data-index
 spec:
   replicas: 1
-  image: quay.io/kiegroup/kogito-data-index
+  image: quay.io/kiegroup/kogito-data-index-infinispan
   infra:
     - kogito-kafka-infra
     - kogito-infinispan-infra
