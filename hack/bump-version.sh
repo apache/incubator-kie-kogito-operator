@@ -36,7 +36,7 @@ if [ -z "$no_release_branch" ]; then
 fi
 
 # Get latest released olm version from folders in deploy/olm-catalog/kogito-operator/
-latest_released_olm_version=$(cd ${OLM_DIR} && for i in $(ls -d */); do echo ${i%%/}; done | grep -v manifests | grep -v ${old_version} | sort -V | tail -1)
+latest_released_olm_version=$(cd ${OLM_DIR} && for i in $(ls -d */); do echo ${i%%/}; done | grep -v manifests | grep -v ${old_version} | grep -v 1.0.0-snapshot | sort -V | tail -1)
 echo "Latest released OLM version = $latest_released_olm_version"
 
 sed -i "s/$old_version/$new_version/g" cmd/kogito/version/version.go README.md version/version.go deploy/operator.yaml ${OLM_DIR}/kogito-operator.package.yaml ${OLM_DIR}/custom-subscription-example.yaml hack/go-build.sh hack/go-vet.sh .osdk-scorecard.yaml
