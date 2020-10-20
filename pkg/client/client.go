@@ -33,7 +33,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
@@ -199,10 +198,6 @@ func newControllerCliOptions() controllercli.Options {
 	}
 	mapper := apimeta.NewDefaultRESTMapper([]schema.GroupVersion{})
 	for _, gvk := range gvks {
-		// we will handle this manually later
-		if gvk.GroupVersion() == v1alpha1.SchemeGroupVersion && gvk.Kind == "KogitoDataIndex" {
-			continue
-		}
 		// namespaced resources
 		if (gvk.GroupVersion() == corev1.SchemeGroupVersion && gvk.Kind == "Namespace") ||
 			(gvk.GroupVersion() == apiextensionsv1beta1.SchemeGroupVersion && gvk.Kind == "CustomResourceDefinition") {
@@ -211,20 +206,6 @@ func newControllerCliOptions() controllercli.Options {
 			mapper.Add(gvk, &restScope{name: apimeta.RESTScopeNameNamespace})
 		}
 	}
-	// the kube client is having problems with plural: kogitodataindexs :(
-	mapper.AddSpecific(v1alpha1.SchemeGroupVersion.WithKind(meta.KindKogitoDataIndex.Name),
-		schema.GroupVersionResource{
-			Group:    meta.KindKogitoDataIndex.GroupVersion.Group,
-			Version:  meta.KindKogitoDataIndex.GroupVersion.Version,
-			Resource: "kogitodataindices",
-		},
-		schema.GroupVersionResource{
-			Group:    meta.KindKogitoDataIndex.GroupVersion.Group,
-			Version:  meta.KindKogitoDataIndex.GroupVersion.Version,
-			Resource: "kogitodataindex",
-		},
-		&restScope{name: apimeta.RESTScopeNameNamespace})
-
 	options.Scheme = meta.GetRegisteredSchema()
 	options.Mapper = mapper
 	return options

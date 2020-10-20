@@ -17,8 +17,6 @@ package infrastructure
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
@@ -27,71 +25,19 @@ const (
 	DefaultJobsServiceImageName = "kogito-jobs-service"
 	// DefaultJobsServiceName is the default name for the Jobs Services instance service
 	DefaultJobsServiceName = "jobs-service"
-
 	// kogito.jobs-service.url
-	jobsServicesHTTPURIEnv = "KOGITO_JOBS_SERVICE_URL"
+	jobsServicesHTTPRouteEnv = "KOGITO_JOBS_SERVICE_URL"
 )
 
 // InjectJobsServicesURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Jobs Services route to each one
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
-func InjectJobsServicesURLIntoKogitoRuntimeServices(cli *client.Client, namespace string) error {
-	log.Debugf("Querying KogitoRuntime services in the namespace '%s' to inject Jobs Service Route ", namespace)
-	deployments, err := getKogitoRuntimeDeployments(namespace, cli)
-	if err != nil {
-		return err
-	}
-	var jobServiceEndpoint ServiceEndpoints
-	if len(deployments) > 0 {
-		log.Debug("Querying Jobs Service route to inject into KogitoRuntime ")
-		var err error
-		jobServiceEndpoint, err = GetJobsServiceEndpoints(cli, namespace)
-		if err != nil {
-			return err
-		}
-		log.Debugf("Jobs Services URI is '%s'", jobServiceEndpoint.HTTPRouteURI)
-	}
-
-	for _, dc := range deployments {
-		updateHTTP := updateJobsServiceURLIntoKogitoRuntimeEnv(&dc, jobServiceEndpoint)
-		if updateHTTP {
-			if err := kubernetes.ResourceC(cli).Update(&dc); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+func InjectJobsServicesURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
+	log.Debugf("Injecting Jobs Service Route in kogito Runtime instances")
+	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, jobsServicesHTTPRouteEnv, "", v1alpha1.JobsService)
 }
 
 // InjectJobsServiceURLIntoKogitoRuntimeDeployment will inject jobs-service route URL in to kogito runtime deployment env var
-func InjectJobsServiceURLIntoKogitoRuntimeDeployment(client *client.Client, namespace string, runtimeDeployment *appsv1.Deployment) error {
-	log.Debug("Querying Jobs Service route to inject into Kogito runtime ")
-	jobServiceEndpoint, err := GetJobsServiceEndpoints(client, namespace)
-	if err != nil {
-		return err
-	}
-	log.Debugf("Jobs service route is '%s'", jobServiceEndpoint.HTTPRouteURI)
-	updateJobsServiceURLIntoKogitoRuntimeEnv(runtimeDeployment, jobServiceEndpoint)
-	return nil
-}
-
-func updateJobsServiceURLIntoKogitoRuntimeEnv(dc *appsv1.Deployment, jobServiceEndpoint ServiceEndpoints) (updateHTTP bool) {
-	if len(dc.Spec.Template.Spec.Containers) > 0 {
-		updateHTTP = framework.GetEnvVarFromContainer(jobServiceEndpoint.HTTPRouteEnv, &dc.Spec.Template.Spec.Containers[0]) != jobServiceEndpoint.HTTPRouteURI
-		if updateHTTP {
-			log.Debugf("Updating KogitoRuntime's DC '%s' to inject route %s ", dc.GetName(), jobServiceEndpoint.HTTPRouteURI)
-			framework.SetEnvVar(jobServiceEndpoint.HTTPRouteEnv, jobServiceEndpoint.HTTPRouteURI, &dc.Spec.Template.Spec.Containers[0])
-		}
-	}
-	return
-}
-
-// GetJobsServiceEndpoints gets Jobs Services published external endpoints
-func GetJobsServiceEndpoints(client *client.Client, namespace string) (ServiceEndpoints, error) {
-	endpoints := ServiceEndpoints{HTTPRouteEnv: jobsServicesHTTPURIEnv}
-	route, err := getSingletonKogitoServiceRoute(client, namespace, &v1alpha1.KogitoJobsServiceList{})
-	if err != nil {
-		return endpoints, err
-	}
-	endpoints.HTTPRouteURI = route
-	return endpoints, nil
+func InjectJobsServiceURLIntoKogitoRuntimeDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
+	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
+	return injectSupportingServiceURLInToDeployment(client, namespace, jobsServicesHTTPRouteEnv, "", deployment, v1alpha1.JobsService)
 }

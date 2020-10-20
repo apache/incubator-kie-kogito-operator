@@ -39,12 +39,13 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &v1alpha1.KogitoJobsService{
+	jobs := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType:       v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
-		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
+		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
@@ -65,7 +66,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 	assert.True(t, exists)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 1)
 	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  jobsServicesHTTPURIEnv,
+		Name:  jobsServicesHTTPRouteEnv,
 		Value: URI,
 	})
 }
@@ -80,12 +81,13 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &v1alpha1.KogitoJobsService{
+	jobs := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType:       v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
-		Status: v1alpha1.KogitoJobsServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
+		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
@@ -105,7 +107,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  jobsServicesHTTPURIEnv,
+		Name:  jobsServicesHTTPRouteEnv,
 		Value: URI,
 	})
 
@@ -122,7 +124,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	assert.True(t, exists)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 1)
 	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  jobsServicesHTTPURIEnv,
+		Name:  jobsServicesHTTPRouteEnv,
 		Value: "",
 	})
 }

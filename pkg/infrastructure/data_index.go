@@ -17,7 +17,7 @@ package infrastructure
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
@@ -26,51 +26,52 @@ const (
 	DefaultDataIndexImageName = "kogito-data-index"
 	// DefaultDataIndexName is the default name for the Data Index instance service
 	DefaultDataIndexName = "data-index"
-
+	// Data index HTTP URL env
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
-	dataIndexWSRouteEnv   = "KOGITO_DATAINDEX_WS_URL"
-	webSocketScheme       = "ws"
-	webSocketSecureScheme = "wss"
-	httpScheme            = "http"
+	// Data index WS URL env
+	dataIndexWSRouteEnv = "KOGITO_DATAINDEX_WS_URL"
 )
 
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectDataIndexURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
 	log.Debugf("Injecting Data-Index Route in kogito apps")
-	return injectURLIntoKogitoApps(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, &v1alpha1.KogitoDataIndexList{})
+	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1alpha1.DataIndex)
 }
 
-// InjectDataIndexURLIntoKogitoRuntimeDeployment will inject data-index route URL in to kogito runtime deployment env var
-func InjectDataIndexURLIntoKogitoRuntimeDeployment(client *client.Client, namespace string, runtimeDeployment *appsv1.Deployment) error {
-	log.Debug("Querying Data Index route to inject into Kogito runtime ")
-	dataIndexEndpoints, err := GetDataIndexEndpoints(client, namespace)
+// InjectDataIndexURLInToDeployment will inject data-index route URL in to kogito runtime deployment env var
+func InjectDataIndexURLInToDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
+	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
+	return injectSupportingServiceURLInToDeployment(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, v1alpha1.DataIndex)
+}
+
+// InjectDataIndexURLIntoMgmtConsole will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
+// Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
+func InjectDataIndexURLIntoMgmtConsole(client *client.Client, namespace string) error {
+	log.Debugf("Injecting Data-Index Route in Mgmt console")
+	log.Debugf("Querying MgmtConsole instances in the namespace '%s' to inject a route ", namespace)
+	deployment, err := getMgmtConsoleDeployment(namespace, client)
 	if err != nil {
 		return err
 	}
-	log.Debugf("Data Index route is '%s'", dataIndexEndpoints.HTTPRouteURI)
-	updateDataIndexURLIntoKogitoRuntimeEnv(runtimeDeployment, dataIndexEndpoints)
-	return nil
-}
+	if deployment == nil {
+		log.Debugf("No deployment found for MgmtConsole, skipping to inject %s URL into MgmtConsole", v1alpha1.DataIndex)
+		return nil
+	}
 
-func updateDataIndexURLIntoKogitoRuntimeEnv(deployment *appsv1.Deployment, dataIndexEndpoints ServiceEndpoints) (updateHTTP bool, updateWS bool) {
-	// here we compare the current value to avoid updating the app every time
-	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		updateHTTP = framework.GetEnvVarFromContainer(dataIndexEndpoints.HTTPRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.HTTPRouteURI
-		updateWS = framework.GetEnvVarFromContainer(dataIndexEndpoints.WSRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != dataIndexEndpoints.WSRouteURI
-		if updateHTTP {
-			log.Debugf("Updating dc '%s' to inject route %s ", deployment.GetName(), dataIndexEndpoints.HTTPRouteURI)
-			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
-		}
-		if updateWS {
-			log.Debugf("Updating dc '%s' to inject route %s ", deployment.GetName(), dataIndexEndpoints.WSRouteURI)
-			framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
+	log.Debugf("Querying %s route to inject into MgmtConsole", v1alpha1.DataIndex)
+	serviceEndpoints, err := getServiceEndpoints(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1alpha1.DataIndex)
+	if err != nil {
+		return err
+	}
+	log.Debugf("The %s route is '%s'", v1alpha1.DataIndex, serviceEndpoints.HTTPRouteURI)
+
+	updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
+	// update only once
+	if updateWS || updateHTTP {
+		if err := kubernetes.ResourceC(client).Update(deployment); err != nil {
+			return err
 		}
 	}
-	return
-}
-
-// GetDataIndexEndpoints queries for the Data Index URIs
-func GetDataIndexEndpoints(client *client.Client, namespace string) (dataIndexEndpoints ServiceEndpoints, err error) {
-	return getServiceEndpoints(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, &v1alpha1.KogitoDataIndexList{})
+	return nil
 }

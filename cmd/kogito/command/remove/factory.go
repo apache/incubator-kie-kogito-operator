@@ -1,7 +1,7 @@
 // Copyright 2019 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
+// you may not serviceName this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //      http://www.apache.org/licenses/LICENSE-2.0
@@ -22,6 +22,6 @@ import (
 // BuildCommands creates the commands available in this package
 func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	removeCmd := initRemoveCommand(ctx, rootCommand)
-	initRemoveRuntimeServiceCommands(ctx, removeCmd.Command())
+	initRemoveSupportingServiceCommands(ctx, removeCmd.Command())
 	initDeleteKogitoInfraCommand(ctx, removeCmd.Command())
 }

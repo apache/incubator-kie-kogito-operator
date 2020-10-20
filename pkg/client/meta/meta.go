@@ -67,8 +67,6 @@ var (
 	KindImageStream = DefinitionKind{"ImageStream", true, imgv1.SchemeGroupVersion}
 	// KindBuildRequest for a BuildRequest
 	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.SchemeGroupVersion}
-	// KindKogitoDataIndex for a KindKogitoDataIndex controller
-	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
 	// KindServiceMonitor ...
 	KindServiceMonitor = DefinitionKind{"ServiceMonitor", false, monv1.SchemeGroupVersion}
 )

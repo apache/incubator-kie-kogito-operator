@@ -41,9 +41,9 @@ oc create -f deploy/role.yaml
 oc create -f deploy/role_binding.yaml
 
 # Operator
-sed "s/name: kogito-operator/name: $OPERATOR_NAME/g" deploy/operator.yaml > $TMP_FOLDER/operator.yaml
-sed "s|image: quay.io/kiegroup/.*|image: $IMAGE|g" $TMP_FOLDER/operator.yaml > $TMP_FOLDER/operator-tmp.yaml
-oc create -f $TMP_FOLDER/operator-tmp.yaml
+#sed "s/name: kogito-operator/name: $OPERATOR_NAME/g" deploy/operator.yaml > $TMP_FOLDER/operator.yaml
+#sed "s|image: quay.io/kiegroup/.*|image: $IMAGE|g" $TMP_FOLDER/operator.yaml > $TMP_FOLDER/operator-tmp.yaml
+#oc create -f $TMP_FOLDER/operator-tmp.yaml
 
 # Clean Up
 rm -rf $TMP_FOLDER/*

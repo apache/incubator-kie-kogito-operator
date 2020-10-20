@@ -18,21 +18,19 @@ import (
 	"errors"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 )
 
 type installKogitoOperatorFlags struct {
 	flag.OperatorFlags
-	namespace          string
-	image              string
-	installDataIndex   bool
-	installJobsService bool
-	installMgmtConsole bool
-	installAllServices bool
-	force              bool
-	enablePersistence  bool
-	enableEvents       bool
+	namespace                string
+	image                    string
+	force                    bool
+	installDataIndex         bool
+	installJobsService       bool
+	installManagementConsole bool
 }
 
 type installKogitoOperatorCommand struct {
@@ -85,13 +83,10 @@ func (i *installKogitoOperatorCommand) InitHook() {
 
 	i.command.Flags().StringVarP(&i.flags.namespace, "project", "p", "", "The project name where the operator will be deployed")
 	i.command.Flags().StringVarP(&i.flags.image, "image", "i", shared.DefaultOperatorImageNameTag, "The operator image")
-	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, "Installs the default instance of Data Index being provisioned by the Kogito Operator in the project")
-	i.command.Flags().BoolVar(&i.flags.installJobsService, "install-jobs-service", false, "Installs the default instance of Jobs Service being provisioned by the Kogito Operator in the project")
-	i.command.Flags().BoolVar(&i.flags.installMgmtConsole, "install-mgmt-console", false, "Installs the default instance of Management Console being provisioned by the Kogito Operator in the project")
-	i.command.Flags().BoolVar(&i.flags.installAllServices, "install-all-services", false, "Installs the default instance of every Kogito Support services (Data Index, Jobs Service, etc.) being provisioned by the Kogito Operator in the project")
 	i.command.Flags().BoolVarP(&i.flags.force, "force", "f", false, "When set, the operator will be installed in the current namespace using a custom image, e.g. quay.io/kiegroup/kogito-cloud-operator:my-custom-tag")
-	i.command.Flags().BoolVar(&i.flags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same project and inject the environment variables to configure the service connection to the Infinispan server.")
-	i.command.Flags().BoolVar(&i.flags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
+	i.command.Flags().BoolVar(&i.flags.installDataIndex, "install-data-index", false, message.InstallDataIndex)
+	i.command.Flags().BoolVar(&i.flags.installJobsService, "install-jobs-service", false, message.InstallJobsService)
+	i.command.Flags().BoolVar(&i.flags.installManagementConsole, "install-mgmt-console", false, message.InstallMgmtConsole)
 }
 
 func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) error {
@@ -107,18 +102,29 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 		return err
 	}
 
-	install := shared.ServicesInstallationBuilder(i.Client, i.flags.namespace).InstallOperator(true, i.flags.image, i.flags.force, shared.KogitoChannelType(i.flags.Channel))
-	if i.flags.installDataIndex || i.flags.installAllServices {
+	install := shared.
+		ServicesInstallationBuilder(i.Client, i.flags.namespace).
+		InstallOperator(true, i.flags.image, i.flags.force, shared.KogitoChannelType(i.flags.Channel))
+
+	if i.flags.installDataIndex || i.flags.installJobsService || i.flags.installManagementConsole {
+		persistenceInfra := shared.GetDefaultPersistenceInfra(i.flags.namespace)
+		install.InstallInfraService(persistenceInfra)
+		messagingInfra := shared.GetDefaultMessagingInfra(i.flags.namespace)
+		install.InstallInfraService(messagingInfra)
+	}
+
+	if i.flags.installDataIndex {
 		dataIndex := shared.GetDefaultDataIndex(i.flags.namespace)
-		install.InstallDataIndex(&dataIndex)
+		install.InstallSupportingService(&dataIndex)
 	}
-	if i.flags.installJobsService || i.flags.installAllServices {
-		jobsService := shared.GetDefaultJobsService(i.flags.namespace, i.flags.enablePersistence, i.flags.enableEvents)
-		install.InstallJobsService(&jobsService)
+	if i.flags.installJobsService {
+		jobsService := shared.GetDefaultJobsService(i.flags.namespace)
+		install.InstallSupportingService(&jobsService)
 	}
-	if i.flags.installMgmtConsole || i.flags.installAllServices {
+	if i.flags.installManagementConsole {
 		mgmtConsole := shared.GetDefaultMgmtConsole(i.flags.namespace)
-		install.InstallMgmtConsole(&mgmtConsole)
+		install.InstallSupportingService(&mgmtConsole)
 	}
+
 	return install.GetError()
 }

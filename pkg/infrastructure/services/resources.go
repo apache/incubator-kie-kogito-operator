@@ -15,9 +15,6 @@
 package services
 
 import (
-	"reflect"
-	"time"
-
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -33,11 +30,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 )
 
 // createRequiredResources creates the required resources given the KogitoService instance
-func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type][]resource.KubernetesResource, reconcileAfter time.Duration, err error) {
-	reconcileAfter = 0
+func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type][]resource.KubernetesResource, err error) {
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
 	imageHandler, err := newImageHandler(s.instance, s.definition, s.client)
 	if err != nil {
@@ -50,19 +47,12 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 	// we only create the rest of the resources once we have a resolvable image
 	// or if the deployment is already there, we don't want to delete it :)
 	if image, err := s.getKogitoServiceImage(imageHandler, s.instance); err != nil {
-		return resources, reconcileAfter, err
+		return resources, err
 	} else if len(image) > 0 {
 		deployment := createRequiredDeployment(s.instance, image, s.definition)
 		if err = s.applyDeploymentCustomizations(deployment, imageHandler); err != nil {
-			return resources, reconcileAfter, err
+			return resources, err
 		}
-		if err = s.applyDataIndexRoute(deployment, s.instance); isRequiresReconciliationError(err) {
-			log.Warn(err)
-			reconcileAfter = err.(requiresReconciliationError).GetReconcileAfter()
-		} else if err != nil {
-			return resources, reconcileAfter, err
-		}
-
 		service := createRequiredService(s.instance, deployment)
 
 		appProps := map[string]string{}
@@ -72,7 +62,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 			log.Debugf("Infra references are provided")
 			infraAppProps, infraEnvProp, err := s.fetchKogitoInfraProperties()
 			if err != nil {
-				return resources, reconcileAfter, err
+				return resources, err
 			}
 			util.AppendToStringMap(infraAppProps, appProps)
 			envProperties = append(envProperties, infraEnvProp...)
@@ -87,7 +77,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 
 		contentHash, configMap, err := getAppPropConfigMapContentHash(s.instance, appProps, s.client)
 		if err != nil {
-			return resources, reconcileAfter, err
+			return resources, err
 		}
 		s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
 		if configMap != nil {
@@ -100,42 +90,14 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 			resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(s.instance, service)}
 		}
 		if err := s.createAdditionalObjects(resources, s.client); err != nil {
-			return resources, reconcileAfter, err
+			return resources, err
 		}
 	}
 
 	if err := s.setOwner(resources); err != nil {
-		return resources, reconcileAfter, err
+		return resources, err
 	}
 	return
-}
-
-func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, instance v1alpha1.KogitoService) error {
-	if s.definition.RequiresDataIndex {
-		dataIndexEndpoints, err := infrastructure.GetDataIndexEndpoints(s.client, s.definition.Request.Namespace)
-		if err != nil {
-			return err
-		}
-		if len(dataIndexEndpoints.HTTPRouteURI) == 0 {
-			// fallback to env vars directly set on service CR: KOGITO-2827
-			if len(framework.GetEnvVarFromContainer(dataIndexEndpoints.HTTPRouteEnv, &deployment.Spec.Template.Spec.Containers[0])) == 0 {
-				s.recorder.Eventf(s.client, instance,
-					corev1.EventTypeWarning,
-					"Failure",
-					"Not found Data Index external URL set on %s environment variable. Try setting the env var in '%s' manually using the Kogito service Custom Resource (CR)",
-					dataIndexEndpoints.HTTPRouteEnv,
-					instance.GetName())
-				zeroReplicas := int32(0)
-				deployment.Spec.Replicas = &zeroReplicas
-				return newKogitoServiceNotReadyError(instance.GetNamespace(), instance.GetName(), "Data Index")
-			}
-		} else {
-			framework.SetEnvVar(dataIndexEndpoints.HTTPRouteEnv, dataIndexEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
-			framework.SetEnvVar(dataIndexEndpoints.WSRouteEnv, dataIndexEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
-		}
-		deployment.Spec.Replicas = instance.GetSpec().GetReplicas()
-	}
-	return nil
 }
 
 func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deployment, imageHandler *imageHandler) error {
@@ -187,7 +149,7 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 	if len(image) > 0 {
 		return image, nil
 	}
-	if !s.definition.customService {
+	if !s.definition.CustomService {
 		log.Warnf("Image for the service %s not found yet in the namespace %s. Please make sure that the informed image %s exists in the given registry.",
 			instance.GetName(), instance.GetNamespace(), imageHandler.resolveRegistryImage())
 	} else {

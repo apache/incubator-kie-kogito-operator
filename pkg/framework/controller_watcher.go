@@ -22,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"strings"
 )
@@ -36,6 +37,8 @@ type WatchedObjects struct {
 	Objects []runtime.Object
 	// Owner of the object if different from the actual controller
 	Owner runtime.Object
+	//Predicate on the object for filtering of the events
+	Predicate predicate.Funcs
 }
 
 // ControllerWatcher helps to add required objects to the controller watch list given the required runtime objects
@@ -118,13 +121,14 @@ func (c *controllerWatcher) Watch(watchedObjects ...WatchedObjects) (err error) 
 	for _, desiredObject := range desiredObjects {
 		for _, runtimeObj := range desiredObject.Objects {
 			if desiredObject.Owner == nil {
-				if err = c.controller.Watch(&source.Kind{Type: runtimeObj}, ownerHandler); err != nil {
+				if err = c.controller.Watch(&source.Kind{Type: runtimeObj}, ownerHandler, desiredObject.Predicate); err != nil {
 					return
 				}
 			} else {
 				if err = c.controller.Watch(
 					&source.Kind{Type: runtimeObj},
-					&handler.EnqueueRequestForOwner{IsController: true, OwnerType: desiredObject.Owner}); err != nil {
+					&handler.EnqueueRequestForOwner{IsController: true, OwnerType: desiredObject.Owner},
+					desiredObject.Predicate); err != nil {
 					return
 				}
 			}

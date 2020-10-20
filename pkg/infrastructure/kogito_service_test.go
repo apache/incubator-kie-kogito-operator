@@ -17,48 +17,11 @@ package infrastructure
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func Test_getKogitoDataIndexRoute(t *testing.T) {
-	ns := t.Name()
-	expectedRoute := "http://dataindex-route.com"
-	dataIndexes := &v1alpha1.KogitoDataIndexList{
-		Items: []v1alpha1.KogitoDataIndex{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      DefaultDataIndexName,
-					Namespace: ns,
-				},
-				Status: v1alpha1.KogitoDataIndexStatus{
-					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
-				},
-			},
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      DefaultDataIndexName + "2",
-					Namespace: ns,
-				},
-				Status: v1alpha1.KogitoDataIndexStatus{
-					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: ""},
-				},
-			},
-		},
-	}
-	cli := test.CreateFakeClient([]runtime.Object{dataIndexes}, nil, nil)
+func Test_GetKogitoServiceInternalURI(t *testing.T) {
 
-	route, err := getSingletonKogitoServiceRoute(cli, ns, &v1alpha1.KogitoDataIndexList{})
-	assert.NoError(t, err)
-	assert.Equal(t, expectedRoute, route)
-}
-
-func Test_getKogitoDataIndexRoute_NoDataIndex(t *testing.T) {
-	cli := test.CreateFakeClient(nil, nil, nil)
-	route, err := getSingletonKogitoServiceRoute(cli, t.Name(), &v1alpha1.KogitoDataIndexList{})
-	assert.NoError(t, err)
-	assert.Empty(t, route)
+	actualURI := GetKogitoServiceInternalURI("dataindex", "mynamespace")
+	assert.Equal(t, "http://dataindex.mynamespace", actualURI)
 }

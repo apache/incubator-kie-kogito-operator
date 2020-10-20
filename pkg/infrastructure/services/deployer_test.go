@@ -26,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
-	"time"
 )
 
 func GetRequest(namespace string) reconcile.Request {
@@ -35,25 +34,25 @@ func GetRequest(namespace string) reconcile.Request {
 
 func Test_serviceDeployer_Deploy(t *testing.T) {
 	replicas := int32(1)
-	service := &v1alpha1.KogitoJobsService{
+	service := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType:       v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	serviceList := &v1alpha1.KogitoJobsServiceList{}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{service}, nil, nil)
 	definition := ServiceDefinition{
 		DefaultImageName: infrastructure.DefaultJobsServiceImageName,
 		Request:          GetRequest(t.Name()),
 	}
-	deployer := NewSingletonServiceDeployer(definition, serviceList, cli, meta.GetRegisteredSchema())
-	reconcileAfter, err := deployer.Deploy()
+	deployer := NewServiceDeployer(definition, service, cli, meta.GetRegisteredSchema())
+	requeue, err := deployer.Deploy()
 	assert.NoError(t, err)
-	assert.Equal(t, time.Duration(0), reconcileAfter)
+	assert.False(t, requeue)
 
 	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)

@@ -1,6 +1,7 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoMgmtConsole
+kind: KogitoSupportingService
 metadata:
   name: management-console
 spec:
+  resourceType: MgmtConsole
   replicas: 1

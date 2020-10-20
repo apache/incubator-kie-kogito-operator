@@ -47,11 +47,12 @@ func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1
 	if len(kogitoRuntimeServices.Items) == 0 {
 		return kdcs, nil
 	}
+
 	dcs := &appsv1.DeploymentList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
 		return nil, err
 	}
-	log.Debug("Looking for DeploymentConfigs owned by KogitoRuntime")
+	log.Debug("Looking for Deployments owned by KogitoRuntime")
 	for _, dc := range dcs.Items {
 		for _, owner := range dc.OwnerReferences {
 			for _, app := range kogitoRuntimeServices.Items {

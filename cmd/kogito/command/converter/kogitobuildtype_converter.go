@@ -19,7 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 )
 
-// FromResourceTypeToKogitoBuildType converts given ResourceType into KogitoBuildType
+// FromResourceTypeToKogitoBuildType converts given ServiceType into KogitoBuildType
 func FromResourceTypeToKogitoBuildType(resourceType flag.ResourceType) v1alpha1.KogitoBuildType {
 	switch resourceType {
 	case flag.LocalDirectoryResource, flag.LocalFileResource, flag.GitFileResource:

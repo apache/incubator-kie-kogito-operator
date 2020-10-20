@@ -107,8 +107,9 @@ func installOperatorWithYamlFiles(image string, namespace string, cli *client.Cl
 	box := packr.New("deploy", boxDeployPath)
 
 	// creates all CRDs found in the deploy directory
-	for _, crd := range getAllCRDsFileNames(box) {
-		if err := decodeAndCreateKubeObject(box, crd, &apiextensionsv1beta1.CustomResourceDefinition{}, namespace, cli, nil); err != nil {
+	crdBox := packr.New("crds", box.Path+"/crds")
+	for _, crd := range getAllCRDsFileNames(crdBox) {
+		if err := decodeAndCreateKubeObject(crdBox, crd, &apiextensionsv1beta1.CustomResourceDefinition{}, namespace, cli, nil); err != nil {
 			return err
 		}
 	}

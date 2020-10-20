@@ -28,7 +28,7 @@ import (
 	"testing"
 )
 
-var baseTempDir string = "/tmp/kogito-test/"
+var baseTempDir = "/tmp/kogito-test/"
 
 func writeFiles(t *testing.T, dirName string, files []string, content []byte) {
 	for _, file := range files {

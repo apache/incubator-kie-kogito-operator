@@ -29,7 +29,6 @@ import (
 )
 
 const (
-	// InstanceName is the default name for the Infinispan provisioned instance
 	secretName   = "kogito-infinispan-credential"
 	replicasSize = 1
 )

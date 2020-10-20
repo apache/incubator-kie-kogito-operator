@@ -26,12 +26,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
-	"time"
 )
 
 const prometheusServerGroup = "monitoring.coreos.com"
 
-func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
+func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (err error) {
 	prometheusAvailable := isPrometheusAvailable(client)
 	if !prometheusAvailable {
 		log.Debugf("prometheus operator not available in namespace")
@@ -49,7 +48,6 @@ func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoSer
 
 	prometheusAddOnAvailable, err := isPrometheusAddOnAvailable(kogitoService)
 	if err != nil {
-		reconcileAfter = time.Second * 10
 		return
 	}
 	if prometheusAddOnAvailable {
@@ -66,11 +64,7 @@ func isPrometheusAvailable(client *client.Client) bool {
 }
 
 func isPrometheusAddOnAvailable(kogitoService v1alpha1.KogitoService) (bool, error) {
-	url, err := infrastructure.CreateKogitoServiceURI(kogitoService.GetName(), kogitoService.GetNamespace())
-	if err != nil {
-		return false, err
-	}
-
+	url := infrastructure.GetKogitoServiceInternalURI(kogitoService.GetName(), kogitoService.GetNamespace())
 	url = url + getMonitoringPath(kogitoService.GetSpec().GetMonitoring())
 	if resp, err := http.Get(url); err != nil {
 		return false, err

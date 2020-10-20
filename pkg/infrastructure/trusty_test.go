@@ -48,22 +48,21 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	trustyServices := &v1alpha1.KogitoTrustyList{
-		Items: []v1alpha1.KogitoTrusty{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      DefaultTrustyName,
-					Namespace: ns,
-				},
-				Status: v1alpha1.KogitoTrustyStatus{
-					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
-				},
-			},
+	trustyService := &v1alpha1.KogitoSupportingService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      DefaultTrustyName,
+			Namespace: ns,
+		},
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.TrustyAI,
+		},
+		Status: v1alpha1.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{kogitoRuntime, trustyServices, dc}, nil, nil)
+	cli := test.CreateFakeClient([]runtime.Object{kogitoRuntime, trustyService, dc}, nil, nil)
 
-	err := InjectTrustyURLIntoKogitoApps(cli, ns)
+	err := InjectTrustyURLIntoKogitoRuntimeServices(cli, ns)
 	assert.NoError(t, err)
 
 	exist, err := kubernetes.ResourceC(cli).Fetch(dc)

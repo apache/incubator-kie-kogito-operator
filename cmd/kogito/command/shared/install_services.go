@@ -25,10 +25,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 )
 
-var defaultReplicas = int32(1)
-var defaultServiceStatus = v1alpha1.KogitoServiceStatus{ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: []v1alpha1.Condition{}}}
-var defaultServiceSpec = v1alpha1.KogitoServiceSpec{Replicas: &defaultReplicas}
-
 type serviceInfoMessages struct {
 	errCreating                  string
 	installed                    string
@@ -51,24 +47,9 @@ type ServicesInstallation interface {
 	// DeployService deploy Runtime service.
 	// Depends on the Operator, install it first.
 	InstallRuntimeService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation
-	// InstallDataIndex installs Data Index. If no reference provided, it will install the default instance.
+	// InstallSupportingService installs supporting services. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
-	InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation
-	// InstallExplainability installs Explainability. If no reference provided, it will install the default instance.
-	// Depends on the Operator, install it first.
-	InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation
-	// InstallTrusty installs Trusty. If no reference provided, it will install the default instance.
-	// Depends on the Operator, install it first.
-	InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation
-	// InstallJobsService installs Jobs Service. If no reference provided, it will install the default instance.
-	// Depends on the Operator, install it first.
-	InstallJobsService(jobsService *v1alpha1.KogitoJobsService) ServicesInstallation
-	// InstallMgmtConsole installs Management Console. If no reference provided, it will install the default instance.
-	// Depends on the Operator, install it first.
-	InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation
-	// InstallTrustyUI installs Trusty UI. If no reference provided, it will install the default instance.
-	// Depends on the Operator, install it first.
-	InstallTrustyUI(trustyUI *v1alpha1.KogitoTrustyUI) ServicesInstallation
+	InstallSupportingService(supportingService *v1alpha1.KogitoSupportingService) ServicesInstallation
 	// InstallInfraService install kogito Infra.
 	// Depends on the Operator, install it first.
 	InstallInfraService(infra *v1alpha1.KogitoInfra) ServicesInstallation
@@ -92,7 +73,7 @@ func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) Ser
 func (s *servicesInstallation) InstallBuildService(build *v1alpha1.KogitoBuild) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(build,
-			serviceInfoMessages{
+			&serviceInfoMessages{
 				errCreating:                  message.BuildServiceErrCreating,
 				installed:                    message.BuildServiceSuccessfulInstalled,
 				checkStatus:                  message.BuildServiceCheckStatus,
@@ -105,7 +86,7 @@ func (s *servicesInstallation) InstallBuildService(build *v1alpha1.KogitoBuild) 
 func (s *servicesInstallation) InstallRuntimeService(runtime *v1alpha1.KogitoRuntime) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(runtime,
-			serviceInfoMessages{
+			&serviceInfoMessages{
 				errCreating:                  message.RuntimeServiceErrCreating,
 				installed:                    message.RuntimeServiceSuccessfulInstalled,
 				checkStatus:                  message.RuntimeServiceCheckStatus,
@@ -115,88 +96,65 @@ func (s *servicesInstallation) InstallRuntimeService(runtime *v1alpha1.KogitoRun
 	return s
 }
 
-func (s *servicesInstallation) InstallDataIndex(dataIndex *v1alpha1.KogitoDataIndex) ServicesInstallation {
+func (s *servicesInstallation) InstallSupportingService(supportingService *v1alpha1.KogitoSupportingService) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(dataIndex,
-			serviceInfoMessages{
-				errCreating:                  message.DataIndexErrCreating,
-				installed:                    message.DataIndexSuccessfulInstalled,
-				checkStatus:                  message.DataIndexCheckStatus,
-				notInstalledNoKogitoOperator: message.DataIndexNotInstalledNoKogitoOperator,
-			})
+		s.err = s.installKogitoService(supportingService, getSupportingServiceInfoMessages(supportingService.Spec.ServiceType))
 	}
 	return s
 }
 
-func (s *servicesInstallation) InstallExplainability(explainability *v1alpha1.KogitoExplainability) ServicesInstallation {
-	if s.err == nil {
-		s.err = s.installKogitoService(explainability,
-			serviceInfoMessages{
-				errCreating:                  message.ExplainabilityErrCreating,
-				installed:                    message.ExplainabilitySuccessfulInstalled,
-				checkStatus:                  message.ExplainabilityCheckStatus,
-				notInstalledNoKogitoOperator: message.ExplainabilityNotInstalledNoKogitoOperator,
-			})
+func getSupportingServiceInfoMessages(serviceType v1alpha1.ServiceType) *serviceInfoMessages {
+	switch serviceType {
+	case v1alpha1.DataIndex:
+		return &serviceInfoMessages{
+			errCreating:                  message.DataIndexErrCreating,
+			installed:                    message.DataIndexSuccessfulInstalled,
+			checkStatus:                  message.DataIndexCheckStatus,
+			notInstalledNoKogitoOperator: message.DataIndexNotInstalledNoKogitoOperator,
+		}
+	case v1alpha1.JobsService:
+		return &serviceInfoMessages{
+			errCreating:                  message.JobsServiceErrCreating,
+			installed:                    message.JobsServiceSuccessfulInstalled,
+			checkStatus:                  message.JobsServiceCheckStatus,
+			notInstalledNoKogitoOperator: message.JobsServiceNotInstalledNoKogitoOperator,
+		}
+	case v1alpha1.MgmtConsole:
+		return &serviceInfoMessages{
+			errCreating:                  message.MgmtConsoleErrCreating,
+			installed:                    message.MgmtConsoleSuccessfulInstalled,
+			checkStatus:                  message.MgmtConsoleCheckStatus,
+			notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
+		}
+	case v1alpha1.Explainablity:
+		return &serviceInfoMessages{
+			errCreating:                  message.ExplainabilityErrCreating,
+			installed:                    message.ExplainabilitySuccessfulInstalled,
+			checkStatus:                  message.ExplainabilityCheckStatus,
+			notInstalledNoKogitoOperator: message.ExplainabilityNotInstalledNoKogitoOperator,
+		}
+	case v1alpha1.TrustyAI:
+		return &serviceInfoMessages{
+			errCreating:                  message.TrustyErrCreating,
+			installed:                    message.TrustySuccessfulInstalled,
+			checkStatus:                  message.TrustyCheckStatus,
+			notInstalledNoKogitoOperator: message.TrustyNotInstalledNoKogitoOperator,
+		}
+	case v1alpha1.TrustyUI:
+		return &serviceInfoMessages{
+			errCreating:                  message.TrustyUIErrCreating,
+			installed:                    message.TrustyUISuccessfulInstalled,
+			checkStatus:                  message.TrustyUICheckStatus,
+			notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
+		}
 	}
-	return s
-}
-
-func (s *servicesInstallation) InstallTrusty(trusty *v1alpha1.KogitoTrusty) ServicesInstallation {
-	if s.err == nil {
-		s.err = s.installKogitoService(trusty,
-			serviceInfoMessages{
-				errCreating:                  message.TrustyErrCreating,
-				installed:                    message.TrustySuccessfulInstalled,
-				checkStatus:                  message.TrustyCheckStatus,
-				notInstalledNoKogitoOperator: message.TrustyNotInstalledNoKogitoOperator,
-			})
-	}
-	return s
-}
-
-func (s *servicesInstallation) InstallJobsService(jobsService *v1alpha1.KogitoJobsService) ServicesInstallation {
-	if s.err == nil {
-		s.err = s.installKogitoService(jobsService,
-			serviceInfoMessages{
-				errCreating:                  message.JobsServiceErrCreating,
-				installed:                    message.JobsServiceSuccessfulInstalled,
-				checkStatus:                  message.JobsServiceCheckStatus,
-				notInstalledNoKogitoOperator: message.JobsServiceNotInstalledNoKogitoOperator,
-			})
-	}
-	return s
-}
-
-func (s *servicesInstallation) InstallMgmtConsole(mgmtConsole *v1alpha1.KogitoMgmtConsole) ServicesInstallation {
-	if s.err == nil {
-		s.err = s.installKogitoService(mgmtConsole,
-			serviceInfoMessages{
-				errCreating:                  message.MgmtConsoleErrCreating,
-				installed:                    message.MgmtConsoleSuccessfulInstalled,
-				checkStatus:                  message.MgmtConsoleCheckStatus,
-				notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
-			})
-	}
-	return s
-}
-
-func (s *servicesInstallation) InstallTrustyUI(trustyUI *v1alpha1.KogitoTrustyUI) ServicesInstallation {
-	if s.err == nil {
-		s.err = s.installKogitoService(trustyUI,
-			serviceInfoMessages{
-				errCreating:                  message.TrustyUIErrCreating,
-				installed:                    message.TrustyUISuccessfulInstalled,
-				checkStatus:                  message.TrustyUICheckStatus,
-				notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
-			})
-	}
-	return s
+	return nil
 }
 
 func (s *servicesInstallation) InstallInfraService(infra *v1alpha1.KogitoInfra) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoService(infra,
-			serviceInfoMessages{
+			&serviceInfoMessages{
 				errCreating:                  message.InfraServiceErrCreating,
 				installed:                    message.InfraServiceSuccessfulInstalled,
 				checkStatus:                  message.InfraServiceCheckStatus,
@@ -221,7 +179,7 @@ func (s *servicesInstallation) GetError() error {
 	return s.err
 }
 
-func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject, messages serviceInfoMessages) error {
+func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject, messages *serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
 		if !s.operatorInstalled { // depends on operator
