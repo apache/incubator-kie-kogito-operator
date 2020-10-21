@@ -23,7 +23,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
@@ -53,7 +52,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		return resources, reconcileAfter, err
 	} else if len(image) > 0 {
 		deployment := createRequiredDeployment(s.instance, image, s.definition)
-		if err = s.applyDeploymentCustomizations(deployment, imageHandler); err != nil {
+		if err = s.onDeploymentCreate(deployment, imageHandler); err != nil {
 			return resources, reconcileAfter, err
 		}
 		if err = s.applyDataIndexRoute(deployment, s.instance); isRequiresReconciliationError(err) {
@@ -99,7 +98,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		if s.client.IsOpenshift() {
 			resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{createRequiredRoute(s.instance, service)}
 		}
-		if err := s.createAdditionalObjects(resources, s.client); err != nil {
+		if err := s.onObjectsCreate(resources, s.client); err != nil {
 			return resources, reconcileAfter, err
 		}
 	}
@@ -138,7 +137,7 @@ func (s *serviceDeployer) applyDataIndexRoute(deployment *appsv1.Deployment, ins
 	return nil
 }
 
-func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deployment, imageHandler *imageHandler) error {
+func (s *serviceDeployer) onDeploymentCreate(deployment *appsv1.Deployment, imageHandler *imageHandler) error {
 	if imageHandler.HasImageStream() {
 		key, value := framework.ResolveImageStreamTriggerAnnotation(imageHandler.resolveImageNameTag(), s.instance.GetName())
 		deployment.Annotations = map[string]string{key: value}
@@ -151,8 +150,8 @@ func (s *serviceDeployer) applyDeploymentCustomizations(deployment *appsv1.Deplo
 	return nil
 }
 
-// createAdditionalObjects calls the OnObjectsCreate hook for clients to add their custom objects/logic to the service
-func (s *serviceDeployer) createAdditionalObjects(resources map[reflect.Type][]resource.KubernetesResource, cli *client.Client) error {
+// onObjectsCreate calls the OnObjectsCreate hook for clients to add their custom objects/logic to the service
+func (s *serviceDeployer) onObjectsCreate(resources map[reflect.Type][]resource.KubernetesResource, cli *client.Client) error {
 	if s.definition.OnObjectsCreate != nil {
 		var additionalRes map[reflect.Type][]resource.KubernetesResource
 		var err error
@@ -295,7 +294,7 @@ func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []cor
 	var consolidateEnvProperties []corev1.EnvVar
 	for _, kogitoInfraName := range kogitoInfraReferences {
 		// load infra resource
-		kogitoInfraInstance, err := infrastructure.FetchKogitoInfraInstance(s.client, kogitoInfraName, s.instance.GetNamespace())
+		kogitoInfraInstance, err := infrastructure.MustFetchKogitoInfraInstance(s.client, kogitoInfraName, s.instance.GetNamespace())
 		if err != nil {
 			return nil, nil, err
 		}
@@ -307,14 +306,6 @@ func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []cor
 		// fetch env properties from Kogito infra instance
 		envProp := kogitoInfraInstance.Status.Env
 		consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
-
-		// Special handling for Kafka Infra
-		if kogitoinfra.IsKafkaResource(kogitoInfraInstance) {
-			kafkaURI := getKafkaServerURIFromAppProps(appProp)
-			if err = s.createKafkaTopics(kogitoInfraInstance, kafkaURI); err != nil {
-				return nil, nil, err
-			}
-		}
 	}
 	return consolidateAppProperties, consolidateEnvProperties, nil
 }

@@ -28,8 +28,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"sort"
 	"testing"
 	"time"
@@ -57,7 +55,7 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 	r := ReconcileKogitoBuild{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation
@@ -139,7 +137,7 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 			TargetKogitoRuntime: kogitoServiceName,
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instanceRemote, instanceLocal}, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
 	r := ReconcileKogitoBuild{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation

@@ -26,7 +26,7 @@ import (
 )
 
 func Test_buildConfig_TriggerBuildFromFile_BCNotFound(t *testing.T) {
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	buildCLI := newBuildConfigWithBCRetries(cli, 1, 1*time.Second)
 	buildOpts := &buildv1.BinaryBuildRequestOptions{AsFile: "myfile.dmn", ObjectMeta: v1.ObjectMeta{Name: "mybuild"}}
 	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, false)
@@ -38,7 +38,7 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFound(t *testing.T) {
 }
 
 func Test_buildConfig_TriggerBuildFromFile_BCNotFound_Binary(t *testing.T) {
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	buildCLI := newBuildConfigWithBCRetries(cli, 1, 1*time.Second)
 	buildOpts := &buildv1.BinaryBuildRequestOptions{AsFile: "target.tar.gz", ObjectMeta: v1.ObjectMeta{Name: "mybuild"}}
 	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, true)
@@ -51,7 +51,7 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFound_Binary(t *testing.T) {
 
 func Test_buildConfig_TriggerBuildFromFile_BCNotFoundThenFound(t *testing.T) {
 	var wg sync.WaitGroup
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	buildCLI := newBuildConfig(cli)
 	buildConfig := &buildv1.BuildConfig{
 		ObjectMeta: v1.ObjectMeta{Name: "mybuild-builder", Namespace: t.Name()},
@@ -79,7 +79,7 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFoundThenFound(t *testing.T) {
 
 func Test_buildConfig_TriggerBuildFromFile_BCNotFoundThenFound_Binary(t *testing.T) {
 	var wg sync.WaitGroup
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	buildCLI := newBuildConfig(cli)
 	buildConfig := &buildv1.BuildConfig{
 		ObjectMeta: v1.ObjectMeta{Name: "mybuild", Namespace: t.Name()},

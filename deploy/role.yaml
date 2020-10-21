@@ -84,6 +84,36 @@ rules:
       - '*'
     verbs:
       - '*'
+  - apiGroups:
+      - eventing.knative.dev
+    resources:
+      - brokers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - eventing.knative.dev
+    resources:
+      - triggers
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - update
+  - apiGroups:
+      - sources.knative.dev
+    resources:
+      - sinkbindings
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - update
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1

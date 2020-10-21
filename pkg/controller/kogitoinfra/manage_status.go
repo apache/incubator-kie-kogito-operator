@@ -15,8 +15,6 @@
 package kogitoinfra
 
 import (
-	"time"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -36,8 +34,8 @@ func updateBaseStatus(client *client.Client, instance *v1alpha1.KogitoInfra, err
 		log.Info("Kogito Infra successfully reconciled")
 	}
 	log.Infof("Updating kogitoInfra value with new properties : %s", instance.Name)
-	if resultErr := kubernetes.ResourceC(client).Update(instance); resultErr != nil {
-		log.Errorf("Error occurs while update kogitoInfra values", resultErr)
+	if resultErr := kubernetes.ResourceC(client).UpdateStatus(instance); resultErr != nil {
+		log.Errorf("reconciliationError occurs while update kogitoInfra values: %v", resultErr)
 	}
 	log.Info("Successfully Update Kogito Infra status")
 }
@@ -49,7 +47,8 @@ func setResourceFailed(instance *v1alpha1.KogitoInfra, err error) {
 		instance.Status.Condition.Type = v1alpha1.FailureInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionFalse
 		instance.Status.Condition.Message = err.Error()
-		instance.Status.Condition.LastTransitionTime = metav1.Now().Format(time.RFC3339)
+		instance.Status.Condition.Reason = reasonForError(err)
+		instance.Status.Condition.LastTransitionTime = metav1.Now()
 	}
 }
 
@@ -59,6 +58,7 @@ func setResourceSuccess(instance *v1alpha1.KogitoInfra) {
 		instance.Status.Condition.Type = v1alpha1.SuccessInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionTrue
 		instance.Status.Condition.Message = ""
-		instance.Status.Condition.LastTransitionTime = metav1.Now().Format(time.RFC3339)
+		instance.Status.Condition.Reason = ""
+		instance.Status.Condition.LastTransitionTime = metav1.Now()
 	}
 }

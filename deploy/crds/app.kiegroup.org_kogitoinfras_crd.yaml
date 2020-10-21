@@ -3,6 +3,27 @@ kind: CustomResourceDefinition
 metadata:
   name: kogitoinfras.app.kiegroup.org
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.resource.name
+    description: Third Party Infrastructure Resource
+    name: Resource Name
+    type: string
+  - JSONPath: .spec.resource.kind
+    description: Kubernetes CR Kind
+    name: Kind
+    type: string
+  - JSONPath: .spec.resource.apiVersion
+    description: Kubernetes CR API Version
+    name: API Version
+    type: string
+  - JSONPath: .status.condition.status
+    description: General Status of this resource bind
+    name: Status
+    type: string
+  - JSONPath: .status.condition.reason
+    description: Status reason
+    name: Reason
+    type: string
   group: app.kiegroup.org
   names:
     kind: KogitoInfra
@@ -10,6 +31,8 @@ spec:
     plural: kogitoinfras
     singular: kogitoinfra
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: 'KogitoInfra is the resource to bind a Custom Resource (CR) not
@@ -71,13 +94,20 @@ spec:
               description: KogitoInfraCondition ...
               properties:
                 lastTransitionTime:
+                  description: LastTransitionTime ...
+                  format: date-time
                   type: string
                 message:
+                  description: Message ...
+                  type: string
+                reason:
+                  description: Reason ...
                   type: string
                 status:
+                  description: Status ...
                   type: string
                 type:
-                  description: KogitoInfraConditionType ...
+                  description: Type ...
                   type: string
               required:
               - status
