@@ -31,7 +31,7 @@ type installSupportingServiceFlags struct {
 }
 
 type installableSupportingService struct {
-	use         string
+	cmdName     string
 	serviceName string
 	aliases     []string
 	displayName string
@@ -49,7 +49,7 @@ type installSupportingServiceCommand struct {
 
 var installableSupportingServices = []installableSupportingService{
 	{
-		use:         "data-index",
+		cmdName:     "data-index",
 		serviceName: infrastructure.DefaultDataIndexName,
 		displayName: "Data Index",
 		serviceType: v1alpha1.DataIndex,
@@ -65,7 +65,7 @@ Only use infinispan-url if you plan to connect to an external Infinispan server 
 For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
 	},
 	{
-		use:         "mgmt-console",
+		cmdName:     "mgmt-console",
 		serviceName: infrastructure.DefaultMgmtConsoleName,
 		aliases:     []string{"management-console"},
 		displayName: "Mgmt Console",
@@ -78,7 +78,7 @@ You won't be able to use the Management Console if Data Index is not deployed in
 For more information on Management Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
 	},
 	{
-		use:         "jobs-service",
+		cmdName:     "jobs-service",
 		serviceName: infrastructure.DefaultJobsServiceName,
 		displayName: "Jobs",
 		serviceType: v1alpha1.JobsService,
@@ -91,7 +91,7 @@ in other project or infrastructure.
 For more information on Kogito Jobs Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service`,
 	},
 	{
-		use:         "explainability",
+		cmdName:     "explainability",
 		serviceName: infrastructure.DefaultExplainabilityName,
 		displayName: "Explainablity",
 		serviceType: v1alpha1.Explainablity,
@@ -102,7 +102,7 @@ If kafka-instance is provided instead, the value will be used as the Strimzi Kaf
 Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given project.`,
 	},
 	{
-		use:         "trusty",
+		cmdName:     "trusty",
 		serviceName: infrastructure.DefaultTrustyName,
 		displayName: "Trusty",
 		serviceType: v1alpha1.TrustyAI,
@@ -118,7 +118,7 @@ Only use infinispan-url if you plan to connect to an external Infinispan server 
 See https://github.com/kiegroup/kogito-apps/tree/master/trusty/README.md for more information about the trusty service.`,
 	},
 	{
-		use:         "trusty-ui",
+		cmdName:     "trusty-ui",
 		serviceName: infrastructure.DefaultTrustyUIName,
 		displayName: "Trusty UI",
 		serviceType: v1alpha1.TrustyUI,
@@ -151,10 +151,10 @@ func (i *installSupportingServiceCommand) Command() *cobra.Command {
 
 func (i *installSupportingServiceCommand) RegisterHook() {
 	i.command = &cobra.Command{
-		Use:     i.supportingService.use,
+		Use:     i.supportingService.cmdName,
 		Aliases: i.supportingService.aliases,
 		Short:   fmt.Sprintf("Installs the Kogito %s Service in the given Project", i.supportingService.displayName),
-		Example: fmt.Sprintf("install %s -p my-project", i.supportingService.use),
+		Example: fmt.Sprintf("install %s -p my-project", i.supportingService.cmdName),
 		Long:    i.supportingService.description,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,

@@ -1,7 +1,7 @@
 // Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
-// you may not serviceName this file except in compliance with the License.
+// you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //      http://www.apache.org/licenses/LICENSE-2.0
@@ -28,7 +28,7 @@ type removeSupportingServiceFlags struct {
 }
 
 type removableSupportingService struct {
-	serviceName string
+	cmdName     string
 	serviceType v1alpha1.ServiceType
 	aliases     []string
 }
@@ -43,28 +43,28 @@ type removeSupportingServiceCommand struct {
 
 var removableSupportingServices = []removableSupportingService{
 	{
-		serviceName: "data-index",
+		cmdName:     "data-index",
 		serviceType: v1alpha1.DataIndex,
 	},
 	{
-		serviceName: "mgmt-console",
+		cmdName:     "mgmt-console",
 		serviceType: v1alpha1.MgmtConsole,
 		aliases:     []string{"management-console"},
 	},
 	{
-		serviceName: "jobs-service",
+		cmdName:     "jobs-service",
 		serviceType: v1alpha1.JobsService,
 	},
 	{
-		serviceName: "explainability",
+		cmdName:     "explainability",
 		serviceType: v1alpha1.Explainablity,
 	},
 	{
-		serviceName: "trusty",
+		cmdName:     "trusty",
 		serviceType: v1alpha1.TrustyAI,
 	},
 	{
-		serviceName: "trusty-ui",
+		cmdName:     "trusty-ui",
 		serviceType: v1alpha1.TrustyUI,
 	},
 }
@@ -86,11 +86,11 @@ func initRemoveSupportingServiceCommands(ctx *context.CommandContext, parent *co
 
 func (r *removeSupportingServiceCommand) RegisterHook() {
 	r.command = &cobra.Command{
-		Use:     r.supportingService.serviceName,
+		Use:     r.supportingService.cmdName,
 		Aliases: r.supportingService.aliases,
-		Short:   fmt.Sprintf("removes installed %s instance from the OpenShift/Kubernetes cluster", r.supportingService.serviceName),
-		Example: fmt.Sprintf("remove %s -p my-project", r.supportingService.serviceName),
-		Long:    fmt.Sprintf(`removes installed %s instance via custom Kubernetes resources.`, r.supportingService.serviceName),
+		Short:   fmt.Sprintf("removes installed %s instance from the OpenShift/Kubernetes cluster", r.supportingService.cmdName),
+		Example: fmt.Sprintf("remove %s -p my-project", r.supportingService.cmdName),
+		Long:    fmt.Sprintf(`removes installed %s instance via custom Kubernetes resources.`, r.supportingService.cmdName),
 		RunE:    r.Exec,
 		PreRun:  r.CommonPreRun,
 		PostRun: r.CommonPostRun,
@@ -103,7 +103,7 @@ func (r *removeSupportingServiceCommand) RegisterHook() {
 func (r *removeSupportingServiceCommand) InitHook() {
 	r.flags = removeSupportingServiceFlags{}
 	r.Parent.AddCommand(r.command)
-	r.command.Flags().StringVarP(&r.flags.namespace, "project", "p", "", fmt.Sprintf("The project serviceName where the %s service is deployed", r.supportingService.serviceName))
+	r.command.Flags().StringVarP(&r.flags.namespace, "project", "p", "", fmt.Sprintf("The project use where the %s service is deployed", r.supportingService.cmdName))
 }
 
 func (r *removeSupportingServiceCommand) Command() *cobra.Command {
@@ -130,14 +130,14 @@ func (r *removeSupportingServiceCommand) Exec(cmd *cobra.Command, args []string)
 	}
 
 	if len(targetServiceItems) == 0 {
-		log.Warnf("There's no service %s in the namespace %s", r.supportingService.serviceName, r.flags.namespace)
+		log.Warnf("There's no service %s in the namespace %s", r.supportingService.cmdName, r.flags.namespace)
 		return nil
 	}
 	for _, targetService := range targetServiceItems {
 		if err = kubernetes.ResourceC(r.Client).Delete(&targetService); err != nil {
-			return fmt.Errorf("error occurs while delete Service %s from namespace %s. Error %s", r.supportingService.serviceName, targetService.Name, err)
+			return fmt.Errorf("error occurs while delete Service %s from namespace %s. Error %s", r.supportingService.cmdName, targetService.Name, err)
 		}
-		log.Infof("Service %s named %s from namespace %s has been successfully removed", r.supportingService.serviceName, targetService.Name, targetService.Namespace)
+		log.Infof("Service %s named %s from namespace %s has been successfully removed", r.supportingService.cmdName, targetService.Name, targetService.Namespace)
 	}
 	return nil
 }

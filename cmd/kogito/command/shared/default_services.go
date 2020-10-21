@@ -70,7 +70,7 @@ func GetDefaultMgmtConsole(namespace string) v1alpha1.KogitoSupportingService {
 func GetDefaultPersistenceInfra(namespace string) *v1alpha1.KogitoInfra {
 	return &v1alpha1.KogitoInfra{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      infrastructure.KafkaInstanceName,
+			Name:      infrastructure.InfinispanInstanceName,
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.KogitoInfraSpec{
