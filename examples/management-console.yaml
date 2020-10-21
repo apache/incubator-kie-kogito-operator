@@ -3,5 +3,5 @@ kind: KogitoSupportingService
 metadata:
   name: management-console
 spec:
-  resourceType: MgmtConsole
+  serviceType: MgmtConsole
   replicas: 1

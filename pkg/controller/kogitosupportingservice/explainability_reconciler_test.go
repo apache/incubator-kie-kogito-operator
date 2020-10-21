@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package explainability
+package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -48,8 +48,8 @@ func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) 
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka}, nil, nil)
-	r := &SupportingServiceResource{}
+	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance, kogitoKafka}).OnOpenShift().Build()
+	r := &ExplainabilitySupportingServiceResource{}
 
 	// basic checks
 	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
@@ -73,7 +73,7 @@ func TestReconcileKogitoSupportingServiceExplainability_UpdateHTTPPort(t *testin
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultExplainabilityImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
-	r := &SupportingServiceResource{}
+	r := &ExplainabilitySupportingServiceResource{}
 
 	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)

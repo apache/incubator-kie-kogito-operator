@@ -39,7 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// Add creates a new KogitoSupportingService Controller and adds it to the Manager. The Manager will set fields on the Controller
+// AddDataIndex creates a new KogitoDataIndex Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func AddDataIndex(mgr manager.Manager) error {
 	return addDataIndex(mgr, newDataIndexReconciler(mgr))
@@ -50,7 +50,7 @@ func newDataIndexReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileKogitoDataIndex{client: client.NewForController(mgr.GetConfig()), scheme: mgr.GetScheme()}
 }
 
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
+// addDataIndex adds a new Controller to mgr with r as the reconcile.Reconciler
 func addDataIndex(mgr manager.Manager, r reconcile.Reconciler) error {
 	log.Debug("Adding watched objects for DataIndex controller")
 	// Create a new controller
@@ -94,10 +94,45 @@ func addDataIndex(mgr manager.Manager, r reconcile.Reconciler) error {
 			GroupVersion: corev1.SchemeGroupVersion,
 			Objects:      []runtime.Object{&corev1.ConfigMap{}},
 			Owner:        &appv1alpha1.KogitoRuntime{},
+			// Filter kogitoRuntime Config Map
+			Predicate: predicate.Funcs{
+				CreateFunc: func(e event.CreateEvent) bool {
+					cm := e.Object.(*corev1.ConfigMap)
+					if cm.Labels != nil {
+						if cm.Labels[infrastructure.ConfigMapProtoBufEnabledLabelKey] == "true" {
+							return true
+						}
+					}
+					return false
+				},
+				UpdateFunc: func(e event.UpdateEvent) bool {
+					cm := e.ObjectNew.(*corev1.ConfigMap)
+					if cm.Labels != nil {
+						if cm.Labels[infrastructure.ConfigMapProtoBufEnabledLabelKey] == "true" {
+							return true
+						}
+					}
+					return false
+				},
+				DeleteFunc: func(e event.DeleteEvent) bool {
+					cm := e.Object.(*corev1.ConfigMap)
+					if cm.Labels != nil {
+						if cm.Labels[infrastructure.ConfigMapProtoBufEnabledLabelKey] == "true" {
+							return true
+						}
+					}
+					return false
+				},
+			},
 		},
 		{
 			Objects:      []runtime.Object{&appv1alpha1.KogitoInfra{}},
 			Eventhandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1alpha1.KogitoSupportingService{}},
+			Predicate: predicate.Funcs{
+				UpdateFunc: func(e event.UpdateEvent) bool {
+					return isKogitoInfraUpdated(e.ObjectOld.(*appv1alpha1.KogitoInfra), e.ObjectNew.(*appv1alpha1.KogitoInfra))
+				},
+			},
 		},
 		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
 	}
@@ -128,6 +163,7 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 	if resultErr != nil {
 		return
 	}
+	// Ignore reconcile of other services triggered when change in kogitoInfra object
 	if appv1alpha1.DataIndex != instance.Spec.ServiceType {
 		return
 	}
@@ -136,8 +172,23 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 		return
 	}
 
-	supportingResource := &DataIndexSupportingServiceResource{}
-	requeue, resultErr := supportingResource.Reconcile(r.client, instance, r.scheme)
+	log.Infof("Injecting Data Index URL into KogitoRuntime services in the namespace '%s'", instance.Namespace)
+	if err := infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(r.client, instance.Namespace); err != nil {
+		return
+	}
+	if err := infrastructure.InjectDataIndexURLIntoMgmtConsole(r.client, instance.Namespace); err != nil {
+		return
+	}
+
+	definition := services.ServiceDefinition{
+		DefaultImageName:   infrastructure.DefaultDataIndexImageName,
+		OnDeploymentCreate: dataIndexOnDeploymentCreate,
+		KafkaTopics:        dataIndexKafkaTopics,
+		Request:            controller1.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}},
+		HealthCheckProbe:   services.QuarkusHealthCheckProbe,
+	}
+	requeue, resultErr := services.NewServiceDeployer(definition, instance, r.client, r.scheme).Deploy()
+
 	if resultErr != nil {
 		return
 	}
@@ -150,32 +201,8 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 	return
 }
 
-// DataIndexSupportingServiceResource implementation of DataIndexSupportingServiceResource
-type DataIndexSupportingServiceResource struct {
-}
-
-// Reconcile reconcile Data index service
-func (*DataIndexSupportingServiceResource) Reconcile(client *client.Client, instance *appv1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
-	log.Infof("Injecting Data Index URL into KogitoRuntime services in the namespace '%s'", instance.Namespace)
-	if err = infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
-		return
-	}
-	if err = infrastructure.InjectDataIndexURLIntoMgmtConsole(client, instance.Namespace); err != nil {
-		return
-	}
-
-	definition := services.ServiceDefinition{
-		DefaultImageName:   infrastructure.DefaultDataIndexImageName,
-		OnDeploymentCreate: onDeploymentCreate,
-		KafkaTopics:        kafkaTopics,
-		Request:            controller1.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}},
-		HealthCheckProbe:   services.QuarkusHealthCheckProbe,
-	}
-	return services.NewServiceDeployer(definition, instance, client, scheme).Deploy()
-}
-
 // Collection of kafka topics that should be handled by the Data-Index service
-var kafkaTopics = []string{
+var dataIndexKafkaTopics = []string{
 	"kogito-processinstances-events",
 	"kogito-usertaskinstances-events",
 	"kogito-processdomain-events",
@@ -190,7 +217,7 @@ const (
 	protoBufConfigMapVolumeDefaultMode int32  = 420
 )
 
-func onDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
+func dataIndexOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService appv1alpha1.KogitoService) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		if err := mountProtoBufConfigMaps(deployment, cli); err != nil {
 			return err

@@ -12,45 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trustyai
+package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var log = logger.GetLogger("trustyai_reconciler")
-
-// SupportingServiceResource implementation of SupportingServiceResource
-type SupportingServiceResource struct {
+// ExplainabilitySupportingServiceResource implementation of SupportingServiceResource
+type ExplainabilitySupportingServiceResource struct {
 }
 
-// Reconcile reconcile TrustyAI Service
-func (*SupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
-	log.Info("Reconciling KogitoTrusty")
-	log.Infof("Injecting Trusty Index URL into KogitoApps in the namespace '%s'", instance.Namespace)
-	if err := infrastructure.InjectTrustyURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
-		return false, err
-	}
+// Reconcile reconcile Explainability Service
+func (*ExplainabilitySupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+	log.Info("Reconciling KogitoExplainability")
 	definition := services.ServiceDefinition{
-		DefaultImageName: infrastructure.DefaultTrustyImageName,
+		DefaultImageName: infrastructure.DefaultExplainabilityImageName,
 		Request:          controller.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}},
-		KafkaTopics:      kafkaTopics,
+		KafkaTopics:      explainabilitykafkaTopics,
 		HealthCheckProbe: services.QuarkusHealthCheckProbe,
 	}
 	return services.NewServiceDeployer(definition, instance, client, scheme).Deploy()
 }
 
-// Collection of kafka topics that should be handled by the Trusty service
-var kafkaTopics = []string{
-	"kogito-tracing-decision",
-	"kogito-tracing-model",
-	"trusty-explainability-result",
+// Collection of kafka topics that should be handled by the Explainability service
+var explainabilitykafkaTopics = []string{
 	"trusty-explainability-request",
+	"trusty-explainability-result",
 }

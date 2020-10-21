@@ -15,16 +15,20 @@
 package kogitosupportingservice
 
 import (
+	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,9 +39,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// Collection of Services not to be monitored by this controller
-var ignoreServices = []appv1alpha1.ServiceType{
-	appv1alpha1.DataIndex,
+// Collection of Services not to be monitored by main kogitoSupportingService controller
+var ignoreServices = []v1alpha1.ServiceType{
+	v1alpha1.DataIndex,
 }
 var log = logger.GetLogger("kogitosupportingservice_controller")
 
@@ -67,21 +71,22 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		DeleteFunc: func(e event.DeleteEvent) bool {
 			return false
 		},
+		// Filter out ignoreServices
 		CreateFunc: func(e event.CreateEvent) bool {
-			supportingService := e.Object.(*appv1alpha1.KogitoSupportingService)
+			supportingService := e.Object.(*v1alpha1.KogitoSupportingService)
 			return !contains(ignoreServices, supportingService.Spec.ServiceType)
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			supportingService := e.ObjectNew.(*appv1alpha1.KogitoSupportingService)
+			supportingService := e.ObjectNew.(*v1alpha1.KogitoSupportingService)
 			return !contains(ignoreServices, supportingService.Spec.ServiceType)
 		},
 	}
-	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{}, pred)
+	err = c.Watch(&source.Kind{Type: &v1alpha1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{}, pred)
 	if err != nil {
 		return err
 	}
 
-	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoSupportingService).client, mgr, c, &appv1alpha1.KogitoSupportingService{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoSupportingService).client, mgr, c, &v1alpha1.KogitoSupportingService{})
 	watchedObjects := []framework.WatchedObjects{
 		{
 			GroupVersion: routev1.GroupVersion,
@@ -94,8 +99,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			Objects:      []runtime.Object{&imgv1.ImageStream{}},
 		},
 		{
-			Objects:      []runtime.Object{&appv1alpha1.KogitoInfra{}},
-			Eventhandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1alpha1.KogitoSupportingService{}},
+			Objects:      []runtime.Object{&v1alpha1.KogitoInfra{}},
+			Eventhandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1alpha1.KogitoSupportingService{}},
+			Predicate: predicate.Funcs{
+				UpdateFunc: func(e event.UpdateEvent) bool {
+					return isKogitoInfraUpdated(e.ObjectOld.(*v1alpha1.KogitoInfra), e.ObjectNew.(*v1alpha1.KogitoInfra))
+				},
+			},
 		},
 		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
 	}
@@ -128,11 +138,12 @@ func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) 
 		return
 	}
 
+	// Do not trigger the Reconcile of kogitoSupportingController for ignored services
 	if contains(ignoreServices, instance.Spec.ServiceType) {
 		return
 	}
 	log.Infof("Reconciling KogitoSupportingService for %s in %s", request.Name, request.Namespace)
-	log.Debugf("Going to reconcile resource of type %s", instance.Spec.ServiceType)
+	log.Debugf("Going to reconcile service of type %s", instance.Spec.ServiceType)
 	if resultErr = ensureSingletonService(r.client, request.Namespace, instance.Spec.ServiceType); resultErr != nil {
 		return
 	}
@@ -150,4 +161,79 @@ func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) 
 		result.Requeue = true
 	}
 	return
+}
+
+func fetchKogitoSupportingService(client *client.Client, name string, namespace string) (*v1alpha1.KogitoSupportingService, error) {
+	log.Debugf("going to fetch deployed kogito supporting service instance %s in namespace %s", name, namespace)
+	instance := &v1alpha1.KogitoSupportingService{}
+	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
+		log.Errorf("Error occurs while fetching deployed kogito supporting service instance %s", name)
+		return nil, resultErr
+	} else if !exists {
+		return nil, fmt.Errorf("kogito supporting service resource with name %s not found in namespace %s", name, namespace)
+	} else {
+		log.Debugf("Successfully fetch deployed kogito supporting reference %s", name)
+		return instance, nil
+	}
+}
+
+// fetches all the supported services managed by kogitoSupportingService controller
+func getKogitoSupportingResource(instance *v1alpha1.KogitoSupportingService) SupportingServiceResource {
+	log.Debugf("going to fetch related kogito infra resource for given infra instance : %s", instance.Name)
+	switch instance.Spec.ServiceType {
+	case v1alpha1.JobsService:
+		log.Debugf("Kogito Supporting Service reference is for Jobs Service")
+		return &JobsServiceSupportingServiceResource{}
+	case v1alpha1.MgmtConsole:
+		log.Debugf("Kogito Supporting Service reference is for Management Console")
+		return &MgmtConsoleSupportingServiceResource{}
+	case v1alpha1.Explainablity:
+		log.Debugf("Kogito Supporting Service reference is for Explainability Service")
+		return &ExplainabilitySupportingServiceResource{}
+	case v1alpha1.TrustyAI:
+		log.Debugf("Kogito Supporting Service reference is for TrustyAI")
+		return &TrustyAISupportingServiceResource{}
+	case v1alpha1.TrustyUI:
+		log.Debugf("Kogito Supporting Service reference is for TrustyUI")
+	}
+	return nil
+
+}
+
+func ensureSingletonService(client *client.Client, namespace string, resourceType v1alpha1.ServiceType) error {
+	supportingServiceList := &v1alpha1.KogitoSupportingServiceList{}
+	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, supportingServiceList); err != nil {
+		return err
+	}
+
+	var kogitoSupportingService []v1alpha1.KogitoSupportingService
+	for _, service := range supportingServiceList.Items {
+		if service.Spec.ServiceType == resourceType {
+			kogitoSupportingService = append(kogitoSupportingService, service)
+		}
+	}
+
+	if len(kogitoSupportingService) > 1 {
+		return fmt.Errorf("kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", resourceType)
+	}
+	return nil
+}
+
+// Check is the testService is available in the slice of allServices
+func contains(allServices []v1alpha1.ServiceType, testService v1alpha1.ServiceType) bool {
+	for _, a := range allServices {
+		if a == testService {
+			return true
+		}
+	}
+	return false
+}
+
+func isKogitoInfraUpdated(oldKogitoInfra, newKogitoInfra *v1alpha1.KogitoInfra) bool {
+	return !reflect.DeepEqual(oldKogitoInfra.Status.AppProps, newKogitoInfra.Status.AppProps) || !reflect.DeepEqual(oldKogitoInfra.Status.Env, newKogitoInfra.Status.Env)
+}
+
+// SupportingServiceResource Interface to represent type of kogito supporting service resources like JobsService & MgmtConcole
+type SupportingServiceResource interface {
+	Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, resultErr error)
 }

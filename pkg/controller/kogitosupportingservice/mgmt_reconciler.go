@@ -12,33 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mgmtconsole
+package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var log = logger.GetLogger("mgmtconsole_reconciler")
-
-// SupportingServiceResource implementation of SupportingServiceResource
-type SupportingServiceResource struct {
+// MgmtConsoleSupportingServiceResource implementation of SupportingServiceResource
+type MgmtConsoleSupportingServiceResource struct {
 }
 
 // Reconcile reconcile Management Console
-func (*SupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+func (*MgmtConsoleSupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
 	log.Infof("Reconciling KogitoMgmtConsole for %s in %s", instance.Name, instance.Namespace)
 	definition := services.ServiceDefinition{
 		DefaultImageName:   infrastructure.DefaultMgmtConsoleImageName,
 		Request:            controller.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}},
 		SingleReplica:      false,
-		OnDeploymentCreate: onDeploymentCreate,
+		OnDeploymentCreate: mgmtConsoleOnDeploymentCreate,
 	}
 	return services.NewServiceDeployer(definition, instance, client, scheme).Deploy()
+}
+
+func mgmtConsoleOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error {
+	if err := infrastructure.InjectDataIndexURLInToDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+		return err
+	}
+	return nil
 }

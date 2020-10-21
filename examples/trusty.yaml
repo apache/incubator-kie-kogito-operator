@@ -25,7 +25,7 @@ kind: KogitoSupportingService
 metadata:
   name: trusty
 spec:
-  resourceType: TrustyAI
+  serviceType: TrustyAI
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS

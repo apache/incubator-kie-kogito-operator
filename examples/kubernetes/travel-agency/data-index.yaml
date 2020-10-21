@@ -23,7 +23,7 @@ kind: KogitoSupportingService
 metadata:
   name: data-index
 spec:
-  resourceType: DataIndex
+  serviceType: DataIndex
   replicas: 1
   image: quay.io/kiegroup/kogito-data-index
   infra:

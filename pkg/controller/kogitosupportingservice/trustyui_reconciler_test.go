@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trustyui
+package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -36,9 +36,9 @@ func TestReconcileKogitoSupportingServiceTrustyUI_Reconcile(t *testing.T) {
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance}).OnOpenShift().Build()
 
-	r := &SupportingServiceResource{}
+	r := &TrustyUISupportingServiceResource{}
 
 	// first reconciliation
 	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
@@ -68,9 +68,9 @@ func TestReconcileKogitoTrustyUI_CustomImage(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance}).OnOpenShift().Build()
 
-	r := &SupportingServiceResource{}
+	r := &TrustyUISupportingServiceResource{}
 	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
 	assert.False(t, requeue)

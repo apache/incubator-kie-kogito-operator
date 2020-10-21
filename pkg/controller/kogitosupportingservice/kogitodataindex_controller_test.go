@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sort"
 	"testing"
 )
@@ -55,10 +56,19 @@ func TestKogitoSupportingServiceDataIndex_Reconcile(t *testing.T) {
 		},
 	}
 
-	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka, kogitoInfinispan}, nil, nil)
-	r := &DataIndexSupportingServiceResource{}
+	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance, kogitoKafka, kogitoInfinispan}).OnOpenShift().Build()
+	r := &ReconcileKogitoDataIndex{
+		cli,
+		meta.GetRegisteredSchema(),
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+	}
 	// basic checks
-	_, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	_, err := r.Reconcile(req)
 	if err != nil {
 		t.Fatalf("reconcile: (%v)", err)
 	}
@@ -80,10 +90,20 @@ func TestReconcileKogitoSupportingServiceDataIndex_UpdateHTTPPort(t *testing.T) 
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
-	r := &DataIndexSupportingServiceResource{}
+	r := &ReconcileKogitoDataIndex{
+		cli,
+		meta.GetRegisteredSchema(),
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+	}
 
 	// first reconcile
-	_, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	result, err := r.Reconcile(req)
+	assert.NotNil(t, result)
 	assert.NoError(t, err)
 
 	// make sure HTTPPort env was added on the deployment
@@ -122,7 +142,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_UpdateHTTPPort(t *testing.T) 
 	err = kubernetes.ResourceC(cli).Update(routeFromResource)
 	assert.NoError(t, err)
 	// reconcile
-	_, err = r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	_, err = r.Reconcile(req)
 	assert.NoError(t, err)
 	// get the route after reconcile
 	routeAfterReconcile := &routev1.Route{}
@@ -145,7 +165,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_UpdateHTTPPort(t *testing.T) 
 	err = kubernetes.ResourceC(cli).Update(serviceFromResource)
 	assert.NoError(t, err)
 	// reconcile
-	_, err = r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	_, err = r.Reconcile(req)
 	assert.NoError(t, err)
 	// get the service after reconcile
 	serviceAfterReconcile := &corev1.Service{}
@@ -171,7 +191,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_mountProtoBufConfigMaps(t *te
 			fileName2: "This is another file",
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{cm}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{cm}).OnOpenShift().Build()
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: infrastructure.DefaultDataIndexName},
 		Spec: appsv1.DeploymentSpec{
@@ -227,9 +247,19 @@ func TestReconcileKogitoSupportingServiceDataIndex_MultipleProtoBufCMs(t *testin
 		},
 		Data: map[string]string{fileName2: "This is a protobuf file"},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, cm1, cm2}, nil, nil)
-	r := &DataIndexSupportingServiceResource{}
-	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
-	assert.False(t, requeue)
+	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance, cm1, cm2}).OnOpenShift().Build()
+	r := &ReconcileKogitoDataIndex{
+		cli,
+		meta.GetRegisteredSchema(),
+	}
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+	}
+	result, err := r.Reconcile(req)
+	assert.NotNil(t, result)
+	assert.False(t, result.Requeue)
 	assert.NoError(t, err)
 }

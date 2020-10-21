@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trustyai
+package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -49,9 +49,9 @@ func TestReconcileKogitoSupportingTrusty_Reconcile(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance, kogitoKafka}).OnOpenShift().Build()
 
-	r := &SupportingServiceResource{}
+	r := &TrustyAISupportingServiceResource{}
 	// basic checks
 	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
@@ -74,7 +74,7 @@ func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultTrustyImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
-	r := &SupportingServiceResource{}
+	r := &TrustyAISupportingServiceResource{}
 
 	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)

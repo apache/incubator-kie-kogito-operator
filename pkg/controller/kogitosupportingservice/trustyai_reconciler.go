@@ -12,45 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package jobsservice
+package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var log = logger.GetLogger("jobsservice_reconciler")
-
-// SupportingServiceResource implementation of SupportingServiceResource
-type SupportingServiceResource struct {
+// TrustyAISupportingServiceResource implementation of SupportingServiceResource
+type TrustyAISupportingServiceResource struct {
 }
 
-// Reconcile reconcile Jobs service
-func (*SupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
-	log.Infof("Reconciling KogitoJobsService for %s in %s", instance.Name, instance.Namespace)
-
-	// clean up variables if needed
-	if err := infrastructure.InjectJobsServicesURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
+// Reconcile reconcile TrustyAI Service
+func (*TrustyAISupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+	log.Info("Reconciling KogitoTrusty")
+	log.Infof("Injecting Trusty Index URL into KogitoApps in the namespace '%s'", instance.Namespace)
+	if err := infrastructure.InjectTrustyURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
 		return false, err
 	}
 	definition := services.ServiceDefinition{
-		DefaultImageName: infrastructure.DefaultJobsServiceImageName,
+		DefaultImageName: infrastructure.DefaultTrustyImageName,
 		Request:          controller.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}},
-		SingleReplica:    true,
+		KafkaTopics:      trustyAiKafkaTopics,
 		HealthCheckProbe: services.QuarkusHealthCheckProbe,
-		KafkaTopics:      kafkaTopics,
 	}
-
 	return services.NewServiceDeployer(definition, instance, client, scheme).Deploy()
 }
 
-// Collection of kafka topics that should be handled by the Jobs service
-var kafkaTopics = []string{
-	"kogito-job-service-job-status-events",
+// Collection of kafka topics that should be handled by the Trusty service
+var trustyAiKafkaTopics = []string{
+	"kogito-tracing-decision",
+	"kogito-tracing-model",
+	"trusty-explainability-result",
+	"trusty-explainability-request",
 }

@@ -9,7 +9,6 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.7
 	github.com/gobuffalo/packr/v2 v2.8.0
-	github.com/golangplus/testing v0.0.0-20180327235837-af21d9c3145e
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.8
 	github.com/infinispan/infinispan-operator v0.0.0-20200803092941-2b0528367f08
