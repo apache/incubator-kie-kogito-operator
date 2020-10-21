@@ -10,7 +10,7 @@ require (
 	github.com/go-openapi/spec v0.19.7
 	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/google/uuid v1.1.1
-	github.com/imdario/mergo v0.3.8
+	github.com/imdario/mergo v0.3.9
 	github.com/infinispan/infinispan-operator v0.0.0-20200803092941-2b0528367f08
 	github.com/karrick/godirwalk v1.15.6 // indirect
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
@@ -22,22 +22,21 @@ require (
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/operator-framework/operator-sdk v0.18.2
 	github.com/rogpeppe/go-internal v1.6.1 // indirect
-	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
-	go.uber.org/zap v1.14.1
-	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
-	golang.org/x/sys v0.0.0-20200802091954-4b90ce9b60b3 // indirect
+	go.uber.org/zap v1.15.0
 	golang.org/x/tools v0.0.0-20200916195026-c9a70fc28ce3 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
-	k8s.io/api v0.18.4
-	k8s.io/apiextensions-apiserver v0.18.3
-	k8s.io/apimachinery v0.18.4
+	k8s.io/api v0.18.8
+	k8s.io/apiextensions-apiserver v0.18.4
+	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
-	sigs.k8s.io/controller-runtime v0.6.0
+	k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29
+	knative.dev/eventing v0.18.0
+	knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab
+	sigs.k8s.io/controller-runtime v0.6.1
 )
 
 replace (

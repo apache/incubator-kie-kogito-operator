@@ -17,6 +17,7 @@ package services
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"time"
@@ -38,7 +39,10 @@ import (
 var log = logger.GetLogger("services_definition")
 
 const (
-	reconciliationPeriodAfterSingletonError = time.Minute
+	reconciliationPeriodAfterSingletonError            = time.Minute
+	reconciliationPeriodAfterInfraError                = time.Minute
+	reconciliationPeriodAfterMessagingError            = time.Second * 30
+	reconciliationPeriodMonitoringEndpointNotAvailable = time.Second * 10
 )
 
 // ServiceDefinition defines the structure for a Kogito Service
@@ -169,6 +173,10 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		}
 	}
 
+	if reconcileAfter, err = s.checkInfraDependencies(); err != nil || reconcileAfter > 0 {
+		return
+	}
+
 	// create our resources
 	requestedResources, reconcileAfter, err := s.createRequiredResources()
 	if err != nil {
@@ -207,7 +215,14 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
 	}
-	reconcileAfter, err = configurePrometheus(s.client, s.instance, s.scheme)
+
+	reconcileAfter, err = s.configureMonitoring()
+	if err != nil || reconcileAfter > 0 {
+		return
+	}
+
+	reconcileAfter, err = s.configureMessaging()
+
 	return
 }
 
@@ -250,18 +265,6 @@ func (s *serviceDeployer) ensureSingletonService() (exists bool, err error) {
 	return s.instanceList.GetItemsCount() > 0, nil
 }
 
-func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *error) {
-	log.Infof("Updating status for Kogito Service %s", instance.GetName())
-	if statusErr := s.manageStatus(*err); statusErr != nil {
-		// this error will return to the operator console
-		err = &statusErr
-	}
-	log.Infof("Successfully reconciled Kogito Service %s", instance.GetName())
-	if *err != nil {
-		log.Errorf("Error while creating kogito service: %v", *err)
-	}
-}
-
 func (s *serviceDeployer) takeCustomConfigMapOwnership() (time.Duration, error) {
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Name: s.instance.GetSpec().GetPropertiesConfigMap(), Namespace: s.getNamespace()},
@@ -284,6 +287,18 @@ func (s *serviceDeployer) takeCustomConfigMapOwnership() (time.Duration, error) 
 	return time.Second * 15, nil
 }
 
+func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *error) {
+	log.Infof("Updating status for Kogito Service %s", instance.GetName())
+	if statusErr := s.manageStatus(*err); statusErr != nil {
+		// this error will return to the operator console
+		err = &statusErr
+	}
+	log.Infof("Successfully reconciled Kogito Service %s", instance.GetName())
+	if *err != nil {
+		log.Errorf("Error while creating kogito service: %v", *err)
+	}
+}
+
 func (s *serviceDeployer) update() error {
 	// Sanity check since the Status CR needs a reference for the object
 	if s.instance.GetStatus() != nil && s.instance.GetStatus().GetConditions() == nil {
@@ -294,4 +309,40 @@ func (s *serviceDeployer) update() error {
 		return err
 	}
 	return nil
+}
+
+// checkInfraDependencies verifies if every KogitoInfra resource have an ok status.
+func (s *serviceDeployer) checkInfraDependencies() (time.Duration, error) {
+	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
+	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
+	for _, infraName := range kogitoInfraReferences {
+		infra, err := infrastructure.MustFetchKogitoInfraInstance(s.client, infraName, s.instance.GetNamespace())
+		if err != nil {
+			return 0, err
+		}
+		if infra.Status.Condition.Type == v1alpha1.FailureInfraConditionType {
+			s.instance.GetStatus().SetFailed(
+				v1alpha1.KogitoInfraNotReadyReason,
+				fmt.Errorf("KogitoService '%s' is waiting for infra dependency; skipping deployment; KogitoInfra not ready: %s; Status: %s",
+					s.instance.GetName(), infra.Name, infra.Status.Condition.Reason))
+			return reconciliationPeriodAfterInfraError, nil
+		}
+	}
+	return 0, nil
+}
+
+func (s *serviceDeployer) configureMessaging() (time.Duration, error) {
+	if err := handleMessagingResources(s.client, s.scheme, s.definition, s.instance); err != nil {
+		return reconciliationPeriodAfterMessagingError, err
+	}
+	return 0, nil
+}
+
+func (s *serviceDeployer) configureMonitoring() (time.Duration, error) {
+	if failedVerifyAddon, err := configurePrometheus(s.client, s.instance, s.scheme); err != nil {
+		return 0, err
+	} else if failedVerifyAddon {
+		return reconciliationPeriodMonitoringEndpointNotAvailable, nil
+	}
+	return 0, nil
 }

@@ -30,15 +30,16 @@ import (
 
 // FakeClientBuilder create client object for tests
 type FakeClientBuilder interface {
-	AddK8sObjects(objects []runtime.Object) FakeClientBuilder
-	AddImageObjects(imageObjs []runtime.Object) FakeClientBuilder
-	AddBuildObjects(buildObjs []runtime.Object) FakeClientBuilder
+	AddK8sObjects(objects ...runtime.Object) FakeClientBuilder
+	AddImageObjects(imageObjs ...runtime.Object) FakeClientBuilder
+	AddBuildObjects(buildObjs ...runtime.Object) FakeClientBuilder
 	OnOpenShift() FakeClientBuilder
 	SupportPrometheus() FakeClientBuilder
 	Build() *client.Client
 }
 
-// NewFakeClientBuilder provide new object FakeClientBuilder
+// NewFakeClientBuilder provides new object FakeClientBuilder to build a FakeClient.
+// Usage: NewFakeClientBuilder().AddK8sObjects(obj1, obj2).Build()
 func NewFakeClientBuilder() FakeClientBuilder {
 	return &fakeClientStruct{}
 }
@@ -52,19 +53,19 @@ type fakeClientStruct struct {
 }
 
 // AddK8sObjects ...
-func (f *fakeClientStruct) AddK8sObjects(objects []runtime.Object) FakeClientBuilder {
+func (f *fakeClientStruct) AddK8sObjects(objects ...runtime.Object) FakeClientBuilder {
 	f.objects = objects
 	return f
 }
 
 // AddImageObjects add image objects
-func (f *fakeClientStruct) AddImageObjects(imageObjs []runtime.Object) FakeClientBuilder {
+func (f *fakeClientStruct) AddImageObjects(imageObjs ...runtime.Object) FakeClientBuilder {
 	f.imageObjs = imageObjs
 	return f
 }
 
 // AddBuildObjects add build object
-func (f *fakeClientStruct) AddBuildObjects(buildObjs []runtime.Object) FakeClientBuilder {
+func (f *fakeClientStruct) AddBuildObjects(buildObjs ...runtime.Object) FakeClientBuilder {
 	f.buildObjs = buildObjs
 	return f
 }
@@ -98,13 +99,15 @@ func (f *fakeClientStruct) Build() *client.Client {
 }
 
 // CreateFakeClient will create a fake client for mock test on Kubernetes env, use cases that depends on OpenShift should use CreateFakeClientOnOpenShift
+// Deprecated: use NewFakeClientBuilder().Build() instead.
 func CreateFakeClient(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
-	return NewFakeClientBuilder().AddK8sObjects(objects).AddImageObjects(imageObjs).AddBuildObjects(buildObjs).Build()
+	return NewFakeClientBuilder().AddK8sObjects(objects...).AddImageObjects(imageObjs...).AddBuildObjects(buildObjs...).Build()
 }
 
 // CreateFakeClientOnOpenShift same as CreateFakeClientWithDisco setting openshift flag to true
+// Deprecated: use NewFakeClientBuilder().OnOpenShift().Build() instead.
 func CreateFakeClientOnOpenShift(objects []runtime.Object, imageObjs []runtime.Object, buildObjs []runtime.Object) *client.Client {
-	return NewFakeClientBuilder().AddK8sObjects(objects).AddImageObjects(imageObjs).AddBuildObjects(buildObjs).OnOpenShift().Build()
+	return NewFakeClientBuilder().AddK8sObjects(objects...).AddImageObjects(imageObjs...).AddBuildObjects(buildObjs...).OnOpenShift().Build()
 }
 
 // CreateFakeDiscoveryClient creates a fake discovery client that supports prometheus, infinispan, strimzi api
