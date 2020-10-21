@@ -52,9 +52,9 @@ func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) 
 	r := &ExplainabilitySupportingServiceResource{}
 
 	// basic checks
-	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 }
 
 func TestReconcileKogitoSupportingServiceExplainability_UpdateHTTPPort(t *testing.T) {
@@ -75,9 +75,9 @@ func TestReconcileKogitoSupportingServiceExplainability_UpdateHTTPPort(t *testin
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	r := &ExplainabilitySupportingServiceResource{}
 
-	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 
 	// make sure HTTPPort env was added on the deployment
 	deployment := &appsv1.Deployment{}

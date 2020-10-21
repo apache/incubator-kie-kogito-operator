@@ -34,8 +34,8 @@ func (*JobsServiceSupportingServiceResource) Reconcile(client *client.Client, in
 	log.Infof("Reconciling KogitoJobsService for %s in %s", instance.Name, instance.Namespace)
 
 	// clean up variables if needed
-	if err := infrastructure.InjectJobsServicesURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
-		return false, err
+	if err = infrastructure.InjectJobsServicesURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
+		return
 	}
 	definition := services.ServiceDefinition{
 		DefaultImageName: infrastructure.DefaultJobsServiceImageName,

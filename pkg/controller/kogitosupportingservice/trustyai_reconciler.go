@@ -33,8 +33,8 @@ type TrustyAISupportingServiceResource struct {
 func (*TrustyAISupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Info("Reconciling KogitoTrusty")
 	log.Infof("Injecting Trusty Index URL into KogitoApps in the namespace '%s'", instance.Namespace)
-	if err := infrastructure.InjectTrustyURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
-		return false, err
+	if err = infrastructure.InjectTrustyURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
+		return
 	}
 	definition := services.ServiceDefinition{
 		DefaultImageName: infrastructure.DefaultTrustyImageName,

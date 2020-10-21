@@ -41,13 +41,13 @@ func TestReconcileKogitoSupportingServiceTrustyUI_Reconcile(t *testing.T) {
 	r := &TrustyUISupportingServiceResource{}
 
 	// first reconciliation
-	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 	// second time
-	requeue, err = r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	requeueAfter, err = r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 
 	_, err = kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
@@ -71,9 +71,9 @@ func TestReconcileKogitoTrustyUI_CustomImage(t *testing.T) {
 	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance}).OnOpenShift().Build()
 
 	r := &TrustyUISupportingServiceResource{}
-	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 
 	// image stream
 	is := imagev1.ImageStream{

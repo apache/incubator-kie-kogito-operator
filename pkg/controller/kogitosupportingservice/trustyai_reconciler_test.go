@@ -53,9 +53,9 @@ func TestReconcileKogitoSupportingTrusty_Reconcile(t *testing.T) {
 
 	r := &TrustyAISupportingServiceResource{}
 	// basic checks
-	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 }
 
 func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
@@ -76,9 +76,9 @@ func TestReconcileKogitoTrusty_UpdateHTTPPort(t *testing.T) {
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
 	r := &TrustyAISupportingServiceResource{}
 
-	requeue, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
+	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 
 	// make sure HTTPPort env was added on the deployment
 	deployment := &appsv1.Deployment{}

@@ -187,9 +187,6 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      i.supportingService.serviceName,
 			Namespace: i.flags.Project,
-			Annotations: map[string]string{
-				v1alpha1.SupportingServiceAnnotationKey: string(i.supportingService.serviceType),
-			},
 		},
 		Spec: v1alpha1.KogitoSupportingServiceSpec{
 			ServiceType: i.supportingService.serviceType,
