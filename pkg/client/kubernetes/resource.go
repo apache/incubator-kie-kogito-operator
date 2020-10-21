@@ -17,6 +17,9 @@ package kubernetes
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
@@ -31,6 +34,11 @@ type ResourceInterface interface {
 	ResourceWriter
 	// CreateIfNotExists will fetch for the object resource in the Kubernetes cluster, if not exists, will create it.
 	CreateIfNotExists(resource meta.ResourceObject) (exists bool, err error)
+	// CreateIfNotExistsForOwner sets the controller owner to the given resource and creates if it not exists.
+	// If the given resource exists, won't update the object with the given owner.
+	CreateIfNotExistsForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) (bool, error)
+	// CreateForOwner sets the controller owner to the given resource and creates the resource.
+	CreateForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) error
 	// CreateFromYamlContent creates Kubernetes resources from a yaml string content
 	CreateFromYamlContent(yamlContent, namespace string, resourceRef meta.ResourceObject, beforeCreate func(object interface{})) error
 }
@@ -65,6 +73,25 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error)
 	}
 	log.Debug("Skip creating - object already exists")
 	return false, nil
+}
+
+func (r *resource) CreateIfNotExistsForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) (bool, error) {
+	err := controllerutil.SetControllerReference(owner, resource, scheme)
+	if err != nil {
+		return false, err
+	}
+	return r.CreateIfNotExists(resource)
+}
+
+func (r *resource) CreateForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) error {
+	err := controllerutil.SetControllerReference(owner, resource, scheme)
+	if err != nil {
+		return err
+	}
+	if err := r.ResourceWriter.Create(resource); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, resourceRef meta.ResourceObject, beforeCreate func(object interface{})) error {

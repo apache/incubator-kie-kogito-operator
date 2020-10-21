@@ -12,27 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kafka
+package framework
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	v1 "k8s.io/api/apps/v1"
+	"sort"
 )
 
-func updateAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
-	appProps, err := getKafkaAppProps(kafkaInstance)
-	if err != nil {
-		return err
+// GetLatestDeploymentCondition returns the latest condition of the array based on the LastUpdateTime field
+func GetLatestDeploymentCondition(conditions []v1.DeploymentCondition) *v1.DeploymentCondition {
+	if len(conditions) == 0 {
+		return nil
 	}
-	instance.Status.AppProps = appProps
-	return nil
-}
-
-func updateEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
-	envVars, err := getKafkaEnvVars(kafkaInstance)
-	if err != nil {
-		return err
-	}
-	instance.Status.Env = envVars
-	return nil
+	sort.Slice(conditions, func(i, j int) bool {
+		return conditions[i].LastUpdateTime.Before(&conditions[j].LastUpdateTime)
+	})
+	return &conditions[len(conditions)-1]
 }

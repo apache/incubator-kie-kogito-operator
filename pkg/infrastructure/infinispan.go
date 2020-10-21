@@ -40,7 +40,7 @@ const (
 	// InfinispanIdentityFileName is the name of YAML file containing list of Infinispan credentials
 	InfinispanIdentityFileName = "identities.yaml"
 
-	// InfinispanKind refers to infinispan Kind
+	// InfinispanKind CRD Kind for Infinispan server (as defined by Infinispan Operator)
 	InfinispanKind = "Infinispan"
 
 	// InfinispanInstanceName is the default name for Infinispan managed by KogitoInfra
