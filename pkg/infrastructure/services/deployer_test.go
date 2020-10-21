@@ -50,9 +50,9 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 		Request:          GetRequest(t.Name()),
 	}
 	deployer := NewServiceDeployer(definition, service, cli, meta.GetRegisteredSchema())
-	requeue, err := deployer.Deploy()
+	requeueAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
-	assert.False(t, requeue)
+	assert.True(t, requeueAfter == 0)
 
 	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)

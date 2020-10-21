@@ -22,11 +22,6 @@ import (
 type ServiceType string
 
 const (
-	//SupportingServiceAnnotationKey is the key, needs to be defined when creating kogitoSupportingService
-	SupportingServiceAnnotationKey = "org.kie.kogito/supportServiceType"
-)
-
-const (
 	// DataIndex supporting service resource type
 	DataIndex ServiceType = "DataIndex"
 	// JobsService supporting service resource type
@@ -117,24 +112,6 @@ func (l *KogitoSupportingServiceList) GetItemAt(index int) KogitoService {
 		return KogitoService(&l.Items[index])
 	}
 	return nil
-}
-
-// SetAnnotations overwrite the main function
-func (k *KogitoSupportingService) SetAnnotations(annotations map[string]string) {
-	if annotations == nil {
-		annotations = map[string]string{}
-	}
-	annotations[SupportingServiceAnnotationKey] = string(k.Spec.ServiceType)
-	k.Annotations = annotations
-}
-
-// GetAnnotations overwrite the main function
-func (k *KogitoSupportingService) GetAnnotations() map[string]string {
-	if k.Annotations == nil {
-		k.Annotations = map[string]string{}
-	}
-	k.Annotations[SupportingServiceAnnotationKey] = string(k.Spec.ServiceType)
-	return k.Annotations
 }
 
 func init() {

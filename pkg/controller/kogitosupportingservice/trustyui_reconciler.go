@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 // TrustyUISupportingServiceResource implementation of SupportingServiceResource
@@ -30,7 +31,7 @@ type TrustyUISupportingServiceResource struct {
 }
 
 // Reconcile reconcile TrustyUI Service
-func (*TrustyUISupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+func (*TrustyUISupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Infof("Reconciling KogitoTrustyUI for %s in %s", instance.Name, instance.Namespace)
 	definition := services.ServiceDefinition{
 		DefaultImageName:   infrastructure.DefaultTrustyUIImageName,

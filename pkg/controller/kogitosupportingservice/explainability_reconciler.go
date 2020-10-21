@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 // ExplainabilitySupportingServiceResource implementation of SupportingServiceResource
@@ -29,7 +30,7 @@ type ExplainabilitySupportingServiceResource struct {
 }
 
 // Reconcile reconcile Explainability Service
-func (*ExplainabilitySupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+func (*ExplainabilitySupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Info("Reconciling KogitoExplainability")
 	definition := services.ServiceDefinition{
 		DefaultImageName: infrastructure.DefaultExplainabilityImageName,

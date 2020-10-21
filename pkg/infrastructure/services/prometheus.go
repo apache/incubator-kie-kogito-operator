@@ -26,11 +26,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
+	"time"
 )
 
 const prometheusServerGroup = "monitoring.coreos.com"
 
-func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (err error) {
+func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	prometheusAvailable := isPrometheusAvailable(client)
 	if !prometheusAvailable {
 		log.Debugf("prometheus operator not available in namespace")
@@ -48,7 +49,7 @@ func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoSer
 
 	prometheusAddOnAvailable, err := isPrometheusAddOnAvailable(kogitoService)
 	if err != nil {
-		return
+		return time.Second * 10, nil
 	}
 	if prometheusAddOnAvailable {
 		if err = createPrometheusServiceMonitorIfNotExists(client, kogitoService, scheme); err != nil {

@@ -33,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
 )
 
 var log = logger.GetLogger("kogitoruntime_controller")
@@ -108,7 +107,7 @@ type ReconcileKogitoRuntime struct {
 func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (result reconcile.Result, err error) {
 	log.Infof("Reconciling KogitoRuntime for %s in %s", request.Name, request.Namespace)
 
-	instance, err := fetchKogitoRuntimeService(r.client, request.Name, request.Namespace)
+	instance, err := infrastructure.FetchKogitoRuntimeService(r.client, request.Name, request.Namespace)
 	if err != nil {
 		return
 	}
@@ -122,14 +121,13 @@ func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (result re
 		OnGetComparators:   onGetComparators,
 		CustomService:      true,
 	}
-	requeue, err := services.NewServiceDeployer(definition, instance, r.client, r.scheme).Deploy()
+	requeueAfter, err := services.NewServiceDeployer(definition, instance, r.client, r.scheme).Deploy()
 	if err != nil {
 		return
 	}
-
-	if requeue {
+	if requeueAfter > 0 {
 		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
-		result.RequeueAfter = time.Second * 30
+		result.RequeueAfter = requeueAfter
 		result.Requeue = true
 	}
 	return

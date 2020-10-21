@@ -15,11 +15,13 @@
 package infrastructure
 
 import (
+	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -64,4 +66,19 @@ func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1
 		}
 	}
 	return kdcs, nil
+}
+
+// FetchKogitoRuntimeService provide KogitoRuntime instance for given name and namespace
+func FetchKogitoRuntimeService(client *client.Client, name string, namespace string) (*v1alpha1.KogitoRuntime, error) {
+	log.Debugf("going to fetch deployed kogito runtime service instance %s in namespace %s", name, namespace)
+	instance := &v1alpha1.KogitoRuntime{}
+	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
+		log.Errorf("Error occurs while fetching deployed kogito runtime service instance %s", name)
+		return nil, resultErr
+	} else if !exists {
+		return nil, fmt.Errorf("kogito runtime service resource with name %s not found in namespace %s", name, namespace)
+	} else {
+		log.Debugf("Successfully fetch deployed kogito runtime reference %s", name)
+		return instance, nil
+	}
 }

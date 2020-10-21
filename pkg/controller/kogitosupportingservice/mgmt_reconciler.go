@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 // MgmtConsoleSupportingServiceResource implementation of SupportingServiceResource
@@ -30,7 +31,7 @@ type MgmtConsoleSupportingServiceResource struct {
 }
 
 // Reconcile reconcile Management Console
-func (*MgmtConsoleSupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+func (*MgmtConsoleSupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Infof("Reconciling KogitoMgmtConsole for %s in %s", instance.Name, instance.Namespace)
 	definition := services.ServiceDefinition{
 		DefaultImageName:   infrastructure.DefaultMgmtConsoleImageName,

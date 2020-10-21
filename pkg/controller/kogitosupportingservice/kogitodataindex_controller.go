@@ -15,25 +15,23 @@
 package kogitosupportingservice
 
 import (
+	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"path"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"time"
-
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"path"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	controller1 "sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -127,7 +125,7 @@ func addDataIndex(mgr manager.Manager, r reconcile.Reconciler) error {
 		},
 		{
 			Objects:      []runtime.Object{&appv1alpha1.KogitoInfra{}},
-			Eventhandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1alpha1.KogitoSupportingService{}},
+			EventHandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1alpha1.KogitoSupportingService{}},
 			Predicate: predicate.Funcs{
 				UpdateFunc: func(e event.UpdateEvent) bool {
 					return isKogitoInfraUpdated(e.ObjectOld.(*appv1alpha1.KogitoInfra), e.ObjectNew.(*appv1alpha1.KogitoInfra))
@@ -187,15 +185,15 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 		Request:            controller1.Request{NamespacedName: types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}},
 		HealthCheckProbe:   services.QuarkusHealthCheckProbe,
 	}
-	requeue, resultErr := services.NewServiceDeployer(definition, instance, r.client, r.scheme).Deploy()
+	requeueAfter, resultErr := services.NewServiceDeployer(definition, instance, r.client, r.scheme).Deploy()
 
 	if resultErr != nil {
 		return
 	}
 
-	if requeue {
+	if requeueAfter > 0 {
 		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
-		result.RequeueAfter = time.Second * 30
+		result.RequeueAfter = requeueAfter
 		result.Requeue = true
 	}
 	return

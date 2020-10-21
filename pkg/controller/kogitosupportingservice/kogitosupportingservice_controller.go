@@ -100,7 +100,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		},
 		{
 			Objects:      []runtime.Object{&v1alpha1.KogitoInfra{}},
-			Eventhandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1alpha1.KogitoSupportingService{}},
+			EventHandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1alpha1.KogitoSupportingService{}},
 			Predicate: predicate.Funcs{
 				UpdateFunc: func(e event.UpdateEvent) bool {
 					return isKogitoInfraUpdated(e.ObjectOld.(*v1alpha1.KogitoInfra), e.ObjectNew.(*v1alpha1.KogitoInfra))
@@ -150,14 +150,14 @@ func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) 
 
 	supportingResource := getKogitoSupportingResource(instance)
 
-	requeue, resultErr := supportingResource.Reconcile(r.client, instance, r.scheme)
+	requeueAfter, resultErr := supportingResource.Reconcile(r.client, instance, r.scheme)
 	if resultErr != nil {
 		return
 	}
 
-	if requeue {
+	if requeueAfter > 0 {
 		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
-		result.RequeueAfter = time.Second * 30
+		result.RequeueAfter = requeueAfter
 		result.Requeue = true
 	}
 	return
@@ -235,5 +235,5 @@ func isKogitoInfraUpdated(oldKogitoInfra, newKogitoInfra *v1alpha1.KogitoInfra) 
 
 // SupportingServiceResource Interface to represent type of kogito supporting service resources like JobsService & MgmtConcole
 type SupportingServiceResource interface {
-	Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, resultErr error)
+	Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, resultErr error)
 }

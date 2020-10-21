@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 // TrustyAISupportingServiceResource implementation of SupportingServiceResource
@@ -29,7 +30,7 @@ type TrustyAISupportingServiceResource struct {
 }
 
 // Reconcile reconcile TrustyAI Service
-func (*TrustyAISupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+func (*TrustyAISupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Info("Reconciling KogitoTrusty")
 	log.Infof("Injecting Trusty Index URL into KogitoApps in the namespace '%s'", instance.Namespace)
 	if err := infrastructure.InjectTrustyURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {

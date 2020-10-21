@@ -21,6 +21,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
+	"time"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -75,7 +76,7 @@ const (
 // ServiceDeployer is the API to handle a Kogito Service deployment by Operator SDK controllers
 type ServiceDeployer interface {
 	// Deploy deploys the Kogito Service in the Kubernetes cluster according to a given ServiceDefinition
-	Deploy() (requeue bool, err error)
+	Deploy() (reconcileAfter time.Duration, err error)
 }
 
 // NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
@@ -110,7 +111,7 @@ type serviceDeployer struct {
 
 func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Namespace }
 
-func (s *serviceDeployer) Deploy() (requeue bool, err error) {
+func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	if s.instance.GetSpec().GetReplicas() == nil {
 		s.instance.GetSpec().SetReplicas(defaultReplicas)
 	}
@@ -123,10 +124,8 @@ func (s *serviceDeployer) Deploy() (requeue bool, err error) {
 
 	// we need to take ownership of the custom configmap provided
 	if len(s.instance.GetSpec().GetPropertiesConfigMap()) > 0 {
-		requeue, err = s.takeCustomConfigMapOwnership()
-		if err != nil {
-			return
-		} else if requeue {
+		reconcileAfter, err = s.takeCustomConfigMapOwnership()
+		if err != nil || reconcileAfter > 0 {
 			return
 		}
 	}
@@ -175,7 +174,7 @@ func (s *serviceDeployer) Deploy() (requeue bool, err error) {
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
 	}
-	err = configurePrometheus(s.client, s.instance, s.scheme)
+	reconcileAfter, err = configurePrometheus(s.client, s.instance, s.scheme)
 	return
 }
 
@@ -197,7 +196,7 @@ func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *err
 	}
 }
 
-func (s *serviceDeployer) takeCustomConfigMapOwnership() (requeue bool, err error) {
+func (s *serviceDeployer) takeCustomConfigMapOwnership() (requeueAfter time.Duration, err error) {
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Name: s.instance.GetSpec().GetPropertiesConfigMap(), Namespace: s.getNamespace()},
 	}
@@ -218,7 +217,7 @@ func (s *serviceDeployer) takeCustomConfigMapOwnership() (requeue bool, err erro
 	if err = kubernetes.ResourceC(s.client).Update(cm); err != nil {
 		return
 	}
-	return true, nil
+	return time.Second * 15, nil
 }
 
 func (s *serviceDeployer) takeKogitoInfraOwnership() (err error) {

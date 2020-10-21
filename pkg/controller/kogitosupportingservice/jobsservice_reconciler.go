@@ -22,6 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 // JobsServiceSupportingServiceResource implementation of SupportingServiceResource
@@ -29,7 +30,7 @@ type JobsServiceSupportingServiceResource struct {
 }
 
 // Reconcile reconcile Jobs service
-func (*JobsServiceSupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (requeue bool, err error) {
+func (*JobsServiceSupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Infof("Reconciling KogitoJobsService for %s in %s", instance.Name, instance.Namespace)
 
 	// clean up variables if needed
