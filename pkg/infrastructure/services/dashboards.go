@@ -25,8 +25,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
-type messageTopicKind string
-
 // GrafanaDashboard todo
 type GrafanaDashboard struct {
 	Name             string
