@@ -16,10 +16,12 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"time"
+
+	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
 	v1 "k8s.io/api/core/v1"
@@ -84,8 +86,9 @@ type ServiceDefinition struct {
 }
 
 const (
-	defaultReplicas             = int32(1)
-	serviceDoesNotExistsMessage = "Kogito Service '%s' does not exists, aborting deployment"
+	defaultReplicas                          = int32(1)
+	serviceDoesNotExistsMessage              = "Kogito Service '%s' does not exists, aborting deployment"
+	reconciliationPeriodAfterDashboardsError = time.Second * 30
 )
 
 // ServiceDeployer is the API to handle a Kogito Service deployment by Operator SDK controllers
@@ -207,8 +210,40 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
 	}
+
 	reconcileAfter, err = configurePrometheus(s.client, s.instance, s.scheme)
+	if err != nil || reconcileAfter > 0 {
+		return
+	}
+
+	reconcileAfter, err = s.deployGrafanaDashboards()
+
 	return
+}
+
+func (s *serviceDeployer) deployGrafanaDashboards() (time.Duration, error) {
+	dashboards, err := FetchGrafanaDashboards(s.client, s.instance)
+	if err != nil {
+		return reconciliationPeriodAfterDashboardsError, err
+	}
+
+	for _, dashboard := range dashboards {
+		dashboardDefinition := &grafanav1.GrafanaDashboard{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      dashboard.Name + "Dashboard",
+				Namespace: s.getNamespace(),
+			},
+			Spec: grafanav1.GrafanaDashboardSpec{
+				Json: dashboard.RawJSONDashboard,
+				Name: dashboard.Name,
+			},
+		}
+		if err := kubernetes.ResourceC(s.client).Create(dashboardDefinition); err != nil {
+			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name)
+		}
+		log.Debug("%s successfully created", dashboardDefinition)
+	}
+	return 0, nil
 }
 
 func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, resourceType reflect.Type, addedResources []resource.KubernetesResource) {

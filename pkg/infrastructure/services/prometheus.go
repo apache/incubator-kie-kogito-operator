@@ -15,6 +15,9 @@
 package services
 
 import (
+	"net/http"
+	"time"
+
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -25,8 +28,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
-	"time"
 )
 
 const prometheusServerGroup = "monitoring.coreos.com"
@@ -38,7 +39,7 @@ func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoSer
 		return
 	}
 
-	deploymentAvailable, err := isDeploymentAvailable(client, kogitoService.GetName(), kogitoService.GetNamespace())
+	deploymentAvailable, err := isDeploymentAvailable(client, kogitoService)
 	if err != nil {
 		return
 	}
@@ -66,11 +67,7 @@ func isPrometheusAvailable(client *client.Client) bool {
 }
 
 func isPrometheusAddOnAvailable(kogitoService v1alpha1.KogitoService) (bool, error) {
-	url, err := infrastructure.CreateKogitoServiceURI(kogitoService.GetName(), kogitoService.GetNamespace())
-	if err != nil {
-		return false, err
-	}
-
+	url := infrastructure.CreateKogitoServiceURI(kogitoService)
 	url = url + getMonitoringPath(kogitoService.GetSpec().GetMonitoring())
 	if resp, err := http.Get(url); err != nil {
 		return false, err

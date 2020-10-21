@@ -15,6 +15,8 @@
 package services
 
 import (
+	"strconv"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -22,7 +24,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strconv"
 )
 
 const (
@@ -110,8 +111,12 @@ func setHTTPPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
 	kogitoService.GetSpec().SetEnvs(modifiedEnv)
 }
 
-func isDeploymentAvailable(cli *client.Client, name, namespace string) (bool, error) {
-	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace}}
+func isDeploymentAvailable(cli *client.Client, kogitoService v1alpha1.KogitoService) (bool, error) {
+	// service's deployment hasn't been deployed yet, no need to fetch
+	if len(kogitoService.GetStatus().GetDeploymentConditions()) == 0 {
+		return false, nil
+	}
+	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: kogitoService.GetName(), Namespace: kogitoService.GetNamespace()}}
 	if _, err := kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
 		return false, err
 	}
