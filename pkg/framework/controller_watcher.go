@@ -39,6 +39,8 @@ type WatchedObjects struct {
 	Owner runtime.Object
 	//Predicate on the object for filtering of the events
 	Predicate predicate.Funcs
+
+	Eventhandler handler.EventHandler
 }
 
 // ControllerWatcher helps to add required objects to the controller watch list given the required runtime objects
@@ -121,7 +123,14 @@ func (c *controllerWatcher) Watch(watchedObjects ...WatchedObjects) (err error) 
 	for _, desiredObject := range desiredObjects {
 		for _, runtimeObj := range desiredObject.Objects {
 			if desiredObject.Owner == nil {
-				if err = c.controller.Watch(&source.Kind{Type: runtimeObj}, ownerHandler, desiredObject.Predicate); err != nil {
+				if desiredObject.Eventhandler != nil {
+					if err = c.controller.Watch(
+						&source.Kind{Type: runtimeObj},
+						desiredObject.Eventhandler,
+						desiredObject.Predicate); err != nil {
+						return
+					}
+				} else if err = c.controller.Watch(&source.Kind{Type: runtimeObj}, ownerHandler, desiredObject.Predicate); err != nil {
 					return
 				}
 			} else {

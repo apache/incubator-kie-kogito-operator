@@ -93,7 +93,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			AddToScheme:  imgv1.Install,
 			Objects:      []runtime.Object{&imgv1.ImageStream{}},
 		},
-		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}, &appv1alpha1.KogitoInfra{}}},
+		{
+			Objects:      []runtime.Object{&appv1alpha1.KogitoInfra{}},
+			Eventhandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1alpha1.KogitoSupportingService{}},
+		},
+		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
 	}
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
@@ -118,14 +122,17 @@ type ReconcileKogitoSupportingService struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
-	log.Infof("Reconciling KogitoSupportingService for %s in %s", request.Name, request.Namespace)
 	// Fetch the KogitoSupportingService instance
 	instance, resultErr := fetchKogitoSupportingService(r.client, request.Name, request.Namespace)
 	if resultErr != nil {
 		return
 	}
-	log.Debugf("Going to reconcile resource of type %s", instance.Spec.ServiceType)
 
+	if contains(ignoreServices, instance.Spec.ServiceType) {
+		return
+	}
+	log.Infof("Reconciling KogitoSupportingService for %s in %s", request.Name, request.Namespace)
+	log.Debugf("Going to reconcile resource of type %s", instance.Spec.ServiceType)
 	if resultErr = ensureSingletonService(r.client, request.Namespace, instance.Spec.ServiceType); resultErr != nil {
 		return
 	}

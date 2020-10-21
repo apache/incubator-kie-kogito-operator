@@ -107,6 +107,10 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 		return reconcile.Result{}, resultErr
 	}
 
+	if resultErr = framework.AddOwnerReference(instance, r.scheme, instance); resultErr != nil {
+		return reconcile.Result{}, resultErr
+	}
+
 	defer updateBaseStatus(r.client, instance, &resultErr)
 
 	infraResource, resultErr := GetKogitoInfraResource(instance)

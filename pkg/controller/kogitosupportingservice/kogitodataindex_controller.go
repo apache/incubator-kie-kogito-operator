@@ -47,7 +47,7 @@ func AddDataIndex(mgr manager.Manager) error {
 
 // newDataIndexReconciler returns a new reconcile.Reconciler
 func newDataIndexReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileKogitoSupportingService{client: client.NewForController(mgr.GetConfig()), scheme: mgr.GetScheme()}
+	return &ReconcileKogitoDataIndex{client: client.NewForController(mgr.GetConfig()), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -78,7 +78,7 @@ func addDataIndex(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoSupportingService).client, mgr, c, &appv1alpha1.KogitoSupportingService{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoDataIndex).client, mgr, c, &appv1alpha1.KogitoSupportingService{})
 	watchedObjects := []framework.WatchedObjects{
 		{
 			GroupVersion: routev1.GroupVersion,
@@ -95,7 +95,11 @@ func addDataIndex(mgr manager.Manager, r reconcile.Reconciler) error {
 			Objects:      []runtime.Object{&corev1.ConfigMap{}},
 			Owner:        &appv1alpha1.KogitoRuntime{},
 		},
-		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}, &appv1alpha1.KogitoInfra{}}},
+		{
+			Objects:      []runtime.Object{&appv1alpha1.KogitoInfra{}},
+			Eventhandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1alpha1.KogitoSupportingService{}},
+		},
+		{Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}}},
 	}
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
@@ -103,10 +107,10 @@ func addDataIndex(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// blank assignment to verify that ReconcileKogitoSupportingService implements reconcile.Reconciler
+// blank assignment to verify that ReconcileKogitoDataIndex implements reconcile.Reconciler
 var _ reconcile.Reconciler = &ReconcileKogitoDataIndex{}
 
-// ReconcileKogitoSupportingService reconciles a KogitoSupportingService object
+// ReconcileKogitoDataIndex reconciles a KogitoSupportingService object
 type ReconcileKogitoDataIndex struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
@@ -120,13 +124,14 @@ type ReconcileKogitoDataIndex struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
-	log.Infof("Reconciling KogitoDataIndex for %s in %s", request.Name, request.Namespace)
-
 	instance, resultErr := fetchKogitoSupportingService(r.client, request.Name, request.Namespace)
 	if resultErr != nil {
 		return
 	}
-
+	if appv1alpha1.DataIndex != instance.Spec.ServiceType {
+		return
+	}
+	log.Infof("Reconciling KogitoDataIndex for %s in %s", request.Name, request.Namespace)
 	if resultErr = ensureSingletonService(r.client, request.Namespace, instance.Spec.ServiceType); resultErr != nil {
 		return
 	}
