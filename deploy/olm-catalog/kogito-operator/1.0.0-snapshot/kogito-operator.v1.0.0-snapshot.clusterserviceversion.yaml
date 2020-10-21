@@ -46,9 +46,6 @@ metadata:
           "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoSupportingService",
           "metadata": {
-            "annotations": {
-              "org.kie.kogito/supportServiceType": "DataIndex"
-            },
             "name": "example-kogitosupportingservice"
           },
           "spec": {

@@ -13,8 +13,6 @@ apiVersion: app.kiegroup.org/v1alpha1
 kind: KogitoSupportingService
 metadata:
   name: explainability
-  annotations:
-    org.kie.kogito/supportServiceType: "DataIndex"
 spec:
   serviceType: Explainablity
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"

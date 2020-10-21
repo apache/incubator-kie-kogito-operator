@@ -1,7 +1,7 @@
 // Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
-// you may not serviceName this file except in compliance with the License.
+// you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //      http://www.apache.org/licenses/LICENSE-2.0
@@ -73,7 +73,7 @@ func (i *deleteKogitoInfraServiceCommand) Command() *cobra.Command {
 func (i *deleteKogitoInfraServiceCommand) InitHook() {
 	i.flags = &deleteKogitoInfraFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project serviceName from where the service needs to be deleted")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name from where the service needs to be deleted")
 }
 
 func (i *deleteKogitoInfraServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
