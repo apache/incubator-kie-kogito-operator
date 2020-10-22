@@ -15,6 +15,9 @@
 package services
 
 import (
+	"testing"
+	"time"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -22,11 +25,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
-	"time"
 )
 
 func newReconcileRequest(namespace string) reconcile.Request {
@@ -142,4 +143,50 @@ func createSuccessfulInfinispanInfra(namespace string) *v1alpha1.KogitoInfra {
 			},
 		},
 	}
+}
+
+func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
+	dashboardNames := `["dashboard1.json", "dashboard2.json"]`
+	dashboard1 := `mydashboard1`
+	dashboard2 := `mydashboard2`
+	handlers := []serverHandler{
+		{
+			Path:         dashboardsPath + "list.json",
+			JSONResponse: dashboardNames,
+		},
+		{
+			Path:         dashboardsPath + "dashboard1.json",
+			JSONResponse: dashboard1,
+		},
+		{
+			Path:         dashboardsPath + "dashboard2.json",
+			JSONResponse: dashboard2,
+		},
+	}
+
+	server := mockKogitoSvcReplies(t, handlers)
+	defer server.Close()
+
+	replicas := int32(1)
+	service := &v1alpha1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "my-kogito-runtime",
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoRuntimeSpec{
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		},
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
+	definition := ServiceDefinition{
+		Request: newReconcileRequest(t.Name()),
+	}
+	deployer := NewSingletonServiceDeployer(definition, &v1alpha1.KogitoJobsServiceList{}, cli, meta.GetRegisteredSchema())
+	reconcileAfter, err := deployer.Deploy()
+	assert.NoError(t, err)
+	assert.Equal(t, time.Duration(0), reconcileAfter)
+
+	exists, err := kubernetes.ResourceC(cli).Fetch(service)
+	assert.NoError(t, err)
+	assert.True(t, exists)
 }

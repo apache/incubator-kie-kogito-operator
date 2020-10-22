@@ -15,25 +15,18 @@
 package services
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-type serverHandler struct {
-	Filename     string
-	JSONResponse string
-}
-
 func Test_fetchDashboardNames(t *testing.T) {
-	dashboardNames := `["dashboard1", "dashboard2"]`
+	dashboardNames := `["dashboard1.json", "dashboard2.json"]`
 
 	handlers := []serverHandler{
-		serverHandler{
-			Filename:     "list.json",
+		{
+			Path:         dashboardsPath + "list.json",
 			JSONResponse: dashboardNames,
 		},
 	}
@@ -47,21 +40,21 @@ func Test_fetchDashboardNames(t *testing.T) {
 }
 
 func Test_fetchDashboards(t *testing.T) {
-	dashboardNames := `["dashboard1", "dashboard2"]`
+	dashboardNames := `["dashboard1.json", "dashboard2.json"]`
 	dashboard1 := `mydashboard1`
 	dashboard2 := `mydashboard2`
 
 	handlers := []serverHandler{
-		serverHandler{
-			Filename:     "list.json",
+		{
+			Path:         dashboardsPath + "list.json",
 			JSONResponse: dashboardNames,
 		},
-		serverHandler{
-			Filename:     "dashboard1.json",
+		{
+			Path:         dashboardsPath + "dashboard1.json",
 			JSONResponse: dashboard1,
 		},
-		serverHandler{
-			Filename:     "dashboard2.json",
+		{
+			Path:         dashboardsPath + "dashboard2.json",
 			JSONResponse: dashboard2,
 		},
 	}
@@ -76,17 +69,5 @@ func Test_fetchDashboards(t *testing.T) {
 	assert.Equal(t, len(fetchedDashboardNames), len(dashboards))
 	assert.Equal(t, dashboard1, dashboards[0].RawJSONDashboard)
 	assert.Equal(t, dashboard2, dashboards[1].RawJSONDashboard)
-	assert.Equal(t, strings.ReplaceAll(dashboard2, ".json", ""), dashboards[0].Name)
-}
-
-func mockKogitoSvcReplies(t *testing.T, handlers []serverHandler) *httptest.Server {
-	h := http.NewServeMux()
-	for _, handler := range handlers {
-		h.HandleFunc(dashboardsPath+handler.Filename, func(writer http.ResponseWriter, request *http.Request) {
-			_, err := writer.Write([]byte(handler.JSONResponse))
-			assert.NoError(t, err)
-		})
-	}
-
-	return httptest.NewServer(h)
+	assert.Equal(t, strings.ReplaceAll(fetchedDashboardNames[0], ".json", ""), dashboards[0].Name)
 }

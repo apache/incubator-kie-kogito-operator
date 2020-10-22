@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -72,7 +73,7 @@ func FetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	}
 	var dashboardNames []string
 	if err := json.NewDecoder(resp.Body).Decode(&dashboardNames); err != nil {
-		return nil, fmt.Errorf("Failed to decode response from %s into topics ", dashboardsURL)
+		return nil, fmt.Errorf("Failed to decode response from %s into dashboard names", dashboardsURL)
 	}
 
 	return dashboardNames, nil
@@ -98,7 +99,7 @@ func FetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashbo
 		if err != nil {
 			log.Fatal(err)
 		}
-		dashboards = append(dashboards, GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)})
+		dashboards = append(dashboards, GrafanaDashboard{Name: strings.ReplaceAll(name, ".json", ""), RawJSONDashboard: string(bodyBytes)})
 	}
 	return dashboards, nil
 }

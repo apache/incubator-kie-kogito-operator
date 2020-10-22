@@ -15,6 +15,10 @@
 package services
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -22,16 +26,25 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
+
+type serverHandler struct {
+	Path         string
+	JSONResponse string
+}
 
 func Test_fetchRequiredTopics(t *testing.T) {
 	responseWithTopics := `[{ "name": "travellers", "type": "PRODUCED" }, { "name": "processedtravelers", "type": "CONSUMED" }]`
 	instance := createServiceInstance(t)
 
-	server := mockKogitoSvcReplies(t, responseWithTopics)
+	handlers := []serverHandler{
+		{
+			Path:         topicInfoPath,
+			JSONResponse: responseWithTopics,
+		},
+	}
+
+	server := mockKogitoSvcReplies(t, handlers)
 	defer server.Close()
 
 	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
@@ -44,7 +57,14 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 	emptyResponse := "[]"
 	instance := createServiceInstance(t)
 
-	server := mockKogitoSvcReplies(t, emptyResponse)
+	handlers := []serverHandler{
+		{
+			Path:         topicInfoPath,
+			JSONResponse: emptyResponse,
+		},
+	}
+
+	server := mockKogitoSvcReplies(t, handlers)
 	defer server.Close()
 
 	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
@@ -80,12 +100,16 @@ func createServiceInstance(t *testing.T) v1alpha1.KogitoService {
 	}
 }
 
-func mockKogitoSvcReplies(t *testing.T, jsonResponse string) *httptest.Server {
-	handler := http.NewServeMux()
-	handler.HandleFunc(topicInfoPath, func(writer http.ResponseWriter, request *http.Request) {
-		_, err := writer.Write([]byte(jsonResponse))
-		assert.NoError(t, err)
-	})
+func mockKogitoSvcReplies(t *testing.T, handlers []serverHandler) *httptest.Server {
+	h := http.NewServeMux()
+	for _, handler := range handlers {
+		path := handler.Path
+		response := handler.JSONResponse
+		h.HandleFunc(path, func(writer http.ResponseWriter, request *http.Request) {
+			_, err := writer.Write([]byte(response))
+			assert.NoError(t, err)
+		})
+	}
 
-	return httptest.NewServer(handler)
+	return httptest.NewServer(h)
 }
