@@ -30,8 +30,6 @@ import (
 const (
 	// infinispanOperatorName is the Infinispan Operator default name
 	infinispanOperatorName = "infinispan-operator"
-	// Default Infinispan server group
-	infinispanServerGroup = "infinispan.org"
 	// Default Infinispan port
 	defaultInfinispanPort = 11222
 	// InfinispanSecretUsernameKey is the secret username key set in the linked secret
@@ -68,7 +66,7 @@ type InfinispanCredential struct {
 
 // IsInfinispanAvailable checks whether Infinispan CRD is available or not
 func IsInfinispanAvailable(cli *client.Client) bool {
-	return cli.HasServerGroup(infinispanServerGroup)
+	return cli.HasServerGroup(ispn.SchemeGroupVersion.Group)
 }
 
 // IsInfinispanOperatorAvailable verify if Infinispan Operator is running in the given namespace and the CRD is available
@@ -97,7 +95,7 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 
 // isInfinispanAvailable checks whether Infinispan CRD is available or not
 func isInfinispanAvailable(cli *client.Client) bool {
-	return cli.HasServerGroup(infinispanServerGroup)
+	return cli.HasServerGroup(ispn.SchemeGroupVersion.Group)
 }
 
 // FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name
