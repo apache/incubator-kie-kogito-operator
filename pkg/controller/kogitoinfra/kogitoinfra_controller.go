@@ -15,9 +15,6 @@
 package kogitoinfra
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
@@ -36,6 +33,8 @@ import (
 )
 
 var log = logger.GetLogger("kogitoinfra_controller")
+
+const reconciliationStandardInterval = time.Second * 30
 
 // Add creates a new KogitoInfra Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -70,9 +69,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	var watchedObjects []framework.WatchedObjects
-	watchedObjects = append(watchedObjects, infinispan.GetWatchedObjects()...)
-	watchedObjects = append(watchedObjects, kafka.GetWatchedObjects()...)
-	watchedObjects = append(watchedObjects, keycloak.GetWatchedObjects()...)
+	watchedObjects = append(watchedObjects, getInfinispanWatchedObjects()...)
+	watchedObjects = append(watchedObjects, getKafkaWatchedObjects()...)
+	watchedObjects = append(watchedObjects, getKeycloakWatchedObjects()...)
 
 	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoInfra).client, mgr, c, &appv1alpha1.KogitoInfra{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
@@ -102,27 +101,34 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 	log.Infof("Reconciling KogitoInfra for %s in %s", request.Name, request.Namespace)
 
 	// Fetch the KogitoInfra instance
-	instance, resultErr := infrastructure.FetchKogitoInfraInstance(r.client, request.Name, request.Namespace)
+	instance, resultErr := infrastructure.MustFetchKogitoInfraInstance(r.client, request.Name, request.Namespace)
 	if resultErr != nil {
 		return reconcile.Result{}, resultErr
 	}
 
 	defer updateBaseStatus(r.client, instance, &resultErr)
 
-	infraResource, resultErr := GetKogitoInfraResource(instance)
+	infraResource, resultErr := getKogitoInfraResource(instance)
 	if resultErr != nil {
-		return
+		return r.getReconcileResultFor(resultErr), resultErr
 	}
 
 	requeue, resultErr := infraResource.Reconcile(r.client, instance, r.scheme)
 	if resultErr != nil {
-		return
+		return r.getReconcileResultFor(resultErr), resultErr
 	}
 
 	if requeue {
 		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
-		result.RequeueAfter = time.Second * 30
+		result.RequeueAfter = reconciliationStandardInterval
 		result.Requeue = true
 	}
 	return
+}
+
+func (r *ReconcileKogitoInfra) getReconcileResultFor(err error) reconcile.Result {
+	if err == nil || reasonForError(err) == appv1alpha1.ReconciliationFailure {
+		return reconcile.Result{RequeueAfter: 0, Requeue: false}
+	}
+	return reconcile.Result{RequeueAfter: reconciliationStandardInterval, Requeue: true}
 }

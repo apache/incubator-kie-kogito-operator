@@ -25,7 +25,7 @@ import (
 )
 
 func Test_controllerWatcher_WatchWithOCPObjectsOnKubernetes(t *testing.T) {
-	cli := test.CreateFakeClient(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().Build()
 	controller := test.NewController()
 	manager := test.NewManager()
 	requiredObjects := []WatchedObjects{
@@ -51,7 +51,7 @@ func Test_controllerWatcher_WatchWithOCPObjectsOnKubernetes(t *testing.T) {
 }
 
 func Test_controllerWatcher_WatchWithOCPObjectsOnOpenShift(t *testing.T) {
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	controller := test.NewController()
 	manager := test.NewManager()
 	requiredObjects := []WatchedObjects{

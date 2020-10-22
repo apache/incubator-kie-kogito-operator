@@ -26,7 +26,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -62,7 +61,7 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{kogitoRuntime, dataIndexes, dc}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, dataIndexes, dc).Build()
 
 	err := InjectDataIndexURLIntoKogitoRuntimeServices(cli, ns)
 	assert.NoError(t, err)
@@ -88,8 +87,8 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
 		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
 	}
-	cliInsecure := test.CreateFakeClient([]runtime.Object{insecureDI}, nil, nil)
-	cliSecure := test.CreateFakeClient([]runtime.Object{secureDI}, nil, nil)
+	cliInsecure := test.NewFakeClientBuilder().AddK8sObjects(insecureDI).Build()
+	cliSecure := test.NewFakeClientBuilder().AddK8sObjects(secureDI).Build()
 	type args struct {
 		client    *client.Client
 		namespace string
@@ -124,7 +123,7 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 		{
 			name: "With blank route",
 			args: args{
-				client:    test.CreateFakeClient(nil, nil, nil),
+				client:    test.NewFakeClientBuilder().Build(),
 				namespace: ns,
 			},
 			wantHTTPURL: "",

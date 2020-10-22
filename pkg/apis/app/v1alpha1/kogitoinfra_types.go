@@ -71,17 +71,34 @@ type KogitoInfraStatus struct {
 	Env []v1.EnvVar `json:"env,omitempty"`
 }
 
-/*
-	TODO: Change `LastTransitionTime` to Time type when k8s implements a way of validating date-time on non array objects:
-	https://github.com/coreos/prometheus-operator/issues/2399#issuecomment-466320464
-*/
+// KogitoInfraConditionReason describes the reasons for reconciliation failure
+type KogitoInfraConditionReason string
+
+const (
+	// ReconciliationFailure generic failure on reconciliation
+	ReconciliationFailure KogitoInfraConditionReason = "ReconciliationFailure"
+	// ResourceNotFound target resource not found
+	ResourceNotFound KogitoInfraConditionReason = "ResourceNotFound"
+	// ResourceAPINotFound API not available in the cluster
+	ResourceAPINotFound KogitoInfraConditionReason = "ResourceAPINotFound"
+	// UnsupportedAPIKind API defined in the KogitoInfra CR not supported
+	UnsupportedAPIKind KogitoInfraConditionReason = "UnsupportedAPIKind"
+	// ResourceNotReady related resource is not ready
+	ResourceNotReady KogitoInfraConditionReason = "ResourceNotReady"
+)
 
 // KogitoInfraCondition ...
 type KogitoInfraCondition struct {
-	Type               KogitoInfraConditionType `json:"type"`
-	Status             v1.ConditionStatus       `json:"status"`
-	LastTransitionTime string                   `json:"lastTransitionTime,omitempty"`
-	Message            string                   `json:"message,omitempty"`
+	// Type ...
+	Type KogitoInfraConditionType `json:"type"`
+	// Status ...
+	Status v1.ConditionStatus `json:"status"`
+	// LastTransitionTime ...
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	// Message ...
+	Message string `json:"message,omitempty"`
+	// Reason ...
+	Reason KogitoInfraConditionReason `json:"reason,omitempty"`
 }
 
 // KogitoInfraConditionType ...
@@ -102,8 +119,14 @@ const (
 // Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/) for more information.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Resource Name",type="string",JSONPath=".spec.resource.name",description="Third Party Infrastructure Resource"
+// +kubebuilder:printcolumn:name="Kind",type="string",JSONPath=".spec.resource.kind",description="Kubernetes CR Kind"
+// +kubebuilder:printcolumn:name="API Version",type="string",JSONPath=".spec.resource.apiVersion",description="Kubernetes CR API Version"
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.condition.status",description="General Status of this resource bind"
+// +kubebuilder:printcolumn:name="Reason",type="string",JSONPath=".status.condition.reason",description="Status reason"
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,ksafka.strimzi.io/v1beta1,\"A Kafka instance\""
+// +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,kafka.strimzi.io/v1beta1,\"A Kafka instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispan,infinispan.org/v1,\"A Infinispan instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloak,keycloak.org/v1alpha1,\"A Keycloak Instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Secret,v1,\"A Kubernetes Secret\""

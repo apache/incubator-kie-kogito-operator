@@ -25,6 +25,8 @@ import (
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	sourcesv1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
 
 	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -52,25 +54,15 @@ type DefinitionKind struct {
 	GroupVersion schema.GroupVersion
 }
 
-// TODO: remove this mess on KOGITO-1998
-
 var (
 	// KindService for service
 	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
-	// KindBuildConfig for a buildConfig
-	KindBuildConfig = DefinitionKind{"BuildConfig", true, buildv1.SchemeGroupVersion}
-	// KindDeploymentConfig for a DeploymentConfig
-	KindDeploymentConfig = DefinitionKind{"DeploymentConfig", true, appsv1.SchemeGroupVersion}
-	// KindRoute for a Route
-	KindRoute = DefinitionKind{"Route", true, routev1.SchemeGroupVersion}
-	// KindImageStream for a ImageStream
-	KindImageStream = DefinitionKind{"ImageStream", true, imgv1.SchemeGroupVersion}
 	// KindBuildRequest for a BuildRequest
-	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.SchemeGroupVersion}
+	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.GroupVersion}
 	// KindKogitoDataIndex for a KindKogitoDataIndex controller
 	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
-	// KindServiceMonitor ...
-	KindServiceMonitor = DefinitionKind{"ServiceMonitor", false, monv1.SchemeGroupVersion}
+	// KindDeployment for Kubernetes Deployment
+	KindDeployment = DefinitionKind{"Deployment", false, coreappsv1.SchemeGroupVersion}
 )
 
 // SetGroupVersionKind sets the group, version and kind for the resource
@@ -99,7 +91,8 @@ func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		infinispanv1.AddToScheme,
 		keycloakv1alpha1.SchemeBuilder.AddToScheme,
 		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
-		monv1.SchemeBuilder.AddToScheme)
+		monv1.SchemeBuilder.AddToScheme,
+		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme)
 }
 
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on

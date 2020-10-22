@@ -34,7 +34,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/stretchr/testify/assert"
@@ -61,7 +60,7 @@ func TestReconcileKogitoDataIndex_Reconcile(t *testing.T) {
 		},
 	}
 
-	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka, kogitoInfinispan}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
 	r := &ReconcileKogitoDataIndex{
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),
@@ -94,7 +93,7 @@ func TestReconcileKogitoDataIndex_UpdateHTTPPort(t *testing.T) {
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance, is).AddImageObjects(tag).Build()
 	r := &ReconcileKogitoDataIndex{
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),
@@ -195,7 +194,7 @@ func TestReconcileKogitoDataIndex_mountProtoBufConfigMaps(t *testing.T) {
 			fileName2: "This is another file",
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{cm}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(cm).Build()
 	reconcileDataIndex := ReconcileKogitoDataIndex{
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),
@@ -253,7 +252,7 @@ func TestReconcileKogitoDataIndex_MultipleProtoBufCMs(t *testing.T) {
 		},
 		Data: map[string]string{fileName2: "This is a protobuf file"},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, cm1, cm2}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm1, cm2).Build()
 	r := &ReconcileKogitoDataIndex{
 		client: cli,
 		scheme: meta.GetRegisteredSchema(),
