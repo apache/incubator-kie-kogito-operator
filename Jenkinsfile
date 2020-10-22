@@ -8,7 +8,7 @@ pipeline {
     agent { label 'operator-slave'}
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
-        timeout(time: 90, unit: 'MINUTES')
+        timeout(time: 240, unit: 'MINUTES')
     }
     environment {
         OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
@@ -64,11 +64,11 @@ pipeline {
                 }
             }
         }
-        stage('Running smoke tests') {
+        stage('Running non native tests') {
             steps {
                 // Run just smoke tests to verify basic operator functionality
                 sh """
-                    make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
+                    make run-tests tags='~@native' concurrent=5 ${getBDDParameters('always', true)}
                 """
             }
             post {
