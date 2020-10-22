@@ -230,32 +230,32 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		return
 	}
 
-	reconcileAfter, err = s.deployGrafanaDashboards()
-
-	return
-}
-
-func (s *serviceDeployer) deployGrafanaDashboards() (time.Duration, error) {
 	dashboards, err := FetchGrafanaDashboards(s.client, s.instance)
 	if err != nil {
 		return reconciliationPeriodAfterDashboardsError, err
 	}
 
+	reconcileAfter, err = deployGrafanaDashboards(dashboards, s.client, s.getNamespace())
+
+	return
+}
+
+func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, namespace string) (time.Duration, error) {
 	for _, dashboard := range dashboards {
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      dashboard.Name + "Dashboard",
-				Namespace: s.getNamespace(),
+				Name:      dashboard.Name,
+				Namespace: namespace,
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
 				Json: dashboard.RawJSONDashboard,
 				Name: dashboard.Name,
 			},
 		}
-		if err := kubernetes.ResourceC(s.client).Create(dashboardDefinition); err != nil {
-			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name)
+		if err := kubernetes.ResourceC(cli).Create(dashboardDefinition); err != nil {
+			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name, err)
 		}
-		log.Debug("%s successfully created", dashboardDefinition)
+		log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
 	}
 	return 0, nil
 }

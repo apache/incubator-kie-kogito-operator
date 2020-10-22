@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -25,6 +27,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -146,27 +149,6 @@ func createSuccessfulInfinispanInfra(namespace string) *v1alpha1.KogitoInfra {
 }
 
 func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
-	dashboardNames := `["dashboard1.json", "dashboard2.json"]`
-	dashboard1 := `mydashboard1`
-	dashboard2 := `mydashboard2`
-	handlers := []serverHandler{
-		{
-			Path:         dashboardsPath + "list.json",
-			JSONResponse: dashboardNames,
-		},
-		{
-			Path:         dashboardsPath + "dashboard1.json",
-			JSONResponse: dashboard1,
-		},
-		{
-			Path:         dashboardsPath + "dashboard2.json",
-			JSONResponse: dashboard2,
-		},
-	}
-
-	server := mockKogitoSvcReplies(t, handlers)
-	defer server.Close()
-
 	replicas := int32(1)
 	service := &v1alpha1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
@@ -178,15 +160,35 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
-	definition := ServiceDefinition{
-		Request: newReconcileRequest(t.Name()),
+
+	dashboards := []GrafanaDashboard{
+		{
+			Name:             "mydashboard",
+			RawJSONDashboard: "[]",
+		},
+		{
+			Name:             "myseconddashboard",
+			RawJSONDashboard: "[]",
+		},
 	}
-	deployer := NewSingletonServiceDeployer(definition, &v1alpha1.KogitoJobsServiceList{}, cli, meta.GetRegisteredSchema())
-	reconcileAfter, err := deployer.Deploy()
+
+	reconcileAfter, err := deployGrafanaDashboards(dashboards, cli, t.Name())
 	assert.NoError(t, err)
 	assert.Equal(t, time.Duration(0), reconcileAfter)
 
-	exists, err := kubernetes.ResourceC(cli).Fetch(service)
-	assert.NoError(t, err)
-	assert.True(t, exists)
+	dashboard := &grafanav1.GrafanaDashboard{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mydashboard",
+			Namespace: t.Name(),
+		},
+	}
+	test.AssertFetchMustExist(t, cli, dashboard)
+
+	dashboard = &grafanav1.GrafanaDashboard{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "myseconddashboard",
+			Namespace: t.Name(),
+		},
+	}
+	test.AssertFetchMustExist(t, cli, dashboard)
 }
