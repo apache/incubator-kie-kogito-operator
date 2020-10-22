@@ -107,7 +107,7 @@ func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (reconcile
 		OnGetComparators:   onGetComparators,
 	}
 	if requeueAfter, err := services.NewCustomServiceDeployer(definition, &appv1alpha1.KogitoRuntime{}, r.client, r.scheme).Deploy(); err != nil {
-		return reconcile.Result{}, err
+		return reconcile.Result{RequeueAfter: requeueAfter}, err
 	} else if requeueAfter > 0 {
 		return reconcile.Result{RequeueAfter: requeueAfter, Requeue: true}, nil
 	}

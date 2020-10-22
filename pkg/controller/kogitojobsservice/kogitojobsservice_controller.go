@@ -21,8 +21,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"strconv"
-
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 
@@ -120,7 +118,6 @@ func (r *ReconcileKogitoJobsService) Reconcile(request reconcile.Request) (resul
 	definition := services.ServiceDefinition{
 		DefaultImageName:    infrastructure.DefaultJobsServiceImageName,
 		Request:             request,
-		OnDeploymentCreate:  onDeploymentCreate,
 		SingleReplica:       true,
 		RequiresPersistence: false,
 		RequiresMessaging:   false,
@@ -137,27 +134,9 @@ func (r *ReconcileKogitoJobsService) Reconcile(request reconcile.Request) (resul
 }
 
 const (
-	backOffRetryEnvKey                = "BACKOFF_RETRY"
-	maxIntervalLimitRetryEnvKey       = "MAX_INTERVAL_LIMIT_RETRY"
-	backOffRetryDefaultValue          = 1000
-	maxIntervalLimitRetryDefaultValue = 60000
-	kafkaTopicNameJobsEvents          = "kogito-job-service-job-status-events"
+	kafkaTopicNameJobsEvents = "kogito-job-service-job-status-events"
 )
 
 var kafkaTopics = []string{
 	kafkaTopicNameJobsEvents,
-}
-
-func onDeploymentCreate(cli *kogitocli.Client, deployment *appsv1.Deployment, service appv1alpha1.KogitoService) error {
-	jobService := service.(*appv1alpha1.KogitoJobsService)
-	if jobService.Spec.BackOffRetryMillis <= 0 {
-		jobService.Spec.BackOffRetryMillis = backOffRetryDefaultValue
-	}
-	framework.SetEnvVar(backOffRetryEnvKey, strconv.FormatInt(jobService.Spec.BackOffRetryMillis, 10), &deployment.Spec.Template.Spec.Containers[0])
-	if jobService.Spec.MaxIntervalLimitToRetryMillis <= 0 {
-		jobService.Spec.MaxIntervalLimitToRetryMillis = maxIntervalLimitRetryDefaultValue
-	}
-	framework.SetEnvVar(maxIntervalLimitRetryEnvKey, strconv.FormatInt(jobService.Spec.MaxIntervalLimitToRetryMillis, 10), &deployment.Spec.Template.Spec.Containers[0])
-
-	return nil
 }

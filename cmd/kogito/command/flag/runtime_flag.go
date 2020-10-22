@@ -29,7 +29,6 @@ type RuntimeFlags struct {
 	EnablePersistence bool
 	EnableEvents      bool
 	ServiceLabels     []string
-	ConfigFile        string
 }
 
 // AddRuntimeFlags adds the RuntimeFlags to the given command
@@ -39,7 +38,6 @@ func AddRuntimeFlags(command *cobra.Command, flags *RuntimeFlags) {
 	command.Flags().BoolVar(&flags.EnablePersistence, "enable-persistence", false, "If set to true, deployed Kogito service will support integration with Infinispan server for persistence. Default to false")
 	command.Flags().BoolVar(&flags.EnableEvents, "enable-events", false, "If set to true, deployed Kogito service will support integration with Kafka cluster for events. Default to false")
 	command.Flags().StringSliceVar(&flags.ServiceLabels, "svc-labels", nil, "Labels that should be applied to the internal endpoint of the Kogito Service. Used by the service discovery engine. Example: 'label=value'. Can be set more than once.")
-	command.Flags().StringVar(&flags.ConfigFile, "config", "", "Path for custom application properties to be deployed with the service. This file will be mounted as an external ConfigMap to the service Deployment.")
 }
 
 // CheckRuntimeArgs validates the RuntimeFlags flags
@@ -49,20 +47,6 @@ func CheckRuntimeArgs(flags *RuntimeFlags) error {
 	}
 	if err := util.CheckKeyPair(flags.ServiceLabels); err != nil {
 		return fmt.Errorf("service labels are in the wrong format. Valid are key pairs like 'service=myservice', received %s", flags.ServiceLabels)
-	}
-	if err := checkConfigFile(flags.ConfigFile); err != nil {
-		return err
-	}
-	return nil
-}
-
-func checkConfigFile(configFilePath string) error {
-	if len(configFilePath) > 0 {
-		if exists, err := util.CheckFileExists(configFilePath); err != nil {
-			return err
-		} else if !exists {
-			return fmt.Errorf("configuration file does not exist in the given path: %s", configFilePath)
-		}
 	}
 	return nil
 }

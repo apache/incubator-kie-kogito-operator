@@ -111,6 +111,7 @@ func setHTTPPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
 	kogitoService.GetSpec().SetEnvs(modifiedEnv)
 }
 
+// isDeploymentAvailable verifies if the Deployment resource from the given KogitoService has replicas available
 func isDeploymentAvailable(cli *client.Client, kogitoService v1alpha1.KogitoService) (bool, error) {
 	// service's deployment hasn't been deployed yet, no need to fetch
 	if len(kogitoService.GetStatus().GetDeploymentConditions()) == 0 {
@@ -120,6 +121,5 @@ func isDeploymentAvailable(cli *client.Client, kogitoService v1alpha1.KogitoServ
 	if _, err := kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
 		return false, err
 	}
-
 	return deployment.Status.AvailableReplicas > 0, nil
 }

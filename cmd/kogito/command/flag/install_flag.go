@@ -31,6 +31,7 @@ type InstallFlags struct {
 	ImageFlags
 	EnvVarFlags
 	MonitoringFlags
+	ConfigFlags
 	Project  string
 	Replicas int32
 	HTTPPort int32
@@ -44,6 +45,7 @@ func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
 	AddImageFlags(command, &flags.ImageFlags)
 	AddEnvVarFlags(command, &flags.EnvVarFlags, "env", "e")
 	AddMonitoringFlags(command, &flags.MonitoringFlags)
+	AddConfigFlags(command, &flags.ConfigFlags)
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
 	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")
@@ -65,6 +67,9 @@ func CheckInstallArgs(flags *InstallFlags) error {
 		return err
 	}
 	if err := CheckMonitoringArgs(&flags.MonitoringFlags); err != nil {
+		return err
+	}
+	if err := CheckConfigFlags(&flags.ConfigFlags); err != nil {
 		return err
 	}
 	if flags.Replicas <= 0 {

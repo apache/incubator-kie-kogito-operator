@@ -17,15 +17,28 @@ package services
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_fetchDashboards(t *testing.T) {
+type serverHandler struct {
+	Filename     string
+	JSONResponse string
+}
+
+func Test_fetchDashboardNames(t *testing.T) {
 	dashboardNames := `["dashboard1", "dashboard2"]`
 
-	server := mockKogitoSvcReplies(t, dashboardNames)
+	handlers := []serverHandler{
+		serverHandler{
+			Filename:     "list.json",
+			JSONResponse: dashboardNames,
+		},
+	}
+
+	server := mockKogitoSvcReplies(t, handlers)
 	defer server.Close()
 
 	dashboards, err := FetchGrafanaDashboardNamesForURL(server.URL)
@@ -33,12 +46,47 @@ func Test_fetchDashboards(t *testing.T) {
 	assert.NotEmpty(t, dashboards)
 }
 
-func mockKogitoSvcReplies(t *testing.T, jsonResponse string) *httptest.Server {
-	handler := http.NewServeMux()
-	handler.HandleFunc(dashboardsPath, func(writer http.ResponseWriter, request *http.Request) {
-		_, err := writer.Write([]byte(jsonResponse))
-		assert.NoError(t, err)
-	})
+func Test_fetchDashboards(t *testing.T) {
+	dashboardNames := `["dashboard1", "dashboard2"]`
+	dashboard1 := `mydashboard1`
+	dashboard2 := `mydashboard2`
 
-	return httptest.NewServer(handler)
+	handlers := []serverHandler{
+		serverHandler{
+			Filename:     "list.json",
+			JSONResponse: dashboardNames,
+		},
+		serverHandler{
+			Filename:     "dashboard1.json",
+			JSONResponse: dashboard1,
+		},
+		serverHandler{
+			Filename:     "dashboard2.json",
+			JSONResponse: dashboard2,
+		},
+	}
+
+	server := mockKogitoSvcReplies(t, handlers)
+	defer server.Close()
+
+	fetchedDashboardNames, err := FetchGrafanaDashboardNamesForURL(server.URL)
+	assert.NoError(t, err)
+	dashboards, err := FetchDashboards(server.URL, fetchedDashboardNames)
+	assert.NoError(t, err)
+	assert.Equal(t, len(fetchedDashboardNames), len(dashboards))
+	assert.Equal(t, dashboard1, dashboards[0].RawJSONDashboard)
+	assert.Equal(t, dashboard2, dashboards[1].RawJSONDashboard)
+	assert.Equal(t, strings.ReplaceAll(dashboard2, ".json", ""), dashboards[0].Name)
+}
+
+func mockKogitoSvcReplies(t *testing.T, handlers []serverHandler) *httptest.Server {
+	h := http.NewServeMux()
+	for _, handler := range handlers {
+		h.HandleFunc(dashboardsPath+handler.Filename, func(writer http.ResponseWriter, request *http.Request) {
+			_, err := writer.Write([]byte(handler.JSONResponse))
+			assert.NoError(t, err)
+		})
+	}
+
+	return httptest.NewServer(h)
 }

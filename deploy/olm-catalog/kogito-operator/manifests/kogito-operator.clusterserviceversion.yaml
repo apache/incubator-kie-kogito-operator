@@ -51,14 +51,14 @@ metadata:
           "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoInfra",
           "metadata": {
-            "name": "infra"
+            "name": "kogito-infinispan-infra"
           },
           "spec": {
-            "installInfinispan": false,
-            "installKafka": false,
-            "installKeycloak": false
-          },
-          "status": {}
+            "resource": {
+              "apiVersion": "infinispan.org/v1",
+              "kind": "Infinispan"
+            }
+          }
         },
         {
           "apiVersion": "app.kiegroup.org/v1alpha1",
@@ -275,6 +275,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -361,6 +367,12 @@ spec:
         name: ""
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -444,7 +456,7 @@ spec:
         version: infinispan.org/v1
       - kind: Kafka
         name: A Kafka instance
-        version: ksafka.strimzi.io/v1beta1
+        version: kafka.strimzi.io/v1beta1
       - kind: Keycloak
         name: A Keycloak Instance
         version: keycloak.org/v1alpha1
@@ -455,6 +467,20 @@ spec:
       - description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak.'
         displayName: Resource
         path: resource
+      - description: APIVersion describes the API Version of referred Kubernetes resource
+          for example, infinispan.org/v1
+        displayName: APIVersion
+        path: resource.apiVersion
+      - description: Kind describes the kind of referred Kubernetes resource for example,
+          Infinispan
+        displayName: Kind
+        path: resource.kind
+      - description: Name of referred resource.
+        displayName: Name
+        path: resource.name
+      - description: Namespace where referred resource exists.
+        displayName: Namespace
+        path: resource.namespace
       version: v1alpha1
     - description: KogitoJobsService deploys the Kogito Jobs Service in the given
         namespace.
@@ -475,11 +501,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
-      - description: 'Retry backOff time in milliseconds between the job execution
-          attempts, in case of execution failure. Default to service default, see:
-          https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-        displayName: Back Off Retry Millis
-        path: backOffRetryMillis
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -502,10 +529,6 @@ spec:
         path: insecureImageRegistry
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: 'Maximum interval in milliseconds when retrying to execute jobs,
-          in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties'
-        displayName: Max Interval Limit To Retry Millis
-        path: maxIntervalLimitToRetryMillis
       - description: Custom ConfigMap with application.properties file to be mounted
           for the Kogito service. The ConfigMap must be created in the same namespace.
           Use this property if you need custom properties to be mounted before the
@@ -570,6 +593,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -655,6 +684,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -753,6 +788,12 @@ spec:
         name: A Kubernetes Service
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -838,6 +879,12 @@ spec:
         name: ""
         version: v1
       specDescriptors:
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Additional labels to be added to the Deployment and Pods managed
           by the operator.
         displayName: Additional Deployment Labels
@@ -1042,6 +1089,36 @@ spec:
           - '*'
           verbs:
           - '*'
+        - apiGroups:
+          - eventing.knative.dev
+          resources:
+          - brokers
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - eventing.knative.dev
+          resources:
+          - triggers
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - delete
+          - update
+        - apiGroups:
+          - sources.knative.dev
+          resources:
+          - sinkbindings
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - delete
+          - update
         serviceAccountName: kogito-operator
       - rules:
         - apiGroups:

@@ -42,7 +42,7 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 			Runtime: v1alpha1.QuarkusRuntimeType,
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
 	r := ReconcileKogitoBuild{client: cli, scheme: meta.GetRegisteredSchema()}
 	err := errors.New("error")
 
@@ -79,7 +79,7 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 			Runtime: v1alpha1.QuarkusRuntimeType,
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 	manager, err := build.New(instance, cli, meta.GetRegisteredSchema())
 	assert.NoError(t, err)
 
@@ -142,7 +142,7 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	k8sObjs = append(k8sObjs, instance)
 
 	// recreating the client with our objects to make sure that the BCs will be there
-	cli = test.CreateFakeClient(k8sObjs, nil, buildObjs)
+	cli = test.NewFakeClientBuilder().AddK8sObjects(k8sObjs...).AddBuildObjects(buildObjs...).Build()
 	r := ReconcileKogitoBuild{client: cli, scheme: meta.GetRegisteredSchema()}
 	err = nil
 	r.handleStatusChange(instance, &err)

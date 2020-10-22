@@ -16,21 +16,22 @@ package install
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func Test_InstallInfraServiceCmd_DefaultConfiguration(t *testing.T) {
 	name := "kogito-infinispan-infra"
 	ns := t.Name()
-	cli := fmt.Sprintf("install infra %s --project %s --apiVersion %s --kind %s", name, ns, infinispan.APIVersion, infinispan.Kind)
+	cli := fmt.Sprintf("install infra %s --project %s --apiVersion %s --kind %s", name, ns, infrastructure.InfinispanAPIVersion, infrastructure.InfinispanKind)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
@@ -54,6 +55,6 @@ func Test_InstallInfraServiceCmd_DefaultConfiguration(t *testing.T) {
 	assert.NotNil(t, kogitoInfra)
 	assert.Equal(t, name, kogitoInfra.Name)
 	assert.Equal(t, ns, kogitoInfra.Namespace)
-	assert.Equal(t, infinispan.APIVersion, kogitoInfra.Spec.Resource.APIVersion)
-	assert.Equal(t, infinispan.Kind, kogitoInfra.Spec.Resource.Kind)
+	assert.Equal(t, infrastructure.InfinispanAPIVersion, kogitoInfra.Spec.Resource.APIVersion)
+	assert.Equal(t, infrastructure.InfinispanKind, kogitoInfra.Spec.Resource.Kind)
 }

@@ -32,7 +32,7 @@ func Test_generateEvent(t *testing.T) {
 			Namespace: t.Name(),
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	recorder := NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
 	recorder.Eventf(cli, service, "Normal", "Created", "Create Deployment")
 
@@ -51,7 +51,7 @@ func Test_generateEvent_InvalidEventType(t *testing.T) {
 			Namespace: t.Name(),
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	recorder := NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
 	recorder.Eventf(cli, service, "InvalidEventType", "Created", "Create Deployment")
 

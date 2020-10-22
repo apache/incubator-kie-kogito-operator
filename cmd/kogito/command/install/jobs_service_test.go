@@ -52,13 +52,12 @@ func Test_DeployJobServiceCmd_DefaultConfiguration(t *testing.T) {
 	assert.True(t, exist)
 	assert.NotNil(t, jobService)
 	assert.False(t, jobService.Spec.InsecureImageRegistry)
-	assert.Equal(t, int64(0), jobService.Spec.BackOffRetryMillis)
-	assert.Equal(t, int64(0), jobService.Spec.MaxIntervalLimitToRetryMillis)
+	assert.Nil(t, jobService.Spec.Config)
 }
 
 func Test_DeployJobServiceCmd_CustomConfiguration(t *testing.T) {
 	ns := t.Name()
-	cli := fmt.Sprintf("install jobs-service --project %s  --infra kogito-kafka --infra kogito-infinispan --insecure-image-registry --http-port 9090 --backoff-retry-millis=5 --max-internal-limit-retry-millis=10", ns)
+	cli := fmt.Sprintf("install jobs-service --project %s  --infra kogito-kafka --infra kogito-infinispan --insecure-image-registry --http-port 9090 --config backoff-retry-millis=5 --config max-internal-limit-retry-millis=10", ns)
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
@@ -81,8 +80,10 @@ func Test_DeployJobServiceCmd_CustomConfiguration(t *testing.T) {
 	assert.NotNil(t, jobService)
 	assert.True(t, jobService.Spec.InsecureImageRegistry)
 	assert.Equal(t, int32(9090), jobService.Spec.HTTPPort)
-	assert.Equal(t, int64(5), jobService.Spec.BackOffRetryMillis)
-	assert.Equal(t, int64(10), jobService.Spec.MaxIntervalLimitToRetryMillis)
+	backOffRetries := jobService.Spec.Config["backoff-retry-millis"]
+	assert.Equal(t, "5", backOffRetries)
+	maxLimit := jobService.Spec.Config["max-internal-limit-retry-millis"]
+	assert.Equal(t, "10", maxLimit)
 	assert.Contains(t, jobService.Spec.Infra, "kogito-kafka")
 	assert.Contains(t, jobService.Spec.Infra, "kogito-infinispan")
 }

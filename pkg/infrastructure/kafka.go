@@ -16,12 +16,10 @@ package infrastructure
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -34,30 +32,18 @@ const (
 	strimziBrokerLabel         = "strimzi.io/cluster"
 	defaultKafkaTopicPartition = 1
 	defaultKafkaTopicReplicas  = 1
+
+	// KafkaKind refers to Kafka Kind as defined by Strimzi
+	KafkaKind = "Kafka"
+
+	// KafkaInstanceName is the default name for the Kafka cluster managed by KogitoInfra
+	KafkaInstanceName = "kogito-kafka"
 )
 
-// IsStrimziOperatorAvailable verify if Strimzi Operator is running in the given namespace and the CRD is available
-// Deprecated: rethink the way we check for the operator since the deployment resource could be in another namespace if installed cluster wide
-func IsStrimziOperatorAvailable(cli *client.Client, namespace string) (available bool, err error) {
-	log.Debugf("Checking if Strimzi Operator is available in the namespace %s", namespace)
-	available = false
-	if IsStrimziAvailable(cli) {
-		log.Debugf("Strimzi CRDs available. Checking if Strimzi Operator is deployed in the namespace %s", namespace)
-		list := &v1.DeploymentList{}
-		if err = kubernetes.ResourceC(cli).ListWithNamespace(namespace, list); err != nil {
-			return
-		}
-		for _, strimzi := range list.Items {
-			for _, owner := range strimzi.OwnerReferences {
-				if strings.HasPrefix(owner.Name, StrimziOperatorName) {
-					available = true
-					return
-				}
-			}
-		}
-	}
-	return
-}
+var (
+	// KafkaAPIVersion refers to kafka APIVersion
+	KafkaAPIVersion = v1beta1.SchemeGroupVersion.String()
+)
 
 // IsStrimziAvailable checks if Strimzi CRD is available in the cluster
 func IsStrimziAvailable(client *client.Client) bool {

@@ -28,8 +28,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"sort"
 	"testing"
 	"time"
@@ -57,7 +55,7 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 	r := ReconcileKogitoBuild{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation
@@ -72,8 +70,8 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	sort.SliceStable(kogitoISList.Items, func(i, j int) bool {
 		return kogitoISList.Items[i].Name < kogitoISList.Items[j].Name
 	})
-	assert.Equal(t, build.KogitoQuarkusJVMUbi8Image, kogitoISList.Items[0].Name)
-	assert.Equal(t, build.KogitoQuarkusUbi8s2iImage, kogitoISList.Items[1].Name)
+	assert.Equal(t, infrastructure.KogitoQuarkusJVMUbi8Image, kogitoISList.Items[0].Name)
+	assert.Equal(t, infrastructure.KogitoQuarkusUbi8s2iImage, kogitoISList.Items[1].Name)
 	assert.Equal(t, infrastructure.GetKogitoImageVersion(), kogitoISList.Items[0].Spec.Tags[0].Name)
 	assert.Equal(t, infrastructure.GetKogitoImageVersion(), kogitoISList.Items[1].Spec.Tags[0].Name)
 
@@ -139,7 +137,7 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 			TargetKogitoRuntime: kogitoServiceName,
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instanceRemote, instanceLocal}, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
 	r := ReconcileKogitoBuild{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation

@@ -10,7 +10,6 @@ spec:
       value: ws://data-index.kogito
   replicas: 1
   image: quay.io/kiegroup/kogito-travels
-  kafka:
-    useKogitoInfra: true
-  infinispan:
-    useKogitoInfra: true
+  infra:
+    - kogito-kafka-infra
+    - kogito-infinispan-infra

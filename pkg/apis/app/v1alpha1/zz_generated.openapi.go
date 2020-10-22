@@ -529,6 +529,21 @@ func schema_pkg_apis_app_v1alpha1_KogitoDataIndexSpec(ref common.ReferenceCallba
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
 						},
 					},
+					"config": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -756,6 +771,21 @@ func schema_pkg_apis_app_v1alpha1_KogitoExplainabilitySpec(ref common.ReferenceC
 						SchemaProps: spec.SchemaProps{
 							Description: "Create Service monitor instance to connect with Monitoring service",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
+						},
+					},
+					"config": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1105,18 +1135,19 @@ func schema_pkg_apis_app_v1alpha1_KogitoJobsServiceSpec(ref common.ReferenceCall
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
 						},
 					},
-					"backOffRetryMillis": {
+					"config": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Retry backOff time in milliseconds between the job execution attempts, in case of execution failure. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties",
-							Type:        []string{"integer"},
-							Format:      "int64",
-						},
-					},
-					"maxIntervalLimitToRetryMillis": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Maximum interval in milliseconds when retrying to execute jobs, in case of failures. Default to service default, see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service#configuration-properties",
-							Type:        []string{"integer"},
-							Format:      "int64",
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1434,6 +1465,21 @@ func schema_pkg_apis_app_v1alpha1_KogitoTrustySpec(ref common.ReferenceCallback)
 						SchemaProps: spec.SchemaProps{
 							Description: "Create Service monitor instance to connect with Monitoring service",
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Monitoring"),
+						},
+					},
+					"config": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Application properties that will be set to the service. For example 'MY_VAR: my_value'.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},

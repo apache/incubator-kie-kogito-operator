@@ -16,40 +16,35 @@ package kogitoinfra
 
 import (
 	"fmt"
+
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/infinispan"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/keycloak"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
-// GetKogitoInfraResource identify and return request kogito infra resource on bases of information provided in kogitoInfra value
-func GetKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, error) {
+// getKogitoInfraResource identify and return request kogito infra resource on bases of information provided in kogitoInfra value
+func getKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, error) {
 	log.Debugf("going to fetch related kogito infra resource for given infra instance : %s", instance.Name)
-	switch {
-	case isInfinispanResource(instance):
-		log.Debugf("Kogito infra reference is for Infinispan resource")
-		return &infinispan.InfraResource{}, nil
-	case IsKafkaResource(instance):
-		log.Debugf("Kogito infra reference is for Kafka resource")
-		return &kafka.InfraResource{}, nil
-	case isKeycloakResource(instance):
-		log.Debugf("Kogito infra reference is for Keycloak resource")
-		return &keycloak.InfraResource{}, nil
+	if infraRes, ok := getSupportedInfraResources()[resourceClassForInstance(instance)]; ok {
+		return infraRes, nil
 	}
-	return nil, fmt.Errorf("no Kogito infra resource found for given definition, %s", instance.Name)
+	return nil, newUnsupportedAPIError(instance)
 }
 
-// isInfinispanResource check if provided KogitoInfra instance is for Infinispan resource
-func isInfinispanResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == infinispan.APIVersion && instance.Spec.Resource.Kind == infinispan.Kind
+func resourceClassForInstance(instance *v1alpha1.KogitoInfra) string {
+	return getResourceClass(instance.Spec.Resource.Kind, instance.Spec.Resource.APIVersion)
 }
 
-// IsKafkaResource check if provided KogitoInfra instance is for kafka resource
-func IsKafkaResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == kafka.APIVersion && instance.Spec.Resource.Kind == kafka.Kind
+func getResourceClass(kind, APIVersion string) string {
+	return strings.ToLower(fmt.Sprintf("%s.%s", kind, APIVersion))
 }
 
-// isKeycloakResource check if provided KogitoInfra instance is for Keycloak resource
-func isKeycloakResource(instance *v1alpha1.KogitoInfra) bool {
-	return instance.Spec.Resource.APIVersion == keycloak.APIVersion && instance.Spec.Resource.Kind == keycloak.Kind
+func getSupportedInfraResources() map[string]InfraResource {
+	return map[string]InfraResource{
+		getResourceClass(infrastructure.InfinispanKind, infrastructure.InfinispanAPIVersion):                 &infinispanInfraResource{},
+		getResourceClass(infrastructure.KafkaKind, infrastructure.KafkaAPIVersion):                           &kafkaInfraResource{},
+		getResourceClass(infrastructure.KeycloakKind, infrastructure.KeycloakAPIVersion):                     &keycloakInfraResource{},
+		getResourceClass(infrastructure.KnativeEventingBrokerKind, infrastructure.KnativeEventingAPIVersion): &knativeInfraResource{},
+	}
 }

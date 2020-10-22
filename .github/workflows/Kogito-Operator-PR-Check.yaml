@@ -47,7 +47,7 @@ jobs:
           changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
           generated_changed_files=$(git status -s | grep zz_generated || :)
           [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen" && exit 1)
-          [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
+          [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make vet' before sending the PR?" && exit 1)
 
       - name: Check Headers
         run: |
