@@ -26,7 +26,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -56,7 +55,7 @@ func TestKogitoSupportingServiceDataIndex_Reconcile(t *testing.T) {
 		},
 	}
 
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance, kogitoKafka, kogitoInfinispan}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).OnOpenShift().Build()
 	r := &ReconcileKogitoDataIndex{
 		cli,
 		meta.GetRegisteredSchema(),
@@ -89,7 +88,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_UpdateHTTPPort(t *testing.T) 
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, is).OnOpenShift().AddImageObjects(tag).Build()
 	r := &ReconcileKogitoDataIndex{
 		cli,
 		meta.GetRegisteredSchema(),
@@ -191,7 +190,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_mountProtoBufConfigMaps(t *te
 			fileName2: "This is another file",
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{cm}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(cm).OnOpenShift().Build()
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: infrastructure.DefaultDataIndexName},
 		Spec: appsv1.DeploymentSpec{
@@ -247,7 +246,7 @@ func TestReconcileKogitoSupportingServiceDataIndex_MultipleProtoBufCMs(t *testin
 		},
 		Data: map[string]string{fileName2: "This is a protobuf file"},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance, cm1, cm2}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm1, cm2).OnOpenShift().Build()
 	r := &ReconcileKogitoDataIndex{
 		cli,
 		meta.GetRegisteredSchema(),

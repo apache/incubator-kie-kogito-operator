@@ -43,7 +43,7 @@ const (
 	// InfinispanIdentityFileName is the name of YAML file containing list of Infinispan credentials
 	InfinispanIdentityFileName = "identities.yaml"
 
-	// InfinispanKind refers to infinispan Kind
+	// InfinispanKind CRD Kind for Infinispan server (as defined by Infinispan Operator)
 	InfinispanKind = "Infinispan"
 
 	// InfinispanInstanceName is the default name for Infinispan managed by KogitoInfra
@@ -64,6 +64,11 @@ type InfinispanIdentity struct {
 type InfinispanCredential struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+}
+
+// IsInfinispanAvailable checks whether Infinispan CRD is available or not
+func IsInfinispanAvailable(cli *client.Client) bool {
+	return cli.HasServerGroup(infinispanServerGroup)
 }
 
 // IsInfinispanOperatorAvailable verify if Infinispan Operator is running in the given namespace and the CRD is available

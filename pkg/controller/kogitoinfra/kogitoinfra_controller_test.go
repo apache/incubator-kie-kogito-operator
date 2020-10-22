@@ -17,7 +17,7 @@ package kogitoinfra
 import (
 	"testing"
 
-	v12 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -25,9 +25,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	v13 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -47,6 +46,9 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	deployedKafkaInstance := &kafkabetav1.Kafka{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},
 		Status: kafkabetav1.KafkaStatus{
+			Conditions: []kafkabetav1.KafkaCondition{
+				{Type: kafkabetav1.KafkaConditionTypeReady},
+			},
 			Listeners: []kafkabetav1.ListenerStatus{
 				{
 					Type: "plain",
@@ -61,10 +63,7 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 		},
 	}
 
-	client := test.CreateFakeClient([]runtime.Object{
-		kogitoInfra,
-		deployedKafkaInstance,
-	}, nil, nil)
+	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra, deployedKafkaInstance).Build()
 
 	scheme := meta.GetRegisteredSchema()
 	r := &ReconcileKogitoInfra{client: client, scheme: scheme}
@@ -92,18 +91,25 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 		},
 	}
 
-	deployedInfinispan := &v12.Infinispan{
+	deployedInfinispan := &ispn.Infinispan{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
+		Status: ispn.InfinispanStatus{
+			Conditions: []ispn.InfinispanCondition{
+				{
+					Status: string(v1.ConditionTrue),
+				},
+			},
+		},
 	}
 
-	deployedCustomSecret := &v13.Secret{
+	deployedCustomSecret := &corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan-credential", Namespace: t.Name()},
 	}
 
-	infinispanService := &v13.Service{
+	infinispanService := &corev1.Service{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
-		Spec: v13.ServiceSpec{
-			Ports: []v13.ServicePort{
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
 				{
 					TargetPort: intstr.FromInt(11222),
 				},
@@ -111,12 +117,9 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 		},
 	}
 
-	client := test.CreateFakeClient([]runtime.Object{
-		kogitoInfra,
-		deployedInfinispan,
-		deployedCustomSecret,
-		infinispanService,
-	}, nil, nil)
+	client := test.NewFakeClientBuilder().
+		AddK8sObjects(kogitoInfra, deployedInfinispan, deployedCustomSecret, infinispanService).
+		Build()
 
 	scheme := meta.GetRegisteredSchema()
 	r := &ReconcileKogitoInfra{client: client, scheme: scheme}

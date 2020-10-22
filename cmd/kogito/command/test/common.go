@@ -34,7 +34,7 @@ var (
 
 // SetupFakeKubeCli creates a fake kube client for your tests
 func SetupFakeKubeCli(initObjs ...runtime.Object) *client.Client {
-	return test.CreateFakeClient(initObjs, nil, nil)
+	return test.NewFakeClientBuilder().AddK8sObjects(initObjs...).Build()
 }
 
 // SetupCliTest creates the infrastructure for the CLI test

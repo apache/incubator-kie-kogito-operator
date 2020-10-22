@@ -20,7 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitoinfra/kafka"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -31,12 +31,12 @@ import (
 func Test_createKafkaTopics(t *testing.T) {
 
 	appProps := map[string]string{}
-	appProps[kafka.QuarkusKafkaBootstrapAppProp] = "kogito-kafka:9092"
+	appProps[QuarkusKafkaBootstrapAppProp] = "kogito-kafka:9092"
 
 	kogitoInfraInstance := &v1alpha1.KogitoInfra{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-kafka",
-			Namespace: "mynamespace",
+			Namespace: t.Name(),
 		},
 		Spec: v1alpha1.KogitoInfraSpec{
 			Resource: v1alpha1.Resource{
@@ -44,24 +44,38 @@ func Test_createKafkaTopics(t *testing.T) {
 				Kind:       infrastructure.KafkaKind,
 			},
 		},
+		Status: v1alpha1.KogitoInfraStatus{
+			AppProps: appProps,
+		},
 	}
-
-	client := test.CreateFakeClient(nil, nil, nil)
-
-	serviceDeployer := serviceDeployer{
-		client: client,
-		definition: ServiceDefinition{
-			KafkaTopics: []string{
-				"kogito-processinstances-events",
+	service := &v1alpha1.KogitoSupportingService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "data-index",
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.DataIndex,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Infra: []string{kogitoInfraInstance.Name},
 			},
 		},
 	}
 
-	err := serviceDeployer.createKafkaTopics(kogitoInfraInstance, "kogito-kafka:9092")
+	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfraInstance, service).Build()
+	k := kafkaMessagingDeployer{
+		messagingDeployer{
+			scheme: meta.GetRegisteredSchema(),
+			cli:    client,
+			definition: ServiceDefinition{
+				KafkaTopics: []string{
+					"kogito-processinstances-events",
+				},
+			}}}
+	err := k.createRequiredResources(service)
 	assert.NoError(t, err)
 
 	kafkaTopic := &v1beta1.KafkaTopic{}
-	exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Namespace: "mynamespace", Name: "kogito-processinstances-events"}, kafkaTopic)
+	exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Namespace: t.Name(), Name: "kogito-processinstances-events"}, kafkaTopic)
 	assert.NoError(t, err)
 	assert.True(t, exists)
 }

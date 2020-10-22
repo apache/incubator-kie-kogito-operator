@@ -29,7 +29,7 @@ const (
 )
 
 // GetManagementConsoleEndpoint gets the route for the Management Console deployed in the given namespace
-func GetManagementConsoleEndpoint(client *client.Client, namespace string) (ServiceEndpoints, error) {
+func GetManagementConsoleEndpoint(client *client.Client, namespace string) (*ServiceEndpoints, error) {
 	return getServiceEndpoints(client, namespace, "", "", v1alpha1.MgmtConsole)
 }
 

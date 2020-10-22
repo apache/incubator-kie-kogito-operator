@@ -64,13 +64,15 @@ func InjectDataIndexURLIntoMgmtConsole(client *client.Client, namespace string) 
 	if err != nil {
 		return err
 	}
-	log.Debugf("The %s route is '%s'", v1alpha1.DataIndex, serviceEndpoints.HTTPRouteURI)
+	if serviceEndpoints != nil {
+		log.Debugf("The %s route is '%s'", v1alpha1.DataIndex, serviceEndpoints.HTTPRouteURI)
 
-	updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
-	// update only once
-	if updateWS || updateHTTP {
-		if err := kubernetes.ResourceC(client).Update(deployment); err != nil {
-			return err
+		updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
+		// update only once
+		if updateWS || updateHTTP {
+			if err := kubernetes.ResourceC(client).Update(deployment); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

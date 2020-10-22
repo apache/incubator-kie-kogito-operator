@@ -35,33 +35,37 @@ const (
 // Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
 // it will call when supporting service reconcile
 func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1alpha1.ServiceType) error {
-	log.Debugf("Querying KogitoRuntime instances in the namespace '%s' to inject a route ", namespace)
-	deployments, err := getKogitoRuntimeDeployments(namespace, client)
-	if err != nil {
-		return err
-	}
-	log.Debugf("Found %s KogitoRuntime instances in the namespace '%s' ", len(deployments), namespace)
-	if len(deployments) == 0 {
-		log.Debugf("No deployment found for KogitoRuntime, skipping to inject %s URL into KogitoApp", resourceType)
-		return nil
-	}
-
-	log.Debugf("Querying %s route to inject into KogitoApps", resourceType)
 	serviceEndpoints, err := getServiceEndpoints(client, namespace, serviceHTTPRouteEnv, serviceWSRouteEnv, resourceType)
 	if err != nil {
 		return err
 	}
-	log.Debugf("The %s route is '%s'", resourceType, serviceEndpoints.HTTPRouteURI)
+	if serviceEndpoints != nil {
 
-	for _, dc := range deployments {
-		updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(&dc, serviceEndpoints)
-		// update only once
-		if updateWS || updateHTTP {
-			if err := kubernetes.ResourceC(client).Update(&dc); err != nil {
-				return err
+		log.Debugf("The %s route is '%s'", resourceType, serviceEndpoints.HTTPRouteURI)
+
+		log.Debugf("Querying KogitoRuntime instances in the namespace '%s' to inject a route ", namespace)
+		deployments, err := getKogitoRuntimeDeployments(namespace, client)
+		if err != nil {
+			return err
+		}
+		log.Debugf("Found %s KogitoRuntime instances in the namespace '%s' ", len(deployments), namespace)
+		if len(deployments) == 0 {
+			log.Debugf("No deployment found for KogitoRuntime, skipping to inject %s URL into KogitoApp", resourceType)
+			return nil
+		}
+		log.Debugf("Querying %s route to inject into KogitoApps", resourceType)
+
+		for _, dc := range deployments {
+			updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(&dc, serviceEndpoints)
+			// update only once
+			if updateWS || updateHTTP {
+				if err := kubernetes.ResourceC(client).Update(&dc); err != nil {
+					return err
+				}
 			}
 		}
 	}
+	log.Debugf("Service Endpoint is nil")
 	return nil
 }
 
@@ -73,22 +77,24 @@ func injectSupportingServiceURLInToDeployment(client *client.Client, namespace s
 	if err != nil {
 		return err
 	}
-	log.Debugf("The %s route is '%s'", resourceType, dataIndexEndpoints.HTTPRouteURI)
-	updateServiceEndpointIntoDeploymentEnv(deployment, dataIndexEndpoints)
+	if dataIndexEndpoints != nil {
+		log.Debugf("The %s route is '%s'", resourceType, dataIndexEndpoints.HTTPRouteURI)
+		updateServiceEndpointIntoDeploymentEnv(deployment, dataIndexEndpoints)
+	}
 	return nil
 }
 
-func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1alpha1.ServiceType) (endpoints ServiceEndpoints, err error) {
+func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1alpha1.ServiceType) (endpoints *ServiceEndpoints, err error) {
 	route := ""
-	endpoints = ServiceEndpoints{
-		HTTPRouteEnv: serviceHTTPRouteEnv,
-		WSRouteEnv:   serviceWSRouteEnv,
-	}
 	route, err = getKogitoSupportingServiceRoute(client, namespace, resourceType)
 	if err != nil {
 		return
 	}
 	if len(route) > 0 {
+		endpoints = &ServiceEndpoints{
+			HTTPRouteEnv: serviceHTTPRouteEnv,
+			WSRouteEnv:   serviceWSRouteEnv,
+		}
 		var routeURL *url.URL
 		routeURL, err = url.Parse(route)
 		if err != nil {
@@ -101,13 +107,14 @@ func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRou
 		} else {
 			endpoints.WSRouteURI = fmt.Sprintf("%s://%s", webSocketSecureScheme, routeURL.Host)
 		}
+		return
 	}
-	return
+	return nil, nil
 }
 
-func updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, serviceEndpoints ServiceEndpoints) (updateHTTP bool, updateWS bool) {
+func updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, serviceEndpoints *ServiceEndpoints) (updateHTTP bool, updateWS bool) {
 	// here we compare the current value to avoid updating the app every time
-	if len(deployment.Spec.Template.Spec.Containers) > 0 {
+	if len(deployment.Spec.Template.Spec.Containers) > 0 && serviceEndpoints != nil {
 		if len(serviceEndpoints.HTTPRouteEnv) > 0 {
 			updateHTTP = framework.GetEnvVarFromContainer(serviceEndpoints.HTTPRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != serviceEndpoints.HTTPRouteURI
 		}
@@ -126,11 +133,11 @@ func updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, servi
 	return
 }
 
-// GetKogitoServiceInternalURI provide kogito service URI for given instance name
-func GetKogitoServiceInternalURI(name, namespace string) string {
+// CreateKogitoServiceURI provides kogito service URI for given instance name
+func CreateKogitoServiceURI(service v1alpha1.KogitoService) string {
 	log.Debugf("Creating kogito service instance URI.")
-	// resolves to http://dataindex.mynamespace:8080 for example
-	uri := fmt.Sprintf("http://%s.%s", name, namespace)
+	// resolves to http://dataindex.mynamespace for example
+	uri := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())
 	log.Debugf("kogito service instance URI : %s", uri)
 	return uri
 }

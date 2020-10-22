@@ -26,7 +26,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"testing"
 )
@@ -48,7 +47,7 @@ func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) 
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance, kogitoKafka}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka).OnOpenShift().Build()
 	r := &ExplainabilitySupportingServiceResource{}
 
 	// basic checks
@@ -72,7 +71,7 @@ func TestReconcileKogitoSupportingServiceExplainability_UpdateHTTPPort(t *testin
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultExplainabilityImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, is).OnOpenShift().AddImageObjects(tag).Build()
 	r := &ExplainabilitySupportingServiceResource{}
 
 	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())

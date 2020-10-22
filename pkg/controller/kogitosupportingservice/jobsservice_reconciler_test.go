@@ -22,7 +22,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"testing"
 )
 
@@ -35,7 +34,7 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
 	r := &JobsServiceSupportingServiceResource{}
 	// first reconciliation

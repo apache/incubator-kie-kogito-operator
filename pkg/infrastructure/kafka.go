@@ -16,6 +16,7 @@ package infrastructure
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -32,7 +33,7 @@ const (
 	defaultKafkaTopicPartition = 1
 	defaultKafkaTopicReplicas  = 1
 
-	// KafkaKind refers to kafka Kind
+	// KafkaKind refers to Kafka Kind as defined by Strimzi
 	KafkaKind = "Kafka"
 
 	// KafkaInstanceName is the default name for the Kafka cluster managed by KogitoInfra

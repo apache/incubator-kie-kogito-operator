@@ -53,8 +53,8 @@ const (
 	BuildS2IFailedReason ReasonType = "BuildS2IFailedReason"
 	// BuildRuntimeFailedReason - Unable to build the runtime image
 	BuildRuntimeFailedReason ReasonType = "BuildRuntimeFailedReason"
-	// DeployKogitoInfraFailedReason - Unable to deploy Kogito Infra
-	DeployKogitoInfraFailedReason ReasonType = "DeployKogitoInfraFailedReason"
+	// KogitoInfraNotReadyReason - Unable to deploy Kogito Infra
+	KogitoInfraNotReadyReason ReasonType = "KogitoInfraNotReadyReason"
 	// UnknownReason - Unable to determine the error
 	UnknownReason ReasonType = "Unknown"
 	// RolloutDeploymentFailedReason - Unable to rollout deployment

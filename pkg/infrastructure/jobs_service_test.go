@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -56,7 +55,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "the-app"}}}},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{app, dc, jobs}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(app, dc, jobs).Build()
 	err := InjectJobsServicesURLIntoKogitoRuntimeServices(cli, t.Name())
 	assert.NoError(t, err)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 0)
@@ -98,7 +97,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "the-app"}}}},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{app, dc, jobs}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(app, dc, jobs).Build()
 	// first we inject
 	err := InjectJobsServicesURLIntoKogitoRuntimeServices(cli, t.Name())
 	assert.NoError(t, err)
@@ -123,8 +122,4 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 1)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-		Name:  jobsServicesHTTPRouteEnv,
-		Value: "",
-	})
 }

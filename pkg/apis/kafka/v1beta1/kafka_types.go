@@ -15,7 +15,9 @@
 package v1beta1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 // KafkaSpec defines the desired state of Kafka
@@ -88,8 +90,27 @@ const (
 
 // KafkaStatus defines the observed state of Kafka
 type KafkaStatus struct {
-	Listeners []ListenerStatus `json:"listeners,omitempty"`
+	Listeners  []ListenerStatus `json:"listeners,omitempty"`
+	Conditions []KafkaCondition `json:"conditions,omitempty"`
 }
+
+// KafkaCondition conditions for a Kafka resource
+type KafkaCondition struct {
+	Type   string                 `json:"type"`
+	Status corev1.ConditionStatus `json:"status"`
+	// This is defined by the Strimzi Java API as String
+	LastTransitionTime string `json:"lastTransitionTime,omitempty"`
+	// we don't have all possibilities for this type, leave as string and compare with known values
+	Reason  string `json:"reason,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+const (
+	// KafkaConditionTypeReady ...
+	KafkaConditionTypeReady = "Ready"
+	// KafkaLastTransitionTimeLayout the default date layout for KafkaCondition
+	KafkaLastTransitionTimeLayout = time.RFC3339
+)
 
 // ListenerStatus defines a single listener
 type ListenerStatus struct {

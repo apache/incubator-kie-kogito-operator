@@ -23,7 +23,6 @@ import (
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"testing"
 )
 
@@ -36,7 +35,7 @@ func TestReconcileKogitoSupportingServiceTrustyUI_Reconcile(t *testing.T) {
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
 	r := &TrustyUISupportingServiceResource{}
 
@@ -68,7 +67,7 @@ func TestReconcileKogitoTrustyUI_CustomImage(t *testing.T) {
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
 	r := &TrustyUISupportingServiceResource{}
 	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())

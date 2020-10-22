@@ -206,7 +206,7 @@ spec:
         version: infinispan.org/v1
       - kind: Kafka
         name: A Kafka instance
-        version: ksafka.strimzi.io/v1beta1
+        version: kafka.strimzi.io/v1beta1
       - kind: Keycloak
         name: A Keycloak Instance
         version: keycloak.org/v1alpha1
@@ -571,6 +571,36 @@ spec:
           - '*'
           verbs:
           - '*'
+        - apiGroups:
+          - eventing.knative.dev
+          resources:
+          - brokers
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - eventing.knative.dev
+          resources:
+          - triggers
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - delete
+          - update
+        - apiGroups:
+          - sources.knative.dev
+          resources:
+          - sinkbindings
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - delete
+          - update
         serviceAccountName: kogito-operator
       - rules:
         - apiGroups:

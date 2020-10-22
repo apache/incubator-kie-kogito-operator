@@ -171,6 +171,6 @@ func isKogitoBuildExists(kubeCli *client.Client, name string, namespace string) 
 
 // CheckKogitoInfraExists returns an error if the KogitoInfra not exists
 func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client, name string, namespace string) error {
-	_, err := infrastructure.FetchKogitoInfraInstance(kubeCli, name, namespace)
+	_, err := infrastructure.MustFetchKogitoInfraInstance(kubeCli, name, namespace)
 	return err
 }

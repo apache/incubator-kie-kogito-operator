@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"testing"
 )
 
@@ -36,7 +35,7 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
 	r := &JobsServiceSupportingServiceResource{}
 	// first reconciliation
@@ -159,7 +158,7 @@ func Test_ensureSingletonService(t *testing.T) {
 		},
 	}
 
-	cli := test.NewFakeClientBuilder().AddK8sObjects([]runtime.Object{instance1, instance2}).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance1, instance2).OnOpenShift().Build()
 	assert.Errorf(t, ensureSingletonService(cli, ns, v1alpha1.DataIndex), "kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", v1alpha1.DataIndex)
 
 }
