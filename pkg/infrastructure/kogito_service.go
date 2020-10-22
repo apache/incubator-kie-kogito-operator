@@ -69,9 +69,9 @@ func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespac
 	return nil
 }
 
-// InjectDataIndexURLInToDeployment will inject Supporting service route URL in to kogito runtime deployment env var
+// InjectDataIndexURLIntoDeployment will inject Supporting service route URL in to kogito runtime deployment env var
 // It will call when Kogito runtime reconcile
-func injectSupportingServiceURLInToDeployment(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, deployment *appsv1.Deployment, resourceType v1alpha1.ServiceType) error {
+func injectSupportingServiceURLIntoDeployment(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, deployment *appsv1.Deployment, resourceType v1alpha1.ServiceType) error {
 	log.Debug("Querying Data Index route to inject into Kogito runtime ")
 	dataIndexEndpoints, err := getServiceEndpoints(client, namespace, serviceHTTPRouteEnv, serviceWSRouteEnv, resourceType)
 	if err != nil {

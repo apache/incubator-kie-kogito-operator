@@ -48,7 +48,7 @@ func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoSer
 
 	prometheusAddOnAvailable, err := isPrometheusAddOnAvailable(kogitoService)
 	if err != nil {
-		return true, nil
+		return true, err
 	}
 	if prometheusAddOnAvailable {
 		if err = createPrometheusServiceMonitorIfNotExists(client, kogitoService, scheme); err != nil {

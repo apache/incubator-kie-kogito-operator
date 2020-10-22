@@ -183,7 +183,7 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 	if err != nil {
 		return err
 	}
-	kogitoDataIndex := &v1alpha1.KogitoSupportingService{
+	supportingService := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      i.supportingService.serviceName,
 			Namespace: i.flags.Project,
@@ -212,6 +212,6 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
-		InstallSupportingService(kogitoDataIndex).
+		InstallSupportingService(supportingService).
 		GetError()
 }

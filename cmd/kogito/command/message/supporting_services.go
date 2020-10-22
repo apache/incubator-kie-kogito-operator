@@ -14,14 +14,9 @@
 
 package message
 
-// Messages for Infrastructure components
-const (
-	InfinispanSuccessfulInstalled = "Infinispan has been successfully installed in the Project %s."
-	InfinispanSuccessfulRemoved   = "Infinispan has been successfully removed from the Project %s."
+import "fmt"
 
-	KafkaSuccessfulInstalled = "Kafka has been successfully installed in the Project %s."
-	KafkaSuccessfulRemoved   = "Kafka has been successfully removed from the Project %s."
-
-	KeycloakSuccessfulInstalled = "Keycloak has been successfully installed in the Project %s."
-	KeycloakSuccessfulRemoved   = "Keycloak has been successfully removed from the Project %s."
+var (
+	// SupportingServiceCheckStatus ...
+	SupportingServiceCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitosupportingservice", "%s", "%s")
 )

@@ -109,42 +109,42 @@ func getSupportingServiceInfoMessages(serviceType v1alpha1.ServiceType) *service
 		return &serviceInfoMessages{
 			errCreating:                  message.DataIndexErrCreating,
 			installed:                    message.DataIndexSuccessfulInstalled,
-			checkStatus:                  message.DataIndexCheckStatus,
+			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.DataIndexNotInstalledNoKogitoOperator,
 		}
 	case v1alpha1.JobsService:
 		return &serviceInfoMessages{
 			errCreating:                  message.JobsServiceErrCreating,
 			installed:                    message.JobsServiceSuccessfulInstalled,
-			checkStatus:                  message.JobsServiceCheckStatus,
+			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.JobsServiceNotInstalledNoKogitoOperator,
 		}
 	case v1alpha1.MgmtConsole:
 		return &serviceInfoMessages{
 			errCreating:                  message.MgmtConsoleErrCreating,
 			installed:                    message.MgmtConsoleSuccessfulInstalled,
-			checkStatus:                  message.MgmtConsoleCheckStatus,
+			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
 		}
 	case v1alpha1.Explainablity:
 		return &serviceInfoMessages{
 			errCreating:                  message.ExplainabilityErrCreating,
 			installed:                    message.ExplainabilitySuccessfulInstalled,
-			checkStatus:                  message.ExplainabilityCheckStatus,
+			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.ExplainabilityNotInstalledNoKogitoOperator,
 		}
 	case v1alpha1.TrustyAI:
 		return &serviceInfoMessages{
 			errCreating:                  message.TrustyErrCreating,
 			installed:                    message.TrustySuccessfulInstalled,
-			checkStatus:                  message.TrustyCheckStatus,
+			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.TrustyNotInstalledNoKogitoOperator,
 		}
 	case v1alpha1.TrustyUI:
 		return &serviceInfoMessages{
 			errCreating:                  message.TrustyUIErrCreating,
 			installed:                    message.TrustyUISuccessfulInstalled,
-			checkStatus:                  message.TrustyUICheckStatus,
+			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
 		}
 	}

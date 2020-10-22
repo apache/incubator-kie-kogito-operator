@@ -37,8 +37,8 @@ func InjectTrustyURLIntoKogitoRuntimeServices(client *client.Client, namespace s
 	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, v1alpha1.TrustyAI)
 }
 
-// InjectTrustyURLInToDeployment will inject Trusty route URL in to kogito runtime deployment env var
-func InjectTrustyURLInToDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
+// InjectTrustyURLIntoDeployment will inject Trusty route URL in to kogito runtime deployment env var
+func InjectTrustyURLIntoDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
 	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
-	return injectSupportingServiceURLInToDeployment(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, deployment, v1alpha1.TrustyAI)
+	return injectSupportingServiceURLIntoDeployment(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, deployment, v1alpha1.TrustyAI)
 }

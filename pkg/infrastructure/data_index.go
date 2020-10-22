@@ -39,10 +39,10 @@ func InjectDataIndexURLIntoKogitoRuntimeServices(client *client.Client, namespac
 	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1alpha1.DataIndex)
 }
 
-// InjectDataIndexURLInToDeployment will inject data-index route URL in to kogito runtime deployment env var
-func InjectDataIndexURLInToDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
+// InjectDataIndexURLIntoDeployment will inject data-index route URL in to kogito runtime deployment env var
+func InjectDataIndexURLIntoDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
 	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
-	return injectSupportingServiceURLInToDeployment(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, v1alpha1.DataIndex)
+	return injectSupportingServiceURLIntoDeployment(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, v1alpha1.DataIndex)
 }
 
 // InjectDataIndexURLIntoMgmtConsole will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one

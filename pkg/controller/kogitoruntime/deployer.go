@@ -122,7 +122,7 @@ func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoSer
 	// protobuf
 	applyProtoBufConfigurations(deployment, kogitoService)
 
-	if err := infrastructure.InjectDataIndexURLInToDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+	if err := infrastructure.InjectDataIndexURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}
 
@@ -130,7 +130,7 @@ func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoSer
 		return err
 	}
 
-	if err := infrastructure.InjectTrustyURLInToDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+	if err := infrastructure.InjectTrustyURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}
 

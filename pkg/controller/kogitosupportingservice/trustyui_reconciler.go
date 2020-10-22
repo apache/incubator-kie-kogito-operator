@@ -43,7 +43,7 @@ func (*TrustyUISupportingServiceResource) Reconcile(client *client.Client, insta
 }
 
 func trustyUIOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error {
-	if err := infrastructure.InjectTrustyURLInToDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+	if err := infrastructure.InjectTrustyURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}
 	return nil

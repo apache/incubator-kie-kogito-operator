@@ -43,7 +43,7 @@ func (*MgmtConsoleSupportingServiceResource) Reconcile(client *client.Client, in
 }
 
 func mgmtConsoleOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error {
-	if err := infrastructure.InjectDataIndexURLInToDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+	if err := infrastructure.InjectDataIndexURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}
 	return nil
