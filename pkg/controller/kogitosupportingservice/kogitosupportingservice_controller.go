@@ -148,7 +148,7 @@ func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) 
 		return
 	}
 
-	supportingResource := getKogitoSupportingResource(instance)
+	supportingResource := getKogitoSupportingService(instance)
 
 	requeueAfter, resultErr := supportingResource.Reconcile(r.client, instance, r.scheme)
 	if resultErr != nil {
@@ -178,26 +178,9 @@ func fetchKogitoSupportingService(client *client.Client, name string, namespace 
 }
 
 // fetches all the supported services managed by kogitoSupportingService controller
-func getKogitoSupportingResource(instance *v1alpha1.KogitoSupportingService) SupportingServiceResource {
-	log.Debugf("going to fetch related kogito infra resource for given infra instance : %s", instance.Name)
-	switch instance.Spec.ServiceType {
-	case v1alpha1.JobsService:
-		log.Debugf("Kogito Supporting Service reference is for Jobs Service")
-		return &JobsServiceSupportingServiceResource{}
-	case v1alpha1.MgmtConsole:
-		log.Debugf("Kogito Supporting Service reference is for Management Console")
-		return &MgmtConsoleSupportingServiceResource{}
-	case v1alpha1.Explainablity:
-		log.Debugf("Kogito Supporting Service reference is for Explainability Service")
-		return &ExplainabilitySupportingServiceResource{}
-	case v1alpha1.TrustyAI:
-		log.Debugf("Kogito Supporting Service reference is for TrustyAI")
-		return &TrustyAISupportingServiceResource{}
-	case v1alpha1.TrustyUI:
-		log.Debugf("Kogito Supporting Service reference is for TrustyUI")
-	}
-	return nil
-
+func getKogitoSupportingService(instance *v1alpha1.KogitoSupportingService) SupportingServiceResource {
+	log.Debugf("going to fetch related kogito supporting Service resource for given instance : %s of type: %s", instance.Name, instance.Spec.ServiceType)
+	return kogitoSupportingServices[instance.Spec.ServiceType]
 }
 
 func ensureSingletonService(client *client.Client, namespace string, resourceType v1alpha1.ServiceType) error {
@@ -236,4 +219,14 @@ func isKogitoInfraUpdated(oldKogitoInfra, newKogitoInfra *v1alpha1.KogitoInfra) 
 // SupportingServiceResource Interface to represent type of kogito supporting service resources like JobsService & MgmtConcole
 type SupportingServiceResource interface {
 	Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, resultErr error)
+}
+
+// map of all the kogitoSupportingService
+// Note: Data Index is not part of this map because it has it's own controller
+var kogitoSupportingServices = map[v1alpha1.ServiceType]SupportingServiceResource{
+	v1alpha1.JobsService:   &JobsServiceSupportingServiceResource{},
+	v1alpha1.MgmtConsole:   &MgmtConsoleSupportingServiceResource{},
+	v1alpha1.Explainablity: &ExplainabilitySupportingServiceResource{},
+	v1alpha1.TrustyAI:      &TrustyAISupportingServiceResource{},
+	v1alpha1.TrustyUI:      &TrustyUISupportingServiceResource{},
 }

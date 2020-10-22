@@ -46,11 +46,11 @@ metadata:
           "apiVersion": "app.kiegroup.org/v1alpha1",
           "kind": "KogitoSupportingService",
           "metadata": {
-            "name": "example-kogitosupportingservice"
+            "name": "kogito-jobs-service"
           },
           "spec": {
             "replicas": 1,
-            "serviceType": "DataIndex"
+            "serviceType": "JobsService"
           }
         }
       ]
