@@ -38,6 +38,6 @@ func InjectJobsServicesURLIntoKogitoRuntimeServices(client *client.Client, names
 
 // InjectJobsServiceURLIntoKogitoRuntimeDeployment will inject jobs-service route URL in to kogito runtime deployment env var
 func InjectJobsServiceURLIntoKogitoRuntimeDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
-	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
+	log.Debugf("Injecting Jobs Service URL in kogito Runtime deployment")
 	return injectSupportingServiceURLIntoDeployment(client, namespace, jobsServicesHTTPRouteEnv, "", deployment, v1alpha1.JobsService)
 }

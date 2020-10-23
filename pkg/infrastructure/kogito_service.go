@@ -50,10 +50,10 @@ func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespac
 		}
 		log.Debugf("Found %s KogitoRuntime instances in the namespace '%s' ", len(deployments), namespace)
 		if len(deployments) == 0 {
-			log.Debugf("No deployment found for KogitoRuntime, skipping to inject %s URL into KogitoApp", resourceType)
+			log.Debugf("No deployment found for KogitoRuntime, skipping to inject %s URL into KogitoRuntime", resourceType)
 			return nil
 		}
-		log.Debugf("Querying %s route to inject into KogitoApps", resourceType)
+		log.Debugf("Querying %s route to inject into KogitoRuntimes", resourceType)
 
 		for _, dc := range deployments {
 			updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(&dc, serviceEndpoints)

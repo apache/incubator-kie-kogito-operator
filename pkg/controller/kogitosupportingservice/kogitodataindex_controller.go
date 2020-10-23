@@ -171,10 +171,10 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 	}
 
 	log.Infof("Injecting Data Index URL into KogitoRuntime services in the namespace '%s'", instance.Namespace)
-	if err := infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(r.client, instance.Namespace); err != nil {
+	if resultErr = infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(r.client, instance.Namespace); resultErr != nil {
 		return
 	}
-	if err := infrastructure.InjectDataIndexURLIntoMgmtConsole(r.client, instance.Namespace); err != nil {
+	if resultErr = infrastructure.InjectDataIndexURLIntoMgmtConsole(r.client, instance.Namespace); resultErr != nil {
 		return
 	}
 
