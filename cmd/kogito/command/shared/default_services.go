@@ -22,21 +22,20 @@ import (
 
 var defaultReplicas = int32(1)
 var defaultServiceStatus = v1alpha1.KogitoServiceStatus{ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: []v1alpha1.Condition{}}}
-var defaultServiceSpec = v1alpha1.KogitoServiceSpec{
-	Replicas: &defaultReplicas,
-	Infra: []string{
-		infrastructure.InfinispanInstanceName,
-		infrastructure.KafkaInstanceName,
-	},
-}
 
 // GetDefaultDataIndex gets the default Data Index instance
 func GetDefaultDataIndex(namespace string) v1alpha1.KogitoSupportingService {
 	return v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: namespace},
 		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.DataIndex,
-			KogitoServiceSpec: defaultServiceSpec,
+			ServiceType: v1alpha1.DataIndex,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &defaultReplicas,
+				Infra: []string{
+					infrastructure.InfinispanInstanceName,
+					infrastructure.KafkaInstanceName,
+				},
+			},
 		},
 		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
 	}
@@ -47,8 +46,10 @@ func GetDefaultJobsService(namespace string) v1alpha1.KogitoSupportingService {
 	return v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: namespace},
 		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: defaultServiceSpec,
+			ServiceType: v1alpha1.JobsService,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &defaultReplicas,
+			},
 		},
 		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
 	}
@@ -59,8 +60,10 @@ func GetDefaultMgmtConsole(namespace string) v1alpha1.KogitoSupportingService {
 	return v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: namespace},
 		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.MgmtConsole,
-			KogitoServiceSpec: defaultServiceSpec,
+			ServiceType: v1alpha1.MgmtConsole,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &defaultReplicas,
+			},
 		},
 		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
 	}

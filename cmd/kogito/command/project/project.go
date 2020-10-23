@@ -43,14 +43,11 @@ func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error 
 		ServicesInstallationBuilder(cli, pFlags.project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(pFlags.Channel))
 
-	if pFlags.installDataIndex || pFlags.installJobsService || pFlags.installManagementConsole {
+	if pFlags.installDataIndex {
 		persistenceInfra := shared.GetDefaultPersistenceInfra(pFlags.project)
 		install.InstallInfraService(persistenceInfra)
 		messagingInfra := shared.GetDefaultMessagingInfra(pFlags.project)
 		install.InstallInfraService(messagingInfra)
-	}
-
-	if pFlags.installDataIndex {
 		dataIndex := shared.GetDefaultDataIndex(pFlags.project)
 		install.InstallSupportingService(&dataIndex)
 	}
