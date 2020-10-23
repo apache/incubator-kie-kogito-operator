@@ -18,8 +18,6 @@ import (
 	"testing"
 	"time"
 
-	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -27,7 +25,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -146,49 +143,4 @@ func createSuccessfulInfinispanInfra(namespace string) *v1alpha1.KogitoInfra {
 			},
 		},
 	}
-}
-
-func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
-	replicas := int32(1)
-	service := &v1alpha1.KogitoRuntime{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "my-kogito-runtime",
-			Namespace: t.Name(),
-		},
-		Spec: v1alpha1.KogitoRuntimeSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-		},
-	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
-
-	dashboards := []GrafanaDashboard{
-		{
-			Name:             "mydashboard",
-			RawJSONDashboard: "[]",
-		},
-		{
-			Name:             "myseconddashboard",
-			RawJSONDashboard: "[]",
-		},
-	}
-
-	reconcileAfter, err := deployGrafanaDashboards(dashboards, cli, t.Name())
-	assert.NoError(t, err)
-	assert.Equal(t, time.Duration(0), reconcileAfter)
-
-	dashboard := &grafanav1.GrafanaDashboard{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "mydashboard",
-			Namespace: t.Name(),
-		},
-	}
-	test.AssertFetchMustExist(t, cli, dashboard)
-
-	dashboard = &grafanav1.GrafanaDashboard{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "myseconddashboard",
-			Namespace: t.Name(),
-		},
-	}
-	test.AssertFetchMustExist(t, cli, dashboard)
 }

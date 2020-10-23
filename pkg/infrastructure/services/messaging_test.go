@@ -15,8 +15,6 @@
 package services
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -27,11 +25,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
-
-type serverHandler struct {
-	Path         string
-	JSONResponse string
-}
 
 func Test_fetchRequiredTopics(t *testing.T) {
 	responseWithTopics := `[{ "name": "travellers", "type": "PRODUCED" }, { "name": "processedtravelers", "type": "CONSUMED" }]`
@@ -98,18 +91,4 @@ func createServiceInstance(t *testing.T) v1alpha1.KogitoService {
 			},
 		},
 	}
-}
-
-func mockKogitoSvcReplies(t *testing.T, handlers []serverHandler) *httptest.Server {
-	h := http.NewServeMux()
-	for _, handler := range handlers {
-		path := handler.Path
-		response := handler.JSONResponse
-		h.HandleFunc(path, func(writer http.ResponseWriter, request *http.Request) {
-			_, err := writer.Write([]byte(response))
-			assert.NoError(t, err)
-		})
-	}
-
-	return httptest.NewServer(h)
 }

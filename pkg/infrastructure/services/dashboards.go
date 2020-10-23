@@ -19,10 +19,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+	"time"
 
+	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // GrafanaDashboard is a structure that contains the fetched dashboards
@@ -104,4 +109,40 @@ func FetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashbo
 		dashboards = append(dashboards, GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)})
 	}
 	return dashboards, nil
+}
+
+func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.KogitoService, namespace string) (time.Duration, error) {
+	dashboards, err := FetchGrafanaDashboards(client, kogitoService)
+	if err != nil {
+		return reconciliationPeriodAfterDashboardsError, err
+	}
+
+	reconcileAfter, err := deployGrafanaDashboards(dashboards, client, namespace)
+
+	return reconcileAfter, err
+}
+
+func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, namespace string) (time.Duration, error) {
+	for _, dashboard := range dashboards {
+		resourceName := strings.ReplaceAll(strings.ToLower(dashboard.Name), ".json", "")
+		dashboardDefinition := &grafanav1.GrafanaDashboard{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      resourceName,
+				Namespace: namespace,
+				Labels: map[string]string{
+					"app": GrafanaDashboardAppName,
+				},
+			},
+			Spec: grafanav1.GrafanaDashboardSpec{
+				Json: dashboard.RawJSONDashboard,
+				Name: dashboard.Name,
+			},
+		}
+		if err := kubernetes.ResourceC(cli).Create(dashboardDefinition); err != nil {
+			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name, err)
+		} else {
+			log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
+		}
+	}
+	return 0, nil
 }
