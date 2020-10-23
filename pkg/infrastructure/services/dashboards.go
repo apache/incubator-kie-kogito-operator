@@ -25,7 +25,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
-// GrafanaDashboard todo
+// GrafanaDashboard is a structure that contains the fetched dashboards
 type GrafanaDashboard struct {
 	Name             string
 	RawJSONDashboard string
@@ -35,7 +35,7 @@ const (
 	// dashboardPath which the dashboards are fetched
 	dashboardsPath = "/monitoring/dashboards/"
 
-	// GrafanaDashboardAppName label app name to be used when a GrafanaDashboard is created.
+	// GrafanaDashboardAppName label app name to be used when a GrafanaDashboard is created
 	GrafanaDashboardAppName = "grafana"
 )
 
@@ -59,7 +59,7 @@ func FetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService)
 	return FetchDashboards(svcURL, dashboardNames)
 }
 
-// FetchGrafanaDashboardNamesForURL todo
+// FetchGrafanaDashboardNamesForURL fetches the dashboard names available on the kogito runtime service if the monitoring addon is enabled
 func FetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	dashboardsURL := fmt.Sprintf("%s%s%s", serverURL, dashboardsPath, "list.json")
 	resp, err := http.Get(dashboardsURL)
@@ -81,7 +81,7 @@ func FetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	return dashboardNames, nil
 }
 
-// FetchDashboards todo
+// FetchDashboards fetches the json grafana dashboard from the kogito runtime service
 func FetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashboard, error) {
 	var dashboards []GrafanaDashboard
 	for _, name := range dashboardNames {
