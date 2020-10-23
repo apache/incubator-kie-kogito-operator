@@ -1119,6 +1119,17 @@ spec:
           - create
           - delete
           - update
+        - apiGroups:
+          - integreatly.org
+          resources:
+          - grafanadashboards
+          verbs:
+          - get
+          - create
+          - list
+          - delete
+          - watch
+          - update
         serviceAccountName: kogito-operator
       - rules:
         - apiGroups:

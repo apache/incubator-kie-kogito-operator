@@ -17,6 +17,7 @@ package services
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -244,7 +245,7 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 	for _, dashboard := range dashboards {
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      dashboard.Name,
+				Name:      strings.ToLower(dashboard.Name),
 				Namespace: namespace,
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
@@ -254,8 +255,9 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 		}
 		if err := kubernetes.ResourceC(cli).Create(dashboardDefinition); err != nil {
 			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name, err)
+		} else {
+			log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
 		}
-		log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
 	}
 	return 0, nil
 }
