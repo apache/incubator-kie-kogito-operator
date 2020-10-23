@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -33,8 +32,11 @@ type GrafanaDashboard struct {
 }
 
 const (
-	// topicInfoPath which the topics are fetched
+	// dashboardPath which the dashboards are fetched
 	dashboardsPath = "/monitoring/dashboards/"
+
+	// GrafanaDashboardAppName label app name to be used when a GrafanaDashboard is created.
+	GrafanaDashboardAppName = "grafana"
 )
 
 // FetchGrafanaDashboards fetches the grafana dashboards from the KogitoService
@@ -99,7 +101,7 @@ func FetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashbo
 		if err != nil {
 			log.Fatal(err)
 		}
-		dashboards = append(dashboards, GrafanaDashboard{Name: strings.ReplaceAll(name, ".json", ""), RawJSONDashboard: string(bodyBytes)})
+		dashboards = append(dashboards, GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)})
 	}
 	return dashboards, nil
 }

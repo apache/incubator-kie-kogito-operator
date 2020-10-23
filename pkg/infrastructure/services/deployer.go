@@ -47,6 +47,7 @@ const (
 	reconciliationPeriodAfterInfraError                = time.Minute
 	reconciliationPeriodAfterMessagingError            = time.Second * 30
 	reconciliationPeriodMonitoringEndpointNotAvailable = time.Second * 10
+	reconciliationPeriodAfterDashboardsError           = time.Second * 30
 )
 
 // ServiceDefinition defines the structure for a Kogito Service
@@ -92,9 +93,8 @@ type ServiceDefinition struct {
 }
 
 const (
-	defaultReplicas                          = int32(1)
-	serviceDoesNotExistsMessage              = "Kogito Service '%s' does not exists, aborting deployment"
-	reconciliationPeriodAfterDashboardsError = time.Second * 30
+	defaultReplicas             = int32(1)
+	serviceDoesNotExistsMessage = "Kogito Service '%s' does not exists, aborting deployment"
 )
 
 // ServiceDeployer is the API to handle a Kogito Service deployment by Operator SDK controllers
@@ -243,10 +243,14 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 
 func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, namespace string) (time.Duration, error) {
 	for _, dashboard := range dashboards {
+		resourceName := strings.ReplaceAll(strings.ToLower(dashboard.Name), ".json", "")
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      strings.ToLower(dashboard.Name),
+				Name:      resourceName,
 				Namespace: namespace,
+				Labels: map[string]string{
+					"app": GrafanaDashboardAppName,
+				},
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
 				Json: dashboard.RawJSONDashboard,

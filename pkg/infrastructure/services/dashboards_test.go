@@ -15,7 +15,6 @@
 package services
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -69,5 +68,5 @@ func Test_fetchDashboards(t *testing.T) {
 	assert.Equal(t, len(fetchedDashboardNames), len(dashboards))
 	assert.Equal(t, dashboard1, dashboards[0].RawJSONDashboard)
 	assert.Equal(t, dashboard2, dashboards[1].RawJSONDashboard)
-	assert.Equal(t, strings.ReplaceAll(fetchedDashboardNames[0], ".json", ""), dashboards[0].Name)
+	assert.Equal(t, fetchedDashboardNames[0], dashboards[0].Name)
 }
