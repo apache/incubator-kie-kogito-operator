@@ -29,14 +29,7 @@ import (
 func Test_fetchDashboardNames(t *testing.T) {
 	dashboardNames := `["dashboard1.json", "dashboard2.json"]`
 
-	handlers := []serverHandler{
-		{
-			Path:         dashboardsPath + "list.json",
-			JSONResponse: dashboardNames,
-		},
-	}
-
-	server := mockKogitoSvcReplies(t, handlers)
+	server := mockKogitoSvcReplies(t, serverHandler{Path: dashboardsPath + "list.json", JSONResponse: dashboardNames})
 	defer server.Close()
 
 	dashboards, err := FetchGrafanaDashboardNamesForURL(server.URL)
@@ -64,7 +57,7 @@ func Test_fetchDashboards(t *testing.T) {
 		},
 	}
 
-	server := mockKogitoSvcReplies(t, handlers)
+	server := mockKogitoSvcReplies(t, handlers...)
 	defer server.Close()
 
 	fetchedDashboardNames, err := FetchGrafanaDashboardNamesForURL(server.URL)

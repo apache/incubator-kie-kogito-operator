@@ -30,14 +30,7 @@ func Test_fetchRequiredTopics(t *testing.T) {
 	responseWithTopics := `[{ "name": "travellers", "type": "PRODUCED" }, { "name": "processedtravelers", "type": "CONSUMED" }]`
 	instance := createServiceInstance(t)
 
-	handlers := []serverHandler{
-		{
-			Path:         topicInfoPath,
-			JSONResponse: responseWithTopics,
-		},
-	}
-
-	server := mockKogitoSvcReplies(t, handlers)
+	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: responseWithTopics})
 	defer server.Close()
 
 	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
@@ -50,7 +43,7 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 	emptyResponse := "[]"
 	instance := createServiceInstance(t)
 
-	server := mockKogitoSvcReplies(t, serverHandler{{Path: topicInfoPath, JSONResponse: emptyResponse}})
+	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: emptyResponse})
 	defer server.Close()
 
 	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
