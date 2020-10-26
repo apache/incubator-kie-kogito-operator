@@ -36,7 +36,7 @@ func Test_GetKogitoServiceInternalURL(t *testing.T) {
 		},
 	}
 
-	actualURL := GetKogitoServiceURL(service)
+	actualURL := getKogitoServiceURL(service)
 	assert.Equal(t, "http://dataindex.mynamespace", actualURL)
 }
 

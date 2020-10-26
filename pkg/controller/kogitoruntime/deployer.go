@@ -15,9 +15,9 @@
 package kogitoruntime
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -26,10 +26,13 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
+	"io/ioutil"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"net/http"
 )
 
 const (
@@ -44,23 +47,21 @@ const (
 	downwardAPIVolumeName    = "podinfo"
 	downwardAPIVolumeMount   = kogitoHome + "/" + downwardAPIVolumeName
 	downwardAPIProtoBufCMKey = "protobufcm"
-
-	postHookPersistenceScript = kogitoHome + "/launch/post-hook-persistence.sh"
+	protobufSubdir           = "/persistence/protobuf/"
+	protobufListFileName     = "list.json"
 
 	envVarNamespace = "NAMESPACE"
 )
 
 var (
 	downwardAPIDefaultMode = int32(420)
-
-	podStartExecCommand = []string{"/bin/bash", "-c", "if [ -x " + postHookPersistenceScript + " ]; then " + postHookPersistenceScript + "; fi"}
 )
 
 func onGetComparators(comparator compare.ResourceComparator) {
 	comparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(corev1.ConfigMap{})).
-			WithCustomComparator(protoBufConfigMapComparator).
+			WithCustomComparator(framework.CreateConfigMapComparator()).
 			Build())
 
 	comparator.SetComparator(
@@ -73,13 +74,61 @@ func onGetComparators(comparator compare.ResourceComparator) {
 func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, lists []runtime.Object, err error) {
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
 
-	resObjectList, resType, res := createProtoBufConfigMap(kogitoService)
+	resObjectList, resType, res := createProtoBufConfigMap(cli, kogitoService)
 	lists = append(lists, resObjectList)
 	resources[resType] = []resource.KubernetesResource{res}
 	return
 }
 
-func createProtoBufConfigMap(kogitoService v1alpha1.KogitoService) (runtime.Object, reflect.Type, resource.KubernetesResource) {
+func getProtobufData(cli *client.Client, kogitoService v1alpha1.KogitoService) map[string]string {
+	available, err := services.IsDeploymentAvailable(cli, kogitoService)
+	if err != nil {
+		log.Errorf("failed to check status of %s: %v", kogitoService.GetName(), err)
+		return nil
+	}
+	if !available {
+		log.Debugf("deployment not available yet for %s ", kogitoService.GetName())
+		return nil
+	}
+
+	protobufEndpoint := infrastructure.GetKogitoServiceEndpoint(kogitoService) + protobufSubdir
+	protobufListURL := protobufEndpoint + protobufListFileName
+	protobufListBytes, err := getHTTPFileBytes(protobufListURL)
+	if err != nil {
+		log.Errorf("failed to get %s protobuf file list: %v", kogitoService.GetName(), err)
+		return nil
+	}
+	if protobufListBytes == nil {
+		log.Debugf("no protobuf list found for %s at %s", kogitoService.GetName(), protobufListURL)
+		return nil
+	}
+	var protobufList []string
+	err = json.Unmarshal(protobufListBytes, &protobufList)
+	if err != nil {
+		log.Errorf("failed to parse %s protobuf file list: %v", kogitoService.GetName(), err)
+		return nil
+	}
+	log.Debugf("%s Protobuf List: %v", kogitoService.GetName(), protobufList)
+
+	var protobufFileBytes []byte
+	data := map[string]string{}
+	for _, fileName := range protobufList {
+		protobufFileURL := protobufEndpoint + fileName
+		protobufFileBytes, err = getHTTPFileBytes(protobufFileURL)
+		if err != nil {
+			log.Errorf("failed to get protobuf file for %s at %s: %v", kogitoService.GetName(), protobufFileURL, err)
+			continue
+		}
+		if protobufFileBytes == nil {
+			log.Errorf("%s protobuf list not found at %s", kogitoService.GetName(), protobufFileURL)
+			continue
+		}
+		data[fileName] = string(protobufFileBytes)
+	}
+	return data
+}
+
+func createProtoBufConfigMap(cli *client.Client, kogitoService v1alpha1.KogitoService) (runtime.Object, reflect.Type, resource.KubernetesResource) {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: kogitoService.GetNamespace(),
@@ -89,19 +138,9 @@ func createProtoBufConfigMap(kogitoService v1alpha1.KogitoService) (runtime.Obje
 				framework.LabelAppKey:                           kogitoService.GetName(),
 			},
 		},
+		Data: getProtobufData(cli, kogitoService),
 	}
 	return &corev1.ConfigMapList{}, reflect.TypeOf(corev1.ConfigMap{}), configMap
-}
-
-func protoBufConfigMapComparator(deployed resource.KubernetesResource, requested resource.KubernetesResource) (equal bool) {
-	cmDeployed := deployed.(*corev1.ConfigMap)
-
-	// this update is made by the downward API inside the pod container
-	if strings.HasSuffix(cmDeployed.Name, protobufConfigMapSuffix) {
-		return true
-	}
-
-	return framework.CreateConfigMapComparator()(deployed, requested)
 }
 
 // onDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties to the deployment creation
@@ -168,7 +207,21 @@ func applyProtoBufConfigurations(deployment *v1.Deployment, kogitoService v1alph
 					Name:      downwardAPIVolumeName,
 					MountPath: downwardAPIVolumeMount,
 				})
-		deployment.Spec.Template.Spec.Containers[0].Lifecycle =
-			&corev1.Lifecycle{PostStart: &corev1.Handler{Exec: &corev1.ExecAction{Command: podStartExecCommand}}}
 	}
+}
+
+func getHTTPFileBytes(fileURL string) ([]byte, error) {
+	res, err := http.Get(fileURL)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, nil
+	}
+	fileBytes, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	return fileBytes, nil
 }
