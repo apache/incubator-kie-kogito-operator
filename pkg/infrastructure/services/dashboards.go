@@ -129,7 +129,7 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 				Name:      resourceName,
 				Namespace: namespace,
 				Labels: map[string]string{
-					framework.LabelAppKey: GrafanaDashboardAppName,
+					framework.LabelAppKey: kogitoService.GetName(),
 				},
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
