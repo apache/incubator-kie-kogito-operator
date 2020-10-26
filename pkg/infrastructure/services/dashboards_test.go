@@ -33,7 +33,7 @@ func Test_fetchDashboardNames(t *testing.T) {
 	server := mockKogitoSvcReplies(t, serverHandler{Path: dashboardsPath + "list.json", JSONResponse: dashboardNames})
 	defer server.Close()
 
-	dashboards, err := FetchGrafanaDashboardNamesForURL(server.URL)
+	dashboards, err := fetchGrafanaDashboardNamesForURL(server.URL)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, dashboards)
 }
@@ -61,9 +61,9 @@ func Test_fetchDashboards(t *testing.T) {
 	server := mockKogitoSvcReplies(t, handlers...)
 	defer server.Close()
 
-	fetchedDashboardNames, err := FetchGrafanaDashboardNamesForURL(server.URL)
+	fetchedDashboardNames, err := fetchGrafanaDashboardNamesForURL(server.URL)
 	assert.NoError(t, err)
-	dashboards, err := FetchDashboards(server.URL, fetchedDashboardNames)
+	dashboards, err := fetchDashboards(server.URL, fetchedDashboardNames)
 	assert.NoError(t, err)
 	assert.Equal(t, len(fetchedDashboardNames), len(dashboards))
 	assert.Equal(t, dashboard1, dashboards[0].RawJSONDashboard)

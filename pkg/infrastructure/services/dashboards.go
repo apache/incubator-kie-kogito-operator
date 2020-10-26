@@ -46,8 +46,7 @@ const (
 	GrafanaDashboardAppName = "grafana"
 )
 
-// FetchGrafanaDashboards fetches the grafana dashboards from the KogitoService
-func FetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService) ([]GrafanaDashboard, error) {
+func fetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService) ([]GrafanaDashboard, error) {
 	available, err := isDeploymentAvailable(cli, instance)
 	if err != nil {
 		return nil, err
@@ -58,16 +57,15 @@ func FetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService)
 	}
 
 	svcURL := infrastructure.CreateKogitoServiceURI(instance)
-	dashboardNames, err := FetchGrafanaDashboardNamesForURL(svcURL)
+	dashboardNames, err := fetchGrafanaDashboardNamesForURL(svcURL)
 	if err != nil {
 		return nil, err
 	}
 
-	return FetchDashboards(svcURL, dashboardNames)
+	return fetchDashboards(svcURL, dashboardNames)
 }
 
-// FetchGrafanaDashboardNamesForURL fetches the dashboard names available on the kogito runtime service if the monitoring addon is enabled
-func FetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
+func fetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	dashboardsURL := fmt.Sprintf("%s%s%s", serverURL, dashboardsPath, "list.json")
 	resp, err := http.Get(dashboardsURL)
 	if err != nil {
@@ -88,8 +86,7 @@ func FetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	return dashboardNames, nil
 }
 
-// FetchDashboards fetches the json grafana dashboard from the kogito runtime service
-func FetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashboard, error) {
+func fetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashboard, error) {
 	var dashboards []GrafanaDashboard
 	for _, name := range dashboardNames {
 		dashboardURL := fmt.Sprintf("%s%s%s", serverURL, dashboardsPath, name)
@@ -114,7 +111,7 @@ func FetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashbo
 }
 
 func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) (time.Duration, error) {
-	dashboards, err := FetchGrafanaDashboards(client, kogitoService)
+	dashboards, err := fetchGrafanaDashboards(client, kogitoService)
 	if err != nil {
 		return reconciliationPeriodAfterDashboardsError, err
 	}
