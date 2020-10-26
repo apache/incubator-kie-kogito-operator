@@ -25,8 +25,10 @@ import (
 )
 
 const (
-	// DefaultDataIndexImageName is just the image name for the Data Index Service
-	DefaultDataIndexImageName = "kogito-data-index-infinispan"
+	// DataIndexInfinispanImageName is the image name for the Data Index Service with Infinispan
+	DataIndexInfinispanImageName = "kogito-data-index-infinispan"
+	// DataIndexMongoDBImageName is the image name for the Data Index Service with MongoDB
+	DataIndexMongoDBImageName = "kogito-data-index-mongodb"
 	// DefaultDataIndexName is the default name for the Data Index instance service
 	DefaultDataIndexName = "data-index"
 	// Data index HTTP URL env
@@ -39,6 +41,11 @@ const (
 	protoBufKeyFolder string = "KOGITO_PROTOBUF_FOLDER"
 	// Proto Buf watch env
 	protoBufKeyWatch string = "KOGITO_PROTOBUF_WATCH"
+)
+
+var (
+	// DefaultDataIndexImageName is just the image name for the Data Index Service
+	DefaultDataIndexImageName = DataIndexInfinispanImageName
 )
 
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one

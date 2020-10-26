@@ -51,6 +51,13 @@ type KogitoInfraSpec struct {
 	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Resource Resource `json:"resource,omitempty"`
+
+	// +optional
+	// +mapType=atomic
+	// Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type.
+	// For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	InfraProperties map[string]string `json:"infraProperties,omitempty"`
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra.
@@ -91,6 +98,10 @@ const (
 	UnsupportedAPIKind KogitoInfraConditionReason = "UnsupportedAPIKind"
 	// ResourceNotReady related resource is not ready
 	ResourceNotReady KogitoInfraConditionReason = "ResourceNotReady"
+	// ResourceConfigError related resource is not configured properly
+	ResourceConfigError KogitoInfraConditionReason = "ResourceConfigError"
+	// ResourceMissingResourceConfig related resource is missing a config information to continue
+	ResourceMissingResourceConfig KogitoInfraConditionReason = "ResourceMissingConfig"
 )
 
 // KogitoInfraCondition ...

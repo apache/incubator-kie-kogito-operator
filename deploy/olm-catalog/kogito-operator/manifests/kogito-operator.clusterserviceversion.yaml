@@ -214,6 +214,12 @@ spec:
         name: A Kubernetes Secret
         version: v1
       specDescriptors:
+      - description: Optional properties which would be needed to setup correct runtime/service
+          configuration, based on the resource type. For example, MongoDB will require
+          `username` and `database` as properties for a correct setup, else it will
+          fail
+        displayName: Infra Properties
+        path: infraProperties
       - description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak.'
         displayName: Resource
         path: resource
@@ -544,6 +550,16 @@ spec:
           - keycloak.org
           resources:
           - keycloaks
+          verbs:
+          - get
+          - create
+          - list
+          - delete
+          - watch
+        - apiGroups:
+          - mongodb.com
+          resources:
+          - mongodbs
           verbs:
           - get
           - create

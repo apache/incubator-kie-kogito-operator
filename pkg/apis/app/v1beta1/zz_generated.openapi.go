@@ -415,6 +415,21 @@ func schema_pkg_apis_app_v1beta1_KogitoInfraSpec(ref common.ReferenceCallback) c
 							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.Resource"),
 						},
 					},
+					"infraProperties": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type. For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},

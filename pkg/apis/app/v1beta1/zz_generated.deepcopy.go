@@ -385,7 +385,7 @@ func (in *KogitoInfra) DeepCopyInto(out *KogitoInfra) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	out.Spec = in.Spec
+	in.Spec.DeepCopyInto(&out.Spec)
 	in.Status.DeepCopyInto(&out.Status)
 	return
 }
@@ -462,6 +462,13 @@ func (in *KogitoInfraList) DeepCopyObject() runtime.Object {
 func (in *KogitoInfraSpec) DeepCopyInto(out *KogitoInfraSpec) {
 	*out = *in
 	out.Resource = in.Resource
+	if in.InfraProperties != nil {
+		in, out := &in.InfraProperties, &out.InfraProperties
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

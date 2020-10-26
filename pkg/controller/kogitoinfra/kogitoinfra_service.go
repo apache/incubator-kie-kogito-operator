@@ -16,6 +16,7 @@ package kogitoinfra
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -53,5 +54,6 @@ func getSupportedInfraResources(context targetContext) map[string]InfraReconcile
 		getResourceClass(infrastructure.KafkaKind, infrastructure.KafkaAPIVersion):                           &kafkaInfraReconciler{context},
 		getResourceClass(infrastructure.KeycloakKind, infrastructure.KeycloakAPIVersion):                     &keycloakInfraReconciler{context},
 		getResourceClass(infrastructure.KnativeEventingBrokerKind, infrastructure.KnativeEventingAPIVersion): &knativeInfraReconciler{context},
+		getResourceClass(infrastructure.MongoDBKind, infrastructure.MongoDBAPIVersion):                       &mongoDBInfraReconciler{context},
 	}
 }

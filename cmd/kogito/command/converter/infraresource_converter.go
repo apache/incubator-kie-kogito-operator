@@ -19,8 +19,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
-// FromResourceFlagsToResource converts given InfraResourceFlags into Resource
-func FromResourceFlagsToResource(flags *flag.InfraResourceFlags) v1beta1.Resource {
+// FromInfraResourceFlagsToResource converts given InfraResourceFlags into Resource
+func FromInfraResourceFlagsToResource(flags *flag.InfraResourceFlags) v1beta1.Resource {
 	return v1beta1.Resource{
 		Kind:       flags.Kind,
 		APIVersion: flags.APIVersion,
