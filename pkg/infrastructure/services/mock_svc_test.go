@@ -27,7 +27,7 @@ type serverHandler struct {
 	JSONResponse string
 }
 
-func mockKogitoSvcReplies(t *testing.T, handlers []serverHandler) *httptest.Server {
+func mockKogitoSvcReplies(t *testing.T, handlers ...serverHandler) *httptest.Server {
 	h := http.NewServeMux()
 	for _, handler := range handlers {
 		path := handler.Path
