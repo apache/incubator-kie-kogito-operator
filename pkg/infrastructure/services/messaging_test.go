@@ -50,14 +50,7 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 	emptyResponse := "[]"
 	instance := createServiceInstance(t)
 
-	handlers := []serverHandler{
-		{
-			Path:         topicInfoPath,
-			JSONResponse: emptyResponse,
-		},
-	}
-
-	server := mockKogitoSvcReplies(t, handlers)
+	server := mockKogitoSvcReplies(t, serverHandler{{Path: topicInfoPath, JSONResponse: emptyResponse}})
 	defer server.Close()
 
 	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
