@@ -347,7 +347,7 @@ func (s *serviceDeployer) configureMonitoring() (time.Duration, error) {
 		return reconciliationPeriodMonitoringEndpointNotAvailable, nil
 	}
 
-	reconcileAfter, err := configureGrafanaDashboards(s.client, s.instance, s.getNamespace())
+	reconcileAfter, err := configureGrafanaDashboards(s.client, s.instance, s.scheme, s.getNamespace())
 	if err != nil {
 		return reconciliationPeriodAfterDashboardsError, err
 	}

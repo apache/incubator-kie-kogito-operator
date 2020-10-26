@@ -20,6 +20,7 @@ import (
 
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -94,7 +95,7 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 		},
 	}
 
-	reconcileAfter, err := deployGrafanaDashboards(dashboards, cli, t.Name())
+	reconcileAfter, err := deployGrafanaDashboards(dashboards, cli, service, meta.GetRegisteredSchema(), t.Name())
 	assert.NoError(t, err)
 	assert.Equal(t, time.Duration(0), reconcileAfter)
 

@@ -26,8 +26,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // GrafanaDashboard is a structure that contains the fetched dashboards
@@ -111,18 +113,18 @@ func FetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashbo
 	return dashboards, nil
 }
 
-func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.KogitoService, namespace string) (time.Duration, error) {
+func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) (time.Duration, error) {
 	dashboards, err := FetchGrafanaDashboards(client, kogitoService)
 	if err != nil {
 		return reconciliationPeriodAfterDashboardsError, err
 	}
 
-	reconcileAfter, err := deployGrafanaDashboards(dashboards, client, namespace)
+	reconcileAfter, err := deployGrafanaDashboards(dashboards, client, kogitoService, scheme, namespace)
 
 	return reconcileAfter, err
 }
 
-func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, namespace string) (time.Duration, error) {
+func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) (time.Duration, error) {
 	for _, dashboard := range dashboards {
 		resourceName := strings.ReplaceAll(strings.ToLower(dashboard.Name), ".json", "")
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
@@ -130,7 +132,7 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 				Name:      resourceName,
 				Namespace: namespace,
 				Labels: map[string]string{
-					"app": GrafanaDashboardAppName,
+					framework.LabelAppKey: GrafanaDashboardAppName,
 				},
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
@@ -138,7 +140,7 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 				Name: dashboard.Name,
 			},
 		}
-		if err := kubernetes.ResourceC(cli).Create(dashboardDefinition); err != nil {
+		if _, err := kubernetes.ResourceC(cli).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, scheme); err != nil {
 			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name, err)
 		} else {
 			log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
