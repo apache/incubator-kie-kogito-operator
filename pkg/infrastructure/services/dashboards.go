@@ -141,7 +141,7 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 		}
 		isCreated, err := kubernetes.ResourceC(cli).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, scheme)
 		if err != nil {
-			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name, err)
+			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource: %v", dashboard.Name, err)
 		}
 		if isCreated {
 			log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
