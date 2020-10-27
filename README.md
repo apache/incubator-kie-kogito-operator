@@ -24,6 +24,7 @@ For information about the Kogito Operator architecture and instructions for usin
       * [Running performance tests](#running-performance-tests)
       * [List of test tags](#list-of-test-tags)
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
+    * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
   
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -377,6 +378,47 @@ You can use the following command to vet, format, lint, and test your code:
 ```bash
 $ make test
 ```
+
+### Remote Debug Kogito Operator using Intellij IDEA
+
+The operator will be deployed over an Openshift or Kubernetes cluster. In this example we've taken minikube to deploy a Kubernetes cluster locally.
+
+**Install Minikube:**
+
+For installing the Minikube cluster please follow [this tutorial](https://kubernetes.io/docs/tasks/tools/install-minikube/)
+```bash
+$ minikube start
+```
+**Apply Operator manifests:**
+
+```bash
+$ export NAMESPACE=default
+$ ./hack/install-manifests.sh
+```
+
+**Start Operator in remote debug mode:**
+
+```bash
+$ cd cmd/manager
+$ export WATCH_NAMESPACE=default
+$ dlv debug --headless --listen=:2345 --api-version=2
+```
+
+verify logs on bash console for below line
+
+```
+API server listening at: [::]:2345
+```
+
+**Create the Go Remote run/debug configuration:**
+
+1. Click `Edit | Run Configurations`. Alternatively, click the list of run/debug configurations on the toolbar and select `Edit Configurations`.
+2. In the `Run/Debug Configurations` dialog, click the `Add` button (`+`) and select `Go Remote`.
+3. In the Host field, type the host IP address (in our case `localhost`).
+4. In the Port field, type the debugger port that you configured in above `dlv` command (in our case it's `2345`).
+5. Click `OK`.
+6. Put the breakpoint in your code.
+7. From the list of `run/debug configurations` on the toolbar, select the created Go Remote configuration and click the `Debug <configuration_name>` button 
 
 ## Guide for Kogito Developers
 
