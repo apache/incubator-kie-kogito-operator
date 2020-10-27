@@ -349,7 +349,7 @@ func (s *serviceDeployer) configureMonitoring() (time.Duration, error) {
 
 	reconcileAfter, err := configureGrafanaDashboards(s.client, s.instance, s.scheme, s.getNamespace())
 	if err != nil {
-		return reconciliationPeriodAfterDashboardsError, err
+		return reconciliationPeriodAfterDashboardsError, nil
 	}
 
 	return reconcileAfter, err

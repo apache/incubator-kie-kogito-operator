@@ -73,6 +73,7 @@ func fetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
+		log.Debugf("Dashboard list not found, the monitoring addon is disabled on the service. There are no dashboards to deploy.")
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -96,6 +97,7 @@ func fetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashbo
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusNotFound {
+			log.Debugf("Dashboard %s not found, ignoring the resource.", name)
 			return nil, nil
 		}
 		if resp.StatusCode != http.StatusOK {
@@ -137,9 +139,11 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 				Name: dashboard.Name,
 			},
 		}
-		if _, err := kubernetes.ResourceC(cli).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, scheme); err != nil {
+		isCreated, err := kubernetes.ResourceC(cli).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, scheme)
+		if err != nil {
 			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource.", dashboard.Name, err)
-		} else {
+		}
+		if isCreated {
 			log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
 		}
 	}

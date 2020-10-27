@@ -36,6 +36,8 @@ func Test_fetchDashboardNames(t *testing.T) {
 	dashboards, err := fetchGrafanaDashboardNamesForURL(server.URL)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, dashboards)
+	assert.Equal(t, "dashboard1.json", dashboards[0])
+	assert.Equal(t, "dashboard2.json", dashboards[1])
 }
 
 func Test_fetchDashboards(t *testing.T) {
