@@ -1,4 +1,3 @@
----
 #Strimzi operator should be pre-installed in namespace
 # will set this instance to auto provision an infra structure in the namespace
 apiVersion: app.kiegroup.org/v1alpha1
@@ -11,10 +10,11 @@ spec:
     kind: Kafka
 ---
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoExplainability
+kind: KogitoSupportingService
 metadata:
   name: explainability
 spec:
+  serviceType: Explainablity
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS

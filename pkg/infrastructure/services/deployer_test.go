@@ -38,12 +38,13 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 	requiredTopic := "dataindex-required-topic"
 	infraKafka := createSuccessfulInfinispanInfra(t.Name())
 	infraInfinispan := createSuccessfulKafkaInfra(t.Name())
-	dataIndex := &v1alpha1.KogitoDataIndex{
+	dataIndex := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoDataIndexSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.DataIndex,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Infra: []string{
@@ -58,7 +59,7 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 		Request:          newReconcileRequest(t.Name()),
 		KafkaTopics:      []string{requiredTopic},
 	}
-	deployer := NewSingletonServiceDeployer(definition, &v1alpha1.KogitoDataIndexList{}, cli, meta.GetRegisteredSchema())
+	deployer := NewServiceDeployer(definition, dataIndex, cli, meta.GetRegisteredSchema())
 	reconcileAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
 	assert.Equal(t, time.Duration(0), reconcileAfter)
@@ -74,12 +75,13 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 
 func Test_serviceDeployer_Deploy(t *testing.T) {
 	replicas := int32(1)
-	service := &v1alpha1.KogitoJobsService{
+	service := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType:       v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
@@ -88,10 +90,10 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 		DefaultImageName: infrastructure.DefaultJobsServiceImageName,
 		Request:          newReconcileRequest(t.Name()),
 	}
-	deployer := NewSingletonServiceDeployer(definition, &v1alpha1.KogitoJobsServiceList{}, cli, meta.GetRegisteredSchema())
-	reconcileAfter, err := deployer.Deploy()
+	deployer := NewServiceDeployer(definition, service, cli, meta.GetRegisteredSchema())
+	requeueAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
-	assert.Equal(t, time.Duration(0), reconcileAfter)
+	assert.True(t, requeueAfter == 0)
 
 	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)

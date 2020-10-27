@@ -15,50 +15,111 @@
 package infrastructure
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func Test_getKogitoDataIndexRoute(t *testing.T) {
-	ns := t.Name()
-	expectedRoute := "http://dataindex-route.com"
-	dataIndexes := &v1alpha1.KogitoDataIndexList{
-		Items: []v1alpha1.KogitoDataIndex{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      DefaultDataIndexName,
-					Namespace: ns,
-				},
-				Status: v1alpha1.KogitoDataIndexStatus{
-					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
-				},
-			},
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      DefaultDataIndexName + "2",
-					Namespace: ns,
-				},
-				Status: v1alpha1.KogitoDataIndexStatus{
-					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: ""},
-				},
-			},
+func Test_GetKogitoServiceInternalURI(t *testing.T) {
+	service := &v1alpha1.KogitoSupportingService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "dataindex",
+			Namespace: "mynamespace",
+		},
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.DataIndex,
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{dataIndexes}, nil, nil)
 
-	route, err := getSingletonKogitoServiceRoute(cli, ns, &v1alpha1.KogitoDataIndexList{})
-	assert.NoError(t, err)
-	assert.Equal(t, expectedRoute, route)
+	actualURI := CreateKogitoServiceURI(service)
+	assert.Equal(t, "http://dataindex.mynamespace", actualURI)
 }
 
-func Test_getKogitoDataIndexRoute_NoDataIndex(t *testing.T) {
-	cli := test.CreateFakeClient(nil, nil, nil)
-	route, err := getSingletonKogitoServiceRoute(cli, t.Name(), &v1alpha1.KogitoDataIndexList{})
-	assert.NoError(t, err)
-	assert.Empty(t, route)
+func Test_getKogitoDataIndexURLs(t *testing.T) {
+	ns := t.Name()
+	hostname := "dataindex-route.com"
+	expectedHTTPURL := "http://" + hostname
+	expectedWSURL := "ws://" + hostname
+	expectedHTTPSURL := "https://" + hostname
+	expectedWSSURL := "wss://" + hostname
+	insecureDI := &v1alpha1.KogitoSupportingService{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.DataIndex,
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
+		Status:     v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPURL}},
+	}
+	secureDI := &v1alpha1.KogitoSupportingService{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.DataIndex,
+		},
+		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
+		Status:     v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
+	}
+	cliInsecure := test.NewFakeClientBuilder().AddK8sObjects(insecureDI).Build()
+	cliSecure := test.NewFakeClientBuilder().AddK8sObjects(secureDI).Build()
+	type args struct {
+		client    *client.Client
+		namespace string
+	}
+	tests := []struct {
+		name        string
+		args        args
+		wantHTTPURL string
+		wantWSURL   string
+		wantErr     bool
+	}{
+		{
+			name: "With insecure route",
+			args: args{
+				client:    cliInsecure,
+				namespace: ns,
+			},
+			wantHTTPURL: expectedHTTPURL,
+			wantWSURL:   expectedWSURL,
+			wantErr:     false,
+		},
+		{
+			name: "With secure route",
+			args: args{
+				client:    cliSecure,
+				namespace: ns,
+			},
+			wantHTTPURL: expectedHTTPSURL,
+			wantWSURL:   expectedWSSURL,
+			wantErr:     false,
+		},
+		{
+			name: "With blank route",
+			args: args{
+				client:    test.NewFakeClientBuilder().Build(),
+				namespace: ns,
+			},
+			wantHTTPURL: "",
+			wantWSURL:   "",
+			wantErr:     false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotDataIndexEndpoints, err := getServiceEndpoints(tt.args.client, tt.args.namespace, tt.wantHTTPURL, tt.wantWSURL, v1alpha1.DataIndex)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetDataIndexEndpoints() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotDataIndexEndpoints != nil &&
+				gotDataIndexEndpoints.HTTPRouteURI != tt.wantHTTPURL {
+				t.Errorf("GetDataIndexEndpoints() gotHTTPURL = %v, want %v", gotDataIndexEndpoints.HTTPRouteURI, tt.wantHTTPURL)
+			}
+			if gotDataIndexEndpoints != nil &&
+				gotDataIndexEndpoints.WSRouteURI != tt.wantWSURL {
+				t.Errorf("GetDataIndexEndpoints() gotWSURL = %v, want %v", gotDataIndexEndpoints.WSRouteURI, tt.wantWSURL)
+			}
+		})
+	}
 }

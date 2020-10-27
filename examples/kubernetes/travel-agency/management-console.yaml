@@ -1,8 +1,9 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoMgmtConsole
+kind: KogitoSupportingService
 metadata:
   name: management-console
 spec:
+  serviceType: MgmtConsole
   replicas: 1
   image: quay.io/kiegroup/kogito-management-console
   # we use environment variables to set the external data index URL

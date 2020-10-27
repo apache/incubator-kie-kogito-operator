@@ -15,10 +15,6 @@
 package services
 
 import (
-	"reflect"
-	"testing"
-	"time"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -30,27 +26,29 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"testing"
 )
 
 func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoJobsService{
+	instance := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultJobsServiceName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType:       v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{is}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
-		client:       cli,
-		scheme:       meta.GetRegisteredSchema(),
-		instanceList: &v1alpha1.KogitoJobsServiceList{},
-		instance:     instance,
+		client:   cli,
+		scheme:   meta.GetRegisteredSchema(),
+		instance: instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultJobsServiceImageName,
 			Request: reconcile.Request{
@@ -58,31 +56,30 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 			},
 		},
 	}
-	resources, reconcileAfter, err := deployer.createRequiredResources()
+	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 	// we have the Image Stream, so other resources should have been created
 	assert.True(t, len(resources) > 1)
-	assert.Equal(t, reconcileAfter, time.Duration(0))
 }
 
 func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoJobsService{
+	instance := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultJobsServiceName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoJobsServiceSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType:       v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
 	deployer := serviceDeployer{
-		client:       cli,
-		scheme:       meta.GetRegisteredSchema(),
-		instanceList: &v1alpha1.KogitoJobsServiceList{},
-		instance:     instance,
+		client:   cli,
+		scheme:   meta.GetRegisteredSchema(),
+		instance: instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultJobsServiceImageName,
 			Request: reconcile.Request{
@@ -90,49 +87,12 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 			},
 		},
 	}
-	resources, reconcileAfter, err := deployer.createRequiredResources()
+	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
-	assert.Equal(t, reconcileAfter, time.Duration(0))
 	// we have the Image Stream, so other resources should have been created
 	assert.True(t, len(resources) == 1)
 	assert.Equal(t, resources[reflect.TypeOf(imgv1.ImageStream{})][0].GetName(), infrastructure.DefaultJobsServiceImageName)
-}
-
-func Test_serviceDeployer_createRequiredResources_RequiresDataIndex(t *testing.T) {
-	replicas := int32(1)
-	instance := &v1alpha1.KogitoMgmtConsole{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      infrastructure.DefaultMgmtConsoleName,
-			Namespace: t.Name(),
-		},
-		Spec: v1alpha1.KogitoMgmtConsoleSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
-		},
-	}
-	is, tag := test.GetImageStreams(infrastructure.DefaultMgmtConsoleImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is}, []runtime.Object{tag}, nil)
-	deployer := serviceDeployer{
-		client:       cli,
-		scheme:       meta.GetRegisteredSchema(),
-		instanceList: &v1alpha1.KogitoJobsServiceList{},
-		instance:     instance,
-		definition: ServiceDefinition{
-			DefaultImageName:  infrastructure.DefaultMgmtConsoleImageName,
-			RequiresDataIndex: true,
-			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: infrastructure.DefaultMgmtConsoleName, Namespace: t.Name()},
-			},
-		},
-		recorder: newRecorder(meta.GetRegisteredSchema(), infrastructure.DefaultMgmtConsoleName),
-	}
-	resources, reconcileAfter, err := deployer.createRequiredResources()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, resources)
-	// we have the Image Stream, so other resources should have been created
-	assert.True(t, len(resources) > 1)
-	// we don't have data index set
-	assert.Equal(t, reconcileAfter, serviceDependencyReconcileAfter)
 }
 
 func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *testing.T) {
@@ -140,12 +100,13 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
 	kogitoInfinispan := test.CreateFakeKogitoInfinispan(t.Name())
 
-	instance := &v1alpha1.KogitoDataIndex{
+	instance := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoDataIndexSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Infra: []string{
@@ -156,12 +117,11 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is, kogitoKafka, kogitoInfinispan}, []runtime.Object{tag}, nil)
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{is, kogitoKafka, kogitoInfinispan}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
-		client:       cli,
-		scheme:       meta.GetRegisteredSchema(),
-		instanceList: &v1alpha1.KogitoDataIndexList{},
-		instance:     instance,
+		client:   cli,
+		scheme:   meta.GetRegisteredSchema(),
+		instance: instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultDataIndexImageName,
 			Request: reconcile.Request{
@@ -169,7 +129,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 			},
 		},
 	}
-	resources, _, err := deployer.createRequiredResources()
+	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 
@@ -187,12 +147,13 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 
 func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoDataIndex{
+	instance := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoDataIndexSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.JobsService,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Replicas: &replicas,
 			},
@@ -212,12 +173,11 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 			ConfigMapApplicationPropertyKey: defaultAppPropContent,
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance, is, cm}, []runtime.Object{tag}, nil)
+	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{is, cm}, []runtime.Object{tag}, nil)
 	deployer := serviceDeployer{
-		client:       cli,
-		scheme:       meta.GetRegisteredSchema(),
-		instanceList: &v1alpha1.KogitoDataIndexList{},
-		instance:     instance,
+		client:   cli,
+		scheme:   meta.GetRegisteredSchema(),
+		instance: instance,
 		definition: ServiceDefinition{
 			DefaultImageName: infrastructure.DefaultDataIndexImageName,
 			Request: reconcile.Request{
@@ -225,7 +185,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 			},
 		},
 	}
-	resources, _, err := deployer.createRequiredResources()
+	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
 

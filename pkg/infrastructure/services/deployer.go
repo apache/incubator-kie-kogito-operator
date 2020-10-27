@@ -18,12 +18,11 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"time"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
-	v1 "k8s.io/api/core/v1"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -39,7 +38,6 @@ import (
 var log = logger.GetLogger("services_definition")
 
 const (
-	reconciliationPeriodAfterSingletonError            = time.Minute
 	reconciliationPeriodAfterInfraError                = time.Minute
 	reconciliationPeriodAfterMessagingError            = time.Second * 30
 	reconciliationPeriodMonitoringEndpointNotAvailable = time.Second * 10
@@ -67,29 +65,19 @@ type ServiceDefinition struct {
 	OnGetComparators func(comparator compare.ResourceComparator)
 	// SingleReplica if set to true, avoids that the service has more than one pod replica
 	SingleReplica bool
-	// RequiresPersistence forces the deployer to deploy an Infinispan instance if none is provided
-	RequiresPersistence bool
-	// RequiresMessaging forces the deployer to deploy a Kafka instance if none is provided
-	RequiresMessaging bool
-	// RequiresDataIndex when set to true, the Data Index instance is queried in the given namespace and its Route injected in this service.
-	// The service is not deployed until the data index service is found
-	RequiresDataIndex bool
-	// RequiresTrusty when set to true, the Trusty instance is queried in the given namespace and its Route injected in this service.
-	// The service is not deployed until the trusty service is found
-	RequiresTrusty bool
 	// KafkaTopics is a collection of Kafka Topics to be created within the service
 	KafkaTopics []string
 	// HealthCheckProbe is the probe that needs to be configured in the service. Defaults to TCPHealthCheckProbe
 	HealthCheckProbe HealthCheckProbeType
-	// customService indicates that the service can be built within the cluster
-	customService bool
+	// CustomService indicates that the service can be built within the cluster
+	// A custom service means that could be built by a third party, not being provided by the Kogito Team Services catalog (such as Data Index, Management Console and etc.).
+	CustomService bool
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
 	extraManagedObjectLists []runtime.Object
 }
 
 const (
-	defaultReplicas             = int32(1)
-	serviceDoesNotExistsMessage = "Kogito Service '%s' does not exists, aborting deployment"
+	defaultReplicas = int32(1)
 )
 
 // ServiceDeployer is the API to handle a Kogito Service deployment by Operator SDK controllers
@@ -98,30 +86,14 @@ type ServiceDeployer interface {
 	Deploy() (reconcileAfter time.Duration, err error)
 }
 
-// NewSingletonServiceDeployer creates a new ServiceDeployer to handle Singleton Kogito Services instances to be handled by Operator SDK controller
-func NewSingletonServiceDeployer(definition ServiceDefinition, serviceList v1alpha1.KogitoServiceList, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
+// NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
+func NewServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
 	builderCheck(definition)
-	return &serviceDeployer{
-		definition:   definition,
-		instanceList: serviceList,
-		client:       cli,
-		scheme:       scheme,
-		singleton:    true,
-		recorder:     newRecorder(scheme, definition.Request.Name),
-	}
-}
-
-// NewCustomServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
-// A custom service means that could be built by a third party, not being provided by the Kogito Team Services catalog (such as Data Index, Management Console and etc.).
-func NewCustomServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
-	builderCheck(definition)
-	definition.customService = true
 	return &serviceDeployer{
 		definition: definition,
 		instance:   serviceType,
 		client:     cli,
 		scheme:     scheme,
-		singleton:  false,
 		recorder:   newRecorder(scheme, definition.Request.Name),
 	}
 }
@@ -137,22 +109,16 @@ func builderCheck(definition ServiceDefinition) {
 }
 
 type serviceDeployer struct {
-	definition   ServiceDefinition
-	instanceList v1alpha1.KogitoServiceList
-	instance     v1alpha1.KogitoService
-	singleton    bool
-	client       *client.Client
-	scheme       *runtime.Scheme
-	recorder     record.EventRecorder
+	definition ServiceDefinition
+	instance   v1alpha1.KogitoService
+	client     *client.Client
+	scheme     *runtime.Scheme
+	recorder   record.EventRecorder
 }
 
 func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Namespace }
 
 func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
-	found, reconcileAfter, err := s.getService()
-	if err != nil || !found {
-		return reconcileAfter, err
-	}
 	if s.instance.GetSpec().GetReplicas() == nil {
 		s.instance.GetSpec().SetReplicas(defaultReplicas)
 	}
@@ -166,9 +132,15 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	// we need to take ownership of the custom configmap provided
 	if len(s.instance.GetSpec().GetPropertiesConfigMap()) > 0 {
 		reconcileAfter, err = s.takeCustomConfigMapOwnership()
-		if err != nil {
+		if err != nil || reconcileAfter > 0 {
 			return
-		} else if reconcileAfter > 0 {
+		}
+	}
+
+	// we need to take ownership of the provided KogitoInfra instances
+	if len(s.instance.GetSpec().GetInfra()) > 0 {
+		err = s.takeKogitoInfraOwnership()
+		if err != nil {
 			return
 		}
 	}
@@ -178,10 +150,8 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	}
 
 	// create our resources
-	requestedResources, reconcileAfter, err := s.createRequiredResources()
+	requestedResources, err := s.createRequiredResources()
 	if err != nil {
-		return
-	} else if reconcileAfter > 0 {
 		return
 	}
 
@@ -232,59 +202,47 @@ func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, res
 	}
 }
 
-func (s *serviceDeployer) getService() (found bool, reconcileAfter time.Duration, err error) {
-	reconcileAfter = 0
-	if s.singleton {
-		// our services must be singleton instances
-		if exists, err := s.ensureSingletonService(); err != nil {
-			return false, reconciliationPeriodAfterSingletonError, err
-		} else if !exists {
-			log.Debugf(serviceDoesNotExistsMessage, s.definition.Request.Name)
-			return false, reconcileAfter, err
-		}
-		// we get our service
-		s.instance = s.instanceList.GetItemAt(0)
-	} else {
-		if exists, err := kubernetes.ResourceC(s.client).FetchWithKey(s.definition.Request.NamespacedName, s.instance); err != nil {
-			return false, reconcileAfter, err
-		} else if !exists {
-			log.Debugf(serviceDoesNotExistsMessage, s.definition.Request.Name)
-			return false, reconcileAfter, nil
-		}
-	}
-	return true, reconcileAfter, nil
-}
-
-func (s *serviceDeployer) ensureSingletonService() (exists bool, err error) {
-	if err := kubernetes.ResourceC(s.client).ListWithNamespace(s.getNamespace(), s.instanceList); err != nil {
-		return false, err
-	}
-	if s.instanceList.GetItemsCount() > 1 {
-		return true, fmt.Errorf("There's more than one Kogito Service resource in the namespace %s, please delete one of them ", s.getNamespace())
-	}
-	return s.instanceList.GetItemsCount() > 0, nil
-}
-
-func (s *serviceDeployer) takeCustomConfigMapOwnership() (time.Duration, error) {
+func (s *serviceDeployer) takeCustomConfigMapOwnership() (requeueAfter time.Duration, err error) {
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Name: s.instance.GetSpec().GetPropertiesConfigMap(), Namespace: s.getNamespace()},
 	}
-	if exists, err := kubernetes.ResourceC(s.client).Fetch(cm); err != nil {
-		return 0, err
-	} else if !exists {
+	exists, err := kubernetes.ResourceC(s.client).Fetch(cm)
+	if err != nil {
+		return
+	}
+	if !exists {
 		s.recorder.Eventf(s.client, s.instance, v1.EventTypeWarning, "NotExists", "ConfigMap %s does not exist a new one will be created", s.instance.GetSpec().GetPropertiesConfigMap())
-		return 0, nil
+		return
 	}
 	if framework.IsOwner(cm, s.instance) {
-		return 0, nil
+		return
 	}
-	if err := framework.AddOwnerReference(s.instance, s.scheme, cm); err != nil {
-		return 0, err
+	if err = framework.AddOwnerReference(s.instance, s.scheme, cm); err != nil {
+		return
 	}
-	if err := kubernetes.ResourceC(s.client).Update(cm); err != nil {
-		return 0, err
+	if err = kubernetes.ResourceC(s.client).Update(cm); err != nil {
+		return
 	}
 	return time.Second * 15, nil
+}
+
+func (s *serviceDeployer) takeKogitoInfraOwnership() (err error) {
+	for _, infraName := range s.instance.GetSpec().GetInfra() {
+		kogitoInfra, err := infrastructure.MustFetchKogitoInfraInstance(s.client, infraName, s.getNamespace())
+		if err != nil {
+			return err
+		}
+		if framework.IsOwner(kogitoInfra, s.instance) {
+			continue
+		}
+		if err = framework.AddOwnerReference(s.instance, s.scheme, kogitoInfra); err != nil {
+			return err
+		}
+		if err = kubernetes.ResourceC(s.client).Update(kogitoInfra); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *error) {

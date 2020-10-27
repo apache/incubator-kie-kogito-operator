@@ -28,9 +28,6 @@ type projectFlags struct {
 	installDataIndex         bool
 	installJobsService       bool
 	installManagementConsole bool
-	installAll               bool
-	enablePersistence        bool
-	enableEvents             bool
 }
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
@@ -39,9 +36,6 @@ func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
 	command.Flags().BoolVar(&pFlags.installDataIndex, "install-data-index", false, message.InstallDataIndex)
 	command.Flags().BoolVar(&pFlags.installJobsService, "install-jobs-service", false, message.InstallJobsService)
 	command.Flags().BoolVar(&pFlags.installManagementConsole, "install-mgmt-console", false, message.InstallMgmtConsole)
-	command.Flags().BoolVar(&pFlags.installAll, "install-all", false, message.InstallAllServices)
-	command.Flags().BoolVar(&pFlags.enablePersistence, "enable-persistence", false, "If set will install Infinispan in the same namespace and inject the environment variables to configure the service connection to the Infinispan server.")
-	command.Flags().BoolVar(&pFlags.enableEvents, "enable-events", false, "If set will install a Kafka cluster via the Strimzi Operator. ")
 }
 
 func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error {
@@ -49,17 +43,22 @@ func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error 
 		ServicesInstallationBuilder(cli, pFlags.project).
 		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(pFlags.Channel))
 
-	if pFlags.installAll || pFlags.installDataIndex {
+	if pFlags.installDataIndex {
+		persistenceInfra := shared.GetDefaultPersistenceInfra(pFlags.project)
+		install.InstallInfraService(persistenceInfra)
+		messagingInfra := shared.GetDefaultMessagingInfra(pFlags.project)
+		install.InstallInfraService(messagingInfra)
 		dataIndex := shared.GetDefaultDataIndex(pFlags.project)
-		install.InstallDataIndex(&dataIndex)
+		install.InstallSupportingService(&dataIndex)
 	}
-	if pFlags.installAll || pFlags.installJobsService {
-		jobsService := shared.GetDefaultJobsService(pFlags.project, pFlags.enablePersistence, pFlags.enableEvents)
-		install.InstallJobsService(&jobsService)
+	if pFlags.installJobsService {
+		jobsService := shared.GetDefaultJobsService(pFlags.project)
+		install.InstallSupportingService(&jobsService)
 	}
-	if pFlags.installAll || pFlags.installManagementConsole {
+	if pFlags.installManagementConsole {
 		mgmtConsole := shared.GetDefaultMgmtConsole(pFlags.project)
-		install.InstallMgmtConsole(&mgmtConsole)
+		install.InstallSupportingService(&mgmtConsole)
 	}
+
 	return install.GetError()
 }
