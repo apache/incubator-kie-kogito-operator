@@ -109,6 +109,6 @@ func GetKogitoServiceURL(service v1alpha1.KogitoService) string {
 	log.Debugf("Creating kogito service instance URL.")
 	// resolves to http://servicename.mynamespace for example
 	url := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())
-	log.Debugf("kogito service instance URL : %s", uri)
+	log.Debugf("kogito service instance URL : %s", url)
 	return url
 }
