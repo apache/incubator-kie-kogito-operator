@@ -30,6 +30,31 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+func Test_Reconcile_ResourceNotFound(t *testing.T) {
+	kogitoInfra := &v1alpha1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
+		Spec: v1alpha1.KogitoInfraSpec{
+			Resource: v1alpha1.Resource{
+				APIVersion: infrastructure.InfinispanAPIVersion,
+				Kind:       infrastructure.InfinispanKind,
+				Name:       "kogito-infinispan",
+				Namespace:  t.Name(),
+			},
+		},
+	}
+	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra).Build()
+	scheme := meta.GetRegisteredSchema()
+	r := &ReconcileKogitoInfra{client: client, scheme: scheme}
+	// basic checks
+	test.AssertReconcileMustNotRequeue(t, r, kogitoInfra)
+	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
+	assert.True(t, exists)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, kogitoInfra.Status.Condition.Message)
+	// we haven't created the Infinispan server and we are informing our KogitoInfra instance that it will require it :)
+	assert.Equal(t, v1alpha1.ResourceNotFound, kogitoInfra.Status.Condition.Reason)
+}
+
 func Test_Reconcile_KafkaResource(t *testing.T) {
 	kogitoInfra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},

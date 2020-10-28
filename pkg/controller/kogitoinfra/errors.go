@@ -80,6 +80,9 @@ func getSupportedResources() []string {
 }
 
 func reasonForError(err error) v1alpha1.KogitoInfraConditionReason {
+	if err == nil {
+		return ""
+	}
 	switch t := err.(type) {
 	case reconciliationError:
 		return t.Reason

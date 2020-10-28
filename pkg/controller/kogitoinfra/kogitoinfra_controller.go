@@ -97,7 +97,7 @@ type ReconcileKogitoInfra struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
+func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	log.Infof("Reconciling KogitoInfra for %s in %s", request.Name, request.Namespace)
 
 	// Fetch the KogitoInfra instance
@@ -116,25 +116,28 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (result reco
 
 	infraResource, resultErr := getKogitoInfraResource(instance)
 	if resultErr != nil {
-		return r.getReconcileResultFor(resultErr), resultErr
+		return r.getReconcileResultFor(resultErr, false)
 	}
 
 	requeue, resultErr := infraResource.Reconcile(r.client, instance, r.scheme)
-	if resultErr != nil {
-		return r.getReconcileResultFor(resultErr), resultErr
-	}
-
-	if requeue {
-		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
-		result.RequeueAfter = reconciliationStandardInterval
-		result.Requeue = true
-	}
-	return
+	return r.getReconcileResultFor(resultErr, requeue)
 }
 
-func (r *ReconcileKogitoInfra) getReconcileResultFor(err error) reconcile.Result {
-	if err == nil || reasonForError(err) == appv1alpha1.ReconciliationFailure {
-		return reconcile.Result{RequeueAfter: 0, Requeue: false}
+func (r *ReconcileKogitoInfra) getReconcileResultFor(err error, requeue bool) (reconcile.Result, error) {
+	// generic reconciliation error
+	if reasonForError(err) == appv1alpha1.ReconciliationFailure {
+		log.Warnf("Error while reconciling KogitoInfra: %s", err.Error())
+		return reconcile.Result{RequeueAfter: 0, Requeue: false}, err
 	}
-	return reconcile.Result{RequeueAfter: reconciliationStandardInterval, Requeue: true}
+	// no requeue, no errors, stop reconciliation
+	if !requeue && err == nil {
+		return reconcile.Result{RequeueAfter: 0, Requeue: false}, nil
+	}
+	// caller is asking for a reconciliation
+	if err == nil {
+		log.Info("Waiting for all resources to be created, scheduling reconciliation")
+	} else { // reconciliation duo to a problem in the env (CRDs missing), infra deployments not ready, operators not installed.. etc. See errors.go
+		log.Infof("Waiting for all resources to be created, scheduling reconciliation: %s", err.Error())
+	}
+	return reconcile.Result{RequeueAfter: reconciliationStandardInterval}, nil
 }

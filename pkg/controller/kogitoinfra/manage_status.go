@@ -27,7 +27,9 @@ import (
 func updateBaseStatus(client *client.Client, instance *v1alpha1.KogitoInfra, err *error) {
 	log.Info("Updating Kogito Infra status")
 	if *err != nil {
-		log.Warn("Seems that an error occurred, setting failure state: ", *err)
+		if reasonForError(*err) == v1alpha1.ReconciliationFailure {
+			log.Warn("Seems that an error occurred, setting failure state: ", *err)
+		}
 		setResourceFailed(instance, *err)
 	} else {
 		setResourceSuccess(instance)
