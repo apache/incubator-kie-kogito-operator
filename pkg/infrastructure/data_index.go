@@ -23,7 +23,7 @@ import (
 
 const (
 	// DefaultDataIndexImageName is just the image name for the Data Index Service
-	DefaultDataIndexImageName = "kogito-data-index"
+	DefaultDataIndexImageName = "kogito-data-index-infinispan"
 	// DefaultDataIndexName is the default name for the Data Index instance service
 	DefaultDataIndexName = "data-index"
 	// Data index HTTP URL env
