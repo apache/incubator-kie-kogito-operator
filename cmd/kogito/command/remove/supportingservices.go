@@ -47,17 +47,21 @@ var removableSupportingServices = []removableSupportingService{
 		serviceType: v1alpha1.DataIndex,
 	},
 	{
-		cmdName:     "mgmt-console",
-		serviceType: v1alpha1.MgmtConsole,
-		aliases:     []string{"management-console"},
+		cmdName:     "explainability",
+		serviceType: v1alpha1.Explainablity,
 	},
 	{
 		cmdName:     "jobs-service",
 		serviceType: v1alpha1.JobsService,
 	},
 	{
-		cmdName:     "explainability",
-		serviceType: v1alpha1.Explainablity,
+		cmdName:     "mgmt-console",
+		serviceType: v1alpha1.MgmtConsole,
+		aliases:     []string{"management-console"},
+	},
+	{
+		cmdName:     "task-console",
+		serviceType: v1alpha1.TaskConsole,
 	},
 	{
 		cmdName:     "trusty",
@@ -66,10 +70,6 @@ var removableSupportingServices = []removableSupportingService{
 	{
 		cmdName:     "trusty-ui",
 		serviceType: v1alpha1.TrustyUI,
-	},
-	{
-		cmdName:     "task-console",
-		serviceType: v1alpha1.TaskConsole,
 	},
 }
 

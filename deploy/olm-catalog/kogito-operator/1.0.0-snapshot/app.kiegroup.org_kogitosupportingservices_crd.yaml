@@ -248,12 +248,12 @@ spec:
                 JobsService'
               enum:
               - DataIndex
+              - Explainablity
               - JobsService
               - MgmtConsole
-              - Explainablity
+              - TaskConsole
               - TrustyAI
               - TrustyUI
-              - TaskConsole
               type: string
           required:
           - serviceType

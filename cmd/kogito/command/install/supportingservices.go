@@ -65,17 +65,15 @@ Only use infinispan-url if you plan to connect to an external Infinispan server 
 For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
 	},
 	{
-		cmdName:     "mgmt-console",
-		serviceName: infrastructure.DefaultMgmtConsoleName,
-		aliases:     []string{"management-console"},
-		displayName: "Mgmt Console",
-		serviceType: v1alpha1.MgmtConsole,
-		description: `'install mgmt-console' deploys the Management Console to enable management for Kogito Services deployed within the same project.
+		cmdName:     "explainability",
+		serviceName: infrastructure.DefaultExplainabilityName,
+		displayName: "Explainablity",
+		serviceType: v1alpha1.Explainablity,
+		description: `'install explainability' will deploy the Explainability service to provide analysis on the decisions that have been taken by a kogito runtime application.
 
-Please note that Management Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
-You won't be able to use the Management Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
-
-For more information on Management Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
+If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other project or infrastructure.
+If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the deployed Kafka server in the Explainability service's project.
+Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given project.`,
 	},
 	{
 		cmdName:     "jobs-service",
@@ -91,15 +89,29 @@ in other project or infrastructure.
 For more information on Kogito Jobs Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service`,
 	},
 	{
-		cmdName:     "explainability",
-		serviceName: infrastructure.DefaultExplainabilityName,
-		displayName: "Explainablity",
-		serviceType: v1alpha1.Explainablity,
-		description: `'install explainability' will deploy the Explainability service to provide analysis on the decisions that have been taken by a kogito runtime application.
+		cmdName:     "mgmt-console",
+		serviceName: infrastructure.DefaultMgmtConsoleName,
+		aliases:     []string{"management-console"},
+		displayName: "Mgmt Console",
+		serviceType: v1alpha1.MgmtConsole,
+		description: `'install mgmt-console' deploys the Management Console to enable management for Kogito Services deployed within the same project.
 
-If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other project or infrastructure.
-If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the deployed Kafka server in the Explainability service's project.
-Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given project.`,
+Please note that Management Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
+You won't be able to use the Management Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
+
+For more information on Management Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
+	},
+	{
+		cmdName:     "task-console",
+		serviceName: infrastructure.DefaultTaskConsoleName,
+		displayName: "Task Console",
+		serviceType: v1alpha1.TaskConsole,
+		description: `'install task-console' deploys the Task Console to enable management for Kogito Services deployed within the same project.
+
+Please note that Task Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
+You won't be able to use the Task Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
+
+For more information on Task Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
 	},
 	{
 		cmdName:     "trusty",
@@ -127,18 +139,6 @@ See https://github.com/kiegroup/kogito-apps/tree/master/trusty/README.md for mor
 Please note that Trusty UI relies on Trusty (https://github.com/kiegroup/kogito-apps/tree/master/trusty) to retrieve the information to be displayed.
 You won't be able to use the Trusty UI if Trusty is not deployed in the same project either using Kogito CLI or the Kogito Operator. 
 In addition to that, it is mandatory to set the environment variable KOGITO_TRUSTY_ENDPOINT in the trusty-ui service. The value of that variable should be the endpoint of the trusty service.`,
-	},
-	{
-		cmdName:     "task-console",
-		serviceName: infrastructure.DefaultTaskConsoleName,
-		displayName: "Task Console",
-		serviceType: v1alpha1.TaskConsole,
-		description: `'install task-console' deploys the Task Console to enable management for Kogito Services deployed within the same project.
-
-Please note that Task Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
-You won't be able to use the Task Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
-
-For more information on Task Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
 	},
 }
 
