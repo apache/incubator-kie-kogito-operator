@@ -128,6 +128,18 @@ Please note that Trusty UI relies on Trusty (https://github.com/kiegroup/kogito-
 You won't be able to use the Trusty UI if Trusty is not deployed in the same project either using Kogito CLI or the Kogito Operator. 
 In addition to that, it is mandatory to set the environment variable KOGITO_TRUSTY_ENDPOINT in the trusty-ui service. The value of that variable should be the endpoint of the trusty service.`,
 	},
+	{
+		cmdName:     "task-console",
+		serviceName: infrastructure.DefaultTaskConsoleName,
+		displayName: "Task Console",
+		serviceType: v1alpha1.TaskConsole,
+		description: `'install task-console' deploys the Task Console to enable management for Kogito Services deployed within the same project.
+
+Please note that Task Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
+You won't be able to use the Task Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
+
+For more information on Task Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
+	},
 }
 
 func initInstallSupportingServiceCommands(ctx *context.CommandContext, parent *cobra.Command) []context.KogitoCommand {

@@ -174,7 +174,10 @@ func (r *ReconcileKogitoDataIndex) Reconcile(request reconcile.Request) (result 
 	if resultErr = infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(r.client, instance.Namespace); resultErr != nil {
 		return
 	}
-	if resultErr = infrastructure.InjectDataIndexURLIntoMgmtConsole(r.client, instance.Namespace); resultErr != nil {
+	if resultErr = infrastructure.InjectDataIndexURLIntoSupportingService(r.client, instance.Namespace, appv1alpha1.MgmtConsole); resultErr != nil {
+		return
+	}
+	if resultErr = infrastructure.InjectDataIndexURLIntoSupportingService(r.client, instance.Namespace, appv1alpha1.TaskConsole); resultErr != nil {
 		return
 	}
 

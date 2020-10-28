@@ -34,6 +34,8 @@ const (
 	TrustyAI ServiceType = "TrustyAI"
 	// TrustyUI supporting service resource type
 	TrustyUI ServiceType = "TrustyUI"
+	// TaskConsole supporting service resource type
+	TaskConsole ServiceType = "TaskConsole"
 )
 
 // KogitoSupportingServiceSpec defines the desired state of KogitoSupportingService.
@@ -45,7 +47,7 @@ type KogitoSupportingServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Resource Type"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=DataIndex;JobsService;MgmtConsole;Explainablity;TrustyAI;TrustyUI
+	// +kubebuilder:validation:Enum=DataIndex;JobsService;MgmtConsole;Explainablity;TrustyAI;TrustyUI;TaskConsole
 	// Defines the type for the supporting service, eg: DataIndex, JobsService
 	ServiceType ServiceType `json:"serviceType"`
 }

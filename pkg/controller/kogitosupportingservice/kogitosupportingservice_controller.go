@@ -229,4 +229,5 @@ var kogitoSupportingServices = map[v1alpha1.ServiceType]SupportingServiceResourc
 	v1alpha1.Explainablity: &ExplainabilitySupportingServiceResource{},
 	v1alpha1.TrustyAI:      &TrustyAISupportingServiceResource{},
 	v1alpha1.TrustyUI:      &TrustyUISupportingServiceResource{},
+	v1alpha1.TaskConsole:   &TaskConsoleSupportingServiceResource{},
 }

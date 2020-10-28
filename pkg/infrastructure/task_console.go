@@ -12,15 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package message
+package infrastructure
 
-import "fmt"
-
-var (
-	// JobsServiceErrCreating ...
-	JobsServiceErrCreating = fmt.Sprintf(serviceErrCreating, "Jobs", "%s")
-	// JobsServiceSuccessfulInstalled ...
-	JobsServiceSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Jobs", "%s")
-	// JobsServiceNotInstalledNoKogitoOperator ...
-	JobsServiceNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Jobs Service", "jobs-service")
+const (
+	// DefaultTaskConsoleName ...
+	DefaultTaskConsoleName = "task-console"
+	// DefaultTaskConsoleImageName ...
+	DefaultTaskConsoleImageName = "kogito-task-console"
 )

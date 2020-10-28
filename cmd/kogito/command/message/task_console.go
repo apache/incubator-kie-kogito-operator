@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2019 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package message
 import "fmt"
 
 var (
-	// JobsServiceErrCreating ...
-	JobsServiceErrCreating = fmt.Sprintf(serviceErrCreating, "Jobs", "%s")
-	// JobsServiceSuccessfulInstalled ...
-	JobsServiceSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Jobs", "%s")
-	// JobsServiceNotInstalledNoKogitoOperator ...
-	JobsServiceNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Jobs Service", "jobs-service")
+	// TaskConsoleErrCreating ...
+	TaskConsoleErrCreating = fmt.Sprintf(serviceErrCreating, "Task Console", "%s")
+	// TaskConsoleSuccessfulInstalled ...
+	TaskConsoleSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Task Console", "%s")
+	// TaskConsoleNotInstalledNoKogitoOperator ...
+	TaskConsoleNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Task Console", "task-console")
 )

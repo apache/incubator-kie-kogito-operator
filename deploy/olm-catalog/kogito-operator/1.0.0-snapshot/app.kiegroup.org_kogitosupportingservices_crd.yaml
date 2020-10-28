@@ -253,6 +253,7 @@ spec:
               - Explainablity
               - TrustyAI
               - TrustyUI
+              - TaskConsole
               type: string
           required:
           - serviceType

@@ -67,6 +67,10 @@ var removableSupportingServices = []removableSupportingService{
 		cmdName:     "trusty-ui",
 		serviceType: v1alpha1.TrustyUI,
 	},
+	{
+		cmdName:     "task-console",
+		serviceType: v1alpha1.TaskConsole,
+	},
 }
 
 func initRemoveSupportingServiceCommands(ctx *context.CommandContext, parent *cobra.Command) []context.KogitoCommand {

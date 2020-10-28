@@ -61,7 +61,7 @@ func (i *infraCommand) Command() *cobra.Command {
 func (i *infraCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:   "infra NAME",
-		Short: "Install the Kogito Infra Service into the given Project",
+		Short: "Installs the Kogito Infra Service in the given Project",
 		Long: `install infra will create a new Kogito infra service in the Project context. 
 	If Resource Namespace & Resource Name is provided then Kogito Infra referred to provided resources.
 	If not, it will create new resource using resource specific operator in the Project context.
