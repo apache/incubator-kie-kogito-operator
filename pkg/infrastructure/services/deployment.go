@@ -39,7 +39,7 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 		log.Warnf("%s can't scale vertically, only one replica is allowed.", service.GetName())
 	}
 	replicas := service.GetSpec().GetReplicas()
-	httpPort := getServiceHTTPPort(service)
+	httpPort := int32(framework.DefaultExposedPort)
 	setHTTPPortInEnvVar(httpPort, service)
 	probes := getProbeForKogitoService(definition, httpPort)
 	labels := service.GetSpec().GetDeploymentLabels()
@@ -85,19 +85,6 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 	}
 
 	return deployment
-}
-
-// getServiceHTTPPort gets the service port for the given KogitoService based on httpPort CR parameter.
-// defaults to 8080
-func getServiceHTTPPort(kogitoService v1alpha1.KogitoService) int32 {
-	// port should be greater than 0
-	httpPort := kogitoService.GetSpec().GetHTTPPort()
-	if httpPort < 1 {
-		log.Debugf("HTTPPort not set, returning default http port.")
-		return framework.DefaultExposedPort
-	}
-	log.Debugf("HTTPPort is set, returning port number %i", httpPort)
-	return httpPort
 }
 
 // setHTTPPortInEnvVar will update or add the environment variable into the given kogito service

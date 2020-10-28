@@ -82,7 +82,6 @@ func Test_InstallSupportingServiceCmd_CustomConfiguration(t *testing.T) {
 	assert.True(t, exist)
 	assert.NotNil(t, dataIndex)
 	assert.True(t, dataIndex.Spec.InsecureImageRegistry)
-	assert.Equal(t, int32(9090), dataIndex.Spec.HTTPPort)
 	assert.Contains(t, dataIndex.Spec.Infra, "kogito-kafka")
 	assert.Contains(t, dataIndex.Spec.Infra, "kogito-infinispan")
 }
