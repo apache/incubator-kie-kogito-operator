@@ -27,7 +27,7 @@ import (
 var defaultDataIndexImageFullTag = infrastructure.GetKogitoImageVersion() + ":latest"
 
 func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
-	kogitoService := &v1alpha1.KogitoDataIndex{
+	kogitoService := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{HealthCheckProbe: QuarkusHealthCheckProbe}
@@ -42,7 +42,7 @@ func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 }
 
 func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
-	kogitoService := &v1alpha1.KogitoDataIndex{
+	kogitoService := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{}
@@ -57,9 +57,9 @@ func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
 }
 
 func Test_createRequiredDeployment_CheckCustomPort(t *testing.T) {
-	kogitoService := &v1alpha1.KogitoDataIndex{
+	kogitoService := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoDataIndexSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				HTTPPort: 9090,
 			},

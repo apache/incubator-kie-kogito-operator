@@ -60,8 +60,6 @@ var (
 	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
 	// KindBuildRequest for a BuildRequest
 	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.GroupVersion}
-	// KindKogitoDataIndex for a KindKogitoDataIndex controller
-	KindKogitoDataIndex = DefinitionKind{"KogitoDataIndex", false, v1alpha1.SchemeGroupVersion}
 	// KindDeployment for Kubernetes Deployment
 	KindDeployment = DefinitionKind{"Deployment", false, coreappsv1.SchemeGroupVersion}
 )

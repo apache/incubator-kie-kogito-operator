@@ -17,6 +17,8 @@ package infrastructure
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 const (
@@ -27,12 +29,32 @@ const (
 )
 
 // GetManagementConsoleEndpoint gets the route for the Management Console deployed in the given namespace
-func GetManagementConsoleEndpoint(client *client.Client, namespace string) (ServiceEndpoints, error) {
-	endpoints := ServiceEndpoints{}
-	route, err := getSingletonKogitoServiceRoute(client, namespace, &v1alpha1.KogitoMgmtConsoleList{})
+func GetManagementConsoleEndpoint(client *client.Client, namespace string) (*ServiceEndpoints, error) {
+	return getServiceEndpoints(client, namespace, "", "", v1alpha1.MgmtConsole)
+}
+
+// getKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
+func getMgmtConsoleDeployment(namespace string, cli *client.Client) (*appsv1.Deployment, error) {
+	mgmtConsole, err := getKogitoSupportingService(cli, namespace, v1alpha1.MgmtConsole)
 	if err != nil {
-		return endpoints, err
+		return nil, err
+	} else if mgmtConsole == nil {
+		log.Debugf("Not found Mgmt console service in namespace %s", namespace)
+		return nil, nil
 	}
-	endpoints.HTTPRouteURI = route
-	return endpoints, nil
+	log.Debugf("Found Mgmt console services in the namespace '%s' ", namespace)
+
+	dcs := &appsv1.DeploymentList{}
+	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
+		return nil, err
+	}
+	log.Debug("Looking for Deployments owned by MgmtConsole")
+	for _, dc := range dcs.Items {
+		for _, owner := range dc.OwnerReferences {
+			if owner.UID == mgmtConsole.UID {
+				return &dc, nil
+			}
+		}
+	}
+	return nil, nil
 }

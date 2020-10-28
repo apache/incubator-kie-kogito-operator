@@ -28,15 +28,16 @@ import (
 )
 
 const (
-	// InfinispanOperatorName is the Infinispan Operator default name
-	InfinispanOperatorName = "infinispan-operator"
-	infinispanServerGroup  = "infinispan.org"
-	defaultInfinispanPort  = 11222
+	// infinispanOperatorName is the Infinispan Operator default name
+	infinispanOperatorName = "infinispan-operator"
+	// Default Infinispan port
+	defaultInfinispanPort = 11222
 	// InfinispanSecretUsernameKey is the secret username key set in the linked secret
 	InfinispanSecretUsernameKey = "username"
 	// InfinispanSecretPasswordKey is the secret password key set in the linked secret
 	InfinispanSecretPasswordKey = "password"
-	defaultInfinispanUser       = "developer"
+	// Default Infinispan user
+	defaultInfinispanUser = "developer"
 	// InfinispanIdentityFileName is the name of YAML file containing list of Infinispan credentials
 	InfinispanIdentityFileName = "identities.yaml"
 
@@ -65,17 +66,17 @@ type InfinispanCredential struct {
 
 // IsInfinispanAvailable checks whether Infinispan CRD is available or not
 func IsInfinispanAvailable(cli *client.Client) bool {
-	return cli.HasServerGroup(infinispanServerGroup)
+	return cli.HasServerGroup(ispn.SchemeGroupVersion.Group)
 }
 
 // IsInfinispanOperatorAvailable verify if Infinispan Operator is running in the given namespace and the CRD is available
 func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, error) {
 	log.Debugf("Checking if Infinispan Operator is available in the namespace %s", namespace)
 	// first check for CRD
-	if IsInfinispanAvailable(cli) {
+	if isInfinispanAvailable(cli) {
 		log.Debugf("Infinispan CRDs available. Checking if Infinispan Operator is deployed in the namespace %s", namespace)
 		// then check if there's an Infinispan Operator deployed
-		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: InfinispanOperatorName}}
+		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: infinispanOperatorName}}
 		exists := false
 		var err error
 		if exists, err = kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
@@ -90,6 +91,11 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 	}
 	log.Debugf("Looks like Infinispan Operator is not available in the namespace %s", namespace)
 	return false, nil
+}
+
+// isInfinispanAvailable checks whether Infinispan CRD is available or not
+func isInfinispanAvailable(cli *client.Client) bool {
+	return cli.HasServerGroup(ispn.SchemeGroupVersion.Group)
 }
 
 // FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name

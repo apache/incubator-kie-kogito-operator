@@ -23,11 +23,6 @@ import (
 func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	installCmd := initInstallCommand(ctx, rootCommand)
 	initInstallKogitoOperatorCommand(ctx, installCmd.Command())
-	initInstallDataIndexCommand(ctx, installCmd.Command())
-	initInstallExplainabilityCommand(ctx, installCmd.Command())
-	initInstallTrustyCommand(ctx, installCmd.Command())
-	initInstallJobsServiceCommand(ctx, installCmd.Command())
-	initInstallMgmtConsoleCommand(ctx, installCmd.Command())
-	initInstallTrustyUICommand(ctx, installCmd.Command())
+	initInstallSupportingServiceCommands(ctx, installCmd.Command())
 	initInfraCommand(ctx, installCmd.Command())
 }

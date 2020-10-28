@@ -1,8 +1,9 @@
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoJobsService
+kind: KogitoSupportingService
 metadata:
-  name: kogito-jobs-service
+  name: jobs-service
 spec:
+  serviceType: JobsService
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS

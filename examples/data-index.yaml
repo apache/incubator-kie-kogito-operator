@@ -19,17 +19,18 @@ spec:
     kind: Infinispan
 ---
 apiVersion: app.kiegroup.org/v1alpha1
-kind: KogitoDataIndex
+kind: KogitoSupportingService
 metadata:
   name: data-index
 spec:
+  serviceType: DataIndex
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS
     #    value: "-Dquarkus.log.level=DEBUG"
   # number of pods to be deployed
   replicas: 1
-  image: quay.io/kiegroup/kogito-data-index:latest
+  image: quay.io/kiegroup/kogito-data-index-infinispan:latest
   # the http port that the dataindex image will listen internally
   #httpPort: 9090
   # Limits and requests for the Data Index pod

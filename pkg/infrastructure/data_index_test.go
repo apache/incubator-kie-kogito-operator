@@ -19,7 +19,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -48,14 +47,17 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 			},
 		},
 	}
-	dataIndexes := &v1alpha1.KogitoDataIndexList{
-		Items: []v1alpha1.KogitoDataIndex{
+	dataIndexes := &v1alpha1.KogitoSupportingServiceList{
+		Items: []v1alpha1.KogitoSupportingService{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      DefaultDataIndexName,
 					Namespace: ns,
 				},
-				Status: v1alpha1.KogitoDataIndexStatus{
+				Spec: v1alpha1.KogitoSupportingServiceSpec{
+					ServiceType: v1alpha1.DataIndex,
+				},
+				Status: v1alpha1.KogitoSupportingServiceStatus{
 					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
 				},
 			},
@@ -70,86 +72,4 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: dataIndexHTTPRouteEnv, Value: expectedRoute})
-}
-
-func Test_getKogitoDataIndexURLs(t *testing.T) {
-	ns := t.Name()
-	hostname := "dataindex-route.com"
-	expectedHTTPURL := "http://" + hostname
-	expectedWSURL := "ws://" + hostname
-	expectedHTTPSURL := "https://" + hostname
-	expectedWSSURL := "wss://" + hostname
-	insecureDI := &v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
-		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPURL}},
-	}
-	secureDI := &v1alpha1.KogitoDataIndex{
-		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
-		Status:     v1alpha1.KogitoDataIndexStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
-	}
-	cliInsecure := test.NewFakeClientBuilder().AddK8sObjects(insecureDI).Build()
-	cliSecure := test.NewFakeClientBuilder().AddK8sObjects(secureDI).Build()
-	type args struct {
-		client    *client.Client
-		namespace string
-	}
-	tests := []struct {
-		name        string
-		args        args
-		wantHTTPURL string
-		wantWSURL   string
-		wantErr     bool
-	}{
-		{
-			name: "With insecure route",
-			args: args{
-				client:    cliInsecure,
-				namespace: ns,
-			},
-			wantHTTPURL: expectedHTTPURL,
-			wantWSURL:   expectedWSURL,
-			wantErr:     false,
-		},
-		{
-			name: "With secure route",
-			args: args{
-				client:    cliSecure,
-				namespace: ns,
-			},
-			wantHTTPURL: expectedHTTPSURL,
-			wantWSURL:   expectedWSSURL,
-			wantErr:     false,
-		},
-		{
-			name: "With blank route",
-			args: args{
-				client:    test.NewFakeClientBuilder().Build(),
-				namespace: ns,
-			},
-			wantHTTPURL: "",
-			wantWSURL:   "",
-			wantErr:     false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotDataIndexEndpoints, err := GetDataIndexEndpoints(tt.args.client, tt.args.namespace)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetDataIndexEndpoints() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if (len(gotDataIndexEndpoints.HTTPRouteEnv) > 0 ||
-				len(gotDataIndexEndpoints.WSRouteEnv) > 0 ||
-				len(gotDataIndexEndpoints.WSRouteURI) > 0) &&
-				gotDataIndexEndpoints.HTTPRouteURI != tt.wantHTTPURL {
-				t.Errorf("GetDataIndexEndpoints() gotHTTPURL = %v, want %v", gotDataIndexEndpoints.HTTPRouteURI, tt.wantHTTPURL)
-			}
-			if (len(gotDataIndexEndpoints.HTTPRouteEnv) > 0 ||
-				len(gotDataIndexEndpoints.WSRouteEnv) > 0 ||
-				len(gotDataIndexEndpoints.HTTPRouteURI) > 0) &&
-				gotDataIndexEndpoints.WSRouteURI != tt.wantWSURL {
-				t.Errorf("GetDataIndexEndpoints() gotWSURL = %v, want %v", gotDataIndexEndpoints.WSRouteURI, tt.wantWSURL)
-			}
-		})
-	}
 }

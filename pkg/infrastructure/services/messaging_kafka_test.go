@@ -48,12 +48,13 @@ func Test_createKafkaTopics(t *testing.T) {
 			AppProps: appProps,
 		},
 	}
-	service := &v1alpha1.KogitoDataIndex{
+	service := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoDataIndexSpec{
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.DataIndex,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Infra: []string{kogitoInfraInstance.Name},
 			},

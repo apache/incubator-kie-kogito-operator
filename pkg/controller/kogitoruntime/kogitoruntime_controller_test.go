@@ -25,7 +25,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"testing"
 )
 
@@ -49,8 +48,7 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 		},
 	}
 
-	cli := test.CreateFakeClient([]runtime.Object{instance, kogitoKafka, kogitoInfinispan}, nil, nil)
-
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
 	r := ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation
@@ -101,7 +99,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
 	test.AssertReconcileMustNotRequeue(t, &ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}, instance)
 
@@ -137,7 +135,7 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 			},
 		},
 	}
-	cli := test.CreateFakeClient([]runtime.Object{instance, cm}, nil, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm).Build()
 	// we take the ownership of the custom cm
 	test.AssertReconcileMustRequeue(t, &ReconcileKogitoRuntime{client: cli, scheme: meta.GetRegisteredSchema()}, instance)
 	// we requeue..

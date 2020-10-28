@@ -186,7 +186,7 @@ func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cl
 }
 
 func newImageHandler(instance v1alpha1.KogitoService, definition ServiceDefinition, cli *client.Client) (*imageHandler, error) {
-	addDockerImageReference := len(instance.GetSpec().GetImage()) != 0 || !definition.customService
+	addDockerImageReference := len(instance.GetSpec().GetImage()) != 0 || !definition.CustomService
 	var image v1alpha1.Image
 	if len(instance.GetSpec().GetImage()) == 0 {
 		image = v1alpha1.Image{

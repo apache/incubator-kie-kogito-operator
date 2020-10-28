@@ -66,21 +66,6 @@ func TestNewProject_WithMgmtConsole(t *testing.T) {
 	assert.Contains(t, lines, fmt.Sprintf(message.MgmtConsoleSuccessfulInstalled, ns))
 }
 
-func TestNewProject_WithAllServices(t *testing.T) {
-	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
-	defer teardown()
-	ns := t.Name()
-	cli := fmt.Sprintf("new-project --project %s --install-all", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
-	lines, _, err := test.ExecuteCli()
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "created")
-	assert.Contains(t, lines, ns)
-	assert.Contains(t, lines, fmt.Sprintf(message.DataIndexSuccessfulInstalled, ns))
-	assert.Contains(t, lines, fmt.Sprintf(message.JobsServiceSuccessfulInstalled, ns))
-	assert.Contains(t, lines, fmt.Sprintf(message.MgmtConsoleSuccessfulInstalled, ns))
-}
-
 func TestNewProject_WithTwoServices(t *testing.T) {
 	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
 	defer teardown()
@@ -124,17 +109,4 @@ func TestNewProject_WhenTheresNoName(t *testing.T) {
 	lines, _, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Please set a project for new-project")
-}
-
-func TestNewProject_WithoutDataIndex(t *testing.T) {
-	teardown := test.OverrideKubeConfigAndCreateDefaultContext()
-	defer teardown()
-	ns := t.Name()
-	cli := fmt.Sprintf("new-project -n %s ", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
-	lines, _, err := test.ExecuteCli()
-	assert.NoError(t, err)
-	assert.Contains(t, lines, "created successfully")
-	assert.Contains(t, lines, ns)
-	assert.NotContains(t, lines, fmt.Sprintf(message.DataIndexSuccessfulInstalled, ns))
 }

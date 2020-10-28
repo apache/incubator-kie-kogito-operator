@@ -27,8 +27,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
@@ -56,7 +58,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource KogitoRuntime
-	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoRuntime{}}, &handler.EnqueueRequestForObject{})
+	pred := predicate.Funcs{
+		// Don't watch delete events as the resource removals will be handled by Kubernetes itself
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			return false
+		},
+	}
+	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoRuntime{}}, &handler.EnqueueRequestForObject{}, pred)
 	if err != nil {
 		return err
 	}
@@ -96,8 +104,14 @@ type ReconcileKogitoRuntime struct {
 
 // Reconcile reads that state of the cluster for a KogitoRuntime object and makes changes based on the state read
 // and what is in the KogitoRuntime.Spec
-func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (result reconcile.Result, err error) {
 	log.Infof("Reconciling KogitoRuntime for %s in %s", request.Name, request.Namespace)
+
+	instance, err := infrastructure.FetchKogitoRuntimeService(r.client, request.Name, request.Namespace)
+	if err != nil {
+		return
+	}
+
 	definition := services.ServiceDefinition{
 		Request:            request,
 		DefaultImageTag:    infrastructure.LatestTag,
@@ -105,12 +119,16 @@ func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (reconcile
 		OnDeploymentCreate: onDeploymentCreate,
 		OnObjectsCreate:    onObjectsCreate,
 		OnGetComparators:   onGetComparators,
+		CustomService:      true,
 	}
-	if requeueAfter, err := services.NewCustomServiceDeployer(definition, &appv1alpha1.KogitoRuntime{}, r.client, r.scheme).Deploy(); err != nil {
-		return reconcile.Result{RequeueAfter: requeueAfter}, err
-	} else if requeueAfter > 0 {
-		return reconcile.Result{RequeueAfter: requeueAfter, Requeue: true}, nil
+	requeueAfter, err := services.NewServiceDeployer(definition, instance, r.client, r.scheme).Deploy()
+	if err != nil {
+		return
 	}
-
-	return reconcile.Result{}, nil
+	if requeueAfter > 0 {
+		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
+		result.RequeueAfter = requeueAfter
+		result.Requeue = true
+	}
+	return
 }

@@ -122,11 +122,15 @@ func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoSer
 	// protobuf
 	applyProtoBufConfigurations(deployment, kogitoService)
 
-	if err := infrastructure.InjectDataIndexURLIntoKogitoRuntimeDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+	if err := infrastructure.InjectDataIndexURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}
 
 	if err := infrastructure.InjectJobsServiceURLIntoKogitoRuntimeDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
+		return err
+	}
+
+	if err := infrastructure.InjectTrustyURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}
 

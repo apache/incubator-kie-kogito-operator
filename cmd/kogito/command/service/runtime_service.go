@@ -107,7 +107,7 @@ func printMgmtConsoleInfo(client *client.Client, project string) error {
 	if err != nil {
 		return err
 	}
-	if endpoint.IsEmpty() {
+	if endpoint == nil {
 		log.Info(message.RuntimeServiceMgmtConsole)
 	} else {
 		log.Infof(message.RuntimeServiceMgmtConsoleEndpoint, endpoint.HTTPRouteURI)

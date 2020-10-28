@@ -26,7 +26,7 @@ import (
 )
 
 func Test_generateEvent(t *testing.T) {
-	service := &v1alpha1.KogitoJobsService{
+	service := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
@@ -45,7 +45,7 @@ func Test_generateEvent(t *testing.T) {
 }
 
 func Test_generateEvent_InvalidEventType(t *testing.T) {
-	service := &v1alpha1.KogitoJobsService{
+	service := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
