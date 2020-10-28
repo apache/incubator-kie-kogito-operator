@@ -349,6 +349,7 @@ func (s *serviceDeployer) configureMonitoring() (time.Duration, error) {
 
 	reconcileAfter, err := configureGrafanaDashboards(s.client, s.instance, s.scheme, s.getNamespace())
 	if err != nil {
+		log.Warnf("Could not deploy grafana dashboards due to %v", err)
 		return reconciliationPeriodAfterDashboardsError, nil
 	}
 

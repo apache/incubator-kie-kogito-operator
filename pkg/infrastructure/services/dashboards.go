@@ -56,7 +56,7 @@ func fetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService)
 		return nil, nil
 	}
 
-	svcURL := infrastructure.CreateKogitoServiceURI(instance)
+	svcURL := infrastructure.GetKogitoServiceURL(instance)
 	dashboardNames, err := fetchGrafanaDashboardNamesForURL(svcURL)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 				Name:      resourceName,
 				Namespace: namespace,
 				Labels: map[string]string{
-					framework.LabelAppKey: GrafanaDashboardAppName,
+					framework.LabelAppKey: kogitoService.GetName(),
 				},
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
