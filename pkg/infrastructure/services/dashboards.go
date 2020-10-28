@@ -41,9 +41,6 @@ type GrafanaDashboard struct {
 const (
 	// dashboardPath which the dashboards are fetched
 	dashboardsPath = "/monitoring/dashboards/"
-
-	// GrafanaDashboardAppName label app name to be used when a GrafanaDashboard is created
-	GrafanaDashboardAppName = "grafana"
 )
 
 func fetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService) ([]GrafanaDashboard, error) {
