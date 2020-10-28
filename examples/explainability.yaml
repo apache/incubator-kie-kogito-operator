@@ -22,7 +22,6 @@ spec:
   # number of pods to be deployed
   replicas: 1
   # the http port that the explainability image will listen internally
-  #httpPort: 9090
   # Limits and requests for the Explainability pod
   #memoryLimit: ""
   #memoryRequest: ""

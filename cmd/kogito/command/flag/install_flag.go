@@ -16,7 +16,6 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +33,6 @@ type InstallFlags struct {
 	ConfigFlags
 	Project  string
 	Replicas int32
-	HTTPPort int32
 	Infra    []string
 }
 
@@ -48,7 +46,6 @@ func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
 	AddConfigFlags(command, &flags.ConfigFlags)
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
-	command.Flags().Int32Var(&flags.HTTPPort, "http-port", framework.DefaultExposedPort, "Define port on which service will listen internally")
 	command.Flags().StringArrayVar(&flags.Infra, "infra", nil, "Dependent KogitoInfra objects. Can be set more than once.")
 }
 
