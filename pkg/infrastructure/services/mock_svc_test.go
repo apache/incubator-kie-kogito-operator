@@ -12,6 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build tools
+package services
 
-package tools
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+type serverHandler struct {
+	Path         string
+	JSONResponse string
+}
+
+func mockKogitoSvcReplies(t *testing.T, handlers ...serverHandler) *httptest.Server {
+	h := http.NewServeMux()
+	for _, handler := range handlers {
+		path := handler.Path
+		response := handler.JSONResponse
+		h.HandleFunc(path, func(writer http.ResponseWriter, request *http.Request) {
+			_, err := writer.Write([]byte(response))
+			assert.NoError(t, err)
+		})
+	}
+
+	return httptest.NewServer(h)
+}
