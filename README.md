@@ -34,6 +34,27 @@ Thank you for your interest in contributing to this project!
 
 Any kind of contribution is welcome: code, design ideas, bug reporting, or documentation (including this page).
 
+## Trying the Kogito Operator
+
+You can quickly install the operator in your local cluster by executing the following command:
+
+```shell script
+NAMESPACE=mynamespace
+VERSION=<current_operator_version>
+kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-cloud-operator/releases/download/${VERSION}kogito-operator.yaml"
+```
+
+Replace the values above to match your context. The version information you can grab from the [releases page]().
+
+Alternatively, if you cloned this repo just do:
+
+```shell script
+$ ./hack/install.sh
+```
+
+The script will download the latest version and install the resources for you in the current namespace.
+You can set the `VERSION` and `NAMESPACE` variables before running the script to control which version to install in the given namespace.
+
 ## Prerequisites
 
 For code contributions, review the following prerequisites:

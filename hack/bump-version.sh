@@ -39,7 +39,7 @@ fi
 latest_released_olm_version=$(cd ${OLM_DIR} && for i in $(ls -d */); do echo ${i%%/}; done | grep -v manifests | grep -v ${old_version} | sort -V | tail -1)
 echo "Latest released OLM version = $latest_released_olm_version"
 
-sed -i "s/$old_version/$new_version/g" cmd/kogito/version/version.go README.md version/version.go deploy/operator.yaml ${OLM_DIR}/kogito-operator.package.yaml ${OLM_DIR}/custom-subscription-example.yaml hack/go-build.sh hack/go-vet.sh .osdk-scorecard.yaml kogito-operator.yaml
+sed -i "s/$old_version/$new_version/g" cmd/kogito/version/version.go README.md version/version.go deploy/operator.yaml ${OLM_DIR}/kogito-operator.package.yaml ${OLM_DIR}/custom-subscription-example.yaml hack/go-build.sh hack/go-vet.sh .osdk-scorecard.yaml
 
 if [ "${old_version}" != "${new_version}" ]; then
   operator-sdk generate csv --apis-dir ./pkg/apis/app/v1alpha1 --verbose --csv-version "$new_version" --from-version "$old_version" --update-crds --operator-name kogito-operator
