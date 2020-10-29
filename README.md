@@ -44,7 +44,7 @@ For code contributions, review the following prerequisites:
 
 ## Kogito Operator environment
 
-The Operator SDK is updated regularly and the Kogito Operator code typically uses the most recent SDK updates as soon as possible. The Operate SDK has not reached a major version yet, so incompatibilities might occur.
+The Operator SDK is updated regularly, and the Kogito Operator code typically uses the most recent SDK updates as soon as possible.
 
 If you do not have a preferred IDE, use Visual Studio Code with the [`vscode-go`](https://github.com/Microsoft/vscode-go) plugin for Go language tools support.
 
