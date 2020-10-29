@@ -15,7 +15,6 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -54,25 +53,4 @@ func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket)
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].LivenessProbe.HTTPGet)
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet)
-}
-
-func Test_createRequiredDeployment_CheckCustomPort(t *testing.T) {
-	kogitoService := &v1alpha1.KogitoSupportingService{
-		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
-				HTTPPort: 9090,
-			},
-		},
-	}
-	serviceDef := ServiceDefinition{}
-	deployment := createRequiredDeployment(kogitoService, defaultDataIndexImageFullTag, serviceDef)
-	assert.NotNil(t, deployment)
-	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket.Port.IntVal)
-	assert.Equal(t, int32(9090), deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket.Port.IntVal)
-	container := deployment.Spec.Template.Spec.Containers[0]
-	assert.Equal(t, int32(9090), container.Ports[0].ContainerPort)
-	index := framework.GetEnvVar(HTTPPortEnvKey, container.Env)
-	assert.True(t, index >= 0, HTTPPortEnvKey, " not found in container env var")
-	assert.Equal(t, "9090", container.Env[index].Value)
 }

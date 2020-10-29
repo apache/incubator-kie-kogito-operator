@@ -112,9 +112,6 @@ type KogitoServiceSpecInterface interface {
 	SetServiceLabels(labels map[string]string)
 	AddServiceLabel(name, value string)
 	GetRuntime() RuntimeType
-	//Define port on which service will listen internally
-	GetHTTPPort() int32
-	SetHTTPPort(httpPort int32)
 	IsInsecureImageRegistry() bool
 	GetPropertiesConfigMap() string
 	GetInfra() []string
@@ -173,10 +170,6 @@ type KogitoServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	ServiceLabels map[string]string `json:"serviceLabels,omitempty"`
 
-	// HTTPPort will set the environment env HTTP_PORT to define which port service will listen internally.
-	// +optional
-	HTTPPort int32 `json:"httpPort,omitempty"`
-
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="ConfigMap Properties"
@@ -228,12 +221,6 @@ func (k *KogitoServiceSpec) GetResources() corev1.ResourceRequirements { return 
 func (k *KogitoServiceSpec) SetResources(resources corev1.ResourceRequirements) {
 	k.Resources = resources
 }
-
-// GetHTTPPort ...
-func (k *KogitoServiceSpec) GetHTTPPort() int32 { return k.HTTPPort }
-
-// SetHTTPPort ...
-func (k *KogitoServiceSpec) SetHTTPPort(httpPort int32) { k.HTTPPort = httpPort }
 
 // AddEnvironmentVariable adds new environment variable to service environment variables.
 func (k *KogitoServiceSpec) AddEnvironmentVariable(name, value string) {

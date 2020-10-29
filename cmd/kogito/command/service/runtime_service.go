@@ -70,7 +70,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				Image:                 flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&flags.PodResourceFlags),
 				ServiceLabels:         util.FromStringsKeyPairToMap(flags.ServiceLabels),
-				HTTPPort:              flags.HTTPPort,
 				InsecureImageRegistry: flags.ImageFlags.InsecureImageRegistry,
 				PropertiesConfigMap:   configMap,
 				Infra:                 flags.Infra,

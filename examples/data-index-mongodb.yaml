@@ -26,8 +26,6 @@ spec:
     #    value: "-Dquarkus.log.level=DEBUG"
   # number of pods to be deployed
   replicas: 1
-  # the http port that the dataindex image will listen internally
-  #httpPort: 9090
   # Limits and requests for the Data Index pod
   #memoryLimit: ""
   #memoryRequest: ""

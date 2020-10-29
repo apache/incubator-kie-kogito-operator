@@ -15,8 +15,6 @@
 package services
 
 import (
-	"strconv"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -29,8 +27,6 @@ import (
 const (
 	portName      = "http"
 	singleReplica = int32(1)
-	// HTTPPortEnvKey Env variable to define port on which service will listen internally
-	HTTPPortEnvKey = "HTTP_PORT"
 )
 
 func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage string, definition ServiceDefinition) *appsv1.Deployment {
@@ -39,9 +35,7 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 		log.Warnf("%s can't scale vertically, only one replica is allowed.", service.GetName())
 	}
 	replicas := service.GetSpec().GetReplicas()
-	httpPort := getServiceHTTPPort(service)
-	setHTTPPortInEnvVar(httpPort, service)
-	probes := getProbeForKogitoService(definition, httpPort)
+	probes := getProbeForKogitoService(definition)
 	labels := service.GetSpec().GetDeploymentLabels()
 	if labels == nil {
 		labels = make(map[string]string)
@@ -66,7 +60,7 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          portName,
-									ContainerPort: httpPort,
+									ContainerPort: int32(framework.DefaultExposedPort),
 									Protocol:      corev1.ProtocolTCP,
 								},
 							},
@@ -85,30 +79,6 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 	}
 
 	return deployment
-}
-
-// getServiceHTTPPort gets the service port for the given KogitoService based on httpPort CR parameter.
-// defaults to 8080
-func getServiceHTTPPort(kogitoService v1alpha1.KogitoService) int32 {
-	// port should be greater than 0
-	httpPort := kogitoService.GetSpec().GetHTTPPort()
-	if httpPort < 1 {
-		log.Debugf("HTTPPort not set, returning default http port.")
-		return framework.DefaultExposedPort
-	}
-	log.Debugf("HTTPPort is set, returning port number %i", httpPort)
-	return httpPort
-}
-
-// setHTTPPortInEnvVar will update or add the environment variable into the given kogito service
-func setHTTPPortInEnvVar(httpPort int32, kogitoService v1alpha1.KogitoService) {
-	httpPortEnvVar := corev1.EnvVar{
-		Name:  HTTPPortEnvKey,
-		Value: strconv.FormatInt(int64(httpPort), 10),
-	}
-	envs := kogitoService.GetSpec().GetEnvs()
-	modifiedEnv := framework.EnvOverride(envs, httpPortEnvVar)
-	kogitoService.GetSpec().SetEnvs(modifiedEnv)
 }
 
 // isDeploymentAvailable verifies if the Deployment resource from the given KogitoService has replicas available

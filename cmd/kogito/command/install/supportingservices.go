@@ -195,7 +195,6 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 				Env:                   converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:                 i.flags.ImageFlags.Image,
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
-				HTTPPort:              i.flags.HTTPPort,
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 				Infra:                 i.flags.Infra,
 				PropertiesConfigMap:   configMap,
