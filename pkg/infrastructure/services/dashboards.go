@@ -44,7 +44,7 @@ const (
 )
 
 func fetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService) ([]GrafanaDashboard, error) {
-	available, err := isDeploymentAvailable(cli, instance)
+	available, err := IsDeploymentAvailable(cli, instance)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func fetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService)
 		return nil, nil
 	}
 
-	svcURL := infrastructure.GetKogitoServiceURL(instance)
+	svcURL := infrastructure.GetKogitoServiceEndpoint(instance)
 	dashboardNames, err := fetchGrafanaDashboardNamesForURL(svcURL)
 	if err != nil {
 		return nil, err

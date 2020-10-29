@@ -38,7 +38,7 @@ func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoSer
 		return
 	}
 
-	deploymentAvailable, err := isDeploymentAvailable(client, kogitoService)
+	deploymentAvailable, err := IsDeploymentAvailable(client, kogitoService)
 	if err != nil {
 		return
 	}
@@ -65,7 +65,7 @@ func isPrometheusAvailable(client *client.Client) bool {
 }
 
 func isPrometheusAddOnAvailable(kogitoService v1alpha1.KogitoService) (bool, error) {
-	url := infrastructure.GetKogitoServiceURL(kogitoService)
+	url := infrastructure.GetKogitoServiceEndpoint(kogitoService)
 	url = url + getMonitoringPath(kogitoService.GetSpec().GetMonitoring())
 	if resp, err := http.Head(url); err != nil {
 		return false, err

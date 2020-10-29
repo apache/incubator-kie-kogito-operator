@@ -18,6 +18,7 @@ import (
 	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	"net/url"
+	"os"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -29,6 +30,8 @@ const (
 	webSocketScheme       = "ws"
 	webSocketSecureScheme = "wss"
 	httpScheme            = "http"
+
+	envVarKogitoServiceURL = "LOCAL_KOGITO_SERVICE_URL"
 )
 
 // injectSupportingServiceURLIntoKogitoRuntime will query for every KogitoApp in the given namespace to inject the Supporting service route to each one
@@ -84,6 +87,18 @@ func injectSupportingServiceURLIntoDeployment(client *client.Client, namespace s
 	return nil
 }
 
+// GetKogitoServiceEndpoint gets the endpoint depending on
+// if the envVarKogitoServiceURL is set (for when running
+// operator locally). Else, the internal endpoint is
+// returned.
+func GetKogitoServiceEndpoint(kogitoService v1alpha1.KogitoService) string {
+	externalURL := os.Getenv(envVarKogitoServiceURL)
+	if len(externalURL) > 0 {
+		return externalURL
+	}
+	return getKogitoServiceURL(kogitoService)
+}
+
 func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1alpha1.ServiceType) (endpoints *ServiceEndpoints, err error) {
 	route := ""
 	route, err = getKogitoSupportingServiceRoute(client, namespace, resourceType)
@@ -133,8 +148,8 @@ func updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, servi
 	return
 }
 
-// GetKogitoServiceURL provides kogito service URL for given instance name
-func GetKogitoServiceURL(service v1alpha1.KogitoService) string {
+// getKogitoServiceURL provides kogito service URL for given instance name
+func getKogitoServiceURL(service v1alpha1.KogitoService) string {
 	log.Debugf("Creating kogito service instance URL.")
 	// resolves to http://servicename.mynamespace for example
 	url := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())

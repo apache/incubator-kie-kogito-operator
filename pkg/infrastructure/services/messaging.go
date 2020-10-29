@@ -65,12 +65,12 @@ func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, defini
 }
 
 func (m *messagingDeployer) fetchRequiredTopics(instance v1alpha1.KogitoService) ([]messageTopic, error) {
-	svcURL := infrastructure.GetKogitoServiceURL(instance)
+	svcURL := infrastructure.GetKogitoServiceEndpoint(instance)
 	return m.fetchRequiredTopicsForURL(instance, svcURL)
 }
 
 func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1alpha1.KogitoService, serverURL string) ([]messageTopic, error) {
-	available, err := isDeploymentAvailable(m.cli, instance)
+	available, err := IsDeploymentAvailable(m.cli, instance)
 	if err != nil {
 		return nil, err
 	}
