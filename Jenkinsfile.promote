@@ -269,6 +269,7 @@ void releaseCLI() {
     def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
     def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
     def windowsFileName = "${cliBaseName}-windows-amd64.zip"
+    def yamlInstaller = 'kogito-operator.yaml'
     withCredentials([string(credentialsId: params.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
         sh """
             export GITHUB_USER=${getGitAuthor()}
@@ -276,6 +277,7 @@ void releaseCLI() {
             github-release upload --tag ${getGitTag()} --name '${darwinFileName}' --file '${releasePath}${darwinFileName}'
             github-release upload --tag ${getGitTag()} --name '${linuxFileName}' --file '${releasePath}${linuxFileName}'
             github-release upload --tag ${getGitTag()} --name '${windowsFileName}' --file '${releasePath}${windowsFileName}'
+            github-release upload --tag ${getGitTag()} --name '${yamlInstaller}' --file '${yamlInstaller}'
         """
     }
 }
