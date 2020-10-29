@@ -12,7 +12,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.9
 	github.com/infinispan/infinispan-operator v0.0.0-20200803092941-2b0528367f08
-	github.com/karrick/godirwalk v1.15.6 // indirect
+	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/machinebox/graphql v0.2.2
 	github.com/matryer/is v1.2.0 // indirect
@@ -21,12 +21,15 @@ require (
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20200321030439-57b580e57e88
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/operator-framework/operator-sdk v0.18.2
-	github.com/rogpeppe/go-internal v1.6.1 // indirect
-	github.com/spf13/cobra v1.0.0
+	github.com/rogpeppe/go-internal v1.6.2 // indirect
+	github.com/sirupsen/logrus v1.7.0 // indirect
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.15.0
-	golang.org/x/tools v0.0.0-20200916195026-c9a70fc28ce3 // indirect
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418 // indirect
+	golang.org/x/tools v0.0.0-20201028224754-2c115999a7f0 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.18.8
