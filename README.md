@@ -45,7 +45,7 @@ VERSION=<current_operator_version>
 kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-cloud-operator/releases/download/${VERSION}kogito-operator.yaml"
 ```
 
-Replace the values above to match your context. The version information you can grab from the [releases page]().
+Replace the values above to match your context. The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-cloud-operator/releases).
 
 Alternatively, if you cloned this repo just do:
 
