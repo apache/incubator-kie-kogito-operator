@@ -9,6 +9,7 @@ For information about the Kogito Operator architecture and instructions for usin
 # Table of Contents
 
 * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
+  * [Trying the Kogito Operator](#trying-the-kogito-operator)
   * [Prerequisites](#prerequisites)
   * [Kogito Operator environment](#kogito-operator-environment)
     * [Kogito Operator unit tests](#kogito-operator-unit-tests)
