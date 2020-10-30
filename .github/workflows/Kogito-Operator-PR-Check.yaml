@@ -44,6 +44,7 @@ jobs:
       - name: Check Vet
         run: |
           ./hack/go-vet.sh
+          git diff
           changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
           generated_changed_files=$(git status -s | grep zz_generated || :)
           [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen" && exit 1)
