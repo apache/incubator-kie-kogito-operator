@@ -1290,74 +1290,6 @@ spec:
     storage: true
 
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: kogito-operator
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      name: kogito-operator
-  template:
-    metadata:
-      labels:
-        name: kogito-operator
-    spec:
-      serviceAccountName: kogito-operator
-      containers:
-        - name: kogito-cloud-operator
-          image: quay.io/kiegroup/kogito-cloud-operator:1.0.0-snapshot
-          command:
-            - kogito-cloud-operator
-          imagePullPolicy: Always
-          env:
-            - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: OPERATOR_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['name']
-            - name: DEBUG
-              value: "false"
-
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: kogito-operator
-subjects:
-  - kind: ServiceAccount
-    name: kogito-operator
-roleRef:
-  kind: Role
-  name: kogito-operator
-  apiGroup: rbac.authorization.k8s.io
----
-
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: kogito-service-viewer
-  annotations:
-    org.kie.kogito/managed-by: Kogito Operator
-subjects:
-  - kind: ServiceAccount
-    name: kogito-service-viewer
-roleRef:
-  kind: Role
-  name: kogito-service-viewer
-  apiGroup: rbac.authorization.k8s.io
-
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -1525,4 +1457,72 @@ metadata:
   name: kogito-service-viewer
   annotations:
     org.kie.kogito/managed-by: Kogito Operator
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kogito-operator
+subjects:
+  - kind: ServiceAccount
+    name: kogito-operator
+roleRef:
+  kind: Role
+  name: kogito-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kogito-service-viewer
+  annotations:
+    org.kie.kogito/managed-by: Kogito Operator
+subjects:
+  - kind: ServiceAccount
+    name: kogito-service-viewer
+roleRef:
+  kind: Role
+  name: kogito-service-viewer
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kogito-operator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: kogito-operator
+  template:
+    metadata:
+      labels:
+        name: kogito-operator
+    spec:
+      serviceAccountName: kogito-operator
+      containers:
+        - name: kogito-cloud-operator
+          image: quay.io/kiegroup/kogito-cloud-operator:1.0.0-snapshot
+          command:
+            - kogito-cloud-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['name']
+            - name: DEBUG
+              value: "false"
+
 ---
