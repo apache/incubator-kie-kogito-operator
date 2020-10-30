@@ -165,11 +165,6 @@ spec:
                 type: object
               type: array
               x-kubernetes-list-type: atomic
-            httpPort:
-              description: HTTPPort will set the environment env HTTP_PORT to define
-                which port service will listen internally.
-              format: int32
-              type: integer
             image:
               description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
                 On OpenShift an ImageStream will be created in the current namespace

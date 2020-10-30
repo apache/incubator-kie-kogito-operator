@@ -55,7 +55,6 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
-	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
 	assert.Equal(t, 2, len(kogitoRuntime.Spec.Env))
 }
@@ -86,7 +85,6 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
-	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
 	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 }
@@ -124,7 +122,6 @@ my.nice.property=socool
 	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
-	assert.Equal(t, int32(8080), kogitoRuntime.Spec.HTTPPort)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
 	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 	assert.NotEmpty(t, kogitoRuntime.Spec.PropertiesConfigMap)

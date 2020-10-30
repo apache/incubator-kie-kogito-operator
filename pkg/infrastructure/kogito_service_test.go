@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetKogitoServiceInternalURI(t *testing.T) {
+func Test_GetKogitoServiceInternalURL(t *testing.T) {
 	service := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "dataindex",
@@ -36,8 +36,8 @@ func Test_GetKogitoServiceInternalURI(t *testing.T) {
 		},
 	}
 
-	actualURI := CreateKogitoServiceURI(service)
-	assert.Equal(t, "http://dataindex.mynamespace", actualURI)
+	actualURL := getKogitoServiceURL(service)
+	assert.Equal(t, "http://dataindex.mynamespace", actualURL)
 }
 
 func Test_getKogitoDataIndexURLs(t *testing.T) {

@@ -21,13 +21,22 @@ export GOROOT=$(go env GOROOT)
 export GOPATH=$(go env GOPATH)
 operator-sdk generate k8s
 operator-sdk generate crds --crd-version=v1beta1
+
+echo "Generating YAML installer"
+# Generate kogito-operator.yaml
+rm kogito-operator.yaml
+declare deploy_files=("./deploy/role.yaml" "./deploy/service_account.yaml" "./deploy/role_binding.yaml" "./deploy/operator.yaml")
+for yaml in deploy/crds/*_crd.yaml; do cat "${yaml}" >> kogito-operator.yaml; printf "\n---\n" >> kogito-operator.yaml; done
+for yaml in "${deploy_files[@]}"; do cat "${yaml}" >> kogito-operator.yaml; printf "\n---\n" >> kogito-operator.yaml; done
+
 # get the openapi binary
-which openapi-gen > /dev/null || go build -o "${GOPATH}"/bin/openapi-gen k8s.io/kube-openapi/cmd/openapi-gen
+command -v openapi-gen > /dev/null || go build -o "${GOPATH}"/bin/openapi-gen k8s.io/kube-openapi/cmd/openapi-gen
 # generate the openapi files
 echo "Generating openapi files"
 openapi-gen --logtostderr=true -o "" -i github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1 -O zz_generated.openapi -p ./pkg/apis/app/v1alpha1 -h ./hack/boilerplate.go.txt -r "-"
 openapi-gen --logtostderr=true -o "" -i github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1 -O zz_generated.openapi -p ./pkg/apis/kafka/v1beta1 -h ./hack/boilerplate.go.txt -r "-"
 
+echo "Generating CSVs and handling manifests"
 ./hack/generate-manifests.sh
 
 go vet ./...

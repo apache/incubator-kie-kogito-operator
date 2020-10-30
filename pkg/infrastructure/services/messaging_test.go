@@ -15,6 +15,8 @@
 package services
 
 import (
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -22,16 +24,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_fetchRequiredTopics(t *testing.T) {
 	responseWithTopics := `[{ "name": "travellers", "type": "PRODUCED" }, { "name": "processedtravelers", "type": "CONSUMED" }]`
 	instance := createServiceInstance(t)
 
-	server := mockKogitoSvcReplies(t, responseWithTopics)
+	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: responseWithTopics})
 	defer server.Close()
 
 	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
@@ -44,7 +43,7 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 	emptyResponse := "[]"
 	instance := createServiceInstance(t)
 
-	server := mockKogitoSvcReplies(t, emptyResponse)
+	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: emptyResponse})
 	defer server.Close()
 
 	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
@@ -78,14 +77,4 @@ func createServiceInstance(t *testing.T) v1alpha1.KogitoService {
 			},
 		},
 	}
-}
-
-func mockKogitoSvcReplies(t *testing.T, jsonResponse string) *httptest.Server {
-	handler := http.NewServeMux()
-	handler.HandleFunc(topicInfoPath, func(writer http.ResponseWriter, request *http.Request) {
-		_, err := writer.Write([]byte(jsonResponse))
-		assert.NoError(t, err)
-	})
-
-	return httptest.NewServer(handler)
 }

@@ -16,6 +16,7 @@ package meta
 
 import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
@@ -90,7 +91,8 @@ func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		keycloakv1alpha1.SchemeBuilder.AddToScheme,
 		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
 		monv1.SchemeBuilder.AddToScheme,
-		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme)
+		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme,
+		grafana.AddToScheme)
 }
 
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
@@ -115,6 +117,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, routev1.GroupVersion)
 	metav1.AddToGroupVersion(s, infinispanv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, kafkabetav1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, grafana.SchemeGroupVersion)
 
 	return s
 }

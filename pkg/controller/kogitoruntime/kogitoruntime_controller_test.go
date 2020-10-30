@@ -76,8 +76,8 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	assert.True(t, framework.GetEnvVarFromContainer("NAMESPACE", &deployment.Spec.Template.Spec.Containers[0]) == instance.Namespace)
 	assert.Equal(t, "kogito-service-viewer", deployment.Spec.Template.Spec.ServiceAccountName)
 	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 2) // #1 for property, #2 for downward api
-	// command to register protobuf
-	assert.Equal(t, deployment.Spec.Template.Spec.Containers[0].Lifecycle.PostStart.Exec.Command, podStartExecCommand)
+	// command to register protobuf does not exist anymore
+	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Lifecycle)
 
 	configMap := &corev1.ConfigMap{ObjectMeta: v1.ObjectMeta{Name: getProtoBufConfigMapName(instance.Name), Namespace: instance.Namespace}}
 	exists, err = kubernetes.ResourceC(cli).Fetch(configMap)

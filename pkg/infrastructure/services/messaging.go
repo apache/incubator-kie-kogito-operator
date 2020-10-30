@@ -17,11 +17,12 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
-	"net/http"
 )
 
 type messageTopicKind string
@@ -64,12 +65,12 @@ func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, defini
 }
 
 func (m *messagingDeployer) fetchRequiredTopics(instance v1alpha1.KogitoService) ([]messageTopic, error) {
-	svcURL := infrastructure.CreateKogitoServiceURI(instance)
+	svcURL := infrastructure.GetKogitoServiceEndpoint(instance)
 	return m.fetchRequiredTopicsForURL(instance, svcURL)
 }
 
 func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1alpha1.KogitoService, serverURL string) ([]messageTopic, error) {
-	available, err := isDeploymentAvailable(m.cli, instance)
+	available, err := IsDeploymentAvailable(m.cli, instance)
 	if err != nil {
 		return nil, err
 	}

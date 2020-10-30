@@ -16,13 +16,14 @@ package services
 
 import (
 	"fmt"
+	"reflect"
+	"time"
+
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/record"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"reflect"
-	"time"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -41,6 +42,7 @@ const (
 	reconciliationPeriodAfterInfraError                = time.Minute
 	reconciliationPeriodAfterMessagingError            = time.Second * 30
 	reconciliationPeriodMonitoringEndpointNotAvailable = time.Second * 10
+	reconciliationPeriodAfterDashboardsError           = time.Second * 30
 )
 
 // ServiceDefinition defines the structure for a Kogito Service
@@ -302,5 +304,12 @@ func (s *serviceDeployer) configureMonitoring() (time.Duration, error) {
 	} else if failedVerifyAddon {
 		return reconciliationPeriodMonitoringEndpointNotAvailable, nil
 	}
-	return 0, nil
+
+	reconcileAfter, err := configureGrafanaDashboards(s.client, s.instance, s.scheme, s.getNamespace())
+	if err != nil {
+		log.Warnf("Could not deploy grafana dashboards due to %v", err)
+		return reconciliationPeriodAfterDashboardsError, nil
+	}
+
+	return reconcileAfter, err
 }
