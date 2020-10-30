@@ -22,7 +22,7 @@ export GOPATH=$(go env GOPATH)
 operator-sdk generate k8s
 operator-sdk generate crds --crd-version=v1beta1
 
-echo "Geneting YAML installer"
+echo "Generating YAML installer"
 # Generate kogito-operator.yaml
 rm kogito-operator.yaml
 declare deploy_files=("./deploy/role.yaml" "./deploy/service_account.yaml" "./deploy/role_binding.yaml" "./deploy/operator.yaml")
