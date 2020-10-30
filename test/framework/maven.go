@@ -123,18 +123,21 @@ func (mvnCmd *mavenCommandStruct) Execute(targets ...string) (string, error) {
 func (mvnCmd *mavenCommandStruct) setSettingsXML() error {
 	settingsContent := settingsMainContent
 
+	// Setup Maven mirror if defined
+	if mavenMirrorURL := config.GetMavenMirrorURL(); len(mavenMirrorURL) > 0 {
+		mavenMirrorContent := fmt.Sprintf(mavenMirrorXMLDescription, mavenMirrorURL)
+		settingsContent = strings.ReplaceAll(settingsContent, "<!-- ### mirror settings ### -->", mavenMirrorContent)
+	}
+
 	// Setup custom Maven repository if defined
 	if customMavenRepoURL := config.GetCustomMavenRepoURL(); len(customMavenRepoURL) > 0 {
 		repository := fmt.Sprintf(repositoryDescription, customMavenRepoURL)
 		pluginRepository := fmt.Sprintf(pluginRepositoryDescription, customMavenRepoURL)
 		profilesContent := fmt.Sprintf(profilesXMLDescription, repository, pluginRepository)
 		settingsContent = strings.ReplaceAll(settingsContent, "<!-- ### profiles ### -->", profilesContent)
-	}
 
-	// Setup Maven mirror if defined
-	if mavenMirrorURL := config.GetMavenMirrorURL(); len(mavenMirrorURL) > 0 {
-		mavenMirrorContent := fmt.Sprintf(mavenMirrorXMLDescription, mavenMirrorURL)
-		settingsContent = strings.ReplaceAll(settingsContent, "<!-- ### mirror settings ### -->", mavenMirrorContent)
+		// Ignore customMavenRepoURL in mirror if exists
+		settingsContent = strings.ReplaceAll(settingsContent, "</mirrorOf>", fmt.Sprintf(",!%s</mirrorOf>", customMavenRepoURL))
 	}
 
 	// Create settings.xml in directory
