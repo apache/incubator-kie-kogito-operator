@@ -1203,9 +1203,10 @@ spec:
                 JobsService'
               enum:
               - DataIndex
+              - Explainablity
               - JobsService
               - MgmtConsole
-              - Explainablity
+              - TaskConsole
               - TrustyAI
               - TrustyUI
               type: string
