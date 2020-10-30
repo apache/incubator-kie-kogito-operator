@@ -39,10 +39,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-// Collection of Services not to be monitored by main kogitoSupportingService controller
-var ignoreServices = []v1alpha1.ServiceType{
-	v1alpha1.DataIndex,
-}
 var log = logger.GetLogger("kogitosupportingservice_controller")
 
 // Add creates a new KogitoSupportingService Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -70,15 +66,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		// Don't watch delete events as the resource removals will be handled by Kubernetes itself
 		DeleteFunc: func(e event.DeleteEvent) bool {
 			return false
-		},
-		// Filter out ignoreServices
-		CreateFunc: func(e event.CreateEvent) bool {
-			supportingService := e.Object.(*v1alpha1.KogitoSupportingService)
-			return !contains(ignoreServices, supportingService.Spec.ServiceType)
-		},
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			supportingService := e.ObjectNew.(*v1alpha1.KogitoSupportingService)
-			return !contains(ignoreServices, supportingService.Spec.ServiceType)
 		},
 	}
 	err = c.Watch(&source.Kind{Type: &v1alpha1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{}, pred)
@@ -133,16 +120,11 @@ type ReconcileKogitoSupportingService struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) (result reconcile.Result, resultErr error) {
 	// Fetch the KogitoSupportingService instance
+	log.Infof("Reconciling KogitoSupportingService for %s in %s", request.Name, request.Namespace)
 	instance, resultErr := fetchKogitoSupportingService(r.client, request.Name, request.Namespace)
 	if resultErr != nil {
 		return
 	}
-
-	// Do not trigger the Reconcile of kogitoSupportingController for ignored services
-	if contains(ignoreServices, instance.Spec.ServiceType) {
-		return
-	}
-	log.Infof("Reconciling KogitoSupportingService for %s in %s", request.Name, request.Namespace)
 	log.Debugf("Going to reconcile service of type %s", instance.Spec.ServiceType)
 	if resultErr = ensureSingletonService(r.client, request.Namespace, instance.Spec.ServiceType); resultErr != nil {
 		return
@@ -224,6 +206,7 @@ type SupportingServiceResource interface {
 // map of all the kogitoSupportingService
 // Note: Data Index is not part of this map because it has it's own controller
 var kogitoSupportingServices = map[v1alpha1.ServiceType]SupportingServiceResource{
+	v1alpha1.DataIndex:     &DataIndexSupportingServiceResource{},
 	v1alpha1.JobsService:   &JobsServiceSupportingServiceResource{},
 	v1alpha1.MgmtConsole:   &MgmtConsoleSupportingServiceResource{},
 	v1alpha1.Explainablity: &ExplainabilitySupportingServiceResource{},

@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -29,10 +30,23 @@ const (
 	ConfigMapProtoBufEnabledLabelKey = "kogito-protobuf"
 )
 
-// GetProtoBufConfigMaps will return every configMap labeled as "protobuf=true" in the given namespace
-func GetProtoBufConfigMaps(namespace string, cli *client.Client) (*v1.ConfigMapList, error) {
+// getProtoBufConfigMapsForAllRuntimeServices will return every configMap labeled as "protobuf=true" in the given namespace
+func getProtoBufConfigMapsForAllRuntimeServices(namespace string, cli *client.Client) (*v1.ConfigMapList, error) {
 	cms := &v1.ConfigMapList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespaceAndLabel(namespace, cms, map[string]string{ConfigMapProtoBufEnabledLabelKey: "true"}); err != nil {
+		return nil, err
+	}
+	return cms, nil
+}
+
+// getProtoBufConfigMapsForAllRuntimeServices will return every configMap labeled as "protobuf=true" in the given namespace
+func getProtoBufConfigMapsForSpecificRuntimeService(cli *client.Client, name, namespace string) (*v1.ConfigMapList, error) {
+	cms := &v1.ConfigMapList{}
+	labelMaps := map[string]string{
+		ConfigMapProtoBufEnabledLabelKey: "true",
+		framework.LabelAppKey:            name,
+	}
+	if err := kubernetes.ResourceC(cli).ListWithNamespaceAndLabel(namespace, cms, labelMaps); err != nil {
 		return nil, err
 	}
 	return cms, nil

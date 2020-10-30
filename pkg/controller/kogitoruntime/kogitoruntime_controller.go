@@ -112,6 +112,10 @@ func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (result re
 		return
 	}
 
+	if err = infrastructure.MountProtoBufConfigMapOnDataIndex(r.client, instance); err != nil {
+		return
+	}
+
 	definition := services.ServiceDefinition{
 		Request:            request,
 		DefaultImageTag:    infrastructure.LatestTag,

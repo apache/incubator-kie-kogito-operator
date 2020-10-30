@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 // getKogitoSupportingServiceRoute gets the route from a kogito service that's unique in the given namespace
@@ -40,6 +41,32 @@ func getKogitoSupportingService(client *client.Client, namespace string, resourc
 	for _, service := range supportingServiceList.Items {
 		if service.Spec.ServiceType == resourceType {
 			return &service, nil
+		}
+	}
+	return nil, nil
+}
+
+// getKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
+func getKogitoSupportingServiceDeploymentInstance(cli *client.Client, namespace string, serviceType v1alpha1.ServiceType) (*appsv1.Deployment, error) {
+	supportingService, err := getKogitoSupportingService(cli, namespace, serviceType)
+	if err != nil {
+		return nil, err
+	} else if supportingService == nil {
+		log.Debugf("Not found %s service in namespace %s", serviceType, namespace)
+		return nil, nil
+	}
+	log.Debugf("Found %s services in the namespace '%s' ", serviceType, namespace)
+
+	dcs := &appsv1.DeploymentList{}
+	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
+		return nil, err
+	}
+	log.Debugf("Looking for Deployments owned by %s", serviceType)
+	for _, dc := range dcs.Items {
+		for _, owner := range dc.OwnerReferences {
+			if owner.UID == supportingService.UID {
+				return &dc, nil
+			}
 		}
 	}
 	return nil, nil
