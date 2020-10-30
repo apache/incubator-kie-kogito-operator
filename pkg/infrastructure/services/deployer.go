@@ -15,7 +15,6 @@
 package services
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
@@ -37,13 +36,6 @@ import (
 )
 
 var log = logger.GetLogger("services_definition")
-
-const (
-	reconciliationPeriodAfterInfraError                = time.Minute
-	reconciliationPeriodAfterMessagingError            = time.Second * 30
-	reconciliationPeriodMonitoringEndpointNotAvailable = time.Second * 10
-	reconciliationPeriodAfterDashboardsError           = time.Second * 30
-)
 
 // ServiceDefinition defines the structure for a Kogito Service
 type ServiceDefinition struct {
@@ -90,7 +82,9 @@ type ServiceDeployer interface {
 
 // NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
 func NewServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
-	builderCheck(definition)
+	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
+		panic("No Request provided for the Service Deployer")
+	}
 	return &serviceDeployer{
 		definition: definition,
 		instance:   serviceType,
@@ -104,12 +98,6 @@ func newRecorder(scheme *runtime.Scheme, eventSourceName string) record.EventRec
 	return record.NewRecorder(scheme, v1.EventSource{Component: eventSourceName, Host: record.GetHostName()})
 }
 
-func builderCheck(definition ServiceDefinition) {
-	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
-		panic("No Request provided for the Service Deployer")
-	}
-}
-
 type serviceDeployer struct {
 	definition ServiceDefinition
 	instance   v1alpha1.KogitoService
@@ -120,7 +108,7 @@ type serviceDeployer struct {
 
 func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Namespace }
 
-func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
+func (s *serviceDeployer) Deploy() (time.Duration, error) {
 	if s.instance.GetSpec().GetReplicas() == nil {
 		s.instance.GetSpec().SetReplicas(defaultReplicas)
 	}
@@ -128,14 +116,16 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		s.definition.DefaultImageName = s.definition.Request.Name
 	}
 
-	// always update its status
-	defer s.updateStatus(s.instance, &err)
+	var err error
+
+	// always updateStatus its status
+	defer s.handleStatusUpdate(s.instance, &err)
 
 	// we need to take ownership of the custom configmap provided
 	if len(s.instance.GetSpec().GetPropertiesConfigMap()) > 0 {
-		reconcileAfter, err = s.takeCustomConfigMapOwnership()
+		reconcileAfter, err := s.takeCustomConfigMapOwnership()
 		if err != nil || reconcileAfter > 0 {
-			return
+			return reconcileAfter, err
 		}
 	}
 
@@ -143,27 +133,27 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 	if len(s.instance.GetSpec().GetInfra()) > 0 {
 		err = s.takeKogitoInfraOwnership()
 		if err != nil {
-			return
+			return s.getReconcileResultFor(err)
 		}
 	}
 
-	if reconcileAfter, err = s.checkInfraDependencies(); err != nil || reconcileAfter > 0 {
-		return
+	if err = s.checkInfraDependencies(); err != nil {
+		return s.getReconcileResultFor(err)
 	}
 
 	// create our resources
 	requestedResources, err := s.createRequiredResources()
 	if err != nil {
-		return
+		return s.getReconcileResultFor(err)
 	}
 
 	// get the deployed ones
 	deployedResources, err := s.getDeployedResources()
 	if err != nil {
-		return
+		return s.getReconcileResultFor(err)
 	}
 
-	// compare required and deployed, in case of any differences, we should create update or delete the k8s resources
+	// compare required and deployed, in case of any differences, we should create updateStatus or delete the k8s resources
 	comparator := s.getComparator()
 	deltas := comparator.Compare(deployedResources, requestedResources)
 	for resourceType, delta := range deltas {
@@ -173,29 +163,29 @@ func (s *serviceDeployer) Deploy() (reconcileAfter time.Duration, err error) {
 		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
 
 		if _, err = kubernetes.ResourceC(s.client).CreateResources(delta.Added); err != nil {
-			return
+			return s.getReconcileResultFor(err)
 		}
 		s.generateEventForDeltaResources("Created", resourceType, delta.Added)
 
 		if _, err = kubernetes.ResourceC(s.client).UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
-			return
+			return s.getReconcileResultFor(err)
 		}
 		s.generateEventForDeltaResources("Updated", resourceType, delta.Updated)
 
 		if _, err = kubernetes.ResourceC(s.client).DeleteResources(delta.Removed); err != nil {
-			return
+			return s.getReconcileResultFor(err)
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
 	}
 
-	reconcileAfter, err = s.configureMonitoring()
-	if err != nil || reconcileAfter > 0 {
-		return
+	err = s.configureMonitoring()
+	if err != nil {
+		return s.getReconcileResultFor(err)
 	}
 
-	reconcileAfter, err = s.configureMessaging()
+	err = s.configureMessaging()
 
-	return
+	return s.getReconcileResultFor(err)
 }
 
 func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, resourceType reflect.Type, addedResources []resource.KubernetesResource) {
@@ -247,69 +237,47 @@ func (s *serviceDeployer) takeKogitoInfraOwnership() (err error) {
 	return nil
 }
 
-func (s *serviceDeployer) updateStatus(instance v1alpha1.KogitoService, err *error) {
-	log.Infof("Updating status for Kogito Service %s", instance.GetName())
-	if statusErr := s.manageStatus(*err); statusErr != nil {
-		// this error will return to the operator console
-		err = &statusErr
-	}
-	log.Infof("Successfully reconciled Kogito Service %s", instance.GetName())
-	if *err != nil {
-		log.Errorf("Error while creating kogito service: %v", *err)
-	}
-}
-
-func (s *serviceDeployer) update() error {
-	// Sanity check since the Status CR needs a reference for the object
-	if s.instance.GetStatus() != nil && s.instance.GetStatus().GetConditions() == nil {
-		s.instance.GetStatus().SetConditions([]v1alpha1.Condition{})
-	}
-	err := kubernetes.ResourceC(s.client).Update(s.instance)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // checkInfraDependencies verifies if every KogitoInfra resource have an ok status.
-func (s *serviceDeployer) checkInfraDependencies() (time.Duration, error) {
+func (s *serviceDeployer) checkInfraDependencies() error {
 	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
 	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
 	for _, infraName := range kogitoInfraReferences {
 		infra, err := infrastructure.MustFetchKogitoInfraInstance(s.client, infraName, s.instance.GetNamespace())
 		if err != nil {
-			return 0, err
+			return err
 		}
 		if infra.Status.Condition.Type == v1alpha1.FailureInfraConditionType {
-			s.instance.GetStatus().SetFailed(
-				v1alpha1.KogitoInfraNotReadyReason,
-				fmt.Errorf("KogitoService '%s' is waiting for infra dependency; skipping deployment; KogitoInfra not ready: %s; Status: %s",
-					s.instance.GetName(), infra.Name, infra.Status.Condition.Reason))
-			return reconciliationPeriodAfterInfraError, nil
+			return errorForInfraNotReady(s.instance, infra)
 		}
 	}
-	return 0, nil
+	return nil
 }
 
-func (s *serviceDeployer) configureMessaging() (time.Duration, error) {
+func (s *serviceDeployer) configureMessaging() error {
 	if err := handleMessagingResources(s.client, s.scheme, s.definition, s.instance); err != nil {
-		return reconciliationPeriodAfterMessagingError, err
+		return errorForMessaging(err)
 	}
-	return 0, nil
+	return nil
 }
 
-func (s *serviceDeployer) configureMonitoring() (time.Duration, error) {
-	if failedVerifyAddon, err := configurePrometheus(s.client, s.instance, s.scheme); err != nil {
-		return 0, err
-	} else if failedVerifyAddon {
-		return reconciliationPeriodMonitoringEndpointNotAvailable, nil
+func (s *serviceDeployer) configureMonitoring() error {
+	if err := configurePrometheus(s.client, s.instance, s.scheme); err != nil {
+		return err
 	}
 
-	reconcileAfter, err := configureGrafanaDashboards(s.client, s.instance, s.scheme, s.getNamespace())
-	if err != nil {
+	if err := configureGrafanaDashboards(s.client, s.instance, s.scheme, s.getNamespace()); err != nil {
 		log.Warnf("Could not deploy grafana dashboards due to %v", err)
-		return reconciliationPeriodAfterDashboardsError, nil
+		return err
 	}
 
-	return reconcileAfter, err
+	return nil
+}
+
+func (s *serviceDeployer) getReconcileResultFor(err error) (time.Duration, error) {
+	// reconciliation always happens if we return an error
+	if reasonForError(err) == v1alpha1.ServiceReconciliationFailure {
+		return 0, err
+	}
+	reconcileAfter := reconciliationIntervalForError(err)
+	return reconcileAfter, nil
 }

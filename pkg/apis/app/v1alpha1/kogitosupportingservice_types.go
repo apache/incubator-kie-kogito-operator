@@ -50,6 +50,7 @@ type KogitoSupportingServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=DataIndex;Explainablity;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
+	// Defines the type for the supporting service, eg: DataIndex, JobsService
 	ServiceType ServiceType `json:"serviceType"`
 }
 
@@ -69,6 +70,7 @@ type KogitoSupportingServiceStatus struct {
 // KogitoSupportingService deploys the Supporting service in the given namespace.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitosupportingservices,scope=Namespaced
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"

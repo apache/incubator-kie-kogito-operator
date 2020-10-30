@@ -17,19 +17,17 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
-
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"net/http"
+	"strings"
 )
 
 // GrafanaDashboard is a structure that contains the fetched dashboards
@@ -78,7 +76,7 @@ func fetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	}
 	var dashboardNames []string
 	if err := json.NewDecoder(resp.Body).Decode(&dashboardNames); err != nil {
-		return nil, fmt.Errorf("Failed to decode response from %s into dashboard names", dashboardsURL)
+		return nil, fmt.Errorf("failed to decode response from %s into dashboard names", dashboardsURL)
 	}
 
 	return dashboardNames, nil
@@ -88,39 +86,48 @@ func fetchDashboards(serverURL string, dashboardNames []string) ([]GrafanaDashbo
 	var dashboards []GrafanaDashboard
 	for _, name := range dashboardNames {
 		dashboardURL := fmt.Sprintf("%s%s%s", serverURL, dashboardsPath, name)
-		resp, err := http.Get(dashboardURL)
-		if err != nil {
+		if dashboard, err := fetchDashboard(name, dashboardURL); err != nil {
 			return nil, err
+		} else if dashboard != nil {
+			dashboards = append(dashboards, *dashboard)
 		}
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusNotFound {
-			log.Debugf("Dashboard %s not found, ignoring the resource.", name)
-			return nil, nil
-		}
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("Received NOT expected status code %d while making GET request to %s ", resp.StatusCode, dashboardURL)
-		}
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		dashboards = append(dashboards, GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)})
 	}
 	return dashboards, nil
 }
 
-func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) (time.Duration, error) {
-	dashboards, err := fetchGrafanaDashboards(client, kogitoService)
+// we create a separate function to be able to `defer` the HTTP response after the function call.
+func fetchDashboard(name, dashboardURL string) (*GrafanaDashboard, error) {
+	resp, err := http.Get(dashboardURL)
 	if err != nil {
-		return reconciliationPeriodAfterDashboardsError, err
+		return nil, err
 	}
-
-	reconcileAfter, err := deployGrafanaDashboards(dashboards, client, kogitoService, scheme, namespace)
-
-	return reconcileAfter, err
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		log.Debugf("Dashboard %s not found, ignoring the resource.", name)
+		return nil, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Received NOT expected status code %d while making GET request to %s ", resp.StatusCode, dashboardURL)
+	}
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return &GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)}, nil
 }
 
-func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) (time.Duration, error) {
+func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) error {
+	dashboards, err := fetchGrafanaDashboards(client, kogitoService)
+	if err != nil {
+		return errorForDashboards(err)
+	}
+
+	err = deployGrafanaDashboards(dashboards, client, kogitoService, scheme, namespace)
+	return err
+}
+
+func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) error {
 	for _, dashboard := range dashboards {
 		resourceName := strings.ReplaceAll(strings.ToLower(dashboard.Name), ".json", "")
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
@@ -136,13 +143,11 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 				Name: dashboard.Name,
 			},
 		}
-		isCreated, err := kubernetes.ResourceC(cli).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, scheme)
-		if err != nil {
+		if err := kubernetes.ResourceC(cli).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, scheme); err != nil {
 			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource: %v", dashboard.Name, err)
+			return err
 		}
-		if isCreated {
-			log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
-		}
+		log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
 	}
-	return 0, nil
+	return nil
 }

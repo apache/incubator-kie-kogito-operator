@@ -126,7 +126,7 @@ func getSupportingServiceInfoMessages(serviceType v1alpha1.ServiceType) *service
 			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
 		}
-	case v1alpha1.Explainablity:
+	case v1alpha1.Explainability:
 		return &serviceInfoMessages{
 			errCreating:                  message.ExplainabilityErrCreating,
 			installed:                    message.ExplainabilitySuccessfulInstalled,

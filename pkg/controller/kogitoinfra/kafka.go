@@ -88,7 +88,7 @@ func (k *kafkaInfraResource) Reconcile(client *client.Client, instance *v1alpha1
 
 	// Verify kafka
 	if !infrastructure.IsStrimziAvailable(client) {
-		return false, newResourceAPINotFoundError(&instance.Spec.Resource)
+		return false, errorForResourceAPINotFound(&instance.Spec.Resource)
 	}
 
 	if len(instance.Spec.Resource.Name) > 0 {
@@ -102,7 +102,7 @@ func (k *kafkaInfraResource) Reconcile(client *client.Client, instance *v1alpha1
 			return false, resultErr
 		} else if kafkaInstance == nil {
 			return false,
-				newResourceNotFoundError("Kafka", instance.Spec.Resource.Name, namespace)
+				errorForResourceNotFound("Kafka", instance.Spec.Resource.Name, namespace)
 		}
 	} else {
 		// create/refer kogito-kafka instance
@@ -125,7 +125,7 @@ func (k *kafkaInfraResource) Reconcile(client *client.Client, instance *v1alpha1
 	}
 	kafkaStatus := getLatestKafkaCondition(kafkaInstance)
 	if kafkaStatus == nil || kafkaStatus.Type != kafkabetav1.KafkaConditionTypeReady {
-		return false, newResourceNotReadyError(instance, fmt.Errorf("kafka instance %s not ready yet. Waiting for Condition status Ready", kafkaInstance.Name))
+		return false, errorForResourceNotReadyError(fmt.Errorf("kafka instance %s not ready yet. Waiting for Condition status Ready", kafkaInstance.Name))
 	}
 	if resultErr = updateKafkaAppPropsInStatus(kafkaInstance, instance); resultErr != nil {
 		return true, resultErr
@@ -139,7 +139,7 @@ func (k *kafkaInfraResource) Reconcile(client *client.Client, instance *v1alpha1
 func updateKafkaAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
 	appProps, err := getKafkaAppProps(kafkaInstance)
 	if err != nil {
-		return newResourceNotReadyError(instance, err)
+		return errorForResourceNotReadyError(err)
 	}
 	instance.Status.AppProps = appProps
 	return nil
@@ -148,7 +148,7 @@ func updateKafkaAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1a
 func updateKafkaEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
 	envVars, err := getKafkaEnvVars(kafkaInstance)
 	if err != nil {
-		return newResourceNotReadyError(instance, err)
+		return errorForResourceNotReadyError(err)
 	}
 	instance.Status.Env = envVars
 	return nil

@@ -15,6 +15,7 @@
 package services
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
 
@@ -34,11 +35,67 @@ func newReconcileRequest(namespace string) reconcile.Request {
 	return reconcile.Request{NamespacedName: types.NamespacedName{Namespace: namespace}}
 }
 
+func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
+	replicas := int32(1)
+	infraKafka := newSuccessfulInfinispanInfra(t.Name())
+	infraInfinispan := newSuccessfulKafkaInfra(t.Name())
+	dataIndex := &v1alpha1.KogitoSupportingService{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "data-index",
+			Namespace: t.Name(),
+		},
+		Spec: v1alpha1.KogitoSupportingServiceSpec{
+			ServiceType: v1alpha1.DataIndex,
+			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+				Replicas: &replicas,
+				Infra: []string{
+					infraKafka.Name, infraInfinispan.Name,
+				},
+			},
+		},
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(dataIndex).Build()
+	definition := ServiceDefinition{
+		DefaultImageName: infrastructure.DefaultDataIndexImageName,
+		Request:          newReconcileRequest(t.Name()),
+		KafkaTopics:      []string{"mytopic"},
+	}
+	deployer := NewServiceDeployer(definition, dataIndex, cli, meta.GetRegisteredSchema())
+	reconcileAfter, err := deployer.Deploy()
+	assert.Error(t, err)
+	assert.Equal(t, time.Duration(0), reconcileAfter)
+
+	test.AssertFetchMustExist(t, cli, dataIndex)
+	assert.NotNil(t, dataIndex.Status)
+	assert.Len(t, dataIndex.Status.Conditions, 1)
+	assert.Equal(t, dataIndex.Status.Conditions[0].Reason, v1alpha1.ServiceReconciliationFailure)
+
+	// Infinispan is not ready :)
+	infraInfinispan.Status.Condition.Message = "Headaches"
+	infraInfinispan.Status.Condition.Status = corev1.ConditionFalse
+	infraInfinispan.Status.Condition.Reason = v1alpha1.ResourceNotReady
+	infraInfinispan.Status.Condition.Type = v1alpha1.FailureInfraConditionType
+
+	test.AssertCreate(t, cli, infraInfinispan)
+	test.AssertCreate(t, cli, infraKafka)
+
+	reconcileAfter, err = deployer.Deploy()
+	assert.NoError(t, err)
+	assert.Equal(t, reconcileAfter, reconciliationIntervalAfterInfraError)
+	test.AssertFetchMustExist(t, cli, dataIndex)
+	assert.NotNil(t, dataIndex.Status)
+	assert.Len(t, dataIndex.Status.Conditions, 2)
+	for _, condition := range dataIndex.Status.Conditions {
+		assert.Equal(t, condition.Type, v1alpha1.FailedConditionType)
+		assert.Equal(t, condition.Status, corev1.ConditionFalse)
+	}
+}
+
 func Test_serviceDeployer_DataIndex(t *testing.T) {
 	replicas := int32(1)
 	requiredTopic := "dataindex-required-topic"
-	infraKafka := createSuccessfulInfinispanInfra(t.Name())
-	infraInfinispan := createSuccessfulKafkaInfra(t.Name())
+	infraKafka := newSuccessfulInfinispanInfra(t.Name())
+	infraInfinispan := newSuccessfulKafkaInfra(t.Name())
 	dataIndex := &v1alpha1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index",
@@ -104,7 +161,7 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	assert.Equal(t, v1alpha1.ProvisioningConditionType, service.Status.Conditions[0].Type)
 }
 
-func createSuccessfulKafkaInfra(namespace string) *v1alpha1.KogitoInfra {
+func newSuccessfulKafkaInfra(namespace string) *v1alpha1.KogitoInfra {
 	return &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kafka-infra", Namespace: namespace},
 		Spec: v1alpha1.KogitoInfraSpec{
@@ -126,7 +183,7 @@ func createSuccessfulKafkaInfra(namespace string) *v1alpha1.KogitoInfra {
 	}
 }
 
-func createSuccessfulInfinispanInfra(namespace string) *v1alpha1.KogitoInfra {
+func newSuccessfulInfinispanInfra(namespace string) *v1alpha1.KogitoInfra {
 	return &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "infinispan-infra", Namespace: namespace},
 		Spec: v1alpha1.KogitoInfraSpec{

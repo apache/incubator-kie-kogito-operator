@@ -29,7 +29,7 @@ func getKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, erro
 	if infraRes, ok := getSupportedInfraResources()[resourceClassForInstance(instance)]; ok {
 		return infraRes, nil
 	}
-	return nil, newUnsupportedAPIError(instance)
+	return nil, errorForUnsupportedAPI(instance)
 }
 
 func resourceClassForInstance(instance *v1alpha1.KogitoInfra) string {

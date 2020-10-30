@@ -33,7 +33,7 @@ type knativeInfraResource struct{}
 func (i *knativeInfraResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
 
 	if !infrastructure.IsKnativeEventingAvailable(client) {
-		return false, newResourceAPINotFoundError(&instance.Spec.Resource)
+		return false, errorForResourceAPINotFound(&instance.Spec.Resource)
 	}
 
 	if len(instance.Spec.Resource.Name) > 0 {
@@ -47,7 +47,7 @@ func (i *knativeInfraResource) Reconcile(client *client.Client, instance *v1alph
 		if exists, resultErr := kubernetes.ResourceC(client).Fetch(&broker); resultErr != nil {
 			return false, resultErr
 		} else if !exists {
-			return false, newResourceNotFoundError(infrastructure.KnativeEventingBrokerKind, broker.Name, broker.Namespace)
+			return false, errorForResourceNotFound(infrastructure.KnativeEventingBrokerKind, broker.Name, broker.Namespace)
 		}
 	} else {
 		return false,

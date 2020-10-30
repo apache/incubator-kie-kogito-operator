@@ -35,7 +35,8 @@ spec:
     plural: kogitobuilds
     singular: kogitobuild
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift
@@ -658,7 +659,8 @@ spec:
     plural: kogitoruntimes
     singular: kogitoruntime
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoRuntime is a custom Kogito service.
@@ -895,7 +897,7 @@ spec:
                   message:
                     type: string
                   reason:
-                    description: ReasonType is the type of reason
+                    description: KogitoServiceConditionReason is the type of reason
                     type: string
                   status:
                     type: string
@@ -987,7 +989,8 @@ spec:
     plural: kogitosupportingservices
     singular: kogitosupportingservice
   scope: Namespaced
-  subresources: {}
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: KogitoSupportingService deploys the Supporting service in the given
@@ -1228,7 +1231,7 @@ spec:
                   message:
                     type: string
                   reason:
-                    description: ReasonType is the type of reason
+                    description: KogitoServiceConditionReason is the type of reason
                     type: string
                   status:
                     type: string
