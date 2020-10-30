@@ -46,7 +46,7 @@ func getKogitoSupportingService(client *client.Client, namespace string, resourc
 	return nil, nil
 }
 
-// getKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
+// getSupportingServiceDeployment gets deployment owned by supporting service within the given namespace
 func getSupportingServiceDeployment(namespace string, cli *client.Client, serviceType v1alpha1.ServiceType) (*appsv1.Deployment, error) {
 	supportingService, err := getKogitoSupportingService(cli, namespace, serviceType)
 	if err != nil {
