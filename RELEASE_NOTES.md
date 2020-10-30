@@ -10,6 +10,7 @@
 - [KOGITO-3376](https://issues.redhat.com/browse/KOGITO-3376) - Update protobuf ConfigMap using fetched files
 - [KOGITO-3708](https://issues.redhat.com/browse/KOGITO-3708) - Decreasing the amount of reconciliation loops for `KogitoInfra` resources when
 third party infrastructure resources are not yet available
+- [KOGITO-3556](https://issues.redhat.com/browse/KOGITO-3556) - Review CRDs Status resource update
  
 ## Bug Fixes
 
