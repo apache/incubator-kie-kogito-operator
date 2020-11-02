@@ -43,12 +43,13 @@ const (
 type KogitoSupportingServiceSpec struct {
 	KogitoServiceSpec `json:",inline"`
 
+	// Defines the type for the supporting service, eg: DataIndex, JobsService
+	// Default value: JobsService
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Resource Type"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=DataIndex;Explainablity;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI;
-	// Defines the type for the supporting service, eg: DataIndex, JobsService
+	// +kubebuilder:validation:Enum=DataIndex;Explainablity;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
 	ServiceType ServiceType `json:"serviceType"`
 }
 

@@ -1200,7 +1200,7 @@ spec:
               type: object
             serviceType:
               description: 'Defines the type for the supporting service, eg: DataIndex,
-                JobsService'
+                JobsService Default value: JobsService'
               enum:
               - DataIndex
               - Explainablity
