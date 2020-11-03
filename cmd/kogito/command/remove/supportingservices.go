@@ -49,7 +49,7 @@ var removableSupportingServices = []removableSupportingService{
 	},
 	{
 		cmdName:     "explainability",
-		serviceType: v1alpha1.Explainablity,
+		serviceType: v1alpha1.Explainability,
 	},
 	{
 		cmdName:     "jobs-service",

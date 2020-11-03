@@ -241,10 +241,11 @@ spec:
               type: object
             serviceType:
               description: 'Defines the type for the supporting service, eg: DataIndex,
-                JobsService Default value: JobsService'
+                JobsService Default value: JobsService Defines the type for the supporting
+                service, eg: DataIndex, JobsService'
               enum:
               - DataIndex
-              - Explainablity
+              - Explainability
               - JobsService
               - MgmtConsole
               - TaskConsole
