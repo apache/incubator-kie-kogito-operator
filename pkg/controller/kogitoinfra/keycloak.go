@@ -52,7 +52,7 @@ func (k *keycloakInfraResource) Reconcile(client *client.Client, instance *v1alp
 	var keycloakInstance *keycloakv1alpha1.Keycloak
 
 	if !infrastructure.IsKeycloakAvailable(client) {
-		return false, newResourceAPINotFoundError(&instance.Spec.Resource)
+		return false, errorForResourceAPINotFound(&instance.Spec.Resource)
 	}
 
 	if len(instance.Spec.Resource.Name) > 0 {
@@ -65,7 +65,7 @@ func (k *keycloakInfraResource) Reconcile(client *client.Client, instance *v1alp
 		if keycloakInstance, resultErr = loadDeployedKeycloakInstance(client, instance.Spec.Resource.Name, namespace); resultErr != nil {
 			return false, resultErr
 		} else if keycloakInstance == nil {
-			return false, newResourceNotFoundError("Keycloak", instance.Spec.Resource.Name, namespace)
+			return false, errorForResourceNotFound("Keycloak", instance.Spec.Resource.Name, namespace)
 		}
 	} else {
 		log.Debugf("Custom Keycloak instance reference is not provided")

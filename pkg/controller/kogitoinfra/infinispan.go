@@ -253,7 +253,7 @@ func (i *infinispanInfraResource) Reconcile(client *client.Client, instance *v1a
 	var infinispanInstance *infinispan.Infinispan
 
 	if !infrastructure.IsInfinispanAvailable(client) {
-		return false, newResourceAPINotFoundError(&instance.Spec.Resource)
+		return false, errorForResourceAPINotFound(&instance.Spec.Resource)
 	}
 
 	// Step 1: check whether user has provided custom infinispan instance reference
@@ -270,7 +270,7 @@ func (i *infinispanInfraResource) Reconcile(client *client.Client, instance *v1a
 			return false, resultErr
 		}
 		if infinispanInstance == nil {
-			return false, newResourceNotFoundError("Infinispan", instance.Spec.Resource.Name, namespace)
+			return false, errorForResourceNotFound("Infinispan", instance.Spec.Resource.Name, namespace)
 		}
 	} else {
 		// create/refer kogito-infinispan instance
@@ -279,7 +279,7 @@ func (i *infinispanInfraResource) Reconcile(client *client.Client, instance *v1a
 		if infinispanAvailable, err := infrastructure.IsInfinispanOperatorAvailable(client, instance.Namespace); err != nil {
 			return false, err
 		} else if !infinispanAvailable {
-			return false, newResourceAPINotFoundError(&instance.Spec.Resource)
+			return false, errorForResourceAPINotFound(&instance.Spec.Resource)
 		}
 		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, infrastructure.InfinispanInstanceName, instance.Namespace)
 		if resultErr != nil {
@@ -297,7 +297,7 @@ func (i *infinispanInfraResource) Reconcile(client *client.Client, instance *v1a
 	}
 	infinispanCondition := getLatestInfinispanCondition(infinispanInstance)
 	if infinispanCondition == nil || infinispanCondition.Status != string(v1.ConditionTrue) {
-		return false, newResourceNotReadyError(instance, fmt.Errorf("infinispan instance %s not ready. Waiting for Condition.Type == True", infinispanInstance.Name))
+		return false, errorForResourceNotReadyError(fmt.Errorf("infinispan instance %s not ready. Waiting for Condition.Type == True", infinispanInstance.Name))
 	}
 	if resultErr := updateInfinispanAppPropsInStatus(client, infinispanInstance, instance); resultErr != nil {
 		return false, nil

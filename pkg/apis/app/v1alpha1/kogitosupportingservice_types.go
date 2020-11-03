@@ -24,8 +24,8 @@ type ServiceType string
 const (
 	// DataIndex supporting service resource type
 	DataIndex ServiceType = "DataIndex"
-	// Explainablity supporting service resource type
-	Explainablity ServiceType = "Explainablity"
+	// Explainability supporting service resource type
+	Explainability ServiceType = "Explainability"
 	// JobsService supporting service resource type
 	JobsService ServiceType = "JobsService"
 	// MgmtConsole supporting service resource type
@@ -49,7 +49,7 @@ type KogitoSupportingServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Resource Type"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=DataIndex;Explainablity;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
+	// +kubebuilder:validation:Enum=DataIndex;Explainability;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
 	ServiceType ServiceType `json:"serviceType"`
 }
 
@@ -69,6 +69,7 @@ type KogitoSupportingServiceStatus struct {
 // KogitoSupportingService deploys the Supporting service in the given namespace.
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitosupportingservices,scope=Namespaced
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"

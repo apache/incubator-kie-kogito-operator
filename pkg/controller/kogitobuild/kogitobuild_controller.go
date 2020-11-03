@@ -207,10 +207,3 @@ func (r *ReconcileKogitoBuild) onBuildConfigChange(instance *appv1alpha1.KogitoB
 	}
 	return nil
 }
-
-func (r *ReconcileKogitoBuild) update(instance *appv1alpha1.KogitoBuild) error {
-	if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
-		return err
-	}
-	return nil
-}

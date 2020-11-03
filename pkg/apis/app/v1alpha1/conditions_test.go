@@ -94,7 +94,7 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 func TestBuffer(t *testing.T) {
 	conditionsMeta := ConditionsMeta{}
 	for i := 0; i < maxBufferCondition+2; i++ {
-		conditionsMeta.SetFailed(UnknownReason, fmt.Errorf("error %d", i))
+		conditionsMeta.SetFailed(ServiceReconciliationFailure, fmt.Errorf("error %d", i))
 	}
 	size := len(conditionsMeta.Conditions)
 	assert.Equal(t, maxBufferCondition, size)
@@ -105,13 +105,13 @@ func TestSetFailed(t *testing.T) {
 	conditionsMeta := ConditionsMeta{}
 	failureMessage := "Unknown error occurs"
 
-	conditionsMeta.SetFailed(UnknownReason, fmt.Errorf(failureMessage))
+	conditionsMeta.SetFailed(ServiceReconciliationFailure, fmt.Errorf(failureMessage))
 
 	assert.NotEmpty(t, conditionsMeta.Conditions)
 	assert.Equal(t, 1, len(conditionsMeta.Conditions))
 	condition := conditionsMeta.Conditions[0]
 	assert.Equal(t, FailedConditionType, condition.Type)
 	assert.Equal(t, corev1.ConditionFalse, condition.Status)
-	assert.Equal(t, UnknownReason, condition.Reason)
+	assert.Equal(t, ServiceReconciliationFailure, condition.Reason)
 	assert.Equal(t, failureMessage, condition.Message)
 }

@@ -31,44 +31,30 @@ const (
 	FailedConditionType ConditionType = "Failed"
 )
 
-// ReasonType is the type of reason
-type ReasonType string
+// KogitoServiceConditionReason is the type of reason
+type KogitoServiceConditionReason string
 
 const (
-	// ServicesIntegrationFailedReason - Unable to inject external services to KogitoService
-	ServicesIntegrationFailedReason ReasonType = "ServicesIntegrationFailed"
-	// ParseCRRequestFailedReason - Unable to resolve the CR request
-	ParseCRRequestFailedReason ReasonType = "ParseCRRequestFailed"
-	// RetrieveDeployedResourceFailedReason - Unable to retrieve the deployed resources
-	RetrieveDeployedResourceFailedReason ReasonType = "RetrieveDeployedResourceFailed"
 	// CreateResourceFailedReason - Unable to create the requested resources
-	CreateResourceFailedReason ReasonType = "CreateResourceFailed"
-	// RemoveResourceFailedReason - Unable to remove the requested resources
-	RemoveResourceFailedReason ReasonType = "RemoveResourceFailed"
-	// UpdateResourceFailedReason - Unable to update the requested resources
-	UpdateResourceFailedReason ReasonType = "UpdateResourceFailed"
-	// TriggerBuildFailedReason - Unable to trigger the builds
-	TriggerBuildFailedReason ReasonType = "TriggerBuildFailed"
-	// BuildS2IFailedReason - Unable to build with the S2I image
-	BuildS2IFailedReason ReasonType = "BuildS2IFailedReason"
-	// BuildRuntimeFailedReason - Unable to build the runtime image
-	BuildRuntimeFailedReason ReasonType = "BuildRuntimeFailedReason"
+	CreateResourceFailedReason KogitoServiceConditionReason = "CreateResourceFailed"
 	// KogitoInfraNotReadyReason - Unable to deploy Kogito Infra
-	KogitoInfraNotReadyReason ReasonType = "KogitoInfraNotReadyReason"
-	// UnknownReason - Unable to determine the error
-	UnknownReason ReasonType = "Unknown"
-	// RolloutDeploymentFailedReason - Unable to rollout deployment
-	RolloutDeploymentFailedReason ReasonType = "RolloutDeploymentFailedReason"
+	KogitoInfraNotReadyReason KogitoServiceConditionReason = "KogitoInfraNotReadyReason"
+	// ServiceReconciliationFailure - Unable to determine the error
+	ServiceReconciliationFailure KogitoServiceConditionReason = "ReconciliationFailure"
+	// MessagingIntegrationFailureReason ...
+	MessagingIntegrationFailureReason KogitoServiceConditionReason = "MessagingProvisionFailure"
+	// MonitoringIntegrationFailureReason ...
+	MonitoringIntegrationFailureReason KogitoServiceConditionReason = "MonitoringIntegrationFailure"
 )
 
 // Condition is the detailed condition for the resource
 // +k8s:openapi-gen=true
 type Condition struct {
-	Type               ConditionType          `json:"type"`
-	Status             corev1.ConditionStatus `json:"status"`
-	LastTransitionTime metav1.Time            `json:"lastTransitionTime,omitempty"`
-	Reason             ReasonType             `json:"reason,omitempty"`
-	Message            string                 `json:"message,omitempty"`
+	Type               ConditionType                `json:"type"`
+	Status             corev1.ConditionStatus       `json:"status"`
+	LastTransitionTime metav1.Time                  `json:"lastTransitionTime,omitempty"`
+	Reason             KogitoServiceConditionReason `json:"reason,omitempty"`
+	Message            string                       `json:"message,omitempty"`
 }
 
 const maxBufferCondition = 5
@@ -77,7 +63,7 @@ const maxBufferCondition = 5
 type ConditionMetaInterface interface {
 	SetDeployed() bool
 	SetProvisioning() bool
-	SetFailed(reason ReasonType, err error)
+	SetFailed(reason KogitoServiceConditionReason, err error)
 	GetConditions() []Condition
 	SetConditions(conditions []Condition)
 }
@@ -132,7 +118,7 @@ func (c *ConditionsMeta) SetProvisioning() bool {
 }
 
 // SetFailed Sets the failed condition with the error reason and message
-func (c *ConditionsMeta) SetFailed(reason ReasonType, err error) {
+func (c *ConditionsMeta) SetFailed(reason KogitoServiceConditionReason, err error) {
 	condition := Condition{
 		Type:               FailedConditionType,
 		Status:             corev1.ConditionFalse,

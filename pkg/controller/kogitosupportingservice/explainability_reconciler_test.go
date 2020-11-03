@@ -32,7 +32,7 @@ func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) 
 			Namespace: ns,
 		},
 		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.Explainablity,
+			ServiceType: v1alpha1.Explainability,
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
 				Infra: []string{
 					kogitoKafka.Name,

@@ -16,6 +16,7 @@ package remove
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
@@ -48,7 +49,7 @@ var removableSupportingServices = []removableSupportingService{
 	},
 	{
 		cmdName:     "explainability",
-		serviceType: v1alpha1.Explainablity,
+		serviceType: v1alpha1.Explainability,
 	},
 	{
 		cmdName:     "jobs-service",

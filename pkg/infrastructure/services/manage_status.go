@@ -26,15 +26,23 @@ import (
 	"reflect"
 )
 
-// manageStatus handle status update for the Kogito Service
-func (s *serviceDeployer) manageStatus(errCondition error) (err error) {
+func (s *serviceDeployer) handleStatusUpdate(instance v1alpha1.KogitoService, err *error) {
+	log.Infof("Updating status for Kogito Service %s", instance.GetName())
+	if statusErr := s.ensureResourcesStatusChanges(*err); statusErr != nil {
+		log.Errorf("Error while updating Status for Kogito Service: %v", statusErr)
+		return
+	}
+	log.Infof("Finished Kogito Service %s reconciliation", instance.GetName())
+}
+
+func (s *serviceDeployer) ensureResourcesStatusChanges(errCondition error) (err error) {
 	if errCondition != nil {
-		s.instance.GetStatus().SetFailed(v1alpha1.UnknownReason, errCondition)
-		if err := s.update(); err != nil {
+		s.instance.GetStatus().SetFailed(reasonForError(errCondition), errCondition)
+		if err := s.updateStatus(); err != nil {
 			log.Errorf("Error while trying to set condition to error: %s", err)
 			return err
 		}
-		// don't need to updateStatus anything else unless we break the error state
+		// don't need to update anything else or we break the error state
 		return nil
 	}
 	var readyReplicas int32
@@ -60,12 +68,24 @@ func (s *serviceDeployer) manageStatus(errCondition error) (err error) {
 	}
 
 	if updateStatus {
-		if err := s.update(); err != nil {
+		if err := s.updateStatus(); err != nil {
 			log.Errorf("Error while trying to update status: %s", err)
 			return err
 		}
 	}
 
+	return nil
+}
+
+func (s *serviceDeployer) updateStatus() error {
+	// Sanity check since the Status CR needs a reference for the object
+	if s.instance.GetStatus() != nil && s.instance.GetStatus().GetConditions() == nil {
+		s.instance.GetStatus().SetConditions([]v1alpha1.Condition{})
+	}
+	err := kubernetes.ResourceC(s.client).UpdateStatus(s.instance)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

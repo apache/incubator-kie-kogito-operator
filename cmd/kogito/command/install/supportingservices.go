@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
@@ -67,8 +68,8 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 	{
 		cmdName:     "explainability",
 		serviceName: infrastructure.DefaultExplainabilityName,
-		displayName: "Explainablity",
-		serviceType: v1alpha1.Explainablity,
+		displayName: "Explainability",
+		serviceType: v1alpha1.Explainability,
 		description: `'install explainability' will deploy the Explainability service to provide analysis on the decisions that have been taken by a kogito runtime application.
 
 If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other project or infrastructure.

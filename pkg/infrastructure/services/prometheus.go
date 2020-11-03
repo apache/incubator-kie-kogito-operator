@@ -31,32 +31,32 @@ import (
 
 const prometheusServerGroup = "monitoring.coreos.com"
 
-func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (failedVerifyAddon bool, err error) {
+func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) error {
 	prometheusAvailable := isPrometheusAvailable(client)
 	if !prometheusAvailable {
 		log.Debugf("prometheus operator not available in namespace")
-		return
+		return nil
 	}
 
 	deploymentAvailable, err := IsDeploymentAvailable(client, kogitoService)
 	if err != nil {
-		return
+		return err
 	}
 	if !deploymentAvailable {
 		log.Debugf("Deployment is currently not available, will try in next reconciliation loop")
-		return
+		return nil
 	}
 
 	prometheusAddOnAvailable, err := isPrometheusAddOnAvailable(kogitoService)
 	if err != nil {
-		return true, err
+		return errorForMonitoring(err)
 	}
 	if prometheusAddOnAvailable {
-		if err = createPrometheusServiceMonitorIfNotExists(client, kogitoService, scheme); err != nil {
-			return
+		if err := createPrometheusServiceMonitorIfNotExists(client, kogitoService, scheme); err != nil {
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 // isPrometheusAvailable checks if Prometheus CRD is available in the cluster

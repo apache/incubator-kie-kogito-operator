@@ -14,7 +14,7 @@ kind: KogitoSupportingService
 metadata:
   name: explainability
 spec:
-  serviceType: Explainablity
+  serviceType: Explainability
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS
