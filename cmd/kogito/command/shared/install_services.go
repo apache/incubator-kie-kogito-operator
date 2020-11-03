@@ -147,6 +147,13 @@ func getSupportingServiceInfoMessages(serviceType v1alpha1.ServiceType) *service
 			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
 		}
+	case v1alpha1.TaskConsole:
+		return &serviceInfoMessages{
+			errCreating:                  message.TaskConsoleErrCreating,
+			installed:                    message.TaskConsoleSuccessfulInstalled,
+			checkStatus:                  message.SupportingServiceCheckStatus,
+			notInstalledNoKogitoOperator: message.TaskConsoleNotInstalledNoKogitoOperator,
+		}
 	}
 	return nil
 }

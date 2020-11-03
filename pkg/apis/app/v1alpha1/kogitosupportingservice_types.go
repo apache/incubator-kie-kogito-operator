@@ -24,12 +24,14 @@ type ServiceType string
 const (
 	// DataIndex supporting service resource type
 	DataIndex ServiceType = "DataIndex"
+	// Explainablity supporting service resource type
+	Explainablity ServiceType = "Explainablity"
 	// JobsService supporting service resource type
 	JobsService ServiceType = "JobsService"
 	// MgmtConsole supporting service resource type
 	MgmtConsole ServiceType = "MgmtConsole"
-	// Explainablity supporting service resource type
-	Explainablity ServiceType = "Explainablity"
+	// TaskConsole supporting service resource type
+	TaskConsole ServiceType = "TaskConsole"
 	// TrustyAI supporting service resource type
 	TrustyAI ServiceType = "TrustyAI"
 	// TrustyUI supporting service resource type
@@ -41,12 +43,13 @@ const (
 type KogitoSupportingServiceSpec struct {
 	KogitoServiceSpec `json:",inline"`
 
+	// Defines the type for the supporting service, eg: DataIndex, JobsService
+	// Default value: JobsService
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Resource Type"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=DataIndex;JobsService;MgmtConsole;Explainablity;TrustyAI;TrustyUI
-	// Defines the type for the supporting service, eg: DataIndex, JobsService
+	// +kubebuilder:validation:Enum=DataIndex;Explainablity;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
 	ServiceType ServiceType `json:"serviceType"`
 }
 
