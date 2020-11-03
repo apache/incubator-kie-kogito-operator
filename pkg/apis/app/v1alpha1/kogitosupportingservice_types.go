@@ -50,7 +50,6 @@ type KogitoSupportingServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=DataIndex;Explainability;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
-	// Defines the type for the supporting service, eg: DataIndex, JobsService
 	ServiceType ServiceType `json:"serviceType"`
 }
 

@@ -690,7 +690,7 @@ func schema_pkg_apis_app_v1alpha1_KogitoSupportingServiceSpec(ref common.Referen
 					},
 					"serviceType": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Defines the type for the supporting service, eg: DataIndex, JobsService Default value: JobsService Defines the type for the supporting service, eg: DataIndex, JobsService",
+							Description: "Defines the type for the supporting service, eg: DataIndex, JobsService Default value: JobsService",
 							Type:        []string{"string"},
 							Format:      "",
 						},

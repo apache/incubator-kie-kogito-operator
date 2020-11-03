@@ -33,7 +33,6 @@ type ResourceInterface interface {
 	ResourceReader
 	ResourceWriter
 	// CreateIfNotExists will fetch for the object resource in the Kubernetes cluster, if not exists, will create it.
-	// returns true if the object exists before
 	CreateIfNotExists(resource meta.ResourceObject) (err error)
 	// CreateIfNotExistsForOwner sets the controller owner to the given resource and creates if it not exists.
 	// If the given resource exists, won't update the object with the given owner.
