@@ -266,7 +266,7 @@ func (s *serviceDeployer) mountVolumes(kogitoInfraVolumes []v1alpha1.KogitoInfra
 	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, createAppPropVolume(s.instance))
 	deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, createAppPropVolumeMount())
 	for _, infraVolume := range kogitoInfraVolumes {
-		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, infraVolume.NamedVolume)
+		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, infraVolume.NamedVolume.ToKubeVolume())
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, infraVolume.Mount)
 	}
 }

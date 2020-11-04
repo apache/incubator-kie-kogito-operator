@@ -30,28 +30,28 @@ type knativeInfraReconciler struct {
 }
 
 // Reconcile ...
-func (i *knativeInfraReconciler) Reconcile() (requeue bool, resultErr error) {
+func (k *knativeInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 
-	if !infrastructure.IsKnativeEventingAvailable(i.client) {
-		return false, errorForResourceAPINotFound(&i.instance.Spec.Resource)
+	if !infrastructure.IsKnativeEventingAvailable(k.client) {
+		return false, errorForResourceAPINotFound(&k.instance.Spec.Resource)
 	}
 
-	if len(i.instance.Spec.Resource.Name) > 0 {
+	if len(k.instance.Spec.Resource.Name) > 0 {
 		var log = logger.GetLogger("kogitoinfra-knative-reconcile")
-		ns := i.instance.Spec.Resource.Namespace
+		ns := k.instance.Spec.Resource.Namespace
 		if len(ns) == 0 {
-			log.Debugf("Namespace not defined, fetching from the current ns: %s", i.instance.Namespace)
-			ns = i.instance.Namespace
+			log.Debugf("Namespace not defined, fetching from the current ns: %s", k.instance.Namespace)
+			ns = k.instance.Namespace
 		}
-		broker := eventingv1.Broker{ObjectMeta: metav1.ObjectMeta{Namespace: ns, Name: i.instance.Spec.Resource.Name}}
-		if exists, resultErr := kubernetes.ResourceC(i.client).Fetch(&broker); resultErr != nil {
+		broker := eventingv1.Broker{ObjectMeta: metav1.ObjectMeta{Namespace: ns, Name: k.instance.Spec.Resource.Name}}
+		if exists, resultErr := kubernetes.ResourceC(k.client).Fetch(&broker); resultErr != nil {
 			return false, resultErr
 		} else if !exists {
 			return false, errorForResourceNotFound(infrastructure.KnativeEventingBrokerKind, broker.Name, broker.Namespace)
 		}
 	} else {
 		return false,
-			fmt.Errorf("No Knative Eventing Broker resource defined in the KogitoInfra CR %s on namespace %s, impossible to continue ", i.instance.Name, i.instance.Namespace)
+			fmt.Errorf("No Knative Eventing Broker resource defined in the KogitoInfra CR %s on namespace %s, impossible to continue ", k.instance.Name, k.instance.Namespace)
 	}
 	return false, nil
 }

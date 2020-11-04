@@ -55,15 +55,16 @@ const (
 	envVarInfinispanUser
 	// envVarInfinispanPassword environment variable for setting infinispan password
 	envVarInfinispanPassword
-	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
-	enablePersistenceEnvKey    = "ENABLE_PERSISTENCE"
+	enablePersistenceEnvKey = "ENABLE_PERSISTENCE"
 	// saslPlain is the PLAIN type.
-	saslPlain               string = "PLAIN"
-	pkcs12CertType          string = "PKCS12"
-	certMountPath           string = infrastructure.KogitoHomeDir + "/certs/infinispan"
-	truststoreSecretKey            = "truststore.p12"
-	infinispanTLSSecretKey         = "tls.crt"
-	infinispanCertMountName        = "infinispan-cert"
+	saslPlain                  = "PLAIN"
+	pkcs12CertType             = "PKCS12"
+	certMountPath              = infrastructure.KogitoHomeDir + "/certs/infinispan"
+	truststoreSecretKey        = "truststore.p12"
+	truststoreMountPath        = certMountPath + "/" + truststoreSecretKey
+	infinispanTLSSecretKey     = "tls.crt"
+	infinispanCertMountName    = "infinispan-cert"
+	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
 )
 
 var (
@@ -90,7 +91,7 @@ var (
 		appPropInfinispanUseAuth:            "infinispan.remote.use-auth",
 		appPropInfinispanSaslMechanism:      "infinispan.remote.sasl-mechanism",
 		appPropInfinispanAuthRealm:          "infinispan.remote.auth-realm",
-		appPropInfinispanTrustStore:         "infinispan.remote.trust-store-path",
+		appPropInfinispanTrustStore:         "infinispan.remote.trust-store-file-name",
 		appPropInfinispanTrustStoreType:     "infinispan.remote.trust-store-type",
 		appPropInfinispanTrustStorePassword: "infinispan.remote.trust-store-password",
 
@@ -127,7 +128,7 @@ func (i *infinispanInfraReconciler) getInfinispanSecretEnvVars(infinispanInstanc
 	return envProps, nil
 }
 
-func (i *infinispanInfraReconciler) getInfinispanAppProps(name string, namespace string) (map[string]string, error) {
+func (i *infinispanInfraReconciler) getInfinispanAppProps(name, namespace string) (map[string]string, error) {
 	appProps := map[string]string{}
 
 	infinispanURI, resultErr := infrastructure.FetchKogitoInfinispanInstanceURI(i.client, name, namespace)
@@ -144,11 +145,11 @@ func (i *infinispanInfraReconciler) getInfinispanAppProps(name string, namespace
 	appProps[propertiesInfinispanSpring[appPropInfinispanSaslMechanism]] = saslPlain
 	appProps[propertiesInfinispanQuarkus[appPropInfinispanSaslMechanism]] = saslPlain
 
-	if len(i.instance.Status.Volume) > 0 {
+	if hasInfinispanMountedVolume(i.instance) {
 		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStoreType]] = pkcs12CertType
 		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStoreType]] = pkcs12CertType
-		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStore]] = certMountPath + "/" + truststoreSecretKey
-		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStore]] = certMountPath + "/" + truststoreSecretKey
+		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStore]] = truststoreMountPath
+		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStore]] = truststoreMountPath
 		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
 		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
 	}
@@ -189,12 +190,12 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 		Mount: corev1.VolumeMount{
 			Name:      infinispanCertMountName,
 			ReadOnly:  true,
-			MountPath: certMountPath + "/" + truststoreSecretKey,
+			MountPath: truststoreMountPath,
 			SubPath:   truststoreSecretKey,
 		},
-		NamedVolume: corev1.Volume{
+		NamedVolume: v1alpha1.ConfigVolume{
 			Name: infinispanCertMountName,
-			VolumeSource: corev1.VolumeSource{
+			ConfigVolumeSource: v1alpha1.ConfigVolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: tlsSecret.Name,
 					Items: []corev1.KeyToPath{
@@ -227,15 +228,15 @@ func (i *infinispanInfraReconciler) ensureEncryptionTrustStoreSecret(infinispanI
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      infinispanInstance.Status.Security.EndpointEncryption.CertSecretName,
 				Namespace: infinispanInstance.Namespace}}
-		if ispnExists, err := kubernetes.ResourceC(i.client).Fetch(infinispanSecret); err != nil || !ispnExists {
+		if ispnSecretExists, err := kubernetes.ResourceC(i.client).Fetch(infinispanSecret); err != nil || !ispnSecretExists {
 			return nil, err
 		}
-		pkcs12File, err := framework.CreatePKCS12TrustStoreFromSecret(infinispanSecret, pkcs12.DefaultPassword, infinispanTLSSecretKey)
+		trustStore, err := framework.CreatePKCS12TrustStoreFromSecret(infinispanSecret, pkcs12.DefaultPassword, infinispanTLSSecretKey)
 		if err != nil {
 			return nil, err
 		}
 		kogitoInfraEncryptionSecret.Type = corev1.SecretTypeOpaque
-		kogitoInfraEncryptionSecret.Data = map[string][]byte{truststoreSecretKey: pkcs12File}
+		kogitoInfraEncryptionSecret.Data = map[string][]byte{truststoreSecretKey: trustStore}
 		// we need to create the secret calling the API directly, for some reason the bytes of the generated file gets corrupted
 		if err := framework.SetOwner(i.instance, i.scheme, kogitoInfraEncryptionSecret); err != nil {
 			return nil, err
@@ -396,6 +397,15 @@ func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) 
 		return false, nil
 	}
 	return false, resultErr
+}
+
+func hasInfinispanMountedVolume(infra *v1alpha1.KogitoInfra) bool {
+	for _, volume := range infra.Status.Volume {
+		if volume.NamedVolume.Name == infinispanCertMountName {
+			return true
+		}
+	}
+	return false
 }
 
 func getLatestInfinispanCondition(instance *infinispan.Infinispan) *infinispan.InfinispanCondition {

@@ -149,7 +149,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	// we should have TLS volumes created
 	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 2)                    // 1 for properties, 2 for tls
 	assert.Len(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, 2) // 1 for properties, 2 for tls
-	assert.Contains(t, deployment.Spec.Template.Spec.Volumes, kogitoInfinispan.Status.Volume[0].NamedVolume)
+	assert.Contains(t, deployment.Spec.Template.Spec.Volumes, kogitoInfinispan.Status.Volume[0].NamedVolume.ToKubeVolume())
 	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, kogitoInfinispan.Status.Volume[0].Mount)
 }
 

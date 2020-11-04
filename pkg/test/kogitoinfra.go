@@ -78,9 +78,9 @@ func CreateFakeKogitoInfinispan(namespace string) *v1alpha1.KogitoInfra {
 						MountPath: "/home/kogito/certs",
 						SubPath:   "truststore.p12",
 					},
-					NamedVolume: corev1.Volume{
+					NamedVolume: v1alpha1.ConfigVolume{
 						Name: "tls-configuration",
-						VolumeSource: corev1.VolumeSource{
+						ConfigVolumeSource: v1alpha1.ConfigVolumeSource{
 							Secret: &corev1.SecretVolumeSource{
 								SecretName: "infinispan-secret",
 								Items: []corev1.KeyToPath{
