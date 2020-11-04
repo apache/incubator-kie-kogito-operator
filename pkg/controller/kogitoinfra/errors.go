@@ -67,7 +67,7 @@ func errorForResourceNotReadyError(err error) reconciliationError {
 }
 
 func getSupportedResources() []string {
-	res := getSupportedInfraResources()
+	res := getSupportedInfraResources(targetContext{})
 	keys := make([]string, 0, len(res))
 	for k := range res {
 		keys = append(keys, k)

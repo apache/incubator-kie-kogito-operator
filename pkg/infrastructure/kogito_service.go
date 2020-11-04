@@ -32,6 +32,9 @@ const (
 	httpScheme            = "http"
 
 	envVarKogitoServiceURL = "LOCAL_KOGITO_SERVICE_URL"
+
+	// KogitoHomeDir path for Kogito home mounted within the pod of a Kogito Service
+	KogitoHomeDir = "/home/kogito"
 )
 
 // injectSupportingServiceURLIntoKogitoRuntime will query for every KogitoApp in the given namespace to inject the Supporting service route to each one

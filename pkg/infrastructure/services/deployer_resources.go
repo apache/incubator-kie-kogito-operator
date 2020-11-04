@@ -55,16 +55,18 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		service := createRequiredService(s.instance, deployment)
 
 		appProps := map[string]string{}
-		var envProperties []corev1.EnvVar
+		var infraVolumes []v1alpha1.KogitoInfraVolume
 
 		if len(s.instance.GetSpec().GetInfra()) > 0 {
 			log.Debugf("Infra references are provided")
-			infraAppProps, infraEnvProp, err := s.fetchKogitoInfraProperties()
+			var infraAppProps map[string]string
+			var infraEnvProp []corev1.EnvVar
+			infraAppProps, infraEnvProp, infraVolumes, err = s.fetchKogitoInfraProperties()
 			if err != nil {
 				return resources, err
 			}
 			util.AppendToStringMap(infraAppProps, appProps)
-			envProperties = append(envProperties, infraEnvProp...)
+			deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, infraEnvProp...)
 		}
 
 		if len(s.instance.GetSpec().GetConfig()) > 0 {
@@ -72,17 +74,18 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 			util.AppendToStringMap(s.instance.GetSpec().GetConfig(), appProps)
 		}
 
-		s.applyEnvironmentPropertiesConfiguration(envProperties, deployment)
-
 		contentHash, configMap, err := getAppPropConfigMapContentHash(s.instance, appProps, s.client)
 		if err != nil {
 			return resources, err
 		}
-		s.applyApplicationPropertiesConfigurations(contentHash, deployment, s.instance)
+
+		s.applyApplicationPropertiesAnnotations(contentHash, deployment)
+
+		s.mountVolumes(infraVolumes, deployment)
+
 		if configMap != nil {
 			resources[reflect.TypeOf(corev1.ConfigMap{})] = []resource.KubernetesResource{configMap}
 		}
-
 		resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}
 		resources[reflect.TypeOf(corev1.Service{})] = []resource.KubernetesResource{service}
 		if s.client.IsOpenshift() {
@@ -164,21 +167,11 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 	return "", nil
 }
 
-func (s *serviceDeployer) applyApplicationPropertiesConfigurations(contentHash string, deployment *appsv1.Deployment, instance v1alpha1.KogitoService) {
+func (s *serviceDeployer) applyApplicationPropertiesAnnotations(contentHash string, deployment *appsv1.Deployment) {
 	if deployment.Spec.Template.Annotations == nil {
 		deployment.Spec.Template.Annotations = map[string]string{AppPropContentHashKey: contentHash}
 	} else {
 		deployment.Spec.Template.Annotations[AppPropContentHashKey] = contentHash
-	}
-	if deployment.Spec.Template.Spec.Volumes == nil {
-		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{createAppPropVolume(instance)}
-	} else {
-		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, createAppPropVolume(instance))
-	}
-	if deployment.Spec.Template.Spec.Containers[0].VolumeMounts == nil {
-		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{createAppPropVolumeMount()}
-	} else {
-		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, createAppPropVolumeMount())
 	}
 }
 
@@ -244,16 +237,17 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 	return compare.MapComparator{Comparator: resourceComparator}
 }
 
-func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []corev1.EnvVar, error) {
+func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []corev1.EnvVar, []v1alpha1.KogitoInfraVolume, error) {
 	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
 	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
 	consolidateAppProperties := map[string]string{}
 	var consolidateEnvProperties []corev1.EnvVar
+	var volumes []v1alpha1.KogitoInfraVolume
 	for _, kogitoInfraName := range kogitoInfraReferences {
 		// load infra resource
 		kogitoInfraInstance, err := infrastructure.MustFetchKogitoInfraInstance(s.client, kogitoInfraName, s.instance.GetNamespace())
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 
 		// fetch app properties from Kogito infra instance
@@ -263,11 +257,16 @@ func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []cor
 		// fetch env properties from Kogito infra instance
 		envProp := kogitoInfraInstance.Status.Env
 		consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
+		volumes = append(volumes, kogitoInfraInstance.Status.Volume...)
 	}
-	return consolidateAppProperties, consolidateEnvProperties, nil
+	return consolidateAppProperties, consolidateEnvProperties, volumes, nil
 }
 
-func (s *serviceDeployer) applyEnvironmentPropertiesConfiguration(envProps []corev1.EnvVar, deployment *appsv1.Deployment) {
-	container := &deployment.Spec.Template.Spec.Containers[0]
-	container.Env = append(container.Env, envProps...)
+func (s *serviceDeployer) mountVolumes(kogitoInfraVolumes []v1alpha1.KogitoInfraVolume, deployment *appsv1.Deployment) {
+	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, createAppPropVolume(s.instance))
+	deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, createAppPropVolumeMount())
+	for _, infraVolume := range kogitoInfraVolumes {
+		deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, infraVolume.NamedVolume.ToKubeVolume())
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, infraVolume.Mount)
+	}
 }

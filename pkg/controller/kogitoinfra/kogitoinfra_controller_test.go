@@ -15,6 +15,7 @@
 package kogitoinfra
 
 import (
+	"io/ioutil"
 	"testing"
 
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
@@ -103,7 +104,6 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 }
 
 func Test_Reconcile_Infinispan(t *testing.T) {
-
 	kogitoInfra := &v1alpha1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
 		Spec: v1alpha1.KogitoInfraSpec{
@@ -115,10 +115,23 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 			},
 		},
 	}
-
+	crtFile, err := ioutil.ReadFile("./testdata/tls.crt")
+	assert.NoError(t, err)
+	tlsSecret := &corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "secret-with-truststore",
+			Namespace: t.Name(),
+		},
+		Data: map[string][]byte{truststoreSecretKey: crtFile},
+	}
 	deployedInfinispan := &ispn.Infinispan{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
 		Status: ispn.InfinispanStatus{
+			Security: ispn.InfinispanSecurity{
+				EndpointEncryption: ispn.EndpointEncryption{
+					CertSecretName: tlsSecret.Name,
+				},
+			},
 			Conditions: []ispn.InfinispanCondition{
 				{
 					Status: string(v1.ConditionTrue),
@@ -143,7 +156,7 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	}
 
 	client := test.NewFakeClientBuilder().
-		AddK8sObjects(kogitoInfra, deployedInfinispan, deployedCustomSecret, infinispanService).
+		AddK8sObjects(kogitoInfra, deployedInfinispan, deployedCustomSecret, infinispanService, tlsSecret).
 		Build()
 
 	scheme := meta.GetRegisteredSchema()
@@ -159,4 +172,6 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	assert.Equal(t, "true", infinispanAppProps["quarkus.infinispan-client.use-auth"])
 	assert.Equal(t, "PLAIN", infinispanAppProps["quarkus.infinispan-client.sasl-mechanism"])
 	assert.Empty(t, infinispanAppProps["quarkus.infinispan-client.auth-realm"])
+	assert.NotEmpty(t, infinispanAppProps["quarkus.infinispan-client.trust-store"])
+	assert.Len(t, kogitoInfra.Status.Volume, 1)
 }

@@ -21,6 +21,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sort"
@@ -36,10 +38,9 @@ const (
 	// AppPropVolumeName is the name of the volume for application.properties
 	AppPropVolumeName = "app-prop-config"
 
-	appPropDefaultMode = int32(420)
 	// ConfigMapApplicationPropertyKey is the file name used as a key for ConfigMaps mounted in Kogito services deployments
 	ConfigMapApplicationPropertyKey = "application.properties"
-	appPropFilePath                 = "/home/kogito/config"
+	appPropFilePath                 = infrastructure.KogitoHomeDir + "/config"
 
 	appPropConcatPattern = "%s\n%s=%s"
 )
@@ -99,8 +100,6 @@ func createAppPropVolumeMount() corev1.VolumeMount {
 
 // createAppPropVolume creates a volume for application.properties
 func createAppPropVolume(service v1alpha1.KogitoService) corev1.Volume {
-	defaultMode := appPropDefaultMode
-
 	return corev1.Volume{
 		Name: AppPropVolumeName,
 		VolumeSource: corev1.VolumeSource{
@@ -114,7 +113,7 @@ func createAppPropVolume(service v1alpha1.KogitoService) corev1.Volume {
 						Path: ConfigMapApplicationPropertyKey,
 					},
 				},
-				DefaultMode: &defaultMode,
+				DefaultMode: &framework.ModeForPropertyFiles,
 			},
 		},
 	}
