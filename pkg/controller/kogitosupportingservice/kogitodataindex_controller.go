@@ -209,7 +209,7 @@ var dataIndexKafkaTopics = []string{
 }
 
 const (
-	defaultProtobufMountPath                  = "/home/kogito/data/protobufs"
+	defaultProtobufMountPath                  = infrastructure.KogitoHomeDir + "/data/protobufs"
 	protoBufKeyFolder                  string = "KOGITO_PROTOBUF_FOLDER"
 	protoBufKeyWatch                   string = "KOGITO_PROTOBUF_WATCH"
 	protoBufConfigMapVolumeDefaultMode int32  = 420

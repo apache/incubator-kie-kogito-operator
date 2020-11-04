@@ -24,7 +24,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -44,7 +43,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{is}, []runtime.Object{tag}, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
 	deployer := serviceDeployer{
 		client:   cli,
 		scheme:   meta.GetRegisteredSchema(),
@@ -75,7 +74,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift(nil, nil, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	deployer := serviceDeployer{
 		client:   cli,
 		scheme:   meta.GetRegisteredSchema(),
@@ -117,7 +116,10 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultDataIndexImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{is, kogitoKafka, kogitoInfinispan}, []runtime.Object{tag}, nil)
+	cli := test.NewFakeClientBuilder().OnOpenShift().
+		AddK8sObjects(is, kogitoKafka, kogitoInfinispan).
+		AddImageObjects(tag).
+		Build()
 	deployer := serviceDeployer{
 		client:   cli,
 		scheme:   meta.GetRegisteredSchema(),
@@ -143,6 +145,12 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	assert.True(t, ok)
 	_, ok = resources[reflect.TypeOf(corev1.ConfigMap{})][0].(*corev1.ConfigMap).Data[ConfigMapApplicationPropertyKey]
 	assert.True(t, ok)
+
+	// we should have TLS volumes created
+	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 2)                    // 1 for properties, 2 for tls
+	assert.Len(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, 2) // 1 for properties, 2 for tls
+	assert.Contains(t, deployment.Spec.Template.Spec.Volumes, kogitoInfinispan.Status.Volume[0].NamedVolume)
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, kogitoInfinispan.Status.Volume[0].Mount)
 }
 
 func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *testing.T) {
@@ -173,7 +181,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 			ConfigMapApplicationPropertyKey: defaultAppPropContent,
 		},
 	}
-	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{is, cm}, []runtime.Object{tag}, nil)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(is, cm).AddImageObjects(tag).Build()
 	deployer := serviceDeployer{
 		client:   cli,
 		scheme:   meta.GetRegisteredSchema(),

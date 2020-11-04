@@ -16,9 +16,11 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"sort"
+	"strings"
+	"time"
+
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -26,9 +28,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sort"
-	"strings"
-	"time"
 )
 
 const (
@@ -67,8 +66,9 @@ func getKafkaAppProps(kafkaInstance *kafkabetav1.Kafka) (map[string]string, erro
 	return appProps, nil
 }
 
-// kafkaInfraResource implementation of KogitoInfraResource
-type kafkaInfraResource struct {
+// kafkaInfraReconciler implementation of KogitoInfraResource
+type kafkaInfraReconciler struct {
+	targetContext
 }
 
 // getKafkaWatchedObjects provide list of object that needs to be watched to maintain Kafka kogitoInfra resource
@@ -83,40 +83,40 @@ func getKafkaWatchedObjects() []framework.WatchedObjects {
 }
 
 // Reconcile reconcile Kogito infra object
-func (k *kafkaInfraResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
+func (k *kafkaInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	var kafkaInstance *kafkabetav1.Kafka
 
 	// Verify kafka
-	if !infrastructure.IsStrimziAvailable(client) {
-		return false, errorForResourceAPINotFound(&instance.Spec.Resource)
+	if !infrastructure.IsStrimziAvailable(k.client) {
+		return false, errorForResourceAPINotFound(&k.instance.Spec.Resource)
 	}
 
-	if len(instance.Spec.Resource.Name) > 0 {
+	if len(k.instance.Spec.Resource.Name) > 0 {
 		log.Debugf("Custom kafka instance reference is provided")
-		namespace := instance.Spec.Resource.Namespace
+		namespace := k.instance.Spec.Resource.Namespace
 		if len(namespace) == 0 {
-			namespace = instance.Namespace
+			namespace = k.instance.Namespace
 			log.Debugf("Namespace is not provided for custom resource, taking instance namespace(%s) as default", namespace)
 		}
-		if kafkaInstance, resultErr = loadDeployedKafkaInstance(client, instance.Spec.Resource.Name, namespace); resultErr != nil {
+		if kafkaInstance, resultErr = k.loadDeployedKafkaInstance(k.instance.Spec.Resource.Name, namespace); resultErr != nil {
 			return false, resultErr
 		} else if kafkaInstance == nil {
 			return false,
-				errorForResourceNotFound("Kafka", instance.Spec.Resource.Name, namespace)
+				errorForResourceNotFound("Kafka", k.instance.Spec.Resource.Name, namespace)
 		}
 	} else {
 		// create/refer kogito-kafka instance
 		log.Debugf("Custom kafka instance reference is not provided")
 
 		// check whether kafka instance exist
-		kafkaInstance, resultErr = loadDeployedKafkaInstance(client, infrastructure.KafkaInstanceName, instance.Namespace)
+		kafkaInstance, resultErr = k.loadDeployedKafkaInstance(infrastructure.KafkaInstanceName, k.instance.Namespace)
 		if resultErr != nil {
 			return false, resultErr
 		}
 
 		if kafkaInstance == nil {
 			// if not exist then create new Kafka instance. Strimzi operator creates Kafka instance, secret & service resource
-			_, resultErr = createNewKafkaInstance(client, infrastructure.KafkaInstanceName, instance.Namespace, instance, scheme)
+			_, resultErr = k.createNewKafkaInstance(infrastructure.KafkaInstanceName, k.instance.Namespace)
 			if resultErr != nil {
 				return false, resultErr
 			}
@@ -127,37 +127,37 @@ func (k *kafkaInfraResource) Reconcile(client *client.Client, instance *v1alpha1
 	if kafkaStatus == nil || kafkaStatus.Type != kafkabetav1.KafkaConditionTypeReady {
 		return false, errorForResourceNotReadyError(fmt.Errorf("kafka instance %s not ready yet. Waiting for Condition status Ready", kafkaInstance.Name))
 	}
-	if resultErr = updateKafkaAppPropsInStatus(kafkaInstance, instance); resultErr != nil {
+	if resultErr = k.updateKafkaAppPropsInStatus(kafkaInstance); resultErr != nil {
 		return true, resultErr
 	}
-	if resultErr = updateKafkaEnvVarsInStatus(kafkaInstance, instance); resultErr != nil {
+	if resultErr = k.updateKafkaEnvVarsInStatus(kafkaInstance); resultErr != nil {
 		return true, resultErr
 	}
 	return false, nil
 }
 
-func updateKafkaAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
+func (k *kafkaInfraReconciler) updateKafkaAppPropsInStatus(kafkaInstance *kafkabetav1.Kafka) error {
 	appProps, err := getKafkaAppProps(kafkaInstance)
 	if err != nil {
 		return errorForResourceNotReadyError(err)
 	}
-	instance.Status.AppProps = appProps
+	k.instance.Status.AppProps = appProps
 	return nil
 }
 
-func updateKafkaEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka, instance *v1alpha1.KogitoInfra) error {
+func (k *kafkaInfraReconciler) updateKafkaEnvVarsInStatus(kafkaInstance *kafkabetav1.Kafka) error {
 	envVars, err := getKafkaEnvVars(kafkaInstance)
 	if err != nil {
 		return errorForResourceNotReadyError(err)
 	}
-	instance.Status.Env = envVars
+	k.instance.Status.Env = envVars
 	return nil
 }
 
-func loadDeployedKafkaInstance(cli *client.Client, name string, namespace string) (*kafkabetav1.Kafka, error) {
+func (k *kafkaInfraReconciler) loadDeployedKafkaInstance(name, namespace string) (*kafkabetav1.Kafka, error) {
 	log.Debug("fetching deployed kogito kafka instance")
 	kafkaInstance := &kafkabetav1.Kafka{}
-	if exists, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafkaInstance); err != nil {
+	if exists, err := kubernetes.ResourceC(k.client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafkaInstance); err != nil {
 		log.Error("Error occurs while fetching kogito kafka instance")
 		return nil, err
 	} else if !exists {
@@ -169,13 +169,13 @@ func loadDeployedKafkaInstance(cli *client.Client, name string, namespace string
 	}
 }
 
-func createNewKafkaInstance(cli *client.Client, name, namespace string, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*kafkabetav1.Kafka, error) {
+func (k *kafkaInfraReconciler) createNewKafkaInstance(name, namespace string) (*kafkabetav1.Kafka, error) {
 	log.Debug("Going to create kogito Kafka instance")
 	kafkaInstance := infrastructure.GetKafkaDefaultResource(name, namespace, kafkaDefaultReplicas)
-	if err := framework.SetOwner(instance, scheme, kafkaInstance); err != nil {
+	if err := framework.SetOwner(k.instance, k.scheme, kafkaInstance); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(cli).Create(kafkaInstance); err != nil {
+	if err := kubernetes.ResourceC(k.client).Create(kafkaInstance); err != nil {
 		log.Error("Error occurs while creating kogito Kafka instance")
 		return nil, err
 	}

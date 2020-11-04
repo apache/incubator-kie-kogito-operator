@@ -114,12 +114,12 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (reconcile.R
 
 	defer updateBaseStatus(r.client, instance, &resultErr)
 
-	infraResource, resultErr := getKogitoInfraResource(instance)
+	reconciler, resultErr := getKogitoInfraReconciler(r.client, instance, r.scheme)
 	if resultErr != nil {
 		return r.getReconcileResultFor(resultErr, false)
 	}
 
-	requeue, resultErr := infraResource.Reconcile(r.client, instance, r.scheme)
+	requeue, resultErr := reconciler.Reconcile()
 	return r.getReconcileResultFor(resultErr, requeue)
 }
 
@@ -131,6 +131,7 @@ func (r *ReconcileKogitoInfra) getReconcileResultFor(err error, requeue bool) (r
 	}
 	// no requeue, no errors, stop reconciliation
 	if !requeue && err == nil {
+		log.Info("No need reconciliation for KogitoInfra")
 		return reconcile.Result{RequeueAfter: 0, Requeue: false}, nil
 	}
 	// caller is asking for a reconciliation
@@ -139,5 +140,6 @@ func (r *ReconcileKogitoInfra) getReconcileResultFor(err error, requeue bool) (r
 	} else { // reconciliation duo to a problem in the env (CRDs missing), infra deployments not ready, operators not installed.. etc. See errors.go
 		log.Infof("Waiting for all resources to be created, scheduling reconciliation: %s", err.Error())
 	}
+	log.Info("Scheduling reconciliation for %d", reconciliationStandardInterval)
 	return reconcile.Result{RequeueAfter: reconciliationStandardInterval}, nil
 }

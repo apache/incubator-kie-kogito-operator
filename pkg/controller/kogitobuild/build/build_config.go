@@ -17,6 +17,7 @@ package build
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +33,7 @@ const (
 	tagLatest          = "latest"
 
 	destinationDir   = "."
-	runnerSourcePath = "/home/kogito/bin"
+	runnerSourcePath = infrastructure.KogitoHomeDir + "/bin"
 
 	nativeBuildEnvVarKey        = "NATIVE"
 	builderLimitCPUEnvVarKey    = "LIMIT_CPU"

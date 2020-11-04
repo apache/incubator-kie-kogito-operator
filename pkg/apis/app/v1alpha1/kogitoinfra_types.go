@@ -69,6 +69,12 @@ type KogitoInfraStatus struct {
 	// Environment variables extracted from the linked resource that will be added to the deployed Kogito service.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	Env []v1.EnvVar `json:"env,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of volumes that should be added to the services bound to this infra instance
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	Volume []KogitoInfraVolume `json:"volumes,omitempty"`
 }
 
 // KogitoInfraConditionReason describes the reasons for reconciliation failure
@@ -110,6 +116,14 @@ const (
 	// FailureInfraConditionType ...
 	FailureInfraConditionType KogitoInfraConditionType = "Failure"
 )
+
+// KogitoInfraVolume describes the data structure for volumes that should be mounted in the given service provided by this infra instance
+type KogitoInfraVolume struct {
+	// Mount is the Kubernetes VolumeMount referenced by this instance
+	Mount v1.VolumeMount `json:"mount"`
+	// NamedVolume describes the pod Volume reference
+	NamedVolume v1.Volume `json:"volume"`
+}
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

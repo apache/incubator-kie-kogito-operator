@@ -139,7 +139,11 @@ func decodeAndCreateKubeObject(box *packr.Box, yamlDoc string, resourceRef meta.
 	if err != nil {
 		return fmt.Errorf("Error reading file %s: %s ", yamlDoc, err)
 	}
-
+	// we need this workaround to not fail when applying our CRDs with "---" in generated YAML code coming from descriptions from third party types
+	switch resourceRef.(type) {
+	case *apiextensionsv1beta1.CustomResourceDefinition:
+		dat = strings.ReplaceAll(dat, "---", "")
+	}
 	if err = kubernetes.ResourceC(client).CreateFromYamlContent(dat, namespace, resourceRef, beforeCreate); err != nil {
 		return fmt.Errorf("Error while creating resources from file '%s': %v ", yamlDoc, err)
 	}
