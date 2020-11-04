@@ -147,7 +147,6 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource: %v", dashboard.Name, err)
 			return err
 		}
-		log.Infof("Successfully created grafana dashboard %s", dashboard.Name)
 	}
 	return nil
 }

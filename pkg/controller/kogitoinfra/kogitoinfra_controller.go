@@ -136,9 +136,9 @@ func (r *ReconcileKogitoInfra) getReconcileResultFor(err error, requeue bool) (r
 	}
 	// caller is asking for a reconciliation
 	if err == nil {
-		log.Infof("Waiting for all resources to be created, scheduling reconciliation. Scheduling reconciliation for %d", reconciliationStandardInterval)
+		log.Infof("Waiting for all resources to be created, scheduling reconciliation. Scheduling reconciliation for %s", reconciliationStandardInterval.String())
 	} else { // reconciliation duo to a problem in the env (CRDs missing), infra deployments not ready, operators not installed.. etc. See errors.go
-		log.Infof("Waiting for all resources to be created, scheduling reconciliation: %s. Scheduling reconciliation for %d", err.Error(), reconciliationStandardInterval)
+		log.Infof("Waiting for all resources to be created, scheduling reconciliation: %s. Scheduling reconciliation for %s", err.Error(), reconciliationStandardInterval.String())
 	}
 	return reconcile.Result{RequeueAfter: reconciliationStandardInterval}, nil
 }
