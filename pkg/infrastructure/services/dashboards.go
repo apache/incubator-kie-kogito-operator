@@ -72,7 +72,7 @@ func fetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Received NOT expected status code %d while making GET request to %s ", resp.StatusCode, dashboardsURL)
+		return nil, errorForServiceNotReachable(resp.StatusCode, dashboardsURL)
 	}
 	var dashboardNames []string
 	if err := json.NewDecoder(resp.Body).Decode(&dashboardNames); err != nil {

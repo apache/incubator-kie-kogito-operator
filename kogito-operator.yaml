@@ -1063,6 +1063,39 @@ spec:
         status:
           description: KogitoRuntimeStatus defines the observed state of KogitoRuntime.
           properties:
+            cloudEvents:
+              description: Describes the CloudEvents that this instance can consume
+                or produce
+              properties:
+                consumes:
+                  items:
+                    description: KogitoCloudEventInfo describes the CloudEvent information
+                      based on the specification
+                    properties:
+                      source:
+                        type: string
+                      type:
+                        type: string
+                    required:
+                    - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-type: atomic
+                produces:
+                  items:
+                    description: KogitoCloudEventInfo describes the CloudEvent information
+                      based on the specification
+                    properties:
+                      source:
+                        type: string
+                      type:
+                        type: string
+                    required:
+                    - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-type: atomic
+              type: object
             conditions:
               description: History of conditions for the resource
               items:
@@ -1397,6 +1430,39 @@ spec:
           description: KogitoSupportingServiceStatus defines the observed state of
             KogitoSupportingService.
           properties:
+            cloudEvents:
+              description: Describes the CloudEvents that this instance can consume
+                or produce
+              properties:
+                consumes:
+                  items:
+                    description: KogitoCloudEventInfo describes the CloudEvent information
+                      based on the specification
+                    properties:
+                      source:
+                        type: string
+                      type:
+                        type: string
+                    required:
+                    - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-type: atomic
+                produces:
+                  items:
+                    description: KogitoCloudEventInfo describes the CloudEvent information
+                      based on the specification
+                    properties:
+                      source:
+                        type: string
+                      type:
+                        type: string
+                    required:
+                    - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-type: atomic
+              type: object
             conditions:
               description: History of conditions for the resource
               items:

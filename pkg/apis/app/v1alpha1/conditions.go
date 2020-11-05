@@ -45,6 +45,8 @@ const (
 	MessagingIntegrationFailureReason KogitoServiceConditionReason = "MessagingProvisionFailure"
 	// MonitoringIntegrationFailureReason ...
 	MonitoringIntegrationFailureReason KogitoServiceConditionReason = "MonitoringIntegrationFailure"
+	// InternalServiceNotReachable ...
+	InternalServiceNotReachable KogitoServiceConditionReason = "InternalServiceNotReachable"
 )
 
 // Condition is the detailed condition for the resource

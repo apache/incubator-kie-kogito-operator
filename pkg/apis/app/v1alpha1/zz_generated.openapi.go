@@ -774,12 +774,18 @@ func schema_pkg_apis_app_v1alpha1_KogitoSupportingServiceStatus(ref common.Refer
 							Format:      "",
 						},
 					},
+					"cloudEvents": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Describes the CloudEvents that this instance can consume or produce",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoCloudEventsStatus"),
+						},
+					},
 				},
 				Required: []string{"conditions"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "k8s.io/api/apps/v1.DeploymentCondition"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.Condition", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition"},
 	}
 }
 
