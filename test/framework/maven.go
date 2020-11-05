@@ -191,9 +191,9 @@ func (settings *mavenSettings) Generate() string {
 		settingsContent = strings.ReplaceAll(settingsContent, "<!-- ### profiles ### -->", profilesXMLContent)
 	}
 	for _, repo := range settings.repositories {
-		repository := fmt.Sprintf(repositoryXMLContentTpl, repo.ID, repo.ID, repo.URL)
-		settingsContent = strings.ReplaceAll(settingsContent, "</repositories>", fmt.Sprintf("\n%s\n</repositories>", repository))
-		settingsContent = strings.ReplaceAll(settingsContent, "</pluginRepositories>", fmt.Sprintf("\n%s\n</pluginRepositories>", repository))
+		repositoryContent := fmt.Sprintf(repositoryXMLContentTpl, repo.ID, repo.ID, repo.URL)
+		settingsContent = strings.ReplaceAll(settingsContent, "</repositories>", fmt.Sprintf("\n<repository>%s</repository>\n</repositories>", repositoryContent))
+		settingsContent = strings.ReplaceAll(settingsContent, "</pluginRepositories>", fmt.Sprintf("\n<pluginRepository>%s</pluginRepository>\n</pluginRepositories>", repositoryContent))
 
 		if repo.ignoreInMirror {
 			// Ignore repo in mirror if exists
@@ -206,7 +206,6 @@ func (settings *mavenSettings) Generate() string {
 
 const (
 	repositoryXMLContentTpl = `
-    <repository>
       <id>%s</id>
       <name>%s</name>
       <url>%s</url>
@@ -218,8 +217,7 @@ const (
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>always</updatePolicy>
-      </snapshots>
-    </repository>`
+      </snapshots>`
 
 	mavenMirrorXMLContentTpl = `
   <mirrors>
