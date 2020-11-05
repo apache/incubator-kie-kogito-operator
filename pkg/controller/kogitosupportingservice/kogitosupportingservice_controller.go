@@ -207,9 +207,10 @@ type SupportingServiceResource interface {
 // Note: Data Index is not part of this map because it has it's own controller
 var kogitoSupportingServices = map[v1alpha1.ServiceType]SupportingServiceResource{
 	v1alpha1.DataIndex:      &DataIndexSupportingServiceResource{},
+	v1alpha1.Explainability: &ExplainabilitySupportingServiceResource{},
 	v1alpha1.JobsService:    &JobsServiceSupportingServiceResource{},
 	v1alpha1.MgmtConsole:    &MgmtConsoleSupportingServiceResource{},
-	v1alpha1.Explainability: &ExplainabilitySupportingServiceResource{},
+	v1alpha1.TaskConsole:    &TaskConsoleSupportingServiceResource{},
 	v1alpha1.TrustyAI:       &TrustyAISupportingServiceResource{},
 	v1alpha1.TrustyUI:       &TrustyUISupportingServiceResource{},
 }
