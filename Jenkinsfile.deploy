@@ -424,13 +424,13 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     testParamsMap['operator_image'] = getTempOpenshiftImageName(true)
     testParamsMap['operator_tag'] = getTempTag()
 
-    if (params.MAVEN_ARTIFACT_REPOSITORY != '') {
+    if (params.MAVEN_ARTIFACT_REPOSITORY) {
         // No mirror if we set directly the Maven repository
         // Tests will be slower but we need to test against specific artifacts
         testParamsMap['custom_maven_repo'] = params.MAVEN_ARTIFACT_REPOSITORY
         testParamsMap["maven_ignore_self_signed_certificate"] = true
-    } else if(env.MAVEN_MIRROR_REPOSITORY != null
-                && env.MAVEN_MIRROR_REPOSITORY != '') {
+    } 
+    if(env.MAVEN_MIRROR_REPOSITORY) {
         testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
         testParamsMap["maven_ignore_self_signed_certificate"] = true
     }

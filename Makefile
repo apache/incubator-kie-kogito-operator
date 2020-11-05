@@ -115,6 +115,7 @@ runtime_application_image_name_suffix=
 runtime_application_image_version=
 # build
 custom_maven_repo=
+custom_maven_repo_replace_default=false
 maven_mirror=
 maven_ignore_self_signed_certificate=false
 build_image_registry=
@@ -151,6 +152,7 @@ run-tests:
 	&& if [ "${load_default_config}" = "true" ]; then opts+=("--load_default_config"); fi \
 	&& if [ "${maven_ignore_self_signed_certificate}" = "true" ]; then opts+=("--maven_ignore_self_signed_certificate"); fi \
 	&& if [ "${disable_maven_native_build_container}" = "true" ]; then opts+=("--disable_maven_native_build_container"); fi \
+	&& if [ "${custom_maven_repo_replace_default}" = "true" ]; then opts+=("--custom_maven_repo_replace_default"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ./hack/run-tests.sh \
 		--feature ${feature} \
