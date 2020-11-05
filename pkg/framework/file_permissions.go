@@ -23,4 +23,6 @@ var (
 	ModeForCertificates = int32(0640)
 	// ModeForPropertyFiles unix file mode for application property files.
 	ModeForPropertyFiles = int32(0644)
+	// ModeForProtoBufConfigMapVolume mode for Proto Buf config map volume
+	ModeForProtoBufConfigMapVolume = int32(420)
 )

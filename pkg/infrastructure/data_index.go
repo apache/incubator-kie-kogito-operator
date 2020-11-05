@@ -39,8 +39,6 @@ const (
 	protoBufKeyFolder string = "KOGITO_PROTOBUF_FOLDER"
 	// Proto Buf watch env
 	protoBufKeyWatch string = "KOGITO_PROTOBUF_WATCH"
-	// Proto Buf volume mode
-	protoBufConfigMapVolumeDefaultMode int32 = 420
 )
 
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
@@ -124,7 +122,6 @@ func MountProtoBufConfigMapOnDataIndex(client *client.Client, kogitoService v1al
 }
 
 func appendProtoBufVolumeIntoDeployment(deployment *appsv1.Deployment, cm corev1.ConfigMap) {
-	configMapDefaultMode := protoBufConfigMapVolumeDefaultMode
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
 		if volume.Name == cm.Name {
 			return
@@ -137,7 +134,7 @@ func appendProtoBufVolumeIntoDeployment(deployment *appsv1.Deployment, cm corev1
 			Name: cm.Name,
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
-					DefaultMode: &configMapDefaultMode,
+					DefaultMode: &framework.ModeForProtoBufConfigMapVolume,
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: cm.Name,
 					},
