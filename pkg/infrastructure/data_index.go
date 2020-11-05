@@ -120,57 +120,48 @@ func MountProtoBufConfigMapOnDataIndex(client *client.Client, kogitoService v1al
 		appendProtoBufVolumeMountIntoDeployment(deployment, cm)
 	}
 	updateProtoBufPropInToDeploymentEnv(deployment)
-	if err := kubernetes.ResourceC(client).Update(deployment); err != nil {
-		return err
-	}
-	return nil
+	return kubernetes.ResourceC(client).Update(deployment)
 }
 
 func appendProtoBufVolumeIntoDeployment(deployment *appsv1.Deployment, cm corev1.ConfigMap) {
 	configMapDefaultMode := protoBufConfigMapVolumeDefaultMode
-	volumeExists := false
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
 		if volume.Name == cm.Name {
-			volumeExists = true
-			break
+			return
 		}
 	}
-	if !volumeExists {
-		deployment.Spec.Template.Spec.Volumes =
-			append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
-				Name: cm.Name,
-				VolumeSource: corev1.VolumeSource{
-					ConfigMap: &corev1.ConfigMapVolumeSource{
-						DefaultMode: &configMapDefaultMode,
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: cm.Name,
-						},
+
+	// append volume if its not exists
+	deployment.Spec.Template.Spec.Volumes =
+		append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name: cm.Name,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					DefaultMode: &configMapDefaultMode,
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: cm.Name,
 					},
 				},
-			})
-	}
+			},
+		})
 }
 
 func appendProtoBufVolumeMountIntoDeployment(deployment *appsv1.Deployment, cm corev1.ConfigMap) {
 	for fileName := range cm.Data {
-
-		volumeMountExists := false
 		mountPath := path.Join(defaultProtobufMountPath, cm.Labels["app"], fileName)
 		for _, volumeMount := range deployment.Spec.Template.Spec.Containers[0].VolumeMounts {
 			if volumeMount.MountPath == mountPath {
-				volumeMountExists = true
-				break
+				return
 			}
 		}
 
-		if !volumeMountExists {
-			deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
-				append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
-					Name:      cm.Name,
-					MountPath: mountPath,
-					SubPath:   fileName,
-				})
-		}
+		// append volume mount if its not exists
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
+			append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+				Name:      cm.Name,
+				MountPath: mountPath,
+				SubPath:   fileName,
+			})
 	}
 }
 
