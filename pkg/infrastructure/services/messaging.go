@@ -90,9 +90,10 @@ func (m *messagingDeployer) setCloudEventsStatus(instance v1alpha1.KogitoService
 	var eventsProduced []v1alpha1.KogitoCloudEventInfo
 	for _, topic := range topics {
 		for _, event := range topic.EventsMeta {
-			if event.Kind == consumed {
+			switch event.Kind {
+			case consumed:
 				eventsConsumed = append(eventsConsumed, v1alpha1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
-			} else if event.Kind == produced {
+			case produced:
 				eventsProduced = append(eventsProduced, v1alpha1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
 			}
 		}
