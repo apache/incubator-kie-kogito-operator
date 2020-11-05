@@ -18,7 +18,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"path"
 )
 
 const (
@@ -30,6 +33,12 @@ const (
 	dataIndexHTTPRouteEnv = "KOGITO_DATAINDEX_HTTP_URL"
 	// Data index WS URL env
 	dataIndexWSRouteEnv = "KOGITO_DATAINDEX_WS_URL"
+	// Default Proto Buf file path
+	defaultProtobufMountPath = KogitoHomeDir + "/data/protobufs"
+	// Proto Buf folder env
+	protoBufKeyFolder string = "KOGITO_PROTOBUF_FOLDER"
+	// Proto Buf watch env
+	protoBufKeyWatch string = "KOGITO_PROTOBUF_WATCH"
 )
 
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
@@ -77,4 +86,88 @@ func InjectDataIndexURLIntoSupportingService(client *client.Client, namespace st
 		}
 	}
 	return nil
+}
+
+// MountProtoBufConfigMapsOnDeployment mounts protobuf configMaps from KogitoRuntime services into the given deployment
+func MountProtoBufConfigMapsOnDeployment(client *client.Client, deployment *appsv1.Deployment) (err error) {
+	cms, err := getProtoBufConfigMapsForAllRuntimeServices(deployment.Namespace, client)
+	if err != nil || len(cms.Items) == 0 {
+		return err
+	}
+	for _, cm := range cms.Items {
+		appendProtoBufVolumeIntoDeployment(deployment, cm)
+		appendProtoBufVolumeMountIntoDeployment(deployment, cm)
+	}
+	updateProtoBufPropInToDeploymentEnv(deployment)
+	return nil
+}
+
+// MountProtoBufConfigMapOnDataIndex mounts protobuf configMaps from KogitoRuntime services into the given deployment instance of DataIndex
+func MountProtoBufConfigMapOnDataIndex(client *client.Client, kogitoService v1alpha1.KogitoService) (err error) {
+	deployment, err := getSupportingServiceDeployment(kogitoService.GetNamespace(), client, v1alpha1.DataIndex)
+	if err != nil || deployment == nil {
+		return
+	}
+
+	cms, err := getProtoBufConfigMapsForSpecificRuntimeService(client, kogitoService.GetName(), kogitoService.GetNamespace())
+	if err != nil || len(cms.Items) == 0 {
+		return
+	}
+	for _, cm := range cms.Items {
+		appendProtoBufVolumeIntoDeployment(deployment, cm)
+		appendProtoBufVolumeMountIntoDeployment(deployment, cm)
+	}
+	updateProtoBufPropInToDeploymentEnv(deployment)
+	return kubernetes.ResourceC(client).Update(deployment)
+}
+
+func appendProtoBufVolumeIntoDeployment(deployment *appsv1.Deployment, cm corev1.ConfigMap) {
+	for _, volume := range deployment.Spec.Template.Spec.Volumes {
+		if volume.Name == cm.Name {
+			return
+		}
+	}
+
+	// append volume if its not exists
+	deployment.Spec.Template.Spec.Volumes =
+		append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name: cm.Name,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					DefaultMode: &framework.ModeForProtoBufConfigMapVolume,
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: cm.Name,
+					},
+				},
+			},
+		})
+}
+
+func appendProtoBufVolumeMountIntoDeployment(deployment *appsv1.Deployment, cm corev1.ConfigMap) {
+	for fileName := range cm.Data {
+		mountPath := path.Join(defaultProtobufMountPath, cm.Labels["app"], fileName)
+		for _, volumeMount := range deployment.Spec.Template.Spec.Containers[0].VolumeMounts {
+			if volumeMount.MountPath == mountPath {
+				return
+			}
+		}
+
+		// append volume mount if its not exists
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
+			append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+				Name:      cm.Name,
+				MountPath: mountPath,
+				SubPath:   fileName,
+			})
+	}
+}
+
+func updateProtoBufPropInToDeploymentEnv(deployment *appsv1.Deployment) {
+	if len(deployment.Spec.Template.Spec.Volumes) > 0 {
+		framework.SetEnvVar(protoBufKeyWatch, "true", &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(protoBufKeyFolder, defaultProtobufMountPath, &deployment.Spec.Template.Spec.Containers[0])
+	} else {
+		framework.SetEnvVar(protoBufKeyWatch, "false", &deployment.Spec.Template.Spec.Containers[0])
+		framework.SetEnvVar(protoBufKeyFolder, "", &deployment.Spec.Template.Spec.Containers[0])
+	}
 }
