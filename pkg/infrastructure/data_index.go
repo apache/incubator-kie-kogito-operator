@@ -34,7 +34,7 @@ const (
 	// Data index WS URL env
 	dataIndexWSRouteEnv = "KOGITO_DATAINDEX_WS_URL"
 	// Default Proto Buf file path
-	defaultProtobufMountPath = "/home/kogito/data/protobufs"
+	defaultProtobufMountPath = KogitoHomeDir + "/data/protobufs"
 	// Proto Buf folder env
 	protoBufKeyFolder string = "KOGITO_PROTOBUF_FOLDER"
 	// Proto Buf watch env
@@ -56,33 +56,34 @@ func InjectDataIndexURLIntoDeployment(client *client.Client, namespace string, d
 	return injectSupportingServiceURLIntoDeployment(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, v1alpha1.DataIndex)
 }
 
-// InjectDataIndexURLIntoMgmtConsole will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
-// Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
-func InjectDataIndexURLIntoMgmtConsole(client *client.Client, namespace string) error {
-	log.Debugf("Injecting Data-Index Route in Mgmt console")
-	log.Debugf("Querying MgmtConsole instances in the namespace '%s' to inject a route ", namespace)
-	deployment, err := getKogitoSupportingServiceDeploymentInstance(client, namespace, v1alpha1.MgmtConsole)
-	if err != nil {
-		return err
-	}
-	if deployment == nil {
-		log.Debugf("No deployment found for MgmtConsole, skipping to inject %s URL into MgmtConsole", v1alpha1.DataIndex)
-		return nil
-	}
+// InjectDataIndexURLIntoSupportingService will query for Supporting service deployment in the given namespace to inject the Data Index route to each one
+// Won't trigger an update if the SupportingService already has the route set to avoid unnecessary reconciliation triggers
+func InjectDataIndexURLIntoSupportingService(client *client.Client, namespace string, serviceTypes ...v1alpha1.ServiceType) error {
+	for _, serviceType := range serviceTypes {
+		log.Debugf("Injecting Data-Index Route in %s", serviceType)
+		deployment, err := getSupportingServiceDeployment(namespace, client, serviceType)
+		if err != nil {
+			return err
+		}
+		if deployment == nil {
+			log.Debugf("No deployment found for %s, skipping to inject %s URL into %s", serviceType, v1alpha1.DataIndex, serviceType)
+			return nil
+		}
 
-	log.Debugf("Querying %s route to inject into MgmtConsole", v1alpha1.DataIndex)
-	serviceEndpoints, err := getServiceEndpoints(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1alpha1.DataIndex)
-	if err != nil {
-		return err
-	}
-	if serviceEndpoints != nil {
-		log.Debugf("The %s route is '%s'", v1alpha1.DataIndex, serviceEndpoints.HTTPRouteURI)
+		log.Debugf("Querying %s route to inject into %s", v1alpha1.DataIndex, serviceType)
+		serviceEndpoints, err := getServiceEndpoints(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1alpha1.DataIndex)
+		if err != nil {
+			return err
+		}
+		if serviceEndpoints != nil {
+			log.Debugf("The %s route is '%s'", v1alpha1.DataIndex, serviceEndpoints.HTTPRouteURI)
 
-		updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
-		// update only once
-		if updateWS || updateHTTP {
-			if err := kubernetes.ResourceC(client).Update(deployment); err != nil {
-				return err
+			updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
+			// update only once
+			if updateWS || updateHTTP {
+				if err := kubernetes.ResourceC(client).Update(deployment); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -105,7 +106,7 @@ func MountProtoBufConfigMapsOnDeployment(client *client.Client, deployment *apps
 
 // MountProtoBufConfigMapOnDataIndex mounts protobuf configMaps from KogitoRuntime services into the given deployment instance of DataIndex
 func MountProtoBufConfigMapOnDataIndex(client *client.Client, kogitoService v1alpha1.KogitoService) (err error) {
-	deployment, err := getKogitoSupportingServiceDeploymentInstance(client, kogitoService.GetNamespace(), v1alpha1.DataIndex)
+	deployment, err := getSupportingServiceDeployment(kogitoService.GetNamespace(), client, v1alpha1.DataIndex)
 	if err != nil || deployment == nil {
 		return
 	}

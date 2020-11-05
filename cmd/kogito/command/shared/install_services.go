@@ -126,7 +126,7 @@ func getSupportingServiceInfoMessages(serviceType v1alpha1.ServiceType) *service
 			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
 		}
-	case v1alpha1.Explainablity:
+	case v1alpha1.Explainability:
 		return &serviceInfoMessages{
 			errCreating:                  message.ExplainabilityErrCreating,
 			installed:                    message.ExplainabilitySuccessfulInstalled,
@@ -146,6 +146,13 @@ func getSupportingServiceInfoMessages(serviceType v1alpha1.ServiceType) *service
 			installed:                    message.TrustyUISuccessfulInstalled,
 			checkStatus:                  message.SupportingServiceCheckStatus,
 			notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
+		}
+	case v1alpha1.TaskConsole:
+		return &serviceInfoMessages{
+			errCreating:                  message.TaskConsoleErrCreating,
+			installed:                    message.TaskConsoleSuccessfulInstalled,
+			checkStatus:                  message.SupportingServiceCheckStatus,
+			notInstalledNoKogitoOperator: message.TaskConsoleNotInstalledNoKogitoOperator,
 		}
 	}
 	return nil

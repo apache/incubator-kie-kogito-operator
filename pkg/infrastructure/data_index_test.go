@@ -176,7 +176,7 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	}
 	err := MountProtoBufConfigMapOnDataIndex(cli, runtimeService)
 	assert.NoError(t, err)
-	deployment, err := getKogitoSupportingServiceDeploymentInstance(cli, t.Name(), v1alpha1.DataIndex)
+	deployment, err := getSupportingServiceDeployment(t.Name(), cli, v1alpha1.DataIndex)
 	assert.NoError(t, err)
 
 	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 1)

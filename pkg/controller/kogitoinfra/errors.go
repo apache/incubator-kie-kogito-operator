@@ -20,7 +20,6 @@ import (
 )
 
 // reconciliationError type for KogitoInfra reconciliation cycle cases.
-// MUST be public because it's used by the sub packages of kogitoinfra.
 type reconciliationError struct {
 	Reason     v1alpha1.KogitoInfraConditionReason
 	innerError error
@@ -36,24 +35,21 @@ func (e reconciliationError) Error() string {
 	return e.innerError.Error()
 }
 
-// newResourceNotFoundError ...
-func newResourceNotFoundError(kind, instance, namespace string) reconciliationError {
+func errorForResourceNotFound(kind, instance, namespace string) reconciliationError {
 	return reconciliationError{
 		Reason:     v1alpha1.ResourceNotFound,
 		innerError: fmt.Errorf("%s instance(%s) not found in namespace %s", kind, instance, namespace),
 	}
 }
 
-// newResourceAPINotFoundError ...
-func newResourceAPINotFoundError(resource *v1alpha1.Resource) reconciliationError {
+func errorForResourceAPINotFound(resource *v1alpha1.Resource) reconciliationError {
 	return reconciliationError{
 		Reason:     v1alpha1.ResourceAPINotFound,
 		innerError: fmt.Errorf("%s CRD is not available in the cluster, this feature is not available. Please install the required Operator first. ", resource.APIVersion),
 	}
 }
 
-// newUnsupportedAPIError ...
-func newUnsupportedAPIError(instance *v1alpha1.KogitoInfra) reconciliationError {
+func errorForUnsupportedAPI(instance *v1alpha1.KogitoInfra) reconciliationError {
 	return reconciliationError{
 		Reason: v1alpha1.UnsupportedAPIKind,
 		innerError: fmt.Errorf("API %s is not supported for kind %s. Supported APIs are: %v",
@@ -63,7 +59,7 @@ func newUnsupportedAPIError(instance *v1alpha1.KogitoInfra) reconciliationError 
 	}
 }
 
-func newResourceNotReadyError(instance *v1alpha1.KogitoInfra, err error) reconciliationError {
+func errorForResourceNotReadyError(err error) reconciliationError {
 	return reconciliationError{
 		Reason:     v1alpha1.ResourceNotReady,
 		innerError: err,
@@ -71,7 +67,7 @@ func newResourceNotReadyError(instance *v1alpha1.KogitoInfra, err error) reconci
 }
 
 func getSupportedResources() []string {
-	res := getSupportedInfraResources()
+	res := getSupportedInfraResources(targetContext{})
 	keys := make([]string, 0, len(res))
 	for k := range res {
 		keys = append(keys, k)

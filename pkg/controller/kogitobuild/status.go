@@ -149,9 +149,16 @@ func (r *ReconcileKogitoBuild) handleStatusChange(instance *appv1alpha1.KogitoBu
 	}
 	trimConditions(instance)
 	if needUpdate {
-		if statusErr = r.update(instance); statusErr != nil {
+		if statusErr = r.updateStatus(instance); statusErr != nil {
 			err = &statusErr
 			log.Errorf("Failed to update KogitoBuild instance %s: %v", instance.Name, err)
 		}
 	}
+}
+
+func (r *ReconcileKogitoBuild) updateStatus(instance *appv1alpha1.KogitoBuild) error {
+	if err := kubernetes.ResourceC(r.client).UpdateStatus(instance); err != nil {
+		return err
+	}
+	return nil
 }

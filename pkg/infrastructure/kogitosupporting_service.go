@@ -46,13 +46,13 @@ func getKogitoSupportingService(client *client.Client, namespace string, resourc
 	return nil, nil
 }
 
-// getKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
-func getKogitoSupportingServiceDeploymentInstance(cli *client.Client, namespace string, serviceType v1alpha1.ServiceType) (*appsv1.Deployment, error) {
+// getSupportingServiceDeployment gets deployment owned by supporting service within the given namespace
+func getSupportingServiceDeployment(namespace string, cli *client.Client, serviceType v1alpha1.ServiceType) (*appsv1.Deployment, error) {
 	supportingService, err := getKogitoSupportingService(cli, namespace, serviceType)
 	if err != nil {
 		return nil, err
 	} else if supportingService == nil {
-		log.Debugf("Not found %s service in namespace %s", serviceType, namespace)
+		log.Debugf("Not found % service in namespace %s", serviceType, namespace)
 		return nil, nil
 	}
 	log.Debugf("Found %s services in the namespace '%s' ", serviceType, namespace)

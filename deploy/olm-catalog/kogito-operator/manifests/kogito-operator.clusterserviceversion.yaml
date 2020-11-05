@@ -409,11 +409,11 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: 'Defines the type for the supporting service, eg: DataIndex,
-          JobsService'
+          JobsService Default value: JobsService'
         displayName: Resource Type
         path: serviceType
         x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:text
+        - urn:alm:descriptor:com.tectonic.ui:label
       statusDescriptors:
       - description: History of conditions for the resource
         displayName: Conditions

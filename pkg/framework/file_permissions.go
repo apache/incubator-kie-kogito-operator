@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoinfra
+package framework
 
-import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"k8s.io/apimachinery/pkg/runtime"
+/**
+Variables because most Kubernetes resources access this attribute by reference
+*/
+
+var (
+	// ModeForCertificates unix file mode for certificates.
+	ModeForCertificates = int32(0640)
+	// ModeForPropertyFiles unix file mode for application property files.
+	ModeForPropertyFiles = int32(0644)
 )
-
-// InfraResource Interface to represent type of supported kogito infra resources like Infinispan, kafka & keycloak
-type InfraResource interface {
-	Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error)
-}

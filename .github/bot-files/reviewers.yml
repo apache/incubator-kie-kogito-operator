@@ -10,7 +10,6 @@ review:
     reviewers:
       - sutaakar
       - radtriste
-      - Sgitario
   - paths:
       - Jenkinsfile
     reviewers:

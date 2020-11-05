@@ -33,10 +33,10 @@ type ResourceInterface interface {
 	ResourceReader
 	ResourceWriter
 	// CreateIfNotExists will fetch for the object resource in the Kubernetes cluster, if not exists, will create it.
-	CreateIfNotExists(resource meta.ResourceObject) (exists bool, err error)
+	CreateIfNotExists(resource meta.ResourceObject) (err error)
 	// CreateIfNotExistsForOwner sets the controller owner to the given resource and creates if it not exists.
 	// If the given resource exists, won't update the object with the given owner.
-	CreateIfNotExistsForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) (bool, error)
+	CreateIfNotExistsForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) (err error)
 	// CreateForOwner sets the controller owner to the given resource and creates the resource.
 	CreateForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) error
 	// CreateFromYamlContent creates Kubernetes resources from a yaml string content
@@ -59,26 +59,26 @@ func newResource(c *client.Client) *resource {
 	}
 }
 
-func (r *resource) CreateIfNotExists(resource meta.ResourceObject) (bool, error) {
+func (r *resource) CreateIfNotExists(resource meta.ResourceObject) error {
 	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 
 	if exists, err := r.ResourceReader.Fetch(resource); err == nil && !exists {
 		if err := r.ResourceWriter.Create(resource); err != nil {
-			return false, err
+			return err
 		}
-		return true, nil
+		return nil
 	} else if err != nil {
-		log.Debug("Failed to fecth object. ", err)
-		return false, err
+		log.Debug("Failed to fetch object. ", err)
+		return err
 	}
 	log.Debug("Skip creating - object already exists")
-	return false, nil
+	return nil
 }
 
-func (r *resource) CreateIfNotExistsForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) (bool, error) {
+func (r *resource) CreateIfNotExistsForOwner(resource meta.ResourceObject, owner metav1.Object, scheme *runtime.Scheme) error {
 	err := controllerutil.SetControllerReference(owner, resource, scheme)
 	if err != nil {
-		return false, err
+		return err
 	}
 	return r.CreateIfNotExists(resource)
 }
@@ -111,7 +111,7 @@ func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, reso
 		if beforeCreate != nil {
 			beforeCreate(resourceRef)
 		}
-		if _, err := r.CreateIfNotExists(resourceRef); err != nil {
+		if err := r.CreateIfNotExists(resourceRef); err != nil {
 			return fmt.Errorf("Error creating object %s: %v ", resourceRef.GetName(), err)
 		}
 	}

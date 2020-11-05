@@ -46,7 +46,7 @@ func (k *knativeMessagingDeployer) createRequiredResources(service v1alpha1.Kogi
 
 	// since we depend on Knative, let's bind a SinkBinding object to our deployment
 	sinkBinding := k.newSinkBinding(service, infra)
-	if _, err := kubernetes.ResourceC(k.cli).CreateIfNotExistsForOwner(sinkBinding, service, k.scheme); err != nil {
+	if err := kubernetes.ResourceC(k.cli).CreateIfNotExistsForOwner(sinkBinding, service, k.scheme); err != nil {
 		return err
 	}
 

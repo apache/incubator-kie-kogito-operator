@@ -1,0 +1,19 @@
+#Infinispan operator should be pre-installed in namespace
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoInfra
+metadata:
+  name: kogito-infinispan-infra
+spec:
+  resource:
+    apiVersion: infinispan.org/v1
+    kind: Infinispan
+---
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoRuntime
+metadata:
+  name: example-quarkus
+spec:
+  # see the quarkus-jvm.Dockerfile in this directory to know how to build your image locally
+  image: quay.io/<namespace>/process-quarkus-example:latest
+  infra:
+    - kogito-infinispan-infra

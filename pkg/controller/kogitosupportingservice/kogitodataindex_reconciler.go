@@ -36,7 +36,7 @@ func (*DataIndexSupportingServiceResource) Reconcile(client *client.Client, inst
 	if err = infrastructure.InjectDataIndexURLIntoKogitoRuntimeServices(client, instance.Namespace); err != nil {
 		return
 	}
-	if err = infrastructure.InjectDataIndexURLIntoMgmtConsole(client, instance.Namespace); err != nil {
+	if err = infrastructure.InjectDataIndexURLIntoSupportingService(client, instance.Namespace, appv1alpha1.MgmtConsole); err != nil {
 		return
 	}
 	definition := services.ServiceDefinition{

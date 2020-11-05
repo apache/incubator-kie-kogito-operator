@@ -1,0 +1,14 @@
+apiVersion: app.kiegroup.org/v1alpha1
+kind: KogitoSupportingService
+metadata:
+  name: task-console
+spec:
+  serviceType: TaskConsole
+  replicas: 1
+  image: quay.io/kiegroup/kogito-task-console
+  # we use environment variables to set the external data index URL
+  # this is needed for now since Task Console is a client application, we are working on having a local proxy to
+  # use the Kubernetes service instead
+  env:
+    - name: KOGITO_DATAINDEX_HTTP_URL
+      value: http://data-index.kogito

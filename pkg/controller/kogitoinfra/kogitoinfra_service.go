@@ -16,6 +16,8 @@ package kogitoinfra
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"strings"
 
@@ -23,13 +25,18 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
-// getKogitoInfraResource identify and return request kogito infra resource on bases of information provided in kogitoInfra value
-func getKogitoInfraResource(instance *v1alpha1.KogitoInfra) (InfraResource, error) {
+// getKogitoInfraReconciler identify and return request kogito infra reconciliation logic on bases of information provided in kogitoInfra value
+func getKogitoInfraReconciler(cli *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (InfraReconciler, error) {
 	log.Debugf("going to fetch related kogito infra resource for given infra instance : %s", instance.Name)
-	if infraRes, ok := getSupportedInfraResources()[resourceClassForInstance(instance)]; ok {
+	context := targetContext{
+		client:   cli,
+		instance: instance,
+		scheme:   scheme,
+	}
+	if infraRes, ok := getSupportedInfraResources(context)[resourceClassForInstance(instance)]; ok {
 		return infraRes, nil
 	}
-	return nil, newUnsupportedAPIError(instance)
+	return nil, errorForUnsupportedAPI(instance)
 }
 
 func resourceClassForInstance(instance *v1alpha1.KogitoInfra) string {
@@ -40,11 +47,11 @@ func getResourceClass(kind, APIVersion string) string {
 	return strings.ToLower(fmt.Sprintf("%s.%s", kind, APIVersion))
 }
 
-func getSupportedInfraResources() map[string]InfraResource {
-	return map[string]InfraResource{
-		getResourceClass(infrastructure.InfinispanKind, infrastructure.InfinispanAPIVersion):                 &infinispanInfraResource{},
-		getResourceClass(infrastructure.KafkaKind, infrastructure.KafkaAPIVersion):                           &kafkaInfraResource{},
-		getResourceClass(infrastructure.KeycloakKind, infrastructure.KeycloakAPIVersion):                     &keycloakInfraResource{},
-		getResourceClass(infrastructure.KnativeEventingBrokerKind, infrastructure.KnativeEventingAPIVersion): &knativeInfraResource{},
+func getSupportedInfraResources(context targetContext) map[string]InfraReconciler {
+	return map[string]InfraReconciler{
+		getResourceClass(infrastructure.InfinispanKind, infrastructure.InfinispanAPIVersion):                 &infinispanInfraReconciler{context},
+		getResourceClass(infrastructure.KafkaKind, infrastructure.KafkaAPIVersion):                           &kafkaInfraReconciler{context},
+		getResourceClass(infrastructure.KeycloakKind, infrastructure.KeycloakAPIVersion):                     &keycloakInfraReconciler{context},
+		getResourceClass(infrastructure.KnativeEventingBrokerKind, infrastructure.KnativeEventingAPIVersion): &knativeInfraReconciler{context},
 	}
 }

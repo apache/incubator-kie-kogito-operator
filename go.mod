@@ -27,6 +27,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.15.0
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
 	golang.org/x/tools v0.0.0-20200916195026-c9a70fc28ce3 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
@@ -38,6 +39,7 @@ require (
 	knative.dev/eventing v0.18.0
 	knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab
 	sigs.k8s.io/controller-runtime v0.6.1
+	software.sslmate.com/src/go-pkcs12 v0.0.0-20201103104416-57fc603b7f52
 )
 
 replace (

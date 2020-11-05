@@ -15,10 +15,13 @@
 package kogitoinfra
 
 import (
+	"context"
 	"fmt"
+	"software.sslmate.com/src/go-pkcs12"
+	"sort"
+
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -31,8 +34,9 @@ import (
 )
 
 const (
-	secretName   = "kogito-infinispan-credential"
-	replicasSize = 1
+	credentialSecretName = "kogito-infinispan-credential"
+	truststoreSecretName = "kogito-infinispan-truststore"
+	replicasSize         = 1
 
 	// appPropInfinispanServerList application property for setting infinispan server
 	appPropInfinispanServerList int = iota
@@ -44,14 +48,23 @@ const (
 	appPropInfinispanSaslMechanism
 	// appPropInfinispanAuthRealm application property for setting infinispan auth realm
 	appPropInfinispanAuthRealm
+	appPropInfinispanTrustStore
+	appPropInfinispanTrustStoreType
+	appPropInfinispanTrustStorePassword
 	// envVarInfinispanUser environment variable for setting infinispan username
 	envVarInfinispanUser
 	// envVarInfinispanPassword environment variable for setting infinispan password
 	envVarInfinispanPassword
-	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
-	enablePersistenceEnvKey    = "ENABLE_PERSISTENCE"
+	enablePersistenceEnvKey = "ENABLE_PERSISTENCE"
 	// saslPlain is the PLAIN type.
-	saslPlain string = "PLAIN"
+	saslPlain                  = "PLAIN"
+	pkcs12CertType             = "PKCS12"
+	certMountPath              = infrastructure.KogitoHomeDir + "/certs/infinispan"
+	truststoreSecretKey        = "truststore.p12"
+	truststoreMountPath        = certMountPath + "/" + truststoreSecretKey
+	infinispanTLSSecretKey     = "tls.crt"
+	infinispanCertMountName    = "infinispan-cert"
+	infinispanEnvKeyCredSecret = "INFINISPAN_CREDENTIAL_SECRET"
 )
 
 var (
@@ -61,36 +74,42 @@ var (
 
 	// propertiesInfinispanQuarkus infinispan properties for quarkus runtime
 	propertiesInfinispanQuarkus = map[int]string{
-		appPropInfinispanServerList:    "quarkus.infinispan-client.server-list",
-		appPropInfinispanUseAuth:       "quarkus.infinispan-client.use-auth",
-		appPropInfinispanSaslMechanism: "quarkus.infinispan-client.sasl-mechanism",
-		appPropInfinispanAuthRealm:     "quarkus.infinispan-client.auth-realm",
+		appPropInfinispanServerList:         "quarkus.infinispan-client.server-list",
+		appPropInfinispanUseAuth:            "quarkus.infinispan-client.use-auth",
+		appPropInfinispanSaslMechanism:      "quarkus.infinispan-client.sasl-mechanism",
+		appPropInfinispanAuthRealm:          "quarkus.infinispan-client.auth-realm",
+		appPropInfinispanTrustStore:         "quarkus.infinispan-client.trust-store",
+		appPropInfinispanTrustStoreType:     "quarkus.infinispan-client.trust-store-type",
+		appPropInfinispanTrustStorePassword: "quarkus.infinispan-client.trust-store-password",
 
 		envVarInfinispanUser:     "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
 		envVarInfinispanPassword: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
 	}
 	// propertiesInfinispanSpring infinispan properties for spring boot runtime
 	propertiesInfinispanSpring = map[int]string{
-		appPropInfinispanServerList:    "infinispan.remote.server-list",
-		appPropInfinispanUseAuth:       "infinispan.remote.use-auth",
-		appPropInfinispanSaslMechanism: "infinispan.remote.sasl-mechanism",
-		appPropInfinispanAuthRealm:     "infinispan.remote.auth-realm",
+		appPropInfinispanServerList:         "infinispan.remote.server-list",
+		appPropInfinispanUseAuth:            "infinispan.remote.use-auth",
+		appPropInfinispanSaslMechanism:      "infinispan.remote.sasl-mechanism",
+		appPropInfinispanAuthRealm:          "infinispan.remote.auth-realm",
+		appPropInfinispanTrustStore:         "infinispan.remote.trust-store-file-name",
+		appPropInfinispanTrustStoreType:     "infinispan.remote.trust-store-type",
+		appPropInfinispanTrustStorePassword: "infinispan.remote.trust-store-password",
 
 		envVarInfinispanUser:     "INFINISPAN_REMOTE_AUTH_USERNAME",
 		envVarInfinispanPassword: "INFINISPAN_REMOTE_AUTH_PASSWORD",
 	}
 )
 
-func getInfinispanSecretEnvVars(cli *client.Client, infinispanInstance *infinispan.Infinispan, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) ([]corev1.EnvVar, error) {
+func (i *infinispanInfraReconciler) getInfinispanSecretEnvVars(infinispanInstance *infinispan.Infinispan) ([]corev1.EnvVar, error) {
 	var envProps []corev1.EnvVar
 
-	customInfinispanSecret, resultErr := loadCustomKogitoInfinispanSecret(cli, instance.Namespace)
+	customInfinispanSecret, resultErr := i.loadCustomKogitoInfinispanSecret()
 	if resultErr != nil {
 		return nil, resultErr
 	}
 
 	if customInfinispanSecret == nil {
-		customInfinispanSecret, resultErr = createCustomKogitoInfinispanSecret(cli, instance.Namespace, infinispanInstance, instance, scheme)
+		customInfinispanSecret, resultErr = i.createCustomKogitoInfinispanSecret(infinispanInstance)
 		if resultErr != nil {
 			return nil, resultErr
 		}
@@ -103,13 +122,16 @@ func getInfinispanSecretEnvVars(cli *client.Client, infinispanInstance *infinisp
 	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanQuarkus[envVarInfinispanUser], secretName, infrastructure.InfinispanSecretUsernameKey))
 	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanSpring[envVarInfinispanPassword], secretName, infrastructure.InfinispanSecretPasswordKey))
 	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanQuarkus[envVarInfinispanPassword], secretName, infrastructure.InfinispanSecretPasswordKey))
+	sort.Slice(envProps, func(i, j int) bool {
+		return envProps[i].Name < envProps[j].Name
+	})
 	return envProps, nil
 }
 
-func getInfinispanAppProps(cli *client.Client, name string, namespace string) (map[string]string, error) {
+func (i *infinispanInfraReconciler) getInfinispanAppProps(name, namespace string) (map[string]string, error) {
 	appProps := map[string]string{}
 
-	infinispanURI, resultErr := infrastructure.FetchKogitoInfinispanInstanceURI(cli, name, namespace)
+	infinispanURI, resultErr := infrastructure.FetchKogitoInfinispanInstanceURI(i.client, name, namespace)
 	if resultErr != nil {
 		return nil, resultErr
 	}
@@ -122,35 +144,114 @@ func getInfinispanAppProps(cli *client.Client, name string, namespace string) (m
 	}
 	appProps[propertiesInfinispanSpring[appPropInfinispanSaslMechanism]] = saslPlain
 	appProps[propertiesInfinispanQuarkus[appPropInfinispanSaslMechanism]] = saslPlain
+
+	if hasInfinispanMountedVolume(i.instance) {
+		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStoreType]] = pkcs12CertType
+		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStoreType]] = pkcs12CertType
+		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStore]] = truststoreMountPath
+		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStore]] = truststoreMountPath
+		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
+		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
+	}
 	return appProps, nil
 }
 
-func updateInfinispanAppPropsInStatus(cli *client.Client, infinispanInstance *infinispan.Infinispan, instance *v1alpha1.KogitoInfra) error {
+func (i *infinispanInfraReconciler) updateInfinispanAppPropsInStatus(infinispanInstance *infinispan.Infinispan) error {
 	log.Debugf("going to Update Infinispan app properties in kogito infra instance status")
-	appProps, err := getInfinispanAppProps(cli, infinispanInstance.Name, infinispanInstance.Namespace)
+	appProps, err := i.getInfinispanAppProps(infinispanInstance.Name, infinispanInstance.Namespace)
 	if err != nil {
 		return err
 	}
-	instance.Status.AppProps = appProps
+	i.instance.Status.AppProps = appProps
 	log.Debugf("Following app properties are set infra status : %s", appProps)
 	return nil
 }
 
-func updateInfinispanEnvVarsInStatus(cli *client.Client, infinispanInstance *infinispan.Infinispan, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) error {
+func (i *infinispanInfraReconciler) updateInfinispanEnvVarsInStatus(infinispanInstance *infinispan.Infinispan) error {
 	log.Debugf("going to Update Infinispan env properties in kogito infra instance status")
-	envVars, err := getInfinispanSecretEnvVars(cli, infinispanInstance, instance, scheme)
+	envVars, err := i.getInfinispanSecretEnvVars(infinispanInstance)
 	if err != nil {
 		return err
 	}
-	instance.Status.Env = envVars
+	i.instance.Status.Env = envVars
 	log.Debugf("Following env properties are set infra status : %s", envVars)
 	return nil
 }
 
-func loadDeployedInfinispanInstance(cli *client.Client, instanceName string, namespace string) (*infinispan.Infinispan, error) {
+func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanInstance *infinispan.Infinispan) error {
+	if len(infinispanInstance.Status.Security.EndpointEncryption.CertSecretName) == 0 {
+		return nil
+	}
+	tlsSecret, err := i.ensureEncryptionTrustStoreSecret(infinispanInstance)
+	if err != nil || tlsSecret == nil {
+		return err
+	}
+	volume := v1alpha1.KogitoInfraVolume{
+		Mount: corev1.VolumeMount{
+			Name:      infinispanCertMountName,
+			ReadOnly:  true,
+			MountPath: truststoreMountPath,
+			SubPath:   truststoreSecretKey,
+		},
+		NamedVolume: v1alpha1.ConfigVolume{
+			Name: infinispanCertMountName,
+			ConfigVolumeSource: v1alpha1.ConfigVolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: tlsSecret.Name,
+					Items: []corev1.KeyToPath{
+						{
+							Key:  truststoreSecretKey,
+							Path: truststoreSecretKey,
+							Mode: &framework.ModeForCertificates,
+						},
+					},
+					DefaultMode: &framework.ModeForCertificates,
+				},
+			},
+		},
+	}
+	i.instance.Status.Volume = []v1alpha1.KogitoInfraVolume{volume}
+	return nil
+}
+
+func (i *infinispanInfraReconciler) ensureEncryptionTrustStoreSecret(infinispanInstance *infinispan.Infinispan) (*corev1.Secret, error) {
+	if len(infinispanInstance.Status.Security.EndpointEncryption.CertSecretName) == 0 {
+		return nil, nil
+	}
+	kogitoInfraEncryptionSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: truststoreSecretName, Namespace: infinispanInstance.Namespace},
+	}
+	if exists, err := kubernetes.ResourceC(i.client).Fetch(kogitoInfraEncryptionSecret); err != nil {
+		return nil, err
+	} else if !exists {
+		infinispanSecret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      infinispanInstance.Status.Security.EndpointEncryption.CertSecretName,
+				Namespace: infinispanInstance.Namespace}}
+		if ispnSecretExists, err := kubernetes.ResourceC(i.client).Fetch(infinispanSecret); err != nil || !ispnSecretExists {
+			return nil, err
+		}
+		trustStore, err := framework.CreatePKCS12TrustStoreFromSecret(infinispanSecret, pkcs12.DefaultPassword, infinispanTLSSecretKey)
+		if err != nil {
+			return nil, err
+		}
+		kogitoInfraEncryptionSecret.Type = corev1.SecretTypeOpaque
+		kogitoInfraEncryptionSecret.Data = map[string][]byte{truststoreSecretKey: trustStore}
+		// we need to create the secret calling the API directly, for some reason the bytes of the generated file gets corrupted
+		if err := framework.SetOwner(i.instance, i.scheme, kogitoInfraEncryptionSecret); err != nil {
+			return nil, err
+		}
+		if err := i.client.ControlCli.Create(context.TODO(), kogitoInfraEncryptionSecret); err != nil {
+			return nil, err
+		}
+	}
+	return kogitoInfraEncryptionSecret, nil
+}
+
+func (i *infinispanInfraReconciler) loadDeployedInfinispanInstance(name, namespace string) (*infinispan.Infinispan, error) {
 	log.Debug("fetching deployed kogito infinispan instance")
 	infinispanInstance := &infinispan.Infinispan{}
-	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, infinispanInstance); err != nil {
+	if exits, err := kubernetes.ResourceC(i.client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, infinispanInstance); err != nil {
 		log.Error("Error occurs while fetching kogito infinispan instance")
 		return nil, err
 	} else if !exits {
@@ -162,7 +263,7 @@ func loadDeployedInfinispanInstance(cli *client.Client, instanceName string, nam
 	}
 }
 
-func createNewInfinispanInstance(cli *client.Client, name string, namespace string, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*infinispan.Infinispan, error) {
+func (i *infinispanInfraReconciler) createNewInfinispanInstance(name, namespace string) (*infinispan.Infinispan, error) {
 	log.Debug("Going to create kogito infinispan instance")
 	infinispanRes := &infinispan.Infinispan{
 		ObjectMeta: metav1.ObjectMeta{
@@ -173,10 +274,10 @@ func createNewInfinispanInstance(cli *client.Client, name string, namespace stri
 			Replicas: replicasSize,
 		},
 	}
-	if err := controllerutil.SetOwnerReference(instance, infinispanRes, scheme); err != nil {
+	if err := controllerutil.SetOwnerReference(i.instance, infinispanRes, i.scheme); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(cli).Create(infinispanRes); err != nil {
+	if err := kubernetes.ResourceC(i.client).Create(infinispanRes); err != nil {
 		log.Error("Error occurs while creating kogito infinispan instance")
 		return nil, err
 	}
@@ -184,32 +285,32 @@ func createNewInfinispanInstance(cli *client.Client, name string, namespace stri
 	return infinispanRes, nil
 }
 
-func loadCustomKogitoInfinispanSecret(cli *client.Client, namespace string) (*corev1.Secret, error) {
-	log.Debugf("Fetching %s ", secretName)
+func (i *infinispanInfraReconciler) loadCustomKogitoInfinispanSecret() (*corev1.Secret, error) {
+	log.Debugf("Fetching %s ", credentialSecretName)
 	secret := &corev1.Secret{}
-	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: secretName, Namespace: namespace}, secret); err != nil {
-		log.Errorf("Error occurs while fetching %s", secretName)
+	if exits, err := kubernetes.ResourceC(i.client).FetchWithKey(types.NamespacedName{Name: credentialSecretName, Namespace: i.instance.Namespace}, secret); err != nil {
+		log.Errorf("Error occurs while fetching %s", credentialSecretName)
 		return nil, err
 	} else if !exits {
-		log.Errorf("%s not found", secretName)
+		log.Errorf("%s not found", credentialSecretName)
 		return nil, nil
 	} else {
-		log.Debugf("%s successfully fetched", secretName)
+		log.Debugf("%s successfully fetched", credentialSecretName)
 		return secret, nil
 	}
 }
 
-func createCustomKogitoInfinispanSecret(cli *client.Client, namespace string, infinispanInstance *infinispan.Infinispan, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (*corev1.Secret, error) {
-	log.Debugf("Creating new secret %s", secretName)
+func (i *infinispanInfraReconciler) createCustomKogitoInfinispanSecret(infinispanInstance *infinispan.Infinispan) (*corev1.Secret, error) {
+	log.Debugf("Creating new secret %s", credentialSecretName)
 
-	credentials, err := infrastructure.GetInfinispanCredential(cli, infinispanInstance)
+	credentials, err := infrastructure.GetInfinispanCredential(i.client, infinispanInstance)
 	if err != nil {
 		return nil, err
 	}
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: namespace,
+			Name:      credentialSecretName,
+			Namespace: i.instance.Namespace,
 		},
 		Type: corev1.SecretTypeOpaque,
 	}
@@ -219,10 +320,10 @@ func createCustomKogitoInfinispanSecret(cli *client.Client, namespace string, in
 			infrastructure.InfinispanSecretPasswordKey: credentials.Password,
 		}
 	}
-	if err := controllerutil.SetOwnerReference(instance, secret, scheme); err != nil {
+	if err := controllerutil.SetOwnerReference(i.instance, secret, i.scheme); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(cli).Create(secret); err != nil {
+	if err := kubernetes.ResourceC(i.client).Create(secret); err != nil {
 		log.Errorf("Error occurs while creating %s", secret)
 		return nil, err
 	}
@@ -230,7 +331,89 @@ func createCustomKogitoInfinispanSecret(cli *client.Client, namespace string, in
 	return secret, nil
 }
 
-type infinispanInfraResource struct {
+type infinispanInfraReconciler struct {
+	targetContext
+}
+
+// Reconcile reconcile Kogito infra object
+func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) {
+
+	var infinispanInstance *infinispan.Infinispan
+
+	if !infrastructure.IsInfinispanAvailable(i.client) {
+		return false, errorForResourceAPINotFound(&i.instance.Spec.Resource)
+	}
+
+	// Step 1: check whether user has provided custom infinispan instance reference
+	if len(i.instance.Spec.Resource.Name) > 0 {
+		log.Debugf("Custom infinispan instance reference is provided")
+
+		namespace := i.instance.Spec.Resource.Namespace
+		if len(namespace) == 0 {
+			namespace = i.instance.Namespace
+			log.Debugf("Namespace is not provided for custom resource, taking instance namespace(%s) as default", namespace)
+		}
+		infinispanInstance, resultErr = i.loadDeployedInfinispanInstance(i.instance.Spec.Resource.Name, namespace)
+		if resultErr != nil {
+			return false, resultErr
+		}
+		if infinispanInstance == nil {
+			return false, errorForResourceNotFound("Infinispan", i.instance.Spec.Resource.Name, namespace)
+		}
+	} else {
+		// create/refer kogito-infinispan instance
+		log.Debugf("Custom infinispan instance reference is not provided")
+		// Verify Infinispan Operator (it's installation is required in the same namespace, that's why we do this check as well)
+		if infinispanAvailable, err := infrastructure.IsInfinispanOperatorAvailable(i.client, i.instance.Namespace); err != nil {
+			return false, err
+		} else if !infinispanAvailable {
+			return false, errorForResourceAPINotFound(&i.instance.Spec.Resource)
+		}
+		infinispanInstance, resultErr = i.loadDeployedInfinispanInstance(infrastructure.InfinispanInstanceName, i.instance.Namespace)
+		if resultErr != nil {
+			return false, resultErr
+		}
+
+		if infinispanInstance == nil {
+			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
+			_, resultErr = i.createNewInfinispanInstance(infrastructure.InfinispanInstanceName, i.instance.Namespace)
+			if resultErr != nil {
+				return false, resultErr
+			}
+			return true, nil
+		}
+	}
+	infinispanCondition := getLatestInfinispanCondition(infinispanInstance)
+	if infinispanCondition == nil || infinispanCondition.Status != string(v1.ConditionTrue) {
+		return false, errorForResourceNotReadyError(fmt.Errorf("infinispan instance %s not ready. Waiting for Condition.Type == True", infinispanInstance.Name))
+	}
+	if resultErr := i.updateInfinispanVolumesInStatus(infinispanInstance); resultErr != nil {
+		return false, nil
+	}
+	if resultErr := i.updateInfinispanAppPropsInStatus(infinispanInstance); resultErr != nil {
+		return false, nil
+	}
+	if resultErr := i.updateInfinispanEnvVarsInStatus(infinispanInstance); resultErr != nil {
+		return false, nil
+	}
+	return false, resultErr
+}
+
+func hasInfinispanMountedVolume(infra *v1alpha1.KogitoInfra) bool {
+	for _, volume := range infra.Status.Volume {
+		if volume.NamedVolume.Name == infinispanCertMountName {
+			return true
+		}
+	}
+	return false
+}
+
+func getLatestInfinispanCondition(instance *infinispan.Infinispan) *infinispan.InfinispanCondition {
+	if len(instance.Status.Conditions) == 0 {
+		return nil
+	}
+	// Infinispan does not have a condition transition date, so let's get the latest
+	return &instance.Status.Conditions[len(instance.Status.Conditions)-1]
 }
 
 // getInfinispanWatchedObjects provide list of object that needs to be watched to maintain Infinispan kogitoInfra resource
@@ -245,73 +428,4 @@ func getInfinispanWatchedObjects() []framework.WatchedObjects {
 			Objects: []runtime.Object{&corev1.Secret{}},
 		},
 	}
-}
-
-// Reconcile reconcile Kogito infra object
-func (i *infinispanInfraResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (requeue bool, resultErr error) {
-
-	var infinispanInstance *infinispan.Infinispan
-
-	if !infrastructure.IsInfinispanAvailable(client) {
-		return false, newResourceAPINotFoundError(&instance.Spec.Resource)
-	}
-
-	// Step 1: check whether user has provided custom infinispan instance reference
-	if len(instance.Spec.Resource.Name) > 0 {
-		log.Debugf("Custom infinispan instance reference is provided")
-
-		namespace := instance.Spec.Resource.Namespace
-		if len(namespace) == 0 {
-			namespace = instance.Namespace
-			log.Debugf("Namespace is not provided for custom resource, taking instance namespace(%s) as default", namespace)
-		}
-		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, instance.Spec.Resource.Name, namespace)
-		if resultErr != nil {
-			return false, resultErr
-		}
-		if infinispanInstance == nil {
-			return false, newResourceNotFoundError("Infinispan", instance.Spec.Resource.Name, namespace)
-		}
-	} else {
-		// create/refer kogito-infinispan instance
-		log.Debugf("Custom infinispan instance reference is not provided")
-		// Verify Infinispan Operator (it's installation is required in the same namespace, that's why we do this check as well)
-		if infinispanAvailable, err := infrastructure.IsInfinispanOperatorAvailable(client, instance.Namespace); err != nil {
-			return false, err
-		} else if !infinispanAvailable {
-			return false, newResourceAPINotFoundError(&instance.Spec.Resource)
-		}
-		infinispanInstance, resultErr = loadDeployedInfinispanInstance(client, infrastructure.InfinispanInstanceName, instance.Namespace)
-		if resultErr != nil {
-			return false, resultErr
-		}
-
-		if infinispanInstance == nil {
-			// if not exist then create new Infinispan instance. Infinispan operator creates Infinispan instance, secret & service resource
-			_, resultErr = createNewInfinispanInstance(client, infrastructure.InfinispanInstanceName, instance.Namespace, instance, scheme)
-			if resultErr != nil {
-				return false, resultErr
-			}
-			return true, nil
-		}
-	}
-	infinispanCondition := getLatestInfinispanCondition(infinispanInstance)
-	if infinispanCondition == nil || infinispanCondition.Status != string(v1.ConditionTrue) {
-		return false, newResourceNotReadyError(instance, fmt.Errorf("infinispan instance %s not ready. Waiting for Condition.Type == True", infinispanInstance.Name))
-	}
-	if resultErr := updateInfinispanAppPropsInStatus(client, infinispanInstance, instance); resultErr != nil {
-		return false, nil
-	}
-	if resultErr := updateInfinispanEnvVarsInStatus(client, infinispanInstance, instance, scheme); resultErr != nil {
-		return false, nil
-	}
-	return false, resultErr
-}
-
-func getLatestInfinispanCondition(instance *infinispan.Infinispan) *infinispan.InfinispanCondition {
-	if len(instance.Status.Conditions) == 0 {
-		return nil
-	}
-	// Infinispan does not have a condition transition date, so let's get the latest
-	return &instance.Status.Conditions[len(instance.Status.Conditions)-1]
 }

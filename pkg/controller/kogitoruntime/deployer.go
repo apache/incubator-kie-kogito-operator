@@ -36,25 +36,16 @@ import (
 )
 
 const (
-	kogitoHome = "/home/kogito"
-
 	serviceAccountName = "kogito-service-viewer"
 
 	envVarExternalURL = "KOGITO_SERVICE_URL"
 
 	// protobufConfigMapSuffix Suffix that is appended to Protobuf ConfigMap name
-	protobufConfigMapSuffix  = "protobuf-files"
-	downwardAPIVolumeName    = "podinfo"
-	downwardAPIVolumeMount   = kogitoHome + "/" + downwardAPIVolumeName
-	downwardAPIProtoBufCMKey = "protobufcm"
-	protobufSubdir           = "/persistence/protobuf/"
-	protobufListFileName     = "list.json"
+	protobufConfigMapSuffix = "protobuf-files"
+	protobufSubdir          = "/persistence/protobuf/"
+	protobufListFileName    = "list.json"
 
 	envVarNamespace = "NAMESPACE"
-)
-
-var (
-	downwardAPIDefaultMode = int32(420)
 )
 
 func onGetComparators(comparator compare.ResourceComparator) {
@@ -158,8 +149,6 @@ func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoSer
 	if kogitoRuntime.Spec.EnableIstio {
 		framework.AddIstioInjectSidecarAnnotation(&deployment.Spec.Template.ObjectMeta)
 	}
-	// protobuf
-	applyProtoBufConfigurations(deployment, kogitoService)
 
 	if err := infrastructure.InjectDataIndexURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
@@ -179,35 +168,6 @@ func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoSer
 // getProtoBufConfigMapName gets the name of the protobuf configMap based the given KogitoRuntime instance
 func getProtoBufConfigMapName(serviceName string) string {
 	return fmt.Sprintf("%s-%s", serviceName, protobufConfigMapSuffix)
-}
-
-// applyProtoBufConfigurations configures the deployment to handle protobuf
-func applyProtoBufConfigurations(deployment *v1.Deployment, kogitoService v1alpha1.KogitoService) {
-	deployment.Spec.Template.Labels[downwardAPIProtoBufCMKey] = getProtoBufConfigMapName(kogitoService.GetName())
-	deployment.Spec.Template.Spec.Volumes = append(
-		deployment.Spec.Template.Spec.Volumes,
-		corev1.Volume{
-			Name: downwardAPIVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				DownwardAPI: &corev1.DownwardAPIVolumeSource{
-					Items: []corev1.DownwardAPIVolumeFile{
-						{Path: "name", FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name", APIVersion: "v1"}},
-						{Path: downwardAPIProtoBufCMKey, FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.labels['" + downwardAPIProtoBufCMKey + "']", APIVersion: "v1"}},
-					},
-					DefaultMode: &downwardAPIDefaultMode,
-				},
-			},
-		},
-	)
-	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		deployment.Spec.Template.Spec.Containers[0].VolumeMounts =
-			append(
-				deployment.Spec.Template.Spec.Containers[0].VolumeMounts,
-				corev1.VolumeMount{
-					Name:      downwardAPIVolumeName,
-					MountPath: downwardAPIVolumeMount,
-				})
-	}
 }
 
 func getHTTPFileBytes(fileURL string) ([]byte, error) {
