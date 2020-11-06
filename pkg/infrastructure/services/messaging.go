@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -47,7 +47,7 @@ type messagingDeployer struct {
 
 // handleMessagingResources handles messaging resources creation.
 // These resources can be required by the deployed service through a bound KogitoInfra.
-func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, definition ServiceDefinition, service v1alpha1.KogitoService) error {
+func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, definition ServiceDefinition, service v1beta1.KogitoService) error {
 	m := messagingDeployer{
 		scheme:     scheme,
 		cli:        cli,
@@ -64,12 +64,12 @@ func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, defini
 	return nil
 }
 
-func (m *messagingDeployer) fetchRequiredTopics(instance v1alpha1.KogitoService) ([]messageTopic, error) {
+func (m *messagingDeployer) fetchRequiredTopics(instance v1beta1.KogitoService) ([]messageTopic, error) {
 	svcURL := infrastructure.GetKogitoServiceEndpoint(instance)
 	return m.fetchRequiredTopicsForURL(instance, svcURL)
 }
 
-func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1alpha1.KogitoService, serverURL string) ([]messageTopic, error) {
+func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1beta1.KogitoService, serverURL string) ([]messageTopic, error) {
 	available, err := IsDeploymentAvailable(m.cli, instance)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1alpha1.KogitoSe
 	return topics, nil
 }
 
-func (m *messagingDeployer) fetchInfraDependency(service v1alpha1.KogitoService, checker func(*v1alpha1.KogitoInfra) bool) (*v1alpha1.KogitoInfra, error) {
+func (m *messagingDeployer) fetchInfraDependency(service v1beta1.KogitoService, checker func(*v1beta1.KogitoInfra) bool) (*v1beta1.KogitoInfra, error) {
 	for _, infraName := range service.GetSpec().GetInfra() {
 		infra, err := infrastructure.MustFetchKogitoInfraInstance(m.cli, infraName, service.GetNamespace())
 		if err != nil {

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
@@ -49,10 +49,10 @@ func Test_removeRuntimeServiceCommand_NoServiceThereWithAlias(t *testing.T) {
 func Test_removeRuntimeServiceCommand_SingletonService(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove jobs-service -p %s", ns)
-	jobsService := &v1alpha1.KogitoSupportingService{
+	jobsService := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
 		},
 	}
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService)
@@ -67,17 +67,17 @@ func Test_removeRuntimeServiceCommand_SingletonService(t *testing.T) {
 func Test_removeRuntimeServiceCommand_MoreThenOneService(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove jobs-service -p %s", ns)
-	jobsService1 := &v1alpha1.KogitoSupportingService{
+	jobsService1 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
 		},
 	}
 
-	jobsService2 := &v1alpha1.KogitoSupportingService{
+	jobsService2 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: "my-job-service", Namespace: ns},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
 		},
 	}
 
@@ -93,17 +93,17 @@ func Test_removeRuntimeServiceCommand_MoreThenOneService(t *testing.T) {
 func Test_removeRuntimeServiceCommand_DifferentService(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove jobs-service -p %s", ns)
-	jobsService1 := &v1alpha1.KogitoSupportingService{
+	jobsService1 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
 		},
 	}
 
-	jobsService2 := &v1alpha1.KogitoSupportingService{
+	jobsService2 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: "data-index", Namespace: ns},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
 		},
 	}
 

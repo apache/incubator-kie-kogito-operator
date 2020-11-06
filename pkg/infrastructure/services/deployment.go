@@ -15,7 +15,7 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -29,7 +29,7 @@ const (
 	singleReplica = int32(1)
 )
 
-func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage string, definition ServiceDefinition) *appsv1.Deployment {
+func createRequiredDeployment(service v1beta1.KogitoService, resolvedImage string, definition ServiceDefinition) *appsv1.Deployment {
 	if definition.SingleReplica && *service.GetSpec().GetReplicas() > singleReplica {
 		service.GetSpec().SetReplicas(singleReplica)
 		log.Warnf("%s can't scale vertically, only one replica is allowed.", service.GetName())
@@ -82,7 +82,7 @@ func createRequiredDeployment(service v1alpha1.KogitoService, resolvedImage stri
 }
 
 // IsDeploymentAvailable verifies if the Deployment resource from the given KogitoService has replicas available
-func IsDeploymentAvailable(cli *client.Client, kogitoService v1alpha1.KogitoService) (bool, error) {
+func IsDeploymentAvailable(cli *client.Client, kogitoService v1beta1.KogitoService) (bool, error) {
 	// service's deployment hasn't been deployed yet, no need to fetch
 	if len(kogitoService.GetStatus().GetDeploymentConditions()) == 0 {
 		return false, nil

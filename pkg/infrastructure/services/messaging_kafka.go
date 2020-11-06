@@ -15,7 +15,7 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -32,7 +32,7 @@ type kafkaMessagingDeployer struct {
 	messagingDeployer
 }
 
-func (k *kafkaMessagingDeployer) createRequiredResources(service v1alpha1.KogitoService) error {
+func (k *kafkaMessagingDeployer) createRequiredResources(service v1beta1.KogitoService) error {
 	infra, err := k.fetchInfraDependency(service, infrastructure.IsKafkaResource)
 	if err != nil || infra == nil {
 		return err
@@ -43,7 +43,7 @@ func (k *kafkaMessagingDeployer) createRequiredResources(service v1alpha1.Kogito
 	return nil
 }
 
-func (k *kafkaMessagingDeployer) createRequiredKafkaTopics(infra *v1alpha1.KogitoInfra, service v1alpha1.KogitoService) error {
+func (k *kafkaMessagingDeployer) createRequiredKafkaTopics(infra *v1beta1.KogitoInfra, service v1beta1.KogitoService) error {
 	log.Debugf("Going to apply kafka topic configurations required by the deployed service '%s'", service.GetName())
 	kafkaURI := infra.Status.AppProps[QuarkusKafkaBootstrapAppProp]
 	if len(kafkaURI) == 0 {
@@ -71,7 +71,7 @@ func (k *kafkaMessagingDeployer) createRequiredKafkaTopics(infra *v1alpha1.Kogit
 	return nil
 }
 
-func (k *kafkaMessagingDeployer) createKafkaTopicIfNotExists(topicName string, instance *v1alpha1.KogitoInfra) error {
+func (k *kafkaMessagingDeployer) createKafkaTopicIfNotExists(topicName string, instance *v1beta1.KogitoInfra) error {
 	log.Debugf("Going to create kafka topic it is not exists %k", topicName)
 
 	kafkaNamespaceName := k.getKafkaInstanceNamespaceName(instance)
@@ -91,7 +91,7 @@ func (k *kafkaMessagingDeployer) createKafkaTopicIfNotExists(topicName string, i
 	return nil
 }
 
-func (k *kafkaMessagingDeployer) getKafkaInstanceNamespaceName(instance *v1alpha1.KogitoInfra) *types.NamespacedName {
+func (k *kafkaMessagingDeployer) getKafkaInstanceNamespaceName(instance *v1beta1.KogitoInfra) *types.NamespacedName {
 	// Step 1: check whether user has provided custom Kafka instance reference
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {

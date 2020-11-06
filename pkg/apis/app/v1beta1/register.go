@@ -14,10 +14,10 @@
 
 // NOTE: Boilerplate only.  Ignore this file.
 
-// Package v1alpha1 contains API Schema definitions for the app v1alpha1 API group
+// Package v1beta1 contains API Schema definitions for the app v1beta1 API group
 // +k8s:deepcopy-gen=package,register
 // +groupName=app.kiegroup.org
-package v1alpha1
+package v1beta1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"

@@ -15,7 +15,7 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -32,14 +32,14 @@ import (
 
 func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultJobsServiceName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
@@ -64,14 +64,14 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 
 func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultJobsServiceName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
@@ -99,14 +99,14 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
 	kogitoInfinispan := test.CreateFakeKogitoInfinispan(t.Name())
 
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Infra: []string{
 					kogitoKafka.Name,
@@ -155,14 +155,14 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 
 func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 			},
 		},

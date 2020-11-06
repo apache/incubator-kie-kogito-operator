@@ -165,7 +165,7 @@ Alternatively, you can install the `Kogito Operator` from [here](https://operato
 Now we’ll create a `KogitoRuntime` object with the image we built and pushed earlier.
 
 ```yaml
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoRuntime
 metadata:
   name: process-business-rules-quarkus

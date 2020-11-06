@@ -16,12 +16,12 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
 // reconciliationError type for KogitoInfra reconciliation cycle cases.
 type reconciliationError struct {
-	Reason     v1alpha1.KogitoInfraConditionReason
+	Reason     v1beta1.KogitoInfraConditionReason
 	innerError error
 }
 
@@ -37,21 +37,21 @@ func (e reconciliationError) Error() string {
 
 func errorForResourceNotFound(kind, instance, namespace string) reconciliationError {
 	return reconciliationError{
-		Reason:     v1alpha1.ResourceNotFound,
+		Reason:     v1beta1.ResourceNotFound,
 		innerError: fmt.Errorf("%s instance(%s) not found in namespace %s", kind, instance, namespace),
 	}
 }
 
-func errorForResourceAPINotFound(resource *v1alpha1.Resource) reconciliationError {
+func errorForResourceAPINotFound(resource *v1beta1.Resource) reconciliationError {
 	return reconciliationError{
-		Reason:     v1alpha1.ResourceAPINotFound,
+		Reason:     v1beta1.ResourceAPINotFound,
 		innerError: fmt.Errorf("%s CRD is not available in the cluster, this feature is not available. Please install the required Operator first. ", resource.APIVersion),
 	}
 }
 
-func errorForUnsupportedAPI(instance *v1alpha1.KogitoInfra) reconciliationError {
+func errorForUnsupportedAPI(instance *v1beta1.KogitoInfra) reconciliationError {
 	return reconciliationError{
-		Reason: v1alpha1.UnsupportedAPIKind,
+		Reason: v1beta1.UnsupportedAPIKind,
 		innerError: fmt.Errorf("API %s is not supported for kind %s. Supported APIs are: %v",
 			instance.Spec.Resource.APIVersion,
 			instance.Spec.Resource.Kind,
@@ -61,7 +61,7 @@ func errorForUnsupportedAPI(instance *v1alpha1.KogitoInfra) reconciliationError 
 
 func errorForResourceNotReadyError(err error) reconciliationError {
 	return reconciliationError{
-		Reason:     v1alpha1.ResourceNotReady,
+		Reason:     v1beta1.ResourceNotReady,
 		innerError: err,
 	}
 }
@@ -75,7 +75,7 @@ func getSupportedResources() []string {
 	return keys
 }
 
-func reasonForError(err error) v1alpha1.KogitoInfraConditionReason {
+func reasonForError(err error) v1beta1.KogitoInfraConditionReason {
 	if err == nil {
 		return ""
 	}
@@ -83,5 +83,5 @@ func reasonForError(err error) v1alpha1.KogitoInfraConditionReason {
 	case reconciliationError:
 		return t.Reason
 	}
-	return v1alpha1.ReconciliationFailure
+	return v1beta1.ReconciliationFailure
 }

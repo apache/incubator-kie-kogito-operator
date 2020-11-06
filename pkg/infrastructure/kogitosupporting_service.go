@@ -15,14 +15,14 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
 // getKogitoSupportingServiceRoute gets the route from a kogito service that's unique in the given namespace
-func getKogitoSupportingServiceRoute(client *client.Client, namespace string, resourceType v1alpha1.ServiceType) (route string, err error) {
+func getKogitoSupportingServiceRoute(client *client.Client, namespace string, resourceType v1beta1.ServiceType) (route string, err error) {
 	supportingService, err := getKogitoSupportingService(client, namespace, resourceType)
 	if err != nil {
 		return
@@ -33,8 +33,8 @@ func getKogitoSupportingServiceRoute(client *client.Client, namespace string, re
 	return
 }
 
-func getKogitoSupportingService(client *client.Client, namespace string, resourceType v1alpha1.ServiceType) (*v1alpha1.KogitoSupportingService, error) {
-	supportingServiceList := &v1alpha1.KogitoSupportingServiceList{}
+func getKogitoSupportingService(client *client.Client, namespace string, resourceType v1beta1.ServiceType) (*v1beta1.KogitoSupportingService, error) {
+	supportingServiceList := &v1beta1.KogitoSupportingServiceList{}
 	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, supportingServiceList); err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func getKogitoSupportingService(client *client.Client, namespace string, resourc
 }
 
 // getSupportingServiceDeployment gets deployment owned by supporting service within the given namespace
-func getSupportingServiceDeployment(namespace string, cli *client.Client, serviceType v1alpha1.ServiceType) (*appsv1.Deployment, error) {
+func getSupportingServiceDeployment(namespace string, cli *client.Client, serviceType v1beta1.ServiceType) (*appsv1.Deployment, error) {
 	supportingService, err := getKogitoSupportingService(cli, namespace, serviceType)
 	if err != nil {
 		return nil, err

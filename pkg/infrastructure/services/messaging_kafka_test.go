@@ -17,8 +17,8 @@ package services
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -33,29 +33,29 @@ func Test_createKafkaTopics(t *testing.T) {
 	appProps := map[string]string{}
 	appProps[QuarkusKafkaBootstrapAppProp] = "kogito-kafka:9092"
 
-	kogitoInfraInstance := &v1alpha1.KogitoInfra{
+	kogitoInfraInstance := &v1beta1.KogitoInfra{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-kafka",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.KafkaAPIVersion,
 				Kind:       infrastructure.KafkaKind,
 			},
 		},
-		Status: v1alpha1.KogitoInfraStatus{
+		Status: v1beta1.KogitoInfraStatus{
 			AppProps: appProps,
 		},
 	}
-	service := &v1alpha1.KogitoSupportingService{
+	service := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Infra: []string{kogitoInfraInstance.Name},
 			},
 		},
@@ -74,7 +74,7 @@ func Test_createKafkaTopics(t *testing.T) {
 	err := k.createRequiredResources(service)
 	assert.NoError(t, err)
 
-	kafkaTopic := &v1beta1.KafkaTopic{}
+	kafkaTopic := &kafkav1beta1.KafkaTopic{}
 	exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Namespace: t.Name(), Name: "kogito-processinstances-events"}, kafkaTopic)
 	assert.NoError(t, err)
 	assert.True(t, exists)

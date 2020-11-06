@@ -18,7 +18,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"github.com/imdario/mergo"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -47,7 +47,7 @@ const (
 
 // getAppPropConfigMapContentHash calculates the hash of the application.properties contents in the ConfigMap
 // If the ConfigMap doesn't exist, create a new one and return it.
-func getAppPropConfigMapContentHash(service v1alpha1.KogitoService, appProps map[string]string, cli *client.Client) (string, *corev1.ConfigMap, error) {
+func getAppPropConfigMapContentHash(service v1beta1.KogitoService, appProps map[string]string, cli *client.Client) (string, *corev1.ConfigMap, error) {
 	configMapName := getAppPropConfigMapName(service)
 	configMap := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: configMapName, Namespace: service.GetNamespace()}}
 
@@ -82,7 +82,7 @@ func getAppPropConfigMapContentHash(service v1alpha1.KogitoService, appProps map
 }
 
 // getAppPropConfigMapName gets the name of the config map for application.properties
-func getAppPropConfigMapName(service v1alpha1.KogitoService) string {
+func getAppPropConfigMapName(service v1beta1.KogitoService) string {
 	if len(service.GetSpec().GetPropertiesConfigMap()) > 0 {
 		return service.GetSpec().GetPropertiesConfigMap()
 	}
@@ -99,7 +99,7 @@ func createAppPropVolumeMount() corev1.VolumeMount {
 }
 
 // createAppPropVolume creates a volume for application.properties
-func createAppPropVolume(service v1alpha1.KogitoService) corev1.Volume {
+func createAppPropVolume(service v1beta1.KogitoService) corev1.Volume {
 	return corev1.Volume{
 		Name: AppPropVolumeName,
 		VolumeSource: corev1.VolumeSource{

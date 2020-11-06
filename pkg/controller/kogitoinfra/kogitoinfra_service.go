@@ -21,12 +21,12 @@ import (
 
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
 // getKogitoInfraReconciler identify and return request kogito infra reconciliation logic on bases of information provided in kogitoInfra value
-func getKogitoInfraReconciler(cli *client.Client, instance *v1alpha1.KogitoInfra, scheme *runtime.Scheme) (InfraReconciler, error) {
+func getKogitoInfraReconciler(cli *client.Client, instance *v1beta1.KogitoInfra, scheme *runtime.Scheme) (InfraReconciler, error) {
 	log.Debugf("going to fetch related kogito infra resource for given infra instance : %s", instance.Name)
 	context := targetContext{
 		client:   cli,
@@ -39,7 +39,7 @@ func getKogitoInfraReconciler(cli *client.Client, instance *v1alpha1.KogitoInfra
 	return nil, errorForUnsupportedAPI(instance)
 }
 
-func resourceClassForInstance(instance *v1alpha1.KogitoInfra) string {
+func resourceClassForInstance(instance *v1beta1.KogitoInfra) string {
 	return getResourceClass(instance.Spec.Resource.Kind, instance.Spec.Resource.APIVersion)
 }
 

@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	appsv1 "k8s.io/api/apps/v1"
 )
@@ -33,11 +33,11 @@ const (
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectJobsServicesURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
 	log.Debugf("Injecting Jobs Service Route in kogito Runtime instances")
-	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, jobsServicesHTTPRouteEnv, "", v1alpha1.JobsService)
+	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, jobsServicesHTTPRouteEnv, "", v1beta1.JobsService)
 }
 
 // InjectJobsServiceURLIntoKogitoRuntimeDeployment will inject jobs-service route URL in to kogito runtime deployment env var
 func InjectJobsServiceURLIntoKogitoRuntimeDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
 	log.Debugf("Injecting Jobs Service URL in kogito Runtime deployment")
-	return injectSupportingServiceURLIntoDeployment(client, namespace, jobsServicesHTTPRouteEnv, "", deployment, v1alpha1.JobsService)
+	return injectSupportingServiceURLIntoDeployment(client, namespace, jobsServicesHTTPRouteEnv, "", deployment, v1beta1.JobsService)
 }

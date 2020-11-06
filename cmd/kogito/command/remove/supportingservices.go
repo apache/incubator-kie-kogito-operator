@@ -19,7 +19,7 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +30,7 @@ type removeSupportingServiceFlags struct {
 
 type removableSupportingService struct {
 	cmdName     string
-	serviceType v1alpha1.ServiceType
+	serviceType v1beta1.ServiceType
 	aliases     []string
 }
 
@@ -45,32 +45,32 @@ type removeSupportingServiceCommand struct {
 var removableSupportingServices = []removableSupportingService{
 	{
 		cmdName:     "data-index",
-		serviceType: v1alpha1.DataIndex,
+		serviceType: v1beta1.DataIndex,
 	},
 	{
 		cmdName:     "explainability",
-		serviceType: v1alpha1.Explainability,
+		serviceType: v1beta1.Explainability,
 	},
 	{
 		cmdName:     "jobs-service",
-		serviceType: v1alpha1.JobsService,
+		serviceType: v1beta1.JobsService,
 	},
 	{
 		cmdName:     "mgmt-console",
-		serviceType: v1alpha1.MgmtConsole,
+		serviceType: v1beta1.MgmtConsole,
 		aliases:     []string{"management-console"},
 	},
 	{
 		cmdName:     "task-console",
-		serviceType: v1alpha1.TaskConsole,
+		serviceType: v1beta1.TaskConsole,
 	},
 	{
 		cmdName:     "trusty",
-		serviceType: v1alpha1.TrustyAI,
+		serviceType: v1beta1.TrustyAI,
 	},
 	{
 		cmdName:     "trusty-ui",
-		serviceType: v1alpha1.TrustyUI,
+		serviceType: v1beta1.TrustyUI,
 	},
 }
 
@@ -121,13 +121,13 @@ func (r *removeSupportingServiceCommand) Exec(cmd *cobra.Command, args []string)
 	if r.flags.namespace, err = shared.EnsureProject(r.Client, r.flags.namespace); err != nil {
 		return err
 	}
-	supportingServiceList := &v1alpha1.KogitoSupportingServiceList{}
+	supportingServiceList := &v1beta1.KogitoSupportingServiceList{}
 	err = kubernetes.ResourceC(r.Client).ListWithNamespace(r.flags.namespace, supportingServiceList)
 	if err != nil {
 		return err
 	}
 
-	var targetServiceItems []v1alpha1.KogitoSupportingService
+	var targetServiceItems []v1beta1.KogitoSupportingService
 	for _, supportingService := range supportingServiceList.Items {
 		if supportingService.Spec.ServiceType == r.supportingService.serviceType {
 			targetServiceItems = append(targetServiceItems, supportingService)

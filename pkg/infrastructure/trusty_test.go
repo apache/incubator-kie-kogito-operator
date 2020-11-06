@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +33,7 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 	ns := t.Name()
 	name := "my-kogito-app"
 	expectedRoute := "http://trusty-route.com"
-	kogitoRuntime := &v1alpha1.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -48,16 +48,16 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	trustyService := &v1alpha1.KogitoSupportingService{
+	trustyService := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      DefaultTrustyName,
 			Namespace: ns,
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.TrustyAI,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.TrustyAI,
 		},
-		Status: v1alpha1.KogitoSupportingServiceStatus{
-			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
+		Status: v1beta1.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedRoute},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{kogitoRuntime, trustyService, dc}, nil, nil)

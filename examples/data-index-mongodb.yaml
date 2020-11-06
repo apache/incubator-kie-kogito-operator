@@ -1,5 +1,5 @@
 #Strimzi operator should be pre-installed in namespace
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoInfra
 metadata:
   name: kogito-kafka-infra
@@ -9,7 +9,7 @@ spec:
     kind: Kafka
 ---
 # requires a existing mongodb instance running on the target namespace
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoDataIndex
 metadata:
   name: data-index

@@ -15,7 +15,7 @@
 package build
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	buildv1 "github.com/openshift/api/build/v1"
 	"strconv"
 	"strings"
@@ -27,7 +27,7 @@ const (
 )
 
 // GetApplicationName gets the Kogito service name
-func GetApplicationName(build *v1alpha1.KogitoBuild) string {
+func GetApplicationName(build *v1beta1.KogitoBuild) string {
 	if len(build.Spec.TargetKogitoRuntime) == 0 {
 		return build.Name
 	}
@@ -35,7 +35,7 @@ func GetApplicationName(build *v1alpha1.KogitoBuild) string {
 }
 
 // GetBuildBuilderName gets the BuildConfig builder name
-func GetBuildBuilderName(build *v1alpha1.KogitoBuild) string {
+func GetBuildBuilderName(build *v1beta1.KogitoBuild) string {
 	return strings.Join([]string{build.Name, builderSuffix}, "")
 }
 

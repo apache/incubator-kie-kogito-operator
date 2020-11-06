@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -41,7 +41,7 @@ const (
 	dashboardsPath = "/monitoring/dashboards/"
 )
 
-func fetchGrafanaDashboards(cli *client.Client, instance v1alpha1.KogitoService) ([]GrafanaDashboard, error) {
+func fetchGrafanaDashboards(cli *client.Client, instance v1beta1.KogitoService) ([]GrafanaDashboard, error) {
 	available, err := IsDeploymentAvailable(cli, instance)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func fetchDashboard(name, dashboardURL string) (*GrafanaDashboard, error) {
 	return &GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)}, nil
 }
 
-func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) error {
+func configureGrafanaDashboards(client *client.Client, kogitoService v1beta1.KogitoService, scheme *runtime.Scheme, namespace string) error {
 	dashboards, err := fetchGrafanaDashboards(client, kogitoService)
 	if err != nil {
 		return errorForDashboards(err)
@@ -127,7 +127,7 @@ func configureGrafanaDashboards(client *client.Client, kogitoService v1alpha1.Ko
 	return err
 }
 
-func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme, namespace string) error {
+func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, kogitoService v1beta1.KogitoService, scheme *runtime.Scheme, namespace string) error {
 	for _, dashboard := range dashboards {
 		resourceName := strings.ReplaceAll(strings.ToLower(dashboard.Name), ".json", "")
 		dashboardDefinition := &grafanav1.GrafanaDashboard{

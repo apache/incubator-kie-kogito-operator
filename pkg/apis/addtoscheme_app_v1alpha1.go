@@ -14,11 +14,9 @@
 
 package apis
 
-import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-)
+import "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme)
+	AddToSchemes = append(AddToSchemes, v1beta1.SchemeBuilder.AddToScheme)
 }

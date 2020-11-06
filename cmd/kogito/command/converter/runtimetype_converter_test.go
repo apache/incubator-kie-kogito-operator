@@ -17,7 +17,7 @@ package converter
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -29,7 +29,7 @@ func Test_FromRuntimeFlagsToRuntimeType_SpringBoot(t *testing.T) {
 	}
 
 	runtimeType := FromRuntimeFlagsToRuntimeType(flags)
-	assert.Equal(t, v1alpha1.SpringBootRuntimeType, runtimeType)
+	assert.Equal(t, v1beta1.SpringBootRuntimeType, runtimeType)
 }
 
 func Test_FromRuntimeFlagsToRuntimeType_Quarkus(t *testing.T) {
@@ -38,7 +38,7 @@ func Test_FromRuntimeFlagsToRuntimeType_Quarkus(t *testing.T) {
 	}
 
 	runtimeType := FromRuntimeFlagsToRuntimeType(flags)
-	assert.Equal(t, v1alpha1.QuarkusRuntimeType, runtimeType)
+	assert.Equal(t, v1beta1.QuarkusRuntimeType, runtimeType)
 }
 
 func Test_FromArgsToRuntime_NonBinaryBuild(t *testing.T) {
@@ -48,7 +48,7 @@ func Test_FromArgsToRuntime_NonBinaryBuild(t *testing.T) {
 
 	runtimeType, err := FromArgsToRuntimeType(flags, flag.GitRepositoryResource, "https://github.com/kiegroup/kogito-examples/blob/stable/process-scripts-quarkus/src/main/resources/org/acme/travels/scripts.bpmn")
 	assert.Nil(t, err)
-	assert.Equal(t, v1alpha1.QuarkusRuntimeType, runtimeType)
+	assert.Equal(t, v1beta1.QuarkusRuntimeType, runtimeType)
 }
 
 func Test_FromArgsToRuntime_BinaryBuild_SpringBoot(t *testing.T) {
@@ -61,7 +61,7 @@ func Test_FromArgsToRuntime_BinaryBuild_SpringBoot(t *testing.T) {
 
 	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
 	assert.Nil(t, err)
-	assert.Equal(t, v1alpha1.SpringBootRuntimeType, runtimeType)
+	assert.Equal(t, v1beta1.SpringBootRuntimeType, runtimeType)
 }
 
 func Test_FromArgsToRuntime_BinaryBuild_Quarkus(t *testing.T) {
@@ -74,7 +74,7 @@ func Test_FromArgsToRuntime_BinaryBuild_Quarkus(t *testing.T) {
 
 	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
 	assert.Nil(t, err)
-	assert.Equal(t, v1alpha1.QuarkusRuntimeType, runtimeType)
+	assert.Equal(t, v1beta1.QuarkusRuntimeType, runtimeType)
 }
 
 func Test_FromArgsToRuntime_BinaryBuild_QuarkusNative(t *testing.T) {
@@ -87,5 +87,5 @@ func Test_FromArgsToRuntime_BinaryBuild_QuarkusNative(t *testing.T) {
 
 	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
 	assert.Nil(t, err)
-	assert.Equal(t, v1alpha1.QuarkusRuntimeType, runtimeType)
+	assert.Equal(t, v1beta1.QuarkusRuntimeType, runtimeType)
 }

@@ -21,7 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -114,7 +114,7 @@ func (r resourceCheckServiceImpl) CheckKogitoRuntimeNotExists(kubeCli *client.Cl
 func isKogitoRuntimeExists(kubeCli *client.Client, name string, namespace string) (bool, error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Checking if Kogito Service '%s' was deployed before on namespace %s", name, namespace)
-	kogitoRuntime := &v1alpha1.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -156,7 +156,7 @@ func (r resourceCheckServiceImpl) CheckKogitoBuildNotExists(kubeCli *client.Clie
 func isKogitoBuildExists(kubeCli *client.Client, name string, namespace string) (bool, error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Checking if Kogito Build '%s' was deployed before on namespace %s", name, namespace)
-	kogitoBuild := &v1alpha1.KogitoBuild{
+	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,

@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
 func TestFromStringToImage(t *testing.T) {
@@ -28,19 +28,19 @@ func TestFromStringToImage(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want v1alpha1.Image
+		want v1beta1.Image
 	}{
-		{"empty", args{""}, v1alpha1.Image{}},
-		{"with registry name", args{"quay.io/openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}},
-		{"with registry name and port", args{"quay.io:5000/openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io:5000"}},
-		{"full name", args{"openshift/myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}},
-		{"namespace empty", args{"myimage:1.0"}, v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}},
-		{"tag empty", args{"myimage"}, v1alpha1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
-		{"tag empty with a trick", args{"myimage:"}, v1alpha1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
-		{"just tag", args{":1.0"}, v1alpha1.Image{Name: "", Tag: "1.0", Namespace: "", Domain: ""}},
-		{"localhost domain", args{"localhost:6000/namespace/image"}, v1alpha1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "localhost:6000"}},
-		{"IP only", args{"10.10.2.1/namespace/image"}, v1alpha1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "10.10.2.1"}},
-		{"IP and port", args{"10.10.2.1:5000/namespace/image"}, v1alpha1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "10.10.2.1:5000"}},
+		{"empty", args{""}, v1beta1.Image{}},
+		{"with registry name", args{"quay.io/openshift/myimage:1.0"}, v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}},
+		{"with registry name and port", args{"quay.io:5000/openshift/myimage:1.0"}, v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io:5000"}},
+		{"full name", args{"openshift/myimage:1.0"}, v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}},
+		{"namespace empty", args{"myimage:1.0"}, v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}},
+		{"tag empty", args{"myimage"}, v1beta1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
+		{"tag empty with a trick", args{"myimage:"}, v1beta1.Image{Name: "myimage", Tag: "latest", Namespace: "", Domain: ""}},
+		{"just tag", args{":1.0"}, v1beta1.Image{Name: "", Tag: "1.0", Namespace: "", Domain: ""}},
+		{"localhost domain", args{"localhost:6000/namespace/image"}, v1beta1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "localhost:6000"}},
+		{"IP only", args{"10.10.2.1/namespace/image"}, v1beta1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "10.10.2.1"}},
+		{"IP and port", args{"10.10.2.1:5000/namespace/image"}, v1beta1.Image{Name: "image", Tag: "latest", Namespace: "namespace", Domain: "10.10.2.1:5000"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -53,20 +53,20 @@ func TestFromStringToImage(t *testing.T) {
 
 func TestFromImageToString(t *testing.T) {
 	type args struct {
-		image v1alpha1.Image
+		image v1beta1.Image
 	}
 	tests := []struct {
 		name string
 		args args
 		want string
 	}{
-		{"empty", args{v1alpha1.Image{}}, ""},
-		{"with registry name", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}}, "quay.io/openshift/myimage:1.0"},
-		{"with registry name and port", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io:5000"}}, "quay.io:5000/openshift/myimage:1.0"},
-		{"full name", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}}, "openshift/myimage:1.0"},
-		{"namespace empty", args{v1alpha1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}}, "myimage:1.0"},
-		{"tag empty", args{v1alpha1.Image{Name: "myimage", Tag: "", Namespace: "", Domain: ""}}, "myimage"},
-		{"just tag", args{v1alpha1.Image{Name: "", Tag: "1.0", Namespace: "", Domain: ""}}, ":1.0"},
+		{"empty", args{v1beta1.Image{}}, ""},
+		{"with registry name", args{v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io"}}, "quay.io/openshift/myimage:1.0"},
+		{"with registry name and port", args{v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift", Domain: "quay.io:5000"}}, "quay.io:5000/openshift/myimage:1.0"},
+		{"full name", args{v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "openshift"}}, "openshift/myimage:1.0"},
+		{"namespace empty", args{v1beta1.Image{Name: "myimage", Tag: "1.0", Namespace: "", Domain: ""}}, "myimage:1.0"},
+		{"tag empty", args{v1beta1.Image{Name: "myimage", Tag: "", Namespace: "", Domain: ""}}, "myimage"},
+		{"just tag", args{v1beta1.Image{Name: "", Tag: "1.0", Namespace: "", Domain: ""}}, ":1.0"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

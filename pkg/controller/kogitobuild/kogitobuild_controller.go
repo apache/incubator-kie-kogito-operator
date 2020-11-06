@@ -17,7 +17,7 @@ package kogitobuild
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitobuild/build"
@@ -62,7 +62,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource KogitoBuild
-	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoBuild{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoBuild{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			Objects:      []runtime.Object{&imagev1.ImageStream{}},
 		},
 	}
-	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoBuild).client, mgr, c, &appv1alpha1.KogitoBuild{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoBuild).client, mgr, c, &v1beta1.KogitoBuild{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (r *ReconcileKogitoBuild) Reconcile(request reconcile.Request) (result reco
 	log.Infof("Reconciling KogitoBuild for %s in %s", request.Name, request.Namespace)
 
 	// fetch the requested instance
-	instance := &appv1alpha1.KogitoBuild{}
+	instance := &v1beta1.KogitoBuild{}
 	exists, err := kubernetes.ResourceC(r.client).FetchWithKey(request.NamespacedName, instance)
 	if err != nil {
 		return reconcile.Result{Requeue: false}, err
@@ -118,7 +118,7 @@ func (r *ReconcileKogitoBuild) Reconcile(request reconcile.Request) (result reco
 	defer r.handleStatusChange(instance, &resultErr)
 
 	if len(instance.Spec.Runtime) == 0 {
-		instance.Spec.Runtime = appv1alpha1.QuarkusRuntimeType
+		instance.Spec.Runtime = v1beta1.QuarkusRuntimeType
 	}
 	if len(instance.Spec.TargetKogitoRuntime) == 0 {
 		instance.Spec.TargetKogitoRuntime = instance.Name
@@ -181,7 +181,7 @@ func (r *ReconcileKogitoBuild) Reconcile(request reconcile.Request) (result reco
 }
 
 // onResourceChange triggers hooks when a resource is changed
-func (r *ReconcileKogitoBuild) onResourceChange(instance *appv1alpha1.KogitoBuild, resourceType reflect.Type, resources []resource.KubernetesResource) error {
+func (r *ReconcileKogitoBuild) onResourceChange(instance *v1beta1.KogitoBuild, resourceType reflect.Type, resources []resource.KubernetesResource) error {
 	// add other resources if need
 	switch resourceType {
 	case reflect.TypeOf(buildv1.BuildConfig{}):
@@ -191,10 +191,10 @@ func (r *ReconcileKogitoBuild) onResourceChange(instance *appv1alpha1.KogitoBuil
 }
 
 // onBuildConfigChange triggers when a build config changes
-func (r *ReconcileKogitoBuild) onBuildConfigChange(instance *appv1alpha1.KogitoBuild, buildConfigs []resource.KubernetesResource) error {
+func (r *ReconcileKogitoBuild) onBuildConfigChange(instance *v1beta1.KogitoBuild, buildConfigs []resource.KubernetesResource) error {
 	// triggers only on source builds
-	if instance.Spec.Type == appv1alpha1.RemoteSourceBuildType ||
-		instance.Spec.Type == appv1alpha1.LocalSourceBuildType {
+	if instance.Spec.Type == v1beta1.RemoteSourceBuildType ||
+		instance.Spec.Type == v1beta1.LocalSourceBuildType {
 		for _, bc := range buildConfigs {
 			// building from source
 			if bc.GetName() == build.GetBuildBuilderName(instance) {

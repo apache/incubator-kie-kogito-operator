@@ -1,7 +1,7 @@
 # In this example we create a KogitoBuild responsible to build our service from source and then deploy it as
 # a KogitoRuntime reference. Since they have the same name, they will be bound together through the built image.
 # the WebHook was added as an example
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoBuild
 metadata:
   name: process-quarkus-example
@@ -17,7 +17,7 @@ spec:
     - type: "GitHub"
       secret: "test123"
 ---
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoRuntime
 metadata:
   name: process-quarkus-example

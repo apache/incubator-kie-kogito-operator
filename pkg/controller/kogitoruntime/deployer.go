@@ -22,7 +22,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -62,7 +62,7 @@ func onGetComparators(comparator compare.ResourceComparator) {
 			Build())
 }
 
-func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, lists []runtime.Object, err error) {
+func onObjectsCreate(cli *client.Client, kogitoService v1beta1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, lists []runtime.Object, err error) {
 	resources = make(map[reflect.Type][]resource.KubernetesResource)
 
 	resObjectList, resType, res := createProtoBufConfigMap(cli, kogitoService)
@@ -71,7 +71,7 @@ func onObjectsCreate(cli *client.Client, kogitoService v1alpha1.KogitoService) (
 	return
 }
 
-func getProtobufData(cli *client.Client, kogitoService v1alpha1.KogitoService) map[string]string {
+func getProtobufData(cli *client.Client, kogitoService v1beta1.KogitoService) map[string]string {
 	available, err := services.IsDeploymentAvailable(cli, kogitoService)
 	if err != nil {
 		log.Errorf("failed to check status of %s: %v", kogitoService.GetName(), err)
@@ -119,7 +119,7 @@ func getProtobufData(cli *client.Client, kogitoService v1alpha1.KogitoService) m
 	return data
 }
 
-func createProtoBufConfigMap(cli *client.Client, kogitoService v1alpha1.KogitoService) (runtime.Object, reflect.Type, resource.KubernetesResource) {
+func createProtoBufConfigMap(cli *client.Client, kogitoService v1beta1.KogitoService) (runtime.Object, reflect.Type, resource.KubernetesResource) {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: kogitoService.GetNamespace(),
@@ -135,8 +135,8 @@ func createProtoBufConfigMap(cli *client.Client, kogitoService v1alpha1.KogitoSe
 }
 
 // onDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties to the deployment creation
-func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoService v1alpha1.KogitoService) error {
-	kogitoRuntime := kogitoService.(*v1alpha1.KogitoRuntime)
+func onDeploymentCreate(cli *client.Client, deployment *v1.Deployment, kogitoService v1beta1.KogitoService) error {
+	kogitoRuntime := kogitoService.(*v1beta1.KogitoRuntime)
 	// NAMESPACE service discovery
 	framework.SetEnvVar(envVarNamespace, kogitoService.GetNamespace(), &deployment.Spec.Template.Spec.Containers[0])
 	// external URL

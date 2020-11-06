@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -43,7 +43,7 @@ type Manager interface {
 }
 
 type manager struct {
-	kogitoBuild *v1alpha1.KogitoBuild
+	kogitoBuild *v1beta1.KogitoBuild
 	client      *client.Client
 	scheme      *runtime.Scheme
 }
@@ -80,34 +80,34 @@ func (m *manager) GetComparator() compare.MapComparator {
 }
 
 // New creates a new Manager instance for the given KogitoBuild
-func New(build *v1alpha1.KogitoBuild, client *client.Client, scheme *runtime.Scheme) (Manager, error) {
+func New(build *v1beta1.KogitoBuild, client *client.Client, scheme *runtime.Scheme) (Manager, error) {
 	setDefaults(build)
 	if err := sanityCheck(build); err != nil {
 		return nil, err
 	}
 	manager := manager{kogitoBuild: build, client: client, scheme: scheme}
-	if v1alpha1.LocalSourceBuildType == build.Spec.Type ||
-		v1alpha1.RemoteSourceBuildType == build.Spec.Type {
+	if v1beta1.LocalSourceBuildType == build.Spec.Type ||
+		v1beta1.RemoteSourceBuildType == build.Spec.Type {
 		return &sourceManager{manager}, nil
 	}
 	return &binaryManager{manager}, nil
 }
 
 // setDefaults sets the default values for the given KogitoBuild
-func setDefaults(build *v1alpha1.KogitoBuild) {
+func setDefaults(build *v1beta1.KogitoBuild) {
 	if len(build.Spec.Runtime) == 0 {
-		build.Spec.Runtime = v1alpha1.QuarkusRuntimeType
+		build.Spec.Runtime = v1beta1.QuarkusRuntimeType
 	}
 }
 
 // sanityCheck verifies the spec attributes for the given KogitoBuild instance
-func sanityCheck(build *v1alpha1.KogitoBuild) error {
+func sanityCheck(build *v1beta1.KogitoBuild) error {
 	if len(build.Spec.Type) == 0 {
 		return fmt.Errorf("%s: %s", errorPrefix, "build Type is required")
 	}
-	if build.Spec.Type == v1alpha1.RemoteSourceBuildType &&
+	if build.Spec.Type == v1beta1.RemoteSourceBuildType &&
 		len(build.Spec.GitSource.URI) == 0 {
-		return fmt.Errorf("%s: %s %s", errorPrefix, "Git URL is required when build type is", v1alpha1.RemoteSourceBuildType)
+		return fmt.Errorf("%s: %s %s", errorPrefix, "Git URL is required when build type is", v1beta1.RemoteSourceBuildType)
 	}
 	return nil
 }

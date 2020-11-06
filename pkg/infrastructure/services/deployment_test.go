@@ -17,7 +17,7 @@ package services
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +26,7 @@ import (
 var defaultDataIndexImageFullTag = infrastructure.GetKogitoImageVersion() + ":latest"
 
 func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
-	kogitoService := &v1alpha1.KogitoSupportingService{
+	kogitoService := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{HealthCheckProbe: QuarkusHealthCheckProbe}
@@ -41,7 +41,7 @@ func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 }
 
 func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
-	kogitoService := &v1alpha1.KogitoSupportingService{
+	kogitoService := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{}

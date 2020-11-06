@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -95,7 +95,7 @@ var (
 )
 
 // resolveKogitoImageNameTag resolves the ImageStreamTag to be used in the given build, e.g. kogito-quarkus-ubi8-s2i:0.11
-func resolveKogitoImageNameTag(build *v1alpha1.KogitoBuild, isBuilder bool) string {
+func resolveKogitoImageNameTag(build *v1beta1.KogitoBuild, isBuilder bool) string {
 	return strings.Join([]string{
 		resolveKogitoImageName(build, isBuilder),
 		resolveKogitoImageTag(build, isBuilder),
@@ -103,7 +103,7 @@ func resolveKogitoImageNameTag(build *v1alpha1.KogitoBuild, isBuilder bool) stri
 }
 
 // resolveKogitoImageTag resolves the ImageTag to be used in the given build, e.g. 0.11
-func resolveKogitoImageTag(build *v1alpha1.KogitoBuild, isBuilder bool) string {
+func resolveKogitoImageTag(build *v1beta1.KogitoBuild, isBuilder bool) string {
 	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
 	if isBuilder {
 		image = framework.ConvertImageTagToImage(build.Spec.BuildImage)
@@ -115,7 +115,7 @@ func resolveKogitoImageTag(build *v1alpha1.KogitoBuild, isBuilder bool) string {
 }
 
 // resolveKogitoImageName resolves the ImageName to be used in the given build, e.g. kogito-quarkus-ubi8-s2i
-func resolveKogitoImageName(build *v1alpha1.KogitoBuild, isBuilder bool) string {
+func resolveKogitoImageName(build *v1beta1.KogitoBuild, isBuilder bool) string {
 	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
 	if isBuilder {
 		image = framework.ConvertImageTagToImage(build.Spec.BuildImage)
@@ -131,7 +131,7 @@ func resolveKogitoImageName(build *v1alpha1.KogitoBuild, isBuilder bool) string 
 }
 
 // resolveKogitoImageName resolves the ImageName to be used in the given build, e.g. kogito-quarkus-ubi8-s2i
-func resolveKogitoImageStreamName(build *v1alpha1.KogitoBuild, isBuilder bool) string {
+func resolveKogitoImageStreamName(build *v1beta1.KogitoBuild, isBuilder bool) string {
 	imageName := resolveKogitoImageName(build, isBuilder)
 	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
 	if isBuilder {
@@ -144,14 +144,14 @@ func resolveKogitoImageStreamName(build *v1alpha1.KogitoBuild, isBuilder bool) s
 }
 
 // resolveKogitoImageName resolves the ImageName to be used in the given build, e.g. kogito-quarkus-ubi8-s2i
-func resolveKogitoImageStreamTagName(build *v1alpha1.KogitoBuild, isBuilder bool) string {
+func resolveKogitoImageStreamTagName(build *v1beta1.KogitoBuild, isBuilder bool) string {
 	imageStream := resolveKogitoImageStreamName(build, isBuilder)
 	imageTag := resolveKogitoImageTag(build, isBuilder)
 	return strings.Join([]string{imageStream, imageTag}, ":")
 }
 
 // resolveImageRegistry resolves the registry/namespace name to be used in the given build, e.g. quay.io/kiegroup
-func resolveKogitoImageRegistryNamespace(build *v1alpha1.KogitoBuild, isBuilder bool) string {
+func resolveKogitoImageRegistryNamespace(build *v1beta1.KogitoBuild, isBuilder bool) string {
 	namespace := infrastructure.DefaultImageNamespace
 	registry := infrastructure.DefaultImageRegistry
 	image := framework.ConvertImageTagToImage(build.Spec.RuntimeImage)
@@ -168,17 +168,17 @@ func resolveKogitoImageRegistryNamespace(build *v1alpha1.KogitoBuild, isBuilder 
 }
 
 // newKogitoImageStreamForBuilders same as newKogitoImageStream(build, true)
-func newKogitoImageStreamForBuilders(build *v1alpha1.KogitoBuild) imgv1.ImageStream {
+func newKogitoImageStreamForBuilders(build *v1beta1.KogitoBuild) imgv1.ImageStream {
 	return newKogitoImageStream(build, true)
 }
 
 // newKogitoImageStreamForRuntime same as newKogitoImageStream(build, false)
-func newKogitoImageStreamForRuntime(build *v1alpha1.KogitoBuild) imgv1.ImageStream {
+func newKogitoImageStreamForRuntime(build *v1beta1.KogitoBuild) imgv1.ImageStream {
 	return newKogitoImageStream(build, false)
 }
 
 // newKogitoImageStream creates a new OpenShift ImageStream based on the given build and the image purpose
-func newKogitoImageStream(build *v1alpha1.KogitoBuild, isBuilder bool) imgv1.ImageStream {
+func newKogitoImageStream(build *v1beta1.KogitoBuild, isBuilder bool) imgv1.ImageStream {
 	imageStreamName := resolveKogitoImageStreamName(build, isBuilder)
 	imageTag := resolveKogitoImageTag(build, isBuilder)
 	imageRegistry := resolveKogitoImageRegistryNamespace(build, isBuilder)
@@ -261,7 +261,7 @@ func createRequiredKogitoImageStreamTag(requiredStream imgv1.ImageStream, client
 // If the ImageStream exists, but not the tag, a new tag for that same ImageStream is created.
 // This way would be possible to handle different builds with different Kogito versions in the same namespace.
 // Returns a flag indicating if one of them were created in the cluster or not.
-func CreateRequiredKogitoImageStreams(build *v1alpha1.KogitoBuild, client *client.Client) (created bool, err error) {
+func CreateRequiredKogitoImageStreams(build *v1beta1.KogitoBuild, client *client.Client) (created bool, err error) {
 	buildersCreated := false
 	runtimeCreated := false
 	if buildersCreated, err = createRequiredKogitoImageStreamTag(newKogitoImageStreamForBuilders(build), client); err != nil {

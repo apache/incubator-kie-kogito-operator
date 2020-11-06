@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
@@ -31,7 +31,7 @@ type TaskConsoleSupportingServiceResource struct {
 }
 
 // Reconcile reconcile Task Console
-func (*TaskConsoleSupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
+func (*TaskConsoleSupportingServiceResource) Reconcile(client *client.Client, instance *v1beta1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Infof("Reconciling KogitoTaskConsole for %s in %s", instance.Name, instance.Namespace)
 	definition := services.ServiceDefinition{
 		DefaultImageName:   infrastructure.DefaultTaskConsoleImageName,
@@ -42,7 +42,7 @@ func (*TaskConsoleSupportingServiceResource) Reconcile(client *client.Client, in
 	return services.NewServiceDeployer(definition, instance, client, scheme).Deploy()
 }
 
-func taskConsoleOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error {
+func taskConsoleOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1beta1.KogitoService) error {
 	if err := infrastructure.InjectDataIndexURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}
