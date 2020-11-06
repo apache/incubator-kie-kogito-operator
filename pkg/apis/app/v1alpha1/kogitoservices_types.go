@@ -50,6 +50,8 @@ type KogitoServiceStatusInterface interface {
 	SetImage(image string)
 	GetExternalURI() string
 	SetExternalURI(uri string)
+	GetCloudEvents() KogitoCloudEventsStatus
+	SetCloudEvents(cloudEvents KogitoCloudEventsStatus)
 }
 
 // KogitoServiceStatus is the basic structure for any Kogito Service status.
@@ -67,6 +69,9 @@ type KogitoServiceStatus struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
 	ExternalURI string `json:"externalURI,omitempty"`
+	// Describes the CloudEvents that this instance can consume or produce
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	CloudEvents KogitoCloudEventsStatus `json:"cloudEvents,omitempty"`
 }
 
 // GetDeploymentConditions gets the deployment conditions for the service.
@@ -90,6 +95,34 @@ func (k *KogitoServiceStatus) GetExternalURI() string { return k.ExternalURI }
 
 // SetExternalURI ...
 func (k *KogitoServiceStatus) SetExternalURI(uri string) { k.ExternalURI = uri }
+
+// GetCloudEvents ...
+func (k *KogitoServiceStatus) GetCloudEvents() KogitoCloudEventsStatus { return k.CloudEvents }
+
+// SetCloudEvents ...
+func (k *KogitoServiceStatus) SetCloudEvents(cloudEvents KogitoCloudEventsStatus) {
+	k.CloudEvents = cloudEvents
+}
+
+// KogitoCloudEventsStatus describes the CloudEvents that can be produced or consumed by this Kogito Service instance
+type KogitoCloudEventsStatus struct {
+	// +optional
+	// +listType=atomic
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	Consumes []KogitoCloudEventInfo `json:"consumes,omitempty"`
+	// +optional
+	// +listType=atomic
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	Produces []KogitoCloudEventInfo `json:"produces,omitempty"`
+}
+
+// KogitoCloudEventInfo describes the CloudEvent information based on the specification
+type KogitoCloudEventInfo struct {
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	Type string `json:"type"`
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	Source string `json:"source,omitempty"`
+}
 
 // KogitoServiceSpecInterface defines the interface for the Kogito service specification, it's the basic structure for any Kogito service.
 type KogitoServiceSpecInterface interface {

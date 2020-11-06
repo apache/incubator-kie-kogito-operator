@@ -58,7 +58,7 @@ func (k *kafkaMessagingDeployer) createRequiredKafkaTopics(infra *v1alpha1.Kogit
 		}
 	}
 	// topics required by the deployed service
-	topics, err := k.fetchRequiredTopics(service)
+	topics, err := k.fetchTopicsAndSetCloudEventsStatus(service)
 	if err != nil {
 		return err
 	}

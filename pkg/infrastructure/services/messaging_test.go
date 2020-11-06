@@ -23,20 +23,44 @@ import (
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func Test_fetchRequiredTopics(t *testing.T) {
-	responseWithTopics := `[{ "name": "travellers", "type": "PRODUCED" }, { "name": "processedtravelers", "type": "CONSUMED" }]`
+	responseWithTopics := `[
+   {
+      "name":"kogito_incoming_stream",
+      "type":"INCOMING",
+      "eventsMeta":[
+         {
+            "type":"travellers",
+            "source":"",
+            "kind":"CONSUMED"
+         }
+      ]
+   },
+   {
+      "name":"processedtravellers",
+      "type":"OUTGOING",
+      "eventsMeta":[
+         {
+            "type":"process.travelers.processedtravellers",
+            "source":"/process/travelers",
+            "kind":"PRODUCED"
+         }
+      ]
+   }
+]`
 	instance := createServiceInstance(t)
 
 	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: responseWithTopics})
 	defer server.Close()
 
-	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
+	m := messagingDeployer{cli: test.NewFakeClientBuilder().AddK8sObjects(createAvailableDeployment(instance)).Build()}
 	topics, err := m.fetchRequiredTopicsForURL(instance, server.URL)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, topics)
+	m.setCloudEventsStatus(instance, topics)
+	assert.NotNil(t, instance.GetStatus().GetCloudEvents())
 }
 
 func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
@@ -46,7 +70,7 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: emptyResponse})
 	defer server.Close()
 
-	m := messagingDeployer{cli: test.CreateFakeClient([]runtime.Object{createAvailableDeployment(instance)}, nil, nil)}
+	m := messagingDeployer{cli: test.NewFakeClientBuilder().AddK8sObjects(createAvailableDeployment(instance)).Build()}
 	topics, err := m.fetchRequiredTopicsForURL(instance, server.URL)
 	assert.NoError(t, err)
 	assert.Empty(t, topics)

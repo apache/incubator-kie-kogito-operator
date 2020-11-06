@@ -50,8 +50,8 @@ func (k *knativeMessagingDeployer) createRequiredResources(service v1alpha1.Kogi
 		return err
 	}
 
-	// fetch for consumed topics to create our triggers
-	topics, err := k.fetchRequiredTopics(service)
+	// fetch for incoming topics to create our triggers
+	topics, err := k.fetchTopicsAndSetCloudEventsStatus(service)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (k *knativeMessagingDeployer) createRequiredResources(service v1alpha1.Kogi
 	var knativeRes resource.KubernetesResource
 	exists := false
 	for _, topic := range topics {
-		if topic.Kind == consumed {
+		if topic.Kind == incoming {
 			if exists, err = k.triggerExists(topic, service); err != nil {
 				return err
 			} else if !exists {
@@ -75,7 +75,7 @@ func (k *knativeMessagingDeployer) createRequiredResources(service v1alpha1.Kogi
 }
 
 // newTrigger creates a new Knative Eventing Trigger reference for the given Topic
-func (k *knativeMessagingDeployer) newTrigger(t messageTopic, service v1alpha1.KogitoService, infra *v1alpha1.KogitoInfra) *eventingv1.Trigger {
+func (k *knativeMessagingDeployer) newTrigger(t messagingTopic, service v1alpha1.KogitoService, infra *v1alpha1.KogitoInfra) *eventingv1.Trigger {
 	return &eventingv1.Trigger{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-listener-%s", service.GetName(), util.RandomSuffix()),
@@ -142,7 +142,7 @@ func (k *knativeMessagingDeployer) newSinkBinding(service v1alpha1.KogitoService
 	}
 }
 
-func (k *knativeMessagingDeployer) triggerExists(t messageTopic, service v1alpha1.KogitoService) (bool, error) {
+func (k *knativeMessagingDeployer) triggerExists(t messagingTopic, service v1alpha1.KogitoService) (bool, error) {
 	triggers := &eventingv1.TriggerList{}
 	labels := map[string]string{
 		framework.LabelAppKey: service.GetName(),

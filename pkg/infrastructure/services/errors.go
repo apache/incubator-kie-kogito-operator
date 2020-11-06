@@ -25,6 +25,7 @@ const (
 	reconciliationIntervalAfterMessagingError            = time.Second * 30
 	reconciliationIntervalMonitoringEndpointNotAvailable = time.Second * 10
 	reconciliationIntervalAfterDashboardsError           = time.Second * 30
+	reconciliationIntervalAfterFetchService              = time.Minute * 3
 )
 
 type reconciliationError struct {
@@ -73,6 +74,14 @@ func errorForDashboards(err error) reconciliationError {
 		reconciliationInterval: reconciliationIntervalAfterDashboardsError,
 		reason:                 v1alpha1.MonitoringIntegrationFailureReason,
 		innerError:             err,
+	}
+}
+
+func errorForServiceNotReachable(statusCode int, requestURL string, method string) reconciliationError {
+	return reconciliationError{
+		reason:                 v1alpha1.InternalServiceNotReachable,
+		reconciliationInterval: reconciliationIntervalAfterFetchService,
+		innerError:             fmt.Errorf("Received NOT expected status code %d while making a %s request to %s ", statusCode, method, requestURL),
 	}
 }
 
