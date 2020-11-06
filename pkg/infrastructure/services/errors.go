@@ -77,11 +77,11 @@ func errorForDashboards(err error) reconciliationError {
 	}
 }
 
-func errorForServiceNotReachable(statusCode int, topicsURL string) reconciliationError {
+func errorForServiceNotReachable(statusCode int, requestURL string, method string) reconciliationError {
 	return reconciliationError{
 		reason:                 v1alpha1.InternalServiceNotReachable,
 		reconciliationInterval: reconciliationIntervalAfterFetchService,
-		innerError:             fmt.Errorf("Received NOT expected status code %d while making a request to %s ", statusCode, topicsURL),
+		innerError:             fmt.Errorf("Received NOT expected status code %d while making a %s request to %s ", statusCode, method, requestURL),
 	}
 }
 

@@ -76,7 +76,7 @@ func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, defini
 	return nil
 }
 
-func (m *messagingDeployer) fetchTopicsAndSetCEStatus(instance v1alpha1.KogitoService) ([]messagingTopic, error) {
+func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance v1alpha1.KogitoService) ([]messagingTopic, error) {
 	topics, err := m.fetchRequiredTopicsForURL(instance, infrastructure.GetKogitoServiceEndpoint(instance))
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1alpha1.KogitoSe
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errorForServiceNotReachable(resp.StatusCode, topicsURL)
+		return nil, errorForServiceNotReachable(resp.StatusCode, topicsURL, "GET")
 	}
 	var topics []messagingTopic
 	if err := json.NewDecoder(resp.Body).Decode(&topics); err != nil {

@@ -51,7 +51,7 @@ func (k *knativeMessagingDeployer) createRequiredResources(service v1alpha1.Kogi
 	}
 
 	// fetch for incoming topics to create our triggers
-	topics, err := k.fetchTopicsAndSetCEStatus(service)
+	topics, err := k.fetchTopicsAndSetCloudEventsStatus(service)
 	if err != nil {
 		return err
 	}
