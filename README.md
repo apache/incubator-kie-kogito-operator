@@ -24,7 +24,7 @@ For information about the Kogito Operator architecture and instructions for usin
       * [Running performance tests](#running-performance-tests)
       * [List of test tags](#list-of-test-tags)
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
-    * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator)
+    * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator-using-intellij-idea)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
   
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -415,7 +415,7 @@ API server listening at: [::]:2345
 
 **Create the Go Remote run/debug configuration:**
 
-1. Click `Edit | Run Configurations`. Alternatively, click the list of run/debug configurations on the toolbar and select `Edit Configurations`.
+1. Click `Edit | Run Configurations`. Alternatively, click the list of run/debug configurations on the toolbar and select `Edit Configurations`.  
 ![alt text](./docs/images/add_configuration.png?raw=true)
 2. In the `Run/Debug Configurations` dialog, click the `Add` button (`+`) and select `Go Remote`.
 ![alt text](./docs/images/add_go_remote_config.png?raw=true)
