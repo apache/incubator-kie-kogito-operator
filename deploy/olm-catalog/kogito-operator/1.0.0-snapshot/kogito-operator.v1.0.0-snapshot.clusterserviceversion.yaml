@@ -317,6 +317,21 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       statusDescriptors:
+      - description: Describes the CloudEvents that this instance can consume or produce
+        displayName: Cloud Events
+        path: cloudEvents
+      - displayName: Consumes
+        path: cloudEvents.consumes
+      - displayName: Source
+        path: cloudEvents.consumes[0].source
+      - displayName: Type
+        path: cloudEvents.consumes[0].type
+      - displayName: Produces
+        path: cloudEvents.produces
+      - displayName: Source
+        path: cloudEvents.produces[0].source
+      - displayName: Type
+        path: cloudEvents.produces[0].type
       - description: History of conditions for the resource
         displayName: Conditions
         path: conditions
@@ -415,6 +430,21 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:label
       statusDescriptors:
+      - description: Describes the CloudEvents that this instance can consume or produce
+        displayName: Cloud Events
+        path: cloudEvents
+      - displayName: Consumes
+        path: cloudEvents.consumes
+      - displayName: Source
+        path: cloudEvents.consumes[0].source
+      - displayName: Type
+        path: cloudEvents.consumes[0].type
+      - displayName: Produces
+        path: cloudEvents.produces
+      - displayName: Source
+        path: cloudEvents.produces[0].source
+      - displayName: Type
+        path: cloudEvents.produces[0].type
       - description: History of conditions for the resource
         displayName: Conditions
         path: conditions

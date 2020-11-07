@@ -25,18 +25,30 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type messageTopicKind string
+type messagingTopicType string
+type messagingEventKind string
 
 const (
-	// consumed is the topics type that the application can consume
-	consumed messageTopicKind = "CONSUMED"
+	// incoming is the topics type that the application will subscribe
+	incoming messagingTopicType = "INCOMING"
+	// consumed is the CloudEvents that the application will can consume
+	consumed messagingEventKind = "CONSUMED"
+	// produced is the CloudEvents that the application will can produce
+	produced messagingEventKind = "PRODUCED"
 	// topicInfoPath which the topics are fetched
 	topicInfoPath = "/messaging/topics"
 )
 
-type messageTopic struct {
-	Name string           `json:"name"`
-	Kind messageTopicKind `json:"type"`
+type messagingTopic struct {
+	Name       string               `json:"name"`
+	Kind       messagingTopicType   `json:"type"`
+	EventsMeta []messagingEventMeta `json:"eventsMeta"`
+}
+
+type messagingEventMeta struct {
+	Type   string             `json:"type"`
+	Source string             `json:"source"`
+	Kind   messagingEventKind `json:"kind"`
 }
 
 type messagingDeployer struct {
@@ -64,12 +76,35 @@ func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, defini
 	return nil
 }
 
-func (m *messagingDeployer) fetchRequiredTopics(instance v1beta1.KogitoService) ([]messageTopic, error) {
-	svcURL := infrastructure.GetKogitoServiceEndpoint(instance)
-	return m.fetchRequiredTopicsForURL(instance, svcURL)
+func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance v1beta1.KogitoService) ([]messagingTopic, error) {
+	topics, err := m.fetchRequiredTopicsForURL(instance, infrastructure.GetKogitoServiceEndpoint(instance))
+	if err != nil {
+		return nil, err
+	}
+	m.setCloudEventsStatus(instance, topics)
+	return topics, nil
 }
 
-func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1beta1.KogitoService, serverURL string) ([]messageTopic, error) {
+func (m *messagingDeployer) setCloudEventsStatus(instance v1beta1.KogitoService, topics []messagingTopic) {
+	var eventsConsumed []v1beta1.KogitoCloudEventInfo
+	var eventsProduced []v1beta1.KogitoCloudEventInfo
+	for _, topic := range topics {
+		for _, event := range topic.EventsMeta {
+			switch event.Kind {
+			case consumed:
+				eventsConsumed = append(eventsConsumed, v1beta1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
+			case produced:
+				eventsProduced = append(eventsProduced, v1beta1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
+			}
+		}
+	}
+	instance.GetStatus().SetCloudEvents(v1beta1.KogitoCloudEventsStatus{
+		Consumes: eventsConsumed,
+		Produces: eventsProduced,
+	})
+}
+
+func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1beta1.KogitoService, serverURL string) ([]messagingTopic, error) {
 	available, err := IsDeploymentAvailable(m.cli, instance)
 	if err != nil {
 		return nil, err
@@ -88,9 +123,9 @@ func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1beta1.KogitoSer
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Received NOT expected status code %d while making GET request to %s ", resp.StatusCode, topicsURL)
+		return nil, errorForServiceNotReachable(resp.StatusCode, topicsURL, "GET")
 	}
-	var topics []messageTopic
+	var topics []messagingTopic
 	if err := json.NewDecoder(resp.Body).Decode(&topics); err != nil {
 		return nil, fmt.Errorf("Failed to decode response from %s into topics ", topicsURL)
 	}

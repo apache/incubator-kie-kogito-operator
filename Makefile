@@ -105,9 +105,10 @@ services_image_name_suffix=
 services_image_version=
 data_index_image_tag=
 explainability_image_tag=
-trusty_image_tag=
 jobs_service_image_tag=
 management_console_image_tag=
+task_console_image_tag=
+trusty_image_tag=
 trusty_ui_image_tag=
 runtime_application_image_registry=
 runtime_application_image_namespace=
@@ -170,9 +171,10 @@ run-tests:
 		--services_image_version ${services_image_version} \
 		--data_index_image_tag ${data_index_image_tag} \
 		--explainability_image_tag ${explainability_image_tag} \
-		--trusty_image_tag ${trusty_image_tag} \
 		--jobs_service_image_tag ${jobs_service_image_tag} \
 		--management_console_image_tag ${management_console_image_tag} \
+		--task_console_image_tag ${task_console_image_tag} \
+		--trusty_image_tag ${trusty_image_tag} \
 		--trusty_ui_image_tag ${trusty_ui_image_tag} \
 		--runtime_application_image_registry ${runtime_application_image_registry} \
 		--runtime_application_image_namespace ${runtime_application_image_namespace} \

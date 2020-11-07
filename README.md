@@ -259,9 +259,11 @@ You can set those optional keys:
 - `services_image_namespace` sets the services (jobs-service, data-index, ...) image namespace.
 - `services_image_registry` sets the services (jobs-service, data-index, ...) image registry.
 - `data_index_image_tag` sets the Kogito Data Index image tag ('services_image_version' is ignored)
-- `trusty_image_tag` sets the Kogito Trusty image tag ('services_image_version' is ignored)
+- `explainability_image_tag` sets the Kogito Explainability image tag ('services_image_version' is ignored)
 - `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
 - `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
+- `task_console_image_tag` sets the Kogito Task Console image tag ('services_image_version' is ignored)
+- `trusty_image_tag` sets the Kogito Trusty image tag ('services_image_version' is ignored)
 - `trusty_ui_image_tag` sets the Kogito Trusty UI image tag ('services_image_version' is ignored)
 <!--- build -->
 - `custom_maven_repo` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information.
