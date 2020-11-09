@@ -25,6 +25,7 @@ For information about the Kogito Operator architecture and instructions for usin
       * [Running performance tests](#running-performance-tests)
       * [List of test tags](#list-of-test-tags)
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
+    * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator-using-intellij-idea)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
   
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -402,6 +403,54 @@ You can use the following command to vet, format, lint, and test your code:
 $ make test
 ```
 
+### Remote Debug Kogito Operator using Intellij IDEA
+
+The operator will be deployed over an Kubernetes cluster. In this example we've taken minikube to deploy a Kubernetes cluster locally.
+
+**Install Minikube:**
+
+For installing the Minikube cluster please follow [this tutorial](https://kubernetes.io/docs/tasks/tools/install-minikube/)
+```bash
+$ minikube start
+```
+**Apply Operator manifests:**
+
+```bash
+$ export NAMESPACE=default
+$ ./hack/install-manifests.sh
+```
+**Install Delve:**
+
+Delve is a debugger for the Go programming language. For installing Delve please follow [this tutorial](https://github.com/go-delve/delve/tree/master/Documentation/installation)
+
+**Start Operator in remote debug mode:**
+
+```bash
+$ cd cmd/manager
+$ export WATCH_NAMESPACE=default
+$ dlv debug --headless --listen=:2345 --api-version=2
+```
+
+verify logs on bash console for below line
+
+```
+API server listening at: [::]:2345
+```
+
+**Create the Go Remote run/debug configuration:**
+
+1. Click `Edit | Run Configurations`. Alternatively, click the list of run/debug configurations on the toolbar and select `Edit Configurations`.  
+![alt text](./docs/images/add_configuration.png?raw=true)
+2. In the `Run/Debug Configurations` dialog, click the `Add` button (`+`) and select `Go Remote`.
+![alt text](./docs/images/add_go_remote_config.png?raw=true)
+3. In the Host field, type the host IP address (in our case `localhost`).
+4. In the Port field, type the debugger port that you configured in above `dlv` command (in our case it's `2345`).
+5. Click `OK`.          
+![alt text](./docs/images/remote_debug_configurations.png?raw=true)
+6. Put the breakpoint in your code.
+7. From the list of `run/debug configurations` on the toolbar, select the created Go Remote configuration and click the `Debug <configuration_name>` button 
+
+Running Kogito operator in remote debug on VSCode and GoLand is very similar to above procedure. Please follow these article to the setup remote debugger on [VSCode](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-using-vscode-130k) and [GoLand](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-in-goland-kl6)
 ## Guide for Kogito Developers
 
 If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
