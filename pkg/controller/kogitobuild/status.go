@@ -15,7 +15,7 @@
 package kogitobuild
 
 import (
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
@@ -35,33 +35,33 @@ const (
 )
 
 var (
-	buildConditionStatus = map[buildv1.BuildPhase]appv1alpha1.KogitoBuildConditionType{
-		buildv1.BuildPhaseError:     appv1alpha1.KogitoBuildFailure,
-		buildv1.BuildPhaseFailed:    appv1alpha1.KogitoBuildFailure,
-		buildv1.BuildPhaseCancelled: appv1alpha1.KogitoBuildFailure,
-		buildv1.BuildPhaseNew:       appv1alpha1.KogitoBuildRunning,
-		buildv1.BuildPhasePending:   appv1alpha1.KogitoBuildRunning,
-		buildv1.BuildPhaseRunning:   appv1alpha1.KogitoBuildRunning,
-		buildv1.BuildPhaseComplete:  appv1alpha1.KogitoBuildSuccessful,
+	buildConditionStatus = map[buildv1.BuildPhase]v1beta1.KogitoBuildConditionType{
+		buildv1.BuildPhaseError:     v1beta1.KogitoBuildFailure,
+		buildv1.BuildPhaseFailed:    v1beta1.KogitoBuildFailure,
+		buildv1.BuildPhaseCancelled: v1beta1.KogitoBuildFailure,
+		buildv1.BuildPhaseNew:       v1beta1.KogitoBuildRunning,
+		buildv1.BuildPhasePending:   v1beta1.KogitoBuildRunning,
+		buildv1.BuildPhaseRunning:   v1beta1.KogitoBuildRunning,
+		buildv1.BuildPhaseComplete:  v1beta1.KogitoBuildSuccessful,
 	}
 )
 
-func addConditionError(instance *appv1alpha1.KogitoBuild, err error) {
+func addConditionError(instance *v1beta1.KogitoBuild, err error) {
 	if err != nil {
-		instance.Status.Conditions = append(instance.Status.Conditions, appv1alpha1.KogitoBuildConditions{
-			Type:               appv1alpha1.KogitoBuildFailure,
+		instance.Status.Conditions = append(instance.Status.Conditions, v1beta1.KogitoBuildConditions{
+			Type:               v1beta1.KogitoBuildFailure,
 			Status:             v1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
-			Reason:             appv1alpha1.OperatorFailureReason,
+			Reason:             v1beta1.OperatorFailureReason,
 			Message:            err.Error(),
 		})
 	}
 }
 
-func addCondition(instance *appv1alpha1.KogitoBuild, condition appv1alpha1.KogitoBuildConditionType, reason appv1alpha1.KogitoBuildConditionReason, message string) bool {
+func addCondition(instance *v1beta1.KogitoBuild, condition v1beta1.KogitoBuildConditionType, reason v1beta1.KogitoBuildConditionReason, message string) bool {
 	if len(instance.Status.Conditions) == 0 ||
 		instance.Status.Conditions[len(instance.Status.Conditions)-1].Type != condition {
-		instance.Status.Conditions = append(instance.Status.Conditions, appv1alpha1.KogitoBuildConditions{
+		instance.Status.Conditions = append(instance.Status.Conditions, v1beta1.KogitoBuildConditions{
 			Type:               condition,
 			Status:             v1.ConditionTrue,
 			LastTransitionTime: metav1.Now(),
@@ -73,7 +73,7 @@ func addCondition(instance *appv1alpha1.KogitoBuild, condition appv1alpha1.Kogit
 	return false
 }
 
-func updateBuildsStatus(instance *appv1alpha1.KogitoBuild, client *client.Client) (changed bool, err error) {
+func updateBuildsStatus(instance *v1beta1.KogitoBuild, client *client.Client) (changed bool, err error) {
 	buildsStatus, err := openshift.BuildConfigC(client).GetBuildsStatusByLabel(
 		instance.Namespace,
 		strings.Join([]string{
@@ -90,7 +90,7 @@ func updateBuildsStatus(instance *appv1alpha1.KogitoBuild, client *client.Client
 	return false, nil
 }
 
-func handleConditionTransition(instance *appv1alpha1.KogitoBuild, client *client.Client) (changed bool, err error) {
+func handleConditionTransition(instance *v1beta1.KogitoBuild, client *client.Client) (changed bool, err error) {
 	if changed, err = updateBuildsStatus(instance, client); err != nil {
 		return false, err
 	}
@@ -109,18 +109,18 @@ func handleConditionTransition(instance *appv1alpha1.KogitoBuild, client *client
 		})
 		instance.Status.LatestBuild = builds.Items[0].Name
 		condition := buildConditionStatus[builds.Items[0].Status.Phase]
-		if condition == appv1alpha1.KogitoBuildFailure {
-			return addCondition(instance, condition, appv1alpha1.BuildFailureReason, builds.Items[0].Status.Message), nil
+		if condition == v1beta1.KogitoBuildFailure {
+			return addCondition(instance, condition, v1beta1.BuildFailureReason, builds.Items[0].Status.Message), nil
 		}
 		return addCondition(instance, condition, "", builds.Items[0].Status.Message), nil
 	}
 	return addCondition(
 		instance,
-		appv1alpha1.KogitoBuildRunning,
+		v1beta1.KogitoBuildRunning,
 		"", "") || changed, nil
 }
 
-func trimConditions(instance *appv1alpha1.KogitoBuild) {
+func trimConditions(instance *v1beta1.KogitoBuild) {
 	if len(instance.Status.Conditions) > maxConditionsBuffer {
 		low := len(instance.Status.Conditions) - maxConditionsBuffer
 		high := len(instance.Status.Conditions)
@@ -128,13 +128,13 @@ func trimConditions(instance *appv1alpha1.KogitoBuild) {
 	}
 }
 
-func sortConditionsByTransitionTime(instance *appv1alpha1.KogitoBuild) {
+func sortConditionsByTransitionTime(instance *v1beta1.KogitoBuild) {
 	sort.SliceStable(instance.Status.Conditions, func(i, j int) bool {
 		return instance.Status.Conditions[i].LastTransitionTime.Before(&instance.Status.Conditions[j].LastTransitionTime)
 	})
 }
 
-func (r *ReconcileKogitoBuild) handleStatusChange(instance *appv1alpha1.KogitoBuild, err *error) {
+func (r *ReconcileKogitoBuild) handleStatusChange(instance *v1beta1.KogitoBuild, err *error) {
 	needUpdate := false
 	var statusErr error
 	sortConditionsByTransitionTime(instance)
@@ -156,7 +156,7 @@ func (r *ReconcileKogitoBuild) handleStatusChange(instance *appv1alpha1.KogitoBu
 	}
 }
 
-func (r *ReconcileKogitoBuild) updateStatus(instance *appv1alpha1.KogitoBuild) error {
+func (r *ReconcileKogitoBuild) updateStatus(instance *v1beta1.KogitoBuild) error {
 	if err := kubernetes.ResourceC(r.client).UpdateStatus(instance); err != nil {
 		return err
 	}

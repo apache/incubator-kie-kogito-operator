@@ -16,7 +16,7 @@ package kogitobuild
 
 import (
 	"errors"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitobuild/build"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -32,14 +32,14 @@ import (
 
 func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &v1alpha1.KogitoBuild{
+	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoBuildSpec{
-			Type: v1alpha1.RemoteSourceBuildType,
-			GitSource: v1alpha1.GitSource{
+		Spec: v1beta1.KogitoBuildSpec{
+			Type: v1beta1.RemoteSourceBuildType,
+			GitSource: v1beta1.GitSource{
 				URI: "https://github.com/kiegroup/kogito-examples/",
 			},
-			Runtime: v1alpha1.QuarkusRuntimeType,
+			Runtime: v1beta1.QuarkusRuntimeType,
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
@@ -50,14 +50,14 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 
 	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, 1)
-	assert.Equal(t, v1alpha1.OperatorFailureReason, instance.Status.Conditions[0].Reason)
+	assert.Equal(t, v1beta1.OperatorFailureReason, instance.Status.Conditions[0].Reason)
 
 	// ops, same error?
 	r.handleStatusChange(instance, &err)
 	// start queueing
 	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, 2)
-	assert.Equal(t, v1alpha1.OperatorFailureReason, instance.Status.Conditions[1].Reason)
+	assert.Equal(t, v1beta1.OperatorFailureReason, instance.Status.Conditions[1].Reason)
 
 	// kill that buffer
 	for n := 0; n <= maxConditionsBuffer; n++ {
@@ -69,14 +69,14 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 
 func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &v1alpha1.KogitoBuild{
+	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoBuildSpec{
-			Type: v1alpha1.RemoteSourceBuildType,
-			GitSource: v1alpha1.GitSource{
+		Spec: v1beta1.KogitoBuildSpec{
+			Type: v1beta1.RemoteSourceBuildType,
+			GitSource: v1beta1.GitSource{
 				URI: "https://github.com/kiegroup/kogito-examples/",
 			},
-			Runtime: v1alpha1.QuarkusRuntimeType,
+			Runtime: v1beta1.QuarkusRuntimeType,
 		},
 	}
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
@@ -149,7 +149,7 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, 1)
 	// only the younger
-	assert.Equal(t, v1alpha1.KogitoBuildFailure, instance.Status.Conditions[0].Type)
+	assert.Equal(t, v1beta1.KogitoBuildFailure, instance.Status.Conditions[0].Type)
 	assert.Equal(t, builds[len(builds)-1].Name, instance.Status.LatestBuild)
 	assert.Len(t, instance.Status.Builds.Cancelled, 1)
 	assert.Len(t, instance.Status.Builds.New, 1)

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +31,7 @@ func Test_DeleteKogitoInfraCmd_SuccessfullyDelete(t *testing.T) {
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1alpha1.KogitoInfra{ObjectMeta: metav1.ObjectMeta{Name: "kafka-infra", Namespace: ns}})
+		&v1beta1.KogitoInfra{ObjectMeta: metav1.ObjectMeta{Name: "kafka-infra", Namespace: ns}})
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)

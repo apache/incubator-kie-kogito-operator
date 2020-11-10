@@ -15,7 +15,7 @@
 package framework
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	obuildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +39,7 @@ func Test_controllerWatcher_WatchWithOCPObjectsOnKubernetes(t *testing.T) {
 		},
 	}
 
-	watcher := NewControllerWatcher(cli, manager, controller, &v1alpha1.KogitoRuntime{})
+	watcher := NewControllerWatcher(cli, manager, controller, &v1beta1.KogitoRuntime{})
 	assert.NotNil(t, watcher)
 
 	err := watcher.Watch(requiredObjects...)
@@ -65,7 +65,7 @@ func Test_controllerWatcher_WatchWithOCPObjectsOnOpenShift(t *testing.T) {
 		},
 	}
 
-	watcher := NewControllerWatcher(cli, manager, controller, &v1alpha1.KogitoRuntime{})
+	watcher := NewControllerWatcher(cli, manager, controller, &v1beta1.KogitoRuntime{})
 	assert.NotNil(t, watcher)
 
 	err := watcher.Watch(requiredObjects...)

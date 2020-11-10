@@ -15,7 +15,7 @@
 package shared
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -79,7 +79,7 @@ func Test_CheckKogitoRuntimeExists_exists(t *testing.T) {
 	ns := t.Name()
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
 		ObjectMeta: v12.ObjectMeta{Name: ns},
-	}, &v1alpha1.KogitoRuntime{
+	}, &v1beta1.KogitoRuntime{
 		ObjectMeta: v12.ObjectMeta{
 			Name:      runtimeServiceName,
 			Namespace: ns,
@@ -112,7 +112,7 @@ func Test_CheckKogitoBuildExists_exists(t *testing.T) {
 	ns := t.Name()
 	kubeCli := test.SetupFakeKubeCli(&v1.Namespace{
 		ObjectMeta: v12.ObjectMeta{Name: ns},
-	}, &v1alpha1.KogitoBuild{
+	}, &v1beta1.KogitoBuild{
 		ObjectMeta: v12.ObjectMeta{
 			Name:      buildServiceName,
 			Namespace: ns,

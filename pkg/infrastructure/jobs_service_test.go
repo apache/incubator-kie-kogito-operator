@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -31,20 +31,20 @@ import (
 func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 	URI := "http://localhost:8080"
 	replicas := int32(1)
-	app := &v1alpha1.KogitoRuntime{
+	app := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
 			Namespace: t.Name(),
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &v1alpha1.KogitoSupportingService{
+	jobs := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
-		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
+		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
@@ -73,20 +73,20 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	URI := "http://localhost:8080"
 	replicas := int32(1)
-	app := &v1alpha1.KogitoRuntime{
+	app := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
 			Namespace: t.Name(),
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &v1alpha1.KogitoSupportingService{
+	jobs := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultJobsServiceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
-		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: URI}},
+		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{

@@ -15,7 +15,7 @@
 package build
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
@@ -64,7 +64,7 @@ func newOutputImageStreamForBuilder(bc *buildv1.BuildConfig) imgv1.ImageStream {
 
 // newOutputImageStreamForRuntime creates a new image stream for the Runtime
 // if one image stream is found in the namespace managed by other resources such as KogitoRuntime or other KogitoBuild, we add ourselves in the owner references
-func newOutputImageStreamForRuntime(bc *buildv1.BuildConfig, build *v1alpha1.KogitoBuild, client *client.Client) (*imgv1.ImageStream, error) {
+func newOutputImageStreamForRuntime(bc *buildv1.BuildConfig, build *v1beta1.KogitoBuild, client *client.Client) (*imgv1.ImageStream, error) {
 	isName, tag := getOutputImageStreamNameTag(bc)
 	sharedImageStream, err := services.GetSharedDeployedImageStream(isName, build.Namespace, client)
 	if err != nil {
@@ -74,5 +74,5 @@ func newOutputImageStreamForRuntime(bc *buildv1.BuildConfig, build *v1alpha1.Kog
 		return sharedImageStream, nil
 	}
 	// let's create an ImageStream since we haven't found one in the namespace
-	return services.NewImageHandlerForBuiltServices(&v1alpha1.Image{Name: isName, Tag: tag}, build.Namespace, client).GetImageStream(), nil
+	return services.NewImageHandlerForBuiltServices(&v1beta1.Image{Name: isName, Tag: tag}, build.Namespace, client).GetImageStream(), nil
 }

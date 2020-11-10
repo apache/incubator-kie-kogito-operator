@@ -18,7 +18,7 @@ import (
 	"net/http"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -31,7 +31,7 @@ import (
 
 const prometheusServerGroup = "monitoring.coreos.com"
 
-func configurePrometheus(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) error {
+func configurePrometheus(client *client.Client, kogitoService v1beta1.KogitoService, scheme *runtime.Scheme) error {
 	prometheusAvailable := isPrometheusAvailable(client)
 	if !prometheusAvailable {
 		log.Debugf("prometheus operator not available in namespace")
@@ -64,7 +64,7 @@ func isPrometheusAvailable(client *client.Client) bool {
 	return client.HasServerGroup(prometheusServerGroup)
 }
 
-func isPrometheusAddOnAvailable(kogitoService v1alpha1.KogitoService) (bool, error) {
+func isPrometheusAddOnAvailable(kogitoService v1beta1.KogitoService) (bool, error) {
 	url := infrastructure.GetKogitoServiceEndpoint(kogitoService)
 	url = url + getMonitoringPath(kogitoService.GetSpec().GetMonitoring())
 	if resp, err := http.Head(url); err != nil {
@@ -76,7 +76,7 @@ func isPrometheusAddOnAvailable(kogitoService v1alpha1.KogitoService) (bool, err
 	return false, nil
 }
 
-func createPrometheusServiceMonitorIfNotExists(client *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) error {
+func createPrometheusServiceMonitorIfNotExists(client *client.Client, kogitoService v1beta1.KogitoService, scheme *runtime.Scheme) error {
 	serviceMonitor, err := loadDeployedServiceMonitor(client, kogitoService.GetName(), kogitoService.GetNamespace())
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func loadDeployedServiceMonitor(client *client.Client, instanceName, namespace s
 }
 
 // createServiceMonitor create ServiceMonitor used for scraping by prometheus for kogito service
-func createServiceMonitor(cli *client.Client, kogitoService v1alpha1.KogitoService, scheme *runtime.Scheme) (*monv1.ServiceMonitor, error) {
+func createServiceMonitor(cli *client.Client, kogitoService v1beta1.KogitoService, scheme *runtime.Scheme) (*monv1.ServiceMonitor, error) {
 	monitoring := kogitoService.GetSpec().GetMonitoring()
 	endPoint := monv1.Endpoint{}
 	endPoint.Path = getMonitoringPath(monitoring)
@@ -150,18 +150,18 @@ func createServiceMonitor(cli *client.Client, kogitoService v1alpha1.KogitoServi
 	return sm, nil
 }
 
-func getMonitoringPath(monitoring v1alpha1.Monitoring) string {
+func getMonitoringPath(monitoring v1beta1.Monitoring) string {
 	path := monitoring.Path
 	if len(path) == 0 {
-		path = v1alpha1.MonitoringDefaultPath
+		path = v1beta1.MonitoringDefaultPath
 	}
 	return path
 }
 
-func getMonitoringScheme(monitoring v1alpha1.Monitoring) string {
+func getMonitoringScheme(monitoring v1beta1.Monitoring) string {
 	scheme := monitoring.Scheme
 	if len(scheme) == 0 {
-		scheme = v1alpha1.MonitoringDefaultScheme
+		scheme = v1beta1.MonitoringDefaultScheme
 	}
 	return scheme
 }

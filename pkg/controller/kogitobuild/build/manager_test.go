@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -30,11 +30,11 @@ import (
 )
 
 func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
-	build := v1alpha1.KogitoBuild{
+	build := v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-example", Namespace: t.Name()},
-		Spec: v1alpha1.KogitoBuildSpec{
-			Type: v1alpha1.RemoteSourceBuildType,
-			GitSource: v1alpha1.GitSource{
+		Spec: v1beta1.KogitoBuildSpec{
+			Type: v1beta1.RemoteSourceBuildType,
+			GitSource: v1beta1.GitSource{
 				URI: "http://myrepo.com/namespace/project",
 			},
 		},
@@ -74,9 +74,9 @@ func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
 }
 
 func TestNewWhenBuildingFromLocalSource(t *testing.T) {
-	build := v1alpha1.KogitoBuild{
+	build := v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-example", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Type: v1alpha1.LocalSourceBuildType},
+		Spec:       v1beta1.KogitoBuildSpec{Type: v1beta1.LocalSourceBuildType},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{&build}, nil, nil)
 
@@ -113,9 +113,9 @@ func TestNewWhenBuildingFromLocalSource(t *testing.T) {
 }
 
 func TestNewWhenBuildingFromBinary(t *testing.T) {
-	build := v1alpha1.KogitoBuild{
+	build := v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-example", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Type: v1alpha1.BinaryBuildType},
+		Spec:       v1beta1.KogitoBuildSpec{Type: v1beta1.BinaryBuildType},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{&build}, nil, nil)
 
@@ -142,9 +142,9 @@ func TestNewWhenBuildingFromBinary(t *testing.T) {
 }
 
 func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
-	build := v1alpha1.KogitoBuild{
+	build := v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-example", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{},
+		Spec:       v1beta1.KogitoBuildSpec{},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{&build}, nil, nil)
 	manager, err := New(&build, cli, meta.GetRegisteredSchema())
@@ -153,9 +153,9 @@ func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
 }
 
 func TestNewWhenSanityCheckComplainAboutGit(t *testing.T) {
-	build := v1alpha1.KogitoBuild{
+	build := v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-example", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Type: v1alpha1.RemoteSourceBuildType},
+		Spec:       v1beta1.KogitoBuildSpec{Type: v1beta1.RemoteSourceBuildType},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{&build}, nil, nil)
 	manager, err := New(&build, cli, meta.GetRegisteredSchema())

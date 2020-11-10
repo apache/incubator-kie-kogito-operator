@@ -18,16 +18,16 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 )
 
 // updateBaseStatus updates the base status for the KogitoInfra instance
-func updateBaseStatus(client *client.Client, instance *v1alpha1.KogitoInfra, err *error) {
+func updateBaseStatus(client *client.Client, instance *v1beta1.KogitoInfra, err *error) {
 	log.Info("Updating Kogito Infra status")
 	if *err != nil {
-		if reasonForError(*err) == v1alpha1.ReconciliationFailure {
+		if reasonForError(*err) == v1beta1.ReconciliationFailure {
 			log.Warn("Seems that an error occurred, setting failure state: ", *err)
 		}
 		setResourceFailed(instance, *err)
@@ -43,10 +43,10 @@ func updateBaseStatus(client *client.Client, instance *v1alpha1.KogitoInfra, err
 }
 
 // setResourceFailed sets the instance as failed
-func setResourceFailed(instance *v1alpha1.KogitoInfra, err error) {
+func setResourceFailed(instance *v1beta1.KogitoInfra, err error) {
 	if instance.Status.Condition.Message != err.Error() {
 		log.Warn("Setting instance as failed", err)
-		instance.Status.Condition.Type = v1alpha1.FailureInfraConditionType
+		instance.Status.Condition.Type = v1beta1.FailureInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionFalse
 		instance.Status.Condition.Message = err.Error()
 		instance.Status.Condition.Reason = reasonForError(err)
@@ -55,9 +55,9 @@ func setResourceFailed(instance *v1alpha1.KogitoInfra, err error) {
 }
 
 // setResourceSuccess sets the instance as success
-func setResourceSuccess(instance *v1alpha1.KogitoInfra) {
-	if instance.Status.Condition.Type != v1alpha1.SuccessInfraConditionType {
-		instance.Status.Condition.Type = v1alpha1.SuccessInfraConditionType
+func setResourceSuccess(instance *v1beta1.KogitoInfra) {
+	if instance.Status.Condition.Type != v1beta1.SuccessInfraConditionType {
+		instance.Status.Condition.Type = v1beta1.SuccessInfraConditionType
 		instance.Status.Condition.Status = corev1.ConditionTrue
 		instance.Status.Condition.Message = ""
 		instance.Status.Condition.Reason = ""

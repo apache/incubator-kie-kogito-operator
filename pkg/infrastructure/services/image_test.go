@@ -17,7 +17,7 @@ package services
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -27,14 +27,14 @@ import (
 
 func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	is, tag := test.GetImageStreams(infrastructure.DefaultJobsServiceImageName, instance.Namespace, instance.Name, infrastructure.GetKogitoImageVersion())
@@ -49,14 +49,14 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 
 func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.CreateFakeClientOnOpenShift([]runtime.Object{instance}, nil, nil)
@@ -70,14 +70,14 @@ func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T)
 
 func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.CreateFakeClient([]runtime.Object{instance}, nil, nil)
@@ -91,14 +91,14 @@ func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 
 func Test_imageHandler_newImageHandlerInsecureImageRegistry(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:              &replicas,
 				InsecureImageRegistry: true,
 			},

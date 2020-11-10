@@ -17,35 +17,35 @@ package build
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
-	buildQuarkusNonNative := &v1alpha1.KogitoBuild{
+	buildQuarkusNonNative := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusNonNative", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, Native: false},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.QuarkusRuntimeType, Native: false},
 	}
-	buildQuarkusNative := &v1alpha1.KogitoBuild{
+	buildQuarkusNative := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusNative", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, Native: true},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.QuarkusRuntimeType, Native: true},
 	}
-	buildSpringBoot := &v1alpha1.KogitoBuild{
+	buildSpringBoot := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBoot", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.SpringBootRuntimeType},
 	}
-	buildQuarkusCustom := &v1alpha1.KogitoBuild{
+	buildQuarkusCustom := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, RuntimeImage: "my-image:1.0"},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.QuarkusRuntimeType, RuntimeImage: "my-image:1.0"},
 	}
-	buildSpringBootCustom := &v1alpha1.KogitoBuild{
+	buildSpringBootCustom := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBootCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: "my-image:1.0"},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.SpringBootRuntimeType, BuildImage: "my-image:1.0"},
 	}
 	tag := ":" + infrastructure.GetKogitoImageVersion()
 	type args struct {
-		build        *v1alpha1.KogitoBuild
+		build        *v1beta1.KogitoBuild
 		builderImage bool
 	}
 	tests := []struct {
@@ -72,28 +72,28 @@ func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
 }
 
 func Test_resolveKogitoImageStreamName(t *testing.T) {
-	buildQuarkusNonNative := &v1alpha1.KogitoBuild{
+	buildQuarkusNonNative := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusNonNative", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, Native: false},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.QuarkusRuntimeType, Native: false},
 	}
-	buildQuarkusNative := &v1alpha1.KogitoBuild{
+	buildQuarkusNative := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusNative", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, Native: true},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.QuarkusRuntimeType, Native: true},
 	}
-	buildSpringBoot := &v1alpha1.KogitoBuild{
+	buildSpringBoot := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBoot", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.SpringBootRuntimeType},
 	}
-	buildQuarkusCustom := &v1alpha1.KogitoBuild{
+	buildQuarkusCustom := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildQuarkusCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.QuarkusRuntimeType, RuntimeImage: "my-image"},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.QuarkusRuntimeType, RuntimeImage: "my-image"},
 	}
-	buildSpringBootCustom := &v1alpha1.KogitoBuild{
+	buildSpringBootCustom := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "buildSpringBootCustom", Namespace: t.Name()},
-		Spec:       v1alpha1.KogitoBuildSpec{Runtime: v1alpha1.SpringBootRuntimeType, BuildImage: "my-image"},
+		Spec:       v1beta1.KogitoBuildSpec{Runtime: v1beta1.SpringBootRuntimeType, BuildImage: "my-image"},
 	}
 	type args struct {
-		build     *v1alpha1.KogitoBuild
+		build     *v1beta1.KogitoBuild
 		isBuilder bool
 	}
 	tests := []struct {

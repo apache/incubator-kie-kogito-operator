@@ -17,7 +17,7 @@ package infrastructure
 import (
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/version"
 )
 
@@ -44,12 +44,12 @@ const (
 
 var (
 	// KogitoImages maps the default Kogito Images on a matrix of RuntimeType and its purpose
-	KogitoImages = map[v1alpha1.RuntimeType]map[bool]string{
-		v1alpha1.QuarkusRuntimeType: {
+	KogitoImages = map[v1beta1.RuntimeType]map[bool]string{
+		v1beta1.QuarkusRuntimeType: {
 			true:  KogitoQuarkusUbi8s2iImage,
 			false: KogitoQuarkusJVMUbi8Image,
 		},
-		v1alpha1.SpringBootRuntimeType: {
+		v1beta1.SpringBootRuntimeType: {
 			true:  KogitoSpringBootUbi8s2iImage,
 			false: KogitoSpringBootUbi8Image,
 		},

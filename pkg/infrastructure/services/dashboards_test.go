@@ -16,7 +16,7 @@ package services
 
 import (
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -73,13 +73,13 @@ func Test_fetchDashboards(t *testing.T) {
 
 func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 	replicas := int32(1)
-	service := &v1alpha1.KogitoRuntime{
+	service := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "my-kogito-runtime",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoRuntimeSpec{
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoRuntimeSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()

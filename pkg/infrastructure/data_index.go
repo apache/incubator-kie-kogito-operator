@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -45,18 +45,18 @@ const (
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectDataIndexURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
 	log.Debugf("Injecting Data-Index Route in kogito apps")
-	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1alpha1.DataIndex)
+	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1beta1.DataIndex)
 }
 
 // InjectDataIndexURLIntoDeployment will inject data-index route URL in to kogito runtime deployment env var
 func InjectDataIndexURLIntoDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
 	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
-	return injectSupportingServiceURLIntoDeployment(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, v1alpha1.DataIndex)
+	return injectSupportingServiceURLIntoDeployment(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, v1beta1.DataIndex)
 }
 
 // InjectDataIndexURLIntoSupportingService will query for Supporting service deployment in the given namespace to inject the Data Index route to each one
 // Won't trigger an update if the SupportingService already has the route set to avoid unnecessary reconciliation triggers
-func InjectDataIndexURLIntoSupportingService(client *client.Client, namespace string, serviceTypes ...v1alpha1.ServiceType) error {
+func InjectDataIndexURLIntoSupportingService(client *client.Client, namespace string, serviceTypes ...v1beta1.ServiceType) error {
 	for _, serviceType := range serviceTypes {
 		log.Debugf("Injecting Data-Index Route in %s", serviceType)
 		deployment, err := getSupportingServiceDeployment(namespace, client, serviceType)
@@ -64,17 +64,17 @@ func InjectDataIndexURLIntoSupportingService(client *client.Client, namespace st
 			return err
 		}
 		if deployment == nil {
-			log.Debugf("No deployment found for %s, skipping to inject %s URL into %s", serviceType, v1alpha1.DataIndex, serviceType)
+			log.Debugf("No deployment found for %s, skipping to inject %s URL into %s", serviceType, v1beta1.DataIndex, serviceType)
 			return nil
 		}
 
-		log.Debugf("Querying %s route to inject into %s", v1alpha1.DataIndex, serviceType)
-		serviceEndpoints, err := getServiceEndpoints(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1alpha1.DataIndex)
+		log.Debugf("Querying %s route to inject into %s", v1beta1.DataIndex, serviceType)
+		serviceEndpoints, err := getServiceEndpoints(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1beta1.DataIndex)
 		if err != nil {
 			return err
 		}
 		if serviceEndpoints != nil {
-			log.Debugf("The %s route is '%s'", v1alpha1.DataIndex, serviceEndpoints.HTTPRouteURI)
+			log.Debugf("The %s route is '%s'", v1beta1.DataIndex, serviceEndpoints.HTTPRouteURI)
 
 			updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
 			// update only once
@@ -103,8 +103,8 @@ func MountProtoBufConfigMapsOnDeployment(client *client.Client, deployment *apps
 }
 
 // MountProtoBufConfigMapOnDataIndex mounts protobuf configMaps from KogitoRuntime services into the given deployment instance of DataIndex
-func MountProtoBufConfigMapOnDataIndex(client *client.Client, kogitoService v1alpha1.KogitoService) (err error) {
-	deployment, err := getSupportingServiceDeployment(kogitoService.GetNamespace(), client, v1alpha1.DataIndex)
+func MountProtoBufConfigMapOnDataIndex(client *client.Client, kogitoService v1beta1.KogitoService) (err error) {
+	deployment, err := getSupportingServiceDeployment(kogitoService.GetNamespace(), client, v1beta1.DataIndex)
 	if err != nil || deployment == nil {
 		return
 	}

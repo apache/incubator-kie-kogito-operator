@@ -21,7 +21,7 @@ import (
 	"sort"
 
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -186,16 +186,16 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 	if err != nil || tlsSecret == nil {
 		return err
 	}
-	volume := v1alpha1.KogitoInfraVolume{
+	volume := v1beta1.KogitoInfraVolume{
 		Mount: corev1.VolumeMount{
 			Name:      infinispanCertMountName,
 			ReadOnly:  true,
 			MountPath: truststoreMountPath,
 			SubPath:   truststoreSecretKey,
 		},
-		NamedVolume: v1alpha1.ConfigVolume{
+		NamedVolume: v1beta1.ConfigVolume{
 			Name: infinispanCertMountName,
-			ConfigVolumeSource: v1alpha1.ConfigVolumeSource{
+			ConfigVolumeSource: v1beta1.ConfigVolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: tlsSecret.Name,
 					Items: []corev1.KeyToPath{
@@ -210,7 +210,7 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 			},
 		},
 	}
-	i.instance.Status.Volume = []v1alpha1.KogitoInfraVolume{volume}
+	i.instance.Status.Volume = []v1beta1.KogitoInfraVolume{volume}
 	return nil
 }
 
@@ -399,7 +399,7 @@ func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) 
 	return false, resultErr
 }
 
-func hasInfinispanMountedVolume(infra *v1alpha1.KogitoInfra) bool {
+func hasInfinispanMountedVolume(infra *v1beta1.KogitoInfra) bool {
 	for _, volume := range infra.Status.Volume {
 		if volume.NamedVolume.Name == infinispanCertMountName {
 			return true

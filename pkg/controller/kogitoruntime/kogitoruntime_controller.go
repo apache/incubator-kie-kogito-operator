@@ -15,7 +15,7 @@
 package kogitoruntime
 
 import (
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -64,7 +64,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			return false
 		},
 	}
-	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoRuntime{}}, &handler.EnqueueRequestForObject{}, pred)
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoRuntime{}}, &handler.EnqueueRequestForObject{}, pred)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			Objects: []runtime.Object{&corev1.Service{}, &appsv1.Deployment{}, &corev1.ConfigMap{}},
 		},
 	}
-	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoRuntime).client, mgr, c, &appv1alpha1.KogitoRuntime{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoRuntime).client, mgr, c, &v1beta1.KogitoRuntime{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}

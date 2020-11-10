@@ -17,7 +17,7 @@ package services
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -55,7 +55,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		service := createRequiredService(s.instance, deployment)
 
 		appProps := map[string]string{}
-		var infraVolumes []v1alpha1.KogitoInfraVolume
+		var infraVolumes []v1beta1.KogitoInfraVolume
 
 		if len(s.instance.GetSpec().GetInfra()) > 0 {
 			log.Debugf("Infra references are provided")
@@ -143,7 +143,7 @@ func (s *serviceDeployer) setOwner(resources map[reflect.Type][]resource.Kuberne
 	return nil
 }
 
-func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, instance v1alpha1.KogitoService) (string, error) {
+func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, instance v1beta1.KogitoService) (string, error) {
 	image, err := imageHandler.resolveImage()
 	if err != nil {
 		return "", err
@@ -237,12 +237,12 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 	return compare.MapComparator{Comparator: resourceComparator}
 }
 
-func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []corev1.EnvVar, []v1alpha1.KogitoInfraVolume, error) {
+func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []corev1.EnvVar, []v1beta1.KogitoInfraVolume, error) {
 	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
 	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
 	consolidateAppProperties := map[string]string{}
 	var consolidateEnvProperties []corev1.EnvVar
-	var volumes []v1alpha1.KogitoInfraVolume
+	var volumes []v1beta1.KogitoInfraVolume
 	for _, kogitoInfraName := range kogitoInfraReferences {
 		// load infra resource
 		kogitoInfraInstance, err := infrastructure.MustFetchKogitoInfraInstance(s.client, kogitoInfraName, s.instance.GetNamespace())
@@ -262,7 +262,7 @@ func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []cor
 	return consolidateAppProperties, consolidateEnvProperties, volumes, nil
 }
 
-func (s *serviceDeployer) mountVolumes(kogitoInfraVolumes []v1alpha1.KogitoInfraVolume, deployment *appsv1.Deployment) {
+func (s *serviceDeployer) mountVolumes(kogitoInfraVolumes []v1beta1.KogitoInfraVolume, deployment *appsv1.Deployment) {
 	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, createAppPropVolume(s.instance))
 	deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, createAppPropVolumeMount())
 	for _, infraVolume := range kogitoInfraVolumes {

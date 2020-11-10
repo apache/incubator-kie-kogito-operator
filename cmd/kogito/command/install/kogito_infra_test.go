@@ -20,7 +20,7 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/stretchr/testify/assert"
@@ -35,14 +35,14 @@ func Test_InstallInfraServiceCmd_DefaultConfiguration(t *testing.T) {
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1alpha1.KogitoInfra{ObjectMeta: metav1.ObjectMeta{Name: "kogito-infra", Namespace: ns}})
+		&v1beta1.KogitoInfra{ObjectMeta: metav1.ObjectMeta{Name: "kogito-infra", Namespace: ns}})
 	lines, _, err := test.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Infra Service successfully installed")
 
 	// This should be created, given the command above
-	kogitoInfra := &v1alpha1.KogitoInfra{
+	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
