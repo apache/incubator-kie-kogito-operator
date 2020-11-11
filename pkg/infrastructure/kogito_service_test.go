@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
@@ -26,13 +26,13 @@ import (
 )
 
 func Test_GetKogitoServiceInternalURL(t *testing.T) {
-	service := &v1alpha1.KogitoSupportingService{
+	service := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "dataindex",
 			Namespace: "mynamespace",
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
 		},
 	}
 
@@ -47,19 +47,19 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	expectedWSURL := "ws://" + hostname
 	expectedHTTPSURL := "https://" + hostname
 	expectedWSSURL := "wss://" + hostname
-	insecureDI := &v1alpha1.KogitoSupportingService{
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
+	insecureDI := &v1beta1.KogitoSupportingService{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
-		Status:     v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPURL}},
+		Status:     v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedHTTPURL}},
 	}
-	secureDI := &v1alpha1.KogitoSupportingService{
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
+	secureDI := &v1beta1.KogitoSupportingService{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: DefaultDataIndexName, Namespace: ns},
-		Status:     v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
+		Status:     v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
 	}
 	cliInsecure := test.NewFakeClientBuilder().AddK8sObjects(insecureDI).Build()
 	cliSecure := test.NewFakeClientBuilder().AddK8sObjects(secureDI).Build()
@@ -107,7 +107,7 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotDataIndexEndpoints, err := getServiceEndpoints(tt.args.client, tt.args.namespace, tt.wantHTTPURL, tt.wantWSURL, v1alpha1.DataIndex)
+			gotDataIndexEndpoints, err := getServiceEndpoints(tt.args.client, tt.args.namespace, tt.wantHTTPURL, tt.wantWSURL, v1beta1.DataIndex)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetDataIndexEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 				return

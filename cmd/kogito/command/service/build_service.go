@@ -21,7 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
@@ -76,12 +76,12 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 		return err
 	}
 
-	kogitoBuild := v1alpha1.KogitoBuild{
+	kogitoBuild := v1beta1.KogitoBuild{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      flags.Name,
 			Namespace: flags.Project,
 		},
-		Spec: v1alpha1.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type:                      converter.FromResourceTypeToKogitoBuildType(resourceType),
 			DisableIncremental:        !flags.IncrementalBuild,
 			Env:                       converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
@@ -97,8 +97,8 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 			Artifact:                  converter.FromArtifactFlagsToArtifact(&flags.ArtifactFlags),
 			EnableMavenDownloadOutput: flags.EnableMavenDownloadOutput,
 		},
-		Status: v1alpha1.KogitoBuildStatus{
-			Conditions: []v1alpha1.KogitoBuildConditions{},
+		Status: v1beta1.KogitoBuildStatus{
+			Conditions: []v1beta1.KogitoBuildConditions{},
 		},
 	}
 
@@ -134,8 +134,8 @@ func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.S
 	}
 
 	if flags.Native {
-		if v1alpha1.RuntimeType(flags.RuntimeTypeFlags.Runtime) != v1alpha1.QuarkusRuntimeType {
-			return fmt.Errorf("native builds are only supported with %s runtime", v1alpha1.QuarkusRuntimeType)
+		if v1beta1.RuntimeType(flags.RuntimeTypeFlags.Runtime) != v1beta1.QuarkusRuntimeType {
+			return fmt.Errorf("native builds are only supported with %s runtime", v1beta1.QuarkusRuntimeType)
 		}
 	}
 	return nil
@@ -153,7 +153,7 @@ func (i buildService) DeleteBuildService(cli *client.Client, name, project strin
 		return err
 	}
 	log.Debugf("About to delete build %s in namespace %s", name, project)
-	if err := kubernetes.ResourceC(cli).Delete(&v1alpha1.KogitoBuild{
+	if err := kubernetes.ResourceC(cli).Delete(&v1beta1.KogitoBuild{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: project,

@@ -5,7 +5,7 @@ metadata:
     alm-examples: |-
       [
         {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "apiVersion": "app.kiegroup.org/v1beta1",
           "kind": "KogitoBuild",
           "metadata": {
             "name": "example-quarkus"
@@ -19,7 +19,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "apiVersion": "app.kiegroup.org/v1beta1",
           "kind": "KogitoInfra",
           "metadata": {
             "name": "kogito-infinispan-infra"
@@ -32,7 +32,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "apiVersion": "app.kiegroup.org/v1beta1",
           "kind": "KogitoRuntime",
           "metadata": {
             "name": "process-quarkus-example"
@@ -43,7 +43,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "app.kiegroup.org/v1alpha1",
+          "apiVersion": "app.kiegroup.org/v1beta1",
           "kind": "KogitoSupportingService",
           "metadata": {
             "name": "kogito-jobs-service"
@@ -189,7 +189,7 @@ spec:
         - urn:alm:descriptor:io.kubernetes.conditions
       - displayName: Latest Build
         path: latestBuild
-      version: v1alpha1
+      version: v1beta1
     - description: 'KogitoInfra is the resource to bind a Custom Resource (CR) not
         managed by Kogito Operator to a given deployed Kogito service. It holds the
         reference of a CR managed by another operator such as Strimzi. For example:
@@ -231,7 +231,7 @@ spec:
       - description: Namespace where referred resource exists.
         displayName: Namespace
         path: resource.namespace
-      version: v1alpha1
+      version: v1beta1
     - description: KogitoRuntime is a custom Kogito service.
       displayName: Kogito service
       kind: KogitoRuntime
@@ -350,7 +350,7 @@ spec:
       - description: Image is the resolved image for this service.
         displayName: Image
         path: image
-      version: v1alpha1
+      version: v1beta1
     - description: KogitoSupportingService deploys the Supporting service in the given
         namespace.
       displayName: Kogito Supporting Service
@@ -463,7 +463,7 @@ spec:
       - description: Image is the resolved image for this service.
         displayName: Image
         path: image
-      version: v1alpha1
+      version: v1beta1
   description: |-
     Kogito Operator is designed to deploy Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
 

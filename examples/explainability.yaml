@@ -1,6 +1,6 @@
 #Strimzi operator should be pre-installed in namespace
 # will set this instance to auto provision an infra structure in the namespace
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoInfra
 metadata:
   name: kogito-kafka-infra
@@ -9,7 +9,7 @@ spec:
     apiVersion: kafka.strimzi.io/v1beta1
     kind: Kafka
 ---
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoSupportingService
 metadata:
   name: explainability

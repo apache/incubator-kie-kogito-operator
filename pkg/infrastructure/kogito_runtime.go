@@ -16,7 +16,7 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -55,7 +55,7 @@ func getProtoBufConfigMapsForSpecificRuntimeService(cli *client.Client, name, na
 // getKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
 func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1.Deployment, error) {
 	var kdcs []appsv1.Deployment
-	kogitoRuntimeServices := &v1alpha1.KogitoRuntimeList{}
+	kogitoRuntimeServices := &v1beta1.KogitoRuntimeList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoRuntimeServices); err != nil {
 		return nil, err
 	}
@@ -83,9 +83,9 @@ func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1
 }
 
 // FetchKogitoRuntimeService provide KogitoRuntime instance for given name and namespace
-func FetchKogitoRuntimeService(client *client.Client, name string, namespace string) (*v1alpha1.KogitoRuntime, error) {
+func FetchKogitoRuntimeService(client *client.Client, name string, namespace string) (*v1beta1.KogitoRuntime, error) {
 	log.Debugf("going to fetch deployed kogito runtime service instance %s in namespace %s", name, namespace)
-	instance := &v1alpha1.KogitoRuntime{}
+	instance := &v1beta1.KogitoRuntime{}
 	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
 		log.Errorf("Error occurs while fetching deployed kogito runtime service instance %s", name)
 		return nil, resultErr

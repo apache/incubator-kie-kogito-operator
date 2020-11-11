@@ -17,7 +17,7 @@ package openshift
 import (
 	"context"
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"io"
 	"k8s.io/apimachinery/pkg/runtime"
 	"strings"
@@ -44,7 +44,7 @@ const (
 // BuildState describes the state of the build
 type BuildState struct {
 	ImageExists bool
-	Builds      *v1alpha1.Builds
+	Builds      *v1beta1.Builds
 }
 
 // BuildConfigInterface exposes OpenShift BuildConfig operations
@@ -52,8 +52,8 @@ type BuildConfigInterface interface {
 	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, imageName string) (BuildState, error)
 	TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) (bool, error)
 	TriggerBuildFromFile(namespace string, r io.Reader, options *buildv1.BinaryBuildRequestOptions, binaryBuild bool) (*buildv1.Build, error)
-	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error)
-	GetBuildsStatusByLabel(namespace, labelSelector string) (*v1alpha1.Builds, error)
+	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1beta1.Builds, error)
+	GetBuildsStatusByLabel(namespace, labelSelector string) (*v1beta1.Builds, error)
 }
 
 func newBuildConfig(c *client.Client) BuildConfigInterface {
@@ -168,14 +168,14 @@ func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader,
 }
 
 // GetBuildsStatusByLabel checks the status of the builds for all builds with the given label
-func (b *buildConfig) GetBuildsStatusByLabel(namespace, labelSelector string) (*v1alpha1.Builds, error) {
+func (b *buildConfig) GetBuildsStatusByLabel(namespace, labelSelector string) (*v1beta1.Builds, error) {
 	list, err := b.client.BuildCli.Builds(namespace).List(context.TODO(), metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 	if err != nil {
 		return nil, err
 	}
-	status := &v1alpha1.Builds{}
+	status := &v1beta1.Builds{}
 
 	for _, item := range list.Items {
 		log.Debugf("Checking status of build '%s'", item.Name)
@@ -204,7 +204,7 @@ func (b *buildConfig) GetBuildsStatusByLabel(namespace, labelSelector string) (*
 }
 
 // GetBuildsStatus checks the status of the builds for the BuildConfig
-func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1alpha1.Builds, error) {
+func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*v1beta1.Builds, error) {
 	if exists, err := b.checkBuildConfigExists(bc); !exists {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 		return nil, err
 	}
 
-	status := &v1alpha1.Builds{}
+	status := &v1beta1.Builds{}
 
 	for _, item := range list.Items {
 		// it's the build from our buildConfig

@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -28,11 +28,11 @@ import (
 
 func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
@@ -55,8 +55,8 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 }
 
 func Test_isKogitoInfraUpdated(t *testing.T) {
-	oldKogitoInfra := v1alpha1.KogitoInfra{
-		Status: v1alpha1.KogitoInfraStatus{
+	oldKogitoInfra := v1beta1.KogitoInfra{
+		Status: v1beta1.KogitoInfraStatus{
 			AppProps: map[string]string{
 				"myprops": "custom-value",
 			},
@@ -69,8 +69,8 @@ func Test_isKogitoInfraUpdated(t *testing.T) {
 		},
 	}
 
-	newKogitoInfra := v1alpha1.KogitoInfra{
-		Status: v1alpha1.KogitoInfraStatus{
+	newKogitoInfra := v1beta1.KogitoInfra{
+		Status: v1beta1.KogitoInfraStatus{
 			AppProps: map[string]string{
 				"myprops": "custom-value",
 			},
@@ -86,8 +86,8 @@ func Test_isKogitoInfraUpdated(t *testing.T) {
 	assert.False(t, isKogitoInfraUpdated(&oldKogitoInfra, &newKogitoInfra))
 
 	// Infra updated with some new AppProps
-	newKogitoInfra = v1alpha1.KogitoInfra{
-		Status: v1alpha1.KogitoInfraStatus{
+	newKogitoInfra = v1beta1.KogitoInfra{
+		Status: v1beta1.KogitoInfraStatus{
 			AppProps: map[string]string{
 				"myprops": "custom-value",
 				"newprop": "new-custom-value",
@@ -104,8 +104,8 @@ func Test_isKogitoInfraUpdated(t *testing.T) {
 	assert.True(t, isKogitoInfraUpdated(&oldKogitoInfra, &newKogitoInfra))
 
 	// new env added
-	newKogitoInfra = v1alpha1.KogitoInfra{
-		Status: v1alpha1.KogitoInfraStatus{
+	newKogitoInfra = v1beta1.KogitoInfra{
+		Status: v1beta1.KogitoInfraStatus{
 			AppProps: map[string]string{
 				"myprops": "custom-value",
 			},
@@ -127,38 +127,38 @@ func Test_isKogitoInfraUpdated(t *testing.T) {
 }
 
 func TestContains(t *testing.T) {
-	allServices := []v1alpha1.ServiceType{
-		v1alpha1.MgmtConsole,
-		v1alpha1.JobsService,
-		v1alpha1.TrustyAI,
+	allServices := []v1beta1.ServiceType{
+		v1beta1.MgmtConsole,
+		v1beta1.JobsService,
+		v1beta1.TrustyAI,
 	}
-	testService := v1alpha1.DataIndex
+	testService := v1beta1.DataIndex
 
 	assert.False(t, contains(allServices, testService))
 }
 
 func Test_ensureSingletonService(t *testing.T) {
 	ns := t.Name()
-	instance1 := &v1alpha1.KogitoSupportingService{
+	instance1 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index1",
 			Namespace: ns,
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
 		},
 	}
-	instance2 := &v1alpha1.KogitoSupportingService{
+	instance2 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index2",
 			Namespace: ns,
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
 		},
 	}
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance1, instance2).OnOpenShift().Build()
-	assert.Errorf(t, ensureSingletonService(cli, ns, v1alpha1.DataIndex), "kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", v1alpha1.DataIndex)
+	assert.Errorf(t, ensureSingletonService(cli, ns, v1beta1.DataIndex), "kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", v1beta1.DataIndex)
 
 }

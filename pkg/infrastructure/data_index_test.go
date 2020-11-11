@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +34,7 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	ns := t.Name()
 	name := "my-kogito-app"
 	expectedRoute := "http://dataindex-route.com"
-	kogitoRuntime := &v1alpha1.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -49,18 +49,18 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 			},
 		},
 	}
-	dataIndexes := &v1alpha1.KogitoSupportingServiceList{
-		Items: []v1alpha1.KogitoSupportingService{
+	dataIndexes := &v1beta1.KogitoSupportingServiceList{
+		Items: []v1beta1.KogitoSupportingService{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      DefaultDataIndexName,
 					Namespace: ns,
 				},
-				Spec: v1alpha1.KogitoSupportingServiceSpec{
-					ServiceType: v1alpha1.DataIndex,
+				Spec: v1beta1.KogitoSupportingServiceSpec{
+					ServiceType: v1beta1.DataIndex,
 				},
-				Status: v1alpha1.KogitoSupportingServiceStatus{
-					KogitoServiceStatus: v1alpha1.KogitoServiceStatus{ExternalURI: expectedRoute},
+				Status: v1beta1.KogitoSupportingServiceStatus{
+					KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedRoute},
 				},
 			},
 		},
@@ -125,14 +125,14 @@ func TestMountProtoBufConfigMapsOnDeployment(t *testing.T) {
 func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	fileName1 := "mydomain.proto"
 	fileName2 := "mydomain2.proto"
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: t.Name(),
 			Name:      DefaultDataIndexName,
 			UID:       types.UID(uuid.New().String()),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
 		},
 	}
 	dc := &appsv1.Deployment{
@@ -168,7 +168,7 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, dc, cm1, cm2).OnOpenShift().Build()
 
-	runtimeService := &v1alpha1.KogitoRuntime{
+	runtimeService := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: t.Name(),
 			Name:      "my-domain-protobufs1",
@@ -176,7 +176,7 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	}
 	err := MountProtoBufConfigMapOnDataIndex(cli, runtimeService)
 	assert.NoError(t, err)
-	deployment, err := getSupportingServiceDeployment(t.Name(), cli, v1alpha1.DataIndex)
+	deployment, err := getSupportingServiceDeployment(t.Name(), cli, v1beta1.DataIndex)
 	assert.NoError(t, err)
 
 	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 1)

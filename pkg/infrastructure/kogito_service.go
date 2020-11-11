@@ -20,7 +20,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -40,7 +40,7 @@ const (
 // injectSupportingServiceURLIntoKogitoRuntime will query for every KogitoApp in the given namespace to inject the Supporting service route to each one
 // Won't trigger an update if the KogitoApp already has the route set to avoid unnecessary reconciliation triggers
 // it will call when supporting service reconcile
-func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1alpha1.ServiceType) error {
+func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1beta1.ServiceType) error {
 	serviceEndpoints, err := getServiceEndpoints(client, namespace, serviceHTTPRouteEnv, serviceWSRouteEnv, resourceType)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespac
 
 // InjectDataIndexURLIntoDeployment will inject Supporting service route URL in to kogito runtime deployment env var
 // It will call when Kogito runtime reconcile
-func injectSupportingServiceURLIntoDeployment(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, deployment *appsv1.Deployment, resourceType v1alpha1.ServiceType) error {
+func injectSupportingServiceURLIntoDeployment(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, deployment *appsv1.Deployment, resourceType v1beta1.ServiceType) error {
 	log.Debug("Querying Data Index route to inject into Kogito runtime ")
 	dataIndexEndpoints, err := getServiceEndpoints(client, namespace, serviceHTTPRouteEnv, serviceWSRouteEnv, resourceType)
 	if err != nil {
@@ -94,7 +94,7 @@ func injectSupportingServiceURLIntoDeployment(client *client.Client, namespace s
 // if the envVarKogitoServiceURL is set (for when running
 // operator locally). Else, the internal endpoint is
 // returned.
-func GetKogitoServiceEndpoint(kogitoService v1alpha1.KogitoService) string {
+func GetKogitoServiceEndpoint(kogitoService v1beta1.KogitoService) string {
 	externalURL := os.Getenv(envVarKogitoServiceURL)
 	if len(externalURL) > 0 {
 		return externalURL
@@ -102,7 +102,7 @@ func GetKogitoServiceEndpoint(kogitoService v1alpha1.KogitoService) string {
 	return getKogitoServiceURL(kogitoService)
 }
 
-func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1alpha1.ServiceType) (endpoints *ServiceEndpoints, err error) {
+func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType v1beta1.ServiceType) (endpoints *ServiceEndpoints, err error) {
 	route := ""
 	route, err = getKogitoSupportingServiceRoute(client, namespace, resourceType)
 	if err != nil {
@@ -152,7 +152,7 @@ func updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, servi
 }
 
 // getKogitoServiceURL provides kogito service URL for given instance name
-func getKogitoServiceURL(service v1alpha1.KogitoService) string {
+func getKogitoServiceURL(service v1beta1.KogitoService) string {
 	log.Debugf("Creating kogito service instance URL.")
 	// resolves to http://servicename.mynamespace for example
 	url := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())

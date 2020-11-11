@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -59,7 +59,7 @@ type messagingDeployer struct {
 
 // handleMessagingResources handles messaging resources creation.
 // These resources can be required by the deployed service through a bound KogitoInfra.
-func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, definition ServiceDefinition, service v1alpha1.KogitoService) error {
+func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, definition ServiceDefinition, service v1beta1.KogitoService) error {
 	m := messagingDeployer{
 		scheme:     scheme,
 		cli:        cli,
@@ -76,7 +76,7 @@ func handleMessagingResources(cli *client.Client, scheme *runtime.Scheme, defini
 	return nil
 }
 
-func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance v1alpha1.KogitoService) ([]messagingTopic, error) {
+func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance v1beta1.KogitoService) ([]messagingTopic, error) {
 	topics, err := m.fetchRequiredTopicsForURL(instance, infrastructure.GetKogitoServiceEndpoint(instance))
 	if err != nil {
 		return nil, err
@@ -85,26 +85,26 @@ func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance v1alpha1
 	return topics, nil
 }
 
-func (m *messagingDeployer) setCloudEventsStatus(instance v1alpha1.KogitoService, topics []messagingTopic) {
-	var eventsConsumed []v1alpha1.KogitoCloudEventInfo
-	var eventsProduced []v1alpha1.KogitoCloudEventInfo
+func (m *messagingDeployer) setCloudEventsStatus(instance v1beta1.KogitoService, topics []messagingTopic) {
+	var eventsConsumed []v1beta1.KogitoCloudEventInfo
+	var eventsProduced []v1beta1.KogitoCloudEventInfo
 	for _, topic := range topics {
 		for _, event := range topic.EventsMeta {
 			switch event.Kind {
 			case consumed:
-				eventsConsumed = append(eventsConsumed, v1alpha1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
+				eventsConsumed = append(eventsConsumed, v1beta1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
 			case produced:
-				eventsProduced = append(eventsProduced, v1alpha1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
+				eventsProduced = append(eventsProduced, v1beta1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
 			}
 		}
 	}
-	instance.GetStatus().SetCloudEvents(v1alpha1.KogitoCloudEventsStatus{
+	instance.GetStatus().SetCloudEvents(v1beta1.KogitoCloudEventsStatus{
 		Consumes: eventsConsumed,
 		Produces: eventsProduced,
 	})
 }
 
-func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1alpha1.KogitoService, serverURL string) ([]messagingTopic, error) {
+func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1beta1.KogitoService, serverURL string) ([]messagingTopic, error) {
 	available, err := IsDeploymentAvailable(m.cli, instance)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1alpha1.KogitoSe
 	return topics, nil
 }
 
-func (m *messagingDeployer) fetchInfraDependency(service v1alpha1.KogitoService, checker func(*v1alpha1.KogitoInfra) bool) (*v1alpha1.KogitoInfra, error) {
+func (m *messagingDeployer) fetchInfraDependency(service v1beta1.KogitoService, checker func(*v1beta1.KogitoInfra) bool) (*v1beta1.KogitoInfra, error) {
 	for _, infraName := range service.GetSpec().GetInfra() {
 		infra, err := infrastructure.MustFetchKogitoInfraInstance(m.cli, infraName, service.GetNamespace())
 		if err != nil {

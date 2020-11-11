@@ -15,7 +15,7 @@
 package build
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,9 +23,9 @@ import (
 )
 
 func Test_decoratorForSourceBuilder_enableIncrementalBuild_Test(t *testing.T) {
-	kogitoBuild := &v1alpha1.KogitoBuild{
+	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
-		Spec: v1alpha1.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			DisableIncremental: false,
 			Type:               "LocalSource",
 		},
@@ -43,9 +43,9 @@ func Test_decoratorForSourceBuilder_enableIncrementalBuild_Test(t *testing.T) {
 	assert.Equal(t, true, *bc.Spec.CommonSpec.Strategy.SourceStrategy.Incremental)
 }
 func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
-	kogitoBuild := &v1alpha1.KogitoBuild{
+	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
-		Spec: v1alpha1.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			DisableIncremental: true,
 			Type:               "LocalSource",
 		},
@@ -64,9 +64,9 @@ func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
 }
 
 func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
-	kogitoBuild := &v1alpha1.KogitoBuild{
-		Spec: v1alpha1.KogitoBuildSpec{
-			GitSource: v1alpha1.GitSource{
+	kogitoBuild := &v1beta1.KogitoBuild{
+		Spec: v1beta1.KogitoBuildSpec{
+			GitSource: v1beta1.GitSource{
 				URI:        "host:port",
 				Reference:  "my_branch",
 				ContextDir: "/mypath/",
@@ -83,11 +83,11 @@ func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
 }
 
 func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
-	kogitoBuild := &v1alpha1.KogitoBuild{
-		Spec: v1alpha1.KogitoBuildSpec{
-			WebHooks: []v1alpha1.WebHookSecret{
+	kogitoBuild := &v1beta1.KogitoBuild{
+		Spec: v1beta1.KogitoBuildSpec{
+			WebHooks: []v1beta1.WebHookSecret{
 				{
-					Type:   v1alpha1.GitHubWebHook,
+					Type:   v1beta1.GitHubWebHook,
 					Secret: "github_secret",
 				},
 			},
@@ -103,11 +103,11 @@ func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
 }
 
 func Test_decoratorForRemoteSourceBuilder_genericWebHook(t *testing.T) {
-	kogitoBuild := &v1alpha1.KogitoBuild{
-		Spec: v1alpha1.KogitoBuildSpec{
-			WebHooks: []v1alpha1.WebHookSecret{
+	kogitoBuild := &v1beta1.KogitoBuild{
+		Spec: v1beta1.KogitoBuildSpec{
+			WebHooks: []v1beta1.WebHookSecret{
 				{
-					Type:   v1alpha1.GenericWebHook,
+					Type:   v1beta1.GenericWebHook,
 					Secret: "generic_secret",
 				},
 			},

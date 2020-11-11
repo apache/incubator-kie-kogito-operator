@@ -17,7 +17,7 @@ package services
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
@@ -76,7 +76,7 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 	assert.Empty(t, topics)
 }
 
-func createAvailableDeployment(instance v1alpha1.KogitoService) *v1.Deployment {
+func createAvailableDeployment(instance v1beta1.KogitoService) *v1.Deployment {
 	return &v1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()},
 		Status: v1.DeploymentStatus{
@@ -86,11 +86,11 @@ func createAvailableDeployment(instance v1alpha1.KogitoService) *v1.Deployment {
 
 }
 
-func createServiceInstance(t *testing.T) v1alpha1.KogitoService {
-	return &v1alpha1.KogitoRuntime{
+func createServiceInstance(t *testing.T) v1beta1.KogitoService {
+	return &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-test", Namespace: t.Name()},
-		Status: v1alpha1.KogitoRuntimeStatus{
-			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
+		Status: v1beta1.KogitoRuntimeStatus{
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
 				DeploymentConditions: []v1.DeploymentCondition{
 					{
 						Type:           v1.DeploymentAvailable,

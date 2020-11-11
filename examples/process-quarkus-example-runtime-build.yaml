@@ -1,6 +1,6 @@
 # In this example we create a KogitoBuild responsible to build our service from source and then deploy it as
 # a KogitoRuntime reference. Since they have the same name, they will be bound together through the built image.
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoBuild
 metadata:
   name: process-quarkus-example
@@ -16,7 +16,7 @@ spec:
 # here we have an alternative way of building our fancy project, that's it from a local binary
 # we can start a new build with "oc start-build process-quarkus-example --from-dir=target" from our project root
 # both builds will share the same ImageStream, so every time we build a new version of the project, it will redeploy the KogitoRuntime counterpart
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoBuild
 metadata:
   name: process-quarkus-example-binary
@@ -27,7 +27,7 @@ spec:
   runtimeImage: quay.io/yournamespace/process-quarkus-example-binary:0.10
   type: Binary
 ---
-apiVersion: app.kiegroup.org/v1alpha1
+apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoRuntime
 metadata:
   name: process-quarkus-example

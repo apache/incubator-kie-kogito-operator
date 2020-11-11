@@ -16,7 +16,7 @@ package build
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
@@ -24,7 +24,7 @@ import (
 )
 
 func (m *sourceManager) getBuilderDecorator() decorator {
-	if v1alpha1.LocalSourceBuildType == m.kogitoBuild.Spec.Type {
+	if v1beta1.LocalSourceBuildType == m.kogitoBuild.Spec.Type {
 		return decoratorForLocalSourceBuilder()
 	}
 	return decoratorForRemoteSourceBuilder()

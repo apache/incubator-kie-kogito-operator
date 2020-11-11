@@ -12,24 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package apis
 
-const (
+import "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 
-	// MonitoringDefaultPath default path
-	MonitoringDefaultPath = "/metrics"
-
-	// MonitoringDefaultScheme default scheme
-	MonitoringDefaultScheme = "http"
-)
-
-// Monitoring properties to connect with Monitoring service
-type Monitoring struct {
-	// HTTP scheme to use for scraping.
-	// +optional
-	Scheme string `json:"scheme,omitempty"`
-
-	// HTTP path to scrape for metrics.
-	// +optional
-	Path string `json:"path,omitempty"`
+func init() {
+	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
+	AddToSchemes = append(AddToSchemes, v1beta1.SchemeBuilder.AddToScheme)
 }

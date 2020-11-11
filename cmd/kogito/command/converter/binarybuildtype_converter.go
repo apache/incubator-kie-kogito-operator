@@ -16,14 +16,14 @@ package converter
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
 // FromArgsToBinaryBuildType determines what kind of binary
 // build the user is creating based on their passed arguments.
-func FromArgsToBinaryBuildType(resourceType flag.ResourceType, runtime v1alpha1.RuntimeType, native bool) flag.BinaryBuildType {
+func FromArgsToBinaryBuildType(resourceType flag.ResourceType, runtime v1beta1.RuntimeType, native bool) flag.BinaryBuildType {
 	if resourceType == flag.LocalBinaryDirectoryResource {
-		if runtime == v1alpha1.SpringBootRuntimeType {
+		if runtime == v1beta1.SpringBootRuntimeType {
 			return flag.BinarySpringBootJvmBuild
 		}
 		if native {

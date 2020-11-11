@@ -23,7 +23,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 
 	"github.com/stretchr/testify/assert"
@@ -44,7 +44,7 @@ func Test_InstallSupportingServiceCmd_DefaultConfiguration(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
 
 	// This should be created, given the command above
-	dataIndex := &v1alpha1.KogitoSupportingService{
+	dataIndex := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: ns,
@@ -70,7 +70,7 @@ func Test_InstallSupportingServiceCmd_CustomConfiguration(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
 
 	// This should be created, given the command above
-	dataIndex := &v1alpha1.KogitoSupportingService{
+	dataIndex := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.DefaultDataIndexName,
 			Namespace: ns,

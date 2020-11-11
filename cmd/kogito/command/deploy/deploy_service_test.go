@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +41,7 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
 
 	// This should be created, given the command above
-	kogitoRuntime := &v1alpha1.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-drools",
 			Namespace: ns,
@@ -52,7 +52,7 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, "quay.io/kiegroup/drools-quarkus-example:1.0", kogitoRuntime.Spec.Image)
-	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.Equal(t, v1beta1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
@@ -71,7 +71,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
 
 	// This should be created, given the command above
-	kogitoRuntime := &v1alpha1.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "process-business-rules-quarkus",
 			Namespace: ns,
@@ -82,7 +82,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, "localhost:5000/kiegroup/process-business-rules-quarkus", kogitoRuntime.Spec.Image)
-	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.Equal(t, v1beta1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
@@ -109,7 +109,7 @@ my.nice.property=socool
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
 
 	// This should be created, given the command above
-	kogitoRuntime := &v1alpha1.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "process-business-rules-quarkus",
 			Namespace: ns,
@@ -119,7 +119,7 @@ my.nice.property=socool
 	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoRuntime)
 	assert.NoError(t, err)
 	assert.True(t, exist)
-	assert.Equal(t, v1alpha1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.Equal(t, v1beta1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)

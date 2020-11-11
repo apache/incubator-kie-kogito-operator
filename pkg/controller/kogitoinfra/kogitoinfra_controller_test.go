@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
@@ -32,10 +32,10 @@ import (
 )
 
 func Test_Reconcile_ResourceNotFound(t *testing.T) {
-	kogitoInfra := &v1alpha1.KogitoInfra{
+	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.InfinispanAPIVersion,
 				Kind:       infrastructure.InfinispanKind,
 				Name:       "kogito-infinispan",
@@ -53,14 +53,14 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, kogitoInfra.Status.Condition.Message)
 	// we haven't created the Infinispan server and we are informing our KogitoInfra instance that it will require it :)
-	assert.Equal(t, v1alpha1.ResourceNotFound, kogitoInfra.Status.Condition.Reason)
+	assert.Equal(t, v1beta1.ResourceNotFound, kogitoInfra.Status.Condition.Reason)
 }
 
 func Test_Reconcile_KafkaResource(t *testing.T) {
-	kogitoInfra := &v1alpha1.KogitoInfra{
+	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.KafkaAPIVersion,
 				Kind:       infrastructure.KafkaKind,
 				Name:       "kogito-kafka",
@@ -104,10 +104,10 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 }
 
 func Test_Reconcile_Infinispan(t *testing.T) {
-	kogitoInfra := &v1alpha1.KogitoInfra{
+	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.InfinispanAPIVersion,
 				Kind:       infrastructure.InfinispanKind,
 				Name:       "kogito-infinispan",

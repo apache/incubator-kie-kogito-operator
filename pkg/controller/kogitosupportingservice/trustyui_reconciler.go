@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
@@ -31,7 +31,7 @@ type TrustyUISupportingServiceResource struct {
 }
 
 // Reconcile reconcile TrustyUI Service
-func (*TrustyUISupportingServiceResource) Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
+func (*TrustyUISupportingServiceResource) Reconcile(client *client.Client, instance *v1beta1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, err error) {
 	log.Infof("Reconciling KogitoTrustyUI for %s in %s", instance.Name, instance.Namespace)
 	definition := services.ServiceDefinition{
 		DefaultImageName:   infrastructure.DefaultTrustyUIImageName,
@@ -42,7 +42,7 @@ func (*TrustyUISupportingServiceResource) Reconcile(client *client.Client, insta
 	return services.NewServiceDeployer(definition, instance, client, scheme).Deploy()
 }
 
-func trustyUIOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error {
+func trustyUIOnDeploymentCreate(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1beta1.KogitoService) error {
 	if err := infrastructure.InjectTrustyURLIntoDeployment(cli, kogitoService.GetNamespace(), deployment); err != nil {
 		return err
 	}

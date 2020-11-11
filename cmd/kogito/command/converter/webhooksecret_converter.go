@@ -17,18 +17,18 @@ package converter
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
 // FromWebHookFlagsToWebHookSecret converts given WebHookFlags into WebHookSecret
-func FromWebHookFlagsToWebHookSecret(flags *flag.WebHookFlags) (webHooks []v1alpha1.WebHookSecret) {
+func FromWebHookFlagsToWebHookSecret(flags *flag.WebHookFlags) (webHooks []v1beta1.WebHookSecret) {
 	if flags.WebHook == nil {
 		return nil
 	}
 	webHookMap := util.FromStringsKeyPairToMap(flags.WebHook)
 	for webHookType, secret := range webHookMap {
-		webHooks = append(webHooks, v1alpha1.WebHookSecret{
-			Type:   v1alpha1.WebHookType(webHookType),
+		webHooks = append(webHooks, v1beta1.WebHookSecret{
+			Type:   v1beta1.WebHookType(webHookType),
 			Secret: secret,
 		})
 	}

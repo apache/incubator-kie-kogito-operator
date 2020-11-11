@@ -21,7 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -56,15 +56,15 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err != nil {
 		return err
 	}
-	kogitoRuntime := v1alpha1.KogitoRuntime{
+	kogitoRuntime := v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      flags.Name,
 			Namespace: flags.Project,
 		},
-		Spec: v1alpha1.KogitoRuntimeSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
 			EnableIstio: flags.EnableIstio,
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
 				Env:                   converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
 				Image:                 flags.ImageFlags.Image,
@@ -77,9 +77,9 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				Config:                converter.FromConfigFlagsToMap(&flags.ConfigFlags),
 			},
 		},
-		Status: v1alpha1.KogitoRuntimeStatus{
-			KogitoServiceStatus: v1alpha1.KogitoServiceStatus{
-				ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: []v1alpha1.Condition{}},
+		Status: v1beta1.KogitoRuntimeStatus{
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
+				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}},
 			},
 		},
 	}
@@ -121,7 +121,7 @@ func (i runtimeService) DeleteRuntimeService(cli *client.Client, name, project s
 		return err
 	}
 	log.Debugf("About to delete service %s in namespace %s", name, project)
-	if err := kubernetes.ResourceC(cli).Delete(&v1alpha1.KogitoRuntime{
+	if err := kubernetes.ResourceC(cli).Delete(&v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: project,

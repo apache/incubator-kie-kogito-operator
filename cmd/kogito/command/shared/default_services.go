@@ -15,21 +15,21 @@
 package shared
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var defaultReplicas = int32(1)
-var defaultServiceStatus = v1alpha1.KogitoServiceStatus{ConditionsMeta: v1alpha1.ConditionsMeta{Conditions: []v1alpha1.Condition{}}}
+var defaultServiceStatus = v1beta1.KogitoServiceStatus{ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}}}
 
 // GetDefaultDataIndex gets the default Data Index instance
-func GetDefaultDataIndex(namespace string) v1alpha1.KogitoSupportingService {
-	return v1alpha1.KogitoSupportingService{
+func GetDefaultDataIndex(namespace string) v1beta1.KogitoSupportingService {
+	return v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: namespace},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &defaultReplicas,
 				Infra: []string{
 					infrastructure.InfinispanInstanceName,
@@ -37,47 +37,47 @@ func GetDefaultDataIndex(namespace string) v1alpha1.KogitoSupportingService {
 				},
 			},
 		},
-		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
+		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
 	}
 }
 
 // GetDefaultJobsService gets the default Jobs Service instance
-func GetDefaultJobsService(namespace string) v1alpha1.KogitoSupportingService {
-	return v1alpha1.KogitoSupportingService{
+func GetDefaultJobsService(namespace string) v1beta1.KogitoSupportingService {
+	return v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: namespace},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &defaultReplicas,
 			},
 		},
-		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
+		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
 	}
 }
 
 // GetDefaultMgmtConsole gets the default Management Console instance
-func GetDefaultMgmtConsole(namespace string) v1alpha1.KogitoSupportingService {
-	return v1alpha1.KogitoSupportingService{
+func GetDefaultMgmtConsole(namespace string) v1beta1.KogitoSupportingService {
+	return v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: namespace},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.MgmtConsole,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.MgmtConsole,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &defaultReplicas,
 			},
 		},
-		Status: v1alpha1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
+		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: defaultServiceStatus},
 	}
 }
 
 // GetDefaultPersistenceInfra provides kogitoInfra instance for Infinispan
-func GetDefaultPersistenceInfra(namespace string) *v1alpha1.KogitoInfra {
-	return &v1alpha1.KogitoInfra{
+func GetDefaultPersistenceInfra(namespace string) *v1beta1.KogitoInfra {
+	return &v1beta1.KogitoInfra{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.InfinispanInstanceName,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				Kind:       infrastructure.InfinispanAPIVersion,
 				APIVersion: infrastructure.InfinispanKind,
 			},
@@ -86,14 +86,14 @@ func GetDefaultPersistenceInfra(namespace string) *v1alpha1.KogitoInfra {
 }
 
 // GetDefaultMessagingInfra provides kogitoInfra instance for Kafka
-func GetDefaultMessagingInfra(namespace string) *v1alpha1.KogitoInfra {
-	return &v1alpha1.KogitoInfra{
+func GetDefaultMessagingInfra(namespace string) *v1beta1.KogitoInfra {
+	return &v1beta1.KogitoInfra{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      infrastructure.KafkaInstanceName,
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				Kind:       infrastructure.KafkaKind,
 				APIVersion: infrastructure.KafkaAPIVersion,
 			},

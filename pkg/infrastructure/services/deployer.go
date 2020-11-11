@@ -26,7 +26,7 @@ import (
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
@@ -47,12 +47,12 @@ type ServiceDefinition struct {
 	// Request made for the service
 	Request controller.Request
 	// OnDeploymentCreate applies custom deployment configuration in the required Deployment resource
-	OnDeploymentCreate func(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1alpha1.KogitoService) error
+	OnDeploymentCreate func(cli *client.Client, deployment *appsv1.Deployment, kogitoService v1beta1.KogitoService) error
 	// OnObjectsCreate applies custom object creation in the service deployment logic.
 	// E.g. if you need an additional Kubernetes resource, just create your own map that the API will append to its managed resources.
 	// The "objectLists" array is the List object reference of the types created.
 	// For example: if a ConfigMap is created, then ConfigMapList empty reference should be added to this list
-	OnObjectsCreate func(cli *client.Client, kogitoService v1alpha1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
+	OnObjectsCreate func(cli *client.Client, kogitoService v1beta1.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
 	// OnGetComparators is called during the deployment phase to compare the deployed resources against the created ones
 	// Use this hook to add your comparators to override a specific comparator or to add your own if you have created extra objects via OnObjectsCreate
 	// Use framework.NewComparatorBuilder() to build your own
@@ -81,7 +81,7 @@ type ServiceDeployer interface {
 }
 
 // NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
-func NewServiceDeployer(definition ServiceDefinition, serviceType v1alpha1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
+func NewServiceDeployer(definition ServiceDefinition, serviceType v1beta1.KogitoService, cli *client.Client, scheme *runtime.Scheme) ServiceDeployer {
 	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
 		panic("No Request provided for the Service Deployer")
 	}
@@ -100,7 +100,7 @@ func newRecorder(scheme *runtime.Scheme, eventSourceName string) record.EventRec
 
 type serviceDeployer struct {
 	definition ServiceDefinition
-	instance   v1alpha1.KogitoService
+	instance   v1beta1.KogitoService
 	client     *client.Client
 	scheme     *runtime.Scheme
 	recorder   record.EventRecorder
@@ -246,7 +246,7 @@ func (s *serviceDeployer) checkInfraDependencies() error {
 		if err != nil {
 			return err
 		}
-		if infra.Status.Condition.Type == v1alpha1.FailureInfraConditionType {
+		if infra.Status.Condition.Type == v1beta1.FailureInfraConditionType {
 			return errorForInfraNotReady(s.instance, infra)
 		}
 	}
@@ -275,7 +275,7 @@ func (s *serviceDeployer) configureMonitoring() error {
 
 func (s *serviceDeployer) getReconcileResultFor(err error) (time.Duration, error) {
 	// reconciliation always happens if we return an error
-	if reasonForError(err) == v1alpha1.ServiceReconciliationFailure {
+	if reasonForError(err) == v1beta1.ServiceReconciliationFailure {
 		return 0, err
 	}
 	reconcileAfter := reconciliationIntervalForError(err)

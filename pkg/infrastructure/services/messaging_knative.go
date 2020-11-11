@@ -17,7 +17,7 @@ package services
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -38,7 +38,7 @@ type knativeMessagingDeployer struct {
 	messagingDeployer
 }
 
-func (k *knativeMessagingDeployer) createRequiredResources(service v1alpha1.KogitoService) error {
+func (k *knativeMessagingDeployer) createRequiredResources(service v1beta1.KogitoService) error {
 	infra, err := k.fetchInfraDependency(service, infrastructure.IsKnativeEventingResource)
 	if err != nil || infra == nil {
 		return err
@@ -75,7 +75,7 @@ func (k *knativeMessagingDeployer) createRequiredResources(service v1alpha1.Kogi
 }
 
 // newTrigger creates a new Knative Eventing Trigger reference for the given Topic
-func (k *knativeMessagingDeployer) newTrigger(t messagingTopic, service v1alpha1.KogitoService, infra *v1alpha1.KogitoInfra) *eventingv1.Trigger {
+func (k *knativeMessagingDeployer) newTrigger(t messagingTopic, service v1beta1.KogitoService, infra *v1beta1.KogitoInfra) *eventingv1.Trigger {
 	return &eventingv1.Trigger{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-listener-%s", service.GetName(), util.RandomSuffix()),
@@ -102,7 +102,7 @@ func (k *knativeMessagingDeployer) newTrigger(t messagingTopic, service v1alpha1
 
 // newSinkBinding creates a new SinkBinding object targeting the given KogitoInfra resource and binding the
 // deployment resource owned by the given KogitoService
-func (k *knativeMessagingDeployer) newSinkBinding(service v1alpha1.KogitoService, infra *v1alpha1.KogitoInfra) *sourcesv1alpha1.SinkBinding {
+func (k *knativeMessagingDeployer) newSinkBinding(service v1beta1.KogitoService, infra *v1beta1.KogitoInfra) *sourcesv1alpha1.SinkBinding {
 	ns := infra.Spec.Resource.Namespace
 	name := infra.Spec.Resource.Name
 	if len(ns) == 0 {
@@ -142,7 +142,7 @@ func (k *knativeMessagingDeployer) newSinkBinding(service v1alpha1.KogitoService
 	}
 }
 
-func (k *knativeMessagingDeployer) triggerExists(t messagingTopic, service v1alpha1.KogitoService) (bool, error) {
+func (k *knativeMessagingDeployer) triggerExists(t messagingTopic, service v1beta1.KogitoService) (bool, error) {
 	triggers := &eventingv1.TriggerList{}
 	labels := map[string]string{
 		framework.LabelAppKey: service.GetName(),
