@@ -59,8 +59,8 @@ func Test_resolveSourceStrategyImageNameForBuilds(t *testing.T) {
 		{"Quarkus Native Base", args{buildQuarkusNative, false}, infrastructure.KogitoQuarkusUbi8Image + tag},
 		{"SpringBoot Builder", args{buildSpringBoot, true}, infrastructure.KogitoSpringBootUbi8s2iImage + tag},
 		{"SpringBoot Base", args{buildSpringBoot, false}, infrastructure.KogitoSpringBootUbi8Image + tag},
-		{"SpringBoot Custom Builder", args{buildSpringBootCustom, true}, "my-image" + tag},
-		{"Quarkus Custom Base", args{buildQuarkusCustom, false}, "my-image" + tag},
+		{"SpringBoot Custom Builder", args{buildSpringBootCustom, true}, "my-image:1.0"},
+		{"Quarkus Custom Base", args{buildQuarkusCustom, false}, "my-image:1.0"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
