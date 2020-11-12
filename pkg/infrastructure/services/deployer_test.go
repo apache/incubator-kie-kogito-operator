@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
@@ -39,14 +39,14 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	replicas := int32(1)
 	infraKafka := newSuccessfulInfinispanInfra(t.Name())
 	infraInfinispan := newSuccessfulKafkaInfra(t.Name())
-	dataIndex := &v1alpha1.KogitoSupportingService{
+	dataIndex := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Infra: []string{
 					infraKafka.Name, infraInfinispan.Name,
@@ -68,13 +68,13 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.Status)
 	assert.Len(t, dataIndex.Status.Conditions, 1)
-	assert.Equal(t, dataIndex.Status.Conditions[0].Reason, v1alpha1.ServiceReconciliationFailure)
+	assert.Equal(t, dataIndex.Status.Conditions[0].Reason, v1beta1.ServiceReconciliationFailure)
 
 	// Infinispan is not ready :)
 	infraInfinispan.Status.Condition.Message = "Headaches"
 	infraInfinispan.Status.Condition.Status = corev1.ConditionFalse
-	infraInfinispan.Status.Condition.Reason = v1alpha1.ResourceNotReady
-	infraInfinispan.Status.Condition.Type = v1alpha1.FailureInfraConditionType
+	infraInfinispan.Status.Condition.Reason = v1beta1.ResourceNotReady
+	infraInfinispan.Status.Condition.Type = v1beta1.FailureInfraConditionType
 
 	test.AssertCreate(t, cli, infraInfinispan)
 	test.AssertCreate(t, cli, infraKafka)
@@ -86,7 +86,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	assert.NotNil(t, dataIndex.Status)
 	assert.Len(t, dataIndex.Status.Conditions, 2)
 	for _, condition := range dataIndex.Status.Conditions {
-		assert.Equal(t, condition.Type, v1alpha1.FailedConditionType)
+		assert.Equal(t, condition.Type, v1beta1.FailedConditionType)
 		assert.Equal(t, condition.Status, corev1.ConditionFalse)
 	}
 }
@@ -96,14 +96,14 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 	requiredTopic := "dataindex-required-topic"
 	infraKafka := newSuccessfulInfinispanInfra(t.Name())
 	infraInfinispan := newSuccessfulKafkaInfra(t.Name())
-	dataIndex := &v1alpha1.KogitoSupportingService{
+	dataIndex := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.DataIndex,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.DataIndex,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Infra: []string{
 					infraKafka.Name, infraInfinispan.Name,
@@ -122,7 +122,7 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, time.Duration(0), reconcileAfter)
 
-	topic := &v1beta1.KafkaTopic{
+	topic := &kafkav1beta1.KafkaTopic{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      requiredTopic,
 			Namespace: t.Name(),
@@ -133,14 +133,14 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 
 func Test_serviceDeployer_Deploy(t *testing.T) {
 	replicas := int32(1)
-	service := &v1alpha1.KogitoSupportingService{
+	service := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType:       v1alpha1.JobsService,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType:       v1beta1.JobsService,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
@@ -158,23 +158,23 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	assert.True(t, exists)
 	assert.Equal(t, 1, len(service.Status.Conditions))
 	assert.Equal(t, int32(1), *service.Spec.Replicas)
-	assert.Equal(t, v1alpha1.ProvisioningConditionType, service.Status.Conditions[0].Type)
+	assert.Equal(t, v1beta1.ProvisioningConditionType, service.Status.Conditions[0].Type)
 }
 
-func newSuccessfulKafkaInfra(namespace string) *v1alpha1.KogitoInfra {
-	return &v1alpha1.KogitoInfra{
+func newSuccessfulKafkaInfra(namespace string) *v1beta1.KogitoInfra {
+	return &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kafka-infra", Namespace: namespace},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.KafkaAPIVersion,
 				Kind:       infrastructure.KafkaKind,
 				Namespace:  namespace,
 				Name:       "kogito-kafka",
 			},
 		},
-		Status: v1alpha1.KogitoInfraStatus{
-			Condition: v1alpha1.KogitoInfraCondition{
-				Type:   v1alpha1.SuccessInfraConditionType,
+		Status: v1beta1.KogitoInfraStatus{
+			Condition: v1beta1.KogitoInfraCondition{
+				Type:   v1beta1.SuccessInfraConditionType,
 				Status: v1.StatusSuccess,
 				Reason: "",
 			},
@@ -183,20 +183,20 @@ func newSuccessfulKafkaInfra(namespace string) *v1alpha1.KogitoInfra {
 	}
 }
 
-func newSuccessfulInfinispanInfra(namespace string) *v1alpha1.KogitoInfra {
-	return &v1alpha1.KogitoInfra{
+func newSuccessfulInfinispanInfra(namespace string) *v1beta1.KogitoInfra {
+	return &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "infinispan-infra", Namespace: namespace},
-		Spec: v1alpha1.KogitoInfraSpec{
-			Resource: v1alpha1.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.InfinispanAPIVersion,
 				Kind:       infrastructure.InfinispanKind,
 				Namespace:  namespace,
 				Name:       "kogito-infinispan",
 			},
 		},
-		Status: v1alpha1.KogitoInfraStatus{
-			Condition: v1alpha1.KogitoInfraCondition{
-				Type:   v1alpha1.SuccessInfraConditionType,
+		Status: v1beta1.KogitoInfraStatus{
+			Condition: v1beta1.KogitoInfraCondition{
+				Type:   v1beta1.SuccessInfraConditionType,
 				Status: v1.StatusSuccess,
 				Reason: "",
 			},

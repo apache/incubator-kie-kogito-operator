@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	appsv1 "k8s.io/api/apps/v1"
 )
@@ -34,11 +34,11 @@ const (
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectTrustyURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
 	log.Debugf("Injecting Data-Index Route in kogito apps")
-	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, v1alpha1.TrustyAI)
+	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, v1beta1.TrustyAI)
 }
 
 // InjectTrustyURLIntoDeployment will inject Trusty route URL in to kogito runtime deployment env var
 func InjectTrustyURLIntoDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
 	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
-	return injectSupportingServiceURLIntoDeployment(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, deployment, v1alpha1.TrustyAI)
+	return injectSupportingServiceURLIntoDeployment(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, deployment, v1beta1.TrustyAI)
 }

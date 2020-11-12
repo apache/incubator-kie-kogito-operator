@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -26,14 +26,14 @@ import (
 func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) {
 	ns := t.Name()
 	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "expl",
 			Namespace: ns,
 		},
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.Explainability,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.Explainability,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Infra: []string{
 					kogitoKafka.Name,
 				},

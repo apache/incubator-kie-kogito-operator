@@ -18,7 +18,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
 const (
@@ -34,9 +34,9 @@ var (
 )
 
 // ConvertImageTagToImage converts a plain string into an Image structure. For example, see https://regex101.com/r/1YX9rh/1.
-func ConvertImageTagToImage(imageName string) v1alpha1.Image {
+func ConvertImageTagToImage(imageName string) v1beta1.Image {
 	domain, ns, name, tag := SplitImageTag(imageName)
-	image := v1alpha1.Image{
+	image := v1beta1.Image{
 		Domain:    domain,
 		Namespace: ns,
 		Name:      name,
@@ -47,7 +47,7 @@ func ConvertImageTagToImage(imageName string) v1alpha1.Image {
 }
 
 // ConvertImageToImageTag converts an Image into a plain string (domain/namespace/name:tag).
-func ConvertImageToImageTag(image v1alpha1.Image) string {
+func ConvertImageToImageTag(image v1beta1.Image) string {
 	imageTag := ""
 	if len(image.Domain) > 0 {
 		imageTag += image.Domain + "/"

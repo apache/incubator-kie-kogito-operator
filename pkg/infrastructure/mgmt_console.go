@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 )
 
@@ -28,5 +28,5 @@ const (
 
 // GetManagementConsoleEndpoint gets the route for the Management Console deployed in the given namespace
 func GetManagementConsoleEndpoint(client *client.Client, namespace string) (*ServiceEndpoints, error) {
-	return getServiceEndpoints(client, namespace, "", "", v1alpha1.MgmtConsole)
+	return getServiceEndpoints(client, namespace, "", "", v1beta1.MgmtConsole)
 }

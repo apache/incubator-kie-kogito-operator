@@ -20,7 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -109,16 +109,16 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	kogitoInfra := v1alpha1.KogitoInfra{
+	kogitoInfra := v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      args[0],
 			Namespace: i.flags.Project,
 		},
-		Spec: v1alpha1.KogitoInfraSpec{
+		Spec: v1beta1.KogitoInfraSpec{
 			Resource: converter.FromResourceFlagsToResource(&i.flags.InfraResourceFlags),
 		},
-		Status: v1alpha1.KogitoInfraStatus{
-			Condition: v1alpha1.KogitoInfraCondition{},
+		Status: v1beta1.KogitoInfraStatus{
+			Condition: v1beta1.KogitoInfraCondition{},
 		},
 	}
 

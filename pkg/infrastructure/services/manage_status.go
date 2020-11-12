@@ -16,7 +16,7 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
@@ -26,7 +26,7 @@ import (
 	"reflect"
 )
 
-func (s *serviceDeployer) handleStatusUpdate(instance v1alpha1.KogitoService, err *error) {
+func (s *serviceDeployer) handleStatusUpdate(instance v1beta1.KogitoService, err *error) {
 	log.Infof("Updating status for Kogito Service %s", instance.GetName())
 	if statusErr := s.ensureResourcesStatusChanges(*err); statusErr != nil {
 		log.Errorf("Error while updating Status for Kogito Service: %v", statusErr)
@@ -80,7 +80,7 @@ func (s *serviceDeployer) ensureResourcesStatusChanges(errCondition error) (err 
 func (s *serviceDeployer) updateStatus() error {
 	// Sanity check since the Status CR needs a reference for the object
 	if s.instance.GetStatus() != nil && s.instance.GetStatus().GetConditions() == nil {
-		s.instance.GetStatus().SetConditions([]v1alpha1.Condition{})
+		s.instance.GetStatus().SetConditions([]v1beta1.Condition{})
 	}
 	err := kubernetes.ResourceC(s.client).UpdateStatus(s.instance)
 	if err != nil {
@@ -89,7 +89,7 @@ func (s *serviceDeployer) updateStatus() error {
 	return nil
 }
 
-func updateImageStatus(instance v1alpha1.KogitoService, cli *client.Client) (bool, error) {
+func updateImageStatus(instance v1beta1.KogitoService, cli *client.Client) (bool, error) {
 	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()}}
 	exists, err := kubernetes.ResourceC(cli).Fetch(deployment)
 	if err != nil {
@@ -105,7 +105,7 @@ func updateImageStatus(instance v1alpha1.KogitoService, cli *client.Client) (boo
 	return false, nil
 }
 
-func updateDeploymentStatus(instance v1alpha1.KogitoService, cli *client.Client) (update bool, readyReplicas int32, err error) {
+func updateDeploymentStatus(instance v1beta1.KogitoService, cli *client.Client) (update bool, readyReplicas int32, err error) {
 	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()}}
 	if _, err := kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
 		return false, 0, err
@@ -117,7 +117,7 @@ func updateDeploymentStatus(instance v1alpha1.KogitoService, cli *client.Client)
 	return false, deployment.Status.ReadyReplicas, nil
 }
 
-func updateRouteStatus(instance v1alpha1.KogitoService, cli *client.Client) (bool, error) {
+func updateRouteStatus(instance v1beta1.KogitoService, cli *client.Client) (bool, error) {
 	if cli.IsOpenshift() {
 		if exists, route, err := openshift.RouteC(cli).GetHostFromRoute(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}); err != nil {
 			return false, err

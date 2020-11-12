@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -68,12 +68,12 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			return false
 		},
 	}
-	err = c.Watch(&source.Kind{Type: &v1alpha1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{}, pred)
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{}, pred)
 	if err != nil {
 		return err
 	}
 
-	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoSupportingService).client, mgr, c, &v1alpha1.KogitoSupportingService{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoSupportingService).client, mgr, c, &v1beta1.KogitoSupportingService{})
 	watchedObjects := []framework.WatchedObjects{
 		{
 			GroupVersion: routev1.GroupVersion,
@@ -86,11 +86,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			Objects:      []runtime.Object{&imgv1.ImageStream{}},
 		},
 		{
-			Objects:      []runtime.Object{&v1alpha1.KogitoInfra{}},
-			EventHandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1alpha1.KogitoSupportingService{}},
+			Objects:      []runtime.Object{&v1beta1.KogitoInfra{}},
+			EventHandler: &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1beta1.KogitoSupportingService{}},
 			Predicate: predicate.Funcs{
 				UpdateFunc: func(e event.UpdateEvent) bool {
-					return isKogitoInfraUpdated(e.ObjectOld.(*v1alpha1.KogitoInfra), e.ObjectNew.(*v1alpha1.KogitoInfra))
+					return isKogitoInfraUpdated(e.ObjectOld.(*v1beta1.KogitoInfra), e.ObjectNew.(*v1beta1.KogitoInfra))
 				},
 			},
 		},
@@ -145,9 +145,9 @@ func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) 
 	return
 }
 
-func fetchKogitoSupportingService(client *client.Client, name string, namespace string) (*v1alpha1.KogitoSupportingService, error) {
+func fetchKogitoSupportingService(client *client.Client, name string, namespace string) (*v1beta1.KogitoSupportingService, error) {
 	log.Debugf("going to fetch deployed kogito supporting service instance %s in namespace %s", name, namespace)
-	instance := &v1alpha1.KogitoSupportingService{}
+	instance := &v1beta1.KogitoSupportingService{}
 	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
 		log.Errorf("Error occurs while fetching deployed kogito supporting service instance %s", name)
 		return nil, resultErr
@@ -160,18 +160,18 @@ func fetchKogitoSupportingService(client *client.Client, name string, namespace 
 }
 
 // fetches all the supported services managed by kogitoSupportingService controller
-func getKogitoSupportingService(instance *v1alpha1.KogitoSupportingService) SupportingServiceResource {
+func getKogitoSupportingService(instance *v1beta1.KogitoSupportingService) SupportingServiceResource {
 	log.Debugf("going to fetch related kogito supporting Service resource for given instance : %s of type: %s", instance.Name, instance.Spec.ServiceType)
 	return kogitoSupportingServices[instance.Spec.ServiceType]
 }
 
-func ensureSingletonService(client *client.Client, namespace string, resourceType v1alpha1.ServiceType) error {
-	supportingServiceList := &v1alpha1.KogitoSupportingServiceList{}
+func ensureSingletonService(client *client.Client, namespace string, resourceType v1beta1.ServiceType) error {
+	supportingServiceList := &v1beta1.KogitoSupportingServiceList{}
 	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, supportingServiceList); err != nil {
 		return err
 	}
 
-	var kogitoSupportingService []v1alpha1.KogitoSupportingService
+	var kogitoSupportingService []v1beta1.KogitoSupportingService
 	for _, service := range supportingServiceList.Items {
 		if service.Spec.ServiceType == resourceType {
 			kogitoSupportingService = append(kogitoSupportingService, service)
@@ -185,7 +185,7 @@ func ensureSingletonService(client *client.Client, namespace string, resourceTyp
 }
 
 // Check is the testService is available in the slice of allServices
-func contains(allServices []v1alpha1.ServiceType, testService v1alpha1.ServiceType) bool {
+func contains(allServices []v1beta1.ServiceType, testService v1beta1.ServiceType) bool {
 	for _, a := range allServices {
 		if a == testService {
 			return true
@@ -194,23 +194,23 @@ func contains(allServices []v1alpha1.ServiceType, testService v1alpha1.ServiceTy
 	return false
 }
 
-func isKogitoInfraUpdated(oldKogitoInfra, newKogitoInfra *v1alpha1.KogitoInfra) bool {
+func isKogitoInfraUpdated(oldKogitoInfra, newKogitoInfra *v1beta1.KogitoInfra) bool {
 	return !reflect.DeepEqual(oldKogitoInfra.Status.AppProps, newKogitoInfra.Status.AppProps) || !reflect.DeepEqual(oldKogitoInfra.Status.Env, newKogitoInfra.Status.Env)
 }
 
 // SupportingServiceResource Interface to represent type of kogito supporting service resources like JobsService & MgmtConcole
 type SupportingServiceResource interface {
-	Reconcile(client *client.Client, instance *v1alpha1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, resultErr error)
+	Reconcile(client *client.Client, instance *v1beta1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, resultErr error)
 }
 
 // map of all the kogitoSupportingService
 // Note: Data Index is not part of this map because it has it's own controller
-var kogitoSupportingServices = map[v1alpha1.ServiceType]SupportingServiceResource{
-	v1alpha1.DataIndex:      &DataIndexSupportingServiceResource{},
-	v1alpha1.Explainability: &ExplainabilitySupportingServiceResource{},
-	v1alpha1.JobsService:    &JobsServiceSupportingServiceResource{},
-	v1alpha1.MgmtConsole:    &MgmtConsoleSupportingServiceResource{},
-	v1alpha1.TaskConsole:    &TaskConsoleSupportingServiceResource{},
-	v1alpha1.TrustyAI:       &TrustyAISupportingServiceResource{},
-	v1alpha1.TrustyUI:       &TrustyUISupportingServiceResource{},
+var kogitoSupportingServices = map[v1beta1.ServiceType]SupportingServiceResource{
+	v1beta1.DataIndex:      &DataIndexSupportingServiceResource{},
+	v1beta1.Explainability: &ExplainabilitySupportingServiceResource{},
+	v1beta1.JobsService:    &JobsServiceSupportingServiceResource{},
+	v1beta1.MgmtConsole:    &MgmtConsoleSupportingServiceResource{},
+	v1beta1.TaskConsole:    &TaskConsoleSupportingServiceResource{},
+	v1beta1.TrustyAI:       &TrustyAISupportingServiceResource{},
+	v1beta1.TrustyUI:       &TrustyUISupportingServiceResource{},
 }

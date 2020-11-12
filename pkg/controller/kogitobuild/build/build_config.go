@@ -15,7 +15,7 @@
 package build
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -46,11 +46,11 @@ const (
 	binaryBuildEnvVar           = "BINARY_BUILD"
 )
 
-type decorator func(build *v1alpha1.KogitoBuild, bc *buildv1.BuildConfig)
+type decorator func(build *v1beta1.KogitoBuild, bc *buildv1.BuildConfig)
 
 // decoratorForRemoteSourceBuilder decorates the builder BuildConfig with the attributes to support Remote Source build type
 func decoratorForRemoteSourceBuilder() decorator {
-	return func(build *v1alpha1.KogitoBuild, bc *buildv1.BuildConfig) {
+	return func(build *v1beta1.KogitoBuild, bc *buildv1.BuildConfig) {
 		bc.Spec.Source.Type = buildv1.BuildSourceGit
 		// Remove the trailing slash, as it will be removed by OpenShift
 		bc.Spec.Source.ContextDir = strings.TrimSuffix(build.Spec.GitSource.ContextDir, "/")
@@ -61,7 +61,7 @@ func decoratorForRemoteSourceBuilder() decorator {
 		for _, hook := range build.Spec.WebHooks {
 			var triggerPolicy buildv1.BuildTriggerPolicy
 			trigger := &buildv1.WebHookTrigger{SecretReference: &buildv1.SecretLocalReference{Name: hook.Secret}}
-			if hook.Type == v1alpha1.GitHubWebHook {
+			if hook.Type == v1beta1.GitHubWebHook {
 				triggerPolicy = buildv1.BuildTriggerPolicy{GitHubWebHook: trigger, Type: buildv1.GitHubWebHookBuildTriggerType}
 			} else {
 				trigger.AllowEnv = true
@@ -75,7 +75,7 @@ func decoratorForRemoteSourceBuilder() decorator {
 
 // decoratorForLocalSourceBuilder decorates the original BuildConfig to support Local Source build type
 func decoratorForLocalSourceBuilder() decorator {
-	return func(build *v1alpha1.KogitoBuild, bc *buildv1.BuildConfig) {
+	return func(build *v1beta1.KogitoBuild, bc *buildv1.BuildConfig) {
 		var envs []corev1.EnvVar
 		if len(build.Spec.Artifact.GroupID) > 0 {
 			log.Debugf("Setting final generated artifact group id %s", build.Spec.Artifact.GroupID)
@@ -103,7 +103,7 @@ func decoratorForLocalSourceBuilder() decorator {
 // `decoratorForLocalSourceBuilder` and `decoratorForRemoteSourceBuilder` know the details for each use case,
 // add one of them to the `newBuildConfig` constructor to fulfill the desired use case
 func decoratorForSourceBuilder() decorator {
-	return func(build *v1alpha1.KogitoBuild, bc *buildv1.BuildConfig) {
+	return func(build *v1beta1.KogitoBuild, bc *buildv1.BuildConfig) {
 		bc.Name = GetBuildBuilderName(build)
 		baseImage := corev1.ObjectReference{
 			Kind:      kindImageStreamTag,
@@ -119,7 +119,7 @@ func decoratorForSourceBuilder() decorator {
 		}
 		// apply the necessary environment variables
 		envs := build.Spec.Env
-		if build.Spec.Runtime == v1alpha1.QuarkusRuntimeType {
+		if build.Spec.Runtime == v1beta1.QuarkusRuntimeType {
 			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: nativeBuildEnvVarKey, Value: strconv.FormatBool(build.Spec.Native)})
 		}
 		limitCPU, limitMemory := getBuilderLimitsAsIntString(bc)
@@ -148,7 +148,7 @@ func decoratorForSourceBuilder() decorator {
 
 // decoratorForBinaryRuntimeBuilder decorates the original BuildConfig to give support for Binary build type
 func decoratorForBinaryRuntimeBuilder() decorator {
-	return func(build *v1alpha1.KogitoBuild, bc *buildv1.BuildConfig) {
+	return func(build *v1beta1.KogitoBuild, bc *buildv1.BuildConfig) {
 		bc.Spec.Source.Type = buildv1.BuildSourceBinary
 		bc.Spec.Strategy.SourceStrategy.Env = append(bc.Spec.Strategy.SourceStrategy.Env, corev1.EnvVar{Name: binaryBuildEnvVar, Value: "true"})
 		// The comparator hits reconciliation if this are not set to empty values. TODO: fix on the operator-utils project
@@ -161,7 +161,7 @@ func decoratorForBinaryRuntimeBuilder() decorator {
 // after building the application from source. This BuildConfig is responsible for the final Kogito Service image, which will then be deployed
 // with KogitoRuntime
 func decoratorForSourceRuntimeBuilder() decorator {
-	return func(build *v1alpha1.KogitoBuild, bc *buildv1.BuildConfig) {
+	return func(build *v1beta1.KogitoBuild, bc *buildv1.BuildConfig) {
 		fromImage := getBuilderImageStreamOutputTo(build)
 		bc.Spec.Source.Type = buildv1.BuildSourceImage
 		bc.Spec.Source.Images = []buildv1.ImageSource{
@@ -189,7 +189,7 @@ func decoratorForSourceRuntimeBuilder() decorator {
 // ones responsible to build the final KogitoRuntime image.
 // should be used with `decoratorForSourceRuntimeBuilder` or `decoratorForBinaryRuntimeBuilder` to add full support for these use cases.
 func decoratorForRuntimeBuilder() decorator {
-	return func(build *v1alpha1.KogitoBuild, bc *buildv1.BuildConfig) {
+	return func(build *v1beta1.KogitoBuild, bc *buildv1.BuildConfig) {
 		bc.Name = build.Name
 		baseImage := corev1.ObjectReference{
 			Kind:      kindImageStreamTag,
@@ -209,7 +209,7 @@ func decoratorForRuntimeBuilder() decorator {
 
 // newBuildConfig creates a new reference for the very basic default OpenShift BuildConfig reference to build Kogito Services.
 // Pass the required decorator(s) to create the BuildConfig for a particular use case
-func newBuildConfig(build *v1alpha1.KogitoBuild, decorators ...decorator) buildv1.BuildConfig {
+func newBuildConfig(build *v1beta1.KogitoBuild, decorators ...decorator) buildv1.BuildConfig {
 	app := build.Spec.TargetKogitoRuntime
 	if len(app) == 0 {
 		app = build.Name
@@ -235,7 +235,7 @@ func newBuildConfig(build *v1alpha1.KogitoBuild, decorators ...decorator) buildv
 
 // getBuilderImageStreamOutputTo gets the builder ImageStream which is the one that we will output to when building from source
 // and the one we will use as input when building the final image.
-func getBuilderImageStreamOutputTo(build *v1alpha1.KogitoBuild) *corev1.ObjectReference {
+func getBuilderImageStreamOutputTo(build *v1beta1.KogitoBuild) *corev1.ObjectReference {
 	return &corev1.ObjectReference{
 		Kind: kindImageStreamTag, Name: strings.Join([]string{GetBuildBuilderName(build), tagLatest}, ":"),
 	}

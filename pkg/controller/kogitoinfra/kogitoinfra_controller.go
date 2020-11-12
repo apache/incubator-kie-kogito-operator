@@ -20,7 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"time"
 
-	appv1alpha1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -63,7 +63,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			return false
 		},
 	}
-	err = c.Watch(&source.Kind{Type: &appv1alpha1.KogitoInfra{}}, &handler.EnqueueRequestForObject{}, pred)
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoInfra{}}, &handler.EnqueueRequestForObject{}, pred)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	watchedObjects = append(watchedObjects, getKafkaWatchedObjects()...)
 	watchedObjects = append(watchedObjects, getKeycloakWatchedObjects()...)
 
-	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoInfra).client, mgr, c, &appv1alpha1.KogitoInfra{})
+	controllerWatcher := framework.NewControllerWatcher(r.(*ReconcileKogitoInfra).client, mgr, c, &v1beta1.KogitoInfra{})
 	if err = controllerWatcher.Watch(watchedObjects...); err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (reconcile.R
 
 func (r *ReconcileKogitoInfra) getReconcileResultFor(err error, requeue bool) (reconcile.Result, error) {
 	// generic reconciliation error
-	if reasonForError(err) == appv1alpha1.ReconciliationFailure {
+	if reasonForError(err) == v1beta1.ReconciliationFailure {
 		log.Warnf("Error while reconciling KogitoInfra: %s", err.Error())
 		return reconcile.Result{RequeueAfter: 0, Requeue: false}, err
 	}

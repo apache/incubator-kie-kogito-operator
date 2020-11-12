@@ -16,15 +16,15 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
 )
 
-const defaultDeployRuntimeType = string(v1alpha1.QuarkusRuntimeType)
+const defaultDeployRuntimeType = string(v1beta1.QuarkusRuntimeType)
 
 var (
-	runtimeTypeValidEntries = []string{string(v1alpha1.QuarkusRuntimeType), string(v1alpha1.SpringBootRuntimeType)}
+	runtimeTypeValidEntries = []string{string(v1beta1.QuarkusRuntimeType), string(v1beta1.SpringBootRuntimeType)}
 )
 
 // RuntimeTypeFlags is common properties used to configure runtime properties

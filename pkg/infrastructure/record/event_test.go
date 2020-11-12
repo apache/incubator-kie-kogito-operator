@@ -15,7 +15,7 @@
 package record
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -26,7 +26,7 @@ import (
 )
 
 func Test_generateEvent(t *testing.T) {
-	service := &v1alpha1.KogitoSupportingService{
+	service := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
@@ -45,7 +45,7 @@ func Test_generateEvent(t *testing.T) {
 }
 
 func Test_generateEvent_InvalidEventType(t *testing.T) {
-	service := &v1alpha1.KogitoSupportingService{
+	service := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),

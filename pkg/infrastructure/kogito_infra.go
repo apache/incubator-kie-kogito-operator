@@ -16,7 +16,7 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,9 +24,9 @@ import (
 
 // MustFetchKogitoInfraInstance loads a given infra instance by name and namespace.
 // If the KogitoInfra resource is not present, an error is raised.
-func MustFetchKogitoInfraInstance(client *client.Client, name string, namespace string) (*v1alpha1.KogitoInfra, error) {
+func MustFetchKogitoInfraInstance(client *client.Client, name string, namespace string) (*v1beta1.KogitoInfra, error) {
 	log.Debugf("going to fetch deployed kogito infra instance %s", name)
-	instance := &v1alpha1.KogitoInfra{}
+	instance := &v1beta1.KogitoInfra{}
 	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
 		log.Errorf("Error occurs while fetching deployed kogito infra instance %s", name)
 		return nil, resultErr
@@ -39,11 +39,11 @@ func MustFetchKogitoInfraInstance(client *client.Client, name string, namespace 
 }
 
 // IsKafkaResource checks if provided KogitoInfra instance is for kafka resource
-func IsKafkaResource(instance *v1alpha1.KogitoInfra) bool {
+func IsKafkaResource(instance *v1beta1.KogitoInfra) bool {
 	return instance.Spec.Resource.APIVersion == KafkaAPIVersion && instance.Spec.Resource.Kind == KafkaKind
 }
 
 // IsKnativeEventingResource checks if provided KogitoInfra instance is for Knative eventing resource
-func IsKnativeEventingResource(instance *v1alpha1.KogitoInfra) bool {
+func IsKnativeEventingResource(instance *v1beta1.KogitoInfra) bool {
 	return instance.Spec.Resource.APIVersion == KnativeEventingAPIVersion && instance.Spec.Resource.Kind == KnativeEventingBrokerKind
 }

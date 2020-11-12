@@ -15,7 +15,7 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	corev1 "k8s.io/api/core/v1"
@@ -26,7 +26,7 @@ import (
 )
 
 func TestGetAppPropConfigMapContentHash(t *testing.T) {
-	service := &v1alpha1.KogitoRuntime{
+	service := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{Name: "test", Namespace: "test"},
 	}
 	cm := &corev1.ConfigMap{
@@ -44,7 +44,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 	}
 
 	type args struct {
-		instance v1alpha1.KogitoService
+		instance v1beta1.KogitoService
 		appProps map[string]string
 		cli      *client.Client
 	}

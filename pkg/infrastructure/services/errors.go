@@ -16,7 +16,7 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"time"
 )
 
@@ -29,7 +29,7 @@ const (
 )
 
 type reconciliationError struct {
-	reason                 v1alpha1.KogitoServiceConditionReason
+	reason                 v1beta1.KogitoServiceConditionReason
 	reconciliationInterval time.Duration
 	innerError             error
 }
@@ -44,10 +44,10 @@ func (e reconciliationError) Error() string {
 	return e.innerError.Error()
 }
 
-func errorForInfraNotReady(service v1alpha1.KogitoService, infra *v1alpha1.KogitoInfra) reconciliationError {
+func errorForInfraNotReady(service v1beta1.KogitoService, infra *v1beta1.KogitoInfra) reconciliationError {
 	return reconciliationError{
 		reconciliationInterval: reconciliationIntervalAfterInfraError,
-		reason:                 v1alpha1.KogitoInfraNotReadyReason,
+		reason:                 v1beta1.KogitoInfraNotReadyReason,
 		innerError: fmt.Errorf("KogitoService '%s' is waiting for infra dependency; skipping deployment; KogitoInfra not ready: %s; Status: %s",
 			service.GetName(), infra.Name, infra.Status.Condition.Reason),
 	}
@@ -56,7 +56,7 @@ func errorForInfraNotReady(service v1alpha1.KogitoService, infra *v1alpha1.Kogit
 func errorForMessaging(err error) reconciliationError {
 	return reconciliationError{
 		reconciliationInterval: reconciliationIntervalAfterMessagingError,
-		reason:                 v1alpha1.MessagingIntegrationFailureReason,
+		reason:                 v1beta1.MessagingIntegrationFailureReason,
 		innerError:             err,
 	}
 }
@@ -64,7 +64,7 @@ func errorForMessaging(err error) reconciliationError {
 func errorForMonitoring(err error) reconciliationError {
 	return reconciliationError{
 		reconciliationInterval: reconciliationIntervalMonitoringEndpointNotAvailable,
-		reason:                 v1alpha1.MonitoringIntegrationFailureReason,
+		reason:                 v1beta1.MonitoringIntegrationFailureReason,
 		innerError:             err,
 	}
 }
@@ -72,20 +72,20 @@ func errorForMonitoring(err error) reconciliationError {
 func errorForDashboards(err error) reconciliationError {
 	return reconciliationError{
 		reconciliationInterval: reconciliationIntervalAfterDashboardsError,
-		reason:                 v1alpha1.MonitoringIntegrationFailureReason,
+		reason:                 v1beta1.MonitoringIntegrationFailureReason,
 		innerError:             err,
 	}
 }
 
 func errorForServiceNotReachable(statusCode int, requestURL string, method string) reconciliationError {
 	return reconciliationError{
-		reason:                 v1alpha1.InternalServiceNotReachable,
+		reason:                 v1beta1.InternalServiceNotReachable,
 		reconciliationInterval: reconciliationIntervalAfterFetchService,
 		innerError:             fmt.Errorf("Received NOT expected status code %d while making a %s request to %s ", statusCode, method, requestURL),
 	}
 }
 
-func reasonForError(err error) v1alpha1.KogitoServiceConditionReason {
+func reasonForError(err error) v1beta1.KogitoServiceConditionReason {
 	if err == nil {
 		return ""
 	}
@@ -93,7 +93,7 @@ func reasonForError(err error) v1alpha1.KogitoServiceConditionReason {
 	case reconciliationError:
 		return t.reason
 	}
-	return v1alpha1.ServiceReconciliationFailure
+	return v1beta1.ServiceReconciliationFailure
 }
 
 func reconciliationIntervalForError(err error) time.Duration {

@@ -17,7 +17,7 @@ package services
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
@@ -57,7 +57,7 @@ type imageHandler struct {
 	// imageStream is the created Image Stream for the service, should be nil on Kubernetes
 	imageStream *imgv1.ImageStream
 	// image is the CR structure attribute given by the user
-	image *v1alpha1.Image
+	image *v1beta1.Image
 	// defaultImageName is the default image name for this service. Used to resolve the image from the Kogito Team registry when no custom image is given.
 	defaultImageName string
 	// imageStreamName name for the image stream that will handle image tags for the given instance
@@ -169,7 +169,7 @@ func (i *imageHandler) createImageStream(namespace string, addFromReference, ins
 }
 
 // NewImageHandlerForBuiltServices creates a new handler for Kogito Services being built
-func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cli *client.Client) ImageHandler {
+func NewImageHandlerForBuiltServices(image *v1beta1.Image, namespace string, cli *client.Client) ImageHandler {
 	handler := &imageHandler{
 		image:            image,
 		imageStream:      nil,
@@ -185,11 +185,11 @@ func NewImageHandlerForBuiltServices(image *v1alpha1.Image, namespace string, cl
 	return handler
 }
 
-func newImageHandler(instance v1alpha1.KogitoService, definition ServiceDefinition, cli *client.Client) (*imageHandler, error) {
+func newImageHandler(instance v1beta1.KogitoService, definition ServiceDefinition, cli *client.Client) (*imageHandler, error) {
 	addDockerImageReference := len(instance.GetSpec().GetImage()) != 0 || !definition.CustomService
-	var image v1alpha1.Image
+	var image v1beta1.Image
 	if len(instance.GetSpec().GetImage()) == 0 {
-		image = v1alpha1.Image{
+		image = v1beta1.Image{
 			Name: definition.DefaultImageName,
 			Tag:  definition.DefaultImageTag,
 		}

@@ -15,7 +15,7 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/controller/kogitobuild/build"
@@ -35,11 +35,11 @@ import (
 
 func TestReconcileKogitoBuildSimple(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &v1alpha1.KogitoBuild{
+	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: v1alpha1.KogitoBuildSpec{
-			Type: v1alpha1.RemoteSourceBuildType,
-			GitSource: v1alpha1.GitSource{
+		Spec: v1beta1.KogitoBuildSpec{
+			Type: v1beta1.RemoteSourceBuildType,
+			GitSource: v1beta1.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: instanceName,
 			},
@@ -112,28 +112,28 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	test.AssertFetchMustExist(t, cli, instance)
 
 	assert.Len(t, instance.Status.Conditions, 1)
-	assert.Equal(t, v1alpha1.KogitoBuildRunning, instance.Status.Conditions[0].Type)
+	assert.Equal(t, v1beta1.KogitoBuildRunning, instance.Status.Conditions[0].Type)
 }
 
 func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	kogitoServiceName := "quarkus-example"
 	instanceLocalName := "quarkus-example-local"
-	instanceRemote := &v1alpha1.KogitoBuild{
+	instanceRemote := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: kogitoServiceName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: v1alpha1.KogitoBuildSpec{
-			Type: v1alpha1.RemoteSourceBuildType,
-			GitSource: v1alpha1.GitSource{
+		Spec: v1beta1.KogitoBuildSpec{
+			Type: v1beta1.RemoteSourceBuildType,
+			GitSource: v1beta1.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: kogitoServiceName,
 			},
-			Runtime: v1alpha1.QuarkusRuntimeType,
+			Runtime: v1beta1.QuarkusRuntimeType,
 		},
 	}
-	instanceLocal := &v1alpha1.KogitoBuild{
+	instanceLocal := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceLocalName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: v1alpha1.KogitoBuildSpec{
-			Type:                v1alpha1.LocalSourceBuildType,
-			Runtime:             v1alpha1.QuarkusRuntimeType,
+		Spec: v1beta1.KogitoBuildSpec{
+			Type:                v1beta1.LocalSourceBuildType,
+			Runtime:             v1beta1.QuarkusRuntimeType,
 			TargetKogitoRuntime: kogitoServiceName,
 		},
 	}

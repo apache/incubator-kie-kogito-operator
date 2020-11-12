@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -26,15 +26,15 @@ import (
 func TestReconcileKogitoSupportingTrusty_Reconcile(t *testing.T) {
 	ns := t.Name()
 	kogitoKafka := test.CreateFakeKogitoKafka(ns)
-	instance := &v1alpha1.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-trusty",
 			Namespace: ns,
 		},
 		// We don't need to specify that we need Infinispan, it will figure out that alone :)
-		Spec: v1alpha1.KogitoSupportingServiceSpec{
-			ServiceType: v1alpha1.TrustyAI,
-			KogitoServiceSpec: v1alpha1.KogitoServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
+			ServiceType: v1beta1.TrustyAI,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Infra: []string{
 					kogitoKafka.Name,
 				},

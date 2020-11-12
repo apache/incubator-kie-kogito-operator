@@ -15,14 +15,14 @@
 package kogitoinfra
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type targetContext struct {
 	client   *client.Client
-	instance *v1alpha1.KogitoInfra
+	instance *v1beta1.KogitoInfra
 	scheme   *runtime.Scheme
 }
 

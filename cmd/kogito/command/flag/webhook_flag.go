@@ -17,13 +17,13 @@ package flag
 import (
 	"fmt"
 	util2 "github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 var (
-	validWebHookTypes = []string{string(v1alpha1.GitHubWebHook), string(v1alpha1.GenericWebHook)}
+	validWebHookTypes = []string{string(v1beta1.GitHubWebHook), string(v1beta1.GenericWebHook)}
 )
 
 // WebHookFlags is common properties used to configure Git

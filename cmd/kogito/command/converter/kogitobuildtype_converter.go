@@ -16,19 +16,19 @@ package converter
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
 // FromResourceTypeToKogitoBuildType converts given ResourceType into KogitoBuildType
-func FromResourceTypeToKogitoBuildType(resourceType flag.ResourceType) v1alpha1.KogitoBuildType {
+func FromResourceTypeToKogitoBuildType(resourceType flag.ResourceType) v1beta1.KogitoBuildType {
 	switch resourceType {
 	case flag.LocalDirectoryResource, flag.LocalFileResource, flag.GitFileResource:
-		return v1alpha1.LocalSourceBuildType
+		return v1beta1.LocalSourceBuildType
 	case flag.GitRepositoryResource:
-		return v1alpha1.RemoteSourceBuildType
+		return v1beta1.RemoteSourceBuildType
 	case flag.BinaryResource, flag.LocalBinaryDirectoryResource:
-		return v1alpha1.BinaryBuildType
+		return v1beta1.BinaryBuildType
 	default:
-		return v1alpha1.RemoteSourceBuildType
+		return v1beta1.RemoteSourceBuildType
 	}
 }
