@@ -4,8 +4,6 @@ on:
     paths:
       - 'pkg/**.go'
       - 'cmd/**.go'
-    branches:
-      - master
 env:
   GO_VERSION: 1.14
 jobs:

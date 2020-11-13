@@ -6,8 +6,6 @@ on:
       - 'pkg/**'
       - 'cmd/**'
       - 'hack/ci/**'
-    branches:
-      - master
 env:
   OPERATOR_SDK_VERSION: v0.18.2
   GO_VERSION: 1.14
