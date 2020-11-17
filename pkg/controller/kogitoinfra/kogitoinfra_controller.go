@@ -24,10 +24,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
@@ -56,14 +54,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource KogitoInfra
-	pred := predicate.Funcs{
-		// Don't watch delete events as the resource removals will be handled by Kubernetes itself
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return false
-		},
-	}
-	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoInfra{}}, &handler.EnqueueRequestForObject{}, pred)
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoInfra{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -101,9 +92,13 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (reconcile.R
 	log.Infof("Reconciling KogitoInfra for %s in %s", request.Name, request.Namespace)
 
 	// Fetch the KogitoInfra instance
-	instance, resultErr := infrastructure.MustFetchKogitoInfraInstance(r.client, request.Name, request.Namespace)
+	instance, resultErr := infrastructure.FetchKogitoInfraInstance(r.client, request.Name, request.Namespace)
 	if resultErr != nil {
 		return reconcile.Result{}, resultErr
+	}
+	if instance == nil {
+		log.Debugf("KogitoInfra instance with name %s not found in namespace %s. Going to return reconciliation request", request.Name, request.Namespace)
+		return reconcile.Result{}, nil
 	}
 
 	// make KogitoInfra as self owner so that it will not removed when kogito service referring to it deleted because

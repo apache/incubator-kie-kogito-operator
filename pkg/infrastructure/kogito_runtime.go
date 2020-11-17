@@ -15,7 +15,6 @@
 package infrastructure
 
 import (
-	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
@@ -90,7 +89,7 @@ func FetchKogitoRuntimeService(client *client.Client, name string, namespace str
 		log.Errorf("Error occurs while fetching deployed kogito runtime service instance %s", name)
 		return nil, resultErr
 	} else if !exists {
-		return nil, fmt.Errorf("kogito runtime service resource with name %s not found in namespace %s", name, namespace)
+		return nil, nil
 	} else {
 		log.Debugf("Successfully fetch deployed kogito runtime reference %s", name)
 		return instance, nil

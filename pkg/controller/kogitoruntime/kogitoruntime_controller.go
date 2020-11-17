@@ -27,10 +27,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
@@ -57,14 +55,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource KogitoRuntime
-	pred := predicate.Funcs{
-		// Don't watch delete events as the resource removals will be handled by Kubernetes itself
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return false
-		},
-	}
-	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoRuntime{}}, &handler.EnqueueRequestForObject{}, pred)
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoRuntime{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -109,6 +100,10 @@ func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (result re
 
 	instance, err := infrastructure.FetchKogitoRuntimeService(r.client, request.Name, request.Namespace)
 	if err != nil {
+		return
+	}
+	if instance == nil {
+		log.Debugf("KogitoRuntime instance with name %s not found in namespace %s. Going to return reconciliation request", request.Name, request.Namespace)
 		return
 	}
 

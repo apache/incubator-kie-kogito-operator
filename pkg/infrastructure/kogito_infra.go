@@ -22,10 +22,26 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+// FetchKogitoInfraInstance loads a given infra instance by name and namespace.
+// If the KogitoInfra resource is not present, nil will return.
+func FetchKogitoInfraInstance(client *client.Client, name string, namespace string) (*v1beta1.KogitoInfra, error) {
+	log.Debugf("going to fetch deployed kogito infra instance %s", name)
+	instance := &v1beta1.KogitoInfra{}
+	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
+		log.Errorf("Error occurs while fetching deployed kogito infra instance %s", name)
+		return nil, resultErr
+	} else if !exists {
+		return nil, nil
+	} else {
+		log.Debugf("Successfully fetch deployed kogito infra reference %s", name)
+		return instance, nil
+	}
+}
+
 // MustFetchKogitoInfraInstance loads a given infra instance by name and namespace.
 // If the KogitoInfra resource is not present, an error is raised.
 func MustFetchKogitoInfraInstance(client *client.Client, name string, namespace string) (*v1beta1.KogitoInfra, error) {
-	log.Debugf("going to fetch deployed kogito infra instance %s", name)
+	log.Debugf("going to must fetch deployed kogito infra instance %s", name)
 	instance := &v1beta1.KogitoInfra{}
 	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
 		log.Errorf("Error occurs while fetching deployed kogito infra instance %s", name)
