@@ -15,6 +15,7 @@
 package kogitoinfra
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
@@ -108,7 +109,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (reconcile.R
 
 	// make KogitoInfra as self owner so that it will not removed when kogito service referring to it deleted because
 	// kogito services are also become owner of kogitoInfra when reference of infra provided in Kogito services.
-	if resultErr = framework.AddOwnerReference(instance, r.scheme, instance); resultErr != nil {
+	if resultErr = r.takeSelfKogitoInfraOwnership(r.client, instance, r.scheme); resultErr != nil {
 		return reconcile.Result{}, resultErr
 	}
 
@@ -141,4 +142,17 @@ func (r *ReconcileKogitoInfra) getReconcileResultFor(err error, requeue bool) (r
 		log.Infof("Waiting for all resources to be created, scheduling reconciliation: %s. Scheduling reconciliation for %s", err.Error(), reconciliationStandardInterval.String())
 	}
 	return reconcile.Result{RequeueAfter: reconciliationStandardInterval}, nil
+}
+
+func (r *ReconcileKogitoInfra) takeSelfKogitoInfraOwnership(client *client.Client, kogitoInfra *v1beta1.KogitoInfra, scheme *runtime.Scheme) (err error) {
+	if framework.IsOwner(kogitoInfra, kogitoInfra) {
+		return nil
+	}
+	if err = framework.AddOwnerReference(kogitoInfra, scheme, kogitoInfra); err != nil {
+		return err
+	}
+	if err = kubernetes.ResourceC(client).Update(kogitoInfra); err != nil {
+		return err
+	}
+	return nil
 }
