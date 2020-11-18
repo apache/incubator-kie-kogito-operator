@@ -109,7 +109,7 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (reconcile.R
 
 	// make KogitoInfra as self owner so that it will not removed when kogito service referring to it deleted because
 	// kogito services are also become owner of kogitoInfra when reference of infra provided in Kogito services.
-	if resultErr = r.takeSelfKogitoInfraOwnership(r.client, instance, r.scheme); resultErr != nil {
+	if resultErr = r.takeSelfKogitoInfraOwnership(instance); resultErr != nil {
 		return reconcile.Result{}, resultErr
 	}
 
@@ -144,14 +144,14 @@ func (r *ReconcileKogitoInfra) getReconcileResultFor(err error, requeue bool) (r
 	return reconcile.Result{RequeueAfter: reconciliationStandardInterval}, nil
 }
 
-func (r *ReconcileKogitoInfra) takeSelfKogitoInfraOwnership(client *client.Client, kogitoInfra *v1beta1.KogitoInfra, scheme *runtime.Scheme) (err error) {
+func (r *ReconcileKogitoInfra) takeSelfKogitoInfraOwnership(kogitoInfra *v1beta1.KogitoInfra) (err error) {
 	if framework.IsOwner(kogitoInfra, kogitoInfra) {
 		return nil
 	}
-	if err = framework.AddOwnerReference(kogitoInfra, scheme, kogitoInfra); err != nil {
+	if err = framework.AddOwnerReference(kogitoInfra, r.scheme, kogitoInfra); err != nil {
 		return err
 	}
-	if err = kubernetes.ResourceC(client).Update(kogitoInfra); err != nil {
+	if err = kubernetes.ResourceC(r.client).Update(kogitoInfra); err != nil {
 		return err
 	}
 	return nil
