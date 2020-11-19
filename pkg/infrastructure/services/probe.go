@@ -61,49 +61,41 @@ func getProbeForKogitoService(serviceDefinition ServiceDefinition, service v1bet
 	}
 }
 
-func getTCPHealthCheckProbe(kogitoProbe v1beta1.KogitoProbe) *corev1.Probe {
-	return &corev1.Probe{
-		Handler: corev1.Handler{
+func getTCPHealthCheckProbe(probe corev1.Probe) *corev1.Probe {
+	if isProbeHandlerEmpty(probe.Handler) {
+		probe.Handler = corev1.Handler{
 			TCPSocket: &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: int32(framework.DefaultExposedPort)}},
-		},
-		TimeoutSeconds:      kogitoProbe.TimeoutSeconds,
-		PeriodSeconds:       kogitoProbe.PeriodSeconds,
-		SuccessThreshold:    kogitoProbe.SuccessThreshold,
-		FailureThreshold:    kogitoProbe.FailureThreshold,
-		InitialDelaySeconds: kogitoProbe.InitialDelaySeconds,
+		}
 	}
+	return &probe
 }
 
-func getQuarkusHealthCheckLiveness(kogitoProbe v1beta1.KogitoProbe) *corev1.Probe {
-	return &corev1.Probe{
-		Handler: corev1.Handler{
+func getQuarkusHealthCheckLiveness(probe corev1.Probe) *corev1.Probe {
+	if isProbeHandlerEmpty(probe.Handler) {
+		probe.Handler = corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   quarkusProbeLivenessPath,
 				Port:   intstr.IntOrString{IntVal: int32(framework.DefaultExposedPort)},
 				Scheme: corev1.URISchemeHTTP,
 			},
-		},
-		TimeoutSeconds:      kogitoProbe.TimeoutSeconds,
-		PeriodSeconds:       kogitoProbe.PeriodSeconds,
-		SuccessThreshold:    kogitoProbe.SuccessThreshold,
-		FailureThreshold:    kogitoProbe.FailureThreshold,
-		InitialDelaySeconds: kogitoProbe.InitialDelaySeconds,
+		}
 	}
+	return &probe
 }
 
-func getQuarkusHealthCheckReadiness(kogitoProbe v1beta1.KogitoProbe) *corev1.Probe {
-	return &corev1.Probe{
-		Handler: corev1.Handler{
+func getQuarkusHealthCheckReadiness(probe corev1.Probe) *corev1.Probe {
+	if isProbeHandlerEmpty(probe.Handler) {
+		probe.Handler = corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   quarkusProbeReadinessPath,
 				Port:   intstr.IntOrString{IntVal: int32(framework.DefaultExposedPort)},
 				Scheme: corev1.URISchemeHTTP,
 			},
-		},
-		TimeoutSeconds:      kogitoProbe.TimeoutSeconds,
-		PeriodSeconds:       kogitoProbe.PeriodSeconds,
-		SuccessThreshold:    kogitoProbe.SuccessThreshold,
-		FailureThreshold:    kogitoProbe.FailureThreshold,
-		InitialDelaySeconds: kogitoProbe.InitialDelaySeconds,
+		}
 	}
+	return &probe
+}
+
+func isProbeHandlerEmpty(handler corev1.Handler) bool {
+	return handler.HTTPGet == nil && handler.Exec == nil && handler.TCPSocket == nil
 }
