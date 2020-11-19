@@ -61,14 +61,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource KogitoSupportingService
-	pred := predicate.Funcs{
-		// Don't watch delete events as the resource removals will be handled by Kubernetes itself
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return false
-		},
-	}
-	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{}, pred)
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -125,6 +118,11 @@ func (r *ReconcileKogitoSupportingService) Reconcile(request reconcile.Request) 
 	if resultErr != nil {
 		return
 	}
+	if instance == nil {
+		log.Debugf("KogitoSupportingService instance with name %s not found in namespace %s. Going to return reconciliation request", request.Name, request.Namespace)
+		return
+	}
+
 	log.Debugf("Going to reconcile service of type %s", instance.Spec.ServiceType)
 	if resultErr = ensureSingletonService(r.client, request.Namespace, instance.Spec.ServiceType); resultErr != nil {
 		return
@@ -152,7 +150,7 @@ func fetchKogitoSupportingService(client *client.Client, name string, namespace 
 		log.Errorf("Error occurs while fetching deployed kogito supporting service instance %s", name)
 		return nil, resultErr
 	} else if !exists {
-		return nil, fmt.Errorf("kogito supporting service resource with name %s not found in namespace %s", name, namespace)
+		return nil, nil
 	} else {
 		log.Debugf("Successfully fetch deployed kogito supporting reference %s", name)
 		return instance, nil

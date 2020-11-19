@@ -15,6 +15,7 @@
 package infrastructure
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -80,4 +81,28 @@ func Test_getProtoBufConfigMapsForSpecificRuntimeService(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(cms.Items))
 	assert.Equal(t, "my-domain-protobufs1", cms.Items[0].Name)
+}
+
+func TestFetchKogitoRuntimeService_InstanceFound(t *testing.T) {
+	ns := t.Name()
+	name := "kogito-runtime"
+	kogitoRuntime := &v1beta1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: ns,
+		},
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime).Build()
+	instance, err := FetchKogitoRuntimeService(cli, name, ns)
+	assert.NoError(t, err)
+	assert.NotNil(t, instance)
+}
+
+func TestFetchKogitoRuntimeService_InstanceNotFound(t *testing.T) {
+	ns := t.Name()
+	name := "kogito-runtime"
+	cli := test.NewFakeClientBuilder().Build()
+	instance, err := FetchKogitoRuntimeService(cli, name, ns)
+	assert.NoError(t, err)
+	assert.Nil(t, instance)
 }
