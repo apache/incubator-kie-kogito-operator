@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-source ./hack/export-version.sh
+source ./hack/env.sh
 
 OLD_VERSION=998.0.0
 NEW_VERSION=999.0.0
@@ -44,7 +44,7 @@ teardown() {
     run hack/bump-version.sh ${NEW_VERSION}
     echo ${output}
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "Latest released OLM version = ${LATEST_RELEASED_OLM_VERSION}" ]]
+    [[ "${output}" =~ "Latest released OLM version = ${getLatestOlmReleaseVersion}" ]]
     [[ "${output}" =~ "make bundle" ]]
     [[ "${output}" =~ "make vet" ]]
 
@@ -65,7 +65,7 @@ teardown() {
     cd ${dir}
     run hack/bump-version.sh ${NEW_VERSION} true
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "Latest released OLM version = ${LATEST_RELEASED_OLM_VERSION}" ]]
+    [[ "${output}" =~ "Latest released OLM version = ${getLatestOlmReleaseVersion}" ]]
     [[ "${output}" =~ "make bundle" ]]
     [[ "${output}" =~ "make vet" ]]
 
@@ -85,7 +85,7 @@ teardown() {
     cd ${dir}
     run hack/bump-version.sh ${NEW_VERSION} true false
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "Latest released OLM version = ${LATEST_RELEASED_OLM_VERSION}" ]]
+    [[ "${output}" =~ "Latest released OLM version = ${getLatestOlmReleaseVersion}" ]]
     [[ "${output}" =~ "make bundle" ]]
     [[ "${output}" =~ "make vet" ]]
 
@@ -103,15 +103,15 @@ teardown() {
     #current_version=$(cat )
     run hack/bump-version.sh ${NEW_VERSION}
     [ "$status" -eq 0 ]
-    [[ "${output}" =~ "Latest released OLM version = ${LATEST_RELEASED_OLM_VERSION}" ]]
+    [[ "${output}" =~ "Latest released OLM version = ${getLatestOlmReleaseVersion}" ]]
 
     # Check csv file
     result=$(cat config/manifests/bases/kogito-operator.clusterserviceversion.yaml)
-    [[ "${result}" =~ "${LATEST_RELEASED_OLM_VERSION}" ]]
+    [[ "${result}" =~ "${getLatestOlmReleaseVersion}" ]]
     [[ "${result}" =~ "${NEW_VERSION}" ]]
     [[ "${result}" != *${CURRENT_VERSION}* ]]
     # fine tune results
-    [[ "${result}" =~ "replaces: kogito-operator.v${LATEST_RELEASED_OLM_VERSION}" ]]
+    [[ "${result}" =~ "replaces: kogito-operator.v${getLatestOlmReleaseVersion}" ]]
     [[ "${result}" =~ "version: ${NEW_VERSION}" ]]
     [[ "${result}" =~ "operated-by: kogito-operator.${NEW_VERSION}" ]]
     [[ "${result}" =~ "quay.io/kiegroup/kogito-cloud-operator:${NEW_VERSION}" ]]
