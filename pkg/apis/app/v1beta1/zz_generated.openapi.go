@@ -34,6 +34,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoInfra":                   schema_pkg_apis_app_v1beta1_KogitoInfra(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoInfraSpec":               schema_pkg_apis_app_v1beta1_KogitoInfraSpec(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoInfraStatus":             schema_pkg_apis_app_v1beta1_KogitoInfraStatus(ref),
+		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoProbe":                   schema_pkg_apis_app_v1beta1_KogitoProbe(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoRuntime":                 schema_pkg_apis_app_v1beta1_KogitoRuntime(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoSupportingService":       schema_pkg_apis_app_v1beta1_KogitoSupportingService(ref),
 		"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoSupportingServiceSpec":   schema_pkg_apis_app_v1beta1_KogitoSupportingServiceSpec(ref),
@@ -494,6 +495,54 @@ func schema_pkg_apis_app_v1beta1_KogitoInfraStatus(ref common.ReferenceCallback)
 	}
 }
 
+func schema_pkg_apis_app_v1beta1_KogitoProbe(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoProbe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"initialDelaySeconds": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of seconds after the container has started before probes are initiated. Defaults to 240 seconds. Minimum value is 0.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"timeoutSeconds": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of seconds after which the probe times out. Defaults to 15 seconds. Minimum value is 1.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"periodSeconds": {
+						SchemaProps: spec.SchemaProps{
+							Description: "How often (in seconds) to perform the probe. Defaults to 10 seconds. Minimum value is 1.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"successThreshold": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness and startup. Minimum value is 1.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"failureThreshold": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func schema_pkg_apis_app_v1beta1_KogitoRuntime(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -706,6 +755,18 @@ func schema_pkg_apis_app_v1beta1_KogitoSupportingServiceSpec(ref common.Referenc
 							},
 						},
 					},
+					"livenessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "LivenessProbe describes how the Kogito container liveness probe should work",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoProbe"),
+						},
+					},
+					"readinessProbe": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ReadinessProbe describes how the Kogito container readiness probe should work",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoProbe"),
+						},
+					},
 					"serviceType": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Defines the type for the supporting service, eg: DataIndex, JobsService Default value: JobsService",
@@ -718,7 +779,7 @@ func schema_pkg_apis_app_v1beta1_KogitoSupportingServiceSpec(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoProbe", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

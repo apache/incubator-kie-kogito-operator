@@ -181,6 +181,44 @@ spec:
                 Operator should be configured to allow pulling from insecure registries.
                 Usable just on OpenShift. Defaults to 'false'.
               type: boolean
+            livenessProbe:
+              description: LivenessProbe describes how the Kogito container liveness
+                probe should work
+              properties:
+                failureThreshold:
+                  description: Minimum consecutive failures for the probe to be considered
+                    failed after having succeeded. Defaults to 3. Minimum value is
+                    1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+                initialDelaySeconds:
+                  description: Number of seconds after the container has started before
+                    probes are initiated. Defaults to 240 seconds. Minimum value is
+                    0.
+                  format: int32
+                  minimum: 0
+                  type: integer
+                periodSeconds:
+                  description: How often (in seconds) to perform the probe. Defaults
+                    to 10 seconds. Minimum value is 1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+                successThreshold:
+                  description: Minimum consecutive successes for the probe to be considered
+                    successful after having failed. Defaults to 1. Must be 1 for liveness
+                    and startup. Minimum value is 1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+                timeoutSeconds:
+                  description: Number of seconds after which the probe times out.
+                    Defaults to 15 seconds. Minimum value is 1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+              type: object
             monitoring:
               description: Create Service monitor instance to connect with Monitoring
                 service
@@ -200,6 +238,44 @@ spec:
                 be created for you. Later it can be updated to add any custom properties
                 to apply to the service.
               type: string
+            readinessProbe:
+              description: ReadinessProbe describes how the Kogito container readiness
+                probe should work
+              properties:
+                failureThreshold:
+                  description: Minimum consecutive failures for the probe to be considered
+                    failed after having succeeded. Defaults to 3. Minimum value is
+                    1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+                initialDelaySeconds:
+                  description: Number of seconds after the container has started before
+                    probes are initiated. Defaults to 240 seconds. Minimum value is
+                    0.
+                  format: int32
+                  minimum: 0
+                  type: integer
+                periodSeconds:
+                  description: How often (in seconds) to perform the probe. Defaults
+                    to 10 seconds. Minimum value is 1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+                successThreshold:
+                  description: Minimum consecutive successes for the probe to be considered
+                    successful after having failed. Defaults to 1. Must be 1 for liveness
+                    and startup. Minimum value is 1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+                timeoutSeconds:
+                  description: Number of seconds after which the probe times out.
+                    Defaults to 15 seconds. Minimum value is 1.
+                  format: int32
+                  minimum: 1
+                  type: integer
+              type: object
             replicas:
               description: 'Number of replicas that the service will have deployed
                 in the cluster. Default value: 1.'
