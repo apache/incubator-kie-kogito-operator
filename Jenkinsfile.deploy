@@ -299,7 +299,7 @@ void checkoutRepo() {
 }
 
 String getOperatorVersion(){
-    return sh(script: 'source ./hack/export-version.sh > /dev/null && echo ${OP_VERSION}', returnStdout: true).trim()
+    return sh(script: 'source ./hack/env.sh > /dev/null && echo $(getOperatorVersion)', returnStdout: true).trim()
 }
 
 void tagImage(){
