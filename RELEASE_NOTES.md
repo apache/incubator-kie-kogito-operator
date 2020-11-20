@@ -16,6 +16,6 @@ third party infrastructure resources are not yet available
 - [KOGITO-3736](https://issues.redhat.com/browse/KOGITO-3736) - Reconciler error in Data index controller when KogitoRuntime is deployed
 
 ## Known Issues
-- The protobuf ConfigMap does not update in Spring Boot due to [this issue](https://issues.redhat.com/browse/KOGITO-3406).
+- The protobuf ConfigMap does not get updated in Spring Boot due to [this issue](https://issues.redhat.com/browse/KOGITO-3406).
 - [KOGITO-3866](https://issues.redhat.com/browse/KOGITO-3866) - Operator print error logs when KogitoRuntime delete
 - [KOGITO-3864](https://issues.redhat.com/browse/KOGITO-3864) - KogitoInfra got delete when refering KogitoRuntime/KogitoSupportingService delete
