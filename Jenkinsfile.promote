@@ -10,55 +10,21 @@ pipeline {
     }
 
     options {
-        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 120, unit: 'MINUTES')
     }
 
-    parameters {
-        string(name: 'DISPLAY_NAME', defaultValue: '', description: 'Setup a specific build display name')
-
-        // Deploy job url to retrieve deployment.properties
-        string(name: 'DEPLOY_BUILD_URL', defaultValue: '', description: 'URL to jenkins deploy build to retrieve the `deployment.properties` file. If base parameters are defined, they will override the `deployment.properties` information')
-        // Git information which can override `deployment.properties`
-        string(name: 'BUILD_BRANCH_NAME', defaultValue: '', description: 'Override `deployment.properties`. Which branch to build ? Set if you are not on a multibranch pipeline.')
-        string(name: 'GIT_AUTHOR', defaultValue: '', description: 'Override `deployment.properties`. Which Git author repository ?')
-        
-        // Base information which can override `deployment.properties`
-        booleanParam(name: 'BASE_IMAGE_USE_OPENSHIFT_REGISTRY', defaultValue: false, description: 'Override `deployment.properties`. Set to true if base image should be deployed in Openshift registry.In this case, BASE_IMAGE_REGISTRY_CREDENTIALS, BASE_IMAGE_REGISTRY and BASE_IMAGE_NAMESPACE parameters will be ignored')
-        string(name: 'BASE_IMAGE_REGISTRY_CREDENTIALS', defaultValue: '', description: 'Override `deployment.properties`. Base Image registry credentials to use to deploy images. Will be ignored if no BASE_IMAGE_REGISTRY is given')
-        string(name: 'BASE_IMAGE_REGISTRY', defaultValue: '', description: 'Override `deployment.properties`. Base image registry')
-        string(name: 'BASE_IMAGE_NAMESPACE', defaultValue: '', description: 'Override `deployment.properties`. Base image namespace')
-        string(name: 'BASE_IMAGE_NAME_SUFFIX', defaultValue: '', description: 'Override `deployment.properties`. Base image name suffix')
-        string(name: 'BASE_IMAGE_TAG', defaultValue: '', description: 'Override `deployment.properties`. Base image tag')
-
-        // Promote information
-        booleanParam(name: 'PROMOTE_IMAGE_USE_OPENSHIFT_REGISTRY', defaultValue: false, description: 'Set to true if base image should be deployed in Openshift registry.In this case, PROMOTE_IMAGE_REGISTRY_CREDENTIALS, PROMOTE_IMAGE_REGISTRY and PROMOTE_IMAGE_NAMESPACE parameters will be ignored')
-        string(name: 'PROMOTE_IMAGE_REGISTRY_CREDENTIALS', defaultValue: '', description: 'Promote Image registry credentials to use to deploy images. Will be ignored if no PROMOTE_IMAGE_REGISTRY is given')
-        string(name: 'PROMOTE_IMAGE_REGISTRY', defaultValue: '', description: 'Promote image registry')
-        string(name: 'PROMOTE_IMAGE_NAMESPACE', defaultValue: 'kiegroup', description: 'Promote image namespace')
-        string(name: 'PROMOTE_IMAGE_NAME_SUFFIX', defaultValue: '', description: 'Promote image name suffix')
-        string(name: 'PROMOTE_IMAGE_TAG', defaultValue: '', description: 'Promote image tag')
-        booleanParam(name: 'DEPLOY_WITH_LATEST_TAG', defaultValue: false, description: 'Set to true if you want the deployed images to also be with the `latest` tag')
-
-        // Release information which can override  `deployment.properties`
-        booleanParam(name: 'RELEASE', defaultValue: false, description: 'Override `deployment.properties`. Is this build for a release?')
-        string(name: 'PROJECT_VERSION', defaultValue: '', description: 'Override `deployment.properties`. Optional if not RELEASE. If RELEASE, cannot be empty.')
-        string(name: 'GIT_TAG', defaultValue: '', description: 'Git tag to set, if different from v{PROJECT_VERSION}')
-        
-        // Bot author information. Set as params for easy testing.
-        string(name: 'BOT_CREDENTIALS_ID', defaultValue: 'bsig-gh-bot', description: 'Credentials for PR creation')
-
-        // Main author creds
-        string(name: 'AUTHOR_CREDS_ID', defaultValue: 'kie-ci', description: 'Credentials for PR merge')
-        string(name: 'GITHUB_TOKEN_CREDS_ID', defaultValue: 'kie-ci2-token', description: 'GH token to be used with GH CLI')        
-    }
+    // parameters {
+    // For parameters, check into .jenkins/dsl/jobs.groovy file
+    // }
 
     environment {
+        // Static env is defined into .jenkins/dsl/jobs.groovy file
+        
         OPENSHIFT_API = credentials('OPENSHIFT_API')
         OPENSHIFT_REGISTRY = credentials('OPENSHIFT_REGISTRY')
         OPENSHIFT_CREDS_KEY = 'OPENSHIFT_CREDS'
         BOT_BRANCH_HASH = "${util.generateHash(10)}"
-        GITHUB_REPO = 'kogito-cloud-operator' // for github-release cli
+        GITHUB_REPO = "${REPO_NAME}" // for github-release cli
     }
 
     stages {
@@ -67,14 +33,17 @@ pipeline {
                 script {
                     clean()
 
-                    if (params.DISPLAY_NAME != '') {
+                    if (params.DISPLAY_NAME) {
                         currentBuild.displayName = params.DISPLAY_NAME
                     }
 
                     readDeployProperties()
 
                     if (isRelease()) {
-                        assert getProjectVersion() != ''
+                        // Verify version is set and if on right release branch
+                        assert getProjectVersion()
+
+                        assert getBuildBranch() == util.getReleaseBranchFromVersion(getProjectVersion())
                     }
 
                     installGitHubReleaseCLI()
@@ -118,17 +87,17 @@ pipeline {
             }
             steps{
                 script {
-                    dir('operator-main') {
+                    dir(getRepoName()) {
                         checkoutRepo()
 
                         // Merge PR
-                        String prLink = getDeployProperty('kogito-cloud-operator.pr.link')
-                        if(prLink != ''){
+                        String prLink = getDeployProperty("${getRepoName()}.pr.link")
+                        if(prLink){
                             githubscm.mergePR(prLink, getGitAuthorCredsID())
                             githubscm.pushObject('origin', getBuildBranch(), getGitAuthorCredsID())
                         }
                         
-                        if(isRelease() && getGitTag() != ''){
+                        if(isRelease() && getGitTag()){
                             releaseCLI()
                         }
                     }
@@ -181,7 +150,7 @@ pipeline {
 
 void checkoutRepo() {
     deleteDir()
-    checkout(githubscm.resolveRepository('kogito-cloud-operator', getGitAuthor(), getBuildBranch(), false))
+    checkout(githubscm.resolveRepository(getRepoName(), getGitAuthor(), getBuildBranch(), false))
     // need to manually checkout branch since on a detached branch after checkout command
     sh "git checkout ${getBuildBranch()}"
 }
@@ -271,7 +240,7 @@ void releaseCLI() {
     def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
     def windowsFileName = "${cliBaseName}-windows-amd64.zip"
     def yamlInstaller = 'kogito-operator.yaml'
-    withCredentials([string(credentialsId: params.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
+    withCredentials([string(credentialsId: env.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
         sh """
             export GITHUB_USER=${getGitAuthor()}
             github-release release --tag ${getGitTag()} --target '${getBuildBranch()}' --name '${releaseName}' --description '${description}' --pre-release
@@ -289,7 +258,7 @@ void releaseCLI() {
 ////////////////////////////////////////////////////////////////////////
 
 String getOldImagePrefix() {
-    return 'kogito-cloud-operator.image'
+    return "${getRepoName()}.image"
 }
 
 boolean isOldImageInOpenshiftRegistry(){
@@ -354,8 +323,8 @@ void readDeployProperties(){
         if(!deployUrl.endsWith('/')){
             deployUrl += '/'
         }
-        sh "wget ${deployUrl}artifact/deployment.properties"
-        deployProperties = readProperties file: 'deployment.properties'
+        sh "wget ${deployUrl}artifact/${env.PROPERTIES_FILE_NAME}"
+        deployProperties = readProperties file: env.PROPERTIES_FILE_NAME
         // echo all properties
         echo deployProperties.collect{ entry ->  "${entry.key}=${entry.value}" }.join('\n')
     }
@@ -384,7 +353,11 @@ String getParamOrDeployProperty(String paramKey, String deployPropertyKey){
 //////////////////////////////////////////////////////////////////////////////
 
 boolean isRelease() {
-    return params.RELEASE || (getDeployProperty('release') == 'true')
+    return env.RELEASE.toBoolean()
+}
+
+String getRepoName(){
+    return env.REPO_NAME
 }
 
 String getProjectVersion() {
@@ -396,19 +369,19 @@ String getGitTag() {
 }
 
 String getBuildBranch() {
-    return getParamOrDeployProperty('BUILD_BRANCH_NAME', 'git.branch')
+    return params.BUILD_BRANCH_NAME
 }
 
 String getGitAuthor() {
-    return getParamOrDeployProperty('GIT_AUTHOR', 'git.author')
+    return env.GIT_AUTHOR
 }
 
 String getGitAuthorCredsID(){
-    return params.AUTHOR_CREDS_ID
+    return env.AUTHOR_CREDS_ID
 }
 
 String getBotAuthorCredsID(){
-    return params.BOT_CREDENTIALS_ID
+    return env.BOT_CREDENTIALS_ID
 }
 
 String getSnapshotBranch(){
