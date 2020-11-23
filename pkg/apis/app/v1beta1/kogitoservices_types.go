@@ -152,6 +152,7 @@ type KogitoServiceSpecInterface interface {
 	GetMonitoring() Monitoring
 	GetConfig() map[string]string
 	GetProbes() KogitoProbe
+	SetProbes(probes KogitoProbe)
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -361,4 +362,9 @@ func (k *KogitoServiceSpec) GetConfig() map[string]string {
 // GetProbes ...
 func (k *KogitoServiceSpec) GetProbes() KogitoProbe {
 	return k.Probes
+}
+
+// SetProbes ...
+func (k *KogitoServiceSpec) SetProbes(probes KogitoProbe) {
+	k.Probes = probes
 }
