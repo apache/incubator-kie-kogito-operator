@@ -24,22 +24,26 @@ pipeline {
                     sh ' git config --global user.name "kie user"'
                     githubscm.checkoutIfExists('kogito-cloud-operator', changeAuthor, changeBranch, 'kiegroup', changeTarget, true, ['token' : 'GITHUB_TOKEN', 'usernamePassword' : 'user-kie-ci10'])
                     sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
+                    sh """
+                        usermod --add-subuids 10000-75535 \$(whoami)
+                        usermod --add-subgids 10000-75535 \$(whoami)
+                    """
                }
+            }
+        }
+        stage('Test Kogito Operator & CLI') {
+            steps {
+                sh 'make test'
             }
         }
         stage('Build Kogito Operator') {
             steps {
-                sh """
-                    go get -u golang.org/x/lint/golint
-                    usermod --add-subuids 10000-75535 \$(whoami)
-                    usermod --add-subgids 10000-75535 \$(whoami)
-                    make image_builder=${CONTAINER_ENGINE}
-                """
+                sh "make image_builder=${CONTAINER_ENGINE}"
             }
         }
         stage('Build Kogito CLI') {
             steps {
-                sh "make build-cli"
+                sh 'make build-cli'
             }
         }
         stage('Push Operator Image to Openshift Registry') {

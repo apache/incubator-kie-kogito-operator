@@ -121,6 +121,12 @@ pipeline {
             }
         }
 
+        stage('Test Kogito Operator & CLI') {
+            steps {
+                sh 'make test'
+            }
+        }
+
         stage('Build Kogito Operator') {
             steps {
                 sh 'make image_builder=podman'
