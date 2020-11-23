@@ -669,6 +669,8 @@ func (in *KogitoServiceSpec) DeepCopyInto(out *KogitoServiceSpec) {
 			(*out)[key] = val
 		}
 	}
+	in.LivenessProbe.DeepCopyInto(&out.LivenessProbe)
+	in.ReadinessProbe.DeepCopyInto(&out.ReadinessProbe)
 	return
 }
 

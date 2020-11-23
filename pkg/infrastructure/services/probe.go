@@ -15,6 +15,7 @@
 package services
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -40,66 +41,61 @@ type healthCheckProbe struct {
 }
 
 // getProbeForKogitoService gets the appropriate liveness (index 0) and readiness (index 1) probes based on the given service definition
-func getProbeForKogitoService(serviceDefinition ServiceDefinition) healthCheckProbe {
+func getProbeForKogitoService(serviceDefinition ServiceDefinition, service v1beta1.KogitoService) healthCheckProbe {
 	switch serviceDefinition.HealthCheckProbe {
 	case QuarkusHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getQuarkusHealthCheckReadiness(),
-			liveness:  getQuarkusHealthCheckLiveness(),
+			readiness: getQuarkusHealthCheckReadiness(service.GetSpec().GetReadinessProbe()),
+			liveness:  getQuarkusHealthCheckLiveness(service.GetSpec().GetLivenessProbe()),
 		}
 	case TCPHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(),
-			liveness:  getTCPHealthCheckProbe(),
+			readiness: getTCPHealthCheckProbe(service.GetSpec().GetReadinessProbe()),
+			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetLivenessProbe()),
 		}
 	default:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(),
-			liveness:  getTCPHealthCheckProbe(),
+			readiness: getTCPHealthCheckProbe(service.GetSpec().GetReadinessProbe()),
+			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetLivenessProbe()),
 		}
 	}
 }
 
-func getTCPHealthCheckProbe() *corev1.Probe {
-	return &corev1.Probe{
-		Handler: corev1.Handler{
+func getTCPHealthCheckProbe(probe corev1.Probe) *corev1.Probe {
+	if isProbeHandlerEmpty(probe.Handler) {
+		probe.Handler = corev1.Handler{
 			TCPSocket: &corev1.TCPSocketAction{Port: intstr.IntOrString{IntVal: int32(framework.DefaultExposedPort)}},
-		},
-		TimeoutSeconds:   int32(1),
-		PeriodSeconds:    int32(10),
-		SuccessThreshold: int32(1),
-		FailureThreshold: int32(3),
+		}
 	}
+	return &probe
 }
 
-func getQuarkusHealthCheckLiveness() *corev1.Probe {
-	return &corev1.Probe{
-		Handler: corev1.Handler{
+func getQuarkusHealthCheckLiveness(probe corev1.Probe) *corev1.Probe {
+	if isProbeHandlerEmpty(probe.Handler) {
+		probe.Handler = corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   quarkusProbeLivenessPath,
 				Port:   intstr.IntOrString{IntVal: int32(framework.DefaultExposedPort)},
 				Scheme: corev1.URISchemeHTTP,
 			},
-		},
-		TimeoutSeconds:   int32(1),
-		PeriodSeconds:    int32(10),
-		SuccessThreshold: int32(1),
-		FailureThreshold: int32(3),
+		}
 	}
+	return &probe
 }
 
-func getQuarkusHealthCheckReadiness() *corev1.Probe {
-	return &corev1.Probe{
-		Handler: corev1.Handler{
+func getQuarkusHealthCheckReadiness(probe corev1.Probe) *corev1.Probe {
+	if isProbeHandlerEmpty(probe.Handler) {
+		probe.Handler = corev1.Handler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   quarkusProbeReadinessPath,
 				Port:   intstr.IntOrString{IntVal: int32(framework.DefaultExposedPort)},
 				Scheme: corev1.URISchemeHTTP,
 			},
-		},
-		TimeoutSeconds:   int32(1),
-		PeriodSeconds:    int32(10),
-		SuccessThreshold: int32(1),
-		FailureThreshold: int32(3),
+		}
 	}
+	return &probe
+}
+
+func isProbeHandlerEmpty(handler corev1.Handler) bool {
+	return handler.HTTPGet == nil && handler.Exec == nil && handler.TCPSocket == nil
 }
