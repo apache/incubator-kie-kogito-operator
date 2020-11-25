@@ -26,17 +26,15 @@ import (
 )
 
 type serviceInfoMessages struct {
-	errCreating                  string
-	installed                    string
-	checkStatus                  string
-	notInstalledNoKogitoOperator string
+	errCreating string
+	installed   string
+	checkStatus string
 }
 
 type servicesInstallation struct {
-	namespace         string
-	client            *kogitocli.Client
-	operatorInstalled bool
-	err               error
+	namespace string
+	client    *kogitocli.Client
+	err       error
 }
 
 // ServicesInstallation provides an interface for handling infrastructure services installation
@@ -54,9 +52,9 @@ type ServicesInstallation interface {
 	// Depends on the Operator, install it first.
 	InstallInfraService(infra *v1beta1.KogitoInfra) ServicesInstallation
 	// InstallOperator installs the Operator.
-	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation
-	// SilentlyInstallOperatorIfNotExists installs the operator without a warn if already deployed with the default image
-	SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation
+	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType, clusterScope bool) ServicesInstallation
+	// CheckOperatorCRDs checks wheather the CRDs are available on the cluster or not
+	CheckOperatorCRDs() ServicesInstallation
 	// GetError return any given error during the installation process
 	GetError() error
 }
@@ -64,9 +62,8 @@ type ServicesInstallation interface {
 // ServicesInstallationBuilder creates the basic structure for services installation definition.
 func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) ServicesInstallation {
 	return &servicesInstallation{
-		namespace:         namespace,
-		client:            client,
-		operatorInstalled: false,
+		namespace: namespace,
+		client:    client,
 	}
 }
 
@@ -74,10 +71,9 @@ func (s *servicesInstallation) InstallBuildService(build *v1beta1.KogitoBuild) S
 	if s.err == nil {
 		s.err = s.installKogitoService(build,
 			&serviceInfoMessages{
-				errCreating:                  message.BuildServiceErrCreating,
-				installed:                    message.BuildServiceSuccessfulInstalled,
-				checkStatus:                  message.BuildServiceCheckStatus,
-				notInstalledNoKogitoOperator: message.BuildServiceNotInstalledNoKogitoOperator,
+				errCreating: message.BuildServiceErrCreating,
+				installed:   message.BuildServiceSuccessfulInstalled,
+				checkStatus: message.BuildServiceCheckStatus,
 			})
 	}
 	return s
@@ -87,10 +83,9 @@ func (s *servicesInstallation) InstallRuntimeService(runtime *v1beta1.KogitoRunt
 	if s.err == nil {
 		s.err = s.installKogitoService(runtime,
 			&serviceInfoMessages{
-				errCreating:                  message.RuntimeServiceErrCreating,
-				installed:                    message.RuntimeServiceSuccessfulInstalled,
-				checkStatus:                  message.RuntimeServiceCheckStatus,
-				notInstalledNoKogitoOperator: message.RuntimeServiceNotInstalledNoKogitoOperator,
+				errCreating: message.RuntimeServiceErrCreating,
+				installed:   message.RuntimeServiceSuccessfulInstalled,
+				checkStatus: message.RuntimeServiceCheckStatus,
 			})
 	}
 	return s
@@ -107,52 +102,45 @@ func getSupportingServiceInfoMessages(serviceType v1beta1.ServiceType) *serviceI
 	switch serviceType {
 	case v1beta1.DataIndex:
 		return &serviceInfoMessages{
-			errCreating:                  message.DataIndexErrCreating,
-			installed:                    message.DataIndexSuccessfulInstalled,
-			checkStatus:                  message.SupportingServiceCheckStatus,
-			notInstalledNoKogitoOperator: message.DataIndexNotInstalledNoKogitoOperator,
+			errCreating: message.DataIndexErrCreating,
+			installed:   message.DataIndexSuccessfulInstalled,
+			checkStatus: message.SupportingServiceCheckStatus,
 		}
 	case v1beta1.JobsService:
 		return &serviceInfoMessages{
-			errCreating:                  message.JobsServiceErrCreating,
-			installed:                    message.JobsServiceSuccessfulInstalled,
-			checkStatus:                  message.SupportingServiceCheckStatus,
-			notInstalledNoKogitoOperator: message.JobsServiceNotInstalledNoKogitoOperator,
+			errCreating: message.JobsServiceErrCreating,
+			installed:   message.JobsServiceSuccessfulInstalled,
+			checkStatus: message.SupportingServiceCheckStatus,
 		}
 	case v1beta1.MgmtConsole:
 		return &serviceInfoMessages{
-			errCreating:                  message.MgmtConsoleErrCreating,
-			installed:                    message.MgmtConsoleSuccessfulInstalled,
-			checkStatus:                  message.SupportingServiceCheckStatus,
-			notInstalledNoKogitoOperator: message.MgmtConsoleNotInstalledNoKogitoOperator,
+			errCreating: message.MgmtConsoleErrCreating,
+			installed:   message.MgmtConsoleSuccessfulInstalled,
+			checkStatus: message.SupportingServiceCheckStatus,
 		}
 	case v1beta1.Explainability:
 		return &serviceInfoMessages{
-			errCreating:                  message.ExplainabilityErrCreating,
-			installed:                    message.ExplainabilitySuccessfulInstalled,
-			checkStatus:                  message.SupportingServiceCheckStatus,
-			notInstalledNoKogitoOperator: message.ExplainabilityNotInstalledNoKogitoOperator,
+			errCreating: message.ExplainabilityErrCreating,
+			installed:   message.ExplainabilitySuccessfulInstalled,
+			checkStatus: message.SupportingServiceCheckStatus,
 		}
 	case v1beta1.TrustyAI:
 		return &serviceInfoMessages{
-			errCreating:                  message.TrustyErrCreating,
-			installed:                    message.TrustySuccessfulInstalled,
-			checkStatus:                  message.SupportingServiceCheckStatus,
-			notInstalledNoKogitoOperator: message.TrustyNotInstalledNoKogitoOperator,
+			errCreating: message.TrustyErrCreating,
+			installed:   message.TrustySuccessfulInstalled,
+			checkStatus: message.SupportingServiceCheckStatus,
 		}
 	case v1beta1.TrustyUI:
 		return &serviceInfoMessages{
-			errCreating:                  message.TrustyUIErrCreating,
-			installed:                    message.TrustyUISuccessfulInstalled,
-			checkStatus:                  message.SupportingServiceCheckStatus,
-			notInstalledNoKogitoOperator: message.TrustyUINotInstalledNoKogitoOperator,
+			errCreating: message.TrustyUIErrCreating,
+			installed:   message.TrustyUISuccessfulInstalled,
+			checkStatus: message.SupportingServiceCheckStatus,
 		}
 	case v1beta1.TaskConsole:
 		return &serviceInfoMessages{
-			errCreating:                  message.TaskConsoleErrCreating,
-			installed:                    message.TaskConsoleSuccessfulInstalled,
-			checkStatus:                  message.SupportingServiceCheckStatus,
-			notInstalledNoKogitoOperator: message.TaskConsoleNotInstalledNoKogitoOperator,
+			errCreating: message.TaskConsoleErrCreating,
+			installed:   message.TaskConsoleSuccessfulInstalled,
+			checkStatus: message.SupportingServiceCheckStatus,
 		}
 	}
 	return nil
@@ -162,24 +150,19 @@ func (s *servicesInstallation) InstallInfraService(infra *v1beta1.KogitoInfra) S
 	if s.err == nil {
 		s.err = s.installKogitoService(infra,
 			&serviceInfoMessages{
-				errCreating:                  message.InfraServiceErrCreating,
-				installed:                    message.InfraServiceSuccessfulInstalled,
-				checkStatus:                  message.InfraServiceCheckStatus,
-				notInstalledNoKogitoOperator: message.InfraServiceNotInstalledNoKogitoOperator,
+				errCreating: message.InfraServiceErrCreating,
+				installed:   message.InfraServiceSuccessfulInstalled,
+				checkStatus: message.InfraServiceCheckStatus,
 			})
 	}
 	return s
 }
 
-func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType) ServicesInstallation {
-	if s.err == nil && !s.operatorInstalled {
-		s.operatorInstalled, s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force, ch)
+func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType, clusterScope bool) ServicesInstallation {
+	if s.err == nil {
+		s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force, ch, clusterScope)
 	}
 	return s
-}
-
-func (s servicesInstallation) SilentlyInstallOperatorIfNotExists(ch KogitoChannelType) ServicesInstallation {
-	return s.InstallOperator(false, "", false, ch)
 }
 
 func (s *servicesInstallation) GetError() error {
@@ -189,10 +172,6 @@ func (s *servicesInstallation) GetError() error {
 func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject, messages *serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
-		if !s.operatorInstalled { // depends on operator
-			log.Info(messages.notInstalledNoKogitoOperator)
-			return nil
-		}
 		if err := kubernetes.ResourceC(s.client).Create(resource); err != nil {
 			return fmt.Errorf(messages.errCreating, err)
 		}
@@ -200,4 +179,11 @@ func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject
 		log.Infof(messages.checkStatus, resource.GetName(), s.namespace)
 	}
 	return nil
+}
+
+func (s *servicesInstallation) CheckOperatorCRDs() ServicesInstallation {
+	if !s.client.IsKogitoCRDsAvailable() {
+		s.err = fmt.Errorf("kogito Operator CRDs not Found in the cluster. Please install operator before using")
+	}
+	return s
 }

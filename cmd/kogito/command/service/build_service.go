@@ -107,7 +107,7 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 	// Create the Kogito application
 	err = shared.
 		ServicesInstallationBuilder(cli, flags.Project).
-		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(flags.Channel)).
+		CheckOperatorCRDs().
 		InstallBuildService(&kogitoBuild).
 		GetError()
 	if err != nil {

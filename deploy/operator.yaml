@@ -14,7 +14,7 @@ spec:
       labels:
         name: kogito-operator
     spec:
-      serviceAccountName: kogito-operator
+      serviceAccountName: "kogito-operator"
       containers:
         - name: kogito-cloud-operator
           image: quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot
@@ -23,9 +23,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:

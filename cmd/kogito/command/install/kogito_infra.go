@@ -127,7 +127,7 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	// Create the Kogito infra application
 	return shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
-		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(i.flags.Channel)).
+		CheckOperatorCRDs().
 		InstallInfraService(&kogitoInfra).
 		GetError()
 }

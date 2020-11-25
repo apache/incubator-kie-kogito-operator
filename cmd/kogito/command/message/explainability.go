@@ -21,6 +21,4 @@ var (
 	ExplainabilityErrCreating = fmt.Sprintf(serviceErrCreating, "Explainability", "%s")
 	// ExplainabilitySuccessfulInstalled ...
 	ExplainabilitySuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Explainability", "%s")
-	// ExplainabilityNotInstalledNoKogitoOperator ...
-	ExplainabilityNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Explainability", "explainability")
 )

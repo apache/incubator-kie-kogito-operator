@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	operators "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 
 	"github.com/stretchr/testify/assert"
 
-	operatorMarketplace "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -90,13 +90,10 @@ func Test_InstallOperatorWithDefaultChannel(t *testing.T) {
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&operatorMarketplace.OperatorSource{
+		&operators.PackageManifest{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      communityOperatorSource,
-				Namespace: operatorMarketplaceNamespace,
-			},
-			Status: operatorMarketplace.OperatorSourceStatus{
-				Packages: defaultOperatorPackageName,
+				Name:      defaultOperatorPackageName,
+				Namespace: globalOperatorNamespace,
 			},
 		})
 	lines, _, err := test.ExecuteCli()
@@ -110,13 +107,10 @@ func Test_InstallOperatorWithValidChannel(t *testing.T) {
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&operatorMarketplace.OperatorSource{
+		&operators.PackageManifest{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      communityOperatorSource,
-				Namespace: operatorMarketplaceNamespace,
-			},
-			Status: operatorMarketplace.OperatorSourceStatus{
-				Packages: defaultOperatorPackageName,
+				Name:      defaultOperatorPackageName,
+				Namespace: globalOperatorNamespace,
 			},
 		})
 	lines, _, err := test.ExecuteCli()
@@ -131,13 +125,10 @@ func Test_InstallOperatorWithInvalidChannel(t *testing.T) {
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&operatorMarketplace.OperatorSource{
+		&operators.PackageManifest{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      communityOperatorSource,
-				Namespace: operatorMarketplaceNamespace,
-			},
-			Status: operatorMarketplace.OperatorSourceStatus{
-				Packages: defaultOperatorPackageName,
+				Name:      defaultOperatorPackageName,
+				Namespace: globalOperatorNamespace,
 			},
 		})
 	lines, _, err := test.ExecuteCli()
@@ -146,7 +137,6 @@ func Test_InstallOperatorWithInvalidChannel(t *testing.T) {
 }
 
 const (
-	defaultOperatorPackageName   = "kogito-operator"
-	communityOperatorSource      = "community-operators"
-	operatorMarketplaceNamespace = "openshift-marketplace"
+	defaultOperatorPackageName = "kogito-operator"
+	globalOperatorNamespace    = "kogito-operator-system"
 )

@@ -23,6 +23,4 @@ var (
 	InfraServiceSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Infra", "%s")
 	// InfraServiceCheckStatus ...
 	InfraServiceCheckStatus = fmt.Sprintf(serviceCheckStatus, "kogitoinfra", "%s", "%s")
-	// InfraServiceNotInstalledNoKogitoOperator ...
-	InfraServiceNotInstalledNoKogitoOperator = fmt.Sprintf("Skipping deploy %s since Kogito Operator is not available.", "Infra Service")
 )

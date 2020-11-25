@@ -24,9 +24,9 @@ import (
 )
 
 // GetSubscription returns subscription or nil if no subscription is found.
-func GetSubscription(cli *client.Client, namespace, packageName, operatorSource string) (*olmapiv1alpha1.Subscription, error) {
+func GetSubscription(cli *client.Client, namespace, packageName, catalogSource string) (*olmapiv1alpha1.Subscription, error) {
 	log := context.GetDefaultLogger()
-	log.Debugf("Trying to fetch Subscription in namespace '%s' with Package name '%s' and CatalogSource '%s'", namespace, packageName, operatorSource)
+	log.Debugf("Trying to fetch Subscription in namespace '%s' with Package name '%s' and CatalogSource '%s'", namespace, packageName, catalogSource)
 
 	subs := &olmapiv1alpha1.SubscriptionList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, subs); err != nil {
@@ -35,7 +35,7 @@ func GetSubscription(cli *client.Client, namespace, packageName, operatorSource 
 
 	for _, sub := range subs.Items {
 		if sub.Spec.Package == packageName &&
-			sub.Spec.CatalogSource == operatorSource {
+			sub.Spec.CatalogSource == catalogSource {
 			return &sub, nil
 		}
 	}

@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kogito-operator
+subjects:
+  - kind: ServiceAccount
+    name: kogito-operator
+    namespace: kogito-operator-system
+roleRef:
+  kind: ClusterRole
+  name: kogito-operator
+  apiGroup: rbac.authorization.k8s.io

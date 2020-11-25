@@ -21,6 +21,4 @@ var (
 	MgmtConsoleErrCreating = fmt.Sprintf(serviceErrCreating, "Management Console", "%s")
 	// MgmtConsoleSuccessfulInstalled ...
 	MgmtConsoleSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Management Console", "%s")
-	// MgmtConsoleNotInstalledNoKogitoOperator ...
-	MgmtConsoleNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Management Console", "mgmt-console")
 )

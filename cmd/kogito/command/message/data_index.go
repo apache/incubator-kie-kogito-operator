@@ -21,6 +21,4 @@ var (
 	DataIndexErrCreating = fmt.Sprintf(serviceErrCreating, "Data Index", "%s")
 	// DataIndexSuccessfulInstalled ...
 	DataIndexSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Data Index", "%s")
-	// DataIndexNotInstalledNoKogitoOperator ...
-	DataIndexNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Data Index", "data-index")
 )

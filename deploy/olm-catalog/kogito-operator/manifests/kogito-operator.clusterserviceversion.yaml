@@ -482,44 +482,7 @@ spec:
     mediatype: image/svg+xml
   install:
     spec:
-      deployments:
-      - name: kogito-operator
-        spec:
-          replicas: 1
-          selector:
-            matchLabels:
-              name: kogito-operator
-          strategy:
-            type: Recreate
-          template:
-            metadata:
-              labels:
-                name: kogito-operator
-            spec:
-              containers:
-              - command:
-                - kogito-cloud-operator
-                env:
-                - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
-                - name: POD_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.name
-                - name: OPERATOR_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.labels['name']
-                - name: DEBUG
-                  value: "false"
-                image: quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot
-                imagePullPolicy: Always
-                name: kogito-cloud-operator
-                resources: {}
-              serviceAccountName: kogito-operator
-      permissions:
+      clusterPermissions:
       - rules:
         - apiGroups:
           - ""
@@ -643,35 +606,52 @@ spec:
           - watch
           - update
         serviceAccountName: kogito-operator
-      - rules:
-        - apiGroups:
-          - ""
-          resources:
-          - services
-          verbs:
-          - list
-          - get
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          verbs:
-          - list
-          - get
-          - watch
-          - update
-          - patch
-        serviceAccountName: kogito-service-viewer
+      deployments:
+      - name: kogito-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: kogito-operator
+          strategy:
+            type: Recreate
+          template:
+            metadata:
+              labels:
+                name: kogito-operator
+            spec:
+              containers:
+              - command:
+                - kogito-cloud-operator
+                env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.labels['name']
+                - name: DEBUG
+                  value: "false"
+                image: quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot
+                imagePullPolicy: Always
+                name: kogito-cloud-operator
+                resources: {}
+              serviceAccountName: kogito-operator
     strategy: deployment
   installModes:
   - supported: true
     type: OwnNamespace
   - supported: true
     type: SingleNamespace
-  - supported: false
+  - supported: true
     type: MultiNamespace
-  - supported: false
+  - supported: true
     type: AllNamespaces
   keywords:
   - cloud

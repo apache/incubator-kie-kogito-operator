@@ -15,8 +15,7 @@
 package message
 
 const (
-	serviceErrCreating                  = "Error while trying to create a new Kogito %s Service: %s "
-	serviceSuccessfulInstalled          = "Kogito %s Service successfully installed in the Project %s."
-	serviceCheckStatus                  = "Check the Service status by running 'oc describe %s/%s -n %s'"
-	serviceNotInstalledNoKogitoOperator = "Skipping %s install since Kogito Operator is not available. Use 'kogito install %s' after installing the operator"
+	serviceErrCreating         = "Error while trying to create a new Kogito %s Service: %s "
+	serviceSuccessfulInstalled = "Kogito %s Service successfully installed in the Project %s."
+	serviceCheckStatus         = "Check the Service status by running 'oc describe %s/%s -n %s'"
 )

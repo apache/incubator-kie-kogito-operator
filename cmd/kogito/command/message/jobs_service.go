@@ -21,6 +21,4 @@ var (
 	JobsServiceErrCreating = fmt.Sprintf(serviceErrCreating, "Jobs", "%s")
 	// JobsServiceSuccessfulInstalled ...
 	JobsServiceSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Jobs", "%s")
-	// JobsServiceNotInstalledNoKogitoOperator ...
-	JobsServiceNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Jobs Service", "jobs-service")
 )

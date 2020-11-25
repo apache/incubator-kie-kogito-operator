@@ -88,7 +88,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	// Create the Kogito application
 	err = shared.
 		ServicesInstallationBuilder(cli, flags.Project).
-		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(flags.Channel)).
+		CheckOperatorCRDs().
 		InstallRuntimeService(&kogitoRuntime).
 		GetError()
 	if err != nil {
