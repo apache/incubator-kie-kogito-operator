@@ -17,6 +17,7 @@ package kogitoruntime
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
@@ -107,6 +108,10 @@ func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (result re
 		return
 	}
 
+	if err = r.setupRBAC(request.Namespace); err != nil {
+		return
+	}
+
 	if err = infrastructure.MountProtoBufConfigMapOnDataIndex(r.client, instance); err != nil {
 		log.Errorf("Fail to mount Proto Buf config map of Kogito runtime service(%s) on DataIndex", instance.Name, err)
 		return
@@ -129,6 +134,27 @@ func (r *ReconcileKogitoRuntime) Reconcile(request reconcile.Request) (result re
 		log.Infof("Waiting for all resources to be created, scheduling for 30 seconds from now")
 		result.RequeueAfter = requeueAfter
 		result.Requeue = true
+	}
+	return
+}
+
+func (r *ReconcileKogitoRuntime) setupRBAC(namespace string) (err error) {
+	// create service viewer role
+	if err = kubernetes.ResourceC(r.client).CreateIfNotExists(getServiceViewerRole(namespace)); err != nil {
+		log.Errorf("Fail to create role for service viewer: %v", err)
+		return
+	}
+
+	// create service viewer service account
+	if err = kubernetes.ResourceC(r.client).CreateIfNotExists(getServiceViewerServiceAccount(namespace)); err != nil {
+		log.Errorf("Fail to create service account for service viewer: %v", err)
+		return
+	}
+
+	// create service viewer rolebinding
+	if err = kubernetes.ResourceC(r.client).CreateIfNotExists(getServiceViewerRoleBinding(namespace)); err != nil {
+		log.Errorf("Fail to create role binding for service viewer: %v", err)
+		return
 	}
 	return
 }

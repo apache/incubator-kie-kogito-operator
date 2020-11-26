@@ -43,6 +43,7 @@ import (
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
+	olmv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
 )
 
 // DefinitionKind is a resource kind representation from a Kubernetes/Openshift cluster
@@ -92,7 +93,8 @@ func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
 		monv1.SchemeBuilder.AddToScheme,
 		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme,
-		grafana.AddToScheme)
+		grafana.AddToScheme,
+		olmv1.AddToScheme)
 }
 
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
@@ -118,6 +120,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, infinispanv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, kafkabetav1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, grafana.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, olmv1.SchemeGroupVersion)
 
 	return s
 }

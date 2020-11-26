@@ -17,14 +17,13 @@ package shared
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
-
 	"strings"
 
 	"github.com/gobuffalo/packr/v2"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/version"
@@ -36,16 +35,20 @@ import (
 )
 
 const (
-	defaultOperatorImageName = "quay.io/kiegroup/kogito-cloud-operator"
-	boxDeployPath            = "../../../../deploy"
-	fileOperatorYaml         = "operator.yaml"
-	fileRoleYaml             = "role.yaml"
-	fileRoleBindingYaml      = "role_binding.yaml"
-	fileServiceAccountYaml   = "service_account.yaml"
-	crdYAMLPattern           = "_crd.yaml"
+	defaultOperatorImageName   = "quay.io/kiegroup/kogito-cloud-operator"
+	boxDeployPath              = "../../../../deploy"
+	fileOperatorYaml           = "operator.yaml"
+	fileClusterRoleYaml        = "clusterrole.yaml"
+	fileClusterRoleBindingYaml = "clusterrole_binding.yaml"
+	fileServiceAccountYaml     = "service_account.yaml"
+	crdYAMLPattern             = "_crd.yaml"
+	fileNamespaceYaml          = "namespace.yaml"
 	// skipOperatorInstallEnv if this is set to "true", we won't try to install the operator at all.
 	// It's a flag indicating that we are running the operator locally with operator-sdk, thus not needed to install the Operator in the namespace
-	skipOperatorInstallEnv = "SKIP_OPERATOR"
+	skipOperatorInstallEnv            = "SKIP_OPERATOR"
+	openshiftGlobalOperatorNamespace  = "openshift-operators"
+	kubernetesGlobalOperatorNamespace = "operators"
+	operatorNamespace                 = "kogito-operator-system"
 )
 
 var (
@@ -56,35 +59,48 @@ var (
 // InstallOperatorIfNotExists installs the operator using the deploy/*yaml and deploy/crds/*crds.yaml files, if the operator deployment is not in the given namespace.
 // If the operator is available at the OperatorHub in OpenShift installations and not installed, tries to install the Operator via OLM Subscriptions.
 // operatorImage can be an empty string. In this case, the empty string is the default value.
-func InstallOperatorIfNotExists(namespace string, operatorImage string, cli *client.Client, warnIfInstalled bool, force bool, ch KogitoChannelType) (installed bool, err error) {
+func InstallOperatorIfNotExists(namespace string, operatorImage string, cli *client.Client, warnIfInstalled bool, force bool, ch KogitoChannelType, namespaced bool) (err error) {
 	log := context.GetDefaultLogger()
-
 	if util.GetBoolOSEnv(skipOperatorInstallEnv) {
 		log.Infof("%s environment variable set to true, skipping operator installation process", skipOperatorInstallEnv)
-		return true, nil
+		return nil
 	}
 
 	if len(operatorImage) == 0 {
 		operatorImage = DefaultOperatorImageNameTag
 	}
 
+	if !namespaced && !force {
+		if cli.IsOpenshift() && cli.IsOLMAvaialable() {
+			namespace = openshiftGlobalOperatorNamespace
+		} else if cli.IsOLMAvaialable() {
+			namespace = kubernetesGlobalOperatorNamespace
+		} else {
+			namespace = operatorNamespace
+		}
+	}
+
+	if force && !namespaced {
+		namespace = operatorNamespace
+	}
+
 	if exists, err := infrastructure.CheckKogitoOperatorExists(cli, namespace); err != nil {
-		return false, err
+		return err
 	} else if exists {
 		if warnIfInstalled {
 			log.Infof("Kogito Operator is already deployed in the namespace '%s', skipping ", namespace)
 		}
-		return true, nil
+		return nil
 	}
 
-	if available, err := isOperatorAvailableInOperatorHub(cli); err != nil {
+	if available, err := isOperatorAvailableInOperatorHub(cli, namespace); err != nil {
 		log.Warnf("Couldn't find if the Kogito Operator is available in the cluster: %s ", err)
 	} else if available && !force {
-		if err := installOperatorWithOperatorHub(namespace, cli, ch); err != nil {
+		if err := installOperatorWithOperatorHub(namespace, cli, ch, namespaced); err != nil {
 			log.Warnf("Couldn't install Kogito Operator via OperatorHub: %s ", err)
-			return false, err
+			return err
 		}
-		return true, nil
+		return nil
 	}
 
 	if force {
@@ -93,17 +109,17 @@ func InstallOperatorIfNotExists(namespace string, operatorImage string, cli *cli
 		log.Infof("Kogito Operator not found in the namespace '%s', trying to deploy it", namespace)
 	}
 
-	if err := installOperatorWithYamlFiles(operatorImage, namespace, cli); err != nil {
-		return false, fmt.Errorf("Error while deploying Kogito Operator via template yaml files: %s ", err)
+	if err := installOperatorWithYamlFiles(operatorImage, namespace, namespaced, cli); err != nil {
+		return fmt.Errorf("Error while deploying Kogito Operator via template yaml files: %s ", err)
 	}
 
 	log.Infof("Kogito Operator successfully deployed in '%s' namespace", namespace)
 
-	return true, nil
+	return nil
 }
 
 // installOperatorWithYamlFiles installs the Kogito Operator in clusters that doesn't have OperatorHub installed, such as OCP 3.x and vanilla Kubernetes
-func installOperatorWithYamlFiles(image string, namespace string, cli *client.Client) error {
+func installOperatorWithYamlFiles(image string, namespace string, namespaced bool, cli *client.Client) error {
 	box := packr.New("deploy", boxDeployPath)
 
 	// creates all CRDs found in the deploy directory
@@ -113,14 +129,20 @@ func installOperatorWithYamlFiles(image string, namespace string, cli *client.Cl
 			return err
 		}
 	}
-
+	if !namespaced {
+		if err := decodeAndCreateKubeObject(box, fileNamespaceYaml, &v1.Namespace{}, namespace, cli, nil); err != nil {
+			return err
+		}
+	}
+	if err := decodeAndCreateKubeObject(box, fileClusterRoleYaml, &rbac.ClusterRole{}, namespace, cli, nil); err != nil {
+		return err
+	}
 	if err := decodeAndCreateKubeObject(box, fileServiceAccountYaml, &v1.ServiceAccount{}, namespace, cli, nil); err != nil {
 		return err
 	}
-	if err := decodeAndCreateKubeObject(box, fileRoleYaml, &rbac.Role{}, namespace, cli, nil); err != nil {
-		return err
-	}
-	if err := decodeAndCreateKubeObject(box, fileRoleBindingYaml, &rbac.RoleBinding{}, namespace, cli, nil); err != nil {
+	if err := decodeAndCreateKubeObject(box, fileClusterRoleBindingYaml, &rbac.ClusterRoleBinding{}, namespace, cli, func(object interface{}) {
+		object.(*rbac.ClusterRoleBinding).Subjects[0].Namespace = namespace
+	}); err != nil {
 		return err
 	}
 	if err := decodeAndCreateKubeObject(box, fileOperatorYaml, &apps.Deployment{}, namespace, cli, func(object interface{}) {

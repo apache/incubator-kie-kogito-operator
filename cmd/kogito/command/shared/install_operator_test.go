@@ -19,12 +19,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
-	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
+	test2 "github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
+	operators "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
 
 	"github.com/stretchr/testify/assert"
 
-	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -41,7 +41,7 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 	image := "docker.io/myrepo/custom-operator:1.0"
 
-	err := installOperatorWithYamlFiles(image, ns, client)
+	err := installOperatorWithYamlFiles(image, ns, false, client)
 	assert.NoError(t, err)
 
 	serviceAccount := v1.ServiceAccount{
@@ -87,29 +87,39 @@ func Test_InstallOperatorWithYaml(t *testing.T) {
 	assert.Contains(t, crds.Items[2].Name, "app.kiegroup.org")
 }
 
-func TestMustInstallOperatorIfNotExists_WithOperatorHub(t *testing.T) {
-	ns := operatorMarketplaceNamespace
-	operatorSource := &operatormkt.OperatorSource{
+func TestMustInstallOperatorIfNotExists_WithOperatorHubOnOpenshift(t *testing.T) {
+	ns := operatorOpenshiftMarketplaceNamespace
+	packageManifest := &operators.PackageManifest{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      communityOperatorSource,
-			Namespace: operatorMarketplaceNamespace,
-		},
-		Status: operatormkt.OperatorSourceStatus{
-			Packages: "cert-utils-operator,spark-gcp,metering,spinnaker-operator,apicurito,kubefed,prometheus,hawtio-operator,t8c,hazelcast-enterprise,opsmx-spinnaker-operator,ibmcloud-operator,openebs,iot-simulator,submariner,microcks,enmasse,teiid,federation,aqua,eclipse-che,3scale-community-operator,jaeger,openshift-pipelines-operator,awss3-operator-registry,service-binding-operator,node-network-operator,myvirtualdirectory,triggermesh,namespace-configuration-operator,maistraoperator,camel-k,federatorai,knative-serving-operator,syndesis,knative-kafka-operator,postgresql,event-streams-topic,planetscale,kiali,ripsaw,esindex-operator,halkyon,quay,kogito-operator,seldon-operator,cockroachdb,atlasmap-operator,strimzi-kafka-operator,knative-camel-operator,lightbend-console-operator,descheduler,node-problem-detector,opendatahub-operator,radanalytics-spark,hco-operatorhub,smartgateway-operator,etcd,knative-eventing-operator,postgresql-operator-dev4devs-com,twistlock,microsegmentation-operator,open-liberty,akka-cluster-operator,grafana-operator,kubeturbo,appsody-community-operator,infinispan",
+			Name:      defaultOperatorPackageName,
+			Namespace: openshiftGlobalOperatorNamespace,
 		},
 	}
-	client := test.SetupFakeKubeCli(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, operatorSource)
+	client := test2.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: openshiftGlobalOperatorNamespace}}, packageManifest).OnOpenShift().SupportOLM().Build()
 	// Operator is there in the hub and not exists in the given namespace, let's check if there's no error
-	installed, err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel())
+	err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel(), false)
 	assert.NoError(t, err)
-	assert.True(t, installed)
 
-	groups := &olmapiv1.OperatorGroupList{}
-	err = kubernetes.ResourceC(client).ListWithNamespace(ns, groups)
+	subs := &v1alpha1.Subscription{ObjectMeta: metav1.ObjectMeta{Name: defaultOperatorPackageName, Namespace: openshiftGlobalOperatorNamespace}}
+	exists, err := kubernetes.ResourceC(client).Fetch(subs)
 	assert.NoError(t, err)
-	assert.Contains(t, groups.Items[0].Name, ns)
+	assert.True(t, exists)
+}
 
-	subs := &v1alpha1.Subscription{ObjectMeta: metav1.ObjectMeta{Name: defaultOperatorPackageName, Namespace: ns}}
+func TestMustInstallOperatorIfNotExists_WithOperatorHubOnKubernetes(t *testing.T) {
+	ns := operatorOpenshiftMarketplaceNamespace
+	packageManifest := &operators.PackageManifest{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      defaultOperatorPackageName,
+			Namespace: kubernetesGlobalOperatorNamespace,
+		},
+	}
+	client := test2.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: kubernetesGlobalOperatorNamespace}}, packageManifest).SupportOLM().Build()
+	// Operator is there in the hub and not exists in the given namespace, let's check if there's no error
+	err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel(), false)
+	assert.NoError(t, err)
+
+	subs := &v1alpha1.Subscription{ObjectMeta: metav1.ObjectMeta{Name: defaultOperatorPackageName, Namespace: kubernetesGlobalOperatorNamespace}}
 	exists, err := kubernetes.ResourceC(client).Fetch(subs)
 	assert.NoError(t, err)
 	assert.True(t, exists)
@@ -120,14 +130,13 @@ func TestMustInstallOperatorIfNotExists_WithoutOperatorHub(t *testing.T) {
 
 	client := test.SetupFakeKubeCli(
 		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
-		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: operatorMarketplaceNamespace}},
+		&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: operatorNamespace}},
 	)
 	// Operator is not in the hub. Install with yaml files.
-	installed, err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel())
+	err := InstallOperatorIfNotExists(ns, defaultOperatorImageName, client, false, false, GetDefaultChannel(), false)
 	assert.NoError(t, err)
-	assert.True(t, installed)
 	// Operator is now in the hub, but no pods are running because this is a controlled test environment
-	exist, err := infrastructure.CheckKogitoOperatorExists(client, ns)
+	exist, err := infrastructure.CheckKogitoOperatorExists(client, operatorNamespace)
 	assert.Error(t, err)
 	assert.True(t, exist)
 	assert.Contains(t, err.Error(), "kogito-operator Operator seems to be created in the namespace")

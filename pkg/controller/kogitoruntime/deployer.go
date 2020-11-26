@@ -36,8 +36,6 @@ import (
 )
 
 const (
-	serviceAccountName = "kogito-service-viewer"
-
 	envVarExternalURL = "KOGITO_SERVICE_URL"
 
 	// protobufConfigMapSuffix Suffix that is appended to Protobuf ConfigMap name

@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kogito-operator-system
+---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -1974,9 +1979,8 @@ spec:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: kogito-operator
 rules:
   - apiGroups:
@@ -2101,78 +2105,31 @@ rules:
       - watch
       - update
 ---
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: kogito-service-viewer
-  annotations:
-    org.kie.kogito/managed-by: Kogito Operator
-rules:
-  - apiGroups:
-      - ""
-    resources:
-      - services
-    verbs:
-      - list
-      - get
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-    verbs:
-      - list
-      - get
-      - watch
-      - update
-      - patch
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kogito-operator
----
+  namespace: kogito-operator-system
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: kogito-service-viewer
-  annotations:
-    org.kie.kogito/managed-by: Kogito Operator
 ---
-kind: RoleBinding
+kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: kogito-operator
 subjects:
   - kind: ServiceAccount
     name: kogito-operator
+    namespace: kogito-operator-system
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: kogito-operator
   apiGroup: rbac.authorization.k8s.io
----
-
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: kogito-service-viewer
-  annotations:
-    org.kie.kogito/managed-by: Kogito Operator
-subjects:
-  - kind: ServiceAccount
-    name: kogito-service-viewer
-roleRef:
-  kind: Role
-  name: kogito-service-viewer
-  apiGroup: rbac.authorization.k8s.io
-
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kogito-operator
+  namespace: kogito-operator-system
 spec:
   replicas: 1
   strategy:
@@ -2185,7 +2142,7 @@ spec:
       labels:
         name: kogito-operator
     spec:
-      serviceAccountName: kogito-operator
+      serviceAccountName: "kogito-operator"
       containers:
         - name: kogito-cloud-operator
           image: quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot
@@ -2194,9 +2151,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -2207,5 +2162,3 @@ spec:
                   fieldPath: metadata.labels['name']
             - name: DEBUG
               value: "false"
-
----

@@ -41,7 +41,7 @@ func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
 func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error {
 	install := shared.
 		ServicesInstallationBuilder(cli, pFlags.project).
-		SilentlyInstallOperatorIfNotExists(shared.KogitoChannelType(pFlags.Channel))
+		CheckOperatorCRDs()
 
 	if pFlags.installDataIndex {
 		persistenceInfra := shared.GetDefaultPersistenceInfra(pFlags.project)

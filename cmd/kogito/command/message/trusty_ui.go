@@ -21,6 +21,4 @@ var (
 	TrustyUIErrCreating = fmt.Sprintf(serviceErrCreating, "Trusty UI", "%s")
 	// TrustyUISuccessfulInstalled ...
 	TrustyUISuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Trusty UI", "%s")
-	// TrustyUINotInstalledNoKogitoOperator ...
-	TrustyUINotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Trusty UI", "trusty-ui")
 )

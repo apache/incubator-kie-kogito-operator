@@ -21,6 +21,4 @@ var (
 	TaskConsoleErrCreating = fmt.Sprintf(serviceErrCreating, "Task Console", "%s")
 	// TaskConsoleSuccessfulInstalled ...
 	TaskConsoleSuccessfulInstalled = fmt.Sprintf(serviceSuccessfulInstalled, "Task Console", "%s")
-	// TaskConsoleNotInstalledNoKogitoOperator ...
-	TaskConsoleNotInstalledNoKogitoOperator = fmt.Sprintf(serviceNotInstalledNoKogitoOperator, "Task Console", "task-console")
 )

@@ -16,18 +16,21 @@ package flag
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 )
 
 // OperatorFlags describes the command lines flags for the operator features
 type OperatorFlags struct {
-	Channel string
+	Channel    string
+	Namespaced bool
 }
 
 // AddOperatorFlags adds the OperatorFlags to the given command
 func AddOperatorFlags(command *cobra.Command, oFlags *OperatorFlags) {
 	command.Flags().StringVar(&oFlags.Channel, "channel", string(shared.GetDefaultChannel()), "Install Kogito operator from Operator hub using provided channel, e.g. (alpha/dev-preview)")
+	command.Flags().BoolVar(&oFlags.Namespaced, "namespaced", false, message.Namespaced)
 }
 
 // CheckOperatorArgs verifies the given arguments to the OperatorFlags

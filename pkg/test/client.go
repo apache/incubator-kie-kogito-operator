@@ -35,6 +35,7 @@ type FakeClientBuilder interface {
 	AddBuildObjects(buildObjs ...runtime.Object) FakeClientBuilder
 	OnOpenShift() FakeClientBuilder
 	SupportPrometheus() FakeClientBuilder
+	SupportOLM() FakeClientBuilder
 	Build() *client.Client
 }
 
@@ -50,6 +51,7 @@ type fakeClientStruct struct {
 	buildObjs  []runtime.Object
 	openShift  bool
 	prometheus bool
+	olm        bool
 }
 
 // AddK8sObjects ...
@@ -72,6 +74,11 @@ func (f *fakeClientStruct) AddBuildObjects(buildObjs ...runtime.Object) FakeClie
 
 func (f *fakeClientStruct) SupportPrometheus() FakeClientBuilder {
 	f.prometheus = true
+	return f
+}
+
+func (f *fakeClientStruct) SupportOLM() FakeClientBuilder {
+	f.olm = true
 	return f
 }
 
@@ -118,6 +125,7 @@ func (f *fakeClientStruct) createFakeDiscoveryClient() discovery.DiscoveryInterf
 				{GroupVersion: "infinispan.org/v1"},
 				{GroupVersion: "kafka.strimzi.io/v1beta1"},
 				{GroupVersion: "keycloak.org/v1alpha1"},
+				{GroupVersion: "app.kiegroup.org/v1beta1"},
 			},
 		},
 	}
@@ -131,6 +139,11 @@ func (f *fakeClientStruct) createFakeDiscoveryClient() discovery.DiscoveryInterf
 		disco.Fake.Resources = append(disco.Fake.Resources,
 			&metav1.APIResourceList{GroupVersion: "openshift.io/v1"},
 			&metav1.APIResourceList{GroupVersion: "build.openshift.io/v1"})
+	}
+
+	if f.olm {
+		disco.Fake.Resources = append(disco.Fake.Resources,
+			&metav1.APIResourceList{GroupVersion: "operators.coreos.com/v1"})
 	}
 	return disco
 }

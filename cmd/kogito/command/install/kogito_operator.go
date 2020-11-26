@@ -104,7 +104,7 @@ func (i *installKogitoOperatorCommand) Exec(cmd *cobra.Command, args []string) e
 
 	install := shared.
 		ServicesInstallationBuilder(i.Client, i.flags.namespace).
-		InstallOperator(true, i.flags.image, i.flags.force, shared.KogitoChannelType(i.flags.Channel))
+		InstallOperator(true, i.flags.image, i.flags.force, shared.KogitoChannelType(i.flags.Channel), i.flags.Namespaced)
 
 	if i.flags.installDataIndex {
 		persistenceInfra := shared.GetDefaultPersistenceInfra(i.flags.namespace)
