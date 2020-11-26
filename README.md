@@ -245,6 +245,7 @@ You can set those optional keys:
 - `image_cache_mode` Use this option to specify whether you want to use image cache for runtime images. Available options are 'always', 'never' or 'if-available'(default).
 - `http_retry_nb` sets the retry number for all HTTP calls in case it fails (and response code != 500).
   *Default is 3.*
+- `olm_namespace` Set the namespace which is used for cluster scope operators. Default is 'openshift-operators'.
 <!--- operator information -->
 - `operator_image` is the Operator image full name.  
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.

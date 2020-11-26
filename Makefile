@@ -92,6 +92,7 @@ container_engine=
 domain_suffix=
 image_cache_mode=
 http_retry_nb=
+olm_namespace=
 # operator information
 operator_image=
 operator_tag=
@@ -196,6 +197,7 @@ run-tests:
 		--domain_suffix ${domain_suffix} \
 		--image_cache_mode ${image_cache_mode} \
 		--http_retry_nb ${http_retry_nb} \
+		--olm_namespace ${olm_namespace} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
