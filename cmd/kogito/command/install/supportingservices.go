@@ -16,7 +16,6 @@ package install
 
 import (
 	"fmt"
-
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
@@ -212,6 +211,7 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 				Infra:                 i.flags.Infra,
 				PropertiesConfigMap:   configMap,
 				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
+				Probes:                converter.FromProbeFlagToKogitoProbe(&i.flags.ProbeFlags),
 			},
 		},
 		Status: v1beta1.KogitoSupportingServiceStatus{

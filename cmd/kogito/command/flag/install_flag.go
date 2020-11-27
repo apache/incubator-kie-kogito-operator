@@ -31,6 +31,7 @@ type InstallFlags struct {
 	EnvVarFlags
 	MonitoringFlags
 	ConfigFlags
+	ProbeFlags
 	Project  string
 	Replicas int32
 	Infra    []string
@@ -44,6 +45,7 @@ func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
 	AddEnvVarFlags(command, &flags.EnvVarFlags, "env", "e")
 	AddMonitoringFlags(command, &flags.MonitoringFlags)
 	AddConfigFlags(command, &flags.ConfigFlags)
+	AddProbeFlags(command, &flags.ProbeFlags)
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
 	command.Flags().StringArrayVar(&flags.Infra, "infra", nil, "Dependent KogitoInfra objects. Can be set more than once.")
@@ -67,6 +69,9 @@ func CheckInstallArgs(flags *InstallFlags) error {
 		return err
 	}
 	if err := CheckConfigFlags(&flags.ConfigFlags); err != nil {
+		return err
+	}
+	if err := CheckProbeArgs(&flags.ProbeFlags); err != nil {
 		return err
 	}
 	if flags.Replicas <= 0 {
