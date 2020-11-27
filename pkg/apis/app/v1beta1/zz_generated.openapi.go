@@ -706,16 +706,10 @@ func schema_pkg_apis_app_v1beta1_KogitoSupportingServiceSpec(ref common.Referenc
 							},
 						},
 					},
-					"livenessProbe": {
+					"probes": {
 						SchemaProps: spec.SchemaProps{
-							Description: "LivenessProbe describes how the Kogito container liveness probe should work",
-							Ref:         ref("k8s.io/api/core/v1.Probe"),
-						},
-					},
-					"readinessProbe": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ReadinessProbe describes how the Kogito container readiness probe should work",
-							Ref:         ref("k8s.io/api/core/v1.Probe"),
+							Description: "Configure liveness, readiness and startup probes for containers",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoProbe"),
 						},
 					},
 					"serviceType": {
@@ -730,7 +724,7 @@ func schema_pkg_apis_app_v1beta1_KogitoSupportingServiceSpec(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.Probe", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.KogitoProbe", "github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
