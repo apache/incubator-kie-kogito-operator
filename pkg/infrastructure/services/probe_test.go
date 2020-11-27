@@ -48,19 +48,21 @@ func TestGetProbeForKogitoService_CustomConfiguration(t *testing.T) {
 	service := &v1beta1.KogitoRuntime{
 		Spec: v1beta1.KogitoRuntimeSpec{
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
-				LivenessProbe: corev1.Probe{
-					InitialDelaySeconds: 100,
-					TimeoutSeconds:      10,
-					PeriodSeconds:       5,
-					SuccessThreshold:    2,
-					FailureThreshold:    5,
-				},
-				ReadinessProbe: corev1.Probe{
-					InitialDelaySeconds: 200,
-					TimeoutSeconds:      20,
-					PeriodSeconds:       25,
-					SuccessThreshold:    22,
-					FailureThreshold:    25,
+				Probes: v1beta1.KogitoProbe{
+					LivenessProbe: corev1.Probe{
+						InitialDelaySeconds: 100,
+						TimeoutSeconds:      10,
+						PeriodSeconds:       5,
+						SuccessThreshold:    2,
+						FailureThreshold:    5,
+					},
+					ReadinessProbe: corev1.Probe{
+						InitialDelaySeconds: 200,
+						TimeoutSeconds:      20,
+						PeriodSeconds:       25,
+						SuccessThreshold:    22,
+						FailureThreshold:    25,
+					},
 				},
 			},
 		},

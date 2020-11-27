@@ -151,8 +151,7 @@ type KogitoServiceSpecInterface interface {
 	AddInfra(name string)
 	GetMonitoring() Monitoring
 	GetConfig() map[string]string
-	GetLivenessProbe() corev1.Probe
-	GetReadinessProbe() corev1.Probe
+	GetProbes() KogitoProbe
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -230,15 +229,10 @@ type KogitoServiceSpec struct {
 	// Application properties that will be set to the service. For example 'MY_VAR: my_value'.
 	Config map[string]string `json:"config,omitempty"`
 
-	// LivenessProbe describes how the Kogito container liveness probe should work
+	// Configure liveness, readiness and startup probes for containers
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
 	// +optional
-	LivenessProbe corev1.Probe `json:"livenessProbe,omitempty"`
-
-	// ReadinessProbe describes how the Kogito container readiness probe should work
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
-	// +optional
-	ReadinessProbe corev1.Probe `json:"readinessProbe,omitempty"`
+	Probes KogitoProbe `json:"probes,omitempty"`
 }
 
 // GetReplicas ...
@@ -364,12 +358,7 @@ func (k *KogitoServiceSpec) GetConfig() map[string]string {
 	return k.Config
 }
 
-// GetLivenessProbe ...
-func (k *KogitoServiceSpec) GetLivenessProbe() corev1.Probe {
-	return k.LivenessProbe
-}
-
-// GetReadinessProbe ...
-func (k *KogitoServiceSpec) GetReadinessProbe() corev1.Probe {
-	return k.ReadinessProbe
+// GetProbes ...
+func (k *KogitoServiceSpec) GetProbes() KogitoProbe {
+	return k.Probes
 }

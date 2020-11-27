@@ -45,18 +45,18 @@ func getProbeForKogitoService(serviceDefinition ServiceDefinition, service v1bet
 	switch serviceDefinition.HealthCheckProbe {
 	case QuarkusHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getQuarkusHealthCheckReadiness(service.GetSpec().GetReadinessProbe()),
-			liveness:  getQuarkusHealthCheckLiveness(service.GetSpec().GetLivenessProbe()),
+			readiness: getQuarkusHealthCheckReadiness(service.GetSpec().GetProbes().ReadinessProbe),
+			liveness:  getQuarkusHealthCheckLiveness(service.GetSpec().GetProbes().LivenessProbe),
 		}
 	case TCPHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(service.GetSpec().GetReadinessProbe()),
-			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetLivenessProbe()),
+			readiness: getTCPHealthCheckProbe(service.GetSpec().GetProbes().ReadinessProbe),
+			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetProbes().LivenessProbe),
 		}
 	default:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(service.GetSpec().GetReadinessProbe()),
-			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetLivenessProbe()),
+			readiness: getTCPHealthCheckProbe(service.GetSpec().GetProbes().ReadinessProbe),
+			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetProbes().LivenessProbe),
 		}
 	}
 }
