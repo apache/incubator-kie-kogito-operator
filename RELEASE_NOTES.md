@@ -6,6 +6,7 @@
 
 ## Bug Fixes
 - [KOGITO-3866](https://issues.redhat.com/browse/KOGITO-3866) Operator print error logs when KogitoRuntime delete
+- [KOGITO-3864](https://issues.redhat.com/browse/KOGITO-3864) KogitoInfra got delete when refering KogitoRuntime/KogitoSupportingService delete
 
 ## Known Issues
 The protobuf ConfigMap does not update in Spring Boot due to [this issue](https://issues.redhat.com/browse/KOGITO-3406).
