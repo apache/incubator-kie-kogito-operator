@@ -75,6 +75,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				Infra:                 flags.Infra,
 				Monitoring:            converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
 				Config:                converter.FromConfigFlagsToMap(&flags.ConfigFlags),
+				Probes:                converter.FromProbeFlagToKogitoProbe(&flags.ProbeFlags),
 			},
 		},
 		Status: v1beta1.KogitoRuntimeStatus{
