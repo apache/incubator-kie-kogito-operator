@@ -65,3 +65,16 @@ func AddOwnerReference(owner resource.KubernetesResource, scheme *runtime.Scheme
 	}
 	return nil
 }
+
+// RemoveOwnerReference remove given owner from OwnerReference in the given resources
+func RemoveOwnerReference(owner resource.KubernetesResource, resources ...resource.KubernetesResource) {
+	for _, res := range resources {
+		for i, ownerRef := range res.GetOwnerReferences() {
+			if ownerRef.UID == owner.GetUID() {
+				updatedOwnerReferences := append(res.GetOwnerReferences()[:i], res.GetOwnerReferences()[i+1:]...)
+				res.SetOwnerReferences(updatedOwnerReferences)
+				break
+			}
+		}
+	}
+}

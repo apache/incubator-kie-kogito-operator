@@ -101,12 +101,6 @@ func (r *ReconcileKogitoInfra) Reconcile(request reconcile.Request) (reconcile.R
 		return reconcile.Result{}, nil
 	}
 
-	// make KogitoInfra as self owner so that it will not removed when kogito service referring to it deleted because
-	// kogito services are also become owner of kogitoInfra when reference of infra provided in Kogito services.
-	if resultErr = framework.AddOwnerReference(instance, r.scheme, instance); resultErr != nil {
-		return reconcile.Result{}, resultErr
-	}
-
 	defer updateBaseStatus(r.client, instance, &resultErr)
 
 	reconciler, resultErr := getKogitoInfraReconciler(r.client, instance, r.scheme)

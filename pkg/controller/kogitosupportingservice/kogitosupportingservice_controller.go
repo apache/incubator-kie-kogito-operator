@@ -61,7 +61,16 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{})
+	pred := predicate.Funcs{
+		// Don't watch delete events as the resource removals will be handled by its finalizer
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			return false
+		},
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			return e.MetaNew.GetDeletionTimestamp().IsZero()
+		},
+	}
+	err = c.Watch(&source.Kind{Type: &v1beta1.KogitoSupportingService{}}, &handler.EnqueueRequestForObject{}, pred)
 	if err != nil {
 		return err
 	}
