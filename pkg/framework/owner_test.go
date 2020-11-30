@@ -130,8 +130,10 @@ func TestRemoveOwnerReference(t *testing.T) {
 			Namespace: namespace,
 		},
 	}
-	AddOwnerReference(travels, scheme, kogitoInfra)
-	AddOwnerReference(visas, scheme, kogitoInfra)
+	err := AddOwnerReference(travels, scheme, kogitoInfra)
+	assert.NoError(t, err)
+	err = AddOwnerReference(visas, scheme, kogitoInfra)
+	assert.NoError(t, err)
 
 	assert.Equal(t, 2, len(kogitoInfra.GetOwnerReferences()))
 	RemoveOwnerReference(travels, kogitoInfra)
