@@ -17,7 +17,6 @@ package kogitoruntime
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -89,47 +88,12 @@ func (r *FinalizeKogitoRuntime) Reconcile(request reconcile.Request) (result rec
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		// Add finalizer for this CR
-		if err := r.addFinalizer(instance); err != nil {
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{}, nil
+		err = infrastructure.AddFinalizer(r.client, instance)
+		return
 	}
 
 	// The object is being deleted
-	return r.handleFinalization(instance)
-}
-
-func (r *FinalizeKogitoRuntime) addFinalizer(instance *v1beta1.KogitoRuntime) error {
-	if len(instance.GetFinalizers()) < 1 && instance.GetDeletionTimestamp() == nil {
-		log.Debugf("Adding Finalizer for the KogitoRuntime")
-		instance.SetFinalizers([]string{"delete.kogitoInfra.ownership.finalizer"})
-
-		// Update CR
-		if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
-			log.Error("Failed to update finalizer in KogitoRuntime")
-			return err
-		}
-		log.Debugf("Successfully added finalizer into KogitoRuntime instance %s", instance.Name)
-	}
-	return nil
-}
-
-func (r *FinalizeKogitoRuntime) handleFinalization(instance *v1beta1.KogitoRuntime) (reconcile.Result, error) {
-
-	log.Infof("KogitoRuntime object has been deleted for %s in %s", instance.Name, instance.Namespace)
-
-	// Remove KogitoRuntime ownership from referred KogitoInfra instances
-	if err := infrastructure.RemoveKogitoInfraOwnership(r.client, instance); err != nil {
-		return reconcile.Result{}, err
-	}
-
-	// Update finalizer to allow delete CR
-	log.Debugf("Removing finalizer from KogitoRuntime instance %s", instance.Name)
-	instance.SetFinalizers(nil)
-	if err := kubernetes.ResourceC(r.client).Update(instance); err != nil {
-		log.Errorf("Error occurs while removing finalizer from KogitoRuntime instance %s", instance.Name, err)
-		return reconcile.Result{}, err
-	}
-	log.Debugf("Successfully removed finalizer from KogitoRuntime instance %s", instance.Name)
-	return reconcile.Result{}, nil
+	log.Infof("KogitoRuntime(%s) has been deleted in %s", instance.GetName(), instance.GetNamespace())
+	err = infrastructure.HandleFinalization(r.client, instance)
+	return
 }

@@ -17,6 +17,7 @@ package infrastructure
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -122,4 +123,43 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAddFinalizer(t *testing.T) {
+	ns := t.Name()
+	instance := &v1beta1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "travels",
+			Namespace: ns,
+		},
+	}
+
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+	err := AddFinalizer(cli, instance)
+	assert.NoError(t, err)
+	exists, err := kubernetes.ResourceC(cli).Fetch(instance)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, 1, len(instance.GetFinalizers()))
+}
+
+func TestHandleFinalization(t *testing.T) {
+	ns := t.Name()
+	instance := &v1beta1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "travels",
+			Namespace: ns,
+			Finalizers: []string{
+				"delete.kogitoInfra.ownership.finalizer",
+			},
+		},
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+	err := HandleFinalization(cli, instance)
+	assert.NoError(t, err)
+	exists, err := kubernetes.ResourceC(cli).Fetch(instance)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, 0, len(instance.GetFinalizers()))
+
 }
