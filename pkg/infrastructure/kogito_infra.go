@@ -70,9 +70,12 @@ func RemoveKogitoInfraOwnership(client *client.Client, owner v1beta1.KogitoServi
 	log.Debugf("Removing KogitoInfra ownership for %s", owner.GetName())
 	for _, kogitoInfraName := range owner.GetSpec().GetInfra() {
 		// load infra resource
-		kogitoInfraInstance, err := MustFetchKogitoInfraInstance(client, kogitoInfraName, owner.GetNamespace())
+		kogitoInfraInstance, err := FetchKogitoInfraInstance(client, kogitoInfraName, owner.GetNamespace())
 		if err != nil {
 			return err
+		}
+		if kogitoInfraInstance == nil {
+			continue
 		}
 		framework.RemoveOwnerReference(owner, kogitoInfraInstance)
 		if err = kubernetes.ResourceC(client).Update(kogitoInfraInstance); err != nil {
