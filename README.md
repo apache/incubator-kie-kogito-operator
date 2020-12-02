@@ -381,6 +381,7 @@ All options from BDD tests do also apply here.
 | @discovery         | Tests checking service discovery functionality                                     |
 | @usertasks         | Tests interacting with user tasks to check authentication/authorization            |
 | @security          | Tests verifying security capabilities                                              |
+| @failover          | Tests verifying failover capabilities                                              |
 |                    |                                                                                    |
 | @resources         | Tests checking resource requests and limits                                        |
 |                    |                                                                                    |
