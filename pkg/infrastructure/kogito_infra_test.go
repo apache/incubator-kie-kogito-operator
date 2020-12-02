@@ -16,9 +16,13 @@ package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"testing"
 )
 
@@ -52,4 +56,42 @@ func TestMustFetchKogitoInfraInstance_InstanceNotFound(t *testing.T) {
 	cli := test.NewFakeClientBuilder().Build()
 	_, err := MustFetchKogitoInfraInstance(cli, name, ns)
 	assert.Error(t, err)
+}
+
+func TestRemoveKogitoInfraOwnership(t *testing.T) {
+	ns := t.Name()
+	scheme := meta.GetRegisteredSchema()
+	travels := &v1beta1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "travels",
+			Namespace: ns,
+			UID:       test.GenerateUID(),
+		},
+		Spec: v1beta1.KogitoRuntimeSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+				Infra: []string{
+					"infinispan_infra",
+					"kafka_infra",
+				},
+			},
+		},
+	}
+
+	kafkaInfra := &v1beta1.KogitoInfra{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "kafka_infra",
+			Namespace: ns,
+		},
+	}
+	err := framework.AddOwnerReference(travels, scheme, kafkaInfra)
+	assert.NoError(t, err)
+
+	cli := test.NewFakeClientBuilder().AddK8sObjects(kafkaInfra).Build()
+	err = RemoveKogitoInfraOwnership(cli, travels)
+	assert.NoError(t, err)
+	actualKafkaInfra := &v1beta1.KogitoInfra{}
+	exists, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: "kafka_infra", Namespace: ns}, actualKafkaInfra)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, 0, len(actualKafkaInfra.GetOwnerReferences()))
 }

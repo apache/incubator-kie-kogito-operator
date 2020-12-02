@@ -16,14 +16,13 @@ package infrastructure
 
 import (
 	"fmt"
-	appsv1 "k8s.io/api/apps/v1"
-	"net/url"
-	"os"
-
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	appsv1 "k8s.io/api/apps/v1"
+	"net/url"
+	"os"
 )
 
 const (
@@ -158,4 +157,38 @@ func getKogitoServiceURL(service v1beta1.KogitoService) string {
 	url := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())
 	log.Debugf("kogito service instance URL : %s", url)
 	return url
+}
+
+// AddFinalizer add finalizer to provide KogitoService instance
+func AddFinalizer(client *client.Client, instance v1beta1.KogitoService) error {
+	if len(instance.GetFinalizers()) < 1 && instance.GetDeletionTimestamp() == nil {
+		log.Debugf("Adding Finalizer for the KogitoService")
+		instance.SetFinalizers([]string{"delete.kogitoInfra.ownership.finalizer"})
+
+		// Update CR
+		if err := kubernetes.ResourceC(client).Update(instance); err != nil {
+			log.Error("Failed to update finalizer in KogitoService")
+			return err
+		}
+		log.Debugf("Successfully added finalizer into KogitoService instance %s", instance.GetName())
+	}
+	return nil
+}
+
+// HandleFinalization remove owner reference of provided Kogito service from KogitoInfra instances and remove finalizer from KogitoService
+func HandleFinalization(client *client.Client, instance v1beta1.KogitoService) error {
+	// Remove KogitoSupportingService ownership from referred KogitoInfra instances
+	if err := RemoveKogitoInfraOwnership(client, instance); err != nil {
+		return err
+	}
+
+	// Update finalizer to allow delete CR
+	log.Debugf("Removing finalizer from KogitoService instance %s", instance.GetName())
+	instance.SetFinalizers(nil)
+	if err := kubernetes.ResourceC(client).Update(instance); err != nil {
+		log.Errorf("Error occurs while removing finalizer from KogitoService instance %s", instance.GetName(), err)
+		return err
+	}
+	log.Debugf("Successfully removed finalizer from KogitoService instance %s", instance.GetName())
+	return nil
 }

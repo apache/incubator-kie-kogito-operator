@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -62,4 +63,25 @@ func IsKafkaResource(instance *v1beta1.KogitoInfra) bool {
 // IsKnativeEventingResource checks if provided KogitoInfra instance is for Knative eventing resource
 func IsKnativeEventingResource(instance *v1beta1.KogitoInfra) bool {
 	return instance.Spec.Resource.APIVersion == KnativeEventingAPIVersion && instance.Spec.Resource.Kind == KnativeEventingBrokerKind
+}
+
+// RemoveKogitoInfraOwnership remove provided kogito service owner reference from kogitoInfra
+func RemoveKogitoInfraOwnership(client *client.Client, owner v1beta1.KogitoService) error {
+	log.Debugf("Removing KogitoInfra ownership for %s", owner.GetName())
+	for _, kogitoInfraName := range owner.GetSpec().GetInfra() {
+		// load infra resource
+		kogitoInfraInstance, err := FetchKogitoInfraInstance(client, kogitoInfraName, owner.GetNamespace())
+		if err != nil {
+			return err
+		}
+		if kogitoInfraInstance == nil {
+			continue
+		}
+		framework.RemoveOwnerReference(owner, kogitoInfraInstance)
+		if err = kubernetes.ResourceC(client).Update(kogitoInfraInstance); err != nil {
+			return err
+		}
+		log.Debugf("Successfully removed KogitoInfra ownership for %s from %s", owner.GetName(), kogitoInfraInstance.Name)
+	}
+	return nil
 }

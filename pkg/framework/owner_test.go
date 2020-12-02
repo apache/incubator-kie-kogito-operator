@@ -16,6 +16,7 @@ package framework
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -102,4 +103,42 @@ func TestAddOwnerReference(t *testing.T) {
 	err = AddOwnerReference(owner, scheme, owned)
 	assert.NoError(t, err)
 	assert.Len(t, owned.OwnerReferences, 1)
+}
+
+func TestRemoveOwnerReference(t *testing.T) {
+	namespace := t.Name()
+	scheme := meta.GetRegisteredSchema()
+
+	travels := &v1beta1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "travels",
+			Namespace: namespace,
+			UID:       test.GenerateUID(),
+		},
+	}
+	visas := &v1beta1.KogitoRuntime{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "visas",
+			Namespace: namespace,
+			UID:       test.GenerateUID(),
+		},
+	}
+
+	kogitoInfra := &v1beta1.KogitoInfra{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "infinispan-infra",
+			Namespace: namespace,
+		},
+	}
+	err := AddOwnerReference(travels, scheme, kogitoInfra)
+	assert.NoError(t, err)
+	err = AddOwnerReference(visas, scheme, kogitoInfra)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(kogitoInfra.GetOwnerReferences()))
+	RemoveOwnerReference(travels, kogitoInfra)
+	assert.Equal(t, 1, len(kogitoInfra.GetOwnerReferences()))
+	ownerReference := kogitoInfra.GetOwnerReferences()[0]
+	assert.Equal(t, visas.UID, ownerReference.UID)
+	assert.Equal(t, visas.Name, ownerReference.Name)
 }
