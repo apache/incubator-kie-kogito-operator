@@ -212,6 +212,7 @@ pipeline {
             post {
                 always {
                     archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
                     junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
                     sh 'cd test && go run scripts/prune_namespaces.go'
                 }
