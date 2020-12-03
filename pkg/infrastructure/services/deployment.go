@@ -43,8 +43,12 @@ func createRequiredDeployment(service v1beta1.KogitoService, resolvedImage strin
 	labels[framework.LabelAppKey] = service.GetName()
 
 	// clone env var slice so that any changes in deployment env var should not reflect in kogitoInstance env var
-	env := make([]corev1.EnvVar, len(service.GetSpec().GetEnvs()))
-	copy(env, service.GetSpec().GetEnvs())
+	// KOGITO-3947: we don't want an empty reference (0 len), since this is nil to k8s. Comparator will go crazy
+	var env []corev1.EnvVar
+	if len(service.GetSpec().GetEnvs()) > 0 {
+		env = make([]corev1.EnvVar, len(service.GetSpec().GetEnvs()))
+		copy(env, service.GetSpec().GetEnvs())
+	}
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: service.GetName(), Namespace: service.GetNamespace(), Labels: labels},

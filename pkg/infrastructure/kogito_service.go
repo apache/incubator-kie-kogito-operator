@@ -53,7 +53,7 @@ func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespac
 		if err != nil {
 			return err
 		}
-		log.Debugf("Found %s KogitoRuntime instances in the namespace '%s' ", len(deployments), namespace)
+		log.Debugf("Found %d KogitoRuntime instances in the namespace '%s' ", len(deployments), namespace)
 		if len(deployments) == 0 {
 			log.Debugf("No deployment found for KogitoRuntime, skipping to inject %s URL into KogitoRuntime", resourceType)
 			return nil
