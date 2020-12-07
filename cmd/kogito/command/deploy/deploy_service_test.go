@@ -21,10 +21,13 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
+	test2 "github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	v1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 	"testing"
 )
 
@@ -133,4 +136,35 @@ my.nice.property=socool
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Contains(t, cm.Data[services.ConfigMapApplicationPropertyKey], "quarkus.log.level")
+}
+
+func Test_DeployCmd_SWFile(t *testing.T) {
+	ns := t.Name()
+	swFile, err := os.Open("testdata/greetings.sw.json")
+	assert.NoError(t, err)
+	assert.NotNil(t, swFile)
+
+	cli := fmt.Sprintf(`deploy-service serverless-workflow-greeting-quarkus %s --project %s`, swFile.Name(), ns)
+	ctx := test.SetupCliTestWithKubeClient(cli,
+		context.CommandFactory{BuildCommands: BuildCommands},
+		test2.NewFakeClientBuilder().
+			OnOpenShift().
+			AddK8sObjects(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}).
+			AddBuildObjects(&v1.BuildConfig{ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus-builder", Namespace: ns}}).
+			Build())
+
+	lines, _, err := test.ExecuteCli()
+	assert.Error(t, err)
+	assert.Contains(t, lines, "Kogito Build Service successfully installed in the Project")
+	assert.Contains(t, lines, "File(s) found: testdata/greetings.sw.json")
+	assert.Contains(t, lines, "Triggering the new build")
+	// error from fake build is ok, we don't have a server to upload the binaries here.
+	assert.Contains(t, lines, "v1.BinaryBuildRequestOptions is not suitable for converting")
+
+	kogitoBuild := &v1beta1.KogitoBuild{
+		ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus", Namespace: ns},
+	}
+	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoBuild)
+	assert.NoError(t, err)
+	assert.True(t, exists)
 }

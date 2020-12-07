@@ -64,7 +64,7 @@ type Client struct {
 
 // NewForConsole will create a brand new client using the local machine
 func NewForConsole() *Client {
-	client, err := NewClientBuilder().WithDiscoveryClient().Build()
+	client, err := NewClientBuilder().WithBuildClient().WithDiscoveryClient().Build()
 	if err != nil {
 		panic(err)
 	}
