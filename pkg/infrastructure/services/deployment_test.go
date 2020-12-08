@@ -15,6 +15,8 @@
 package services
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
@@ -23,14 +25,14 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var defaultDataIndexImageFullTag = infrastructure.GetKogitoImageVersion() + ":latest"
+var defaultKogitoImageFullTag = infrastructure.GetKogitoImageVersion() + ":latest"
 
 func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 	kogitoService := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{HealthCheckProbe: QuarkusHealthCheckProbe}
-	deployment := createRequiredDeployment(kogitoService, defaultDataIndexImageFullTag, serviceDef)
+	deployment := createRequiredDeployment(kogitoService, defaultKogitoImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet)
@@ -45,7 +47,7 @@ func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultDataIndexImageName, Namespace: t.Name()},
 	}
 	serviceDef := ServiceDefinition{}
-	deployment := createRequiredDeployment(kogitoService, defaultDataIndexImageFullTag, serviceDef)
+	deployment := createRequiredDeployment(kogitoService, defaultKogitoImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.TCPSocket)
@@ -53,4 +55,20 @@ func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].LivenessProbe.TCPSocket)
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].LivenessProbe.HTTPGet)
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe.HTTPGet)
+}
+
+func Test_createRequiredDeployment_CheckNilEnvs(t *testing.T) {
+	kogitoService := &v1beta1.KogitoSupportingService{
+		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceImageName, Namespace: t.Name()},
+	}
+	serviceDef := ServiceDefinition{}
+	deployment := createRequiredDeployment(kogitoService, defaultKogitoImageFullTag, serviceDef)
+	assert.NotNil(t, deployment)
+	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Env)
+
+	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoService, deployment).Build()
+	exists, err := kubernetes.ResourceC(cli).Fetch(deployment)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Env)
 }
