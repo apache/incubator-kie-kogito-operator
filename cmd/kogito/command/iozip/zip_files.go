@@ -29,7 +29,7 @@ import (
 )
 
 var supportedExtensions = map[flag.BinaryBuildType][]string{
-	flag.SourceToImageBuild:       {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties"},
+	flag.SourceToImageBuild:       {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties", ".sw.json", ".sw.yaml"},
 	flag.BinaryQuarkusJvmBuild:    {".jar", ".json"},
 	flag.BinarySpringBootJvmBuild: {".jar", ".json"},
 	flag.BinaryQuarkusNativeBuild: {"-runner", ".json"},

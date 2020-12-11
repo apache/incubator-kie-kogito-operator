@@ -46,7 +46,7 @@ func initDeployCommand(ctx *context.CommandContext, parent *cobra.Command) conte
 		CommandContext:       *ctx,
 		Parent:               parent,
 		resourceCheckService: shared.NewResourceCheckService(),
-		buildService:         service.NewBuildService(),
+		buildService:         service.NewBuildService(ctx.Client),
 		runtimeService:       service.NewRuntimeService(),
 	}
 
@@ -140,7 +140,7 @@ func (i *deployCommand) installBuildService(cli *client.Client, flags *deployFla
 	flags.BuildFlags.Project = project
 	flags.BuildFlags.OperatorFlags = flags.RuntimeFlags.OperatorFlags
 	flags.BuildFlags.RuntimeTypeFlags = flags.RuntimeTypeFlags
-	return i.buildService.InstallBuildService(cli, &flags.BuildFlags, resource)
+	return i.buildService.InstallBuildService(&flags.BuildFlags, resource)
 }
 
 func (i *deployCommand) installRuntimeService(cli *client.Client, flags *deployFlags, name, project string) error {

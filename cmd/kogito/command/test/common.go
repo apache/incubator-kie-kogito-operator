@@ -32,21 +32,20 @@ var (
 	rootCommand *cobra.Command
 )
 
-// SetupFakeKubeCli creates a fake kube client for your tests
-func SetupFakeKubeCli(initObjs ...runtime.Object) *client.Client {
-	return test.NewFakeClientBuilder().AddK8sObjects(initObjs...).Build()
+// SetupCliTest creates the CLI default test environment. The mocked Kubernetes client does not support OpenShift.
+func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...runtime.Object) (ctx *context.CommandContext) {
+	return SetupCliTestWithKubeClient(cli, factory, test.NewFakeClientBuilder().AddK8sObjects(kubeObjects...).Build())
 }
 
-// SetupCliTest creates the infrastructure for the CLI test
-func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...runtime.Object) (ctx *context.CommandContext) {
-	kubeCli := SetupFakeKubeCli(kubeObjects...)
+// SetupCliTestWithKubeClient Setup a CLI test environment with the given Kubernetes client
+func SetupCliTestWithKubeClient(cmd string, factory context.CommandFactory, kubeCli *client.Client) (ctx *context.CommandContext) {
 	testErr = new(bytes.Buffer)
 	testOut = new(bytes.Buffer)
 
 	ctx = &context.CommandContext{Client: kubeCli}
 
 	kogitoRootCmd := context.NewRootCommand(ctx, testOut)
-	kogitoRootCmd.Command().SetArgs(strings.Split(cli, " "))
+	kogitoRootCmd.Command().SetArgs(strings.Split(cmd, " "))
 	kogitoRootCmd.Command().SetOut(testOut)
 	kogitoRootCmd.Command().SetErr(testErr)
 

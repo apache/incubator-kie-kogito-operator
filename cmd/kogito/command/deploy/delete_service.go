@@ -32,7 +32,7 @@ func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command
 		CommandContext:       *ctx,
 		Parent:               parent,
 		resourceCheckService: shared.NewResourceCheckService(),
-		buildService:         service.NewBuildService(),
+		buildService:         service.NewBuildService(ctx.Client),
 		runtimeService:       service.NewRuntimeService(),
 	}
 	cmd.RegisterHook()
@@ -86,7 +86,7 @@ func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) (err erro
 	if err = i.runtimeService.DeleteRuntimeService(i.Client, i.flags.name, i.flags.project); err != nil {
 		return err
 	}
-	if err = i.buildService.DeleteBuildService(i.Client, i.flags.name, i.flags.project); err != nil {
+	if err = i.buildService.DeleteBuildService(i.flags.name, i.flags.project); err != nil {
 		return err
 	}
 	return nil

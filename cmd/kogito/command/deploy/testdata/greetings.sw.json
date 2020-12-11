@@ -1,0 +1,78 @@
+{
+  "id": "jsongreet",
+  "version": "1.0",
+  "name": "Greeting workflow",
+  "description": "JSON based greeting workflow",
+  "functions": [
+    {
+      "name": "greetFunction",
+      "type": "sysout"
+    }
+  ],
+  "states": [
+    {
+      "name": "ChooseOnLanguage",
+      "type": "switch",
+      "start": {
+        "kind": "default"
+      },
+      "dataConditions": [
+        {
+          "condition": "{{ $.[?(@.language  == 'English')] }}",
+          "transition": {
+            "nextState": "GreetInEnglish"
+          }
+        },
+        {
+          "condition": "{{ $.[?(@.language  == 'Spanish')] }}",
+          "transition": {
+            "nextState": "GreetInSpanish"
+          }
+        }
+      ],
+      "default": {
+        "transition": {
+          "nextState": "GreetInEnglish"
+        }
+      }
+    },
+    {
+      "name": "GreetInEnglish",
+      "type": "inject",
+      "data": {
+        "greeting": "Hello from JSON Workflow, "
+      },
+      "transition": {
+        "nextState": "GreetPerson"
+      }
+    },
+    {
+      "name": "GreetInSpanish",
+      "type": "inject",
+      "data": {
+        "greeting": "Saludos desde JSON Workflow, "
+      },
+      "transition": {
+        "nextState": "GreetPerson"
+      }
+    },
+    {
+      "name": "GreetPerson",
+      "type": "operation",
+      "actions": [
+        {
+          "name": "greetAction",
+          "functionRef": {
+            "refName": "greetFunction",
+            "parameters": {
+              "message": "$.greeting $.name"
+            }
+          }
+        }
+      ],
+      "end": {
+        "kind": "terminate"
+      }
+    }
+  ]
+}

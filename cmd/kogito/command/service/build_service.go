@@ -33,27 +33,29 @@ import (
 
 // BuildService is interface to perform Kogito Build
 type BuildService interface {
-	InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error)
-	DeleteBuildService(cli *client.Client, name, project string) (err error)
+	InstallBuildService(flags *flag.BuildFlags, resource string) (err error)
+	DeleteBuildService(name, project string) (err error)
 }
 
 type buildService struct {
 	resourceCheckService shared.ResourceCheckService
+	client               *client.Client
 }
 
 // NewBuildService create and return buildService value
-func NewBuildService() BuildService {
+func NewBuildService(cli *client.Client) BuildService {
 	return buildService{
+		client:               cli,
 		resourceCheckService: shared.NewResourceCheckService(),
 	}
 }
 
 // InstallBuildService install Kogito build service
-func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildFlags, resource string) (err error) {
+func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource string) (err error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Installing Kogito build : %s", flags.Name)
 
-	if err = validatePreRequisite(cli, flags, log, i); err != nil {
+	if err = i.validatePreRequisite(flags, log); err != nil {
 		return err
 	}
 
@@ -106,7 +108,7 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 
 	// Create the Kogito application
 	err = shared.
-		ServicesInstallationBuilder(cli, flags.Project).
+		ServicesInstallationBuilder(i.client, flags.Project).
 		CheckOperatorCRDs().
 		InstallBuildService(&kogitoBuild).
 		GetError()
@@ -115,21 +117,22 @@ func (i buildService) InstallBuildService(cli *client.Client, flags *flag.BuildF
 	}
 
 	binaryBuildType := converter.FromArgsToBinaryBuildType(resourceType, runtime, native)
-	if err := createBuildIfRequires(flags.Name, flags.Project, resource, resourceType, binaryBuildType); err != nil {
+	if err := i.createBuildIfRequires(flags.Name, flags.Project, resource, resourceType, binaryBuildType); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.SugaredLogger, i buildService) error {
+func (i buildService) validatePreRequisite(flags *flag.BuildFlags, log *zap.SugaredLogger) error {
 
-	if !cli.IsOpenshift() {
+	if !i.client.IsOpenshift() {
 		log.Info("Kogito Build is only supported on Openshift.")
 		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8s")
 	}
 
-	if err := i.resourceCheckService.CheckKogitoBuildNotExists(cli, flags.Name, flags.Project); err != nil {
+	// TODO: refactor all of this "services" to carry a context of shared objects
+	if err := i.resourceCheckService.CheckKogitoBuildNotExists(i.client, flags.Name, flags.Project); err != nil {
 		return err
 	}
 
@@ -142,18 +145,18 @@ func validatePreRequisite(cli *client.Client, flags *flag.BuildFlags, log *zap.S
 }
 
 // DeleteBuildService delete Kogito build service
-func (i buildService) DeleteBuildService(cli *client.Client, name, project string) (err error) {
+func (i buildService) DeleteBuildService(name, project string) (err error) {
 	log := context.GetDefaultLogger()
 
-	if !cli.IsOpenshift() {
+	if !i.client.IsOpenshift() {
 		log.Info("Delete Kogito Build is only supported on OpenShift.")
 		return nil
 	}
-	if err := i.resourceCheckService.CheckKogitoBuildExists(cli, name, project); err != nil {
+	if err := i.resourceCheckService.CheckKogitoBuildExists(i.client, name, project); err != nil {
 		return err
 	}
 	log.Debugf("About to delete build %s in namespace %s", name, project)
-	if err := kubernetes.ResourceC(cli).Delete(&v1beta1.KogitoBuild{
+	if err := kubernetes.ResourceC(i.client).Delete(&v1beta1.KogitoBuild{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: project,
@@ -165,46 +168,46 @@ func (i buildService) DeleteBuildService(cli *client.Client, name, project strin
 	return nil
 }
 
-func createBuildIfRequires(name, namespace, resource string, resourceType flag.ResourceType, binaryBuildType flag.BinaryBuildType) error {
+func (i buildService) createBuildIfRequires(name, namespace, resource string, resourceType flag.ResourceType, binaryBuildType flag.BinaryBuildType) error {
 	switch resourceType {
 	case flag.GitRepositoryResource:
-		handleGitRepositoryBuild(name, namespace)
+		i.handleGitRepositoryBuild(name, namespace)
 	case flag.GitFileResource:
-		if err := handleGitFileResourceBuild(name, namespace, resource); err != nil {
+		if err := i.handleGitFileResourceBuild(name, namespace, resource); err != nil {
 			return err
 		}
 	case flag.LocalDirectoryResource, flag.LocalBinaryDirectoryResource:
-		if err := handleLocalDirectoryResourceBuild(name, namespace, resource, binaryBuildType); err != nil {
+		if err := i.handleLocalDirectoryResourceBuild(name, namespace, resource, binaryBuildType); err != nil {
 			return err
 		}
 	case flag.LocalFileResource:
-		if err := handleLocalFileResourceBuild(name, namespace, resource); err != nil {
+		if err := i.handleLocalFileResourceBuild(name, namespace, resource); err != nil {
 			return err
 		}
 	case flag.BinaryResource:
-		handleBinaryResourceBuild(name, namespace)
+		i.handleBinaryResourceBuild(name, namespace)
 	}
 	return nil
 }
 
-func handleGitRepositoryBuild(name, namespace string) {
+func (i buildService) handleGitRepositoryBuild(name, namespace string) {
 	log := context.GetDefaultLogger()
 	log.Infof(message.KogitoBuildViewDeploymentStatus, name, namespace)
 	log.Infof(message.KogitoViewBuildStatus, name, namespace)
 }
 
-func handleGitFileResourceBuild(name, namespace, resource string) error {
+func (i buildService) handleGitFileResourceBuild(name, namespace, resource string) error {
 	fileReader, fileName, err := LoadGitFileIntoMemory(resource)
 	if err != nil {
 		return err
 	}
-	if err = triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
+	if err = i.triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
 		return err
 	}
 	return nil
 }
 
-func handleLocalDirectoryResourceBuild(name, namespace, resource string, binaryBuildType flag.BinaryBuildType) error {
+func (i buildService) handleLocalDirectoryResourceBuild(name, namespace, resource string, binaryBuildType flag.BinaryBuildType) error {
 	fileReader, fileName, err := ZipAndLoadLocalDirectoryIntoMemory(resource, binaryBuildType)
 	if err != nil {
 		return err
@@ -215,29 +218,29 @@ func handleLocalDirectoryResourceBuild(name, namespace, resource string, binaryB
 		binaryBuild = false
 	}
 
-	if err = triggerBuild(name, namespace, fileReader, fileName, binaryBuild); err != nil {
+	if err = i.triggerBuild(name, namespace, fileReader, fileName, binaryBuild); err != nil {
 		return err
 	}
 	return nil
 }
 
-func handleLocalFileResourceBuild(name, namespace, resource string) error {
+func (i buildService) handleLocalFileResourceBuild(name, namespace, resource string) error {
 	fileReader, fileName, err := LoadLocalFileIntoMemory(resource)
 	if err != nil {
 		return err
 	}
-	if err = triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
+	if err = i.triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
 		return err
 	}
 	return nil
 }
 
-func handleBinaryResourceBuild(name, namespace string) {
+func (i buildService) handleBinaryResourceBuild(name, namespace string) {
 	log := context.GetDefaultLogger()
 	log.Infof(message.KogitoBuildUploadBinariesInstruction, name, namespace)
 }
 
-func triggerBuild(name string, namespace string, fileReader io.Reader, fileName string, binaryBuild bool) error {
+func (i buildService) triggerBuild(name string, namespace string, fileReader io.Reader, fileName string, binaryBuild bool) error {
 	log := context.GetDefaultLogger()
 	options := &buildv1.BinaryBuildRequestOptions{}
 	options.Name = name
@@ -245,13 +248,8 @@ func triggerBuild(name string, namespace string, fileReader io.Reader, fileName 
 		options.AsFile = fileName
 	}
 
-	cli, err := client.NewClientBuilder().WithBuildClient().Build()
-	if err != nil {
-		return err
-	}
-
 	log.Info(message.BuildTriggeringNewBuild)
-	build, err := openshift.BuildConfigC(cli).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild)
+	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild)
 	if err != nil {
 		return err
 	}
