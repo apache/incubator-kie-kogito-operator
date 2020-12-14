@@ -8,24 +8,37 @@ spec:
     apiVersion: kafka.strimzi.io/v1beta1
     kind: Kafka
 ---
+# Mongodb kubernetes operator and MongoDB instance should be pre-installed in namespace
+# See https://github.com/mongodb/mongodb-kubernetes-operator
+# See also at the end of the file for a MongoDB instance definition
+apiVersion: app.kiegroup.org/v1beta1
+kind: KogitoInfra
+metadata:
+  name: kogito-mongodb
+spec:
+  resource:
+    apiVersion: mongodb.com/v1
+    kind: MongoDB
+    name: external-mongodb # to change if you don't use the example MongoDB below
+  infraProperties:
+    username: kogitouser
+    database: kogito_dataindex
+    # password and connection string will be guessed from MongoDB instance
+---
 # requires a existing mongodb instance running on the target namespace
 apiVersion: app.kiegroup.org/v1beta1
-kind: KogitoDataIndex
+kind: KogitoSupportingService
 metadata:
   name: data-index
 spec:
-  image: quay.io/kiegroup/kogito-data-index-mongodb:latest
-  config:
-    quarkus.mongodb.connection-string: 'mongodb://mongodb-service7:27017'
-    quarkus.mongodb.credentials.password: kogito_user
-    quarkus.mongodb.credentials.username: kogito_pwd
-    quarkus.mongodb.database: kogito_dataindex
+  serviceType: DataIndex
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS
     #    value: "-Dquarkus.log.level=DEBUG"
   # number of pods to be deployed
   replicas: 1
+  image: quay.io/kiegroup/kogito-data-index-mongodb:latest
   # Limits and requests for the Data Index pod
   #memoryLimit: ""
   #memoryRequest: ""
@@ -34,4 +47,54 @@ spec:
   # details about the kogito infra
   infra:
     - kogito-kafka-infra
+    - kogito-mongodb
 
+####### Setup simple MongoDB
+# This does require https://github.com/mongodb/mongodb-kubernetes-operator to be installed in the namespace
+# Uncomment below to create a MongoDB instance
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: external-mongodb-secret
+# type: Opaque
+# data:
+#   password: bXlwYXNz #mypass
+# ---
+# apiVersion: mongodb.com/v1
+# kind: MongoDB
+# metadata:
+#   name: external-mongodb
+# spec:
+#   members: 1
+#   security:
+#     authentication:
+#       modes:
+#       - SCRAM
+#   statefulSet: # statefulSet for openshift only
+#     spec:
+#       template:
+#         spec:
+#           containers:
+#           - env:
+#             - name: MANAGED_SECURITY_CONTEXT
+#               value: "true"
+#             name: mongodb-agent
+#           - env:
+#             - name: MANAGED_SECURITY_CONTEXT
+#               value: "true"
+#             name: mongod
+#   type: ReplicaSet
+#   users:
+#   - db: admin
+#     name: kogitouser
+#     passwordSecretRef:
+#       name: external-mongodb-secret
+#     roles:
+#     - db: kogito_dataindex
+#       name: dbOwner
+#     - db: kogito_dataindex
+#       name: clusterAdmin
+#     - db: kogito_dataindex
+#       name: userAdminAnyDatabase
+#   version: 4.4.1

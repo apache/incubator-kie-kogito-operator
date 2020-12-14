@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2019 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,23 +15,11 @@
 package converter
 
 import (
-	"testing"
-
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/stretchr/testify/assert"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 )
 
-func Test_FromResourceFlagsToResource(t *testing.T) {
-	flags := &flag.InfraResourceFlags{
-		APIVersion:        "infinispan.org/v1",
-		Kind:              "Infinispan",
-		ResourceName:      "infinispan-instance-name",
-		ResourceNamespace: "infinispan-namespace",
-	}
-
-	resource := FromInfraResourceFlagsToResource(flags)
-	assert.Equal(t, "infinispan.org/v1", resource.APIVersion)
-	assert.Equal(t, "Infinispan", resource.Kind)
-	assert.Equal(t, "infinispan-instance-name", resource.Name)
-	assert.Equal(t, "infinispan-namespace", resource.Namespace)
+// FromPropertiesFlagToStringMap converts a properties flags in the format of key=value properties to a map[key]=value
+func FromPropertiesFlagToStringMap(propertiesFlags *flag.PropertiesFlag) map[string]string {
+	return util.FromStringsKeyPairToMap(propertiesFlags.Properties)
 }

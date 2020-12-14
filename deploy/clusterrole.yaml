@@ -70,6 +70,16 @@ rules:
       - delete
       - watch
   - apiGroups:
+      - mongodb.com
+    resources:
+      - mongodbs
+    verbs:
+      - get
+      - create
+      - list
+      - delete
+      - watch
+  - apiGroups:
       - apps
     resourceNames:
       - kogito-operator

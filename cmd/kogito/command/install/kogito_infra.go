@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
@@ -28,6 +29,7 @@ import (
 type infraFlags struct {
 	flag.OperatorFlags
 	flag.InfraResourceFlags
+	flag.PropertiesFlag
 	Name    string
 	Project string
 }
@@ -88,6 +90,9 @@ func (i *infraCommand) RegisterHook() {
 			if err := flag.CheckInfraResourceArgs(&i.flags.InfraResourceFlags); err != nil {
 				return err
 			}
+			if err := flag.CheckPropertiesArgs(&i.flags.PropertiesFlag); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -98,6 +103,7 @@ func (i *infraCommand) InitHook() {
 	i.flags = &infraFlags{}
 	flag.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 	flag.AddInfraResourceFlags(i.command, &i.flags.InfraResourceFlags)
+	flag.AddPropertiesFlags(i.command, &i.flags.PropertiesFlag)
 	i.command.Flags().StringVarP(&i.flags.Project, "project", "p", "", "The project name where the service will be deployed")
 }
 
@@ -115,7 +121,8 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 			Namespace: i.flags.Project,
 		},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: converter.FromResourceFlagsToResource(&i.flags.InfraResourceFlags),
+			Resource:        converter.FromInfraResourceFlagsToResource(&i.flags.InfraResourceFlags),
+			InfraProperties: converter.FromPropertiesFlagToStringMap(&i.flags.PropertiesFlag),
 		},
 		Status: v1beta1.KogitoInfraStatus{
 			Condition: v1beta1.KogitoInfraCondition{},
