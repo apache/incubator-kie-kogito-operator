@@ -96,6 +96,7 @@ olm_namespace=
 # operator information
 operator_image=
 operator_tag=
+operator_namespaced=false
 # files/binaries
 deploy_uri=
 cli_path=
@@ -155,6 +156,7 @@ run-tests:
 	&& if [ "${maven_ignore_self_signed_certificate}" = "true" ]; then opts+=("--maven_ignore_self_signed_certificate"); fi \
 	&& if [ "${disable_maven_native_build_container}" = "true" ]; then opts+=("--disable_maven_native_build_container"); fi \
 	&& if [ "${custom_maven_repo_replace_default}" = "true" ]; then opts+=("--custom_maven_repo_replace_default"); fi \
+	&& if [ "${operator_namespaced}" = "true" ]; then opts+=("--operator_namespaced"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ./hack/run-tests.sh \
 		--feature ${feature} \
