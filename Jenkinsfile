@@ -60,7 +60,8 @@ pipeline {
         stage("Build examples' images for testing"){
             steps {
                 // Do not build native images for the PR checks
-                sh "make build-examples-images tags='~@native' concurrent=3 ${getBDDParameters('never', false)}"
+                // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
             }
             post {
                 always {

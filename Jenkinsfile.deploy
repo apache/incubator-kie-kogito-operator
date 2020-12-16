@@ -172,7 +172,8 @@ pipeline {
 
                     try {
                         // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        sh "make build-examples-images tags='~@native' concurrent=3 ${getBDDParameters('never', false, 'docker')}"
+                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                        sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
                     } catch(err) {
                         unstable("Error building non-native examples' images. Check the junit results.")
                     }
@@ -180,7 +181,8 @@ pipeline {
                     try {
                         // Optaplanner taking a lot of resources, we should not build in parallel
                         // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                        sh "make build-examples-images tags='@native' concurrent=1 ${getBDDParameters('never', false, 'docker')}"
+                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                        sh "make build-examples-images tags='@native' concurrent=1 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
                     } catch(err) {
                         unstable("Error building native examples' images. Check the junit results.")
                     }
