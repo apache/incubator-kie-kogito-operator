@@ -178,7 +178,11 @@ func newSuccessfulKafkaInfra(namespace string) *v1beta1.KogitoInfra {
 				Status: v1.StatusSuccess,
 				Reason: "",
 			},
-			AppProps: map[string]string{QuarkusKafkaBootstrapAppProp: "kafka:1101"},
+			RuntimeProperties: map[v1beta1.RuntimeType]v1beta1.RuntimeProperties{
+				v1beta1.QuarkusRuntimeType: {
+					AppProps: map[string]string{QuarkusKafkaBootstrapAppProp: "kafka:1101"},
+				},
+			},
 		},
 	}
 }

@@ -34,13 +34,17 @@ func CreateFakeKogitoKafka(namespace string) *v1beta1.KogitoInfra {
 			},
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			AppProps: map[string]string{
-				"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.test.svc:9092",
-			},
-			Env: []corev1.EnvVar{
-				{
-					Name:  "ENABLE_EVENTS",
-					Value: "true",
+			RuntimeProperties: map[v1beta1.RuntimeType]v1beta1.RuntimeProperties{
+				v1beta1.QuarkusRuntimeType: {
+					AppProps: map[string]string{
+						"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.test.svc:9092",
+					},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "ENABLE_PERSISTENCE",
+							Value: "true",
+						},
+					},
 				},
 			},
 		},
@@ -61,13 +65,17 @@ func CreateFakeKogitoInfinispan(namespace string) *v1beta1.KogitoInfra {
 			},
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			AppProps: map[string]string{
-				"quarkus.infinispan-client.server-list": "infinispanInstance:11222",
-			},
-			Env: []corev1.EnvVar{
-				{
-					Name:  "ENABLE_PERSISTENCE",
-					Value: "true",
+			RuntimeProperties: map[v1beta1.RuntimeType]v1beta1.RuntimeProperties{
+				v1beta1.QuarkusRuntimeType: {
+					AppProps: map[string]string{
+						"quarkus.infinispan-client.server-list": "infinispanInstance:11222",
+					},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "ENABLE_PERSISTENCE",
+							Value: "true",
+						},
+					},
 				},
 			},
 			Volume: []v1beta1.KogitoInfraVolume{

@@ -404,34 +404,15 @@ func schema__api_v1beta1_KogitoInfraStatus(ref common.ReferenceCallback) common.
 							Ref: ref("./api/v1beta1.KogitoInfraCondition"),
 						},
 					},
-					"appProps": {
+					"runtimeProperties": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Application properties extracted from the linked resource that will be added to the deployed Kogito service.",
+							Description: "Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"env": {
-						VendorExtensible: spec.VendorExtensible{
-							Extensions: spec.Extensions{
-								"x-kubernetes-list-type": "atomic",
-							},
-						},
-						SchemaProps: spec.SchemaProps{
-							Description: "Environment variables extracted from the linked resource that will be added to the deployed Kogito service.",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.EnvVar"),
+										Ref: ref("./api/v1beta1.RuntimeProperties"),
 									},
 								},
 							},
@@ -459,7 +440,7 @@ func schema__api_v1beta1_KogitoInfraStatus(ref common.ReferenceCallback) common.
 			},
 		},
 		Dependencies: []string{
-			"./api/v1beta1.KogitoInfraCondition", "./api/v1beta1.KogitoInfraVolume", "k8s.io/api/core/v1.EnvVar"},
+			"./api/v1beta1.KogitoInfraCondition", "./api/v1beta1.KogitoInfraVolume", "./api/v1beta1.RuntimeProperties"},
 	}
 }
 

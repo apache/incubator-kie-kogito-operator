@@ -100,8 +100,10 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	kafkaAppProps := kogitoInfra.Status.AppProps
-	assert.Contains(t, "kogito-kafka:9090", kafkaAppProps["kafka.bootstrap.servers"])
+	kafkaQuarkusAppProps := kogitoInfra.Status.RuntimeProperties[v1beta1.QuarkusRuntimeType].AppProps
+	assert.Contains(t, "kogito-kafka:9090", kafkaQuarkusAppProps["kafka.bootstrap.servers"])
+	kafkaSpringBootAppProps := kogitoInfra.Status.RuntimeProperties[v1beta1.SpringBootRuntimeType].AppProps
+	assert.Contains(t, "kogito-kafka:9090", kafkaSpringBootAppProps["kafka.bootstrap.servers"])
 }
 
 func Test_Reconcile_Infinispan(t *testing.T) {
@@ -168,11 +170,11 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	infinispanAppProps := kogitoInfra.Status.AppProps
-	assert.Equal(t, "kogito-infinispan:11222", infinispanAppProps["quarkus.infinispan-client.server-list"])
-	assert.Equal(t, "true", infinispanAppProps["quarkus.infinispan-client.use-auth"])
-	assert.Equal(t, "PLAIN", infinispanAppProps["quarkus.infinispan-client.sasl-mechanism"])
-	assert.Empty(t, infinispanAppProps["quarkus.infinispan-client.auth-realm"])
-	assert.NotEmpty(t, infinispanAppProps["quarkus.infinispan-client.trust-store"])
+	infinispanQuarkusAppProps := kogitoInfra.Status.RuntimeProperties[v1beta1.QuarkusRuntimeType].AppProps
+	assert.Equal(t, "kogito-infinispan:11222", infinispanQuarkusAppProps["quarkus.infinispan-client.server-list"])
+	assert.Equal(t, "true", infinispanQuarkusAppProps["quarkus.infinispan-client.use-auth"])
+	assert.Equal(t, "PLAIN", infinispanQuarkusAppProps["quarkus.infinispan-client.sasl-mechanism"])
+	assert.Empty(t, infinispanQuarkusAppProps["quarkus.infinispan-client.auth-realm"])
+	assert.NotEmpty(t, infinispanQuarkusAppProps["quarkus.infinispan-client.trust-store"])
 	assert.Len(t, kogitoInfra.Status.Volume, 1)
 }

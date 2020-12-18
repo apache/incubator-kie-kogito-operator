@@ -59,28 +59,28 @@ var (
 	//For Quarkus: https://quarkus.io/guides/mongoDB-client#quarkus-mongoDB-client_configuration
 	//For Spring: https://github.com/mongoDB/mongoDB-spring-boot/blob/master/mongoDB-spring-boot-starter-remote/src/test/resources/test-application.properties
 
-	// propertiesMongoDBQuarkus mongoDB properties for quarkus runtime
-	propertiesMongoDBQuarkus = map[int]string{
-		appPropMongoDBURI: "quarkus.mongodb.connection-string",
+	propertiesMongoDB = map[v1beta1.RuntimeType]map[int]string{
+		v1beta1.QuarkusRuntimeType: {
+			appPropMongoDBURI: "quarkus.mongodb.connection-string",
 
-		envVarMongoDBAuthDatabase: "QUARKUS_MONGODB_CREDENTIALS_AUTH_SOURCE",
-		envVarMongoDBUser:         "QUARKUS_MONGODB_CREDENTIALS_USERNAME",
-		envVarMongoDBPassword:     "QUARKUS_MONGODB_CREDENTIALS_PASSWORD",
-		envVarMongoDBDatabase:     "QUARKUS_MONGODB_DATABASE",
-	}
-	// propertiesMongoDBSpring mongoDB properties for spring boot runtime
-	propertiesMongoDBSpring = map[int]string{
-		appPropMongoDBHost: "spring.data.mongodb.host",
-		appPropMongoDBPort: "spring.data.mongodb.port",
+			envVarMongoDBAuthDatabase: "QUARKUS_MONGODB_CREDENTIALS_AUTH_SOURCE",
+			envVarMongoDBUser:         "QUARKUS_MONGODB_CREDENTIALS_USERNAME",
+			envVarMongoDBPassword:     "QUARKUS_MONGODB_CREDENTIALS_PASSWORD",
+			envVarMongoDBDatabase:     "QUARKUS_MONGODB_DATABASE",
+		},
+		v1beta1.SpringBootRuntimeType: {
+			appPropMongoDBHost: "spring.data.mongodb.host",
+			appPropMongoDBPort: "spring.data.mongodb.port",
 
-		envVarMongoDBAuthDatabase: "SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE",
-		envVarMongoDBUser:         "SPRING_DATA_MONGODB_USERNAME",
-		envVarMongoDBPassword:     "SPRING_DATA_MONGODB_PASSWORD",
-		envVarMongoDBDatabase:     "SPRING_DATA_MONGODB_DATABASE",
+			envVarMongoDBAuthDatabase: "SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE",
+			envVarMongoDBUser:         "SPRING_DATA_MONGODB_USERNAME",
+			envVarMongoDBPassword:     "SPRING_DATA_MONGODB_PASSWORD",
+			envVarMongoDBDatabase:     "SPRING_DATA_MONGODB_DATABASE",
+		},
 	}
 )
 
-func (i *mongoDBInfraReconciler) getMongoDBSecretEnvVars(mongoDBInstance *mongodb.MongoDB) ([]corev1.EnvVar, error) {
+func (i *mongoDBInfraReconciler) getMongoDBRuntimeSecretEnvVars(mongoDBInstance *mongodb.MongoDB, runtime v1beta1.RuntimeType) ([]corev1.EnvVar, error) {
 	var envProps []corev1.EnvVar
 
 	customMongoDBSecret, resultErr := i.loadCustomKogitoMongoDBSecret(i.instance.Namespace)
@@ -98,18 +98,14 @@ func (i *mongoDBInfraReconciler) getMongoDBSecretEnvVars(mongoDBInstance *mongod
 	envProps = append(envProps, framework.CreateEnvVar(mongoDBEnablePersistenceEnvKey, "true"))
 	mongoDBSecretName := customMongoDBSecret.Name
 	envProps = append(envProps, framework.CreateEnvVar(mongoDBEnvKeyCredSecret, mongoDBSecretName))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBSpring[envVarMongoDBAuthDatabase], mongoDBSecretName, infrastructure.MongoDBAppSecretAuthDatabaseKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBQuarkus[envVarMongoDBAuthDatabase], mongoDBSecretName, infrastructure.MongoDBAppSecretAuthDatabaseKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBSpring[envVarMongoDBUser], mongoDBSecretName, infrastructure.MongoDBAppSecretUsernameKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBQuarkus[envVarMongoDBUser], mongoDBSecretName, infrastructure.MongoDBAppSecretUsernameKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBSpring[envVarMongoDBPassword], mongoDBSecretName, infrastructure.MongoDBAppSecretPasswordKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBQuarkus[envVarMongoDBPassword], mongoDBSecretName, infrastructure.MongoDBAppSecretPasswordKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBSpring[envVarMongoDBDatabase], mongoDBSecretName, infrastructure.MongoDBAppSecretDatabaseKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDBQuarkus[envVarMongoDBDatabase], mongoDBSecretName, infrastructure.MongoDBAppSecretDatabaseKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDB[runtime][envVarMongoDBAuthDatabase], mongoDBSecretName, infrastructure.MongoDBAppSecretAuthDatabaseKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDB[runtime][envVarMongoDBUser], mongoDBSecretName, infrastructure.MongoDBAppSecretUsernameKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDB[runtime][envVarMongoDBPassword], mongoDBSecretName, infrastructure.MongoDBAppSecretPasswordKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesMongoDB[runtime][envVarMongoDBDatabase], mongoDBSecretName, infrastructure.MongoDBAppSecretDatabaseKey))
 	return envProps, nil
 }
 
-func (i *mongoDBInfraReconciler) getMongoDBAppProps(mongoDBInstance *mongodb.MongoDB) (map[string]string, error) {
+func (i *mongoDBInfraReconciler) getMongoDBRuntimeAppProps(mongoDBInstance *mongodb.MongoDB, runtime v1beta1.RuntimeType) (map[string]string, error) {
 	appProps := map[string]string{}
 
 	mongoDBURI := mongoDBInstance.Status.MongoURI
@@ -118,33 +114,42 @@ func (i *mongoDBInfraReconciler) getMongoDBAppProps(mongoDBInstance *mongodb.Mon
 		if err != nil {
 			return nil, err
 		}
-		appProps[propertiesMongoDBSpring[appPropMongoDBHost]] = mongoDBParsedURL.Hostname()
-		appProps[propertiesMongoDBSpring[appPropMongoDBPort]] = mongoDBParsedURL.Port()
-		appProps[propertiesMongoDBQuarkus[appPropMongoDBURI]] = mongoDBURI
+		if runtime == v1beta1.QuarkusRuntimeType {
+			appProps[propertiesMongoDB[runtime][appPropMongoDBURI]] = mongoDBURI
+		} else if runtime == v1beta1.SpringBootRuntimeType {
+			appProps[propertiesMongoDB[runtime][appPropMongoDBHost]] = mongoDBParsedURL.Hostname()
+			appProps[propertiesMongoDB[runtime][appPropMongoDBPort]] = mongoDBParsedURL.Port()
+		}
 	}
 
 	return appProps, nil
 }
 
-func (i *mongoDBInfraReconciler) updateMongoDBAppPropsInStatus(mongoDBInstance *mongodb.MongoDB) error {
-	i.log.Debug("going to Update MongoDB app properties in kogito infra instance status")
-	appProps, err := i.getMongoDBAppProps(mongoDBInstance)
+func (i *mongoDBInfraReconciler) getMongoDBRuntimeProps(mongoDBInstance *mongodb.MongoDB, runtime v1beta1.RuntimeType) (v1beta1.RuntimeProperties, error) {
+	runtimeProps := v1beta1.RuntimeProperties{}
+	appProps, err := i.getMongoDBRuntimeAppProps(mongoDBInstance, runtime)
 	if err != nil {
-		return err
+		return runtimeProps, err
 	}
-	i.instance.Status.AppProps = appProps
-	i.log.Debug("Following app properties are set infra status", "properties", appProps)
-	return nil
+	runtimeProps.AppProps = appProps
+
+	envVars, err := i.getMongoDBRuntimeSecretEnvVars(mongoDBInstance, runtime)
+	if err != nil {
+		return runtimeProps, err
+	}
+	runtimeProps.Env = envVars
+
+	return runtimeProps, nil
 }
 
-func (i *mongoDBInfraReconciler) updateMongoDBEnvVarsInStatus(mongoDBInstance *mongodb.MongoDB) error {
-	i.log.Debug("going to Update MongoDB env properties in kogito infra instance status")
-	envVars, err := i.getMongoDBSecretEnvVars(mongoDBInstance)
+func (i *mongoDBInfraReconciler) updateMongoDBRuntimePropsInStatus(mongoDBInstance *mongodb.MongoDB, runtime v1beta1.RuntimeType) error {
+	i.log.Debug("going to Update MongoDB runtime properties in kogito infra instance status", "runtime", runtime)
+	runtimeProps, err := i.getMongoDBRuntimeProps(mongoDBInstance, runtime)
 	if err != nil {
 		return err
 	}
-	i.instance.Status.Env = envVars
-	i.log.Debug("Following env properties are set infra status", "envs", envVars)
+	setRuntimeProperties(i.instance, runtime, runtimeProps)
+	i.log.Debug("Following MongoDB runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
 
@@ -260,10 +265,10 @@ func (i *mongoDBInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 		return false, errorForResourceNotReadyError(fmt.Errorf("mongoDB instance %s not ready. Waiting for Status.Phase == Running", mongoDBInstance.Name))
 	}
 	i.log.Info("MongoDB instance is running")
-	if resultErr = i.updateMongoDBAppPropsInStatus(mongoDBInstance); resultErr != nil {
+	if resultErr := i.updateMongoDBRuntimePropsInStatus(mongoDBInstance, v1beta1.QuarkusRuntimeType); resultErr != nil {
 		return true, resultErr
 	}
-	if resultErr = i.updateMongoDBEnvVarsInStatus(mongoDBInstance); resultErr != nil {
+	if resultErr := i.updateMongoDBRuntimePropsInStatus(mongoDBInstance, v1beta1.SpringBootRuntimeType); resultErr != nil {
 		return true, resultErr
 	}
 	return false, resultErr

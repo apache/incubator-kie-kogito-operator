@@ -64,3 +64,11 @@ func setResourceSuccess(instance *v1beta1.KogitoInfra) {
 		instance.Status.Condition.LastTransitionTime = metav1.Now()
 	}
 }
+
+// setRuntimeProperties sets the instance status' runtime properties
+func setRuntimeProperties(instance *v1beta1.KogitoInfra, runtime v1beta1.RuntimeType, runtimeProps v1beta1.RuntimeProperties) {
+	if instance.Status.RuntimeProperties == nil {
+		instance.Status.RuntimeProperties = v1beta1.RuntimePropertiesMap{}
+	}
+	instance.Status.RuntimeProperties[runtime] = runtimeProps
+}
