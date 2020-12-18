@@ -175,7 +175,7 @@ operator_image=
 operator_tag=
 operator_namespaced=false
 # files/binaries
-deploy_uri=
+operator_yaml_uri=
 cli_path=
 # runtime
 services_image_registry=
@@ -213,7 +213,6 @@ show_scenarios=false
 show_steps=false
 dry_run=false
 keep_namespace=false
-disabled_crds_update=false
 namespace_name=
 local_cluster=false
 run-tests:
@@ -228,7 +227,6 @@ run-tests:
 	&& if [ "${show_steps}" = "true" ]; then opts+=("--show_steps"); fi \
 	&& if [ "${dry_run}" = "true" ]; then opts+=("--dry_run"); fi \
 	&& if [ "${keep_namespace}" = "true" ]; then opts+=("--keep_namespace"); fi \
-	&& if [ "${disabled_crds_update}" = "true" ]; then opts+=("--disabled_crds_update"); fi \
 	&& if [ "${load_default_config}" = "true" ]; then opts+=("--load_default_config"); fi \
 	&& if [ "${maven_ignore_self_signed_certificate}" = "true" ]; then opts+=("--maven_ignore_self_signed_certificate"); fi \
 	&& if [ "${disable_maven_native_build_container}" = "true" ]; then opts+=("--disable_maven_native_build_container"); fi \
@@ -243,7 +241,7 @@ run-tests:
 		--ci ${ci} \
 		--operator_image $(operator_image) \
 		--operator_tag $(operator_tag) \
-		--deploy_uri ${deploy_uri} \
+		--operator_yaml_uri ${operator_yaml_uri} \
 		--cli_path ${cli_path} \
 		--services_image_registry ${services_image_registry} \
 		--services_image_namespace ${services_image_namespace} \

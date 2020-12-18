@@ -196,6 +196,25 @@ func CreateFile(folder, fileName, fileContent string) error {
 	return nil
 }
 
+// CreateTemporaryFile Creates file in default directory for temporary files with supplied content
+func CreateTemporaryFile(filePattern, fileContent string) (string, error) {
+	f, err := ioutil.TempFile("", filePattern)
+	if err != nil {
+		return "", fmt.Errorf("Error creating file with pattern %s in temporary folder: %v ", filePattern, err)
+	}
+
+	if _, err = f.WriteString(fileContent); err != nil {
+		f.Close()
+		return "", fmt.Errorf("Error writing to file %s in temporary folder: %v ", f.Name(), err)
+	}
+
+	if err := f.Close(); err != nil {
+		return "", fmt.Errorf("Error closing file %s in temporary folder: %v ", f.Name(), err)
+	}
+
+	return f.Name(), nil
+}
+
 // DeleteFile deletes a file
 func DeleteFile(folder, fileName string) error {
 	return os.Remove(folder + "/" + fileName)

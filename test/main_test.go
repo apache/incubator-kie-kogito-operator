@@ -26,7 +26,6 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/steps"
@@ -48,9 +47,6 @@ var (
 		Randomize: time.Now().UTC().UnixNano(),
 		Tags:      disabledTag,
 	}
-
-	// Array of created cluster objects, used to cleanup environment when the tests finish
-	clusterObjects []meta.ResourceObject
 )
 
 func init() {
@@ -345,8 +341,7 @@ func installClusterWideKogitoOperator() error {
 	}
 
 	// Deploy the operator
-	created, err := framework.DeployClusterWideKogitoOperatorFromYaml(kogitoClusterWideNamespace)
-	clusterObjects = created
+	err := framework.DeployClusterWideKogitoOperatorFromYaml(kogitoClusterWideNamespace)
 	if err != nil {
 		return err
 	}
@@ -362,13 +357,6 @@ func installClusterWideKogitoOperator() error {
 // Uninstall cluster wide Kogito operator
 func uninstallClusterWideKogitoOperator() error {
 	if !config.IsKeepNamespace() {
-		// Delete all objects created for the Kogito operator
-		for _, o := range clusterObjects {
-			if err := framework.DeleteObject(o); err != nil {
-				framework.GetMainLogger().Error(err, "Error removing created objects", "namespace", kogitoClusterWideNamespace)
-			}
-		}
-
 		return framework.DeleteNamespace(kogitoClusterWideNamespace)
 	}
 	return nil

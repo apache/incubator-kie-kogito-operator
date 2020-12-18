@@ -296,8 +296,6 @@ You can set those optional keys:
   *Default is false.*
 - `keep_namespace` sets to true to not delete namespace(s) after scenario run (WARNING: can be resources consuming ...).  
   *Default is false.*
-- `disabled_crds_update` sets to true to disable the update of CRDs.  
-  *Default is false.*
 - `namespace_name` to specify name of the namespace which will be used for scenario execution (intended for development purposes).
 - `local_cluster` to be set to true if running tests using a local cluster.
   *Default is false.*
