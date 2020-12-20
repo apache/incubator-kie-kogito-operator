@@ -29,6 +29,8 @@ import (
 	"strings"
 )
 
+const pomFile = "pom.xml"
+
 var supportedExtensions = map[flag.BinaryBuildType][]string{
 	flag.SourceToImageBuild:       {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties", ".sw.json", ".sw.yaml"},
 	flag.BinaryQuarkusJvmBuild:    {".jar", ".json"},
@@ -207,8 +209,8 @@ func IsSuffixSupported(value string, binaryBuildType flag.BinaryBuildType) bool 
 }
 
 func isMavenProject(resource string) (bool, error) {
-	pomFile := resource + "pom.xml"
-	if _, err := os.Stat(pomFile); err == nil {
+	pomPath := resource + pomFile
+	if _, err := os.Stat(pomPath); err == nil {
 		return true, nil
 
 	} else if os.IsNotExist(err) {

@@ -12,6 +12,7 @@
 - [KOGITO-3866](https://issues.redhat.com/browse/KOGITO-3866) Operator print error logs when KogitoRuntime delete
 - [KOGITO-3864](https://issues.redhat.com/browse/KOGITO-3864) KogitoInfra gets deleted when refering KogitoRuntime/KogitoSupportingService delete
 - [KOGITO-3947](https://issues.redhat.com/browse/KOGITO-3947) Infinite reconciliation loop when Jobs service is deployed
+- [KOGITO-4046](https://issues.redhat.com/browse/KOGITO-4046) Deploying a new Kogito service from files in CLI not reading all files in the directory
 
 ## Known Issues
 The protobuf ConfigMap does not update in Spring Boot due to [this issue](https://issues.redhat.com/browse/KOGITO-3406).
