@@ -18,8 +18,8 @@ import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/api/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -27,12 +27,11 @@ import (
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
-	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
-	sourcesv1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
-
 	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	sourcesv1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
 
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
@@ -46,6 +45,8 @@ import (
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	olmv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
 )
+
+var log = logger.GetLogger("meta")
 
 // DefinitionKind is a resource kind representation from a Kubernetes/Openshift cluster
 type DefinitionKind struct {
@@ -89,8 +90,8 @@ func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		imgv1.Install,
 		apiextensionsv1beta1.AddToScheme,
 		kafkabetav1.SchemeBuilder.AddToScheme,
-		infinispanv1.AddToScheme,
 		mongodb.SchemeBuilder.AddToScheme,
+		infinispanv1.AddToScheme,
 		keycloakv1alpha1.SchemeBuilder.AddToScheme,
 		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
 		monv1.SchemeBuilder.AddToScheme,
@@ -105,12 +106,12 @@ func GetRegisteredSchema() *runtime.Scheme {
 	schemes := GetRegisteredSchemeBuilder()
 	err := schemes.AddToScheme(s)
 	if err != nil {
-		logger.GetLogger("meta").Fatalf("Failed to register APIs schemes: %v", err)
+		log.Error(err, "Failed to register APIs schemes")
 		panic(err)
 	}
 
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
-	metav1.AddToGroupVersion(s, v1beta1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, v1beta1.GroupVersion)
 	// https://issues.jboss.org/browse/KOGITO-617
 	metav1.AddToGroupVersion(s, apiextensionsv1beta1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, operatormkt.SchemeGroupVersion)

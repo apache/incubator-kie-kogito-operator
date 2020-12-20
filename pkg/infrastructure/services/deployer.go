@@ -26,7 +26,7 @@ import (
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
@@ -160,7 +160,7 @@ func (s *serviceDeployer) Deploy() (time.Duration, error) {
 		if !delta.HasChanges() {
 			continue
 		}
-		log.Infof("Will create %d, update %d, and delete %d instances of %v", len(delta.Added), len(delta.Updated), len(delta.Removed), resourceType)
+		log.Info("Will", "create", len(delta.Added), "update", len(delta.Updated), "delete", len(delta.Removed), "resourceType", resourceType)
 
 		if _, err = kubernetes.ResourceC(s.client).CreateResources(delta.Added); err != nil {
 			return s.getReconcileResultFor(err)
@@ -240,7 +240,7 @@ func (s *serviceDeployer) takeKogitoInfraOwnership() (err error) {
 // checkInfraDependencies verifies if every KogitoInfra resource have an ok status.
 func (s *serviceDeployer) checkInfraDependencies() error {
 	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
-	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
+	log.Debug("Going to fetch kogito infra properties", "infra name", kogitoInfraReferences)
 	for _, infraName := range kogitoInfraReferences {
 		infra, err := infrastructure.MustFetchKogitoInfraInstance(s.client, infraName, s.instance.GetNamespace())
 		if err != nil {
@@ -266,7 +266,7 @@ func (s *serviceDeployer) configureMonitoring() error {
 	}
 
 	if err := configureGrafanaDashboards(s.client, s.instance, s.scheme, s.getNamespace()); err != nil {
-		log.Warnf("Could not deploy grafana dashboards due to %v", err)
+		log.Error(err, "Could not deploy grafana dashboards")
 		return err
 	}
 

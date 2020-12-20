@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

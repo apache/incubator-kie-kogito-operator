@@ -16,7 +16,7 @@ package services
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
@@ -27,19 +27,19 @@ import (
 )
 
 func (s *serviceDeployer) handleStatusUpdate(instance v1beta1.KogitoService, err *error) {
-	log.Infof("Updating status for Kogito Service %s", instance.GetName())
+	log.Info("Updating status for Kogito Service", "KogitoService", instance.GetName())
 	if statusErr := s.ensureResourcesStatusChanges(*err); statusErr != nil {
-		log.Errorf("Error while updating Status for Kogito Service: %v", statusErr)
+		log.Error(statusErr, "Error while updating Status for Kogito Service")
 		return
 	}
-	log.Infof("Finished Kogito Service %s reconciliation", instance.GetName())
+	log.Info("Finished Kogito Service reconciliation", "KogitoService", instance.GetName())
 }
 
 func (s *serviceDeployer) ensureResourcesStatusChanges(errCondition error) (err error) {
 	if errCondition != nil {
 		s.instance.GetStatus().SetFailed(reasonForError(errCondition), errCondition)
 		if err := s.updateStatus(); err != nil {
-			log.Errorf("Error while trying to set condition to error: %s", err)
+			log.Error(err, "Error while trying to set condition to error")
 			return err
 		}
 		// don't need to update anything else or we break the error state
@@ -69,7 +69,7 @@ func (s *serviceDeployer) ensureResourcesStatusChanges(errCondition error) (err 
 
 	if updateStatus {
 		if err := s.updateStatus(); err != nil {
-			log.Errorf("Error while trying to update status: %s", err)
+			log.Error(err, "Error while trying to update status")
 			return err
 		}
 	}

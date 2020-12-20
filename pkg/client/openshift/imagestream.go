@@ -68,7 +68,7 @@ func (i *imageStream) FetchTag(key types.NamespacedName, tag string) (*imgv1.Ima
 	tagRefName := fmt.Sprintf("%s:%s", key.Name, tag)
 	isTag, err := i.client.ImageCli.ImageStreamTags(key.Namespace).Get(context.TODO(), tagRefName, metav1.GetOptions{})
 	if err != nil && errors.IsNotFound(err) {
-		log.Debugf("Image '%s' not found on namespace %s", tagRefName, key.Namespace)
+		log.Debug("Image '%s' not found on namespace %s", tagRefName, key.Namespace)
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (i *imageStream) FetchDockerImage(key types.NamespacedName) (*dockerv10.Doc
 	} else if isTag == nil {
 		return nil, nil
 	}
-	log.Debugf("Found image '%s' in the namespace '%s'", key.Name, key.Namespace)
+	log.Debug("Found image '%s' in the namespace '%s'", key.Name, key.Namespace)
 	// is there any metadata to read from?
 	if len(isTag.Image.DockerImageMetadata.Raw) != 0 {
 		err = json.Unmarshal(isTag.Image.DockerImageMetadata.Raw, dockerImage)
@@ -94,32 +94,32 @@ func (i *imageStream) FetchDockerImage(key types.NamespacedName) (*dockerv10.Doc
 		return dockerImage, nil
 	}
 
-	log.Warnf("Can't find any metadata in the docker image for the imagestream '%s' in the namespace '%s'", key.Name, key.Namespace)
+	log.Warn("Can't find any metadata in the docker image for the imagestream '%s' in the namespace '%s'", key.Name, key.Namespace)
 	return nil, nil
 }
 
 func (i *imageStream) CreateTagIfNotExists(is *imgv1.ImageStreamTag) (bool, error) {
 	is, err := i.client.ImageCli.ImageStreamTags(is.Namespace).Create(context.TODO(), is, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
-		log.Debugf("Error while creating Image Stream Tag '%s' in namespace '%s'", is.Name, is.Namespace)
+		log.Debug("Error while creating Image Stream Tag '%s' in namespace '%s'", is.Name, is.Namespace)
 		return false, err
 	} else if errors.IsAlreadyExists(err) {
 		log.Debug("Image Stream Tag already exists in the namespace")
 		return false, nil
 	}
-	log.Debugf("Image Stream Tag %s created in namespace %s", is.Name, is.Namespace)
+	log.Debug("Image Stream Tag %s created in namespace %s", is.Name, is.Namespace)
 	return true, nil
 }
 
 func (i *imageStream) CreateImageStream(is *imgv1.ImageStream) (bool, error) {
 	is, err := i.client.ImageCli.ImageStreams(is.Namespace).Create(context.TODO(), is, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
-		log.Debugf("Error while creating Image Stream '%s' in namespace '%s'", is.Name, is.Namespace)
+		log.Debug("Error while creating Image Stream '%s' in namespace '%s'", is.Name, is.Namespace)
 		return false, err
 	} else if errors.IsAlreadyExists(err) {
 		log.Debug("Image Stream already exists in the namespace")
 		return false, nil
 	}
-	log.Debugf("Image Stream %s created in namespace %s", is.Name, is.Namespace)
+	log.Debug("Image Stream %s created in namespace %s", is.Name, is.Namespace)
 	return true, nil
 }

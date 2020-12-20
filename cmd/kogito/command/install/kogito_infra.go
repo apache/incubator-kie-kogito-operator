@@ -17,17 +17,16 @@ package install
 import (
 	"fmt"
 
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type infraFlags struct {
-	flag.OperatorFlags
 	flag.InfraResourceFlags
 	flag.PropertiesFlag
 	Name    string
@@ -84,9 +83,6 @@ func (i *infraCommand) RegisterHook() {
 			if len(args) == 0 {
 				return fmt.Errorf("the kogito infra service requires a name ")
 			}
-			if err := flag.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
-				return err
-			}
 			if err := flag.CheckInfraResourceArgs(&i.flags.InfraResourceFlags); err != nil {
 				return err
 			}
@@ -101,7 +97,6 @@ func (i *infraCommand) RegisterHook() {
 func (i *infraCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 	i.flags = &infraFlags{}
-	flag.AddOperatorFlags(i.command, &i.flags.OperatorFlags)
 	flag.AddInfraResourceFlags(i.command, &i.flags.InfraResourceFlags)
 	flag.AddPropertiesFlags(i.command, &i.flags.PropertiesFlag)
 	i.command.Flags().StringVarP(&i.flags.Project, "project", "p", "", "The project name where the service will be deployed")

@@ -140,7 +140,7 @@ pipeline {
 
         stage('Build Kogito Operator') {
             steps {
-                sh 'make image_builder=podman'
+                sh 'make BUILDER=podman'
             }
         }
 
@@ -156,7 +156,6 @@ pipeline {
                 }
             }
         }
-
         stage('Push Operator Image to Openshift Registry') {
             steps {
                 loginOpenshiftRegistry()

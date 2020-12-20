@@ -17,7 +17,7 @@ package openshift
 import (
 	"context"
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"io"
 	"k8s.io/apimachinery/pkg/runtime"
 	"strings"
@@ -94,7 +94,7 @@ func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, i
 	if img, err := ImageStreamC(b.client).FetchDockerImage(imageNamed); err != nil {
 		return state, err
 	} else if img == nil {
-		log.Debugf("ImageStream not found for build %s", bc.Name)
+		log.Debug("ImageStream not found for build", "name", bc.Name)
 	} else {
 		state.ImageExists = true
 	}
@@ -111,13 +111,13 @@ func (b *buildConfig) EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, i
 // TriggerBuild triggers a new build
 func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) (bool, error) {
 	if exists, err := b.checkBuildConfigExists(bc); !exists {
-		log.Warnf("Impossible to trigger a new build for %s. Not exists.", bc.Name)
+		log.Warn("Impossible to trigger a new build, build Not exists.", "build name", bc.Name)
 		return false, err
 	}
 	// catch panic when FakeClient Build is unable to handle dc properly
 	defer func() {
 		if err := recover(); err != nil {
-			log.Info("Skip build triggering duo to a bug on FakeBuild: github.com/openshift/client-go/build/clientset/versioned/typed/build/v1/fake/fake_buildconfig.go:134")
+			log.Info("Skip build triggering due to a bug on FakeBuild: github.com/openshift/client-go/build/clientset/versioned/typed/build/v1/fake/fake_buildconfig.go:134")
 		}
 	}()
 	buildRequest := newBuildRequest(triggeredBy, bc)
@@ -126,7 +126,7 @@ func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) 
 		return false, err
 	}
 
-	log.Info("Build triggered: ", build.Name)
+	log.Info("Build triggered", "build name", build.Name)
 	return true, nil
 }
 
@@ -143,10 +143,10 @@ func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader,
 	// before upload the file, make sure that the build exist
 	err := b.waitForBuildConfig(b.checkBcRetries, b.checkBcRetriesInterval, func() error {
 		if _, err := b.client.BuildCli.BuildConfigs(namespace).Get(context.TODO(), buildName, metav1.GetOptions{}); errors.IsNotFound(err) {
-			log.Debugf("BuildConfig %s not found in the %s namespace", buildName, namespace)
+			log.Debug("BuildConfig not found.", "name", buildName, "namespace", namespace)
 			return err
 		} else if err != nil {
-			log.Debugf("Error while retrieving BuildConfig %s in namespace %s", buildName, namespace)
+			log.Debug("Error while retrieving BuildConfig.", "build name", buildName, "namespace", namespace)
 			return err
 		}
 		return nil
@@ -178,7 +178,7 @@ func (b *buildConfig) GetBuildsStatusByLabel(namespace, labelSelector string) (*
 	status := &v1beta1.Builds{}
 
 	for _, item := range list.Items {
-		log.Debugf("Checking status of build '%s'", item.Name)
+		log.Debug("Checking status of build", "build name", item.Name)
 		switch item.Status.Phase {
 		case buildv1.BuildPhaseNew:
 			status.New = append(status.New, item.Name)
@@ -197,7 +197,7 @@ func (b *buildConfig) GetBuildsStatusByLabel(namespace, labelSelector string) (*
 		default:
 			status.New = append(status.New, item.Name)
 		}
-		log.Debugf("Build %s status is %s", item.Name, item.Status.Phase)
+		log.Debug("Build status", "build name", item.Name, "phase", item.Status.Phase)
 	}
 
 	return status, nil
@@ -221,7 +221,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 	for _, item := range list.Items {
 		// it's the build from our buildConfig
 		if strings.HasPrefix(item.Name, bc.Name) {
-			log.Debugf("Checking status of build '%s'", item.Name)
+			log.Debug("Checking status of build", "build name", item.Name)
 			switch item.Status.Phase {
 			case buildv1.BuildPhaseNew:
 				status.New = append(status.New, item.Name)
@@ -240,7 +240,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 			default:
 				status.New = append(status.New, item.Name)
 			}
-			log.Debugf("Build %s status is %s", item.Name, item.Status.Phase)
+			log.Debug("Build status", "build name", item.Name, "phase", item.Status.Phase)
 		}
 	}
 
@@ -249,7 +249,7 @@ func (b *buildConfig) GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector str
 
 func (b *buildConfig) checkBuildConfigExists(bc *buildv1.BuildConfig) (bool, error) {
 	if _, err := b.client.BuildCli.BuildConfigs(bc.Namespace).Get(context.TODO(), bc.Name, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {
-		log.Warnf("BuildConfig not found in namespace %s", bc.Namespace)
+		log.Warn("BuildConfig not found", "namespace", bc.Namespace)
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -276,7 +276,7 @@ func (b *buildConfig) waitForBuildConfig(retries int, retryInterval time.Duratio
 			break
 		}
 		time.Sleep(retryInterval)
-		log.Debug("retrying after error:", err)
+		log.Debug("retrying after error", "error", err)
 	}
 	return fmt.Errorf("after %d attempts, last error: %v", retries, err)
 }

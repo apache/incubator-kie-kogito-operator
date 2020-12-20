@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -51,13 +51,13 @@ var (
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectDataIndexURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
-	log.Debugf("Injecting Data-Index Route in kogito apps")
+	log.Debug("Injecting Data-Index Route in kogito apps")
 	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1beta1.DataIndex)
 }
 
 // InjectDataIndexURLIntoDeployment will inject data-index route URL in to kogito runtime deployment env var
 func InjectDataIndexURLIntoDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
-	log.Debugf("Injecting Data-Index URL in kogito Runtime deployment")
+	log.Debug("Injecting Data-Index URL in kogito Runtime deployment")
 	return injectSupportingServiceURLIntoDeployment(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, v1beta1.DataIndex)
 }
 
@@ -65,23 +65,23 @@ func InjectDataIndexURLIntoDeployment(client *client.Client, namespace string, d
 // Won't trigger an update if the SupportingService already has the route set to avoid unnecessary reconciliation triggers
 func InjectDataIndexURLIntoSupportingService(client *client.Client, namespace string, serviceTypes ...v1beta1.ServiceType) error {
 	for _, serviceType := range serviceTypes {
-		log.Debugf("Injecting Data-Index Route in %s", serviceType)
+		log.Debug("Injecting Data-Index Route", "service", serviceType)
 		deployment, err := getSupportingServiceDeployment(namespace, client, serviceType)
 		if err != nil {
 			return err
 		}
 		if deployment == nil {
-			log.Debugf("No deployment found for %s, skipping to inject %s URL into %s", serviceType, v1beta1.DataIndex, serviceType)
+			log.Debug("No deployment found for service, skipping to inject DataIndex URL", "service", serviceType)
 			return nil
 		}
 
-		log.Debugf("Querying %s route to inject into %s", v1beta1.DataIndex, serviceType)
+		log.Debug("Querying DataIndex route to inject into service", "service", serviceType)
 		serviceEndpoints, err := getServiceEndpoints(client, namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, v1beta1.DataIndex)
 		if err != nil {
 			return err
 		}
 		if serviceEndpoints != nil {
-			log.Debugf("The %s route is '%s'", v1beta1.DataIndex, serviceEndpoints.HTTPRouteURI)
+			log.Debug("", "DataIndex route", serviceEndpoints.HTTPRouteURI)
 
 			updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
 			// update only once

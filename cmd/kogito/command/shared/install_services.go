@@ -17,9 +17,9 @@ package shared
 import (
 	"fmt"
 
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
@@ -51,8 +51,6 @@ type ServicesInstallation interface {
 	// InstallInfraService install kogito Infra.
 	// Depends on the Operator, install it first.
 	InstallInfraService(infra *v1beta1.KogitoInfra) ServicesInstallation
-	// InstallOperator installs the Operator.
-	InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType, clusterScope bool) ServicesInstallation
 	// CheckOperatorCRDs checks wheather the CRDs are available on the cluster or not
 	CheckOperatorCRDs() ServicesInstallation
 	// GetError return any given error during the installation process
@@ -154,13 +152,6 @@ func (s *servicesInstallation) InstallInfraService(infra *v1beta1.KogitoInfra) S
 				installed:   message.InfraServiceSuccessfulInstalled,
 				checkStatus: message.InfraServiceCheckStatus,
 			})
-	}
-	return s
-}
-
-func (s *servicesInstallation) InstallOperator(warnIfInstalled bool, operatorImage string, force bool, ch KogitoChannelType, clusterScope bool) ServicesInstallation {
-	if s.err == nil {
-		s.err = InstallOperatorIfNotExists(s.namespace, operatorImage, s.client, warnIfInstalled, force, ch, clusterScope)
 	}
 	return s
 }

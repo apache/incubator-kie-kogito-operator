@@ -35,7 +35,7 @@ func CheckKogitoOperatorExists(kubeCli *client.Client, namespace string) (bool, 
 // CheckOperatorExists checks whether operator is existing and running. It expects that deployment name is equal to operator name.
 // If it is existing but not running, it returns true and an error
 func CheckOperatorExists(kubeCli *client.Client, namespace, operatorName string) (bool, error) {
-	log.Debugf("Checking if %s Operator is deployed in namespace %s", operatorName, namespace)
+	log.Debug("Checking Operator", "Deployment", operatorName, "Namespace", namespace)
 	operatorDeployment := &v1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operatorName,
@@ -59,7 +59,7 @@ func CheckOperatorExists(kubeCli *client.Client, namespace, operatorName string)
 // CheckOperatorExistsUsingSubscription checks whether operator is existing and running. For this check informations from subscription are used.
 // If it is existing but not running, it returns true and an error
 func CheckOperatorExistsUsingSubscription(kubeCli *client.Client, namespace, operatorPackageName, operatorSource string) (bool, error) {
-	log.Debugf("Checking if Operator with %s Subscription is deployed in namespace %s", operatorPackageName, namespace)
+	log.Debug("Checking if Operator deployed", "Subscription", operatorPackageName, "Namespace", namespace)
 
 	subscription, err := framework.GetSubscription(kubeCli, namespace, operatorPackageName, operatorSource)
 	if err != nil {
@@ -67,15 +67,15 @@ func CheckOperatorExistsUsingSubscription(kubeCli *client.Client, namespace, ope
 	} else if subscription == nil {
 		return false, nil
 	}
-	log.Debugf("Found subscription %s", operatorPackageName)
+	log.Debug("Found", "Subscription", operatorPackageName)
 
 	subscriptionCsv := subscription.Status.CurrentCSV
 	if subscriptionCsv == "" {
 		// Subscription doesn't contain current CSV yet, operator is still being installed.
-		log.Debugf("Subscription %s doesn't contain current CSV yet.", operatorPackageName)
+		log.Debug("Current CSV not found", "Subscription", operatorPackageName)
 		return false, nil
 	}
-	log.Debugf("Found Subscription current CSV %s", subscriptionCsv)
+	log.Debug("Found current CSV in", "Subscription", subscriptionCsv)
 
 	operatorDeployments := &v1.DeploymentList{}
 	if err := kubernetes.ResourceC(kubeCli).ListWithNamespaceAndLabel(namespace, operatorDeployments, map[string]string{"olm.owner.kind": "ClusterServiceVersion", "olm.owner": subscriptionCsv}); err != nil {

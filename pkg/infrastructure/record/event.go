@@ -58,12 +58,12 @@ func (recorder *recorderImpl) Eventf(cli *client.Client, object runtime.Object, 
 func (recorder *recorderImpl) generateEvent(cli *client.Client, object runtime.Object, eventType, reason, message string) {
 	objectRef, err := ref.GetReference(recorder.scheme, object)
 	if err != nil {
-		log.Errorf("Could not construct reference to: '%#v' due to: '%v'. Will not report event: '%v' '%v' '%v'", object, err, eventType, reason, message)
+		log.Error(err, "Could not construct object reference. Event will not be reported", "object", object, "error", err, "event type", eventType, "reason", reason, "message", message)
 		return
 	}
 
 	if !util.ValidateEventType(eventType) {
-		log.Errorf("Unsupported event type: '%v'", eventType)
+		log.Error(fmt.Errorf("Unsupported event type: '%v'", eventType), "")
 		return
 	}
 
@@ -71,7 +71,7 @@ func (recorder *recorderImpl) generateEvent(cli *client.Client, object runtime.O
 	event.Source = recorder.source
 
 	if err := kubernetes.ResourceC(cli).Create(event); err != nil {
-		log.Error("Error occurs while creating event ", event, err)
+		log.Error(err, "Error occurs while creating event", "event", event)
 	}
 }
 

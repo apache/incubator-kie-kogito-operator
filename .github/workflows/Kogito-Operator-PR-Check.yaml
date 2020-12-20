@@ -3,11 +3,12 @@ on:
   pull_request:
     paths-ignore:
       - "README.md"
+      - "RELEASE_NOTES.md"
       - "examples/**"
       - "LICENSE"
       - "Makefile"
 env:
-  OPERATOR_SDK_VERSION: v0.18.2
+  OPERATOR_SDK_VERSION: v1.2.0
   GO_VERSION: 1.14
 jobs:
   golint:
@@ -34,16 +35,16 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/go/bin/
-          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}
+          key: ${{ runner.os }}-go-${{ env.OPERATOR_SDK_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-go-${{ env.GO_VERSION }}
+            ${{ runner.os }}-go-${{ env.OPERATOR_SDK_VERSION }}
       - name: Install Operator-sdk
         run: ./hack/ci/install-operator-sdk.sh
       - name: Check Vet
         run: |
-          ./hack/go-vet.sh
+          make vet
           git diff
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml' || :)
           generated_changed_files=$(git status -s | grep zz_generated || :)
           [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen" && exit 1)
           [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make vet' before sending the PR?" && exit 1)
@@ -51,12 +52,12 @@ jobs:
       - name: Check Headers
         run: |
           ./hack/addheaders.sh
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make test' before sending the PR" && exit 1)
       - name: Check Formatting
         run: |
           ./hack/go-fmt.sh
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
       - name: Install golinters
         run: |
@@ -83,8 +84,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ env.GO_VERSION }}
           restore-keys: |
             ${{ runner.os }}-go-${{ env.GO_VERSION }}
-      - name: Install Operator-sdk
-        run: ./hack/ci/install-operator-sdk.sh
       - name: Setup Bats
         run: |
           git clone https://github.com/bats-core/bats-core.git

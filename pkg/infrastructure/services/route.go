@@ -15,7 +15,7 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -25,7 +25,7 @@ import (
 // createRequiredRoute creates a new Route resource based on the given Service
 func createRequiredRoute(instance v1beta1.KogitoService, service *corev1.Service) (route *routev1.Route) {
 	if service == nil || len(service.Spec.Ports) == 0 {
-		log.Warnf("Impossible to create a Route without a target service on Kogito Service %s ", instance.GetName())
+		log.Warn("Impossible to create a Route without a target service on Kogito Service", "KogitoService", instance.GetName())
 		return route
 	}
 

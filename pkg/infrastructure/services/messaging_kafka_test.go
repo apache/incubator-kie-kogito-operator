@@ -17,8 +17,8 @@ package services
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
-	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/api/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"

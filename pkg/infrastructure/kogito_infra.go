@@ -16,7 +16,7 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -26,15 +26,15 @@ import (
 // FetchKogitoInfraInstance loads a given infra instance by name and namespace.
 // If the KogitoInfra resource is not present, nil will return.
 func FetchKogitoInfraInstance(client *client.Client, name string, namespace string) (*v1beta1.KogitoInfra, error) {
-	log.Debugf("going to fetch deployed kogito infra instance %s", name)
+	log.Debug("going to fetch deployed kogito infra instance", "name", name, "namespace", namespace)
 	instance := &v1beta1.KogitoInfra{}
 	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
-		log.Errorf("Error occurs while fetching deployed kogito infra instance %s", name)
+		log.Error(resultErr, "Error occurs while fetching deployed kogito infra instance", "name", name)
 		return nil, resultErr
 	} else if !exists {
 		return nil, nil
 	} else {
-		log.Debugf("Successfully fetch deployed kogito infra reference %s", name)
+		log.Debug("Successfully fetch deployed kogito infra reference", "name", name)
 		return instance, nil
 	}
 }
@@ -42,15 +42,15 @@ func FetchKogitoInfraInstance(client *client.Client, name string, namespace stri
 // MustFetchKogitoInfraInstance loads a given infra instance by name and namespace.
 // If the KogitoInfra resource is not present, an error is raised.
 func MustFetchKogitoInfraInstance(client *client.Client, name string, namespace string) (*v1beta1.KogitoInfra, error) {
-	log.Debugf("going to must fetch deployed kogito infra instance %s", name)
+	log.Debug("going to must fetch deployed kogito infra instance", "name", name)
 	instance := &v1beta1.KogitoInfra{}
 	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
-		log.Errorf("Error occurs while fetching deployed kogito infra instance %s", name)
+		log.Error(resultErr, "Error occurs while fetching deployed kogito infra instance", "name", name)
 		return nil, resultErr
 	} else if !exists {
 		return nil, fmt.Errorf("kogito Infra resource with name %s not found in namespace %s", name, namespace)
 	} else {
-		log.Debugf("Successfully fetch deployed kogito infra reference %s", name)
+		log.Debug("Successfully fetch deployed kogito infra reference", "name", name)
 		return instance, nil
 	}
 }
@@ -67,7 +67,7 @@ func IsKnativeEventingResource(instance *v1beta1.KogitoInfra) bool {
 
 // RemoveKogitoInfraOwnership remove provided kogito service owner reference from kogitoInfra
 func RemoveKogitoInfraOwnership(client *client.Client, owner v1beta1.KogitoService) error {
-	log.Debugf("Removing KogitoInfra ownership for %s", owner.GetName())
+	log.Debug("Removing KogitoInfra ownership", "owner", owner.GetName())
 	for _, kogitoInfraName := range owner.GetSpec().GetInfra() {
 		// load infra resource
 		kogitoInfraInstance, err := FetchKogitoInfraInstance(client, kogitoInfraName, owner.GetNamespace())
@@ -81,7 +81,7 @@ func RemoveKogitoInfraOwnership(client *client.Client, owner v1beta1.KogitoServi
 		if err = kubernetes.ResourceC(client).Update(kogitoInfraInstance); err != nil {
 			return err
 		}
-		log.Debugf("Successfully removed KogitoInfra ownership for %s from %s", owner.GetName(), kogitoInfraInstance.Name)
+		log.Debug("Successfully removed KogitoInfra ownership", "owner", owner.GetName(), "instance", kogitoInfraInstance.Name)
 	}
 	return nil
 }

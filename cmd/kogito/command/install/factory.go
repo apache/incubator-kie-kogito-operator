@@ -22,7 +22,6 @@ import (
 // BuildCommands creates the commands available in this package
 func BuildCommands(ctx *context.CommandContext, rootCommand *cobra.Command) {
 	installCmd := initInstallCommand(ctx, rootCommand)
-	initInstallKogitoOperatorCommand(ctx, installCmd.Command())
 	initInstallSupportingServiceCommands(ctx, installCmd.Command())
 	initInfraCommand(ctx, installCmd.Command())
 }

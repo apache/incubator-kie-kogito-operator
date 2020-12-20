@@ -1,0 +1,20 @@
+domain: kiegroup.org
+layout: go.kubebuilder.io/v2
+projectName: kogito-operator
+repo: github.com/kiegroup/kogito-cloud-operator
+resources:
+- group: app
+  kind: KogitoRuntime
+  version: v1beta1
+- group: app
+  kind: KogitoSupportingService
+  version: v1beta1
+- group: app
+  kind: KogitoBuild
+  version: v1beta1
+- group: app
+  kind: KogitoInfra
+  version: v1beta1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

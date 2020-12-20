@@ -17,16 +17,15 @@ package framework
 import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
-
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 )
 
 // GetSubscription returns subscription or nil if no subscription is found.
 func GetSubscription(cli *client.Client, namespace, packageName, catalogSource string) (*olmapiv1alpha1.Subscription, error) {
-	log := context.GetDefaultLogger()
-	log.Debugf("Trying to fetch Subscription in namespace '%s' with Package name '%s' and CatalogSource '%s'", namespace, packageName, catalogSource)
+	log := logger.GetLogger("subscription")
+	log.Debug("Trying to fetch Subscription", "namespace", namespace, "Package name", packageName, "CatalogSource", namespace, packageName, catalogSource)
 
 	subs := &olmapiv1alpha1.SubscriptionList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, subs); err != nil {

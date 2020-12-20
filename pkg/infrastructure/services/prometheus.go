@@ -18,7 +18,7 @@ import (
 	"net/http"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -34,7 +34,7 @@ const prometheusServerGroup = "monitoring.coreos.com"
 func configurePrometheus(client *client.Client, kogitoService v1beta1.KogitoService, scheme *runtime.Scheme) error {
 	prometheusAvailable := isPrometheusAvailable(client)
 	if !prometheusAvailable {
-		log.Debugf("prometheus operator not available in namespace")
+		log.Debug("prometheus operator not available in namespace")
 		return nil
 	}
 
@@ -43,7 +43,7 @@ func configurePrometheus(client *client.Client, kogitoService v1beta1.KogitoServ
 		return err
 	}
 	if !deploymentAvailable {
-		log.Debugf("Deployment is currently not available, will try in next reconciliation loop")
+		log.Debug("Deployment is currently not available, will try in next reconciliation loop")
 		return nil
 	}
 
@@ -72,7 +72,7 @@ func isPrometheusAddOnAvailable(kogitoService v1beta1.KogitoService) (bool, erro
 	} else if resp.StatusCode == http.StatusOK {
 		return true, nil
 	}
-	log.Debugf("Non-OK Http Status received")
+	log.Debug("Non-OK Http Status received")
 	return false, nil
 }
 
@@ -91,10 +91,10 @@ func createPrometheusServiceMonitorIfNotExists(client *client.Client, kogitoServ
 }
 
 func loadDeployedServiceMonitor(client *client.Client, instanceName, namespace string) (*monv1.ServiceMonitor, error) {
-	log.Debug("fetching deployed Service monitor instance with name %s in namespace %s", instanceName, namespace)
+	log.Debug("fetching deployed Service monitor instance", "instanceName", instanceName, "namespace", namespace)
 	serviceMonitor := &monv1.ServiceMonitor{}
 	if exits, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, serviceMonitor); err != nil {
-		log.Error("Error occurs while fetching Service monitor instance")
+		log.Error(err, "Error occurs while fetching Service monitor instance")
 		return nil, err
 	} else if !exits {
 		log.Debug("Service monitor instance is not exists")
@@ -144,7 +144,7 @@ func createServiceMonitor(cli *client.Client, kogitoService v1beta1.KogitoServic
 		return nil, err
 	}
 	if err := kubernetes.ResourceC(cli).Create(sm); err != nil {
-		log.Error("Error occurs while creating Service Monitor instance")
+		log.Error(err, "Error occurs while creating Service Monitor instance")
 		return nil, err
 	}
 	return sm, nil

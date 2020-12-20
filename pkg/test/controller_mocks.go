@@ -15,6 +15,7 @@
 package test
 
 import (
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -73,6 +74,10 @@ func NewManager() manager.Manager {
 
 type managerMock struct {
 	scheme *runtime.Scheme
+}
+
+func (m managerMock) GetLogger() logr.Logger {
+	panic("implement me")
 }
 
 func (m managerMock) AddMetricsExtraHandler(path string, handler http.Handler) error {

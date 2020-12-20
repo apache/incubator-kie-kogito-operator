@@ -16,14 +16,14 @@ package client
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	rbac "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -37,7 +37,6 @@ import (
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 )
@@ -93,7 +92,7 @@ func (c *Client) IsOLMAvaialable() bool {
 
 // IsKogitoCRDsAvailable detects if the CRDs for kogito-operator are available or not
 func (c *Client) IsKogitoCRDsAvailable() bool {
-	return c.HasServerGroup(v1beta1.SchemeGroupVersion.Group)
+	return c.HasServerGroup(v1beta1.GroupVersion.Group)
 }
 
 // HasServerGroup detects if the given api group is supported by the server
@@ -101,7 +100,7 @@ func (c *Client) HasServerGroup(groupName string) bool {
 	if c.Discovery != nil {
 		groups, err := c.Discovery.ServerGroups()
 		if err != nil {
-			log.Warnf("Impossible to get server groups using discovery API: %s", err)
+			log.Warn("Impossible to get server groups using discovery API", "error", err)
 			return false
 		}
 		for _, group := range groups.Groups {
@@ -111,7 +110,7 @@ func (c *Client) HasServerGroup(groupName string) bool {
 		}
 		return false
 	}
-	log.Warnf("Tried to discover the platform, but no discovery API is available")
+	log.Warn("Tried to discover the platform, but no discovery API is available")
 	return false
 }
 
@@ -130,7 +129,7 @@ func MustEnsureClient(c *Client) controllercli.Client {
 }
 
 func ensureKubeClient() (controllercli.Client, error) {
-	log.Debugf("Veryfing kube core client dependencies")
+	log.Debug("Verifying kube core client dependencies")
 	config, err := buildKubeConnectionConfig()
 	if err != nil {
 		return nil, err
@@ -139,7 +138,7 @@ func ensureKubeClient() (controllercli.Client, error) {
 }
 
 func newKubeClient(config *restclient.Config) (controllercli.Client, error) {
-	log.Debugf("Creating a new core client for kube connection")
+	log.Debug("Creating a new core client for kube connection")
 	controlCli, err := controllercli.New(config, newControllerCliOptions())
 	if err != nil {
 		return nil, err
@@ -181,7 +180,7 @@ func GetKubeConfigFile() string {
 		if fileInfo, err := file.Stat(); err != nil {
 			panic(fmt.Errorf("Error while trying to access the kube config file %s: %s ", filename, err))
 		} else if fileInfo.Size() == 0 {
-			log.Warnf("Kubernetes local configuration '%s' is empty.", filename)
+			log.Warn("Kubernetes local configuration is empty.", "filename", filename)
 			log.Warn("Make sure to login to your cluster with oc/kubectl before using this tool")
 		}
 	}
@@ -204,9 +203,9 @@ func (r *restScope) Name() apimeta.RESTScopeName {
 func newControllerCliOptions() controllercli.Options {
 	options := controllercli.Options{}
 	builder := meta.GetRegisteredSchemeBuilder()
-	gvks, err := k8sutil.GetGVKsFromAddToScheme(builder.AddToScheme)
+	gvks, err := getGVKsFromAddToScheme(builder.AddToScheme)
 	if err != nil {
-		log.Fatalf("Error while creating SchemeBuilder for Kubernetes client: %v", err)
+		log.Error(err, "Error while creating SchemeBuilder for Kubernetes client")
 		panic(err)
 	}
 	mapper := apimeta.NewDefaultRESTMapper([]schema.GroupVersion{})
@@ -224,4 +223,44 @@ func newControllerCliOptions() controllercli.Options {
 	options.Scheme = meta.GetRegisteredSchema()
 	options.Mapper = mapper
 	return options
+}
+
+// getGVKsFromAddToScheme takes in the runtime scheme and filters out all generic apimachinery meta types.
+// It returns just the GVK specific to this scheme.
+func getGVKsFromAddToScheme(addToSchemeFunc func(*runtime.Scheme) error) ([]schema.GroupVersionKind, error) {
+	s := runtime.NewScheme()
+	err := addToSchemeFunc(s)
+	if err != nil {
+		return nil, err
+	}
+	schemeAllKnownTypes := s.AllKnownTypes()
+	ownGVKs := []schema.GroupVersionKind{}
+	for gvk := range schemeAllKnownTypes {
+		if !isKubeMetaKind(gvk.Kind) {
+			ownGVKs = append(ownGVKs, gvk)
+		}
+	}
+
+	return ownGVKs, nil
+}
+
+func isKubeMetaKind(kind string) bool {
+	if strings.HasSuffix(kind, "List") ||
+		kind == "PatchOptions" ||
+		kind == "GetOptions" ||
+		kind == "DeleteOptions" ||
+		kind == "ExportOptions" ||
+		kind == "APIVersions" ||
+		kind == "APIGroupList" ||
+		kind == "APIResourceList" ||
+		kind == "UpdateOptions" ||
+		kind == "CreateOptions" ||
+		kind == "Status" ||
+		kind == "WatchEvent" ||
+		kind == "ListOptions" ||
+		kind == "APIGroup" {
+		return true
+	}
+
+	return false
 }

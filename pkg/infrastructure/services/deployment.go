@@ -15,7 +15,7 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -32,7 +32,7 @@ const (
 func createRequiredDeployment(service v1beta1.KogitoService, resolvedImage string, definition ServiceDefinition) *appsv1.Deployment {
 	if definition.SingleReplica && *service.GetSpec().GetReplicas() > singleReplica {
 		service.GetSpec().SetReplicas(singleReplica)
-		log.Warnf("%s can't scale vertically, only one replica is allowed.", service.GetName())
+		log.Warn("Service can't scale vertically, only one replica is allowed.", "service", service.GetName())
 	}
 	replicas := service.GetSpec().GetReplicas()
 	probes := getProbeForKogitoService(definition, service)

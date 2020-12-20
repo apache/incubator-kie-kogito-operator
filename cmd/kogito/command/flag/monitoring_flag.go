@@ -15,7 +15,7 @@
 package flag
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/spf13/cobra"
 )
 

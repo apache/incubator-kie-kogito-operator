@@ -16,13 +16,14 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	"net/url"
 	"os"
+
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 )
 
 const (
@@ -46,19 +47,19 @@ func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespac
 	}
 	if serviceEndpoints != nil {
 
-		log.Debugf("The %s route is '%s'", resourceType, serviceEndpoints.HTTPRouteURI)
+		log.Debug("", "resourceType", resourceType, "route", serviceEndpoints.HTTPRouteURI)
 
-		log.Debugf("Querying KogitoRuntime instances in the namespace '%s' to inject a route ", namespace)
+		log.Debug("Querying KogitoRuntime instances to inject a route ", "namespace", namespace)
 		deployments, err := getKogitoRuntimeDeployments(namespace, client)
 		if err != nil {
 			return err
 		}
-		log.Debugf("Found %d KogitoRuntime instances in the namespace '%s' ", len(deployments), namespace)
+		log.Debug("", "Found KogitoRuntime instances", len(deployments), "namespace", namespace)
 		if len(deployments) == 0 {
-			log.Debugf("No deployment found for KogitoRuntime, skipping to inject %s URL into KogitoRuntime", resourceType)
+			log.Debug("No deployment found for KogitoRuntime, skipping to inject request resource type URL into KogitoRuntime", "request resource type", resourceType)
 			return nil
 		}
-		log.Debugf("Querying %s route to inject into KogitoRuntimes", resourceType)
+		log.Debug("Querying resource route to inject into KogitoRuntimes", "resource", resourceType)
 
 		for _, dc := range deployments {
 			updateHTTP, updateWS := updateServiceEndpointIntoDeploymentEnv(&dc, serviceEndpoints)
@@ -70,7 +71,7 @@ func injectSupportingServiceURLIntoKogitoRuntime(client *client.Client, namespac
 			}
 		}
 	}
-	log.Debugf("Service Endpoint is nil")
+	log.Debug("Service Endpoint is nil")
 	return nil
 }
 
@@ -83,7 +84,7 @@ func injectSupportingServiceURLIntoDeployment(client *client.Client, namespace s
 		return err
 	}
 	if dataIndexEndpoints != nil {
-		log.Debugf("The %s route is '%s'", resourceType, dataIndexEndpoints.HTTPRouteURI)
+		log.Debug("", "resourceType", resourceType, "route", dataIndexEndpoints.HTTPRouteURI)
 		updateServiceEndpointIntoDeploymentEnv(deployment, dataIndexEndpoints)
 	}
 	return nil
@@ -115,7 +116,7 @@ func getServiceEndpoints(client *client.Client, namespace string, serviceHTTPRou
 		var routeURL *url.URL
 		routeURL, err = url.Parse(route)
 		if err != nil {
-			log.Warnf("Failed to parse route url (%s), set to empty: %s", route, err)
+			log.Error(err, "Failed to parse route url, set to empty", "route url", route)
 			return
 		}
 		endpoints.HTTPRouteURI = routeURL.String()
@@ -139,11 +140,11 @@ func updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, servi
 			updateWS = framework.GetEnvVarFromContainer(serviceEndpoints.WSRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != serviceEndpoints.WSRouteURI
 		}
 		if updateHTTP {
-			log.Debugf("Updating dc '%s' to inject route %s ", deployment.GetName(), serviceEndpoints.HTTPRouteURI)
+			log.Debug("Updating dc to inject route", "dc", deployment.GetName(), "route", serviceEndpoints.HTTPRouteURI)
 			framework.SetEnvVar(serviceEndpoints.HTTPRouteEnv, serviceEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 		if updateWS {
-			log.Debugf("Updating dc '%s' to inject route %s ", deployment.GetName(), serviceEndpoints.WSRouteURI)
+			log.Debug("Updating dc to inject route ", "dc", deployment.GetName(), "route", serviceEndpoints.WSRouteURI)
 			framework.SetEnvVar(serviceEndpoints.WSRouteEnv, serviceEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 	}
@@ -152,25 +153,25 @@ func updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, servi
 
 // getKogitoServiceURL provides kogito service URL for given instance name
 func getKogitoServiceURL(service v1beta1.KogitoService) string {
-	log.Debugf("Creating kogito service instance URL.")
+	log.Debug("Creating kogito service instance URL.")
 	// resolves to http://servicename.mynamespace for example
 	url := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())
-	log.Debugf("kogito service instance URL : %s", url)
+	log.Debug("", "kogito service instance URL", url)
 	return url
 }
 
 // AddFinalizer add finalizer to provide KogitoService instance
 func AddFinalizer(client *client.Client, instance v1beta1.KogitoService) error {
 	if len(instance.GetFinalizers()) < 1 && instance.GetDeletionTimestamp() == nil {
-		log.Debugf("Adding Finalizer for the KogitoService")
+		log.Debug("Adding Finalizer for the KogitoService")
 		instance.SetFinalizers([]string{"delete.kogitoInfra.ownership.finalizer"})
 
 		// Update CR
 		if err := kubernetes.ResourceC(client).Update(instance); err != nil {
-			log.Error("Failed to update finalizer in KogitoService")
+			log.Error(err, "Failed to update finalizer in KogitoService")
 			return err
 		}
-		log.Debugf("Successfully added finalizer into KogitoService instance %s", instance.GetName())
+		log.Debug("Successfully added finalizer into KogitoService instance", "instance", instance.GetName())
 	}
 	return nil
 }
@@ -183,12 +184,12 @@ func HandleFinalization(client *client.Client, instance v1beta1.KogitoService) e
 	}
 
 	// Update finalizer to allow delete CR
-	log.Debugf("Removing finalizer from KogitoService instance %s", instance.GetName())
+	log.Debug("Removing finalizer from KogitoService instance", "instance", instance.GetName())
 	instance.SetFinalizers(nil)
 	if err := kubernetes.ResourceC(client).Update(instance); err != nil {
-		log.Errorf("Error occurs while removing finalizer from KogitoService instance %s", instance.GetName(), err)
+		log.Error(err, "Error occurs while removing finalizer from KogitoService instance", "instance", instance.GetName())
 		return err
 	}
-	log.Debugf("Successfully removed finalizer from KogitoService instance %s", instance.GetName())
+	log.Debug("Successfully removed finalizer from KogitoService instance", "instance", instance.GetName())
 	return nil
 }

@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -47,7 +47,7 @@ func fetchGrafanaDashboards(cli *client.Client, instance v1beta1.KogitoService) 
 		return nil, err
 	}
 	if !available {
-		log.Debugf("Deployment not available yet for KogitoService %s ", instance.GetName())
+		log.Debug("Deployment not yet available", "KogitoService", instance.GetName())
 		return nil, nil
 	}
 
@@ -68,7 +68,7 @@ func fetchGrafanaDashboardNamesForURL(serverURL string) ([]string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		log.Debugf("Dashboard list not found, the monitoring addon is disabled on the service. There are no dashboards to deploy.")
+		log.Debug("Dashboard list not found, the monitoring addon is disabled on the service. There are no dashboards to deploy.")
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -103,7 +103,7 @@ func fetchDashboard(name, dashboardURL string) (*GrafanaDashboard, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		log.Debugf("Dashboard %s not found, ignoring the resource.", name)
+		log.Debug("Dashboard not found, ignoring the resource.", "dashboard name", name)
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -111,7 +111,7 @@ func fetchDashboard(name, dashboardURL string) (*GrafanaDashboard, error) {
 	}
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Error(err)
+		log.Error(err, "Error in reading")
 		return nil, err
 	}
 	return &GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)}, nil
@@ -144,7 +144,7 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 			},
 		}
 		if err := kubernetes.ResourceC(cli).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, scheme); err != nil {
-			log.Warnf("Error occurs while creating dashboard %s, not going to reconcile the resource: %v", dashboard.Name, err)
+			log.Error(err, "Error occurs while creating dashboard, not going to reconcile the resource", "dashboard name", dashboard.Name)
 			return err
 		}
 	}

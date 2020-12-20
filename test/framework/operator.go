@@ -16,18 +16,17 @@ package framework
 
 import (
 	"fmt"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"strings"
 
 	coreapps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	infra "github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
@@ -66,7 +65,7 @@ var (
 	KogitoOperatorDependencies = []string{kogitoInfinispanDependencyName, kogitoKafkaDependencyName, kogitoKeycloakDependencyName}
 
 	// KogitoOperatorMongoDBDependency is the MongoDB identifier for installation
-	KogitoOperatorMongoDBDependency = infrastructure.MongoDBKind
+	KogitoOperatorMongoDBDependency = infra.MongoDBKind
 	mongoDBOperatorTimeoutInMin     = 10
 
 	commonKogitoOperatorDependencies = map[string]dependentOperator{
@@ -118,7 +117,7 @@ func DeployClusterWideKogitoOperatorFromYaml(deploymentNamespace string) (create
 // Deploy Kogito Operator from yaml files, return all objects created for deployment
 func deployKogitoOperatorFromYaml(namespace string, namespaced bool) (created []meta.ResourceObject, err error) {
 	var deployURI = config.GetOperatorDeployURI()
-	GetLogger(namespace).Infof("Deploy Operator from yaml files in %s", deployURI)
+	GetLogger(namespace).Info("Deploy Operator from yaml files", "deployURI", deployURI)
 
 	sa := &corev1.ServiceAccount{}
 	if err = loadResource(namespace, deployURI+"service_account.yaml", sa, nil); err != nil {
@@ -159,7 +158,7 @@ func deployKogitoOperatorFromYaml(namespace string, namespaced bool) (created []
 			// so use direct command to look for specific secret
 			output, err := CreateCommand("oc", "get", "secrets", "-o", "name", "-n", namespace).WithLoggerContext(namespace).Execute()
 			if err != nil {
-				GetLogger(namespace).Errorf("Error while trying to get secrets: %v", err)
+				GetLogger(namespace).Error(err, "Error while trying to get secrets")
 				return false, err
 			}
 			GetLogger(namespace).Info(output)
@@ -174,7 +173,7 @@ func deployKogitoOperatorFromYaml(namespace string, namespaced bool) (created []
 	// Then deploy operator
 	d := &coreapps.Deployment{}
 	err = loadResource(namespace, deployURI+"operator.yaml", d, func(object interface{}) {
-		GetLogger(namespace).Debugf("Using operator image %s", getOperatorImageNameAndTag())
+		GetLogger(namespace).Debug("Using operator image", "image", getOperatorImageNameAndTag())
 		object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Image = getOperatorImageNameAndTag()
 
 		if namespaced {
@@ -227,7 +226,7 @@ func WaitForKogitoOperatorRunning(namespace string) error {
 			if !running && IsOpenshift() {
 				podList, err := GetPodsWithLabels(namespace, map[string]string{"name": operator.Name})
 				if err != nil {
-					GetLogger(namespace).Errorf("Error while trying to retrieve Kogito Operator pods: %v", err)
+					GetLogger(namespace).Error(err, "Error while trying to retrieve Kogito Operator pods")
 					return false, nil
 				}
 				for _, pod := range podList.Items {
@@ -236,7 +235,7 @@ func WaitForKogitoOperatorRunning(namespace string) error {
 						GetLogger(namespace).Info("Kogito Operator pod does not have the image pull secret needed. Deleting it to renew it.")
 						err := kubernetes.ResourceC(kubeClient).Delete(&pod)
 						if err != nil {
-							GetLogger(namespace).Errorf("Error while trying to delete Kogito Operator pod: %v", err)
+							GetLogger(namespace).Error(err, "Error while trying to delete Kogito Operator pod")
 							return false, nil
 						}
 					}
@@ -298,7 +297,7 @@ func WaitForKogitoOperatorDependencyRunning(namespace, dependentOperator string,
 
 // InstallOperator installs an operator via subscrition
 func InstallOperator(namespace, subscriptionName, channel string, catalog operatorCatalog) error {
-	GetLogger(namespace).Infof("Subscribing to %s operator from source %s on channel %s", subscriptionName, catalog.source, channel)
+	GetLogger(namespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.source, "channel", channel)
 	if _, err := CreateOperatorGroupIfNotExists(namespace, namespace); err != nil {
 		return err
 	}
@@ -313,8 +312,7 @@ func InstallOperator(namespace, subscriptionName, channel string, catalog operat
 // InstallClusterWideOperator installs an operator for all namespaces via subscrition
 func InstallClusterWideOperator(namespace, subscriptionName, channel string, catalog operatorCatalog) error {
 	olmNamespace := config.GetOlmNamespace()
-
-	GetLogger(namespace).Infof("Subscribing to %s operator from source %s on channel %s in namespace %s", subscriptionName, catalog.source, channel, olmNamespace)
+	GetLogger(namespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.source, "channel", channel, "namespace", olmNamespace)
 	if _, err := CreateNamespacedSubscriptionIfNotExist(olmNamespace, subscriptionName, subscriptionName, catalog, channel); err != nil {
 		return err
 	}
@@ -434,9 +432,9 @@ func getOperatorImageNameAndTag() string {
 
 // DeployMongoDBOperatorFromYaml Deploy Kogito Operator from yaml files
 func DeployMongoDBOperatorFromYaml(namespace string) error {
-	GetLogger(namespace).Infof("Deploy MongoDB from yaml files in %s", mongoDBOperatorDeployFilesURI)
+	GetLogger(namespace).Info("Deploy MongoDB from yaml files", "file uri", mongoDBOperatorDeployFilesURI)
 
-	if !infrastructure.IsMongoDBAvailable(kubeClient) {
+	if !infra.IsMongoDBAvailable(kubeClient) {
 		if err := loadResource(namespace, mongoDBOperatorDeployFilesURI+"crds/mongodb.com_mongodb_crd.yaml", &apiextensionsv1beta1.CustomResourceDefinition{}, func(object interface{}) {
 			// Short fix as 'plural' from mongodb is not mongodbs ...
 			// https://github.com/mongodb/mongodb-kubernetes-operator/issues/237
@@ -445,8 +443,8 @@ func DeployMongoDBOperatorFromYaml(namespace string) error {
 				crdName += "s"
 				metadataName := fmt.Sprintf("%s.%s", crdName, object.(*apiextensionsv1beta1.CustomResourceDefinition).Spec.Group)
 
-				GetLogger(namespace).Infof("MongoDB Crd, changing plural from %s to %s", object.(*apiextensionsv1beta1.CustomResourceDefinition).Spec.Names.Plural, crdName)
-				GetLogger(namespace).Infof("MongoDB Crd, changing metadata name from %s to %s", object.(*apiextensionsv1beta1.CustomResourceDefinition).ObjectMeta.Name, metadataName)
+				GetLogger(namespace).Info("MongoDB Crd, changing plural", "from", object.(*apiextensionsv1beta1.CustomResourceDefinition).Spec.Names.Plural, "to", crdName)
+				GetLogger(namespace).Info("MongoDB Crd, changing metadata name", "from", object.(*apiextensionsv1beta1.CustomResourceDefinition).ObjectMeta.Name, "to", metadataName)
 
 				object.(*apiextensionsv1beta1.CustomResourceDefinition).Spec.Names.Plural = crdName
 				object.(*apiextensionsv1beta1.CustomResourceDefinition).ObjectMeta.Name = metadataName
@@ -469,7 +467,7 @@ func DeployMongoDBOperatorFromYaml(namespace string) error {
 	// Then deploy operator
 	err := loadResource(namespace, mongoDBOperatorDeployFilesURI+"operator.yaml", &coreapps.Deployment{}, func(object interface{}) {
 		if IsOpenshift() {
-			GetLogger(namespace).Debugf("Setup MANAGED_SECURITY_CONTEXT env in MongoDB operator for Openshift")
+			GetLogger(namespace).Debug("Setup MANAGED_SECURITY_CONTEXT env in MongoDB operator for Openshift")
 			object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env = append(object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env,
 				corev1.EnvVar{
 					Name:  "MANAGED_SECURITY_CONTEXT",
@@ -487,7 +485,7 @@ func DeployMongoDBOperatorFromYaml(namespace string) error {
 		// https://github.com/mongodb/mongodb-kubernetes-operator/issues/212#issuecomment-704744307
 		output, err := CreateCommand("oc", "adm", "policy", "add-scc-to-user", "anyuid", "system:serviceaccount:"+namespace+":mongodb-kubernetes-operator").WithLoggerContext(namespace).Sync("add-scc-to-user").Execute()
 		if err != nil {
-			GetLogger(namespace).Errorf("Error while trying to set specific rights for MongoDB deployments: %v", err)
+			GetLogger(namespace).Error(err, "Error while trying to set specific rights for MongoDB deployments")
 			return err
 		}
 		GetLogger(namespace).Info(output)
@@ -505,7 +503,7 @@ func WaitForMongoDBOperatorRunning(namespace string) error {
 }
 
 func isMongoDBOperatorRunning(namespace string) (bool, error) {
-	exists, err := infrastructure.IsMongoDBOperatorAvailable(kubeClient, namespace)
+	exists, err := infra.IsMongoDBOperatorAvailable(kubeClient, namespace)
 	if err != nil {
 		if exists {
 			return false, nil

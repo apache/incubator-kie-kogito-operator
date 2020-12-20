@@ -46,10 +46,10 @@ func newNamespace(c *client.Client) *namespace {
 }
 
 func (n *namespace) Fetch(name string) (*corev1.Namespace, error) {
-	log.Debugf("About to fetch namespace %s from cluster", name)
+	log.Debug("About to fetch namespace from cluster", "namespace", name)
 	ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: name}}
 	if err := n.client.ControlCli.Get(context.TODO(), types.NamespacedName{Name: name}, ns); err != nil && errors.IsNotFound(err) {
-		log.Debugf("Namespace %s not found", name)
+		log.Debug("Not found", "namespace", name)
 		return nil, nil
 	} else if err != nil {
 		return nil, err

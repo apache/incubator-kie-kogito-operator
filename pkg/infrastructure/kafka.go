@@ -17,7 +17,7 @@ package infrastructure
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -107,14 +107,14 @@ func GetKafkaTopic(name, namespace, kafkaBroker string) *v1beta1.KafkaTopic {
 
 // ResolveKafkaServerURI returns the uri of the kafka instance
 func ResolveKafkaServerURI(kafka *v1beta1.Kafka) (string, error) {
-	log.Debugf("Resolving kafka URI for given kafka instance %s", kafka.Name)
+	log.Debug("Resolving kafka URI", "kafka instance", kafka.Name)
 	if len(kafka.Status.Listeners) > 0 {
 		for _, listenerStatus := range kafka.Status.Listeners {
 			if listenerStatus.Type == "plain" && len(listenerStatus.Addresses) > 0 {
 				for _, listenerAddress := range listenerStatus.Addresses {
 					if len(listenerAddress.Host) > 0 && listenerAddress.Port > 0 {
 						kafkaURI := fmt.Sprintf("%s:%d", listenerAddress.Host, listenerAddress.Port)
-						log.Debugf("Success fetch kafka URI for kafka instance(%s) : %s", kafka.Name, kafkaURI)
+						log.Debug("Success fetch Kafka URI", "kafka instance", kafka.Name, "kafka URI", kafkaURI)
 						return kafkaURI, nil
 					}
 				}
@@ -127,14 +127,14 @@ func ResolveKafkaServerURI(kafka *v1beta1.Kafka) (string, error) {
 
 // getKafkaInstanceWithName fetches the Kafka instance of the given name
 func getKafkaInstanceWithName(name string, namespace string, client *client.Client) (*v1beta1.Kafka, error) {
-	log.Debugf("Fetching kafka instance for given instance %s", name)
+	log.Debug("Fetching kafka instance", "name", name, "namespace", namespace)
 	kafka := &v1beta1.Kafka{}
 	if exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kafka); err != nil {
 		return nil, err
 	} else if exists {
-		log.Debugf("Successfully fetched kafka instance %s", name)
+		log.Debug("Successfully fetched kafka instance", "name", name)
 		return kafka, nil
 	}
-	log.Debugf("Kafka instance (%s) not found in namespace %s", name, namespace)
+	log.Debug("Kafka instance not found", "name", name, "namespace", namespace)
 	return nil, nil
 }

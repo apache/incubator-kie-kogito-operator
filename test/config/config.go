@@ -18,7 +18,7 @@ import (
 	"flag"
 	"path/filepath"
 
-	"github.com/kiegroup/kogito-cloud-operator/version"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/version"
 )
 
 // TestConfig contains the information about the tests environment

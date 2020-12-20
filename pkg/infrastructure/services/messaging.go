@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -110,7 +110,7 @@ func (m *messagingDeployer) fetchRequiredTopicsForURL(instance v1beta1.KogitoSer
 		return nil, err
 	}
 	if !available {
-		log.Debugf("Deployment not available yet for KogitoService %s ", instance.GetName())
+		log.Debug("Deployment not available yet for KogitoService", "KogitoService", instance.GetName())
 		return nil, nil
 	}
 	topicsURL := fmt.Sprintf("%s%s", serverURL, topicInfoPath)

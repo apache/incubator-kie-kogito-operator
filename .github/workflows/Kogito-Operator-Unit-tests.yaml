@@ -11,6 +11,8 @@ jobs:
     name: Unit test and Coverage
     runs-on: ubuntu-latest
     env:
+      ENVTEST_ASSETS_DIR: testbin
+      OPERATOR_SDK_VERSION: v1.2.0
       CGO_ENABLED: 0
     steps:
       - name: Checkout Code
@@ -29,26 +31,36 @@ jobs:
             ${{ runner.os }}-go-cache-
       - name: Install cover
         run: go get golang.org/x/tools/cmd/cover
-      - run: go mod tidy
       - name: Validate codcov yaml file
         run: curl -vvv --data-binary @codecov.yml https://codecov.io/validate
-      - name: Test cmd dir
+      - name: Cache testenv
+        uses: actions/cache@v2
+        with:
+          path: $(pwd)/${ENVTEST_ASSETS_DIR}
+          key: ${{ runner.os }}-testbin-${{ env.OPERATOR_SDK_VERSION }}
+          restore-keys: |
+              ${{ runner.os }}-testbin-${{ env.OPERATOR_SDK_VERSION }}
+      - name: Run unit tests
         run: |
-          go test ./cmd/... -count=1 -p=1 -coverprofile=cmd-coverage.txt -covermode=atomic
+          ./hack/go-test.sh
       - name: Upload results of cmd to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./cmd-coverage.txt
+          file: ./cmd-cover.out
           flags: cli
           name: cli-test
           fail_ci_if_error: true
-      - name: Test pkg dir
-        run: |
-          go test ./pkg/... -p=1 -count=1 -coverprofile=pkg-coverage.txt -covermode=atomic
-      - name: Upload results of pkg to codecov
+      - name: Upload results of operator to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./pkg-coverage.txt
+          file: ./pkg-cover.out
           flags: operator
           name: operator-test
+          fail_ci_if_error: true
+      - name: Upload results of operator to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./controllers-cover.out
+          flags: controllers
+          name: controllers-test
           fail_ci_if_error: true

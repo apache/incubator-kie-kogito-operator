@@ -1,60 +1,145 @@
-# kernel-style V=1 build verbosity
-ifeq ("$(origin V)", "command line")
-       BUILD_VERBOSE = $(V)
+# Current Operator version
+VERSION ?= 2.0.0-snapshot
+# Default bundle image tag
+BUNDLE_IMG ?= quay.io/kiegroup/kogito-cloud-operator-bundle:$(VERSION)
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-ifeq ($(BUILD_VERBOSE),1)
-       Q =
+# Image URL to use all building/pushing image targets
+IMG ?= quay.io/kiegroup/kogito-cloud-operator:$(VERSION)
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true"
+
+# Image tag to build the image with
+IMAGE ?= $(IMG)
+
+# Container runtime engine used for building the images
+BUILDER ?= podman
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
 else
-       Q = @
+GOBIN=$(shell go env GOBIN)
 endif
 
-#export CGO_ENABLED:=0
+all: generate manifests docker-build
 
-.PHONY: all
-all: build
+# Run tests
+ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
+test: fmt lint
+	./hack/go-test.sh
 
-.PHONY: mod
-mod:
-	./hack/go-mod.sh
+# Build manager binary
+manager: generate fmt vet
+	go build -o bin/manager main.go
 
-.PHONY: format
-format:
+# Run against the configured Kubernetes cluster in ~/.kube/config
+run: generate fmt vet manifests
+	go run ./main.go
+
+# Install CRDs into a cluster
+install: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+# Uninstall CRDs from a cluster
+uninstall: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+# Generate manifests e.g. CRD, RBAC etc.
+manifests: controller-gen
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+# Run go fmt against code
+fmt:
+	go mod tidy
+	./hack/addheaders.sh
 	./hack/go-fmt.sh
 
-.PHONY: go-generate
-go-generate: mod
-	$(Q)go generate ./...
-
-.PHONY: sdk-generate
-sdk-generate: mod
-	operator-sdk generate k8s
-
-.PHONY: vet
-vet:
-	./hack/go-vet.sh
-
-.PHONY: test
-test:
-	./hack/go-test.sh $(coverage)
-
-.PHONY: lint
 lint:
 	./hack/go-lint.sh
-	#./hack/yaml-lint.sh
 
-.PHONY: build
-image_registry=
-image_name=
-image_tag=
-image_builder=
-build:
-	./hack/go-build.sh --image_registry ${image_registry} --image_name ${image_name} --image_tag ${image_tag} --image_builder ${image_builder}
+# Generate code
+generate: controller-gen
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	./hack/openapi.sh
 
-.PHONY: deploy-operator-on-ocp
-image=
-deploy-operator-on-ocp:
-	./hack/deploy-operator-on-ocp.sh $(image)
+# Build the docker image
+docker-build:
+	$(BUILDER) build . -t ${IMAGE}
+
+# Push the docker image
+docker-push:
+	$(BUILDER) push ${IMAGE}
+
+
+# find or download controller-gen
+# download controller-gen if necessary
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
+kustomize:
+ifeq (, $(shell which kustomize))
+	@{ \
+	set -e ;\
+	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	}
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
+
+# Generate bundle manifests and metadata, then validate generated files.
+.PHONY: bundle
+bundle: manifests kustomize
+	operator-sdk generate kustomize manifests -q
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
+# Build the bundle image.
+.PHONY: bundle-build
+bundle-build:
+	$(BUILDER) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+generate-installer: generate manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/default > kogito-operator.yaml
+
+# Generate CSV
+csv:
+	operator-sdk generate kustomize manifests
+
+vet: generate-installer bundle
+	go vet ./...
+
 
 .PHONY: build-cli
 release=false
@@ -65,14 +150,6 @@ build-cli:
 .PHONY: install-cli
 install-cli:
 	./hack/go-install-cli.sh
-
-.PHONY: clean
-clean:
-	rm -rf build/_output
-
-.PHONY: addheaders
-addheaders:
-	./hack/addheaders.sh
 
 .PHONY: run-tests
 # tests configuration
@@ -203,7 +280,7 @@ run-tests:
 		$${opts_str}
 
 .PHONY: run-smoke-tests
-run-smoke-tests: 
+run-smoke-tests:
 	make run-tests smoke=true
 
 .PHONY: run-performance-tests
@@ -214,28 +291,14 @@ run-performance-tests:
 build-examples-images:
 	make run-tests feature=scripts/examples cr_deployment_only=true
 
-.PHONY: prepare-olm
-version = ""
-prepare-olm:
-	./hack/generate-manifests.sh
-	./hack/ci/operator-ensure-manifests.sh
-
-.PHONY: olm-integration
-olm-integration:
-	./hack/ci/install-operator-sdk.sh
-	./hack/ci/install-kind.sh
-	./hack/ci/start-kind.sh
-	./hack/generate-manifests.sh
-	BUILDER=docker ./hack/go-build.sh
-	./hack/ci/load-operator-image.sh
-	./hack/ci/operator-olm-test.sh
-
 .PHONY: bump-version
 old_version = ""
 new_version = ""
 bump-version:
 	./hack/bump-version.sh $(old_version) $(new_version)
 
-.PHONY: scorecard
-scorecard:
-	./hack/scorecard.sh
+
+.PHONY: deploy-operator-on-ocp
+image ?= $2
+deploy-operator-on-ocp:
+	./hack/deploy-operator-on-ocp.sh $(image)

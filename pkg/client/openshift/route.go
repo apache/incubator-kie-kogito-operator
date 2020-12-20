@@ -46,7 +46,7 @@ func (r *route) GetHostFromRoute(routeKey types.NamespacedName) (bool, string, e
 		kubernetes.ResourceC(r.client).FetchWithKey(routeKey, route); exists {
 		return true, route.Spec.Host, nil
 	} else if err != nil {
-		log.Error("Error getting Route. ", err)
+		log.Error(err, "Error getting Route. ")
 		return false, "", err
 	}
 

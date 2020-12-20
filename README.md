@@ -96,7 +96,7 @@ After you update the source with your new proposed feature or bug fix, open a [p
 - Your PR has the name of the JIRA in the title, for example, `[KOGITO-XXX] - Awesome feature that solves it all`.
 - The PR solves only the problem described in the JIRA.
 - You have written unit tests for the particular fix or feature.
-- You ran `make test` before submitting the PR and everything is working accordingly.
+- You ran `make vet` and `make test` before submitting the PR and everything is working accordingly.
 - You tested the feature on an actual OpenShift cluster.
 
 After you send your PR, a maintainer will review your code and might ask you to make changes and to [squash your commits](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we can merge.
@@ -111,7 +111,7 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 
 - [Docker](https://www.docker.com/)
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
-- [Operator SDK](https://github.com/operator-framework/operator-sdk) v0.18.x, 0.18.2 is preferred.
+- [Operator SDK](https://github.com/operator-framework/operator-sdk) v1.2.0
 - [Go](https://golang.org/) v1.14 is installed.
 - [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
@@ -394,15 +394,13 @@ All options from BDD tests do also apply here.
 To run the Kogito Operator locally, change the log level at runtime with the `DEBUG` environment variable, as shown in the following example:
 
 ```bash
-$ make mod
-$ make clean
-$ DEBUG=true operator-sdk run local --watch-namespace=<namespace>
+$ DEBUG=true make run
 ```
 
 You can use the following command to vet, format, lint, and test your code:
 
 ```bash
-$ make test
+$ make vet && make test
 ```
 
 ### Remote Debug Kogito Operator using Intellij IDEA

@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
@@ -73,7 +73,7 @@ func ReadFromURI(uri string) (string, error) {
 
 // WaitFor waits for a specification condition to be met or until one error condition is met
 func WaitFor(namespace, display string, timeout time.Duration, condition func() (bool, error), errorConditions ...func() (bool, error)) error {
-	GetLogger(namespace).Infof("Wait %s for %s", timeout.String(), display)
+	GetLogger(namespace).Info(fmt.Sprintf("Wait %s for %s", timeout.String(), display))
 
 	timeoutChan := time.After(timeout)
 	tick := time.NewTicker(1 * time.Second)
@@ -86,17 +86,17 @@ func WaitFor(namespace, display string, timeout time.Duration, condition func() 
 		case <-tick.C:
 			running, err := condition()
 			if err != nil {
-				GetLogger(namespace).Warnf("Problem in condition execution, waiting for %s => %v", display, err)
+				GetLogger(namespace).Warn(fmt.Sprintf("Problem in condition execution, waiting for %s => %v", display, err))
 			}
 
 			if running {
-				GetLogger(namespace).Infof("'%s' is successful", display)
+				GetLogger(namespace).Info(fmt.Sprintf("'%s' is successful", display))
 				return nil
 			}
 
 			for _, errorCondition := range errorConditions {
 				if hasErrors, err := errorCondition(); hasErrors {
-					GetLogger(namespace).Errorf("Problem in condition execution, error for %s => %v", display, err)
+					GetLogger(namespace).Error(err, "Problem in condition execution", "display", display)
 					return err
 				}
 			}

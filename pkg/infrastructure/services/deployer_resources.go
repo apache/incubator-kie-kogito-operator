@@ -17,7 +17,7 @@ package services
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -58,7 +58,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		var infraVolumes []v1beta1.KogitoInfraVolume
 
 		if len(s.instance.GetSpec().GetInfra()) > 0 {
-			log.Debugf("Infra references are provided")
+			log.Debug("Infra references are provided")
 			var infraAppProps map[string]string
 			var infraEnvProp []corev1.EnvVar
 			infraAppProps, infraEnvProp, infraVolumes, err = s.fetchKogitoInfraProperties()
@@ -70,7 +70,7 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 		}
 
 		if len(s.instance.GetSpec().GetConfig()) > 0 {
-			log.Debugf("custom app properties are provided")
+			log.Debug("custom app properties are provided")
 			util.AppendToStringMap(s.instance.GetSpec().GetConfig(), appProps)
 		}
 
@@ -151,8 +151,8 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 	if len(image) > 0 {
 		return image, nil
 	}
-	log.Warnf("Image for the service %s not found yet in the namespace %s. ",
-		instance.GetName(), instance.GetNamespace())
+	log.Warn("Image not found for the service", "service",
+		instance.GetName(), "namespace", instance.GetNamespace())
 
 	deploymentDeployed := &appsv1.Deployment{ObjectMeta: v1.ObjectMeta{Name: instance.GetName(), Namespace: instance.GetNamespace()}}
 	if exists, err := kubernetes.ResourceC(s.client).Fetch(deploymentDeployed); err != nil {
@@ -161,7 +161,7 @@ func (s *serviceDeployer) getKogitoServiceImage(imageHandler *imageHandler, inst
 		return "", nil
 	}
 	if len(deploymentDeployed.Spec.Template.Spec.Containers) > 0 {
-		log.Infof("Returning the image resolved from the Deployment")
+		log.Info("Returning the image resolved from the Deployment")
 		return deploymentDeployed.Spec.Template.Spec.Containers[0].Image, nil
 	}
 	return "", nil
@@ -239,7 +239,7 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 
 func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []corev1.EnvVar, []v1beta1.KogitoInfraVolume, error) {
 	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
-	log.Debugf("Going to fetch kogito infra properties for given references : %s", kogitoInfraReferences)
+	log.Debug("Going to fetch kogito infra properties", "infra", kogitoInfraReferences)
 	consolidateAppProperties := map[string]string{}
 	var consolidateEnvProperties []corev1.EnvVar
 	var volumes []v1beta1.KogitoInfraVolume
