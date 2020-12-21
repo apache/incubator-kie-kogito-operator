@@ -77,7 +77,11 @@ generate: controller-gen
 
 # Build the docker image
 docker-build:
+ifeq ($(BUILDER),buildah)
+	$(BUILDER) -t ${IMAGE} bud .
+else
 	$(BUILDER) build . -t ${IMAGE}
+endif
 
 # Push the docker image
 docker-push:
