@@ -65,7 +65,8 @@ func (i *deployCommand) RegisterHook() {
 		Use:     "deploy-service NAME [SOURCE]",
 		Short:   "Deploys a new Kogito Service into the given Project",
 		Aliases: []string{"deploy"},
-		Long: `deploy-service will create a new Kogito service in the Project context. 
+		Long: `deploy-service will create a new Kogito service in the Project context.
+	Providing a directory containing a pom.xml file in root will upload the whole directory for s2i build on the cluster.
 	Providing a dmn/drl/bpmn/bpmn2 file or a directory containing one or more of those files as [SOURCE] will create a s2i build on the cluster.
 	Providing a target directory (from mvn package) as [SOURCE] will directly upload the application binaries.
 			

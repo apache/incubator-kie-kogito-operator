@@ -16,6 +16,7 @@ package iozip
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bytes"
 	"compress/gzip"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
@@ -27,6 +28,8 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+const pomFile = "pom.xml"
 
 var supportedExtensions = map[flag.BinaryBuildType][]string{
 	flag.SourceToImageBuild:       {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties", ".sw.json", ".sw.yaml"},
@@ -104,6 +107,29 @@ func zipFilesInDir(dir string, resource string, binaryBuildType flag.BinaryBuild
 	return filesFound, nil
 }
 
+func zipDir(filePath string, pathToZip string, info os.FileInfo, myZip *zip.Writer) error {
+	relPath := strings.TrimPrefix(filePath, pathToZip)
+	if info.IsDir() {
+		relPath = relPath + "/"
+	}
+	zipFile, err := myZip.Create(relPath)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		fsFile, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer fsFile.Close()
+		_, err = io.Copy(zipFile, fsFile)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // CompressAsTGZ produces a tgz file of the given directory files
 func CompressAsTGZ(resource string, binaryBuildType flag.BinaryBuildType) (io.Reader, error) {
 	log := context.GetDefaultLogger()
@@ -122,16 +148,37 @@ func CompressAsTGZ(resource string, binaryBuildType flag.BinaryBuildType) (io.Re
 
 	// traverse all nested directories for Kogito resources for s2i builds
 	if binaryBuildType == flag.SourceToImageBuild {
-		err = filepath.Walk(resource, func(absoluteFilePath string, fileInfo os.FileInfo, walkErr error) error {
-			if IsSuffixSupported(fileInfo.Name(), binaryBuildType) && !fileInfo.IsDir() {
-				zippedFileName, err := zipFile(absoluteFilePath, fileInfo, resource, binaryBuildType, tarWriter)
+
+		// Check if provided resource is a maven project
+		isMavenProject, err := isMavenProject(resource)
+		if err != nil {
+			return nil, err
+		}
+		if isMavenProject {
+			myZip := zip.NewWriter(&buf)
+			defer myZip.Close()
+			// Compress complete maven project
+			err = filepath.Walk(resource, func(absoluteFilePath string, fileInfo os.FileInfo, walkErr error) error {
+				err = zipDir(absoluteFilePath, resource, fileInfo, myZip)
 				if err != nil {
 					return err
 				}
-				filesFound = append(filesFound, zippedFileName)
-			}
-			return nil
-		})
+				filesFound = append(filesFound, absoluteFilePath)
+				return nil
+			})
+		} else {
+			// compress supported file if project is not maven
+			err = filepath.Walk(resource, func(absoluteFilePath string, fileInfo os.FileInfo, walkErr error) error {
+				if IsSuffixSupported(fileInfo.Name(), binaryBuildType) && !fileInfo.IsDir() {
+					zippedFileName, err := zipFile(absoluteFilePath, fileInfo, resource, binaryBuildType, tarWriter)
+					if err != nil {
+						return err
+					}
+					filesFound = append(filesFound, zippedFileName)
+				}
+				return nil
+			})
+		}
 		// only look in base directory for supported extensions for other builds
 	} else {
 		filesFound, err = zipFilesInDir(resource, resource, binaryBuildType, tarWriter)
@@ -159,4 +206,18 @@ func IsSuffixSupported(value string, binaryBuildType flag.BinaryBuildType) bool 
 		}
 	}
 	return false
+}
+
+func isMavenProject(resource string) (bool, error) {
+	pomPath := resource + pomFile
+	if _, err := os.Stat(pomPath); err == nil {
+		return true, nil
+
+	} else if os.IsNotExist(err) {
+		return false, nil
+
+	} else {
+		return false, err
+	}
+
 }
