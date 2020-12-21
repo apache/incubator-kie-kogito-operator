@@ -52,7 +52,7 @@ const (
 
 	labelNamespaceSep               = "/"
 	dockerLabelServicesSep, portSep = ",", ":"
-	portFormatWrongMessage          = "Service %s on " + openshift.ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
+	portFormatWrongMessage          = "Service on " + openshift.ImageLabelForExposeServices + " label in wrong format. Won't be possible to expose Services for this application. Should be PORT_NUMBER:PROTOCOL. e.g. 8080:http"
 )
 
 var defaultProbe = &corev1.Probe{
@@ -76,7 +76,7 @@ func MergeImageMetadataWithDeploymentConfig(dc *appsv1.DeploymentConfig, dockerI
 		return false
 	}
 
-	log.Debugf("Preparing to read docker labels and add them to the Deployment: %s", dockerImage.Config.Labels)
+	log.Debug("Preparing to read docker labels and add them to the Deployment", "labels", dockerImage.Config.Labels)
 
 	if dc.Spec.Template.Annotations == nil {
 		dc.Spec.Template.Annotations = map[string]string{}
@@ -135,12 +135,12 @@ func DiscoverPortsAndProbesFromImage(dc *appsv1.DeploymentConfig, dockerImage *d
 			for _, service := range services {
 				ports := strings.Split(service, portSep)
 				if len(ports) == 0 {
-					log.Warnf(portFormatWrongMessage, service)
+					log.Warn(portFormatWrongMessage, "service name", service)
 					continue
 				}
 				portNumber, err := strconv.Atoi(strings.Split(service, portSep)[0])
 				if err != nil {
-					log.Warnf(portFormatWrongMessage, service)
+					log.Warn(portFormatWrongMessage, "service name", service)
 					continue
 				}
 				portName := ports[1]

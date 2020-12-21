@@ -60,7 +60,7 @@ func newResource(c *client.Client) *resource {
 }
 
 func (r *resource) CreateIfNotExists(resource meta.ResourceObject) error {
-	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
+	log.Info("Create resource if not exists", "kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 
 	if exists, err := r.ResourceReader.Fetch(resource); err == nil && !exists {
 		if err := r.ResourceWriter.Create(resource); err != nil {
@@ -68,10 +68,10 @@ func (r *resource) CreateIfNotExists(resource meta.ResourceObject) error {
 		}
 		return nil
 	} else if err != nil {
-		log.Debug("Failed to fetch object. ", err)
+		log.Error(err, "Failed to fetch object. ")
 		return err
 	}
-	log.Debug("Skip creating - object already exists")
+	log.Info("Skip creating - object already exists")
 	return nil
 }
 
@@ -107,7 +107,7 @@ func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, reso
 		resourceRef.SetResourceVersion("")
 		resourceRef.SetLabels(map[string]string{"app": operator.Name})
 
-		log.Debugf("Will create a new resource '%s' with name %s on %s ", resourceRef.GetObjectKind().GroupVersionKind().Kind, resourceRef.GetName(), resourceRef.GetNamespace())
+		log.Debug("Will create a new resource", "kind", resourceRef.GetObjectKind().GroupVersionKind().Kind, "name", resourceRef.GetName(), "namespace", resourceRef.GetNamespace())
 		if beforeCreate != nil {
 			beforeCreate(resourceRef)
 		}

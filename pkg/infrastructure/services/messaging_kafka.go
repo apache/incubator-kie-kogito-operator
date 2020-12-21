@@ -15,8 +15,8 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
-	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/pkg/apis/kafka/v1beta1"
+	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/api/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"k8s.io/apimachinery/pkg/types"
@@ -44,10 +44,10 @@ func (k *kafkaMessagingDeployer) createRequiredResources(service v1beta1.KogitoS
 }
 
 func (k *kafkaMessagingDeployer) createRequiredKafkaTopics(infra *v1beta1.KogitoInfra, service v1beta1.KogitoService) error {
-	log.Debugf("Going to apply kafka topic configurations required by the deployed service '%s'", service.GetName())
+	log.Debug("Going to apply kafka topic configurations required by the deployed service", "KogitoService", service.GetName())
 	kafkaURI := infra.Status.AppProps[QuarkusKafkaBootstrapAppProp]
 	if len(kafkaURI) == 0 {
-		log.Debugf("Ignoring Kafka Topics creation, Kafka URI is empty from the given KogitoInfra: %s", infra.Name)
+		log.Debug("Ignoring Kafka Topics creation, Kafka URI is empty from the given KogitoInfra", "KogitoInfra", infra.Name)
 		return nil
 	}
 	// topics required by definition
@@ -72,10 +72,10 @@ func (k *kafkaMessagingDeployer) createRequiredKafkaTopics(infra *v1beta1.Kogito
 }
 
 func (k *kafkaMessagingDeployer) createKafkaTopicIfNotExists(topicName string, instance *v1beta1.KogitoInfra) error {
-	log.Debugf("Going to create kafka topic it is not exists %k", topicName)
+	log.Debug("Going to create kafka topic it is not exists", "topicName", topicName)
 
 	kafkaNamespaceName := k.getKafkaInstanceNamespaceName(instance)
-	log.Debugf("Resolved kafka instance name %k and namespace %k", kafkaNamespaceName.Name, kafkaNamespaceName.Namespace)
+	log.Debug("Resolved kafka instance", "name", kafkaNamespaceName.Name, "namespace", kafkaNamespaceName.Namespace)
 
 	kafkaTopic, err := k.loadDeployedKafkaTopic(topicName, kafkaNamespaceName.Namespace)
 	if err != nil {
@@ -95,39 +95,39 @@ func (k *kafkaMessagingDeployer) getKafkaInstanceNamespaceName(instance *v1beta1
 	// Step 1: check whether user has provided custom Kafka instance reference
 	isCustomReferenceProvided := len(instance.Spec.Resource.Name) > 0
 	if isCustomReferenceProvided {
-		log.Debugf("Custom kafka instance reference is provided")
+		log.Debug("Custom kafka instance reference is provided")
 		namespace := instance.Spec.Resource.Namespace
 		if len(namespace) == 0 {
 			namespace = instance.Namespace
-			log.Debugf("Namespace is not provided for custom resource, taking instance namespace(%s) as default", namespace)
+			log.Debug("Namespace is not provided for custom resource, taking instance namespace as default", "instance namespace", namespace)
 		}
 		return &types.NamespacedName{Namespace: namespace, Name: instance.Spec.Resource.Name}
 	}
 	// create/refer kogito-kafka instance
-	log.Debugf("Custom kafka instance reference is not provided")
+	log.Debug("Custom kafka instance reference is not provided")
 	return &types.NamespacedName{Namespace: instance.Namespace, Name: infrastructure.KafkaInstanceName}
 }
 
 func (k *kafkaMessagingDeployer) loadDeployedKafkaTopic(topicName, kafkaNamespace string) (*kafkav1beta1.KafkaTopic, error) {
-	log.Debugf("Going to load deployed kafka topic %s", topicName)
+	log.Debug("Going to load deployed kafka topic", "topicName", topicName)
 	kafkaTopic := &kafkav1beta1.KafkaTopic{}
 	if exits, err := kubernetes.ResourceC(k.cli).FetchWithKey(types.NamespacedName{Name: topicName, Namespace: kafkaNamespace}, kafkaTopic); err != nil {
-		log.Errorf("Error occurs while fetching kogito kafka topic %s", topicName)
+		log.Error(err, "Error occurs while fetching kogito kafka topic", "topicName", topicName)
 		return nil, err
 	} else if exits {
 		return kafkaTopic, nil
 	}
-	log.Debugf("kafka topic(%s) not exists", topicName)
+	log.Debug("kafka topic not exists", "topicName", topicName)
 	return nil, nil
 }
 
 func (k *kafkaMessagingDeployer) createNewKafkaTopic(topicName, kafkaName, kafkaNamespace string) (*kafkav1beta1.KafkaTopic, error) {
-	log.Debugf("Going to create kafka topic %s", topicName)
+	log.Debug("Going to create kafka topic", "topicName", topicName)
 	kafkaTopic := infrastructure.GetKafkaTopic(topicName, kafkaNamespace, kafkaName)
 	if err := kubernetes.ResourceC(k.cli).Create(kafkaTopic); err != nil {
-		log.Error("Error occurs while creating kogito Kafka topic")
+		log.Error(err, "Error occurs while creating kogito Kafka topic")
 		return nil, err
 	}
-	log.Debugf("Kogito Kafka topic(%s) created successfully", topicName)
+	log.Debug("Kogito Kafka topic created successfully", "topicName", topicName)
 	return kafkaTopic, nil
 }

@@ -15,7 +15,6 @@
 package project
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
@@ -23,7 +22,6 @@ import (
 )
 
 type projectFlags struct {
-	flag.OperatorFlags
 	project                  string
 	installDataIndex         bool
 	installJobsService       bool
@@ -31,7 +29,6 @@ type projectFlags struct {
 }
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
-	flag.AddOperatorFlags(command, &pFlags.OperatorFlags)
 	command.Flags().StringVarP(&pFlags.project, "project", "n", "", message.ProjectCurrentContext)
 	command.Flags().BoolVar(&pFlags.installDataIndex, "install-data-index", false, message.InstallDataIndex)
 	command.Flags().BoolVar(&pFlags.installJobsService, "install-jobs-service", false, message.InstallJobsService)

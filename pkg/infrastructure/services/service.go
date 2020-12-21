@@ -15,7 +15,7 @@
 package services
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -26,7 +26,7 @@ func createRequiredService(instance v1beta1.KogitoService, deployment *appsv1.De
 	ports := framework.ExtractPortsFromContainer(&deployment.Spec.Template.Spec.Containers[0])
 	if len(ports) == 0 {
 		// a service without port to expose doesn't exist
-		log.Warnf("The deployment spec '%s' doesn't have any ports exposed. Won't be possible to create a new service.", deployment.Name)
+		log.Warn("The deployment spec doesn't have any ports exposed. Won't be possible to create a new service.", "deployment", deployment.Name)
 		return nil
 	}
 

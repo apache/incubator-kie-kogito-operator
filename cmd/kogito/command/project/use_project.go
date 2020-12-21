@@ -16,8 +16,6 @@ package project
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
@@ -70,18 +68,13 @@ func (i *useProjectCommand) RegisterHook() {
 				}
 				i.flags.project = args[0]
 			}
-			if err := flag.CheckOperatorArgs(&i.flags.OperatorFlags); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
 }
 
 func (i *useProjectCommand) InitHook() {
-	i.flags = projectFlags{
-		OperatorFlags: flag.OperatorFlags{},
-	}
+	i.flags = projectFlags{}
 	i.Parent.AddCommand(i.command)
 	addProjectFlagsToCommand(i.command, &i.flags)
 }

@@ -71,10 +71,10 @@ func IsInfinispanAvailable(cli *client.Client) bool {
 
 // IsInfinispanOperatorAvailable verify if Infinispan Operator is running in the given namespace and the CRD is available
 func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, error) {
-	log.Debugf("Checking if Infinispan Operator is available in the namespace %s", namespace)
+	log.Debug("Checking if Infinispan Operator is available", "namespace", namespace)
 	// first check for CRD
 	if isInfinispanAvailable(cli) {
-		log.Debugf("Infinispan CRDs available. Checking if Infinispan Operator is deployed in the namespace %s", namespace)
+		log.Debug("Infinispan CRDs available. Checking if Infinispan Operator is deployed", "namespace", namespace)
 		// then check if there's an Infinispan Operator deployed
 		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: infinispanOperatorName}}
 		exists := false
@@ -83,13 +83,13 @@ func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, 
 			return false, nil
 		}
 		if exists {
-			log.Debugf("Infinispan Operator is available in the namespace %s", namespace)
+			log.Debug("Infinispan Operator is available", "namespace", namespace)
 			return true, nil
 		}
 	} else {
 		log.Debug("Couldn't find Infinispan CRDs")
 	}
-	log.Debugf("Looks like Infinispan Operator is not available in the namespace %s", namespace)
+	log.Debug("Looks like Infinispan Operator is not available", "namespace", namespace)
 	return false, nil
 }
 
@@ -100,7 +100,7 @@ func isInfinispanAvailable(cli *client.Client) bool {
 
 // FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name
 func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, namespace string) (string, error) {
-	log.Debugf("Fetching kogito infinispan instance URI.")
+	log.Debug("Fetching kogito infinispan instance URI.")
 	service := &corev1.Service{}
 	if exits, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, service); err != nil {
 		return "", err
@@ -110,7 +110,7 @@ func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, n
 		for _, port := range service.Spec.Ports {
 			if port.TargetPort.IntVal == defaultInfinispanPort {
 				uri := fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal)
-				log.Debugf("kogito infinispan instance URI : %s", uri)
+				log.Debug("", "kogito infinispan instance URI", uri)
 				return uri, nil
 			}
 		}

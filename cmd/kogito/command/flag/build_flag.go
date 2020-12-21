@@ -40,7 +40,6 @@ const (
 
 // BuildFlags is common properties used to configure Build
 type BuildFlags struct {
-	OperatorFlags
 	GitSourceFlags
 	RuntimeTypeFlags
 	PodResourceFlags

@@ -25,7 +25,6 @@ const (
 
 // InstallFlags is the base structure for resources that can be deployed in the cluster
 type InstallFlags struct {
-	OperatorFlags
 	PodResourceFlags
 	ImageFlags
 	EnvVarFlags
@@ -39,7 +38,6 @@ type InstallFlags struct {
 
 // AddInstallFlags adds the common deploy flags to the given command
 func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
-	AddOperatorFlags(command, &flags.OperatorFlags)
 	AddPodResourceFlags(command, &flags.PodResourceFlags, "")
 	AddImageFlags(command, &flags.ImageFlags)
 	AddEnvVarFlags(command, &flags.EnvVarFlags, "env", "e")
@@ -53,9 +51,6 @@ func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
 
 // CheckInstallArgs checks the default deploy flags
 func CheckInstallArgs(flags *InstallFlags) error {
-	if err := CheckOperatorArgs(&flags.OperatorFlags); err != nil {
-		return err
-	}
 	if err := CheckPodResourceArgs(&flags.PodResourceFlags); err != nil {
 		return err
 	}

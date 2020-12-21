@@ -15,10 +15,11 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // getKogitoSupportingServiceRoute gets the route from a kogito service that's unique in the given namespace
@@ -52,16 +53,16 @@ func getSupportingServiceDeployment(namespace string, cli *client.Client, servic
 	if err != nil {
 		return nil, err
 	} else if supportingService == nil {
-		log.Debugf("Not found % service in namespace %s", serviceType, namespace)
+		log.Debug("KogitoSupportingServce objects not found", "service type", serviceType, "namespace", namespace)
 		return nil, nil
 	}
-	log.Debugf("Found %s services in the namespace '%s' ", serviceType, namespace)
+	log.Debug("Found", "services", serviceType, "namespace", namespace)
 
 	dcs := &appsv1.DeploymentList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, dcs); err != nil {
 		return nil, err
 	}
-	log.Debugf("Looking for Deployments owned by %s", serviceType)
+	log.Debug("Looking for owned Deployments", "service type", serviceType)
 	for _, dc := range dcs.Items {
 		for _, owner := range dc.OwnerReferences {
 			if owner.UID == supportingService.UID {
@@ -70,4 +71,19 @@ func getSupportingServiceDeployment(namespace string, cli *client.Client, servic
 		}
 	}
 	return nil, nil
+}
+
+// FetchKogitoSupportingService provide kogito supporting service instance
+func FetchKogitoSupportingService(cli *client.Client, name string, namespace string) (*v1beta1.KogitoSupportingService, error) {
+	log.Warn("going to fetch deployed kogito supporting service", "instance", name, "Namespace", namespace)
+	instance := &v1beta1.KogitoSupportingService{}
+	if exists, resultErr := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
+		log.Error(resultErr, "Error occurs while fetching deployed kogito supporting service", "Instance", name)
+		return nil, resultErr
+	} else if !exists {
+		return nil, nil
+	} else {
+		log.Debug("Successfully fetch deployed kogito supporting reference", "kogitoSupportingService", name)
+		return instance, nil
+	}
 }

@@ -53,39 +53,38 @@ type resourceWriter struct {
 }
 
 func (r *resourceWriter) Create(resource meta.ResourceObject) error {
-	log := log.With("kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
-	log.Debug("Creating")
+	log.Info("Creating resource", "kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Create(context.TODO(), resource); err != nil {
-		log.Debug("Failed to create object. ", err)
+		log.Error(err, "Failed to create object. ")
 		return err
 	}
 	return nil
 }
 
 func (r *resourceWriter) Update(resource meta.ResourceObject) error {
-	log.Debugf("About to update object %s on namespace %s", resource.GetName(), resource.GetNamespace())
+	log.Debug("About to update resource", "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Update(context.TODO(), resource); err != nil {
 		return err
 	}
-	log.Debugf("Object %s updated. Creation Timestamp: %s", resource.GetName(), resource.GetCreationTimestamp())
+	log.Debug("Resource updated.", "name", resource.GetName(), "Creation Timestamp", resource.GetCreationTimestamp())
 	return nil
 }
 
 func (r *resourceWriter) Delete(resource meta.ResourceObject) error {
 	if err := r.client.ControlCli.Delete(context.TODO(), resource); err != nil {
+		log.Error(err, "Failed to delete resource.", "name", resource.GetName())
 		return err
 	}
-	log.Debugf("Failed to delete resource %s", resource.GetName())
 	return nil
 }
 
 func (r *resourceWriter) UpdateStatus(resource meta.ResourceObject) error {
-	log.Debugf("About to update status for object %s on namespace %s", resource.GetName(), resource.GetNamespace())
+	log.Debug("About to update status for object", "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Status().Update(context.TODO(), resource); err != nil {
 		return err
 	}
 
-	log.Debugf("Object %s status updated. Creation Timestamp: %s", resource.GetName(), resource.GetCreationTimestamp())
+	log.Debug("Object status updated.", "name", resource.GetName(), "Creation Timestamp", resource.GetCreationTimestamp())
 	return nil
 }
 

@@ -139,7 +139,6 @@ func (i *deployCommand) installBuildService(cli *client.Client, flags *deployFla
 	log.Debug("Image details are not provided, going to install kogito build")
 	flags.BuildFlags.Name = name
 	flags.BuildFlags.Project = project
-	flags.BuildFlags.OperatorFlags = flags.RuntimeFlags.OperatorFlags
 	flags.BuildFlags.RuntimeTypeFlags = flags.RuntimeTypeFlags
 	return i.buildService.InstallBuildService(&flags.BuildFlags, resource)
 }

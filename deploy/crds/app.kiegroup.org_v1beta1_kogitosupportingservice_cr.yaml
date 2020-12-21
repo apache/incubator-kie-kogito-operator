@@ -1,8 +1,0 @@
-apiVersion: app.kiegroup.org/v1beta1
-kind: KogitoSupportingService
-metadata:
-  name: kogito-jobs-service
-spec:
-  # Add fields here
-  serviceType: JobsService
-  replicas: 1

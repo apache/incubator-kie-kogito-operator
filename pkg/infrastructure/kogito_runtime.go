@@ -15,7 +15,7 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
@@ -58,7 +58,7 @@ func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, kogitoRuntimeServices); err != nil {
 		return nil, err
 	}
-	log.Debugf("Found %d KogitoRuntime services in the namespace '%s' ", len(kogitoRuntimeServices.Items), namespace)
+	log.Debug("Found KogitoRuntime services", "KogitoRuntimeServices count", len(kogitoRuntimeServices.Items), "namespace", namespace)
 	if len(kogitoRuntimeServices.Items) == 0 {
 		return kdcs, nil
 	}
@@ -83,15 +83,15 @@ func getKogitoRuntimeDeployments(namespace string, cli *client.Client) ([]appsv1
 
 // FetchKogitoRuntimeService provide KogitoRuntime instance for given name and namespace
 func FetchKogitoRuntimeService(client *client.Client, name string, namespace string) (*v1beta1.KogitoRuntime, error) {
-	log.Debugf("going to fetch deployed kogito runtime service instance %s in namespace %s", name, namespace)
+	log.Debug("going to fetch deployed kogito runtime service", "name", name, "namespace", namespace)
 	instance := &v1beta1.KogitoRuntime{}
 	if exists, resultErr := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, instance); resultErr != nil {
-		log.Errorf("Error occurs while fetching deployed kogito runtime service instance %s", name)
+		log.Error(resultErr, "Error occurs while fetching deployed kogito runtime service instance", "name", name)
 		return nil, resultErr
 	} else if !exists {
 		return nil, nil
 	} else {
-		log.Debugf("Successfully fetch deployed kogito runtime reference %s", name)
+		log.Debug("Successfully fetch deployed kogito runtime reference", "name", name)
 		return instance, nil
 	}
 }

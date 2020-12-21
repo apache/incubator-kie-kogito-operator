@@ -97,3 +97,6 @@ tags
 
 # vendor exceptions
 !vendor/**
+
+# testbin
+testbin/**

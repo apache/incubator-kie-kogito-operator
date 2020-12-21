@@ -58,25 +58,21 @@ func (r *resourceReader) Fetch(resource meta.ResourceObject) (bool, error) {
 }
 
 func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (bool, error) {
-	log.Debugf("About to fetch object '%s' on namespace '%s'", key.Name, key.Namespace)
+	log.Debug("About to fetch object", "name", key.Name, "namespace", key.Namespace)
 	err := r.client.ControlCli.Get(context.TODO(), key, resource)
 	if err != nil && errors.IsNotFound(err) {
 		return false, nil
 	} else if err != nil {
 		return false, err
 	}
-	log.Debugf("Found object (%s) '%s' in the namespace '%s'. Creation time is: %s",
-		resource.GetObjectKind().GroupVersionKind().Kind,
-		key.Name,
-		key.Namespace,
-		resource.GetCreationTimestamp())
+	log.Debug("Found object", "kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", key.Name, "namespace", key.Namespace, "Creation time", resource.GetCreationTimestamp())
 	return true, nil
 }
 
 func (r *resourceReader) ListWithNamespace(namespace string, list runtime.Object) error {
 	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(namespace))
 	if err != nil {
-		log.Debug("Failed to list resource. ", err)
+		log.Error(err, "Failed to list resource.")
 		return err
 	}
 	return nil
@@ -85,7 +81,7 @@ func (r *resourceReader) ListWithNamespace(namespace string, list runtime.Object
 func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list runtime.Object, labels map[string]string) error {
 	err := r.client.ControlCli.List(context.TODO(), list, runtimecli.InNamespace(namespace), runtimecli.MatchingLabels(labels))
 	if err != nil {
-		log.Debug("Failed to list resource. ", err)
+		log.Error(err, "Failed to list resource. ")
 		return err
 	}
 	return nil

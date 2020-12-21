@@ -50,7 +50,7 @@ func (pod *pod) GetLogsWithFollow(namespace, podName, containerName string) (str
 }
 
 func (pod *pod) getLogs(namespace, podName, containerName string, follow bool) (string, error) {
-	log.Debugf("About to fetch log of pod with name '%s' in namespace %s from cluster with follow '%t'", podName, namespace, follow)
+	log.Debug("About to fetch log of pod from cluster", "pod name", podName, "namespace", namespace, "follow", follow)
 	podLogOpts := corev1.PodLogOptions{
 		Follow:    follow,
 		Container: containerName,

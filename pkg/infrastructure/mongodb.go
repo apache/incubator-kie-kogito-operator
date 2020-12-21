@@ -58,10 +58,10 @@ func IsMongoDBAvailable(client *client.Client) bool {
 
 // IsMongoDBOperatorAvailable verify if MongoDB Operator is running in the given namespace and the CRD is available
 func IsMongoDBOperatorAvailable(cli *client.Client, namespace string) (bool, error) {
-	log.Debugf("Checking if MongoDB Operator is available in the namespace %s", namespace)
+	log.Debug("Checking if MongoDB Operator is available in the namespace", "namespace", namespace)
 	// first check for CRD
 	if IsMongoDBAvailable(cli) {
-		log.Debugf("MongoDB CRDs available. Checking if MongoDB Operator is deployed in the namespace %s", namespace)
+		log.Debug("MongoDB CRDs available. Checking if MongoDB Operator is deployed in the namespace", "namespace", namespace)
 		// then check if there's an MongoDB Operator deployed
 		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: MongoDBOperatorName}}
 		exists := false
@@ -70,12 +70,12 @@ func IsMongoDBOperatorAvailable(cli *client.Client, namespace string) (bool, err
 			return false, nil
 		}
 		if exists {
-			log.Debugf("MongoDB Operator is available in the namespace %s", namespace)
+			log.Debug("MongoDB Operator is available in the namespace", "namespace", namespace)
 			return true, nil
 		}
 	} else {
 		log.Debug("Couldn't find MongoDB CRDs")
 	}
-	log.Debugf("Looks like MongoDB Operator is not available in the namespace %s", namespace)
+	log.Debug("Looks like MongoDB Operator is not available in the namespace", "namespace", namespace)
 	return false, nil
 }

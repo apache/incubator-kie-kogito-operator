@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/apis/app/v1beta1"
 )
 
 func TestFromArgsToBinaryBuildType(t *testing.T) {
