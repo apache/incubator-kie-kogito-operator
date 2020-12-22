@@ -15,8 +15,6 @@
 
 source ./hack/env.sh
 
-CSV_DIR="config/manifests/bases/"
-
 old_version=$(getOperatorVersion)
 new_version=$1
 
@@ -25,20 +23,17 @@ if [ -z "$new_version" ]; then
   exit 1
 fi
 
-sed -i "s/$old_version/$new_version/g" cmd/kogito/version/version.go README.md version/version.go deploy/operator.yaml ${OLM_DIR}/kogito-operator.package.yaml ${OLM_DIR}/custom-subscription-example.yaml hack/go-build.sh hack/go-vet.sh .osdk-scorecard.yaml
+sed -i "s/$old_version/$new_version/g" cmd/kogito/version/version.go README.md pkg/version/version.go config/manager/kustomization.yaml Makefile
 
 make vet
 
-
 # replace in csv file
-csv_file="${CSV_DIR}/kogito-operator.clusterserviceversion.yaml"
-sed -i "s|replaces: kogito-operator.*|replaces: kogito-operator.v${LATEST_RELEASED_OLM_VERSION}|g" ${csv_file}
-sed -i "s/$old_version/$new_version/g" ${csv_file}
+sed -i "s|replaces: kogito-operator.*|replaces: kogito-operator.v$(getLatestOlmReleaseVersion)|g" "$(getCsvFile)"
+sed -i "s/$old_version/$new_version/g" "$(getCsvFile)"
 
 make bundle
 
 # rewrite test default config, all other configuration into the file will be overridden
 ./hack/update_test_config.sh
-
 
 echo "Version bumped from $old_version to $new_version"

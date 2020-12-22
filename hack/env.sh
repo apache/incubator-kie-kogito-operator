@@ -15,18 +15,18 @@
 
 DEPLOY_DIR="deploy"
 OLM_DIR="${DEPLOY_DIR}/olm-catalog/kogito-operator"
-MANIFEST_CSV_FILE="${OLM_DIR}/manifests/kogito-operator.clusterserviceversion.yaml"
+CSV_DIR="config/manifests/bases"
 
 TEST_CONFIG_FILE="test/.default_config"
 
 getOperatorVersion() {
-  local version=$(grep -m 1 'Version =' ./version/version.go) && version=$(echo ${version#*=} | tr -d '"')
+  local version=$(grep -m 1 'Version =' pkg/version/version.go) && version=$(echo ${version#*=} | tr -d '"')
   echo "${version}"
 }
 
 getLatestOlmReleaseVersion() {
   local tempfolder=$(mktemp -d)
-  git clone https://github.com/operator-framework/community-operators/ "${tempfolder}"
+  git clone https://github.com/operator-framework/community-operators/ "${tempfolder}" > /dev/null 2>&1
   local version=$(cd ${tempfolder}/community-operators/kogito-operator && for i in $(ls -d */); do echo ${i%%/}; done | sort -V | tail -1)
   echo ${version}
 }
@@ -36,7 +36,6 @@ getContainerImage() {
   echo "${container_image}"
 }
 
-getCurrentVersionCsvFile() {
-  local file=$(find ${OLM_DIR}/$(getOperatorVersion) -name *.clusterserviceversion.yaml | sed "s|${OLM_DIR}/$(getOperatorVersion)/||g")
-  echo "${file}"
+getCsvFile() {
+  echo "${CSV_DIR}/kogito-operator.clusterserviceversion.yaml"
 }
