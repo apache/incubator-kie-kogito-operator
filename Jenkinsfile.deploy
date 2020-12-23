@@ -119,7 +119,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "./hack/bump-version.sh ${getProjectVersion()}"
+                    sh "make bump-version new_version=${getProjectVersion()}"
                 
                     githubscm.commitChanges("Update project version to ${getProjectVersion()}", {
                         sh '''
