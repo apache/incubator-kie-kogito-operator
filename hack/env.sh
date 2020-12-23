@@ -13,10 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEPLOY_DIR="deploy"
-OLM_DIR="${DEPLOY_DIR}/olm-catalog/kogito-operator"
 CSV_DIR="config/manifests/bases"
-
 TEST_CONFIG_FILE="test/.default_config"
 
 getOperatorVersion() {
@@ -29,11 +26,6 @@ getLatestOlmReleaseVersion() {
   git clone https://github.com/operator-framework/community-operators/ "${tempfolder}" > /dev/null 2>&1
   local version=$(cd ${tempfolder}/community-operators/kogito-operator && for i in $(ls -d */); do echo ${i%%/}; done | sort -V | tail -1)
   echo ${version}
-}
-
-getContainerImage() {
-  local container_image=$(grep -m 1 'image: ' ${DEPLOY_DIR}/operator.yaml) && container_image=$(echo ${container_image#*:} | tr -d '"')
-  echo "${container_image}"
 }
 
 getCsvFile() {
