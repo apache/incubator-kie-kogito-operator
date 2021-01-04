@@ -15,6 +15,9 @@
 package framework
 
 import (
+	"reflect"
+	"testing"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -23,8 +26,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"reflect"
-	"testing"
 )
 
 func Test_containAllLabels(t *testing.T) {
@@ -553,10 +554,6 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 											},
 											{
 												Name:      "process-quarkus-example-protobuf-files",
-												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/kogito-application.proto",
-											},
-											{
-												Name:      "process-quarkus-example-protobuf-files",
 												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/persons.proto",
 											},
 										},
@@ -581,10 +578,6 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 											{
 												Name:      "app-prop-config",
 												MountPath: "/home/kogito/config",
-											},
-											{
-												Name:      "process-quarkus-example-protobuf-files",
-												MountPath: "/home/kogito/data/protobufs/process-quarkus-example/kogito-application.proto",
 											},
 											{
 												Name:      "process-quarkus-example-protobuf-files",
