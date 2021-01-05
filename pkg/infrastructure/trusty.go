@@ -22,7 +22,7 @@ import (
 
 const (
 	// DefaultTrustyImageName is just the image name for the Trusty Service
-	DefaultTrustyImageName = "kogito-trusty"
+	DefaultTrustyImageName = "kogito-trusty-infinispan"
 	// DefaultTrustyName is the default name for the Trusty instance service
 	DefaultTrustyName = "trusty"
 
@@ -33,12 +33,12 @@ const (
 // InjectTrustyURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Trusty route to each one
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func InjectTrustyURLIntoKogitoRuntimeServices(client *client.Client, namespace string) error {
-	log.Debug("Injecting Data-Index Route in kogito runtime")
+	log.Debug("Injecting Trusty Route in kogito runtime")
 	return injectSupportingServiceURLIntoKogitoRuntime(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, v1beta1.TrustyAI)
 }
 
 // InjectTrustyURLIntoDeployment will inject Trusty route URL in to kogito runtime deployment env var
 func InjectTrustyURLIntoDeployment(client *client.Client, namespace string, deployment *appsv1.Deployment) error {
-	log.Debug("Injecting Data-Index URL in kogito Runtime deployment")
+	log.Debug("Injecting Trusty URL in kogito Runtime deployment")
 	return injectSupportingServiceURLIntoDeployment(client, namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, deployment, v1beta1.TrustyAI)
 }
