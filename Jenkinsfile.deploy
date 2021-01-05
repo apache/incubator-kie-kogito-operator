@@ -119,7 +119,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "./hack/bump-version.sh ${getProjectVersion()} ${isRelease()} ${getBuildBranch() == 'master'}"
+                    sh "make bump-version new_version=${getProjectVersion()}"
                 
                     githubscm.commitChanges("Update project version to ${getProjectVersion()}", {
                         sh '''
@@ -299,7 +299,7 @@ void checkoutRepo() {
 }
 
 String getOperatorVersion(){
-    return sh(script: 'source ./hack/export-version.sh > /dev/null && echo ${OP_VERSION}', returnStdout: true).trim()
+    return sh(script: 'source ./hack/env.sh > /dev/null && echo $(getOperatorVersion)', returnStdout: true).trim()
 }
 
 void tagImage(){

@@ -294,10 +294,9 @@ build-examples-images:
 	make run-tests feature=scripts/examples cr_deployment_only=true
 
 .PHONY: bump-version
-old_version = ""
 new_version = ""
 bump-version:
-	./hack/bump-version.sh $(old_version) $(new_version)
+	./hack/bump-version.sh $(new_version)
 
 
 .PHONY: deploy-operator-on-ocp
