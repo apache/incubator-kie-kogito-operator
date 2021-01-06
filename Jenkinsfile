@@ -9,7 +9,6 @@ pipeline {
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 90, unit: 'MINUTES')
-        disableConcurrentBuilds()
     }
     environment {
         OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
@@ -57,32 +56,40 @@ pipeline {
                 """
             }
         }
-        stage("Build examples' images for testing"){
-            steps {
-                // Do not build native images for the PR checks
-                // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
+
+        stage('Run BDD tests') {
+            options {
+                lock('BDD tests')
             }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+            stages {
+                stage("Build examples' images for testing"){
+                    steps {
+                        // Do not build native images for the PR checks
+                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                        sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                        }
+                    }
                 }
-            }
-        }
-        stage('Running smoke tests') {
-            steps {
-                // Run just smoke tests to verify basic operator functionality
-                sh """
-                    make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
-                """
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                    sh "cd test && go run scripts/prune_namespaces.go"
+                stage('Running smoke tests') {
+                    steps {
+                        // Run just smoke tests to verify basic operator functionality
+                        sh """
+                            make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
+                        """
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                            sh "cd test && go run scripts/prune_namespaces.go"
+                        }
+                    }
                 }
             }
         }
