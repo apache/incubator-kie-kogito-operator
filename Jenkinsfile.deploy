@@ -15,7 +15,6 @@ pipeline {
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 360, unit: 'MINUTES')
-        disableConcurrentBuilds()
     }
 
     parameters {
@@ -166,67 +165,74 @@ pipeline {
             }
         }
 
-        stage('Build examples images for testing'){
-            when {
-                expression {
-                    return shouldLaunchTests()
-                }
+        stage('Run BDD tests') {
+            options {
+                lock('BDD tests')
             }
-            steps {
-                script {
-                    // Need to login to Openshift Registry for application images to be pushed
-                    loginOpenshiftRegistry()
-                    // Needed for the native builds (see comment below)
-                    loginDockerToOpenshiftRegistry()
+            stages {
+                stage('Build examples images for testing'){
+                    when {
+                        expression {
+                            return shouldLaunchTests()
+                        }
+                    }
+                    steps {
+                        script {
+                            // Need to login to Openshift Registry for application images to be pushed
+                            loginOpenshiftRegistry()
+                            // Needed for the native builds (see comment below)
+                            loginDockerToOpenshiftRegistry()
 
-                    try {
-                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
-                    } catch(err) {
-                        unstable("Error building non-native examples' images. Check the junit results.")
+                            try {
+                                // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
+                                // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                                sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
+                            } catch(err) {
+                                unstable("Error building non-native examples' images. Check the junit results.")
+                            }
+                            
+                            try {
+                                // Optaplanner taking a lot of resources, we should not build in parallel
+                                // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+                                // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                                sh "make build-examples-images tags='@native' concurrent=1 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
+                            } catch(err) {
+                                unstable("Error building native examples' images. Check the junit results.")
+                            }
+                        }
                     }
-                    
-                    try {
-                        // Optaplanner taking a lot of resources, we should not build in parallel
-                        // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images tags='@native' concurrent=1 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
-                    } catch(err) {
-                        unstable("Error building native examples' images. Check the junit results.")
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                        }
                     }
                 }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                }
-            }
-        }
 
-        stage('Run Full Testing') {
-            when {
-                expression { return shouldLaunchTests() }
-            }
-            steps {
-                script {
-                    // Catch and set unstable so the temp image is still pushed and we get the deployment properties, 
-                    // in case we decide to continue in the release
-                    try {
-                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        sh "make run-tests timeout=360 load_factor=1 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true, 'docker')}"
-                    } catch(err) {
-                        unstable("Tests are failing")
+                stage('Run Full Testing') {
+                    when {
+                        expression { return shouldLaunchTests() }
                     }
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                    sh 'cd test && go run scripts/prune_namespaces.go'
+                    steps {
+                        script {
+                            // Catch and set unstable so the temp image is still pushed and we get the deployment properties, 
+                            // in case we decide to continue in the release
+                            try {
+                                // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
+                                sh "make run-tests timeout=360 load_factor=1 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true, 'docker')}"
+                            } catch(err) {
+                                unstable("Tests are failing")
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                            sh 'cd test && go run scripts/prune_namespaces.go'
+                        }
+                    }
                 }
             }
         }
