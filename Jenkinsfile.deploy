@@ -140,7 +140,7 @@ pipeline {
 
         stage('Build Kogito Operator') {
             steps {
-                sh 'make BUILDER=podman'
+                sh 'make BUILDER=docker'
             }
         }
 
@@ -160,8 +160,8 @@ pipeline {
             steps {
                 loginOpenshiftRegistry()
                 sh """
-                    podman tag quay.io/kiegroup/${OPERATOR_IMAGE_NAME}:${getOperatorVersion()} ${buildTempOpenshiftImageFullName()}
-                    podman push --tls-verify=false ${buildTempOpenshiftImageFullName()}
+                    docker tag quay.io/kiegroup/${OPERATOR_IMAGE_NAME}:${getOperatorVersion()} ${buildTempOpenshiftImageFullName()}
+                    docker push ${buildTempOpenshiftImageFullName()}
                 """
             }
         }
@@ -289,8 +289,8 @@ void clean(){
 }
 
 void cleanImages(){
-    sh 'podman rm -f \$(podman ps -a -q) || date'
-    sh 'podman rmi -f \$(podman images -q) || date'
+    sh 'docker rm -f \$(docker ps -a -q) || date'
+    sh 'docker rmi -f \$(docker images -q) || date'
 }
 
 void checkoutRepo() {
@@ -303,11 +303,11 @@ String getOperatorVersion(){
 }
 
 void tagImage(){
-    sh "podman tag ${buildTempOpenshiftImageFullName()} ${buildFinalImageFullName()}"
+    sh "docker tag ${buildTempOpenshiftImageFullName()} ${buildFinalImageFullName()}"
 }
 
 void pushImage(){
-    sh "podman push --tls-verify=false ${buildFinalImageFullName()}"
+    sh "docker push ${buildFinalImageFullName()}"
 }
 
 String buildTempOpenshiftImageFullName(boolean internal=false){
@@ -335,7 +335,7 @@ void loginOpenshift(){
 void loginOpenshiftRegistry(){
     loginOpenshift()
     // username can be anything. See https://docs.openshift.com/container-platform/4.4/registry/accessing-the-registry.html#registry-accessing-directly_accessing-the-registry
-    sh "set +x && podman login -u anything -p \$(oc whoami -t) --tls-verify=false ${env.OPENSHIFT_REGISTRY}"
+    sh "set +x && docker login -u anything -p \$(oc whoami -t) ${env.OPENSHIFT_REGISTRY}"
 }
 
 void loginDockerToOpenshiftRegistry(){
@@ -346,7 +346,7 @@ void loginDockerToOpenshiftRegistry(){
 
 void loginContainerRegistry(String registry, String credsId){
     withCredentials([usernamePassword(credentialsId: credsId, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PWD')]) {
-        sh "podman login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} --tls-verify=false ${registry}"
+        sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} ${registry}"
     }
 }
 
@@ -492,7 +492,6 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
         testParamsMap['examples_uri'] = params.EXAMPLES_URI
     }
     
-    // Use podman container engine in tests
     testParamsMap['container_engine'] = container_engine
 
     String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')

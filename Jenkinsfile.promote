@@ -192,29 +192,29 @@ void clean(){
 }
 
 void cleanImages(){
-    sh 'podman rm -f \$(podman ps -a -q) || date'
-    sh 'podman rmi -f \$(podman images -q) || date'
+    sh 'docker rm -f \$(docker ps -a -q) || date'
+    sh 'docker rmi -f \$(docker images -q) || date'
 }
 
 void pullImages(){
     for(String imageName : IMAGES){
-        sh "podman pull ${getOldImageFullTag(imageName)}"
+        sh "docker pull ${getOldImageFullTag(imageName)}"
     }
 }
 void tagImages() {
     for(String imageName : IMAGES){
-        sh "podman tag ${getOldImageFullTag(imageName)} ${getNewImageFullTag(imageName, getNewImageTag())}"
+        sh "docker tag ${getOldImageFullTag(imageName)} ${getNewImageFullTag(imageName, getNewImageTag())}"
         if(isDeployLatestTag()){
-            sh "podman tag ${getOldImageFullTag(imageName)} ${getNewImageFullTag(imageName, "latest")}"
+            sh "docker tag ${getOldImageFullTag(imageName)} ${getNewImageFullTag(imageName, "latest")}"
         }
     }
 }
 
 void pushImages(){
     for(String imageName : IMAGES){
-        sh "podman push ${getNewImageFullTag(imageName, getNewImageTag())}"
+        sh "docker push ${getNewImageFullTag(imageName, getNewImageTag())}"
         if(isDeployLatestTag()){
-            sh "podman push ${getNewImageFullTag(imageName, "latest")}"
+            sh "docker push ${getNewImageFullTag(imageName, "latest")}"
         }
     }
 }
@@ -248,12 +248,12 @@ void loginOpenshift(){
 void loginOpenshiftRegistry(){
     loginOpenshift()
     // username can be anything. See https://docs.openshift.com/container-platform/4.4/registry/accessing-the-registry.html#registry-accessing-directly_accessing-the-registry
-    sh "set +x && podman login -u anything -p \$(oc whoami -t) --tls-verify=false ${env.OPENSHIFT_REGISTRY}"
+    sh "set +x && docker login -u anything -p \$(oc whoami -t) ${env.OPENSHIFT_REGISTRY}"
 }
 
 void loginContainerRegistry(String registry, String credsId){
     withCredentials([usernamePassword(credentialsId: credsId, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PWD')]) {
-        sh "podman login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} --tls-verify=false ${registry}"
+        sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} ${registry}"
     }
 }
 
