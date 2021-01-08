@@ -2,6 +2,8 @@
 VERSION ?= 2.0.0-snapshot
 # Default bundle image tag
 BUNDLE_IMG ?= quay.io/kiegroup/kogito-cloud-operator-bundle:$(VERSION)
+# Default catalog image tag
+CATALOG_IMG ?= quay.io/kiegroup/kogito-cloud-operator-catalog:$(VERSION)
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -132,6 +134,21 @@ bundle: manifests kustomize
 .PHONY: bundle-build
 bundle-build:
 	$(BUILDER) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+# Push the bundle image.
+.PHONY: bundle-push
+bundle-push:
+	$(BUILDER) push ${BUNDLE_IMG}
+
+# Build the catalog image.
+.PHONY: catalog-build
+catalog-build:
+	opm index add -c ${BUILDER} --bundles ${BUNDLE_IMG}  --tag ${CATALOG_IMG}
+
+# Push the catalog image.
+.PHONY: catalog-push
+catalog-push:
+	$(BUILDER) push ${CATALOG_IMG}
 
 generate-installer: generate manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
@@ -292,6 +309,11 @@ run-performance-tests:
 .PHONY: build-examples-images
 build-examples-images:
 	make run-tests feature=scripts/examples cr_deployment_only=true
+
+# Update bundle manifest files for test purposes, will override default image tag and remove the replaces field
+.PHONY: update-bundle
+update-bundle:
+	./hack/update-bundle.sh ${IMAGE}
 
 .PHONY: bump-version
 new_version = ""
