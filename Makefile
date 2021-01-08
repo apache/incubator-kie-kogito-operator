@@ -195,6 +195,8 @@ olm_namespace=
 operator_image=
 operator_tag=
 operator_namespaced=false
+operator_installation_source=
+operator_catalog_image=
 # files/binaries
 operator_yaml_uri=
 cli_path=
@@ -296,6 +298,8 @@ run-tests:
 		--image_cache_mode ${image_cache_mode} \
 		--http_retry_nb ${http_retry_nb} \
 		--olm_namespace ${olm_namespace} \
+		--operator_installation_source ${operator_installation_source} \
+		--operator_catalog_image ${operator_catalog_image} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
