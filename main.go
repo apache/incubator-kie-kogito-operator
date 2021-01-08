@@ -140,12 +140,13 @@ func getWatchNamespace() string {
 	// An empty value means the operator is running with cluster scope.
 	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
 
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		setupLog.Info("unable to get WatchNamespace, "+
-			"the manager will watch and manage resources in all namespaces",
+	ns, _ := os.LookupEnv(watchNamespaceEnvVar)
+
+	// Check if operator is running as cluster scoped
+	if len(ns) == 0 {
+		setupLog.Info(
+			"The operator is running as cluster scoped. It will watch and manage resources in all namespaces",
 			"Env Var lookup", watchNamespaceEnvVar)
-		return ""
 	}
 	return ns
 }
