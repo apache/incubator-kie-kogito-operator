@@ -107,6 +107,7 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     testParamsMap["load_default_config"] = true
     testParamsMap["ci"] = "jenkins"
     testParamsMap["load_factor"] = 3
+    testParamsMap['disable_maven_native_build_container'] = true
 
     testParamsMap["operator_image"] = "${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator"
     testParamsMap["operator_tag"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
