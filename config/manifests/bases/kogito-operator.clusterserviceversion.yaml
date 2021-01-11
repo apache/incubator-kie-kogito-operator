@@ -268,6 +268,11 @@ spec:
                 - --enable-leader-election
                 command:
                 - /manager
+                env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 image: quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot
                 name: manager
                 resources: {}

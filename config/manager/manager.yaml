@@ -29,4 +29,9 @@ spec:
         - --enable-leader-election
         image: controller:latest
         name: manager
+        env:
+          - name: WATCH_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['olm.targetNamespaces']
       terminationGracePeriodSeconds: 10
