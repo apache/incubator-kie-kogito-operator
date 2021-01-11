@@ -5,7 +5,8 @@ def changeBranch = env.ghprbSourceBranch ?: CHANGE_BRANCH
 def changeTarget = env.ghprbTargetBranch ?: CHANGE_TARGET
 
 pipeline {
-    agent { label 'operator-slave'}
+    //agent { label 'operator-slave'}
+    agent { label 'tarun'}
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 90, unit: 'MINUTES')
@@ -14,7 +15,7 @@ pipeline {
         OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
 
         // Use buildah container engine in this pipeline
-        CONTAINER_ENGINE="buildah"
+        CONTAINER_ENGINE="podman"
     }
     stages {
         stage('Initialize') {
