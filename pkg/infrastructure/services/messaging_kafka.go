@@ -45,7 +45,7 @@ func (k *kafkaMessagingDeployer) createRequiredResources(service v1beta1.KogitoS
 
 func (k *kafkaMessagingDeployer) createRequiredKafkaTopics(infra *v1beta1.KogitoInfra, service v1beta1.KogitoService) error {
 	log.Debug("Going to apply kafka topic configurations required by the deployed service", "KogitoService", service.GetName())
-	kafkaURI := infra.Status.AppProps[QuarkusKafkaBootstrapAppProp]
+	kafkaURI := infra.Status.RuntimeProperties[v1beta1.QuarkusRuntimeType].AppProps[QuarkusKafkaBootstrapAppProp]
 	if len(kafkaURI) == 0 {
 		log.Debug("Ignoring Kafka Topics creation, Kafka URI is empty from the given KogitoInfra", "KogitoInfra", infra.Name)
 		return nil

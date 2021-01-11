@@ -73,35 +73,35 @@ var (
 	//For Quarkus: https://quarkus.io/guides/infinispan-client#quarkus-infinispan-client_configuration
 	//For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
 
-	// propertiesInfinispanQuarkus infinispan properties for quarkus runtime
-	propertiesInfinispanQuarkus = map[int]string{
-		appPropInfinispanServerList:         "quarkus.infinispan-client.server-list",
-		appPropInfinispanUseAuth:            "quarkus.infinispan-client.use-auth",
-		appPropInfinispanSaslMechanism:      "quarkus.infinispan-client.sasl-mechanism",
-		appPropInfinispanAuthRealm:          "quarkus.infinispan-client.auth-realm",
-		appPropInfinispanTrustStore:         "quarkus.infinispan-client.trust-store",
-		appPropInfinispanTrustStoreType:     "quarkus.infinispan-client.trust-store-type",
-		appPropInfinispanTrustStorePassword: "quarkus.infinispan-client.trust-store-password",
+	propertiesInfinispan = map[v1beta1.RuntimeType]map[int]string{
+		v1beta1.QuarkusRuntimeType: {
+			appPropInfinispanServerList:         "quarkus.infinispan-client.server-list",
+			appPropInfinispanUseAuth:            "quarkus.infinispan-client.use-auth",
+			appPropInfinispanSaslMechanism:      "quarkus.infinispan-client.sasl-mechanism",
+			appPropInfinispanAuthRealm:          "quarkus.infinispan-client.auth-realm",
+			appPropInfinispanTrustStore:         "quarkus.infinispan-client.trust-store",
+			appPropInfinispanTrustStoreType:     "quarkus.infinispan-client.trust-store-type",
+			appPropInfinispanTrustStorePassword: "quarkus.infinispan-client.trust-store-password",
 
-		envVarInfinispanUser:     "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
-		envVarInfinispanPassword: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
-	}
-	// propertiesInfinispanSpring infinispan properties for spring boot runtime
-	propertiesInfinispanSpring = map[int]string{
-		appPropInfinispanServerList:         "infinispan.remote.server-list",
-		appPropInfinispanUseAuth:            "infinispan.remote.use-auth",
-		appPropInfinispanSaslMechanism:      "infinispan.remote.sasl-mechanism",
-		appPropInfinispanAuthRealm:          "infinispan.remote.auth-realm",
-		appPropInfinispanTrustStore:         "infinispan.remote.trust-store-file-name",
-		appPropInfinispanTrustStoreType:     "infinispan.remote.trust-store-type",
-		appPropInfinispanTrustStorePassword: "infinispan.remote.trust-store-password",
+			envVarInfinispanUser:     "QUARKUS_INFINISPAN_CLIENT_AUTH_USERNAME",
+			envVarInfinispanPassword: "QUARKUS_INFINISPAN_CLIENT_AUTH_PASSWORD",
+		},
+		v1beta1.SpringBootRuntimeType: {
+			appPropInfinispanServerList:         "infinispan.remote.server-list",
+			appPropInfinispanUseAuth:            "infinispan.remote.use-auth",
+			appPropInfinispanSaslMechanism:      "infinispan.remote.sasl-mechanism",
+			appPropInfinispanAuthRealm:          "infinispan.remote.auth-realm",
+			appPropInfinispanTrustStore:         "infinispan.remote.trust-store-file-name",
+			appPropInfinispanTrustStoreType:     "infinispan.remote.trust-store-type",
+			appPropInfinispanTrustStorePassword: "infinispan.remote.trust-store-password",
 
-		envVarInfinispanUser:     "INFINISPAN_REMOTE_AUTH_USERNAME",
-		envVarInfinispanPassword: "INFINISPAN_REMOTE_AUTH_PASSWORD",
+			envVarInfinispanUser:     "INFINISPAN_REMOTE_AUTH_USERNAME",
+			envVarInfinispanPassword: "INFINISPAN_REMOTE_AUTH_PASSWORD",
+		},
 	}
 )
 
-func (i *infinispanInfraReconciler) getInfinispanSecretEnvVars(infinispanInstance *infinispan.Infinispan) ([]corev1.EnvVar, error) {
+func (i *infinispanInfraReconciler) getInfinispanRuntimeSecretEnvVars(infinispanInstance *infinispan.Infinispan, runtime v1beta1.RuntimeType) ([]corev1.EnvVar, error) {
 	var envProps []corev1.EnvVar
 
 	customInfinispanSecret, resultErr := i.loadCustomKogitoInfinispanSecret()
@@ -119,17 +119,15 @@ func (i *infinispanInfraReconciler) getInfinispanSecretEnvVars(infinispanInstanc
 	envProps = append(envProps, framework.CreateEnvVar(infinispanEnablePersistenceEnvKey, "true"))
 	secretName := customInfinispanSecret.Name
 	envProps = append(envProps, framework.CreateEnvVar(infinispanEnvKeyCredSecret, secretName))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanSpring[envVarInfinispanUser], secretName, infrastructure.InfinispanSecretUsernameKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanQuarkus[envVarInfinispanUser], secretName, infrastructure.InfinispanSecretUsernameKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanSpring[envVarInfinispanPassword], secretName, infrastructure.InfinispanSecretPasswordKey))
-	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispanQuarkus[envVarInfinispanPassword], secretName, infrastructure.InfinispanSecretPasswordKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispan[runtime][envVarInfinispanUser], secretName, infrastructure.InfinispanSecretUsernameKey))
+	envProps = append(envProps, framework.CreateSecretEnvVar(propertiesInfinispan[runtime][envVarInfinispanPassword], secretName, infrastructure.InfinispanSecretPasswordKey))
 	sort.Slice(envProps, func(i, j int) bool {
 		return envProps[i].Name < envProps[j].Name
 	})
 	return envProps, nil
 }
 
-func (i *infinispanInfraReconciler) getInfinispanAppProps(name, namespace string) (map[string]string, error) {
+func (i *infinispanInfraReconciler) getInfinispanRuntimeAppProps(name string, namespace string, runtime v1beta1.RuntimeType) (map[string]string, error) {
 	appProps := map[string]string{}
 
 	infinispanURI, resultErr := infrastructure.FetchKogitoInfinispanInstanceURI(i.client, name, namespace)
@@ -137,45 +135,44 @@ func (i *infinispanInfraReconciler) getInfinispanAppProps(name, namespace string
 		return nil, resultErr
 	}
 
-	appProps[propertiesInfinispanSpring[appPropInfinispanUseAuth]] = "true"
-	appProps[propertiesInfinispanQuarkus[appPropInfinispanUseAuth]] = "true"
+	appProps[propertiesInfinispan[runtime][appPropInfinispanUseAuth]] = "true"
 	if len(infinispanURI) > 0 {
-		appProps[propertiesInfinispanSpring[appPropInfinispanServerList]] = infinispanURI
-		appProps[propertiesInfinispanQuarkus[appPropInfinispanServerList]] = infinispanURI
+		appProps[propertiesInfinispan[runtime][appPropInfinispanServerList]] = infinispanURI
 	}
-	appProps[propertiesInfinispanSpring[appPropInfinispanSaslMechanism]] = saslPlain
-	appProps[propertiesInfinispanQuarkus[appPropInfinispanSaslMechanism]] = saslPlain
-
+	appProps[propertiesInfinispan[runtime][appPropInfinispanSaslMechanism]] = saslPlain
 	if hasInfinispanMountedVolume(i.instance) {
-		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStoreType]] = pkcs12CertType
-		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStoreType]] = pkcs12CertType
-		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStore]] = truststoreMountPath
-		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStore]] = truststoreMountPath
-		appProps[propertiesInfinispanSpring[appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
-		appProps[propertiesInfinispanQuarkus[appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
+		appProps[propertiesInfinispan[runtime][appPropInfinispanTrustStoreType]] = pkcs12CertType
+		appProps[propertiesInfinispan[runtime][appPropInfinispanTrustStore]] = truststoreMountPath
+		appProps[propertiesInfinispan[runtime][appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
 	}
 	return appProps, nil
 }
 
-func (i *infinispanInfraReconciler) updateInfinispanAppPropsInStatus(infinispanInstance *infinispan.Infinispan) error {
-	i.log.Debug("going to Update Infinispan app properties in kogito infra instance status")
-	appProps, err := i.getInfinispanAppProps(infinispanInstance.Name, infinispanInstance.Namespace)
+func (i *infinispanInfraReconciler) getInfinispanRuntimeProps(infinispanInstance *infinispan.Infinispan, runtime v1beta1.RuntimeType) (v1beta1.RuntimeProperties, error) {
+	runtimeProps := v1beta1.RuntimeProperties{}
+	appProps, err := i.getInfinispanRuntimeAppProps(infinispanInstance.Name, infinispanInstance.Namespace, runtime)
 	if err != nil {
-		return err
+		return runtimeProps, err
 	}
-	i.instance.Status.AppProps = appProps
-	i.log.Debug("Infra status updated with", "App properties", appProps)
-	return nil
+	runtimeProps.AppProps = appProps
+
+	envVars, err := i.getInfinispanRuntimeSecretEnvVars(infinispanInstance, runtime)
+	if err != nil {
+		return runtimeProps, err
+	}
+	runtimeProps.Env = envVars
+
+	return runtimeProps, nil
 }
 
-func (i *infinispanInfraReconciler) updateInfinispanEnvVarsInStatus(infinispanInstance *infinispan.Infinispan) error {
-	i.log.Debug("going to Update Infinispan env properties in kogito infra instance status")
-	envVars, err := i.getInfinispanSecretEnvVars(infinispanInstance)
+func (i *infinispanInfraReconciler) updateInfinispanRuntimePropsInStatus(infinispanInstance *infinispan.Infinispan, runtime v1beta1.RuntimeType) error {
+	i.log.Debug("going to Update Infinispan runtime properties in kogito infra instance status", "runtime", runtime)
+	runtimeProps, err := i.getInfinispanRuntimeProps(infinispanInstance, runtime)
 	if err != nil {
 		return err
 	}
-	i.instance.Status.Env = envVars
-	i.log.Debug("Infra status updated with", "Env properties", envVars)
+	setRuntimeProperties(i.instance, runtime, runtimeProps)
+	i.log.Debug("Following Infinispan runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
 
@@ -347,7 +344,6 @@ func initInfinispanInfraReconciler(context targetContext) *infinispanInfraReconc
 
 // Reconcile reconcile Kogito infra object
 func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) {
-
 	var infinispanInstance *infinispan.Infinispan
 
 	if !infrastructure.IsInfinispanAvailable(i.client) {
@@ -400,10 +396,10 @@ func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) 
 	if resultErr := i.updateInfinispanVolumesInStatus(infinispanInstance); resultErr != nil {
 		return false, nil
 	}
-	if resultErr := i.updateInfinispanAppPropsInStatus(infinispanInstance); resultErr != nil {
+	if resultErr := i.updateInfinispanRuntimePropsInStatus(infinispanInstance, v1beta1.QuarkusRuntimeType); resultErr != nil {
 		return false, nil
 	}
-	if resultErr := i.updateInfinispanEnvVarsInStatus(infinispanInstance); resultErr != nil {
+	if resultErr := i.updateInfinispanRuntimePropsInStatus(infinispanInstance, v1beta1.SpringBootRuntimeType); resultErr != nil {
 		return false, nil
 	}
 	return false, resultErr

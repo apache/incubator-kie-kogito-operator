@@ -45,7 +45,11 @@ func Test_createKafkaTopics(t *testing.T) {
 			},
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			AppProps: appProps,
+			RuntimeProperties: map[v1beta1.RuntimeType]v1beta1.RuntimeProperties{
+				v1beta1.QuarkusRuntimeType: {
+					AppProps: appProps,
+				},
+			},
 		},
 	}
 	service := &v1beta1.KogitoSupportingService{

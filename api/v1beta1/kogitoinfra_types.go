@@ -60,22 +60,27 @@ type KogitoInfraSpec struct {
 	InfraProperties map[string]string `json:"infraProperties,omitempty"`
 }
 
+// RuntimeProperties defines the variables that will be
+// extracted from the linked resource and added to the
+// deployed Kogito service.
+type RuntimeProperties struct {
+	AppProps map[string]string `json:"appProps,omitempty"`
+	Env      []v1.EnvVar       `json:"env,omitempty"`
+}
+
+// RuntimePropertiesMap defines the map that KogitoInfraStatus
+// will use to link the runtime to their variables.
+type RuntimePropertiesMap map[RuntimeType]RuntimeProperties
+
 // KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
 	Condition KogitoInfraCondition `json:"condition,omitempty"`
 
 	// +optional
-	// +mapType=atomic
-	// Application properties extracted from the linked resource that will be added to the deployed Kogito service.
+	// Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	AppProps map[string]string `json:"appProps,omitempty"`
-
-	// +optional
-	// +listType=atomic
-	// Environment variables extracted from the linked resource that will be added to the deployed Kogito service.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Env []v1.EnvVar `json:"env,omitempty"`
+	RuntimeProperties RuntimePropertiesMap `json:"runtimeProperties,omitempty"`
 
 	// +optional
 	// +listType=atomic
