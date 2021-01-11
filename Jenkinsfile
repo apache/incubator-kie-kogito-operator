@@ -14,7 +14,7 @@ pipeline {
         OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
 
         // Use buildah container engine in this pipeline
-        CONTAINER_ENGINE="buildah"
+        CONTAINER_ENGINE="podman"
     }
     stages {
         stage('Initialize') {
@@ -52,7 +52,7 @@ pipeline {
                     set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
                     cd pkg/version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
                     ${CONTAINER_ENGINE} tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                    ${CONTAINER_ENGINE} push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                 """
             }
         }
