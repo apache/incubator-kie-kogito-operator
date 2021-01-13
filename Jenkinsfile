@@ -59,7 +59,7 @@ pipeline {
 
         stage('Run BDD tests') {
             options {
-                lock('BDD tests')
+                lock("BDD tests ${OPENSHIFT_API}")
             }
             stages {
                 stage("Build examples' images for testing"){
