@@ -167,16 +167,16 @@ pipeline {
         }
 
         stage('Run BDD tests') {
+            when {
+                expression {
+                    return shouldLaunchTests()
+                }
+            }
             options {
-                lock('BDD tests')
+                lock("BDD tests ${OPENSHIFT_API}")
             }
             stages {
                 stage('Build examples images for testing'){
-                    when {
-                        expression {
-                            return shouldLaunchTests()
-                        }
-                    }
                     steps {
                         script {
                             // Need to login to Openshift Registry for application images to be pushed
@@ -211,9 +211,6 @@ pipeline {
                 }
 
                 stage('Run Full Testing') {
-                    when {
-                        expression { return shouldLaunchTests() }
-                    }
                     steps {
                         script {
                             // Catch and set unstable so the temp image is still pushed and we get the deployment properties, 
