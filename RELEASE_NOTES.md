@@ -3,6 +3,7 @@
 
 ## Bug Fixes
 - [KOGITO-4110](https://issues.redhat.com/browse/KOGITO-4110) Single namespaced operator reacts on CRs created in different namespaces
+- [KOGITO-4133](https://issues.redhat.com/browse/KOGITO-4133) API rule violation when running openapi-gen
 
 ## Known Issues
 The protobuf ConfigMap does not update in Spring Boot due to [this issue](https://issues.redhat.com/browse/KOGITO-3406).
