@@ -6,3 +6,5 @@
 
 ## Known Issues
 The protobuf ConfigMap does not update in Spring Boot due to [this issue](https://issues.redhat.com/browse/KOGITO-3406).
+
+Default values for Quarkus probes and metrics URL were changed for Quarkus 1.11 [KOGITO-4173](https://issues.redhat.com/browse/KOGITO-4173)
