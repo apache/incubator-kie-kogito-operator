@@ -171,11 +171,7 @@ metadata:
   name: process-business-rules-quarkus
 spec:
   replicas: 1
-  image:
-    domain: quay.io
-    name: process-business-rules-quarkus
-    tag: latest
-    namespace: <your-quay-namespace>
+  image: quay.io/<your-quay-namespace>/process-business-rules-quarkus:latest
 ```
 Create a `myapp.yml` file with the above content.
 
