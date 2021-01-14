@@ -172,7 +172,8 @@ pipeline {
                 }
             }
             options {
-                lock("BDD tests ${OPENSHIFT_API}")
+                // Special method to get the Openshift API in the lock because env is not accessible yet
+                lock("BDD tests ${withCredentials([string(credentialsId: 'OPENSHIFT_API', variable: 'OPENSHIFT_API')]) { return env.OPENSHIFT_API }}")
             }
             stages {
                 stage('Build examples images for testing'){
