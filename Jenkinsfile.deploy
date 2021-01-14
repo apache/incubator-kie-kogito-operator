@@ -172,8 +172,9 @@ pipeline {
                 }
             }
             options {
-                // Special method to get the Openshift API in the lock because env is not accessible yet
-                lock("BDD tests ${withCredentials([string(credentialsId: 'OPENSHIFT_API', variable: 'OPENSHIFT_API')]) { return env.OPENSHIFT_API }}")
+                // Lock on image tags and OCP API as we don't want to conflict on build example images
+                // That still allows to run 2 parallel build with different tags, those will only block on `Run BDD tests` part
+                lock("BDD tests on branch ${params.KOGITO_IMAGES_TAG} and OCP API ${getLockOpenshiftApi()}")
             }
             stages {
                 stage('Build examples images for testing'){
@@ -211,6 +212,10 @@ pipeline {
                 }
 
                 stage('Run Full Testing') {
+                    options {
+                        // Lock on OCP API as we want only one run at a time
+                        lock("BDD tests on OCP API ${getLockOpenshiftApi()}")
+                    }
                     steps {
                         script {
                             // Catch and set unstable so the temp image is still pushed and we get the deployment properties, 
@@ -362,6 +367,13 @@ String getTempTag(){
 void setDeployPropertyIfNeeded(String key, def value){
     if (value != null && value != ''){
         deployProperties[key] = value
+    }
+}
+
+// Special method to get the Openshift API in the lock because env is not accessible yet
+void getLockOpenshiftApi(){
+    withCredentials([string(credentialsId: 'OPENSHIFT_API', variable: 'OPENSHIFT_API')]) { 
+        return env.OPENSHIFT_API 
     }
 }
 
