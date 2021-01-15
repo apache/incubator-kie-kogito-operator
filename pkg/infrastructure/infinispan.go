@@ -21,15 +21,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
-	// infinispanOperatorName is the Infinispan Operator default name
-	infinispanOperatorName = "infinispan-operator"
 	// Default Infinispan port
 	defaultInfinispanPort = 11222
 	// InfinispanSecretUsernameKey is the secret username key set in the linked secret
@@ -69,35 +66,6 @@ func IsInfinispanAvailable(cli *client.Client) bool {
 	return cli.HasServerGroup(ispn.SchemeGroupVersion.Group)
 }
 
-// IsInfinispanOperatorAvailable verify if Infinispan Operator is running in the given namespace and the CRD is available
-func IsInfinispanOperatorAvailable(cli *client.Client, namespace string) (bool, error) {
-	log.Debug("Checking if Infinispan Operator is available", "namespace", namespace)
-	// first check for CRD
-	if isInfinispanAvailable(cli) {
-		log.Debug("Infinispan CRDs available. Checking if Infinispan Operator is deployed", "namespace", namespace)
-		// then check if there's an Infinispan Operator deployed
-		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: infinispanOperatorName}}
-		exists := false
-		var err error
-		if exists, err = kubernetes.ResourceC(cli).Fetch(deployment); err != nil {
-			return false, nil
-		}
-		if exists {
-			log.Debug("Infinispan Operator is available", "namespace", namespace)
-			return true, nil
-		}
-	} else {
-		log.Debug("Couldn't find Infinispan CRDs")
-	}
-	log.Debug("Looks like Infinispan Operator is not available", "namespace", namespace)
-	return false, nil
-}
-
-// isInfinispanAvailable checks whether Infinispan CRD is available or not
-func isInfinispanAvailable(cli *client.Client) bool {
-	return cli.HasServerGroup(ispn.SchemeGroupVersion.Group)
-}
-
 // FetchKogitoInfinispanInstanceURI provide infinispan URI for given instance name
 func FetchKogitoInfinispanInstanceURI(cli *client.Client, instanceName string, namespace string) (string, error) {
 	log.Debug("Fetching kogito infinispan instance URI.")
@@ -126,6 +94,7 @@ func GetInfinispanCredential(cli *client.Client, infinispanInstance *ispn.Infini
 	} else if exists {
 		return getDefaultInfinispanCredential(secret)
 	}
+	log.Warn("Infinispan credential not found", "secret", infinispanInstance.Spec.Security.EndpointSecretName)
 	return nil, nil
 }
 

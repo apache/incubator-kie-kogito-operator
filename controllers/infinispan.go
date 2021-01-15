@@ -270,6 +270,9 @@ func (i *infinispanInfraReconciler) createNewInfinispanInstance(name, namespace 
 		},
 		Spec: infinispan.InfinispanSpec{
 			Replicas: replicasSize,
+			Security: infinispan.InfinispanSecurity{
+				EndpointEncryption: infinispan.EndpointEncryption{},
+			},
 		},
 	}
 	if err := controllerutil.SetOwnerReference(i.instance, infinispanRes, i.scheme); err != nil {
@@ -286,10 +289,10 @@ func (i *infinispanInfraReconciler) createNewInfinispanInstance(name, namespace 
 func (i *infinispanInfraReconciler) loadCustomKogitoInfinispanSecret() (*corev1.Secret, error) {
 	i.log.Debug("Fetching", "Secret", credentialSecretName)
 	secret := &corev1.Secret{}
-	if exits, err := kubernetes.ResourceC(i.client).FetchWithKey(types.NamespacedName{Name: credentialSecretName, Namespace: i.instance.Namespace}, secret); err != nil {
+	if exists, err := kubernetes.ResourceC(i.client).FetchWithKey(types.NamespacedName{Name: credentialSecretName, Namespace: i.instance.Namespace}, secret); err != nil {
 		i.log.Error(err, "Error occurs while fetching %s", "Secret", credentialSecretName)
 		return nil, err
-	} else if !exits {
+	} else if !exists {
 		i.log.Error(fmt.Errorf("credentials Not found"), "not found", "Secret", credentialSecretName)
 		return nil, nil
 	} else {
@@ -369,10 +372,7 @@ func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) 
 	} else {
 		// create/refer kogito-infinispan instance
 		i.log.Debug("Custom infinispan instance reference is not provided")
-		// Verify Infinispan Operator (it's installation is required in the same namespace, that's why we do this check as well)
-		if infinispanAvailable, err := infrastructure.IsInfinispanOperatorAvailable(i.client, i.instance.Namespace); err != nil {
-			return false, err
-		} else if !infinispanAvailable {
+		if !infrastructure.IsInfinispanAvailable(i.client) {
 			return false, errorForResourceAPINotFound(&i.instance.Spec.Resource)
 		}
 		infinispanInstance, resultErr = i.loadDeployedInfinispanInstance(infrastructure.InfinispanInstanceName, i.instance.Namespace)
