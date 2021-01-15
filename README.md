@@ -133,7 +133,7 @@ account to create an application repository.
 
 Follow the steps below:
 
-1. Run `make prepare-olm version=1.1.0-snapshot`. Bear in mind that if there're different versions
+1. Run `make prepare-olm version=1.1.0`. Bear in mind that if there're different versions
 in the `deploy/olm-catalog/kogito-operator/kogito-operator.package.yaml` file, every CSV must
 be included in the output folder. At this time, the script did not copy previous CSV versions to the
 output folder, so it must be copied manually.
@@ -159,7 +159,7 @@ $ AUTH_TOKEN=$(curl -sH "Content-Type: application/json" -XPOST https://quay.io/
 $ export OPERATOR_DIR=build/_output/operatorhub/
 $ export QUAY_NAMESPACE=kiegroup # should be different in your environment
 $ export PACKAGE_NAME=kogito-operator
-$ export PACKAGE_VERSION=1.1.0-snapshot
+$ export PACKAGE_VERSION=1.1.0
 $ export TOKEN=$AUTH_TOKEN
 ```
 
@@ -314,8 +314,8 @@ make run-tests 2>&1 | tee log.out
 
 ```
 $ make
-$ docker tag quay.io/kiegroup/kogito-cloud-operator:1.1.0-snapshot quay.io/{USERNAME}/kogito-cloud-operator:1.1.0-snapshot
-$ docker push quay.io/{USERNAME}/kogito-cloud-operator:1.1.0-snapshot
+$ docker tag quay.io/kiegroup/kogito-cloud-operator:1.1.0 quay.io/{USERNAME}/kogito-cloud-operator:1.1.0
+$ docker push quay.io/{USERNAME}/kogito-cloud-operator:1.1.0
 $ make run-tests operator_image=quay.io/{USERNAME}/kogito-cloud-operator
 ```
 
