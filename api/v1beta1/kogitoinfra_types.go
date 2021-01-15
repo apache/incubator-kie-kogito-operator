@@ -86,7 +86,7 @@ type KogitoInfraStatus struct {
 	// +listType=atomic
 	// List of volumes that should be added to the services bound to this infra instance
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Volume []KogitoInfraVolume `json:"volumes,omitempty"`
+	Volumes []KogitoInfraVolume `json:"volumes,omitempty"`
 }
 
 // KogitoInfraConditionReason describes the reasons for reconciliation failure

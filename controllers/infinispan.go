@@ -208,7 +208,7 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 			},
 		},
 	}
-	i.instance.Status.Volume = []v1beta1.KogitoInfraVolume{volume}
+	i.instance.Status.Volumes = []v1beta1.KogitoInfraVolume{volume}
 	return nil
 }
 
@@ -406,7 +406,7 @@ func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) 
 }
 
 func hasInfinispanMountedVolume(infra *v1beta1.KogitoInfra) bool {
-	for _, volume := range infra.Status.Volume {
+	for _, volume := range infra.Status.Volumes {
 		if volume.NamedVolume.Name == infinispanCertMountName {
 			return true
 		}

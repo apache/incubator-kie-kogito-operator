@@ -259,7 +259,7 @@ func (s *serviceDeployer) fetchKogitoInfraProperties() (map[string]string, []cor
 		// fetch env properties from Kogito infra instance
 		envProp := kogitoInfraInstance.Status.RuntimeProperties[runtime].Env
 		consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
-		volumes = append(volumes, kogitoInfraInstance.Status.Volume...)
+		volumes = append(volumes, kogitoInfraInstance.Status.Volumes...)
 	}
 	return consolidateAppProperties, consolidateEnvProperties, volumes, nil
 }

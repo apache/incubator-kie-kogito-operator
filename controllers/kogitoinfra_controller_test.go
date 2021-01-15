@@ -176,5 +176,5 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	assert.Equal(t, "PLAIN", infinispanQuarkusAppProps["quarkus.infinispan-client.sasl-mechanism"])
 	assert.Empty(t, infinispanQuarkusAppProps["quarkus.infinispan-client.auth-realm"])
 	assert.NotEmpty(t, infinispanQuarkusAppProps["quarkus.infinispan-client.trust-store"])
-	assert.Len(t, kogitoInfra.Status.Volume, 1)
+	assert.Len(t, kogitoInfra.Status.Volumes, 1)
 }

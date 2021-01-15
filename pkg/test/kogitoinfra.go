@@ -78,7 +78,7 @@ func CreateFakeKogitoInfinispan(namespace string) *v1beta1.KogitoInfra {
 					},
 				},
 			},
-			Volume: []v1beta1.KogitoInfraVolume{
+			Volumes: []v1beta1.KogitoInfraVolume{
 				{
 					Mount: corev1.VolumeMount{
 						Name:      "tls-configuration",
