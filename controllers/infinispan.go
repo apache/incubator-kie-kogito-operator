@@ -262,7 +262,7 @@ func (i *infinispanInfraReconciler) loadDeployedInfinispanInstance(name, namespa
 }
 
 func (i *infinispanInfraReconciler) createNewInfinispanInstance(name, namespace string) (*infinispan.Infinispan, error) {
-	i.log.Debug("Going to create kogito infinispan instance")
+	i.log.Info("Going to create a kogito infinispan instance (not for production use)")
 	infinispanRes := &infinispan.Infinispan{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -270,8 +270,8 @@ func (i *infinispanInfraReconciler) createNewInfinispanInstance(name, namespace 
 		},
 		Spec: infinispan.InfinispanSpec{
 			Replicas: replicasSize,
-			Security: infinispan.InfinispanSecurity{
-				EndpointEncryption: infinispan.EndpointEncryption{},
+			Service: infinispan.InfinispanServiceSpec{
+				ReplicationFactor: int32(1),
 			},
 		},
 	}
