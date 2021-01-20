@@ -78,7 +78,7 @@ func getLogger(name string, options *Opts) Logger {
 	// be propagated through the whole operator, generating
 	// uniform and structured logs.
 	logger := Logger{
-		createLogger(options).WithName(name).WithValues("namespace", name),
+		createLogger(options).WithName(name),
 	}
 
 	return logger
