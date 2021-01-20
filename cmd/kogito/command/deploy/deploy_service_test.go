@@ -16,6 +16,10 @@ package deploy
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
@@ -24,11 +28,8 @@ import (
 	test2 "github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	v1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-	"testing"
 )
 
 func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
@@ -153,13 +154,13 @@ func Test_DeployCmd_SWFile(t *testing.T) {
 			AddBuildObjects(&v1.BuildConfig{ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus-builder", Namespace: ns}}).
 			Build())
 
-	lines, _, err := test.ExecuteCli()
+	lines, errLines, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Kogito Build Service successfully installed in the Project")
 	assert.Contains(t, lines, "File(s) found: testdata/greetings.sw.json")
 	assert.Contains(t, lines, "Triggering the new build")
 	// error from fake build is ok, we don't have a server to upload the binaries here.
-	assert.Contains(t, lines, "v1.BinaryBuildRequestOptions is not suitable for converting")
+	assert.Contains(t, errLines, "v1.BinaryBuildRequestOptions is not suitable for converting")
 
 	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus", Namespace: ns},
