@@ -282,6 +282,7 @@ You can set those optional keys:
 <!--- build runtime applications -->
 - `runtime_application_image_registry` sets the registry for built runtime applications.
 - `runtime_application_image_namespace` sets the namespace for built runtime applications.
+- `runtime_application_image_name_prefix` sets the image name prefix to prepend to usual image names for built runtime applications.
 - `runtime_application_image_name_suffix` sets the image name suffix to append to usual image names for built runtime applications.
 - `runtime_application_image_version` sets the version for built runtime applications.
 <!--- development options -->

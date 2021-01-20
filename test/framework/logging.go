@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -117,8 +118,14 @@ func getOrCreateLoggerOpts(logName string) (*Opts, error) {
 }
 
 // RenameLogFolder changes the name of the log folder for a specific namespace
-func RenameLogFolder(namespace, newLogFolderName string) error {
-	return os.Rename(getPrefixedLogFolder(namespace), getPrefixedLogFolder(newLogFolderName))
+func RenameLogFolder(namespace string, newLogFolderNames ...string) error {
+	if len(newLogFolderNames) > 1 {
+		newParentFolderName := strings.Join(newLogFolderNames[0:len(newLogFolderNames)-1], "/")
+		if err := CreateFolder(getPrefixedLogFolder(newParentFolderName)); err != nil {
+			return err
+		}
+	}
+	return os.Rename(getPrefixedLogFolder(namespace), getPrefixedLogFolder(strings.Join(newLogFolderNames, "/")))
 }
 
 // StartPodLogCollector monitors a namespace and stores logs of all pods running in the namespace
@@ -219,20 +226,12 @@ func getLogFile(namespace, filename string) string {
 	return getPrefixedLogFolder(namespace) + "/" + filename + logSuffix
 }
 
-// SetLogSubFolder appends the main log folder with given subfolder(s)
-func SetLogSubFolder(subFolders ...string) {
-	logFolder = defaultLogFolder
-	for _, subFolder := range subFolders {
-		logFolder += "/" + subFolder
-	}
-}
-
 // GetLogFolder returns the main log folder
 func GetLogFolder() string {
 	return logFolder
 }
 
-// GetNamespacedLogFolder retrieves the log folder for a specific namespace
+// getPrefixedLogFolder retrieves the log folder for a specific namespace
 func getPrefixedLogFolder(namespace string) string {
 	return logFolder + "/" + namespace
 }
