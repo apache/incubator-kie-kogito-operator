@@ -77,6 +77,10 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		return
 	}
 
+	healthCheckProbeType := services.TCPHealthCheckProbe
+	if instance.GetSpec().GetRuntime() == v1beta1.QuarkusRuntimeType {
+		healthCheckProbeType = services.QuarkusHealthCheckProbe
+	}
 	definition := services.ServiceDefinition{
 		Request:            req,
 		DefaultImageTag:    infrastructure.LatestTag,
@@ -85,6 +89,7 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		OnObjectsCreate:    r.onObjectsCreate,
 		OnGetComparators:   onGetComparators,
 		CustomService:      true,
+		HealthCheckProbe:   healthCheckProbeType,
 	}
 	requeueAfter, err := services.NewServiceDeployer(definition, instance, r.Client, r.Scheme).Deploy()
 	if err != nil {
