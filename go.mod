@@ -11,7 +11,7 @@ require (
 	github.com/go-openapi/spec v0.19.7
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.9
-	github.com/infinispan/infinispan-operator v0.0.0-20200803092941-2b0528367f08
+	github.com/infinispan/infinispan-operator v0.0.0-20210106103300-03aa6d76d1b2
 	github.com/integr8ly/grafana-operator/v3 v3.4.0
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/machinebox/graphql v0.2.2
