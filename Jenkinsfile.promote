@@ -264,7 +264,7 @@ void installGitHubReleaseCLI(){
 void releaseCLI() {
     sh "make build-cli release=true version=${getProjectVersion()}"
     def releaseName = "Kogito Operator and CLI Version ${getProjectVersion()}" 
-    def description = 'Kogito Operator is a Kubernetes based operator for Kogito Runtimes' deployment from the source. Additionally, to facilitate interactions with the operator, we also offer a CLI (Command Line Interface) to deploy Kogito applications.' 
+    def description = 'Kogito Operator is a Kubernetes based operator for Kogito Runtimes\' deployment from the source. Additionally, to facilitate interactions with the operator, we also offer a CLI (Command Line Interface) to deploy Kogito applications.' 
     def releasePath = 'build/_output/release/'
     def cliBaseName = "kogito-cli-${getProjectVersion()}" 
     def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
