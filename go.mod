@@ -4,7 +4,7 @@ require (
 	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
 	github.com/coreos/prometheus-operator v0.40.0
 	github.com/cucumber/gherkin-go/v11 v11.0.0
-	github.com/cucumber/godog v0.10.0
+	github.com/cucumber/godog v0.11.0
 	github.com/cucumber/messages-go/v10 v10.0.3
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1
@@ -23,7 +23,8 @@ require (
 	github.com/openshift/client-go v0.0.0-20200116152001-92a2713fa240
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20200321030439-57b580e57e88
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect

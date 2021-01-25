@@ -16,13 +16,14 @@ package deploy
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func Test_DeleteServiceCmd_SuccessfullyDelete(t *testing.T) {
@@ -44,7 +45,7 @@ func Test_DeleteServiceCmd_Failure_ServiceDoesNotExist(t *testing.T) {
 	test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
+	_, errLines, err := test.ExecuteCli()
 	assert.Error(t, err)
-	assert.Contains(t, lines, "with the name 'example-drools' doesn't exist")
+	assert.Contains(t, errLines, "with the name 'example-drools' doesn't exist")
 }

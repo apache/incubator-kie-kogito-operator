@@ -16,9 +16,10 @@ package project
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 
@@ -45,7 +46,7 @@ func Test_DeleteProjectCmd_WhenProjectDoesNotExist(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-project %s", ns)
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
-	lines, _, err := test.ExecuteCli()
+	_, errLines, err := test.ExecuteCli()
 	assert.Error(t, err)
-	assert.Contains(t, lines, fmt.Sprintf("Project %s not found", ns))
+	assert.Contains(t, errLines, fmt.Sprintf("Project %s not found", ns))
 }
