@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/kiegroup/kogito-cloud-operator
-  newTag: 2.0.0-snapshot
+  newTag: 1.2.0-snapshot
