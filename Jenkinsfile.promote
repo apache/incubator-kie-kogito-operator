@@ -59,6 +59,7 @@ pipeline {
         OPENSHIFT_CREDS_KEY = 'OPENSHIFT_CREDS'
         BOT_BRANCH_HASH = "${util.generateHash(10)}"
         GITHUB_REPO = 'kogito-cloud-operator' // for github-release cli
+
     }
 
     stages {
@@ -134,6 +135,18 @@ pipeline {
                     }
                 }
             }
+            post {
+                success {
+                    script {
+                        setDeployPropertyIfNeeded('build.url', getBuildUrl())
+                        setDeployPropertyIfNeeded('git.branch', getBuildBranch())
+                        setDeployPropertyIfNeeded('git.author', getGitAuthor())
+                        setDeployPropertyIfNeeded('git.tag', getGitTag())
+                        setDeployPropertyIfNeeded('project.version', getProjectVersion())
+                        setDeployPropertyIfNeeded('release', isRelease())
+                    }
+                }
+            }
         }
 
         // That part is commented as it messes with PRs on operatorhub which may require some changes
@@ -173,8 +186,11 @@ pipeline {
     post {
         always {
             script {
-                clean()
+                def propertiesStr = deployProperties.collect{ entry ->  "${entry.key}=${entry.value}" }.join("\n")
+                writeFile(text: propertiesStr, file: 'promote.properties')
+                archiveArtifacts(artifacts: 'promote.properties')
             }
+            clean()
         }
     }
 }
@@ -283,6 +299,11 @@ void releaseCLI() {
     }
 }
 
+void setDeployPropertyIfNeeded(String key, def value){
+    if (value != null && value != ''){
+        deployProperties[key] = value
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////
 // Old image information
@@ -349,7 +370,7 @@ String getNewImageTag(){
 //////////////////////////////////////////////////////////////////////////////
 
 void readDeployProperties(){
-    String deployUrl = params.DEPLOY_BUILD_URL
+    String deployUrl = getBuildUrl()
     if(deployUrl != ''){
         if(!deployUrl.endsWith('/')){
             deployUrl += '/'
@@ -385,6 +406,10 @@ String getParamOrDeployProperty(String paramKey, String deployPropertyKey){
 
 boolean isRelease() {
     return params.RELEASE || (getDeployProperty('release') == 'true')
+}
+
+String getBuildUrl(){
+    return params.DEPLOY_BUILD_URL
 }
 
 String getProjectVersion() {
