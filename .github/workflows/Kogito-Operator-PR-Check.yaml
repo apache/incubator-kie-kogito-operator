@@ -35,9 +35,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/go/bin/
-          key: ${{ runner.os }}-go-${{ hashFiles(env.GOPATH + '/bin') }}
+          key: ${{ runner.os }}-go-${{ hashFiles(format('{0}/bin', env.GOPATH)) }}
           restore-keys: |
-            ${{ runner.os }}-go-${{ hashFiles(env.GOPATH + '/bin') }}
+            ${{ runner.os }}-go-${{ hashFiles(format('{0}/bin', env.GOPATH)) }}
       - name: Install Operator-sdk
         run: ./hack/ci/install-operator-sdk.sh
       - name: Check Vet
