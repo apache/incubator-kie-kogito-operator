@@ -1,5 +1,6 @@
 ## Enhancements  
 - [KOGITO-3067](https://issues.redhat.com/browse/KOGITO-3067) Migrate to Operator SDK 1.x
+- [KOGITO-4059](https://issues.redhat.com/browse/KOGITO-4059) Refactor Kogito operator into internal and core component
 
 ## Bug Fixes
 - [KOGITO-4110](https://issues.redhat.com/browse/KOGITO-4110) Single namespaced operator reacts on CRs created in different namespaces
