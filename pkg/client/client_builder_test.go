@@ -21,7 +21,7 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/util"
+	"github.com/kiegroup/kogito-cloud-operator/core/framework/util"
 	"github.com/stretchr/testify/assert"
 	restclient "k8s.io/client-go/rest"
 )

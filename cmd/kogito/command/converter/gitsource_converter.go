@@ -15,13 +15,13 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 )
 
 // FromGitSourceFlagsToGitSource converts given GitSourceFlags into GitSource
-func FromGitSourceFlagsToGitSource(flags *flag.GitSourceFlags) v1beta1.GitSource {
-	return v1beta1.GitSource{
+func FromGitSourceFlagsToGitSource(flags *flag.GitSourceFlags) api.GitSource {
+	return api.GitSource{
 		URI:        flags.Source,
 		ContextDir: flags.ContextDir,
 		Reference:  flags.Reference,

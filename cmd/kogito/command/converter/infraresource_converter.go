@@ -15,13 +15,13 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 )
 
 // FromInfraResourceFlagsToResource converts given InfraResourceFlags into Resource
-func FromInfraResourceFlagsToResource(flags *flag.InfraResourceFlags) v1beta1.Resource {
-	return v1beta1.Resource{
+func FromInfraResourceFlagsToResource(flags *flag.InfraResourceFlags) api.Resource {
+	return api.Resource{
 		Kind:       flags.Kind,
 		APIVersion: flags.APIVersion,
 		Namespace:  flags.ResourceNamespace,

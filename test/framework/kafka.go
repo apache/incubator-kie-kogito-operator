@@ -19,7 +19,7 @@ import (
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/api/kafka/v1beta1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

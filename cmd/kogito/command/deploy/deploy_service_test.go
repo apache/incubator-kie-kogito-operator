@@ -16,20 +16,20 @@ package deploy
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"testing"
-
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
+	test3 "github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
-	test2 "github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	v1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
+	"testing"
 )
 
 func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
@@ -56,7 +56,7 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, "quay.io/kiegroup/drools-quarkus-example:1.0", kogitoRuntime.Spec.Image)
-	assert.Equal(t, v1beta1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.Equal(t, api.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
@@ -86,7 +86,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, "localhost:5000/kiegroup/process-business-rules-quarkus", kogitoRuntime.Spec.Image)
-	assert.Equal(t, v1beta1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.Equal(t, api.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
@@ -123,7 +123,7 @@ my.nice.property=socool
 	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoRuntime)
 	assert.NoError(t, err)
 	assert.True(t, exist)
-	assert.Equal(t, v1beta1.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
+	assert.Equal(t, api.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
 	assert.False(t, kogitoRuntime.Spec.EnableIstio)
 	assert.Equal(t, int32(1), *kogitoRuntime.Spec.Replicas)
 	assert.False(t, kogitoRuntime.Spec.InsecureImageRegistry)
@@ -136,7 +136,7 @@ my.nice.property=socool
 	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(cm)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.Contains(t, cm.Data[services.ConfigMapApplicationPropertyKey], "quarkus.log.level")
+	assert.Contains(t, cm.Data[kogitoservice.ConfigMapApplicationPropertyKey], "quarkus.log.level")
 }
 
 func Test_DeployCmd_SWFile(t *testing.T) {
@@ -148,7 +148,7 @@ func Test_DeployCmd_SWFile(t *testing.T) {
 	cli := fmt.Sprintf(`deploy-service serverless-workflow-greeting-quarkus %s --project %s`, swFile.Name(), ns)
 	ctx := test.SetupCliTestWithKubeClient(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
-		test2.NewFakeClientBuilder().
+		test3.NewFakeClientBuilder().
 			OnOpenShift().
 			AddK8sObjects(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}).
 			AddBuildObjects(&v1.BuildConfig{ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus-builder", Namespace: ns}}).

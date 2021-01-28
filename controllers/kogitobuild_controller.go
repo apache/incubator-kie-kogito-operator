@@ -12,33 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*
-
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
 	"fmt"
-	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/controllers/build"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitobuild"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
@@ -77,31 +60,31 @@ type KogitoBuildReconciler struct {
 // +kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
 func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result, resultErr error) {
-	r.Log.Info("Reconciling for", "KogitoBuild", req.Name, "Namespace", req.Namespace)
+	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
+	log.Info("Reconciling for KogitoBuild")
 
 	// fetch the requested instance
-	instance := &appv1beta1.KogitoBuild{}
-	exists, err := kubernetes.ResourceC(r.Client).FetchWithKey(req.NamespacedName, instance)
-	if err != nil {
-		return reconcile.Result{Requeue: false}, err
-	}
-	if !exists {
-		return reconcile.Result{Requeue: false}, nil
+	buildInstanceHandler := internal.NewKogitoBuildHandler(r.Client, log)
+	instance, resultErr := buildInstanceHandler.FetchKogitoBuildInstance(req.NamespacedName)
+	if resultErr != nil {
+		return
+	} else if instance == nil {
+		log.Info("Kogito Build not found")
 	}
 
-	result = reconcile.Result{Requeue: false}
+	buildStatusHandler := kogitobuild.NewStatusHandler(r.Client, log)
+	defer buildStatusHandler.HandleStatusChange(instance, resultErr)
 
-	defer r.handleStatusChange(instance, resultErr)
-
-	if len(instance.Spec.Runtime) == 0 {
-		instance.Spec.Runtime = appv1beta1.QuarkusRuntimeType
+	if len(instance.GetSpec().GetRuntime()) == 0 {
+		instance.GetSpec().SetRuntime(api.QuarkusRuntimeType)
 	}
-	if len(instance.Spec.TargetKogitoRuntime) == 0 {
-		instance.Spec.TargetKogitoRuntime = instance.Name
+	if len(instance.GetSpec().GetTargetKogitoRuntime()) == 0 {
+		instance.GetSpec().SetTargetKogitoRuntime(instance.GetName())
 	}
 
 	// create the Kogito Image Streams to build the service if needed
-	created, resultErr := build.CreateRequiredKogitoImageStreams(instance, r.Client)
+	buildImageHandler := kogitobuild.NewImageSteamHandler(r.Client, log)
+	created, resultErr := buildImageHandler.CreateRequiredKogitoImageStreams(instance)
 	if resultErr != nil {
 		return result, fmt.Errorf("Error while creating Kogito ImageStreams: %s ", resultErr)
 	}
@@ -111,48 +94,11 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 	}
 
 	// get the build manager to start the reconciliation logic
-	buildMgr, resultErr := build.New(instance, r.Client, r.Scheme)
+	deltaProcessor, resultErr := kogitobuild.NewDeltaProcessor(instance, r.Client, r.Scheme, log)
 	if resultErr != nil {
 		return
 	}
-	// get the resources as we want them to be
-	requested, resultErr := buildMgr.GetRequestedResources()
-	if resultErr != nil {
-		return
-	}
-	// get the deployed resources
-	deployed, resultErr := buildMgr.GetDeployedResources()
-	if resultErr != nil {
-		return
-	}
-	//let's compare
-	comparator := buildMgr.GetComparator()
-	deltas := comparator.Compare(deployed, requested)
-	for resourceType, delta := range deltas {
-		if !delta.HasChanges() {
-			continue
-		}
-		r.Log.Info("Updating kogito build", "Create", len(delta.Added), "Update", len(delta.Updated), "Delete", len(delta.Removed), "Instance", resourceType)
-		_, resultErr = kubernetes.ResourceC(r.Client).CreateResources(delta.Added)
-		if resultErr != nil {
-			return
-		}
-		_, resultErr = kubernetes.ResourceC(r.Client).UpdateResources(deployed[resourceType], delta.Updated)
-		if resultErr != nil {
-			return
-		}
-		_, resultErr = kubernetes.ResourceC(r.Client).DeleteResources(delta.Removed)
-		if resultErr != nil {
-			return
-		}
-
-		if len(delta.Updated) > 0 {
-			if resultErr = r.onResourceChange(instance, resourceType, delta.Updated); resultErr != nil {
-				return
-			}
-		}
-	}
-
+	resultErr = deltaProcessor.ProcessDelta()
 	return
 }
 
@@ -164,32 +110,4 @@ func (r *KogitoBuildReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		b.Owns(&buildv1.BuildConfig{}).Owns(&imagev1.ImageStream{})
 	}
 	return b.Complete(r)
-}
-
-// onResourceChange triggers hooks when a resource is changed
-func (r *KogitoBuildReconciler) onResourceChange(instance *appv1beta1.KogitoBuild, resourceType reflect.Type, resources []resource.KubernetesResource) error {
-	// add other resources if need
-	switch resourceType {
-	case reflect.TypeOf(buildv1.BuildConfig{}):
-		return r.onBuildConfigChange(instance, resources)
-	}
-	return nil
-}
-
-// onBuildConfigChange triggers when a build config changes
-func (r *KogitoBuildReconciler) onBuildConfigChange(instance *appv1beta1.KogitoBuild, buildConfigs []resource.KubernetesResource) error {
-	// triggers only on source builds
-	if instance.Spec.Type == appv1beta1.RemoteSourceBuildType ||
-		instance.Spec.Type == appv1beta1.LocalSourceBuildType {
-		for _, bc := range buildConfigs {
-			// building from source
-			if bc.GetName() == build.GetBuildBuilderName(instance) {
-				r.Log.Info("Changes detected for build config, starting again", "Build Config", bc.GetName())
-				if err := build.StartNewBuild(bc.(*buildv1.BuildConfig), r.Client); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return nil
 }

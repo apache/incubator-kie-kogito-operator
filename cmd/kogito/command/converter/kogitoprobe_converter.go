@@ -15,14 +15,14 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	v12 "k8s.io/api/core/v1"
 )
 
 // FromProbeFlagToKogitoProbe converts given ProbeFlags into KogitoProbe
-func FromProbeFlagToKogitoProbe(flags *flag.ProbeFlags) v1beta1.KogitoProbe {
-	return v1beta1.KogitoProbe{
+func FromProbeFlagToKogitoProbe(flags *flag.ProbeFlags) api.KogitoProbe {
+	return api.KogitoProbe{
 		LivenessProbe: v12.Probe{
 			InitialDelaySeconds: flags.LivenessInitialDelay,
 		},

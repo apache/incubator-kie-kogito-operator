@@ -16,6 +16,9 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -25,17 +28,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 )
 
 // GenerateNamespaceName generates a namespace name, taking configuration into account (local or not)
 func GenerateNamespaceName(prefix string) string {
 	rand.Seed(time.Now().UnixNano())
-	ns := fmt.Sprintf("%s-%s", prefix, test.GenerateShortUID(4))
+	ns := fmt.Sprintf("%s-%s", prefix, test2.GenerateShortUID(4))
 	if config.IsLocalTests() {
 		username := getEnvUsername()
 		ns = fmt.Sprintf("%s-local-%s", username, ns)
@@ -222,7 +222,7 @@ func DeleteFile(folder, fileName string) error {
 
 // GetBuildImage returns a build image with defaults set
 func GetBuildImage(imageName string) string {
-	image := v1beta1.Image{
+	image := api.Image{
 		Domain:    config.GetBuildImageRegistry(),
 		Namespace: config.GetBuildImageNamespace(),
 		Name:      imageName,

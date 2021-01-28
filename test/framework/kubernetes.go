@@ -16,15 +16,15 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -402,7 +402,7 @@ func GetIngressURI(namespace, serviceName string) (string, error) {
 }
 
 // ExposeServiceOnKubernetes adds ingress CR to expose a service
-func ExposeServiceOnKubernetes(namespace string, service v1beta1.KogitoService) error {
+func ExposeServiceOnKubernetes(namespace string, service api.KogitoService) error {
 	host := service.GetName()
 	if !config.IsLocalCluster() {
 		host += fmt.Sprintf(".%s.%s", namespace, config.GetDomainSuffix())

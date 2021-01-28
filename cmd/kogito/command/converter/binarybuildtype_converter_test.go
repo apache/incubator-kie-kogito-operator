@@ -15,17 +15,17 @@
 package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"reflect"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 )
 
 func TestFromArgsToBinaryBuildType(t *testing.T) {
 	type args struct {
 		resourceType flag.ResourceType
-		runtime      v1beta1.RuntimeType
+		runtime      api.RuntimeType
 		native       bool
 	}
 	tests := []struct {
@@ -33,10 +33,10 @@ func TestFromArgsToBinaryBuildType(t *testing.T) {
 		args args
 		want flag.BinaryBuildType
 	}{
-		{"Spring Boot JVM binary build", args{flag.LocalBinaryDirectoryResource, v1beta1.SpringBootRuntimeType, false}, flag.BinarySpringBootJvmBuild},
-		{"Quarkus native binary build", args{flag.LocalBinaryDirectoryResource, v1beta1.QuarkusRuntimeType, true}, flag.BinaryQuarkusNativeBuild},
-		{"Quarkus JVM binary build", args{flag.LocalBinaryDirectoryResource, v1beta1.QuarkusRuntimeType, false}, flag.BinaryQuarkusJvmBuild},
-		{"s2i build", args{flag.GitFileResource, v1beta1.QuarkusRuntimeType, true}, flag.SourceToImageBuild},
+		{"Spring Boot JVM binary build", args{flag.LocalBinaryDirectoryResource, api.SpringBootRuntimeType, false}, flag.BinarySpringBootJvmBuild},
+		{"Quarkus native binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, true}, flag.BinaryQuarkusNativeBuild},
+		{"Quarkus JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false}, flag.BinaryQuarkusJvmBuild},
+		{"s2i build", args{flag.GitFileResource, api.QuarkusRuntimeType, true}, flag.SourceToImageBuild},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

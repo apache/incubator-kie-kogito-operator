@@ -16,7 +16,7 @@ package shared
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -28,7 +28,7 @@ import (
 
 func Test_EnsureProject(t *testing.T) {
 	ns := t.Name()
-	kubeCli := test.NewFakeClientBuilder().AddK8sObjects(
+	kubeCli := test2.NewFakeClientBuilder().AddK8sObjects(
 		&v1.Namespace{
 			ObjectMeta: v12.ObjectMeta{Name: ns},
 		}).Build()
@@ -78,7 +78,7 @@ func Test_EnsureProject(t *testing.T) {
 func Test_CheckKogitoRuntimeExists_exists(t *testing.T) {
 	runtimeServiceName := "runtime-service"
 	ns := t.Name()
-	kubeCli := test.NewFakeClientBuilder().AddK8sObjects(
+	kubeCli := test2.NewFakeClientBuilder().AddK8sObjects(
 		&v1.Namespace{ObjectMeta: v12.ObjectMeta{Name: ns}},
 		&v1beta1.KogitoRuntime{
 			ObjectMeta: v12.ObjectMeta{
@@ -97,7 +97,7 @@ func Test_CheckKogitoRuntimeExists_exists(t *testing.T) {
 func Test_CheckKogitoRuntimeExists_notExists(t *testing.T) {
 	runtimeServiceName := "runtime-service"
 	ns := t.Name()
-	kubeCli := test.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: v12.ObjectMeta{Name: ns}}).Build()
+	kubeCli := test2.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: v12.ObjectMeta{Name: ns}}).Build()
 	resourceCheckService := NewResourceCheckService()
 
 	err := resourceCheckService.CheckKogitoRuntimeExists(kubeCli, runtimeServiceName, ns)
@@ -109,7 +109,7 @@ func Test_CheckKogitoRuntimeExists_notExists(t *testing.T) {
 func Test_CheckKogitoBuildExists_exists(t *testing.T) {
 	buildServiceName := "build-service"
 	ns := t.Name()
-	kubeCli := test.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: v12.ObjectMeta{Name: ns}},
+	kubeCli := test2.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: v12.ObjectMeta{Name: ns}},
 		&v1beta1.KogitoBuild{
 			ObjectMeta: v12.ObjectMeta{
 				Name:      buildServiceName,
@@ -127,7 +127,7 @@ func Test_CheckKogitoBuildExists_exists(t *testing.T) {
 func Test_CheckKogitoBuildExists_notExists(t *testing.T) {
 	buildServiceName := "build-service"
 	ns := t.Name()
-	kubeCli := test.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: v12.ObjectMeta{Name: ns}}).Build()
+	kubeCli := test2.NewFakeClientBuilder().AddK8sObjects(&v1.Namespace{ObjectMeta: v12.ObjectMeta{Name: ns}}).Build()
 	resourceCheckService := NewResourceCheckService()
 
 	err := resourceCheckService.CheckKogitoBuildExists(kubeCli, buildServiceName, ns)

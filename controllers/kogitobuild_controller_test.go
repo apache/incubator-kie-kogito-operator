@@ -16,19 +16,20 @@ package controllers
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/controllers/build"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitobuild"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sort"
 	"testing"
 	"time"
@@ -38,9 +39,9 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	instanceName := "quarkus-example"
 	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: v1beta1.KogitoBuildSpec{
-			Type: v1beta1.RemoteSourceBuildType,
-			GitSource: v1beta1.GitSource{
+		Spec: api.KogitoBuildSpec{
+			Type: api.RemoteSourceBuildType,
+			GitSource: api.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: instanceName,
 			},
@@ -56,11 +57,11 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
+	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogitoBuild reconciler")}
 
 	// first reconciliation
-	result := test.AssertReconcileMustRequeue(t, &r, instance)
+	result := test2.AssertReconcileMustRequeue(t, &r, instance)
 	assert.Equal(t, time.Second*10, result.RequeueAfter)
 
 	// verifying if all images have been created
@@ -77,7 +78,7 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	assert.Equal(t, infrastructure.GetKogitoImageVersion(), kogitoISList.Items[1].Spec.Tags[0].Name)
 
 	// reconcile again, check for builds
-	result = test.AssertReconcileMustNotRequeue(t, &r, instance)
+	result = test2.AssertReconcileMustNotRequeue(t, &r, instance)
 
 	kogitoISList = &imagev1.ImageStreamList{}
 	err = kubernetes.ResourceC(cli).ListWithNamespace(t.Name(), kogitoISList)
@@ -87,71 +88,71 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 		return kogitoISList.Items[i].Name < kogitoISList.Items[j].Name
 	})
 	assert.Equal(t, instanceName, kogitoISList.Items[2].Name)
-	assert.Equal(t, build.GetBuildBuilderName(instance), kogitoISList.Items[3].Name)
+	assert.Equal(t, kogitobuild.GetBuildBuilderName(instance), kogitoISList.Items[3].Name)
 
 	builderBC := &buildv1.BuildConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: build.GetBuildBuilderName(instance), Namespace: t.Name()},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitobuild.GetBuildBuilderName(instance), Namespace: t.Name()},
 	}
-	test.AssertFetchMustExist(t, cli, builderBC)
+	test2.AssertFetchMustExist(t, cli, builderBC)
 
 	runtimeBC := &buildv1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
 	}
-	test.AssertFetchMustExist(t, cli, runtimeBC)
+	test2.AssertFetchMustExist(t, cli, runtimeBC)
 
 	// reconcile one more time having everything in place
-	test.AssertReconcileMustNotRequeue(t, &r, instance)
+	test2.AssertReconcileMustNotRequeue(t, &r, instance)
 
 	// change something
-	test.AssertFetchMustExist(t, cli, instance)
+	test2.AssertFetchMustExist(t, cli, instance)
 	instance.Spec.GitSource.Reference = "v1.0.0"
 	err = kubernetes.ResourceC(cli).Update(instance)
 	assert.NoError(t, err)
 
 	// reconcile
-	result = test.AssertReconcileMustNotRequeue(t, &r, instance)
-	test.AssertFetchMustExist(t, cli, instance)
+	result = test2.AssertReconcileMustNotRequeue(t, &r, instance)
+	test2.AssertFetchMustExist(t, cli, instance)
 
 	assert.Len(t, instance.Status.Conditions, 1)
-	assert.Equal(t, v1beta1.KogitoBuildRunning, instance.Status.Conditions[0].Type)
+	assert.Equal(t, api.KogitoBuildRunning, instance.Status.Conditions[0].Type)
 }
 
 func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	kogitoServiceName := "quarkus-example"
 	instanceLocalName := "quarkus-example-local"
 	instanceRemote := &v1beta1.KogitoBuild{
-		ObjectMeta: metav1.ObjectMeta{Name: kogitoServiceName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: v1beta1.KogitoBuildSpec{
-			Type: v1beta1.RemoteSourceBuildType,
-			GitSource: v1beta1.GitSource{
+		ObjectMeta: metav1.ObjectMeta{Name: kogitoServiceName, Namespace: t.Name(), UID: test2.GenerateUID()},
+		Spec: api.KogitoBuildSpec{
+			Type: api.RemoteSourceBuildType,
+			GitSource: api.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: kogitoServiceName,
 			},
-			Runtime: v1beta1.QuarkusRuntimeType,
+			Runtime: api.QuarkusRuntimeType,
 		},
 	}
 	instanceLocal := &v1beta1.KogitoBuild{
-		ObjectMeta: metav1.ObjectMeta{Name: instanceLocalName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: v1beta1.KogitoBuildSpec{
-			Type:                v1beta1.LocalSourceBuildType,
-			Runtime:             v1beta1.QuarkusRuntimeType,
+		ObjectMeta: metav1.ObjectMeta{Name: instanceLocalName, Namespace: t.Name(), UID: test2.GenerateUID()},
+		Spec: api.KogitoBuildSpec{
+			Type:                api.LocalSourceBuildType,
+			Runtime:             api.QuarkusRuntimeType,
 			TargetKogitoRuntime: kogitoServiceName,
 		},
 	}
-	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
+	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
 	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogitoBuild reconciler")}
 
 	// first reconciliation
-	result := test.AssertReconcileMustRequeue(t, &r, instanceRemote)
+	result := test2.AssertReconcileMustRequeue(t, &r, instanceRemote)
 	assert.Equal(t, time.Second*10, result.RequeueAfter)
 	// we won't requeue since the Kogito ImageStreams should be created for the first instance
-	result = test.AssertReconcileMustNotRequeue(t, &r, instanceLocal)
+	result = test2.AssertReconcileMustNotRequeue(t, &r, instanceLocal)
 	// now we create the objects for Remote
-	result = test.AssertReconcileMustNotRequeue(t, &r, instanceRemote)
+	result = test2.AssertReconcileMustNotRequeue(t, &r, instanceRemote)
 
-	is, err := services.GetSharedDeployedImageStream(kogitoServiceName, t.Name(), cli)
+	imageStreamHandler := infrastructure.NewImageStreamHandler(cli, logger.GetLogger("kogitoBuild reconciler"))
+	is, err := imageStreamHandler.MustFetchImageStream(types.NamespacedName{Name: kogitoServiceName, Namespace: t.Name()})
 	assert.NoError(t, err)
-	assert.NotNil(t, is)
 	assert.Len(t, is.OwnerReferences, 2) // we have two owners!
 	// and none of them are the controller, this is an anarchy!
 	for _, owner := range is.OwnerReferences {

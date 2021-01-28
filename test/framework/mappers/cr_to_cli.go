@@ -55,10 +55,8 @@ func GetServiceCLIFlags(serviceHolder *bddtypes.KogitoServiceHolder) []string {
 		cmd = append(cmd, "--svc-labels", fmt.Sprintf("%s=%s", labelName, labelValue))
 	}
 
-	if kogitoRuntime, ok := serviceHolder.KogitoService.(*v1beta1.KogitoRuntime); ok {
-		if runtime := kogitoRuntime.Spec.Runtime; len(runtime) > 0 {
-			cmd = append(cmd, "--runtime", string(runtime))
-		}
+	if runtime := serviceHolder.KogitoService.GetSpec().GetRuntime(); len(runtime) > 0 {
+		cmd = append(cmd, "--runtime", string(runtime))
 	}
 
 	return cmd

@@ -15,33 +15,14 @@
 package v1beta1
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-// ServiceType define resource type of supporting service
-type ServiceType string
-
-const (
-	// DataIndex supporting service resource type
-	DataIndex ServiceType = "DataIndex"
-	// Explainability supporting service resource type
-	Explainability ServiceType = "Explainability"
-	// JobsService supporting service resource type
-	JobsService ServiceType = "JobsService"
-	// MgmtConsole supporting service resource type
-	MgmtConsole ServiceType = "MgmtConsole"
-	// TaskConsole supporting service resource type
-	TaskConsole ServiceType = "TaskConsole"
-	// TrustyAI supporting service resource type
-	TrustyAI ServiceType = "TrustyAI"
-	// TrustyUI supporting service resource type
-	TrustyUI ServiceType = "TrustyUI"
 )
 
 // KogitoSupportingServiceSpec defines the desired state of KogitoSupportingService.
 // +k8s:openapi-gen=true
 type KogitoSupportingServiceSpec struct {
-	KogitoServiceSpec `json:",inline"`
+	api.KogitoServiceSpec `json:",inline"`
 
 	// Defines the type for the supporting service, eg: DataIndex, JobsService
 	// Default value: JobsService
@@ -50,18 +31,28 @@ type KogitoSupportingServiceSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=DataIndex;Explainability;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
-	ServiceType ServiceType `json:"serviceType"`
+	ServiceType api.ServiceType `json:"serviceType"`
 }
 
 // GetRuntime ...
-func (k *KogitoSupportingServiceSpec) GetRuntime() RuntimeType {
-	return QuarkusRuntimeType
+func (k *KogitoSupportingServiceSpec) GetRuntime() api.RuntimeType {
+	return api.QuarkusRuntimeType
+}
+
+// GetServiceType ...
+func (k *KogitoSupportingServiceSpec) GetServiceType() api.ServiceType {
+	return k.ServiceType
+}
+
+// SetServiceType ...
+func (k *KogitoSupportingServiceSpec) SetServiceType(serviceType api.ServiceType) {
+	k.ServiceType = serviceType
 }
 
 // KogitoSupportingServiceStatus defines the observed state of KogitoSupportingService.
 // +k8s:openapi-gen=true
 type KogitoSupportingServiceStatus struct {
-	KogitoServiceStatus `json:",inline"`
+	api.KogitoServiceStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
@@ -88,12 +79,22 @@ type KogitoSupportingService struct {
 }
 
 // GetSpec ...
-func (k *KogitoSupportingService) GetSpec() KogitoServiceSpecInterface {
+func (k *KogitoSupportingService) GetSpec() api.KogitoServiceSpecInterface {
 	return &k.Spec
 }
 
 // GetStatus ...
-func (k *KogitoSupportingService) GetStatus() KogitoServiceStatusInterface {
+func (k *KogitoSupportingService) GetStatus() api.KogitoServiceStatusInterface {
+	return &k.Status
+}
+
+// GetSupportingServiceSpec ...
+func (k *KogitoSupportingService) GetSupportingServiceSpec() api.KogitoSupportingServiceSpecInterface {
+	return &k.Spec
+}
+
+// GetSupportingServiceStatus ...
+func (k *KogitoSupportingService) GetSupportingServiceStatus() api.KogitoSupportingServiceStatusInterface {
 	return &k.Status
 }
 
@@ -106,17 +107,13 @@ type KogitoSupportingServiceList struct {
 	Items           []KogitoSupportingService `json:"items"`
 }
 
-// GetItemsCount ...
-func (l *KogitoSupportingServiceList) GetItemsCount() int {
-	return len(l.Items)
-}
-
-// GetItemAt ...
-func (l *KogitoSupportingServiceList) GetItemAt(index int) KogitoService {
-	if len(l.Items) > index {
-		return KogitoService(&l.Items[index])
+// GetItems ...
+func (k *KogitoSupportingServiceList) GetItems() []api.KogitoSupportingServiceInterface {
+	models := make([]api.KogitoSupportingServiceInterface, len(k.Items))
+	for i, v := range k.Items {
+		models[i] = &v
 	}
-	return nil
+	return models
 }
 
 func init() {

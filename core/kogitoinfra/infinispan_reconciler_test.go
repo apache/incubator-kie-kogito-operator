@@ -1,0 +1,87 @@
+package kogitoinfra
+
+import (
+	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"testing"
+)
+
+func Test_Reconcile_Infinispan(t *testing.T) {
+	kogitoInfra := &api2.KogitoInfraTest{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
+		Spec: api.KogitoInfraSpec{
+			Resource: api.Resource{
+				APIVersion: infrastructure.InfinispanAPIVersion,
+				Kind:       infrastructure.InfinispanKind,
+				Name:       "kogito-infinispan",
+				Namespace:  t.Name(),
+			},
+		},
+	}
+	crtFile, err := ioutil.ReadFile("./testdata/tls.crt")
+	assert.NoError(t, err)
+	tlsSecret := &corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "secret-with-truststore",
+			Namespace: t.Name(),
+		},
+		Data: map[string][]byte{truststoreSecretKey: crtFile},
+	}
+	deployedInfinispan := &ispn.Infinispan{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
+		Status: ispn.InfinispanStatus{
+			Security: ispn.InfinispanSecurity{
+				EndpointEncryption: ispn.EndpointEncryption{
+					CertSecretName: tlsSecret.Name,
+				},
+			},
+			Conditions: []ispn.InfinispanCondition{
+				{
+					Status: string(v1.ConditionTrue),
+				},
+			},
+		},
+	}
+
+	deployedCustomSecret := &corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan-credential", Namespace: t.Name()},
+	}
+
+	infinispanService := &corev1.Service{
+		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					TargetPort: intstr.FromInt(11222),
+				},
+			},
+		},
+	}
+
+	client := test.NewFakeClientBuilder().
+		AddK8sObjects(kogitoInfra, deployedInfinispan, deployedCustomSecret, infinispanService, tlsSecret).
+		Build()
+
+	scheme := test.GetRegisteredSchema()
+	r := &infinispanInfraReconciler{
+		targetContext: targetContext{
+			client:   client,
+			scheme:   scheme,
+			log:      logger.GetLogger("kogito infra reconciler"),
+			instance: kogitoInfra,
+		},
+	}
+
+	requeue, err := r.Reconcile()
+	assert.NoError(t, err)
+	assert.False(t, requeue)
+}

@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
@@ -83,7 +84,7 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 			Name:      flags.Name,
 			Namespace: flags.Project,
 		},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: api.KogitoBuildSpec{
 			Type:                      converter.FromResourceTypeToKogitoBuildType(resourceType),
 			DisableIncremental:        !flags.IncrementalBuild,
 			Env:                       converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
@@ -99,8 +100,8 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 			Artifact:                  converter.FromArtifactFlagsToArtifact(&flags.ArtifactFlags),
 			EnableMavenDownloadOutput: flags.EnableMavenDownloadOutput,
 		},
-		Status: v1beta1.KogitoBuildStatus{
-			Conditions: []v1beta1.KogitoBuildConditions{},
+		Status: api.KogitoBuildStatus{
+			Conditions: []api.KogitoBuildConditions{},
 		},
 	}
 
@@ -137,8 +138,8 @@ func (i buildService) validatePreRequisite(flags *flag.BuildFlags, log *zap.Suga
 	}
 
 	if flags.Native {
-		if v1beta1.RuntimeType(flags.RuntimeTypeFlags.Runtime) != v1beta1.QuarkusRuntimeType {
-			return fmt.Errorf("native builds are only supported with %s runtime", v1beta1.QuarkusRuntimeType)
+		if api.RuntimeType(flags.RuntimeTypeFlags.Runtime) != api.QuarkusRuntimeType {
+			return fmt.Errorf("native builds are only supported with %s runtime", api.QuarkusRuntimeType)
 		}
 	}
 	return nil

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"regexp"
 
+	framework1 "github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	framework1 "github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	keycloak "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"

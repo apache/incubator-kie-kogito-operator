@@ -16,6 +16,7 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -24,8 +25,6 @@ import (
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 )
 
 // DeployInfinispanInstance deploys an instance of Infinispan

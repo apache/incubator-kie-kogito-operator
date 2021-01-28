@@ -16,6 +16,8 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"strings"
 
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -27,11 +29,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/kiegroup/kogito-cloud-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/core/version"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	infra "github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/operator"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/version"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
@@ -77,7 +78,7 @@ var (
 	KogitoOperatorDependencies = []string{kogitoInfinispanDependencyName, kogitoKafkaDependencyName, kogitoKeycloakDependencyName}
 
 	// KogitoOperatorMongoDBDependency is the MongoDB identifier for installation
-	KogitoOperatorMongoDBDependency = infra.MongoDBKind
+	KogitoOperatorMongoDBDependency = infrastructure.MongoDBKind
 	mongoDBOperatorTimeoutInMin     = 10
 
 	kogitoOperatorCatalogSourceTimeoutInMin = 3
@@ -459,8 +460,8 @@ func getOperatorImageNameAndTag() string {
 // DeployMongoDBOperatorFromYaml Deploy Kogito Operator from yaml files
 func DeployMongoDBOperatorFromYaml(namespace string) error {
 	GetLogger(namespace).Info("Deploy MongoDB from yaml files", "file uri", mongoDBOperatorDeployFilesURI)
-
-	if !infra.IsMongoDBAvailable(kubeClient) {
+	mongoDBHandler := infrastructure.NewMongoDBHandler(kubeClient, logger.GetLogger(namespace))
+	if !mongoDBHandler.IsMongoDBAvailable() {
 		if err := loadResource(namespace, mongoDBOperatorDeployFilesURI+"crds/mongodb.com_mongodb_crd.yaml", &apiextensionsv1beta1.CustomResourceDefinition{}, func(object interface{}) {
 			// Short fix as 'plural' from mongodb is not mongodbs ...
 			// https://github.com/mongodb/mongodb-kubernetes-operator/issues/237
@@ -529,7 +530,8 @@ func WaitForMongoDBOperatorRunning(namespace string) error {
 }
 
 func isMongoDBOperatorRunning(namespace string) (bool, error) {
-	exists, err := infra.IsMongoDBOperatorAvailable(kubeClient, namespace)
+	mongoDBHandler := infrastructure.NewMongoDBHandler(kubeClient, logger.GetLogger(namespace))
+	exists, err := mongoDBHandler.IsMongoDBOperatorAvailable(namespace)
 	if err != nil {
 		if exists {
 			return false, nil

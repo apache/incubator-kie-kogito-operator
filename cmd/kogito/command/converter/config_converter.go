@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,7 +55,7 @@ func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *fl
 		return "", err
 	}
 	cm.Data = map[string]string{
-		services.ConfigMapApplicationPropertyKey: string(fileContent),
+		kogitoservice.ConfigMapApplicationPropertyKey: string(fileContent),
 	}
 	if cm.Annotations == nil {
 		cm.Annotations = map[string]string{}

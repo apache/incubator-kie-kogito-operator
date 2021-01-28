@@ -32,16 +32,18 @@ package controllers
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/connector"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure/services"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -72,41 +74,48 @@ type KogitoRuntimeReconciler struct {
 // +kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
 func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Result, err error) {
-	r.Log.Info("Reconciling for", "KogitoRuntime", req.Name, "Namespace", req.Namespace)
+	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
+	log.Info("Reconciling for KogitoRuntime")
 
-	instance, err := infrastructure.FetchKogitoRuntimeService(r.Client, req.Name, req.Namespace)
+	runtimeHandler := internal.NewKogitoRuntimeHandler(r.Client, log)
+	instance, err := runtimeHandler.FetchKogitoRuntimeInstance(req.NamespacedName)
 	if err != nil {
 		return
 	}
 	if instance == nil {
-		r.Log.Debug("Instance not found", "KogitoRuntime", req.Name, "Namespace", req.Namespace)
+		log.Debug("KogitoRuntime instance not found")
 		return
 	}
 
-	if err = r.setupRBAC(req.Namespace); err != nil {
+	rbacHandler := infrastructure.NewRBACHandler(r.Client, log)
+	if err = rbacHandler.SetupRBAC(req.Namespace); err != nil {
 		return
 	}
 
-	if err = infrastructure.MountProtoBufConfigMapOnDataIndex(r.Client, instance); err != nil {
-		r.Log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex", "Instance", instance.Name)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(r.Client, r.Log)
+	protoBufHandler := connector.NewProtoBufHandler(r.Client, r.Log, supportingServiceHandler)
+	if err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance); err != nil {
+		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
 		return
 	}
 
-	definition := services.ServiceDefinition{
+	deploymentHandler := NewRuntimeDeployerHandler(r.Client, log, instance, supportingServiceHandler, runtimeHandler)
+	definition := kogitoservice.ServiceDefinition{
 		Request:            req,
 		DefaultImageTag:    infrastructure.LatestTag,
 		SingleReplica:      false,
-		OnDeploymentCreate: onDeploymentCreate,
-		OnObjectsCreate:    r.onObjectsCreate,
-		OnGetComparators:   onGetComparators,
+		OnDeploymentCreate: deploymentHandler.OnDeploymentCreate,
+		OnObjectsCreate:    deploymentHandler.OnObjectsCreate,
+		OnGetComparators:   deploymentHandler.OnGetComparators,
 		CustomService:      true,
 	}
-	requeueAfter, err := services.NewServiceDeployer(definition, instance, r.Client, r.Scheme).Deploy()
+	infraHandler := internal.NewKogitoInfraHandler(r.Client, log)
+	requeueAfter, err := kogitoservice.NewServiceDeployer(definition, instance, r.Client, r.Scheme, log, infraHandler).Deploy()
 	if err != nil {
 		return
 	}
 	if requeueAfter > 0 {
-		r.Log.Info("Waiting for all resources to be created, scheduling for 30 seconds from now")
+		log.Info("Waiting for all resources to be created, scheduling for 30 seconds from now")
 		result.RequeueAfter = requeueAfter
 		result.Requeue = true
 	}
@@ -131,32 +140,15 @@ func (r *KogitoRuntimeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{}).Owns(&appsv1.Deployment{}).Owns(&corev1.ConfigMap{})
 
 	infraHandler := &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1beta1.KogitoRuntime{}}
-	b.Watches(&source.Kind{Type: &v1beta1.KogitoInfra{}}, infraHandler)
-
+	infraPred := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			return reflect.DeepEqual(e.MetaNew.GetOwnerReferences(), e.MetaOld.GetOwnerReferences())
+		},
+	}
+	b.Watches(&source.Kind{Type: &v1beta1.KogitoInfra{}}, infraHandler, builder.WithPredicates(infraPred))
 	if r.IsOpenshift() {
 		b.Owns(&routev1.Route{}).Owns(&imagev1.ImageStream{})
 	}
 
 	return b.Complete(r)
-}
-
-func (r *KogitoRuntimeReconciler) setupRBAC(namespace string) (err error) {
-	// create service viewer role
-	if err = kubernetes.ResourceC(r.Client).CreateIfNotExists(getServiceViewerRole(namespace)); err != nil {
-		r.Log.Error(err, "Fail to create role for service viewer")
-		return
-	}
-
-	// create service viewer service account
-	if err = kubernetes.ResourceC(r.Client).CreateIfNotExists(getServiceViewerServiceAccount(namespace)); err != nil {
-		r.Log.Error(err, "Fail to create service account for service viewer")
-		return
-	}
-
-	// create service viewer rolebinding
-	if err = kubernetes.ResourceC(r.Client).CreateIfNotExists(getServiceViewerRoleBinding(namespace)); err != nil {
-		r.Log.Error(err, "Fail to create role binding for service viewer")
-		return
-	}
-	return
 }

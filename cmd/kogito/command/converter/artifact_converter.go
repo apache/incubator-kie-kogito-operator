@@ -15,13 +15,13 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
 )
 
 // FromArtifactFlagsToArtifact converts given ArtifactFlags into Artifact
-func FromArtifactFlagsToArtifact(flags *flag.ArtifactFlags) v1beta1.Artifact {
-	return v1beta1.Artifact{
+func FromArtifactFlagsToArtifact(flags *flag.ArtifactFlags) api.Artifact {
+	return api.Artifact{
 		GroupID:    flags.ProjectGroupID,
 		ArtifactID: flags.ProjectArtifactID,
 		Version:    flags.ProjectVersion,

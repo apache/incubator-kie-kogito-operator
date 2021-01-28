@@ -16,11 +16,12 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework/mappers"
 	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
@@ -88,14 +89,14 @@ func NewObjectMetadata(namespace string, name string) metav1.ObjectMeta {
 }
 
 // NewKogitoServiceSpec creates a new Kogito Service Spec object.
-func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName string) v1beta1.KogitoServiceSpec {
-	return v1beta1.KogitoServiceSpec{
+func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName string) api.KogitoServiceSpec {
+	return api.KogitoServiceSpec{
 		Replicas: &replicas,
 		Image:    NewImageOrDefault(fullImage, defaultImageName),
 		// Sets insecure image registry as service images can be stored in insecure registries
 		InsecureImageRegistry: true,
 		// Extends the probe interval for slow test environment
-		Probes: v1beta1.KogitoProbe{
+		Probes: api.KogitoProbe{
 			ReadinessProbe: corev1.Probe{
 				FailureThreshold: 12,
 			},
@@ -107,10 +108,10 @@ func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName str
 }
 
 // NewKogitoServiceStatus creates a new Kogito Service Status object.
-func NewKogitoServiceStatus() v1beta1.KogitoServiceStatus {
-	return v1beta1.KogitoServiceStatus{
-		ConditionsMeta: v1beta1.ConditionsMeta{
-			Conditions: []v1beta1.Condition{},
+func NewKogitoServiceStatus() api.KogitoServiceStatus {
+	return api.KogitoServiceStatus{
+		ConditionsMeta: api.ConditionsMeta{
+			Conditions: []api.Condition{},
 		},
 	}
 }
@@ -121,7 +122,7 @@ func NewImageOrDefault(fullImage string, defaultImageName string) string {
 		return fullImage
 	}
 
-	image := v1beta1.Image{}
+	image := api.Image{}
 	if isRuntimeImageInformationSet() {
 
 		image.Domain = config.GetServicesImageRegistry()
@@ -172,7 +173,7 @@ func cliInstall(serviceHolder *bddtypes.KogitoServiceHolder, cliDeployCommand, c
 }
 
 // OnKogitoServiceDeployed is called when a service deployed.
-func OnKogitoServiceDeployed(namespace string, service v1beta1.KogitoService) error {
+func OnKogitoServiceDeployed(namespace string, service api.KogitoService) error {
 	if !IsOpenshift() {
 		return ExposeServiceOnKubernetes(namespace, service)
 	}
@@ -182,7 +183,7 @@ func OnKogitoServiceDeployed(namespace string, service v1beta1.KogitoService) er
 
 // Kogito CLI doesn't contain all the probe configuration options which are needed to alter the deployments for slow environments. Therefore it is needed to patch CRs directly.
 func patchKogitoProbes(serviceHolder *bddtypes.KogitoServiceHolder) error {
-	var patched v1beta1.KogitoService
+	var patched api.KogitoService
 	var err error
 	for i := 0; i < 3; i++ {
 		patched, err = newKogitoService(serviceHolder.KogitoService)
@@ -210,11 +211,11 @@ func patchKogitoProbes(serviceHolder *bddtypes.KogitoServiceHolder) error {
 }
 
 // Return new empty KogitoService based on same type as parameter
-func newKogitoService(s v1beta1.KogitoService) (v1beta1.KogitoService, error) {
-	switch v := s.(type) {
-	case *v1beta1.KogitoRuntime:
+func newKogitoService(s api.KogitoService) (api.KogitoService, error) {
+	switch v := s.GetSpec().(type) {
+	case *v1beta1.KogitoRuntimeSpec:
 		return &v1beta1.KogitoRuntime{}, nil
-	case *v1beta1.KogitoSupportingService:
+	case *v1beta1.KogitoSupportingServiceSpec:
 		return &v1beta1.KogitoSupportingService{}, nil
 	default:
 		return nil, fmt.Errorf("Type %T not defined", v)

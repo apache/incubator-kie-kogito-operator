@@ -16,9 +16,10 @@ package controllers
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -62,24 +63,29 @@ func (f *FinalizeKogitoSupportingService) SetupWithManager(mgr manager.Manager) 
 // Reconcile reads that state of the cluster for a KogitoSupportingService object and makes changes based on the state read
 // and what is in the KogitoSupportingService.Spec
 func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (result reconcile.Result, err error) {
-	f.Log.Info("Reconciling KogitoSupportingService finalizer", "name", request.Name, "namespace", request.Namespace)
-	instance, err := infrastructure.FetchKogitoSupportingService(f.Client, request.Name, request.Namespace)
+	log := f.Log.WithValues("name", request.Name, "namespace", request.Namespace)
+	log.Info("Reconciling for KogitoSupportingService finalizer")
+
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(f.Client, log)
+	instance, err := supportingServiceHandler.FetchKogitoSupportingService(request.NamespacedName)
 	if err != nil {
 		return
 	}
 	if instance == nil {
-		f.Log.Debug("KogitoSupportingService instance not found. Going to return reconciliation request", "name", request.Name, "namespace", request.Namespace)
+		log.Debug("KogitoSupportingService instance not found. Going to return reconciliation request", "name", request.Name, "namespace", request.Namespace)
 		return
 	}
+	infraHandler := internal.NewKogitoInfraHandler(f.Client, f.Log)
+	finalizerHandler := kogitoservice.NewFinalizerHandler(f.Client, log, f.Scheme, infraHandler)
 	// examine DeletionTimestamp to determine if object is under deletion
-	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
+	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR
-		err = infrastructure.AddFinalizer(f.Client, instance)
+		err = finalizerHandler.AddFinalizer(instance)
 		return
 	}
 
 	// The object is being deleted
-	f.Log.Info("KogitoSupportingService has been deleted", "name", instance.GetName(), "namespace", instance.GetNamespace())
-	err = infrastructure.HandleFinalization(f.Client, instance)
+	log.Info("KogitoSupportingService has been deleted")
+	err = finalizerHandler.HandleFinalization(instance)
 	return
 }

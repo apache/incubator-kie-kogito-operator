@@ -15,8 +15,8 @@
 package openshift
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 )
 
 var log = logger.GetLogger("openshift_client")
@@ -39,14 +39,4 @@ func BuildConfig() BuildConfigInterface {
 // BuildConfigC will call BuildConfig OpenShift API with a given client
 func BuildConfigC(c *client.Client) BuildConfigInterface {
 	return newBuildConfig(c)
-}
-
-// Route will call Route OpenShift API
-func Route() RouteInterface {
-	return newRoute(&client.Client{})
-}
-
-// RouteC will call Route OpenShift API with the given client
-func RouteC(c *client.Client) RouteInterface {
-	return newRoute(c)
 }
