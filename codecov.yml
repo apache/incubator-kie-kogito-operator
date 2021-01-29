@@ -10,6 +10,12 @@ flags:
   controllers:
     paths:
       - controllers/
+  core:
+    paths:
+      - core/
+  internal:
+    paths:
+      - core/
 coverage:
   status:
     project:

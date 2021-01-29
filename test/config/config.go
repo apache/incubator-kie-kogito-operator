@@ -17,7 +17,7 @@ package config
 import (
 	"path/filepath"
 
-	"github.com/kiegroup/kogito-cloud-operator/core/version"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/version"
 
 	flag "github.com/spf13/pflag"
 )
