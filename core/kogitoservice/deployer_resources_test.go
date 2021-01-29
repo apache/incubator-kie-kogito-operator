@@ -65,6 +65,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 				NamespacedName: types.NamespacedName{Name: "jobs-service", Namespace: t.Name()},
 			},
 		},
+		log: test.TestLogger,
 	}
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
