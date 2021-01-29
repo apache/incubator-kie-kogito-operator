@@ -272,6 +272,7 @@ func (i *infinispanInfraReconciler) createNewInfinispanInstance(name, namespace 
 			Replicas: replicasSize,
 			Service: infinispan.InfinispanServiceSpec{
 				ReplicationFactor: int32(1),
+				Type:              infinispan.ServiceTypeCache,
 			},
 		},
 	}
