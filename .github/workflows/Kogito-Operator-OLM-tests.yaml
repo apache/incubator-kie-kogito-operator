@@ -1,0 +1,61 @@
+name: Kogito Operator OLM Checks
+on:
+  pull_request:
+    paths:
+      - 'api/**'
+      - 'cmd/**'
+      - 'controllers/**'
+      - 'deploy/**'
+      - 'hack/ci/**'
+      - 'pkg/**'
+env:
+  OP_TEST_CONTAINER_TOOL: docker
+  GO_VERSION: 1.14
+  OP_TEST_DEBUG: 1
+  OP_TEST_CONTAINER_OPT: "-t"
+jobs:
+  olm_integration:
+    name: OLM Integration Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+        id: go
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod/cache
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache-
+      - name: Cache the binaries
+        uses: actions/cache@v1
+        with:
+          path: ~/go/bin/
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}
+      - name: Cache Go mod
+        uses: actions/cache@v1
+        with:
+          path: go.mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+      - run: go mod tidy
+      - name: Build Operator Image
+        env:
+          BUILDER: docker
+        run: make docker-build
+      - name: Run Operator OLM Integration Test
+        run: make olm-tests
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: log
+          path: /tmp/op-test/log.out
