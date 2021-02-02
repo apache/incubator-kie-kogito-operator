@@ -1,3 +1,17 @@
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package infrastructure
 
 import (
@@ -47,7 +61,7 @@ func NewImageStreamHandler(client *client.Client, log logger.Logger) ImageStream
 	}
 }
 
-// GetSharedDeployedImageStream gets the deployed ImageStream shared among Kogito Custom Resources
+// FetchImageStream gets the deployed ImageStream shared among Kogito Custom Resources
 func (i *imageStreamHandler) FetchImageStream(key types.NamespacedName) (*imgv1.ImageStream, error) {
 	imageStream := &imgv1.ImageStream{}
 	if exists, err := kubernetes.ResourceC(i.client).FetchWithKey(key, imageStream); err != nil {
@@ -60,7 +74,7 @@ func (i *imageStreamHandler) FetchImageStream(key types.NamespacedName) (*imgv1.
 	}
 }
 
-// GetSharedDeployedImageStream gets the deployed ImageStream shared among Kogito Custom Resources
+// MustFetchImageStream gets the deployed ImageStream shared among Kogito Custom Resources. If not found then return error.
 func (i *imageStreamHandler) MustFetchImageStream(key types.NamespacedName) (*imgv1.ImageStream, error) {
 	if imageStream, err := i.FetchImageStream(key); err != nil {
 		return nil, err
@@ -72,7 +86,7 @@ func (i *imageStreamHandler) MustFetchImageStream(key types.NamespacedName) (*im
 	}
 }
 
-// createImageStream creates the ImageStream referencing the given namespace.
+// CreateImageStream creates the ImageStream referencing the given namespace.
 // Adds a docker image in the "From" reference based on the given image if `addFromReference` is set to `true`
 func (i *imageStreamHandler) CreateImageStream(name, namespace, imageName, tag string, addFromReference, insecureImageRegistry bool) *imgv1.ImageStream {
 	if i.client.IsOpenshift() {

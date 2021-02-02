@@ -46,7 +46,7 @@ func (k *knativeInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 			ns = k.instance.GetNamespace()
 		}
 
-		broker, resultErr := knativeHandler.CreateBroker(types.NamespacedName{Name: k.instance.GetSpec().GetResource().Name, Namespace: ns})
+		broker, resultErr := knativeHandler.FetchBroker(types.NamespacedName{Name: k.instance.GetSpec().GetResource().Name, Namespace: ns})
 		if resultErr != nil {
 			return false, resultErr
 		} else if broker == nil {

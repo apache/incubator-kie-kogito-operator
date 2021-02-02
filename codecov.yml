@@ -37,3 +37,15 @@ coverage:
         threshold: 5%
         flags:
           - controllers
+      core:
+        target: auto
+        base: auto
+        threshold: 5%
+        flags:
+          - core
+      internal:
+        target: auto
+        base: auto
+        threshold: 5%
+        flags:
+          - internal

@@ -70,6 +70,7 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 		return
 	} else if instance == nil {
 		log.Info("Kogito Build not found")
+		return
 	}
 
 	buildStatusHandler := kogitobuild.NewStatusHandler(r.Client, log)

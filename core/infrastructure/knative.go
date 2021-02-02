@@ -35,7 +35,7 @@ var (
 // KnativeHandler ...
 type KnativeHandler interface {
 	IsKnativeEventingAvailable() bool
-	CreateBroker(key types.NamespacedName) (*eventingv1.Broker, error)
+	FetchBroker(key types.NamespacedName) (*eventingv1.Broker, error)
 }
 
 type knativeHandler struct {
@@ -54,7 +54,7 @@ func (k *knativeHandler) IsKnativeEventingAvailable() bool {
 	return k.client.HasServerGroup(eventing.GroupName)
 }
 
-func (k *knativeHandler) CreateBroker(key types.NamespacedName) (*eventingv1.Broker, error) {
+func (k *knativeHandler) FetchBroker(key types.NamespacedName) (*eventingv1.Broker, error) {
 	broker := &eventingv1.Broker{}
 	if exists, err := kubernetes.ResourceC(k.client).FetchWithKey(key, broker); err != nil {
 		return nil, err

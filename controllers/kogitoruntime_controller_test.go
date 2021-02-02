@@ -79,6 +79,12 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 2) // #1 for property, #2 for tls
 	// command to register protobuf does not exist anymore
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Lifecycle)
+
+	configMap := &corev1.ConfigMap{ObjectMeta: v1.ObjectMeta{Name: getProtoBufConfigMapName(instance.Name), Namespace: instance.Namespace}}
+	exists, err = kubernetes.ResourceC(cli).Fetch(configMap)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, getProtoBufConfigMapName(instance.Name), configMap.Name)
 }
 
 // see https://issues.redhat.com/browse/KOGITO-2535
