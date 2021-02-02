@@ -210,10 +210,10 @@ func (i *mongoDBInfraReconciler) createCustomKogitoMongoDBSecret(namespace strin
 		return nil, err
 	}
 	if err := kubernetes.ResourceC(i.client).Create(secret); err != nil {
-		i.log.Error(err, "Error occurs while creating %s", "secret", secret)
+		i.log.Error(err, "Error occurs while creating", "secret", secret)
 		return nil, err
 	}
-	i.log.Debug("%s successfully created", secret)
+	i.log.Debug("Successfully created", "Secret", secret)
 	return secret, nil
 }
 

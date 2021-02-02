@@ -12,22 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*
-
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
@@ -57,20 +41,20 @@ type KogitoRuntimeReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a KogitoRuntime object and makes changes based on the state read
-// and what is in the KogitoRuntime.Spec
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=apps,resources=statefulsets;deployments;replicasets,verbs=*
+// +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
-// +kubebuilder:rbac:groups=infinispan.org,resources=infinispans,verbs=get;create;list;delete;watch
-// +kubebuilder:rbac:groups=kafka.strimzi.io,resources=kafkas;kafkatopics,verbs=get;create;list;delete;watch
-// +kubebuilder:rbac:groups=keycloak.org,resources=keycloaks,verbs=get;create;list;delete;watch
 // +kubebuilder:rbac:groups=apps,resourceNames=kogito-operator,resources=deployments/finalizers,verbs=update
-// +kubebuilder:rbac:groups=eventing.knative.dev,resources=brokers,verbs=get;list;watch
-// +kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=image.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=*,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=route.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=apps.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=core,resources=*,verbs=create;delete;get;list;patch;update;watch
+
+// Reconcile reads that state of the cluster for a KogitoRuntime object and makes changes based on the state read
+// and what is in the KogitoRuntime.Spec
 func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Result, err error) {
 	r.Log.Info("Reconciling for", "KogitoRuntime", req.Name, "Namespace", req.Namespace)
 

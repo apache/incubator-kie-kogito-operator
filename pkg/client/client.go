@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 	"path/filepath"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 	"strings"
 
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
@@ -72,8 +73,12 @@ func NewForConsole() *Client {
 
 // NewForController creates a new client based on the rest config and the controller client created by Operator SDK
 // Panic if something goes wrong
-func NewForController(config *restclient.Config) *Client {
-	newClient, err := NewClientBuilder().WithAllClients().UseConfig(config).Build()
+func NewForController(manager controllerruntime.Manager) *Client {
+	newClient, err := NewClientBuilder().
+		WithAllClients().
+		UseConfig(manager.GetConfig()).
+		UseControllerClient(manager.GetClient()).
+		Build()
 	if err != nil {
 		panic(err)
 	}
@@ -234,7 +239,7 @@ func getGVKsFromAddToScheme(addToSchemeFunc func(*runtime.Scheme) error) ([]sche
 		return nil, err
 	}
 	schemeAllKnownTypes := s.AllKnownTypes()
-	ownGVKs := []schema.GroupVersionKind{}
+	var ownGVKs []schema.GroupVersionKind
 	for gvk := range schemeAllKnownTypes {
 		if !isKubeMetaKind(gvk.Kind) {
 			ownGVKs = append(ownGVKs, gvk)

@@ -114,80 +114,96 @@ spec:
       clusterPermissions:
       - rules:
         - apiGroups:
-          - ""
           - app.kiegroup.org
-          - apps.openshift.io
-          - image.openshift.io
-          - build.openshift.io
-          - rbac.authorization.k8s.io
-          - route.openshift.io
           resources:
-          - '*'
+          - kogitobuilds
           verbs:
-          - '*'
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
         - apiGroups:
-          - ""
+          - app.kiegroup.org
           resources:
-          - namespaces
+          - kogitobuilds/status
           verbs:
           - get
+          - patch
+          - update
+        - apiGroups:
+          - app.kiegroup.org
+          resources:
+          - kogitoinfras
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - app.kiegroup.org
+          resources:
+          - kogitoinfras/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - app.kiegroup.org
+          resources:
+          - kogitoruntimes
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - app.kiegroup.org
+          resources:
+          - kogitoruntimes/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - app.kiegroup.org
+          resources:
+          - kogitosupportingservices
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - app.kiegroup.org
+          resources:
+          - kogitosupportingservices/status
+          verbs:
+          - get
+          - patch
+          - update
         - apiGroups:
           - apps
           resources:
-          - statefulsets
           - deployments
           - replicasets
           verbs:
-          - '*'
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - servicemonitors
-          verbs:
-          - get
           - create
-          - list
           - delete
-        - apiGroups:
-          - infinispan.org
-          resources:
-          - infinispans
-          verbs:
           - get
-          - create
           - list
-          - delete
-          - watch
-        - apiGroups:
-          - kafka.strimzi.io
-          resources:
-          - kafkas
-          - kafkatopics
-          verbs:
-          - get
-          - create
-          - list
-          - delete
-          - watch
-        - apiGroups:
-          - keycloak.org
-          resources:
-          - keycloaks
-          verbs:
-          - get
-          - create
-          - list
-          - delete
-          - watch
-        - apiGroups:
-          - mongodb.com
-          resources:
-          - mongodbs
-          verbs:
-          - get
-          - create
-          - list
-          - delete
+          - update
           - watch
         - apiGroups:
           - apps
@@ -198,11 +214,39 @@ spec:
           verbs:
           - update
         - apiGroups:
-          - app.kiegroup.org
+          - apps.openshift.io
           resources:
           - '*'
           verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - build.openshift.io
+          resources:
           - '*'
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - '*'
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
         - apiGroups:
           - eventing.knative.dev
           resources:
@@ -216,34 +260,117 @@ spec:
           resources:
           - triggers
           verbs:
-          - get
-          - list
-          - watch
           - create
           - delete
+          - get
+          - list
           - update
+          - watch
         - apiGroups:
-          - sources.knative.dev
+          - image.openshift.io
           resources:
-          - sinkbindings
+          - '*'
           verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - infinispan.org
+          resources:
+          - infinispans
+          verbs:
+          - create
+          - delete
           - get
           - list
           - watch
-          - create
-          - delete
-          - update
         - apiGroups:
           - integreatly.org
           resources:
           - grafanadashboards
           verbs:
-          - get
           - create
-          - list
           - delete
-          - watch
+          - get
+          - list
           - update
+          - watch
+        - apiGroups:
+          - kafka.strimzi.io
+          resources:
+          - kafkas
+          - kafkatopics
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - keycloak.org
+          resources:
+          - keycloaks
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - mongodb.com
+          resources:
+          - mongodb
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - '*'
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - '*'
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - sources.knative.dev
+          resources:
+          - sinkbindings
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
         - apiGroups:
           - authentication.k8s.io
           resources:
