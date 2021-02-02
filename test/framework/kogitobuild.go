@@ -141,6 +141,7 @@ func getKogitoBuildImage(imageName string) string {
 	image := v1beta1.Image{
 		Domain:    config.GetBuildImageRegistry(),
 		Namespace: config.GetBuildImageNamespace(),
+		Tag:       config.GetBuildImageVersion(),
 	}
 
 	// Update image name with suffix if provided
