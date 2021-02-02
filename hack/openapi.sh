@@ -19,7 +19,6 @@ source ./hack/go-path.sh
 # get the openapi binary
 command -v openapi-gen >/dev/null || go build -o "${GOPATH}"/bin/openapi-gen k8s.io/kube-openapi/cmd/openapi-gen
 echo "Generating openapi files"
-openapi-gen --logtostderr=true -o "" -i ./api/v1beta1 -O zz_generated.openapi -p ./api/v1beta1 -h ./hack/boilerplate.go.txt -r "-"
-openapi-gen --logtostderr=true -o "" -i ./core/api -O zz_generated.openapi -p ./core/api -h ./hack/boilerplate.go.txt -r "-"
-openapi-gen --logtostderr=true -o "" -i ./core/api/kafka/v1beta1 -O zz_generated.openapi -p ./core/api/kafka/v1beta1 -h ./hack/boilerplate.go.txt -r "-"
-openapi-gen --logtostderr=true -o "" -i ./core/test/api -O zz_generated.openapi -p ./core/test/api -h ./hack/boilerplate.go.txt -r "-"
+openapi-gen --logtostderr=true -v 1 -o "" -i github.com/kiegroup/kogito-cloud-operator/api/v1beta1 -O zz_generated.openapi -p ./api/v1beta1 -h ./hack/boilerplate.go.txt -r "-"
+openapi-gen --logtostderr=true -v 1 -o "" -i github.com/kiegroup/kogito-cloud-operator/core/api -O zz_generated.openapi -p ./core/api -h ./hack/boilerplate.go.txt -r "-"
+openapi-gen --logtostderr=true -v 1 -o "" -i github.com/kiegroup/kogito-cloud-operator/core/test/api -O zz_generated.openapi -p ./core/test/api -h ./hack/boilerplate.go.txt -r "-"

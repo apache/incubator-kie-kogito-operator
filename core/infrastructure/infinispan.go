@@ -131,13 +131,13 @@ func (i *infinispanHandler) FetchInfinispanInstanceURI(key types.NamespacedName)
 
 // GetInfinispanCredential gets the credential of the Infinispan server deployed with the Kogito Operator
 func (i *infinispanHandler) GetInfinispanCredential(infinispanInstance *ispn.Infinispan) (*InfinispanCredential, error) {
-	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: infinispanInstance.Spec.Security.EndpointSecretName, Namespace: infinispanInstance.Namespace}}
+	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: infinispanInstance.GetSecretName(), Namespace: infinispanInstance.Namespace}}
 	if exists, err := kubernetes.ResourceC(i.client).Fetch(secret); err != nil {
 		return nil, err
 	} else if exists {
 		return getDefaultInfinispanCredential(secret)
 	}
-	i.log.Warn("Infinispan credential not found", "secret", infinispanInstance.Spec.Security.EndpointSecretName)
+	i.log.Warn("Infinispan credential not found", "secret", infinispanInstance.GetSecretName())
 	return nil, nil
 }
 
@@ -152,6 +152,7 @@ func (i *infinispanHandler) CreateInfinispanInstance(key types.NamespacedName, o
 			Replicas: replicasSize,
 			Service: ispn.InfinispanServiceSpec{
 				ReplicationFactor: int32(1),
+				Type:              ispn.ServiceTypeCache,
 			},
 		},
 	}

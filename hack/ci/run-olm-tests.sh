@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2020 Red Hat, Inc. and/or its affiliates
+# Copyright 2021 Red Hat, Inc. and/or its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,21 +14,13 @@
 # limitations under the License.
 
 
-default_kind_version=v0.8.1
+set -e
+source ./hack/ci/operator-ensure-manifests.sh
 
-if [[ -z ${KIND_VERSION} ]]; then
-    KIND_VERSION=$default_kind_version
-fi
+export OP_TEST_PRETEST_CUSTOM_SCRIPT=${PWD}/hack/ci/olm-pretest.sh
 
-GOPATH=$(go env GOPATH)
+echo "\n=======> Pretest script path set to ${OP_TEST_PRETEST_CUSTOM_SCRIPT}"
 
-if [[ $(which kind) ]]; then
-  echo "---> kind is already installed. Please make sure it is the required ${KIND_VERSION} version before proceeding"
-else
-  echo "---> kind not found, installing it in \$GOPATH/bin/"
-  curl -L https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-$(uname)-amd64 -o "$GOPATH"/bin/kind
-  chmod +x "$GOPATH"/bin/kind
-fi
+cd "${tempfolder}"
 
-#for verification
-kind version
+bash <(curl -sL https://cutt.ly/WhkV76k) all  community-operators/kogito-operator/"${version}"

@@ -26,14 +26,14 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"./core/test/api.KogitoBuildTest":             schema__core_test_api_KogitoBuildTest(ref),
-		"./core/test/api.KogitoInfraTest":             schema__core_test_api_KogitoInfraTest(ref),
-		"./core/test/api.KogitoRuntimeTest":           schema__core_test_api_KogitoRuntimeTest(ref),
-		"./core/test/api.KogitoSupportingServiceTest": schema__core_test_api_KogitoSupportingServiceTest(ref),
+		"github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoBuildTest":             schema_kogito_cloud_operator_core_test_api_KogitoBuildTest(ref),
+		"github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoInfraTest":             schema_kogito_cloud_operator_core_test_api_KogitoInfraTest(ref),
+		"github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoRuntimeTest":           schema_kogito_cloud_operator_core_test_api_KogitoRuntimeTest(ref),
+		"github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoSupportingServiceTest": schema_kogito_cloud_operator_core_test_api_KogitoSupportingServiceTest(ref),
 	}
 }
 
-func schema__core_test_api_KogitoBuildTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kogito_cloud_operator_core_test_api_KogitoBuildTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -77,7 +77,7 @@ func schema__core_test_api_KogitoBuildTest(ref common.ReferenceCallback) common.
 	}
 }
 
-func schema__core_test_api_KogitoInfraTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kogito_cloud_operator_core_test_api_KogitoInfraTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -121,7 +121,7 @@ func schema__core_test_api_KogitoInfraTest(ref common.ReferenceCallback) common.
 	}
 }
 
-func schema__core_test_api_KogitoRuntimeTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kogito_cloud_operator_core_test_api_KogitoRuntimeTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -149,23 +149,23 @@ func schema__core_test_api_KogitoRuntimeTest(ref common.ReferenceCallback) commo
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./core/test/api.KogitoRuntimeSpecTest"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoRuntimeSpecTest"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./core/test/api.KogitoRuntimeStatusTest"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoRuntimeStatusTest"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./core/test/api.KogitoRuntimeSpecTest", "./core/test/api.KogitoRuntimeStatusTest", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoRuntimeSpecTest", "github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoRuntimeStatusTest", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
-func schema__core_test_api_KogitoSupportingServiceTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kogito_cloud_operator_core_test_api_KogitoSupportingServiceTest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -193,18 +193,18 @@ func schema__core_test_api_KogitoSupportingServiceTest(ref common.ReferenceCallb
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./core/test/api.KogitoSupportingServiceSpecTest"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoSupportingServiceSpecTest"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./core/test/api.KogitoSupportingServiceStatusTest"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoSupportingServiceStatusTest"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"./core/test/api.KogitoSupportingServiceSpecTest", "./core/test/api.KogitoSupportingServiceStatusTest", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoSupportingServiceSpecTest", "github.com/kiegroup/kogito-cloud-operator/core/test/api.KogitoSupportingServiceStatusTest", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }

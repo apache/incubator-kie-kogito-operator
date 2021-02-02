@@ -329,3 +329,6 @@ bump-version:
 image ?= $2
 deploy-operator-on-ocp:
 	./hack/deploy-operator-on-ocp.sh $(image)
+
+olm-tests:
+	./hack/ci/run-olm-tests.sh
