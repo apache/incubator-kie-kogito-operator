@@ -46,8 +46,9 @@ type KogitoBuildReconciler struct {
 
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitobuilds,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitobuilds/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitobuilds/finalizers,verbs=get;update;patch
 // +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=apps,resourceNames=kogito-operator,resources=deployments/finalizers,verbs=update
+// +kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
 // +kubebuilder:rbac:groups=build.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=image.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
 

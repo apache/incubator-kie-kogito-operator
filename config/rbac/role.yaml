@@ -21,6 +21,14 @@ rules:
 - apiGroups:
   - app.kiegroup.org
   resources:
+  - kogitobuilds/finalizers
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - app.kiegroup.org
+  resources:
   - kogitobuilds/status
   verbs:
   - get
@@ -38,6 +46,14 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitoinfras/finalizers
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - app.kiegroup.org
   resources:
@@ -61,6 +77,14 @@ rules:
 - apiGroups:
   - app.kiegroup.org
   resources:
+  - kogitoruntimes/finalizers
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - app.kiegroup.org
+  resources:
   - kogitoruntimes/status
   verbs:
   - get
@@ -78,6 +102,14 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - app.kiegroup.org
+  resources:
+  - kogitosupportingservices/finalizers
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - app.kiegroup.org
   resources:
@@ -100,8 +132,6 @@ rules:
   - watch
 - apiGroups:
   - apps
-  resourceNames:
-  - kogito-operator
   resources:
   - deployments/finalizers
   verbs:
