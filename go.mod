@@ -25,7 +25,6 @@ require (
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/spf13/cobra v1.1.1
-	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
