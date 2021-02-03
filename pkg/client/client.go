@@ -16,15 +16,16 @@ package client
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"os"
-	"path/filepath"
 	controllerruntime "sigs.k8s.io/controller-runtime"
-	"strings"
 
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -36,6 +37,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
+	controllercliconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
@@ -139,12 +141,18 @@ func ensureKubeClient() (controllercli.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newKubeClient(config)
+	return newKubeClient(config, false)
 }
 
-func newKubeClient(config *restclient.Config) (controllercli.Client, error) {
+func newKubeClient(config *restclient.Config, useDynamicRestMapper bool) (controllercli.Client, error) {
 	log.Debug("Creating a new core client for kube connection")
-	controlCli, err := controllercli.New(config, newControllerCliOptions())
+	var options controllercli.Options
+	if useDynamicRestMapper {
+		options = newControllerCliOptionsWithDynamicMapper()
+	} else {
+		options = newControllerCliOptions()
+	}
+	controlCli, err := controllercli.New(config, options)
 	if err != nil {
 		return nil, err
 	}
@@ -152,11 +160,7 @@ func newKubeClient(config *restclient.Config) (controllercli.Client, error) {
 }
 
 func buildKubeConnectionConfig() (*restclient.Config, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", GetKubeConfigFile())
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
+	return controllercliconfig.GetConfig()
 }
 
 // GetKubeConfigFile gets the .kubeconfig file.
@@ -228,6 +232,12 @@ func newControllerCliOptions() controllercli.Options {
 	options.Scheme = meta.GetRegisteredSchema()
 	options.Mapper = mapper
 	return options
+}
+
+func newControllerCliOptionsWithDynamicMapper() controllercli.Options {
+	return controllercli.Options{
+		Scheme: meta.GetRegisteredSchema(),
+	}
 }
 
 // getGVKsFromAddToScheme takes in the runtime scheme and filters out all generic apimachinery meta types.

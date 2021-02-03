@@ -16,6 +16,7 @@ package client
 
 import (
 	"fmt"
+
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
@@ -36,6 +37,8 @@ type Builder interface {
 	UseConfig(kubeconfig *restclient.Config) Builder
 	// UseControllerClient sets a specific controllerclient
 	UseControllerClient(controllerClient controllercli.Client) Builder
+	// UseControllerDynamicMapper will set a dynamic mapper to the constructed controller client. Cannot be used with `UseControllerClient`
+	UseControllerDynamicMapper() Builder
 	// WithDiscoveryClient tells the builder to create the discovery client
 	WithDiscoveryClient() Builder
 	// WithBuildClient tells the builder to create the build client
@@ -57,6 +60,8 @@ type builderStruct struct {
 	config        *restclient.Config
 	controllerCli controllercli.Client
 
+	useControllerDynamicMapper bool
+
 	isDiscoveryClient           bool
 	isBuildClient               bool
 	isImageClient               bool
@@ -71,6 +76,11 @@ func (builder *builderStruct) UseConfig(kubeconfig *restclient.Config) Builder {
 
 func (builder *builderStruct) UseControllerClient(controllerClient controllercli.Client) Builder {
 	builder.controllerCli = controllerClient
+	return builder
+}
+
+func (builder *builderStruct) UseControllerDynamicMapper() Builder {
+	builder.useControllerDynamicMapper = true
 	return builder
 }
 
@@ -123,7 +133,7 @@ func (builder *builderStruct) Build() (*Client, error) {
 
 	client.ControlCli = builder.controllerCli
 	if client.ControlCli == nil {
-		client.ControlCli, err = newKubeClient(config)
+		client.ControlCli, err = newKubeClient(config, builder.useControllerDynamicMapper)
 		if err != nil {
 			return nil, fmt.Errorf("Impossible to create new Kubernetes client: %v", err)
 		}
