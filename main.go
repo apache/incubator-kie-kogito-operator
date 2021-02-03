@@ -19,10 +19,8 @@ package main
 import (
 	"flag"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	buildv1 "github.com/openshift/api/build/v1"
-	imagev1 "github.com/openshift/api/image/v1"
-	routev1 "github.com/openshift/api/route/v1"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,9 +44,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(appv1beta1.AddToScheme(scheme))
-	utilruntime.Must(routev1.Install(scheme))
-	utilruntime.Must(imagev1.Install(scheme))
-	utilruntime.Must(buildv1.Install(scheme))
+	// all schemas required by Kogito Operator
+	builder := meta.GetRegisteredSchemeBuilder()
+	utilruntime.Must(builder.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -76,8 +74,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	kubeCli := client.NewForController(mgr)
+
 	if err = (&controllers.KogitoRuntimeReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoruntime_controllers"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -85,7 +85,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.KogitoSupportingServiceReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoSupportingService-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -93,7 +93,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.KogitoBuildReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoBuild-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -101,7 +101,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.KogitoInfraReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoInfra-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -109,7 +109,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.FinalizeKogitoSupportingService{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoSupportingService-finalizer"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -117,7 +117,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.FinalizeKogitoRuntime{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoRuntime-finalizer"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {

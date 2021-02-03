@@ -329,3 +329,6 @@ bump-version:
 image ?= $2
 deploy-operator-on-ocp:
 	./hack/deploy-operator-on-ocp.sh $(image)
+
+# Run this before any PR to make sure everything is updated, so CI won't fail
+before-pr: generate manifests bundle generate-installer test
