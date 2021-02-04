@@ -33,7 +33,7 @@ import (
 const (
 	// dashboardPath which the dashboards are fetched
 	dashboardsPath     = "/monitoring/dashboards/"
-	grafanaServerGroup = "grafanas.integreatly.org"
+	grafanaServerGroup = "integreatly.org"
 )
 
 // GrafanaDashboardManager ...
