@@ -43,7 +43,7 @@ var (
 		},
 		infrastructure.KogitoRuntimeJVM: {
 			"openshift.io/provider-display-name": "KIE Group",
-			"openshift.io/display-name":          "Runtime image for Kogito based JVM image",
+			"openshift.io/display-name":          "Runtime image for Kogito based on Quarkus or Spring Boot JVM image",
 		},
 		infrastructure.KogitoBuilderImage: {
 			"openshift.io/provider-display-name": "KIE Group",
