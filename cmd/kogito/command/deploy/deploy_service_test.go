@@ -153,13 +153,13 @@ func Test_DeployCmd_SWFile(t *testing.T) {
 			AddBuildObjects(&v1.BuildConfig{ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus-builder", Namespace: ns}}).
 			Build())
 
-	lines, _, err := test.ExecuteCli()
+	lines, errLines, err := test.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Kogito Build Service successfully installed in the Project")
 	assert.Contains(t, lines, "File(s) found: testdata/greetings.sw.json")
 	assert.Contains(t, lines, "Triggering the new build")
 	// error from fake build is ok, we don't have a server to upload the binaries here.
-	assert.Contains(t, lines, "v1.BinaryBuildRequestOptions is not suitable for converting")
+	assert.Contains(t, errLines, "v1.BinaryBuildRequestOptions is not suitable for converting")
 
 	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus", Namespace: ns},
