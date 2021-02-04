@@ -19,9 +19,12 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/controllers/build"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
+	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
+	corev1 "k8s.io/api/core/v1"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
@@ -74,6 +77,8 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 	if len(instance.Spec.Runtime) == 0 {
 		instance.Spec.Runtime = appv1beta1.QuarkusRuntimeType
 	}
+	envs := instance.Spec.Env
+	instance.Spec.Env = framework.EnvOverride(envs, corev1.EnvVar{Name: infrastructure.RuntimeTypeKey, Value: string(instance.Spec.Runtime)})
 	if len(instance.Spec.TargetKogitoRuntime) == 0 {
 		instance.Spec.TargetKogitoRuntime = instance.Name
 	}

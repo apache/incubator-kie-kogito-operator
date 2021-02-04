@@ -69,6 +69,8 @@ func (s *serviceDeployer) createRequiredResources() (resources map[reflect.Type]
 			deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, infraEnvProp...)
 		}
 
+		deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, framework.CreateEnvVar(infrastructure.RuntimeTypeKey, string(s.instance.GetSpec().GetRuntime())))
+
 		if len(s.instance.GetSpec().GetConfig()) > 0 {
 			log.Debug("custom app properties are provided")
 			util.AppendToStringMap(s.instance.GetSpec().GetConfig(), appProps)
