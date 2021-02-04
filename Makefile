@@ -332,3 +332,6 @@ deploy-operator-on-ocp:
 
 olm-tests:
 	./hack/ci/run-olm-tests.sh
+
+# Run this before any PR to make sure everything is updated, so CI won't fail
+before-pr: generate manifests bundle generate-installer test

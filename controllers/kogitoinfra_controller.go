@@ -38,22 +38,22 @@ type KogitoInfraReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// Reconcile reads that state of the cluster for a KogitoInfra object and makes changes based on the state read
-// and what is in the KogitoInfra.Spec
-// Note:
-// The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
+// +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras/finalizers,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=infinispan.org,resources=infinispans,verbs=get;create;list;delete;watch
 // +kubebuilder:rbac:groups=kafka.strimzi.io,resources=kafkas;kafkatopics,verbs=get;create;list;delete;watch
 // +kubebuilder:rbac:groups=keycloak.org,resources=keycloaks,verbs=get;create;list;delete;watch
-// +kubebuilder:rbac:groups=apps,resourceNames=kogito-operator,resources=deployments/finalizers,verbs=update
+// +kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
 // +kubebuilder:rbac:groups=eventing.knative.dev,resources=brokers,verbs=get;list;watch
 // +kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
 // +kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=mongodb.com,resources=mongodb,verbs=get;create;list;watch;delete
+
+// Reconcile reads that state of the cluster for a KogitoInfra object and makes changes based on the state read
+// and what is in the KogitoInfra.Spec
 func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
 	log.Info("Reconciling KogitoInfra")

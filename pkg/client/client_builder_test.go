@@ -53,7 +53,7 @@ func Test_simpleBuild(t *testing.T) {
 
 func Test_useControllerClient(t *testing.T) {
 	config := &restclient.Config{}
-	controllerCli, err := newKubeClient(config)
+	controllerCli, err := newKubeClient(config, false)
 	if err != nil {
 		t.Fatal(fmt.Sprintf("Impossible to create new Kubernetes client: %v", err))
 	}

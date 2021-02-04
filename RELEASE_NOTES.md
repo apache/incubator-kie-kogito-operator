@@ -3,6 +3,7 @@
 - [KOGITO-4059](https://issues.redhat.com/browse/KOGITO-4059) Refactor Kogito operator into internal and core component
 
 ## Bug Fixes
+- [KOGITO-4332](https://issues.redhat.com/browse/KOGITO-4332) - Operator does not have rights on mongodb crds
 
 ## Known Issues
 
