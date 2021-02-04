@@ -32,8 +32,7 @@ import (
 
 const (
 	// dashboardPath which the dashboards are fetched
-	dashboardsPath     = "/monitoring/dashboards/"
-	grafanaServerGroup = "integreatly.org"
+	dashboardsPath = "/monitoring/dashboards/"
 )
 
 // GrafanaDashboardManager ...
@@ -80,7 +79,7 @@ func (d *grafanaDashboardManager) ConfigureGrafanaDashboards(kogitoService api.K
 
 // isPrometheusAvailable checks if Prometheus CRD is available in the cluster
 func (d *grafanaDashboardManager) isGrafanaAvailable() bool {
-	return d.client.HasServerGroup(grafanaServerGroup)
+	return d.client.HasServerGroup(grafanav1.SchemeGroupVersion.Group)
 }
 
 func (d *grafanaDashboardManager) fetchGrafanaDashboards(instance api.KogitoService) ([]GrafanaDashboard, error) {
