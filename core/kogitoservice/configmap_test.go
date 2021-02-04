@@ -16,7 +16,7 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +25,7 @@ import (
 )
 
 func TestGetAppPropConfigMapContentHash(t *testing.T) {
-	service := test2.CreateFakeKogitoRuntime(t.Name())
+	service := test.CreateFakeKogitoRuntime(t.Name())
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
@@ -57,7 +57,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			args{
 				service,
 				map[string]string{},
-				test2.NewFakeClientBuilder().OnOpenShift().Build(),
+				test.NewFakeClientBuilder().OnOpenShift().Build(),
 			},
 			"d41d8cd98f00b204e9800998ecf8427e",
 			&corev1.ConfigMap{
@@ -76,7 +76,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			args{
 				service,
 				nil,
-				test2.NewFakeClientBuilder().OnOpenShift().Build(),
+				test.NewFakeClientBuilder().OnOpenShift().Build(),
 			},
 			"d41d8cd98f00b204e9800998ecf8427e",
 			&corev1.ConfigMap{
@@ -95,7 +95,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			args{
 				service,
 				map[string]string{},
-				test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(cm).Build(),
+				test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(cm).Build(),
 			},
 			"d41d8cd98f00b204e9800998ecf8427e",
 			cm,
@@ -106,7 +106,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			args{
 				service,
 				map[string]string{},
-				test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(&corev1.ConfigMap{
+				test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      service.GetName() + appPropConfigMapSuffix,
 						Namespace: service.GetNamespace(),
@@ -127,7 +127,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					"test2": "def",
 					"test3": "ghi",
 				},
-				test2.NewFakeClientBuilder().OnOpenShift().Build(),
+				test.NewFakeClientBuilder().OnOpenShift().Build(),
 			},
 			"bb2bea2d5b08e3d93142da5b17ed2af0",
 			&corev1.ConfigMap{
@@ -146,7 +146,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			args{
 				service,
 				map[string]string{},
-				test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(&corev1.ConfigMap{
+				test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      service.GetName() + appPropConfigMapSuffix,
 						Namespace: service.GetNamespace(),
@@ -182,7 +182,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 					"test3": "ghi",
 					"test7": "jkl",
 				},
-				test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(&corev1.ConfigMap{
+				test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(&corev1.ConfigMap{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      service.GetName() + appPropConfigMapSuffix,
 						Namespace: service.GetNamespace(),

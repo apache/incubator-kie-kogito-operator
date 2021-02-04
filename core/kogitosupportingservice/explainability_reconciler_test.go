@@ -17,7 +17,6 @@ package kogitosupportingservice
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -34,7 +33,7 @@ func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) 
 			instance:                 explainabilityService,
 			client:                   cli,
 			log:                      logger.GetLogger("explainability reconciler"),
-			scheme:                   meta.GetRegisteredSchema(),
+			scheme:                   test.GetRegisteredSchema(),
 			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
 			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
 			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),

@@ -17,7 +17,6 @@ package kogitoservice
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	imgv1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -35,7 +34,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
 	deployer := serviceDeployer{
 		client:   cli,
-		scheme:   meta.GetRegisteredSchema(),
+		scheme:   test.GetRegisteredSchema(),
 		instance: jobsService,
 		definition: ServiceDefinition{
 			DefaultImageName: "kogito-jobs-service",
@@ -57,7 +56,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	deployer := serviceDeployer{
 		client:   cli,
-		scheme:   meta.GetRegisteredSchema(),
+		scheme:   test.GetRegisteredSchema(),
 		instance: jobsService,
 		definition: ServiceDefinition{
 			DefaultImageName: "kogito-jobs-service",
@@ -88,7 +87,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 		Build()
 	deployer := serviceDeployer{
 		client:       cli,
-		scheme:       meta.GetRegisteredSchema(),
+		scheme:       test.GetRegisteredSchema(),
 		log:          test.TestLogger,
 		instance:     instance,
 		infraHandler: test.CreateFakeKogitoInfraHandler(cli),
@@ -140,7 +139,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 	cli := test.NewFakeClientBuilder().AddK8sObjects(is, cm).AddImageObjects(tag).Build()
 	deployer := serviceDeployer{
 		client:   cli,
-		scheme:   meta.GetRegisteredSchema(),
+		scheme:   test.GetRegisteredSchema(),
 		instance: instance,
 		definition: ServiceDefinition{
 			DefaultImageName: "kogito-data-index-infinispan",

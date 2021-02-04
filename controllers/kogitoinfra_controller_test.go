@@ -18,7 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
@@ -41,11 +41,11 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 			},
 		},
 	}
-	client := test2.NewFakeClientBuilder().AddK8sObjects(kogitoInfra).Build()
+	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra).Build()
 	scheme := meta.GetRegisteredSchema()
 	r := &KogitoInfraReconciler{Client: client, Scheme: scheme, Log: logger.GetLogger("kogito infra reconciler")}
 	// basic checks
-	test2.AssertReconcileMustNotRequeue(t, r, kogitoInfra)
+	test.AssertReconcileMustNotRequeue(t, r, kogitoInfra)
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.True(t, exists)
 	assert.NoError(t, err)
@@ -87,12 +87,12 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 		},
 	}
 
-	client := test2.NewFakeClientBuilder().AddK8sObjects(kogitoInfra, deployedKafkaInstance).Build()
+	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra, deployedKafkaInstance).Build()
 
 	scheme := meta.GetRegisteredSchema()
 	r := &KogitoInfraReconciler{Client: client, Scheme: scheme, Log: logger.GetLogger("kogito infra reconciler")}
 	// basic checks
-	test2.AssertReconcile(t, r, kogitoInfra)
+	test.AssertReconcile(t, r, kogitoInfra)
 
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)

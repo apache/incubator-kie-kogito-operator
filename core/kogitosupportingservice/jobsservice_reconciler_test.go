@@ -18,7 +18,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -33,7 +32,7 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 			instance:                 jobsService,
 			client:                   cli,
 			log:                      logger.GetLogger("jobsService reconciler"),
-			scheme:                   meta.GetRegisteredSchema(),
+			scheme:                   test.GetRegisteredSchema(),
 			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
 			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
 			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),

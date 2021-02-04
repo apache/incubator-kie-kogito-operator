@@ -16,29 +16,28 @@ package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestKogitoSupportingServiceDataIndex_Reconcile(t *testing.T) {
 	ns := t.Name()
-	kogitoKafka := test2.CreateFakeKogitoKafka(t.Name())
-	kogitoInfinispan := test2.CreateFakeKogitoInfinispan(t.Name())
-	dataIndex := test2.CreateFakeDataIndex(ns)
+	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
+	kogitoInfinispan := test.CreateFakeKogitoInfinispan(t.Name())
+	dataIndex := test.CreateFakeDataIndex(ns)
 	dataIndex.GetSpec().AddInfra(kogitoKafka.GetName())
 	dataIndex.GetSpec().AddInfra(kogitoInfinispan.GetName())
-	cli := test2.NewFakeClientBuilder().AddK8sObjects(dataIndex, kogitoKafka, kogitoInfinispan).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(dataIndex, kogitoKafka, kogitoInfinispan).OnOpenShift().Build()
 	r := &dataIndexSupportingServiceResource{
 		targetContext: targetContext{
 			instance:                 dataIndex,
 			client:                   cli,
 			log:                      logger.GetLogger("data index reconciler"),
-			scheme:                   meta.GetRegisteredSchema(),
-			supportingServiceHandler: test2.CreateFakeKogitoSupportingServiceHandler(cli),
-			infraHandler:             test2.CreateFakeKogitoInfraHandler(cli),
-			runtimeHandler:           test2.CreateFakeKogitoRuntimeHandler(cli),
+			scheme:                   test.GetRegisteredSchema(),
+			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
+			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
+			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),
 		},
 	}
 	requeueAfter, err := r.Reconcile()

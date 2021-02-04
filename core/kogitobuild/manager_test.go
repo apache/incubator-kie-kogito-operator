@@ -18,12 +18,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	"reflect"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
@@ -41,8 +40,8 @@ func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
 			},
 		},
 	}
-	cli := test2.NewFakeClientBuilder().AddK8sObjects(build).OnOpenShift().Build()
-	deltaProcessor := &deltaProcessor{build: build, client: cli, scheme: test2.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(build).OnOpenShift().Build()
+	deltaProcessor := &deltaProcessor{build: build, client: cli, scheme: test.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
 	manager := deltaProcessor.getBuildManager()
 	assert.NotNil(t, manager)
 
@@ -85,9 +84,9 @@ func TestNewWhenBuildingFromLocalSource(t *testing.T) {
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
-	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
 
-	deltaProcessor := &deltaProcessor{build: build, client: cli, scheme: meta.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
+	deltaProcessor := &deltaProcessor{build: build, client: cli, scheme: test.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
 	manager := deltaProcessor.getBuildManager()
 	assert.NotNil(t, manager)
 
@@ -130,9 +129,9 @@ func TestNewWhenBuildingFromBinary(t *testing.T) {
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
-	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
 
-	deltaProcessor := &deltaProcessor{build: build, client: cli, scheme: meta.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
+	deltaProcessor := &deltaProcessor{build: build, client: cli, scheme: test.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
 	manager := deltaProcessor.getBuildManager()
 	assert.NotNil(t, manager)
 
@@ -164,8 +163,8 @@ func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
-	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
-	manager, err := NewDeltaProcessor(build, cli, meta.GetRegisteredSchema(), logger.GetLogger("KogitoBuild"))
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
+	manager, err := NewDeltaProcessor(build, cli, test.GetRegisteredSchema(), logger.GetLogger("KogitoBuild"))
 	assert.Error(t, err)
 	assert.Nil(t, manager)
 }
@@ -181,8 +180,8 @@ func TestNewWhenSanityCheckComplainAboutGit(t *testing.T) {
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
-	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
-	manager, err := NewDeltaProcessor(build, cli, meta.GetRegisteredSchema(), logger.GetLogger("KogitoBuild"))
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(build).Build()
+	manager, err := NewDeltaProcessor(build, cli, test.GetRegisteredSchema(), logger.GetLogger("KogitoBuild"))
 	assert.Error(t, err)
 	assert.Nil(t, manager)
 }

@@ -16,28 +16,27 @@ package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestReconcileKogitoSupportingTrusty_Reconcile(t *testing.T) {
 	ns := t.Name()
-	kogitoKafka := test2.CreateFakeKogitoKafka(ns)
-	instance := test2.CreateFakeTrustyAIService(ns)
+	kogitoKafka := test.CreateFakeKogitoKafka(ns)
+	instance := test.CreateFakeTrustyAIService(ns)
 	instance.GetSpec().AddInfra(kogitoKafka.GetName())
-	cli := test2.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka).OnOpenShift().Build()
 
 	r := &trustyAISupportingServiceResource{
 		targetContext: targetContext{
 			instance:                 instance,
 			client:                   cli,
 			log:                      logger.GetLogger("trusty ai reconciler"),
-			scheme:                   meta.GetRegisteredSchema(),
-			infraHandler:             test2.CreateFakeKogitoInfraHandler(cli),
-			supportingServiceHandler: test2.CreateFakeKogitoSupportingServiceHandler(cli),
-			runtimeHandler:           test2.CreateFakeKogitoRuntimeHandler(cli),
+			scheme:                   test.GetRegisteredSchema(),
+			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
+			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
+			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),
 		},
 	}
 	// basic checks

@@ -15,18 +15,17 @@
 package record
 
 import (
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"testing"
 )
 
 func Test_generateEvent(t *testing.T) {
-	service := test2.CreateFakeKogitoRuntime(t.Name())
-	cli := test2.NewFakeClientBuilder().OnOpenShift().Build()
-	recorder := NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
+	service := test.CreateFakeKogitoRuntime(t.Name())
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
+	recorder := NewRecorder(test.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
 	recorder.Eventf(cli, service, "Normal", "Created", "Create Deployment")
 
 	eventList := &corev1.EventList{}
@@ -38,9 +37,9 @@ func Test_generateEvent(t *testing.T) {
 }
 
 func Test_generateEvent_InvalidEventType(t *testing.T) {
-	service := test2.CreateFakeKogitoRuntime(t.Name())
-	cli := test2.NewFakeClientBuilder().OnOpenShift().Build()
-	recorder := NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
+	service := test.CreateFakeKogitoRuntime(t.Name())
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
+	recorder := NewRecorder(test.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
 	recorder.Eventf(cli, service, "InvalidEventType", "Created", "Create Deployment")
 
 	eventList := &corev1.EventList{}

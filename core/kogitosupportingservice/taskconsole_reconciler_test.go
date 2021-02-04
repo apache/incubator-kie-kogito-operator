@@ -18,7 +18,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,7 +34,7 @@ func TestReconcileKogitoSupportingServiceTaskConsole_Reconcile(t *testing.T) {
 			instance: instance,
 			client:   cli,
 			log:      logger.GetLogger("task console reconciler"),
-			scheme:   meta.GetRegisteredSchema(),
+			scheme:   test.GetRegisteredSchema(),
 		},
 	}
 	// first reconciliation
@@ -64,7 +63,7 @@ func TestReconcileKogitoSupportingServiceTaskConsole_CustomImage(t *testing.T) {
 			instance: instance,
 			client:   cli,
 			log:      logger.GetLogger("task console reconciler"),
-			scheme:   meta.GetRegisteredSchema(),
+			scheme:   test.GetRegisteredSchema(),
 		},
 	}
 	requeueAfter, err := r.Reconcile()

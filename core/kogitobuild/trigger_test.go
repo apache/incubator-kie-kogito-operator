@@ -16,7 +16,7 @@ package kogitobuild
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
@@ -43,7 +43,7 @@ func TestStartNewBuild(t *testing.T) {
 			Cancelled: false,
 		},
 	}
-	cli := test2.NewFakeClientBuilder().OnOpenShift().AddBuildObjects(bc, runningBuild).Build()
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddBuildObjects(bc, runningBuild).Build()
 	triggerHandler := NewTriggerHandler(cli, logger.GetLogger("KogitoBuild"))
 	err := triggerHandler.StartNewBuild(bc)
 	// we reach an error state since the FakeCli can't update the status for our build.

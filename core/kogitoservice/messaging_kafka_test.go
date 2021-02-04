@@ -21,7 +21,6 @@ import (
 
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -37,7 +36,7 @@ func Test_createKafkaTopics(t *testing.T) {
 	client := test.NewFakeClientBuilder().AddK8sObjects(infraKafka, service).Build()
 	k := kafkaMessagingDeployer{
 		messagingDeployer{
-			scheme:       meta.GetRegisteredSchema(),
+			scheme:       test.GetRegisteredSchema(),
 			cli:          client,
 			log:          test.TestLogger,
 			infraHandler: test.CreateFakeKogitoInfraHandler(client),

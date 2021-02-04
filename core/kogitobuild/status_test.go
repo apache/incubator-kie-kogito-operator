@@ -19,9 +19,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework/util"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,20 +42,20 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
-	cli := test2.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
 	err := errors.New("error")
 
 	buildStatusHandler := NewStatusHandler(cli, logger.GetLogger("kogitoBuild"))
 	buildStatusHandler.HandleStatusChange(instance, err)
 
-	test2.AssertFetchMustExist(t, cli, instance)
+	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, 1)
 	assert.Equal(t, api.OperatorFailureReason, instance.Status.Conditions[0].Reason)
 
 	// ops, same error?
 	buildStatusHandler.HandleStatusChange(instance, err)
 	// start queueing
-	test2.AssertFetchMustExist(t, cli, instance)
+	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, 2)
 	assert.Equal(t, api.OperatorFailureReason, instance.Status.Conditions[1].Reason)
 
@@ -64,7 +63,7 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	for n := 0; n <= maxConditionsBuffer; n++ {
 		buildStatusHandler.HandleStatusChange(instance, err)
 	}
-	test2.AssertFetchMustExist(t, cli, instance)
+	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, maxConditionsBuffer)
 }
 
@@ -80,9 +79,9 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
-	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 
-	deltaProcessor := &deltaProcessor{build: instance, client: cli, scheme: meta.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
+	deltaProcessor := &deltaProcessor{build: instance, client: cli, scheme: test.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
 	manager := deltaProcessor.getBuildManager()
 	requested, err := manager.GetRequestedResources()
 	assert.NoError(t, err)
@@ -134,7 +133,7 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 			},
 		},
 	}
-	buildObjs := test2.ToRuntimeObjects(buildConfigs...)
+	buildObjs := test.ToRuntimeObjects(buildConfigs...)
 	for _, b := range builds {
 		buildObjs = append(buildObjs, b.DeepCopy())
 	}
@@ -143,11 +142,11 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	k8sObjs = append(k8sObjs, instance)
 
 	// recreating the Client with our objects to make sure that the BCs will be there
-	cli = test2.NewFakeClientBuilder().AddK8sObjects(k8sObjs...).AddBuildObjects(buildObjs...).Build()
+	cli = test.NewFakeClientBuilder().AddK8sObjects(k8sObjs...).AddBuildObjects(buildObjs...).Build()
 	err = nil
 	buildStatusHandler := NewStatusHandler(cli, logger.GetLogger("kogitoBuild"))
 	buildStatusHandler.HandleStatusChange(instance, err)
-	test2.AssertFetchMustExist(t, cli, instance)
+	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, 1)
 	// only the younger
 	assert.Equal(t, api.KogitoBuildFailure, instance.Status.Conditions[0].Type)

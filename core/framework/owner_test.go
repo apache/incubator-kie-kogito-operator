@@ -16,8 +16,7 @@ package framework
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -26,7 +25,7 @@ import (
 )
 
 func TestIsOwner(t *testing.T) {
-	uuid := test2.GenerateUID()
+	uuid := test.GenerateUID()
 	type args struct {
 		resource resource.KubernetesResource
 		owner    resource.KubernetesResource
@@ -71,7 +70,7 @@ func TestIsOwner(t *testing.T) {
 						{
 							Kind: "BuildConfig",
 							Name: "the-builder",
-							UID:  test2.GenerateUID(),
+							UID:  test.GenerateUID(),
 						},
 					}},
 				},
@@ -91,9 +90,9 @@ func TestIsOwner(t *testing.T) {
 }
 
 func TestAddOwnerReference(t *testing.T) {
-	scheme := meta.GetRegisteredSchema()
-	owner := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "deployment", Namespace: t.Name(), UID: test2.GenerateUID()}}
-	owned := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "config-map", Namespace: t.Name(), UID: test2.GenerateUID()}}
+	scheme := test.GetRegisteredSchema()
+	owner := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "deployment", Namespace: t.Name(), UID: test.GenerateUID()}}
+	owned := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "config-map", Namespace: t.Name(), UID: test.GenerateUID()}}
 
 	err := AddOwnerReference(owner, scheme, owned)
 	assert.NoError(t, err)
@@ -105,10 +104,10 @@ func TestAddOwnerReference(t *testing.T) {
 }
 
 func TestRemoveOwnerReference(t *testing.T) {
-	scheme := meta.GetRegisteredSchema()
+	scheme := test.GetRegisteredSchema()
 
-	owner := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "deployment", Namespace: t.Name(), UID: test2.GenerateUID()}}
-	owned := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "config-map", Namespace: t.Name(), UID: test2.GenerateUID()}}
+	owner := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "deployment", Namespace: t.Name(), UID: test.GenerateUID()}}
+	owned := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "config-map", Namespace: t.Name(), UID: test.GenerateUID()}}
 	err := AddOwnerReference(owner, scheme, owned)
 	assert.NoError(t, err)
 

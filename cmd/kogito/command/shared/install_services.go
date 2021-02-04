@@ -173,8 +173,13 @@ func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject
 }
 
 func (s *servicesInstallation) CheckOperatorCRDs() ServicesInstallation {
-	if !s.client.IsKogitoCRDsAvailable() {
+	if !IsKogitoCRDsAvailable(s.client) {
 		s.err = fmt.Errorf("kogito Operator CRDs not Found in the cluster. Please install operator before using")
 	}
 	return s
+}
+
+// IsKogitoCRDsAvailable detects if the CRDs for kogito-operator are available or not
+func IsKogitoCRDsAvailable(client *kogitocli.Client) bool {
+	return client.HasServerGroup(v1beta1.GroupVersion.Group)
 }

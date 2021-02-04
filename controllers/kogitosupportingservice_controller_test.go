@@ -19,7 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,14 +35,14 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 			KogitoServiceSpec: api.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test2.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
 	r := &KogitoSupportingServiceReconciler{
 		Client: cli,
 		Log:    logger.GetLogger("KogitoSupportingService"),
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	test2.AssertReconcileMustNotRequeue(t, r, instance)
+	test.AssertReconcileMustNotRequeue(t, r, instance)
 }
 
 func TestContains(t *testing.T) {

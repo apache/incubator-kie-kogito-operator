@@ -18,7 +18,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -28,7 +27,7 @@ func TestAddFinalizer(t *testing.T) {
 	dataIndex := test.CreateFakeDataIndex(ns)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dataIndex).Build()
 	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
-	finalizerHandler := NewFinalizerHandler(cli, logger.GetLogger("finalizer"), meta.GetRegisteredSchema(), infraHandler)
+	finalizerHandler := NewFinalizerHandler(cli, logger.GetLogger("finalizer"), test.GetRegisteredSchema(), infraHandler)
 	err := finalizerHandler.AddFinalizer(dataIndex)
 	assert.NoError(t, err)
 	exists, err := kubernetes.ResourceC(cli).Fetch(dataIndex)
@@ -43,7 +42,7 @@ func TestHandleFinalization(t *testing.T) {
 	dataIndex.SetFinalizers([]string{"delete.kogitoInfra.ownership.finalizer"})
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dataIndex).Build()
 	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
-	finalizerHandler := NewFinalizerHandler(cli, logger.GetLogger("finalizer"), meta.GetRegisteredSchema(), infraHandler)
+	finalizerHandler := NewFinalizerHandler(cli, logger.GetLogger("finalizer"), test.GetRegisteredSchema(), infraHandler)
 	err := finalizerHandler.HandleFinalization(dataIndex)
 	assert.NoError(t, err)
 	exists, err := kubernetes.ResourceC(cli).Fetch(dataIndex)

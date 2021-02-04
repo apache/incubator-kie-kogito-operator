@@ -18,7 +18,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -27,7 +26,7 @@ func Test_createServiceMonitor_defaultConfiguration(t *testing.T) {
 	ns := t.Name()
 	cli := test.NewFakeClientBuilder().Build()
 	kogitoService := test.CreateFakeKogitoRuntime(ns)
-	monitoringManager := prometheusManager{client: cli, log: logger.GetLogger("monitoring"), scheme: meta.GetRegisteredSchema()}
+	monitoringManager := prometheusManager{client: cli, log: logger.GetLogger("monitoring"), scheme: test.GetRegisteredSchema()}
 	serviceMonitor, err := monitoringManager.createServiceMonitor(kogitoService)
 	assert.NoError(t, err)
 	assert.Equal(t, api.MonitoringDefaultPath, serviceMonitor.Spec.Endpoints[0].Path)
@@ -42,7 +41,7 @@ func Test_createServiceMonitor_customConfiguration(t *testing.T) {
 		Path:   "/testPath",
 		Scheme: "https",
 	})
-	monitoringManager := prometheusManager{client: cli, log: logger.GetLogger("monitoring"), scheme: meta.GetRegisteredSchema()}
+	monitoringManager := prometheusManager{client: cli, log: logger.GetLogger("monitoring"), scheme: test.GetRegisteredSchema()}
 	serviceMonitor, err := monitoringManager.createServiceMonitor(kogitoService)
 	assert.NoError(t, err)
 	assert.Equal(t, "/testPath", serviceMonitor.Spec.Endpoints[0].Path)

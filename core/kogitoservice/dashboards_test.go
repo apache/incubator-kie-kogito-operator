@@ -16,8 +16,7 @@ package kogitoservice
 
 import (
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -29,7 +28,7 @@ func Test_fetchDashboardNames(t *testing.T) {
 	server := mockKogitoSvcReplies(t, serverHandler{Path: dashboardsPath + "list.json", JSONResponse: dashboardNames})
 	defer server.Close()
 
-	dashboardManager := grafanaDashboardManager{log: test2.TestLogger}
+	dashboardManager := grafanaDashboardManager{log: test.TestLogger}
 	dashboards, err := dashboardManager.fetchGrafanaDashboardNamesForURL(server.URL)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, dashboards)
@@ -60,7 +59,7 @@ func Test_fetchDashboards(t *testing.T) {
 	server := mockKogitoSvcReplies(t, handlers...)
 	defer server.Close()
 
-	dashboardManager := grafanaDashboardManager{log: test2.TestLogger}
+	dashboardManager := grafanaDashboardManager{log: test.TestLogger}
 	fetchedDashboardNames, err := dashboardManager.fetchGrafanaDashboardNamesForURL(server.URL)
 	assert.NoError(t, err)
 	dashboards, err := dashboardManager.fetchDashboards(server.URL, fetchedDashboardNames)
@@ -72,8 +71,8 @@ func Test_fetchDashboards(t *testing.T) {
 }
 
 func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
-	service := test2.CreateFakeKogitoRuntime(t.Name())
-	cli := test2.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
+	service := test.CreateFakeKogitoRuntime(t.Name())
+	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
 
 	dashboards := []GrafanaDashboard{
 		{
@@ -86,7 +85,7 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 		},
 	}
 
-	dashboardManager := grafanaDashboardManager{client: cli, log: test2.TestLogger, scheme: meta.GetRegisteredSchema()}
+	dashboardManager := grafanaDashboardManager{client: cli, log: test.TestLogger, scheme: test.GetRegisteredSchema()}
 	err := dashboardManager.deployGrafanaDashboards(dashboards, service)
 	assert.NoError(t, err)
 
@@ -96,7 +95,7 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 			Namespace: t.Name(),
 		},
 	}
-	test2.AssertFetchMustExist(t, cli, dashboard)
+	test.AssertFetchMustExist(t, cli, dashboard)
 
 	dashboard = &grafanav1.GrafanaDashboard{
 		ObjectMeta: metav1.ObjectMeta{
@@ -104,5 +103,5 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 			Namespace: t.Name(),
 		},
 	}
-	test2.AssertFetchMustExist(t, cli, dashboard)
+	test.AssertFetchMustExist(t, cli, dashboard)
 }

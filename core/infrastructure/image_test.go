@@ -17,7 +17,7 @@ package infrastructure
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,8 +25,8 @@ import (
 
 func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.T) {
 	ns := t.Name()
-	is, tag := test2.CreateImageStreams("jobs-service", ns, "my-data-index", GetKogitoImageVersion())
-	cli := test2.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
+	is, tag := test.CreateImageStreams("jobs-service", ns, "my-data-index", GetKogitoImageVersion())
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
 	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false, cli, logger.GetLogger("image"))
 	image, err := imageHandler.ResolveImage()
 	assert.NoError(t, err)
@@ -36,7 +36,7 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 
 func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T) {
 	ns := t.Name()
-	cli := test2.NewFakeClientBuilder().OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false, cli, logger.GetLogger("image"))
 	image, err := imageHandler.ResolveImage()
 	assert.NoError(t, err)
@@ -46,7 +46,7 @@ func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T)
 
 func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 	ns := t.Name()
-	cli := test2.NewFakeClientBuilder().Build()
+	cli := test.NewFakeClientBuilder().Build()
 	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false, cli, logger.GetLogger("image"))
 	image, err := imageHandler.ResolveImage()
 	assert.NoError(t, err)
@@ -56,7 +56,7 @@ func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 
 func Test_imageHandler_newImageHandlerInsecureImageRegistry(t *testing.T) {
 	ns := t.Name()
-	cli := test2.NewFakeClientBuilder().OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, true, cli, logger.GetLogger("image"))
 	imageStream, err := imageHandler.CreateImageStreamIfNotExists()
 	assert.NoError(t, err)
