@@ -25,8 +25,11 @@ pipeline {
         string(name: 'GIT_AUTHOR', defaultValue: 'kiegroup', description: 'Which Git author repository ?')
 
         // Build&Test information
+        booleanParam(name: 'SKIP_TEST_BUILD_IMAGES', defaultValue: false, description: 'Skip build examples images for testing')
         booleanParam(name: 'SMOKE_TESTS_ONLY', defaultValue: false, description: 'If only smoke tests should be run. Default is full testing.')
         booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip tests')
+        booleanParam(name: 'SKIP_NATIVE_TESTS', defaultValue: false, description: 'Skip native tests')
+        string(name: 'BDD_TEST_TAGS', defaultValue: '', description: 'Execute only a subset of BDD tests')
         string(name: 'MAVEN_ARTIFACT_REPOSITORY', defaultValue: '', description: 'Maven repository where the build artifacts are present')
 
         // Deploy information
@@ -178,6 +181,9 @@ pipeline {
             }
             stages {
                 stage('Build examples images for testing'){
+                    when {
+                        expression { return !params.SKIP_TEST_BUILD_IMAGES }
+                    }
                     steps {
                         script {
                             // Need to login to Openshift Registry for application images to be pushed
@@ -188,18 +194,21 @@ pipeline {
                             try {
                                 // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
                                 // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                                sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
+                                sh "make build-examples-images tags='${getNonNativeTag()}' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
                             } catch(err) {
                                 unstable("Error building non-native examples' images. Check the junit results.")
                             }
                             
-                            try {
-                                // Optaplanner taking a lot of resources, we should not build in parallel
-                                // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                                // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                                sh "make build-examples-images tags='@native' concurrent=1 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
-                            } catch(err) {
-                                unstable("Error building native examples' images. Check the junit results.")
+
+                            if(!params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS) {
+                                try {
+                                    // Optaplanner taking a lot of resources, we should not build in parallel
+                                    // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+                                    // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                                    sh "make build-examples-images tags='${getNativeTag()}' concurrent=1 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
+                                } catch(err) {
+                                    unstable("Error building native examples' images. Check the junit results.")
+                                }
                             }
                         }
                     }
@@ -222,7 +231,7 @@ pipeline {
                             // in case we decide to continue in the release
                             try {
                                 // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                                sh "make run-tests timeout=360 load_factor=1 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true, 'docker')}"
+                                sh "make run-tests timeout=360 load_factor=1 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true, 'docker', true)}"
                             } catch(err) {
                                 unstable("Tests are failing")
                             }
@@ -450,7 +459,7 @@ boolean shouldLaunchTests(){
 // BDD parameters
 ////////////////////////////////////////////////////////////////////////
 
-String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false, String container_engine='podman') {
+String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false, String container_engine='podman', boolean addParamsTags = false) {
     testParamsMap = [:]
 
     testParamsMap['load_default_config'] = true
@@ -511,7 +520,30 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     
     testParamsMap['container_engine'] = container_engine
 
+    if(addParamsTags) {
+        def tags = ''
+        if(params.BDD_TEST_TAGS){
+            tags = addTag(tags, params.BDD_TEST_TAGS)
+        }
+        if(params.SKIP_NATIVE_TESTS){
+            tags = addTag(tags, getNonNativeTag())
+        }
+        testParamsMap['tags'] = tags
+    }
+
     String testParams = testParamsMap.collect{ entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
     echo "BDD parameters = ${testParams}"
     return testParams
+}
+
+String addTag(String tags, String tagToAdd){
+    return tags ? "${tags} && ${tagToAdd}" : tagToAdd
+}
+
+String getNativeTag(){
+    return '@native'
+}
+
+String getNonNativeTag(){
+    return "~${getNativeTag()}"
 }
