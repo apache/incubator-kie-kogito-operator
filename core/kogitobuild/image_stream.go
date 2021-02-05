@@ -39,59 +39,39 @@ const (
 var (
 	// imageStreamDefaultAnnotations lists the default annotations for ImageStreams
 	imageStreamDefaultAnnotations = map[string]map[string]string{
-		infrastructure.KogitoQuarkusUbi8Image: {
+		infrastructure.KogitoRuntimeNative: {
 			"openshift.io/provider-display-name": "KIE Group",
 			"openshift.io/display-name":          "Runtime image for Kogito based on Quarkus native image",
 		},
-		infrastructure.KogitoQuarkusJVMUbi8Image: {
+		infrastructure.KogitoRuntimeJVM: {
 			"openshift.io/provider-display-name": "KIE Group",
-			"openshift.io/display-name":          "Runtime image for Kogito based on Quarkus JVM image",
+			"openshift.io/display-name":          "Runtime image for Kogito based on Quarkus or Spring Boot JVM image",
 		},
-		infrastructure.KogitoQuarkusUbi8s2iImage: {
+		infrastructure.KogitoBuilderImage: {
 			"openshift.io/provider-display-name": "KIE Group",
-			"openshift.io/display-name":          "Platform for building Kogito based on Quarkus",
-		},
-		infrastructure.KogitoSpringBootUbi8Image: {
-			"openshift.io/provider-display-name": "KIE Group",
-			"openshift.io/display-name":          "Runtime image for Kogito based on SpringBoot",
-		},
-		infrastructure.KogitoSpringBootUbi8s2iImage: {
-			"openshift.io/provider-display-name": "KIE Group",
-			"openshift.io/display-name":          "Platform for building Kogito based on SpringBoot",
+			"openshift.io/display-name":          "Platform for building Kogito based on Quarkus or Spring Boot",
 		},
 	}
 
 	//tagDefaultAnnotations lists the default annotations for ImageStreamTags
 	tagDefaultAnnotations = map[string]map[string]string{
-		infrastructure.KogitoQuarkusUbi8Image: {
+		infrastructure.KogitoRuntimeNative: {
 			"iconClass":   "icon-jbpm",
 			"description": "Runtime image for Kogito based on Quarkus native image",
 			"tags":        "runtime,kogito,quarkus",
 			"supports":    "quarkus",
 		},
-		infrastructure.KogitoQuarkusJVMUbi8Image: {
+		infrastructure.KogitoRuntimeJVM: {
 			"iconClass":   "icon-jbpm",
-			"description": "Runtime image for Kogito based on Quarkus JVM image",
-			"tags":        "runtime,kogito,quarkus,jvm",
-			"supports":    "quarkus",
+			"description": "Runtime image for Kogito based on Quarkus or Spring Boot JVM image",
+			"tags":        "runtime,kogito,quarkus,springboot,jvm",
+			"supports":    "quarkus,springboot",
 		},
-		infrastructure.KogitoQuarkusUbi8s2iImage: {
+		infrastructure.KogitoBuilderImage: {
 			"iconClass":   "icon-jbpm",
-			"description": "Platform for building Kogito based on Quarkus",
-			"tags":        "builder,kogito,quarkus",
-			"supports":    "quarkus",
-		},
-		infrastructure.KogitoSpringBootUbi8Image: {
-			"iconClass":   "icon-jbpm",
-			"description": "Runtime image for Kogito based on SpringBoot",
-			"tags":        "runtime,kogito,springboot",
-			"supports":    "springboot",
-		},
-		infrastructure.KogitoSpringBootUbi8s2iImage: {
-			"iconClass":   "icon-jbpm",
-			"description": "Platform for building Kogito based on SpringBoot",
-			"tags":        "builder,kogito,springboot",
-			"supports":    "springboot",
+			"description": "Platform for building Kogito based on Quarkus or Spring Boot",
+			"tags":        "builder,kogito,quarkus,springboot",
+			"supports":    "quarkus,springboot",
 		},
 	}
 )
@@ -242,18 +222,22 @@ func resolveKogitoImageTag(build api.KogitoBuildInterface, isBuilder bool) strin
 
 // resolveKogitoImageName resolves the ImageName to be used in the given build, e.g. kogito-quarkus-ubi8-s2i
 func resolveKogitoImageName(build api.KogitoBuildInterface, isBuilder bool) string {
-	image := framework.ConvertImageTagToImage(build.GetSpec().GetRuntimeImage())
 	if isBuilder {
-		image = framework.ConvertImageTagToImage(build.GetSpec().GetBuildImage())
+		image := framework.ConvertImageTagToImage(build.GetSpec().GetBuildImage())
+		if len(image.Name) > 0 {
+			return image.Name
+		}
+		return infrastructure.KogitoBuilderImage
 	}
+	image := framework.ConvertImageTagToImage(build.GetSpec().GetRuntimeImage())
 	if len(image.Name) > 0 {
 		return image.Name
 	}
-	imageName := infrastructure.KogitoImages[build.GetSpec().GetRuntime()][isBuilder]
-	if build.GetSpec().IsNative() && !isBuilder {
-		imageName = infrastructure.KogitoQuarkusUbi8Image
+	if build.GetSpec().IsNative() {
+		return infrastructure.KogitoRuntimeNative
 	}
-	return imageName
+	return infrastructure.KogitoRuntimeJVM
+
 }
 
 // resolveKogitoImageName resolves the ImageName to be used in the given build, e.g. kogito-quarkus-ubi8-s2i

@@ -222,9 +222,13 @@ func (b *decoratorHandler) decoratorForRuntimeBuilder() decorator {
 		bc.Spec.Output.To = &corev1.ObjectReference{
 			Kind: kindImageStreamTag, Name: strings.Join([]string{GetApplicationName(build), tagLatest}, ":"),
 		}
+
 		bc.Spec.Strategy = buildv1.BuildStrategy{
-			Type:           buildv1.SourceBuildStrategyType,
-			SourceStrategy: &buildv1.SourceBuildStrategy{From: baseImage},
+			Type: buildv1.SourceBuildStrategyType,
+			SourceStrategy: &buildv1.SourceBuildStrategy{
+				From: baseImage,
+				Env:  build.GetSpec().GetEnv(),
+			},
 		}
 	}
 }
