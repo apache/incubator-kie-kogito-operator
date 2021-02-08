@@ -69,6 +69,10 @@ pipeline {
         OPENSHIFT_CREDS_KEY = 'OPENSHIFT_CREDS'
 
         BOT_BRANCH_HASH = "${util.generateHash(10)}"
+
+        // Environment required by OLM tests when run from process
+        OP_TEST_CONTAINER_OPT = '-t'
+        OP_TEST_DEBUG = 1
     }
     
     stages {
@@ -156,6 +160,11 @@ pipeline {
                         archiveArtifacts artifacts: "build/_output/bin/kogito", allowEmptyArchive: false
                     }
                 }
+            }
+        }
+        stage('Run OLM tests') {
+            steps {
+                sh 'make olm-tests'
             }
         }
         stage('Push Operator Image to Openshift Registry') {
