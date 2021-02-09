@@ -28,9 +28,9 @@ teardown() {
     [ "$status" -eq 0 ]
 
     testConfigFile=$(cat ${TEST_CONFIG_FILE})
-    [[ "${testConfigFile}" =~ "tests.build-image-version=latest" ]]
-    [[ "${testConfigFile}" =~ "tests.services-image-version=latest" ]]
-    [[ "${testConfigFile}" =~ "tests.runtime-application-image-version=latest" ]]
+    [[ "${testConfigFile}" =~ "tests.build-image-version=1.2" ]]
+    [[ "${testConfigFile}" =~ "tests.services-image-version=1.2" ]]
+    [[ "${testConfigFile}" =~ "tests.runtime-application-image-version=1.2" ]]
     [[ "${testConfigFile}" =~ "tests.examples-ref=master" ]]
 }
 
