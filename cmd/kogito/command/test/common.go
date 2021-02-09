@@ -16,7 +16,7 @@ package test
 
 import (
 	"bytes"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/spf13/cobra"
 	"strings"
 
@@ -34,7 +34,7 @@ var (
 
 // SetupCliTest creates the CLI default test environment. The mocked Kubernetes client does not support OpenShift.
 func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...runtime.Object) (ctx *context.CommandContext) {
-	return SetupCliTestWithKubeClient(cli, factory, test2.NewFakeClientBuilder().AddK8sObjects(kubeObjects...).Build())
+	return SetupCliTestWithKubeClient(cli, factory, test.NewFakeClientBuilder().AddK8sObjects(kubeObjects...).Build())
 }
 
 // SetupCliTestWithKubeClient Setup a CLI test environment with the given Kubernetes client

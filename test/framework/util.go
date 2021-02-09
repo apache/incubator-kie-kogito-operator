@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	test2 "github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -35,7 +35,7 @@ import (
 // GenerateNamespaceName generates a namespace name, taking configuration into account (local or not)
 func GenerateNamespaceName(prefix string) string {
 	rand.Seed(time.Now().UnixNano())
-	ns := fmt.Sprintf("%s-%s", prefix, test2.GenerateShortUID(4))
+	ns := fmt.Sprintf("%s-%s", prefix, test.GenerateShortUID(4))
 	if config.IsLocalTests() {
 		username := getEnvUsername()
 		ns = fmt.Sprintf("%s-local-%s", username, ns)
