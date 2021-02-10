@@ -380,6 +380,7 @@ All options from BDD tests do also apply here.
 | @infinispan        | Tests using the infinispan operator                                                |
 | @kafka             | Tests using the kafka operator                                                     |
 | @keycloak          | Tests using the keycloak operator                                                  |
+| @knative           | Tests using the Knative functionality                                              |
 
 ### Running the Kogito Operator locally
 
