@@ -31,8 +31,8 @@ const (
 	// TCPHealthCheckProbe default health check probe that binds to port 8080
 	TCPHealthCheckProbe HealthCheckProbeType = "TCP"
 
-	quarkusProbeLivenessPath  = "/health/live"
-	quarkusProbeReadinessPath = "/health/ready"
+	quarkusProbeLivenessPath  = "/q/health/live"
+	quarkusProbeReadinessPath = "/q/health/ready"
 )
 
 type healthCheckProbe struct {
