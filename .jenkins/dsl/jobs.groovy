@@ -38,9 +38,10 @@ def nightlyBranchFolder = "${KogitoConstants.KOGITO_DSL_NIGHTLY_FOLDER}/${JOB_BR
 def releaseBranchFolder = "${KogitoConstants.KOGITO_DSL_RELEASE_FOLDER}/${JOB_BRANCH_FOLDER}"
 
 if (isMainBranch()) {
-    folder(KogitoConstants.KOGITO_DSL_PULLREQUEST_FOLDER)
+    // PR job is disabled for now as handled by another Jenkins
+    // folder(KogitoConstants.KOGITO_DSL_PULLREQUEST_FOLDER)
 
-    setupPrJob(KogitoConstants.KOGITO_DSL_PULLREQUEST_FOLDER)
+    // setupPrJob(KogitoConstants.KOGITO_DSL_PULLREQUEST_FOLDER)
 
     // For BDD runtimes PR job
     folder(bddRuntimesPrFolder)
