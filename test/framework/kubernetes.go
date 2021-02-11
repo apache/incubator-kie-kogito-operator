@@ -280,7 +280,7 @@ func IsCrdAvailable(crdName string) (bool, error) {
 }
 
 // CreateObject creates object
-func CreateObject(o meta.ResourceObject) error {
+func CreateObject(o kubernetes.ResourceObject) error {
 	return kubernetes.ResourceC(kubeClient).Create(o)
 }
 
