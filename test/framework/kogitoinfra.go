@@ -87,6 +87,8 @@ func parseKogitoInfraResource(targetResourceType string) (*api.Resource, error) 
 		return &api.Resource{APIVersion: infrastructure.KeycloakAPIVersion, Kind: infrastructure.KeycloakKind}, nil
 	case infrastructure.MongoDBKind:
 		return &api.Resource{APIVersion: infrastructure.MongoDBAPIVersion, Kind: infrastructure.MongoDBKind}, nil
+	case infrastructure.KnativeEventingBrokerKind:
+		return &api.Resource{APIVersion: infrastructure.KnativeEventingAPIVersion, Kind: infrastructure.KnativeEventingBrokerKind}, nil
 	default:
 		return nil, fmt.Errorf("Unknown KogitoInfra target resource type %s", targetResourceType)
 	}

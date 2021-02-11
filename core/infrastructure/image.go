@@ -42,7 +42,7 @@ const (
 	// KogitoRuntimeJVM Runtime Image for Kogito with  JRE
 	KogitoRuntimeJVM = "kogito-runtime-jvm"
 	//KogitoRuntimeNative Runtime Image for Kogito for Native Quarkus Application
-	KogitoRuntimeNative = "Kogito-runtime-native"
+	KogitoRuntimeNative = "kogito-runtime-native"
 	//RuntimeTypeKey Env key to switch between the runtime
 	RuntimeTypeKey = "RUNTIME_TYPE"
 )
