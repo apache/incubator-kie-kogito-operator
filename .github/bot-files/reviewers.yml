@@ -1,7 +1,10 @@
 review:
   - paths:
       - cmd/**
-      - pkg/**
+      - api/**
+      - controllers/**
+      - internal/**
+      - core/**
     reviewers:
       - ricardozanini
       - spolti

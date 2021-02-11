@@ -3,19 +3,13 @@ comment:
 flags:
   operator:
     paths:
-      - pkg/
+      - api/
+      - controllers/
+      - internal/
+      - core/
   cli:
     paths:
       - cmd/
-  controllers:
-    paths:
-      - controllers/
-  core:
-    paths:
-      - core/
-  internal:
-    paths:
-      - internal/
 coverage:
   status:
     project:
@@ -31,21 +25,3 @@ coverage:
         threshold: 5%
         flags:
           - cli
-      controllers:
-        target: auto
-        base: auto
-        threshold: 5%
-        flags:
-          - controllers
-      core:
-        target: auto
-        base: auto
-        threshold: 5%
-        flags:
-          - core
-      internal:
-        target: auto
-        base: auto
-        threshold: 5%
-        flags:
-          - internal
