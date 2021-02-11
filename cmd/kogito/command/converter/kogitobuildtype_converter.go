@@ -15,8 +15,8 @@
 package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 )
 
 // FromResourceTypeToKogitoBuildType converts given ResourceType into KogitoBuildType

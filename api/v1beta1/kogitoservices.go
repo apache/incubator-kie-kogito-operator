@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,81 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package v1beta1
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
-
-// KogitoService defines the interface for any Kogito service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
-// +kubebuilder:object:generate=false
-type KogitoService interface {
-	metav1.Object
-	runtime.Object
-	// GetSpec gets the Kogito Service specification structure.
-	GetSpec() KogitoServiceSpecInterface
-	// GetStatus gets the Kogito Service Status structure.
-	GetStatus() KogitoServiceStatusInterface
-}
-
-// KogitoServiceList defines a base interface for Kogito Service list.
-// +kubebuilder:object:generate=false
-type KogitoServiceList interface {
-	runtime.Object
-	// GetItems get all items
-	GetItems() []KogitoService
-}
-
-// KogitoServiceSpecInterface defines the interface for the Kogito service specification, it's the basic structure for any Kogito service.
-// +kubebuilder:object:generate=false
-type KogitoServiceSpecInterface interface {
-	GetReplicas() *int32
-	SetReplicas(replicas int32)
-	GetEnvs() []corev1.EnvVar
-	SetEnvs(envs []corev1.EnvVar)
-	AddEnvironmentVariable(name, value string)
-	AddEnvironmentVariableFromSecret(variableName, secretName, secretKey string)
-	GetImage() string
-	SetImage(image string)
-	GetResources() corev1.ResourceRequirements
-	SetResources(resources corev1.ResourceRequirements)
-	AddResourceRequest(name, value string)
-	AddResourceLimit(name, value string)
-	GetDeploymentLabels() map[string]string
-	SetDeploymentLabels(labels map[string]string)
-	AddDeploymentLabel(name, value string)
-	GetServiceLabels() map[string]string
-	SetServiceLabels(labels map[string]string)
-	AddServiceLabel(name, value string)
-	GetRuntime() RuntimeType
-	IsInsecureImageRegistry() bool
-	GetPropertiesConfigMap() string
-	GetInfra() []string
-	AddInfra(name string)
-	GetMonitoring() Monitoring
-	SetMonitoring(monitoring Monitoring)
-	GetConfig() map[string]string
-	GetProbes() KogitoProbe
-	SetProbes(probes KogitoProbe)
-}
-
-// KogitoServiceStatusInterface defines the basic interface for the Kogito Service status.
-// +kubebuilder:object:generate=false
-type KogitoServiceStatusInterface interface {
-	ConditionMetaInterface
-	GetDeploymentConditions() []appsv1.DeploymentCondition
-	SetDeploymentConditions(deploymentConditions []appsv1.DeploymentCondition)
-	GetImage() string
-	SetImage(image string)
-	GetExternalURI() string
-	SetExternalURI(uri string)
-	GetCloudEvents() KogitoCloudEventsStatus
-	SetCloudEvents(cloudEvents KogitoCloudEventsStatus)
-}
 
 // KogitoServiceStatus is the basic structure for any Kogito Service status.
 type KogitoServiceStatus struct {
@@ -131,11 +64,15 @@ func (k *KogitoServiceStatus) GetExternalURI() string { return k.ExternalURI }
 func (k *KogitoServiceStatus) SetExternalURI(uri string) { k.ExternalURI = uri }
 
 // GetCloudEvents ...
-func (k *KogitoServiceStatus) GetCloudEvents() KogitoCloudEventsStatus { return k.CloudEvents }
+func (k *KogitoServiceStatus) GetCloudEvents() api.KogitoCloudEventsStatusInterface {
+	return &k.CloudEvents
+}
 
 // SetCloudEvents ...
-func (k *KogitoServiceStatus) SetCloudEvents(cloudEvents KogitoCloudEventsStatus) {
-	k.CloudEvents = cloudEvents
+func (k *KogitoServiceStatus) SetCloudEvents(cloudEvents api.KogitoCloudEventsStatusInterface) {
+	if newCloudEvents, ok := cloudEvents.(*KogitoCloudEventsStatus); ok {
+		k.CloudEvents = *newCloudEvents
+	}
 }
 
 // KogitoCloudEventsStatus describes the CloudEvents that can be produced or consumed by this Kogito Service instance
@@ -150,12 +87,72 @@ type KogitoCloudEventsStatus struct {
 	Produces []KogitoCloudEventInfo `json:"produces,omitempty"`
 }
 
+// GetConsumes ...
+func (k *KogitoCloudEventsStatus) GetConsumes() []api.KogitoCloudEventInfoInterface {
+	var consumes []api.KogitoCloudEventInfoInterface
+	for _, consume := range k.Consumes {
+		consumes = append(consumes, &consume)
+	}
+	return consumes
+}
+
+// SetConsumes ...
+func (k *KogitoCloudEventsStatus) SetConsumes(consumes []api.KogitoCloudEventInfoInterface) {
+	var newConsumes []KogitoCloudEventInfo
+	for _, consume := range consumes {
+		if newConsume, ok := consume.(*KogitoCloudEventInfo); ok {
+			newConsumes = append(newConsumes, *newConsume)
+		}
+	}
+	k.Consumes = newConsumes
+}
+
+// GetProduces ...
+func (k *KogitoCloudEventsStatus) GetProduces() []api.KogitoCloudEventInfoInterface {
+	var produces []api.KogitoCloudEventInfoInterface
+	for _, produce := range k.Produces {
+		produces = append(produces, &produce)
+	}
+	return produces
+}
+
+// SetProduces ...
+func (k *KogitoCloudEventsStatus) SetProduces(produces []api.KogitoCloudEventInfoInterface) {
+	var newProduces []KogitoCloudEventInfo
+	for _, produce := range produces {
+		if newProduce, ok := produce.(*KogitoCloudEventInfo); ok {
+			newProduces = append(newProduces, *newProduce)
+		}
+	}
+	k.Produces = newProduces
+}
+
 // KogitoCloudEventInfo describes the CloudEvent information based on the specification
 type KogitoCloudEventInfo struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	Type string `json:"type"`
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	Source string `json:"source,omitempty"`
+}
+
+// GetType ...
+func (k *KogitoCloudEventInfo) GetType() string {
+	return k.Type
+}
+
+// SetType ...
+func (k *KogitoCloudEventInfo) SetType(cloudEventType string) {
+	k.Type = cloudEventType
+}
+
+// GetSource ...
+func (k *KogitoCloudEventInfo) GetSource() string {
+	return k.Source
+}
+
+// SetSource ...
+func (k *KogitoCloudEventInfo) SetSource(source string) {
+	k.Source = source
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
@@ -355,13 +352,15 @@ func (k *KogitoServiceSpec) AddInfra(name string) {
 }
 
 // GetMonitoring ...
-func (k *KogitoServiceSpec) GetMonitoring() Monitoring {
-	return k.Monitoring
+func (k *KogitoServiceSpec) GetMonitoring() api.MonitoringInterface {
+	return &k.Monitoring
 }
 
 // SetMonitoring ...
-func (k *KogitoServiceSpec) SetMonitoring(monitoring Monitoring) {
-	k.Monitoring = monitoring
+func (k *KogitoServiceSpec) SetMonitoring(monitoring api.MonitoringInterface) {
+	if newMonitoring, ok := monitoring.(*Monitoring); ok {
+		k.Monitoring = *newMonitoring
+	}
 }
 
 // GetConfig ...
@@ -370,11 +369,13 @@ func (k *KogitoServiceSpec) GetConfig() map[string]string {
 }
 
 // GetProbes ...
-func (k *KogitoServiceSpec) GetProbes() KogitoProbe {
-	return k.Probes
+func (k *KogitoServiceSpec) GetProbes() api.KogitoProbeInterface {
+	return &k.Probes
 }
 
 // SetProbes ...
-func (k *KogitoServiceSpec) SetProbes(probes KogitoProbe) {
-	k.Probes = probes
+func (k *KogitoServiceSpec) SetProbes(probes api.KogitoProbeInterface) {
+	if newProbes, ok := probes.(*KogitoProbe); ok {
+		k.Probes = *newProbes
+	}
 }

@@ -16,7 +16,7 @@ package kogitoservice
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
@@ -93,7 +93,8 @@ func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService,
 func (s *statusHandler) updateStatus(instance api.KogitoService) error {
 	// Sanity check since the Status CR needs a reference for the object
 	if instance.GetStatus() != nil && instance.GetStatus().GetConditions() == nil {
-		instance.GetStatus().SetConditions([]api.Condition{})
+		conditions := make([]api.ConditionInterface, 1)
+		instance.GetStatus().SetConditions(conditions)
 	}
 	err := kubernetes.ResourceC(s.Client).UpdateStatus(instance)
 	if err != nil {

@@ -16,11 +16,12 @@ package kogitobuild
 
 import (
 	"errors"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework/util"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,11 +33,11 @@ import (
 
 func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &api2.KogitoBuildTest{
+	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: api.GitSource{
+			GitSource: v1beta1.GitSource{
 				URI: "https://github.com/kiegroup/kogito-examples/",
 			},
 			Runtime: api.QuarkusRuntimeType,
@@ -47,7 +48,7 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	buildStatusHandler := NewStatusHandler(context)
 	buildStatusHandler.HandleStatusChange(instance, err)
@@ -73,11 +74,11 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 
 func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &api2.KogitoBuildTest{
+	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: api.GitSource{
+			GitSource: v1beta1.GitSource{
 				URI: "https://github.com/kiegroup/kogito-examples/",
 			},
 			Runtime: api.QuarkusRuntimeType,
@@ -87,7 +88,7 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deltaProcessor := &deltaProcessor{Context: context, build: instance}
 	manager := deltaProcessor.getBuildManager()
@@ -155,7 +156,7 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	context1 := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	buildStatusHandler := NewStatusHandler(context1)
 	buildStatusHandler.HandleStatusChange(instance, err)

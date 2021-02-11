@@ -18,7 +18,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"github.com/imdario/mergo"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	corev1 "k8s.io/api/core/v1"

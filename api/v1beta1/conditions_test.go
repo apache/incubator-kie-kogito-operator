@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package v1beta1
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"testing"
 	"time"
 
@@ -30,7 +31,7 @@ func TestSetDeployed(t *testing.T) {
 	assert.True(t, conditions.SetDeployed())
 
 	assert.NotEmpty(t, conditions)
-	assert.Equal(t, DeployedConditionType, conditions.Conditions[0].Type)
+	assert.Equal(t, api.DeployedConditionType, conditions.Conditions[0].Type)
 	assert.Equal(t, corev1.ConditionTrue, conditions.Conditions[0].Status)
 	assert.True(t, now.Before(&conditions.Conditions[0].LastTransitionTime))
 }
@@ -53,7 +54,7 @@ func TestSetProvisioning(t *testing.T) {
 	assert.True(t, conditionsMeta.SetProvisioning())
 
 	assert.NotEmpty(t, conditionsMeta.Conditions)
-	assert.Equal(t, ProvisioningConditionType, conditionsMeta.Conditions[0].Type)
+	assert.Equal(t, api.ProvisioningConditionType, conditionsMeta.Conditions[0].Type)
 	assert.Equal(t, corev1.ConditionTrue, conditionsMeta.Conditions[0].Status)
 	assert.True(t, now.Before(&conditionsMeta.Conditions[0].LastTransitionTime))
 }
@@ -82,11 +83,11 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	assert.NotEmpty(t, conditionsMeta.Conditions)
 	condition := conditionsMeta.Conditions[0]
 	assert.Equal(t, 2, len(conditionsMeta.Conditions))
-	assert.Equal(t, ProvisioningConditionType, condition.Type)
+	assert.Equal(t, api.ProvisioningConditionType, condition.Type)
 	assert.Equal(t, corev1.ConditionTrue, condition.Status)
 	assert.True(t, now.Before(&condition.LastTransitionTime))
 
-	assert.Equal(t, DeployedConditionType, conditionsMeta.Conditions[1].Type)
+	assert.Equal(t, api.DeployedConditionType, conditionsMeta.Conditions[1].Type)
 	assert.Equal(t, corev1.ConditionTrue, conditionsMeta.Conditions[1].Status)
 	assert.True(t, condition.LastTransitionTime.Before(&conditionsMeta.Conditions[1].LastTransitionTime))
 }
@@ -94,7 +95,7 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 func TestBuffer(t *testing.T) {
 	conditionsMeta := ConditionsMeta{}
 	for i := 0; i < maxBufferCondition+2; i++ {
-		conditionsMeta.SetFailed(ServiceReconciliationFailure, fmt.Errorf("error %d", i))
+		conditionsMeta.SetFailed(api.ServiceReconciliationFailure, fmt.Errorf("error %d", i))
 	}
 	size := len(conditionsMeta.Conditions)
 	assert.Equal(t, maxBufferCondition, size)
@@ -105,13 +106,13 @@ func TestSetFailed(t *testing.T) {
 	conditionsMeta := ConditionsMeta{}
 	failureMessage := "Unknown error occurs"
 
-	conditionsMeta.SetFailed(ServiceReconciliationFailure, fmt.Errorf(failureMessage))
+	conditionsMeta.SetFailed(api.ServiceReconciliationFailure, fmt.Errorf(failureMessage))
 
 	assert.NotEmpty(t, conditionsMeta.Conditions)
 	assert.Equal(t, 1, len(conditionsMeta.Conditions))
 	condition := conditionsMeta.Conditions[0]
-	assert.Equal(t, FailedConditionType, condition.Type)
+	assert.Equal(t, api.FailedConditionType, condition.Type)
 	assert.Equal(t, corev1.ConditionFalse, condition.Status)
-	assert.Equal(t, ServiceReconciliationFailure, condition.Reason)
+	assert.Equal(t, api.ServiceReconciliationFailure, condition.Reason)
 	assert.Equal(t, failureMessage, condition.Message)
 }

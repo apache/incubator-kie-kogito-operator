@@ -15,10 +15,11 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
@@ -216,7 +217,7 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 			context := &operator.Context{
 				Client: tt.args.cli,
 				Log:    test.TestLogger,
-				Scheme: test.GetRegisteredSchema(),
+				Scheme: meta.GetRegisteredSchema(),
 			}
 			handler := NewAppPropsConfigMapHandler(context)
 			got, got1, err := handler.GetAppPropConfigMapContentHash(tt.args.instance, tt.args.appProps)

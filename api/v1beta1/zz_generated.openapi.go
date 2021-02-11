@@ -26,12 +26,199 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
+		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds":                        schema_kiegroup_kogito_cloud_operator_api_v1beta1_Builds(ref),
+		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.GitSource":                     schema_kiegroup_kogito_cloud_operator_api_v1beta1_GitSource(ref),
 		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuild":                   schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuild(ref),
+		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildStatus":             schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref),
 		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfra":                   schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfra(ref),
+		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraSpec":               schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraSpec(ref),
+		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraStatus":             schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref),
 		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoRuntime":                 schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoRuntime(ref),
 		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingService":       schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingService(ref),
 		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceSpec":   schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSpec(ref),
 		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceStatus": schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceStatus(ref),
+		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.WebHookSecret":                 schema_kiegroup_kogito_cloud_operator_api_v1beta1_WebHookSecret(ref),
+	}
+}
+
+func schema_kiegroup_kogito_cloud_operator_api_v1beta1_Builds(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Builds ...",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"new": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds are being created.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"pending": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds are about to start running.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"running": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds are running.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"complete": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have executed and succeeded.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"failed": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have executed and failed.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"error": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have been prevented from executing by an error.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"cancelled": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Builds have been stopped from executing.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_kiegroup_kogito_cloud_operator_api_v1beta1_GitSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "GitSource Git coordinates to locate the source code to build.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"uri": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Git URI for the s2i source.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"reference": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Branch to use in the Git repository.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"contextDir": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Context/subdirectory where the code is located, relative to the repo root.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"uri"},
+			},
+		},
 	}
 }
 
@@ -63,19 +250,65 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuild(ref common.Re
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/api.KogitoBuildSpec"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/api.KogitoBuildStatus"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/core/api.KogitoBuildSpec", "github.com/kiegroup/kogito-cloud-operator/core/api.KogitoBuildStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildSpec", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoBuildStatus defines the observed state of KogitoBuild.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"latestBuild": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"conditions": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "History of conditions for the resource, shows the status of the younger builder controlled by this instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildConditions"),
+									},
+								},
+							},
+						},
+					},
+					"builds": {
+						SchemaProps: spec.SchemaProps{
+							Description: "History of builds",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds"),
+						},
+					},
+				},
+				Required: []string{"conditions", "builds"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildConditions"},
 	}
 }
 
@@ -107,19 +340,107 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfra(ref common.Re
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/api.KogitoInfraSpec"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/api.KogitoInfraStatus"),
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/core/api.KogitoInfraSpec", "github.com/kiegroup/kogito-cloud-operator/core/api.KogitoInfraStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraSpec", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoInfraSpec defines the desired state of KogitoInfra.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"resource": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak.",
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Resource"),
+						},
+					},
+					"infraProperties": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type. For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Resource"},
+	}
+}
+
+func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KogitoInfraStatus defines the observed state of KogitoInfra.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"condition": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraCondition"),
+						},
+					},
+					"runtimeProperties": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.RuntimeProperties"),
+									},
+								},
+							},
+						},
+					},
+					"volumes": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of volumes that should be added to the services bound to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraVolume"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraCondition", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.RuntimeProperties"},
 	}
 }
 
@@ -317,7 +638,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSp
 					"monitoring": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Create Service monitor instance to connect with Monitoring service",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/core/api.Monitoring"),
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Monitoring"),
 						},
 					},
 					"config": {
@@ -338,7 +659,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSp
 					"probes": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Configure liveness, readiness and startup probes for containers",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/core/api.KogitoProbe"),
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoProbe"),
 						},
 					},
 					"serviceType": {
@@ -353,7 +674,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSp
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/core/api.KogitoProbe", "github.com/kiegroup/kogito-cloud-operator/core/api.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoProbe", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
@@ -376,7 +697,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSt
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/core/api.Condition"),
+										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Condition"),
 									},
 								},
 							},
@@ -412,7 +733,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSt
 					"cloudEvents": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Describes the CloudEvents that this instance can consume or produce",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/core/api.KogitoCloudEventsStatus"),
+							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoCloudEventsStatus"),
 						},
 					},
 				},
@@ -420,6 +741,33 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSt
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/core/api.Condition", "github.com/kiegroup/kogito-cloud-operator/core/api.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition"},
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Condition", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition"},
+	}
+}
+
+func schema_kiegroup_kogito_cloud_operator_api_v1beta1_WebHookSecret(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "WebHookSecret Secret to use for a given webHook.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"type": {
+						SchemaProps: spec.SchemaProps{
+							Description: "WebHook type, either GitHub or Generic.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"secret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Secret value for webHook",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
 	}
 }

@@ -16,7 +16,7 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -68,7 +68,7 @@ func (k *reconcilerHandler) GetInfraReconciler(instance api.KogitoInfraInterface
 }
 
 func resourceClassForInstance(instance api.KogitoInfraInterface) string {
-	return getResourceClass(instance.GetSpec().GetResource().Kind, instance.GetSpec().GetResource().APIVersion)
+	return getResourceClass(instance.GetSpec().GetResource().GetKind(), instance.GetSpec().GetResource().GetAPIVersion())
 }
 
 func getResourceClass(kind, APIVersion string) string {

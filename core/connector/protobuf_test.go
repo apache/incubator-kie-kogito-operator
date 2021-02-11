@@ -16,12 +16,14 @@ package connector
 
 import (
 	"github.com/google/uuid"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -61,12 +63,12 @@ func TestMountProtoBufConfigMapsOnDeployment(t *testing.T) {
 			},
 		},
 	}
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	protoBufHandler := NewProtoBufHandler(context, supportingServiceHandler)
 	err := protoBufHandler.MountProtoBufConfigMapsOnDeployment(deployment)
 	assert.NoError(t, err)
@@ -87,13 +89,13 @@ func TestMountProtoBufConfigMapsOnDeployment(t *testing.T) {
 func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	fileName1 := "mydomain.proto"
 	fileName2 := "mydomain2.proto"
-	instance := &api2.KogitoSupportingServiceTest{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: t.Name(),
 			Name:      "data-index",
 			UID:       types.UID(uuid.New().String()),
 		},
-		Spec: api2.KogitoSupportingServiceSpecTest{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
 	}
@@ -130,19 +132,19 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, dc, cm1, cm2).OnOpenShift().Build()
 
-	runtimeService := &api2.KogitoRuntimeTest{
+	runtimeService := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: t.Name(),
 			Name:      "my-domain-protobufs1",
 		},
 	}
 
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	protoBufHandler := NewProtoBufHandler(context, supportingServiceHandler)
 	err := protoBufHandler.MountProtoBufConfigMapOnDataIndex(runtimeService)
 	assert.NoError(t, err)
@@ -178,12 +180,12 @@ func Test_getProtoBufConfigMapsForAllRuntimeServices(t *testing.T) {
 		Data: map[string]string{"mydomain2.proto": "This is a protobuf file"},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(cm1, cm2).Build()
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	protoBufHandler := &protoBufHandler{
 		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,
@@ -216,19 +218,19 @@ func Test_getProtoBufConfigMapsForSpecificRuntimeService(t *testing.T) {
 		},
 		Data: map[string]string{"mydomain2.proto": "This is a protobuf file"},
 	}
-	runtimeInstance := &api2.KogitoRuntimeTest{
+	runtimeInstance := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-domain-protobufs1",
 			Namespace: t.Name(),
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(cm1, cm2).Build()
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	protoBufHandler := &protoBufHandler{
 		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,

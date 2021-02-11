@@ -15,13 +15,13 @@
 package v1beta1
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // KogitoRuntimeSpec defines the desired state of KogitoRuntime.
 type KogitoRuntimeSpec struct {
-	api.KogitoServiceSpec `json:",inline"`
+	KogitoServiceSpec `json:",inline"`
 
 	// Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
@@ -58,7 +58,7 @@ func (k *KogitoRuntimeSpec) SetEnableIstio(enableIstio bool) {
 
 // KogitoRuntimeStatus defines the observed state of KogitoRuntime.
 type KogitoRuntimeStatus struct {
-	api.KogitoServiceStatus `json:",inline"`
+	KogitoServiceStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true

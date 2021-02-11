@@ -16,8 +16,6 @@ package install
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
-
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
@@ -116,12 +114,12 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 			Name:      args[0],
 			Namespace: i.flags.Project,
 		},
-		Spec: api.KogitoInfraSpec{
+		Spec: v1beta1.KogitoInfraSpec{
 			Resource:        converter.FromInfraResourceFlagsToResource(&i.flags.InfraResourceFlags),
 			InfraProperties: converter.FromPropertiesFlagToStringMap(&i.flags.PropertiesFlag),
 		},
-		Status: api.KogitoInfraStatus{
-			Condition: api.KogitoInfraCondition{},
+		Status: v1beta1.KogitoInfraStatus{
+			Condition: v1beta1.KogitoInfraCondition{},
 		},
 	}
 

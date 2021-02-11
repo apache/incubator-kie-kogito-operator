@@ -16,7 +16,8 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
@@ -128,8 +129,8 @@ func (i *mongoDBInfraReconciler) getMongoDBRuntimeAppProps(mongoDBInstance *mong
 	return appProps, nil
 }
 
-func (i *mongoDBInfraReconciler) getMongoDBRuntimeProps(mongoDBInstance *mongodb.MongoDB, runtime api.RuntimeType) (api.RuntimeProperties, error) {
-	runtimeProps := api.RuntimeProperties{}
+func (i *mongoDBInfraReconciler) getMongoDBRuntimeProps(mongoDBInstance *mongodb.MongoDB, runtime api.RuntimeType) (v1beta1.RuntimeProperties, error) {
+	runtimeProps := v1beta1.RuntimeProperties{}
 	appProps, err := i.getMongoDBRuntimeAppProps(mongoDBInstance, runtime)
 	if err != nil {
 		return runtimeProps, err
@@ -151,7 +152,7 @@ func (i *mongoDBInfraReconciler) updateMongoDBRuntimePropsInStatus(mongoDBInstan
 	if err != nil {
 		return err
 	}
-	setRuntimeProperties(i.instance, runtime, runtimeProps)
+	setRuntimeProperties(i.instance, runtime, &runtimeProps)
 	i.Log.Debug("Following MongoDB runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
@@ -236,12 +237,12 @@ func (i *mongoDBInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	var mongoDBInstance *mongodb.MongoDB
 	mongoDBHandler := infrastructure.NewMongoDBHandler(i.Context)
 	if !mongoDBHandler.IsMongoDBAvailable() {
-		return false, errorForResourceAPINotFound(i.instance.GetSpec().GetResource().APIVersion)
+		return false, errorForResourceAPINotFound(i.instance.GetSpec().GetResource().GetAPIVersion())
 	}
 
 	// Step 1: check whether user has provided custom mongoDB instance reference
-	mongoDBNamespace := i.instance.GetSpec().GetResource().Namespace
-	mongoDBName := i.instance.GetSpec().GetResource().Name
+	mongoDBNamespace := i.instance.GetSpec().GetResource().GetNamespace()
+	mongoDBName := i.instance.GetSpec().GetResource().GetName()
 	if len(mongoDBNamespace) == 0 {
 		mongoDBNamespace = i.instance.GetNamespace()
 		i.Log.Debug("Namespace is not provided for infrastructure MongoDB resource", "instance", i.instance.GetName(), "namespace", mongoDBNamespace)
@@ -253,7 +254,7 @@ func (i *mongoDBInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	if mongoDBInstance, resultErr = i.loadDeployedMongoDBInstance(mongoDBName, mongoDBNamespace); resultErr != nil {
 		return false, resultErr
 	} else if mongoDBInstance == nil {
-		return false, errorForResourceNotFound("MongoDB", i.instance.GetSpec().GetResource().Name, mongoDBNamespace)
+		return false, errorForResourceNotFound("MongoDB", i.instance.GetSpec().GetResource().GetName(), mongoDBNamespace)
 	}
 
 	i.Log.Debug("Got MongoDB instance", "instance", mongoDBInstance)

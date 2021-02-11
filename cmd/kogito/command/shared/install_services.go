@@ -16,10 +16,10 @@ package shared
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	kogitocli "github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 )

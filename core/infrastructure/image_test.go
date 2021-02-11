@@ -15,9 +15,10 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false)
 	image, err := imageHandler.ResolveImage()
@@ -45,7 +46,7 @@ func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false)
 	image, err := imageHandler.ResolveImage()
@@ -60,7 +61,7 @@ func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false)
 	image, err := imageHandler.ResolveImage()
@@ -75,7 +76,7 @@ func Test_imageHandler_newImageHandlerInsecureImageRegistry(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, true)
 	imageStream, err := imageHandler.CreateImageStreamIfNotExists()

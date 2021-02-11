@@ -15,11 +15,13 @@
 package connector
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	"github.com/google/uuid"
@@ -35,7 +37,7 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	ns := t.Name()
 	name := "my-kogito-app"
 	expectedRoute := "http://dataindex-route.com"
-	kogitoRuntime := &api2.KogitoRuntimeTest{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -50,28 +52,27 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 			},
 		},
 	}
-	dataIndex := &api2.KogitoSupportingServiceTest{
+	dataIndex := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: ns,
 		},
-		Spec: api2.KogitoSupportingServiceSpecTest{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
-		Status: api2.KogitoSupportingServiceStatusTest{
-			KogitoServiceStatus: api.KogitoServiceStatus{ExternalURI: expectedRoute},
+		Status: v1beta1.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedRoute},
 		},
 	}
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dc, kogitoRuntime, dataIndex).Build()
-	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
-
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	err := urlHandler.InjectDataIndexURLIntoKogitoRuntimeServices(ns)
 	assert.NoError(t, err)
@@ -84,23 +85,23 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 
 func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 	URI := "http://localhost:8080"
-	app := &api2.KogitoRuntimeTest{
+	app := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
 			Namespace: t.Name(),
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &api2.KogitoSupportingServiceTest{
+	jobs := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
 		},
-		Spec: api2.KogitoSupportingServiceSpecTest{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.JobsService,
 		},
-		Status: api2.KogitoSupportingServiceStatusTest{
-			KogitoServiceStatus: api.KogitoServiceStatus{
+		Status: v1beta1.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
 				ExternalURI: URI,
 			},
 		},
@@ -115,13 +116,13 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(app, dc, jobs).Build()
-	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	err := urlHandler.InjectJobsServicesURLIntoKogitoRuntimeServices(t.Name())
 	assert.NoError(t, err)
@@ -139,22 +140,22 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 
 func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	URI := "http://localhost:8080"
-	app := &api2.KogitoRuntimeTest{
+	app := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kogito-app",
 			Namespace: t.Name(),
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &api2.KogitoSupportingServiceTest{
+	jobs := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
 		},
-		Spec: api2.KogitoSupportingServiceSpecTest{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.JobsService,
 		},
-		Status: api2.KogitoSupportingServiceStatusTest{KogitoServiceStatus: api.KogitoServiceStatus{ExternalURI: URI}},
+		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
@@ -166,13 +167,13 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dc, app, jobs).Build()
-	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	// first we inject
 	err := urlHandler.InjectJobsServicesURLIntoKogitoRuntimeServices(t.Name())
@@ -191,7 +192,7 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 	ns := t.Name()
 	name := "my-kogito-app"
 	expectedRoute := "http://trusty-route.com"
-	kogitoRuntime := &api2.KogitoRuntimeTest{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -206,26 +207,26 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	trustyService := &api2.KogitoSupportingServiceTest{
+	trustyService := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "trusty",
 			Namespace: ns,
 		},
-		Spec: api2.KogitoSupportingServiceSpecTest{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.TrustyAI,
 		},
-		Status: api2.KogitoSupportingServiceStatusTest{
-			KogitoServiceStatus: api.KogitoServiceStatus{ExternalURI: expectedRoute},
+		Status: v1beta1.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedRoute},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, dc, trustyService).Build()
-	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	err := urlHandler.InjectTrustyURLIntoKogitoRuntimeServices(ns)
 	assert.NoError(t, err)
@@ -243,32 +244,42 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	expectedWSURL := "ws://" + hostname
 	expectedHTTPSURL := "https://" + hostname
 	expectedWSSURL := "wss://" + hostname
-	insecureDI := &api2.KogitoSupportingServiceTest{
-		Spec: api2.KogitoSupportingServiceSpecTest{
+	insecureDI := &v1beta1.KogitoSupportingService{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: ns,
 		},
-		Status: api2.KogitoSupportingServiceStatusTest{
-			KogitoServiceStatus: api.KogitoServiceStatus{
+		Status: v1beta1.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
 				ExternalURI: expectedHTTPURL,
 			},
 		},
 	}
-	secureDI := &api2.KogitoSupportingServiceTest{
-		Spec: api2.KogitoSupportingServiceSpecTest{
+	secureDI := &v1beta1.KogitoSupportingService{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "data-index", Namespace: ns},
-		Status:     api2.KogitoSupportingServiceStatusTest{KogitoServiceStatus: api.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
+		Status:     v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
 	}
 
 	cliInsecure := test.NewFakeClientBuilder().AddK8sObjects(insecureDI).Build()
 	cliSecure := test.NewFakeClientBuilder().AddK8sObjects(secureDI).Build()
-	inSecureSupportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cliInsecure)
-	secureSupportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cliSecure)
+	inSecureContext := &operator.Context{
+		Client: cliInsecure,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	secureContext := &operator.Context{
+		Client: cliSecure,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	inSecureSupportingServiceHandler := internal.NewKogitoSupportingServiceHandler(inSecureContext)
+	secureSupportingServiceHandler := internal.NewKogitoSupportingServiceHandler(secureContext)
 	type args struct {
 		client                   *client.Client
 		namespace                string
@@ -308,7 +319,7 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 			args: args{
 				client:                   test.NewFakeClientBuilder().Build(),
 				namespace:                ns,
-				supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(test.NewFakeClientBuilder().Build()),
+				supportingServiceHandler: internal.NewKogitoSupportingServiceHandler(&operator.Context{Client: test.NewFakeClientBuilder().Build(), Log: test.TestLogger}),
 			},
 			wantHTTPURL: "",
 			wantWSURL:   "",
@@ -317,13 +328,14 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			runtimeHandler := internal.NewKogitoRuntimeHandler(&operator.Context{Client: tt.args.client, Log: test.TestLogger})
 			urlHandler := &urlHandler{
 				Context: &operator.Context{
 					Client: tt.args.client,
 					Log:    test.TestLogger,
-					Scheme: test.GetRegisteredSchema(),
+					Scheme: meta.GetRegisteredSchema(),
 				},
-				runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(tt.args.client),
+				runtimeHandler:           runtimeHandler,
 				supportingServiceHandler: tt.args.supportingServiceHandler,
 			}
 			gotDataIndexEndpoints, err := urlHandler.getSupportingServiceEndpoints(tt.args.namespace, tt.wantHTTPURL, tt.wantWSURL, api.DataIndex)

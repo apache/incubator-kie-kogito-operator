@@ -51,20 +51,20 @@ func (k *keycloakInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	var keycloakInstance *keycloakv1alpha1.Keycloak
 	keycloakHandler := infrastructure.NewKeycloakHandler(k.Context)
 	if !keycloakHandler.IsKeycloakAvailable() {
-		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().APIVersion)
+		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().GetAPIVersion())
 	}
 
-	if len(k.instance.GetSpec().GetResource().Name) > 0 {
+	if len(k.instance.GetSpec().GetResource().GetName()) > 0 {
 		k.Log.Debug("Custom Keycloak instance reference is provided")
-		namespace := k.instance.GetSpec().GetResource().Namespace
+		namespace := k.instance.GetSpec().GetResource().GetNamespace()
 		if len(namespace) == 0 {
 			namespace = k.instance.GetNamespace()
 			k.Log.Debug("Namespace is not provided for custom resource, taking instance", "Namespace", namespace)
 		}
-		if keycloakInstance, resultErr = k.loadDeployedKeycloakInstance(k.instance.GetSpec().GetResource().Name, namespace); resultErr != nil {
+		if keycloakInstance, resultErr = k.loadDeployedKeycloakInstance(k.instance.GetSpec().GetResource().GetName(), namespace); resultErr != nil {
 			return false, resultErr
 		} else if keycloakInstance == nil {
-			return false, errorForResourceNotFound("Keycloak", k.instance.GetSpec().GetResource().Name, namespace)
+			return false, errorForResourceNotFound("Keycloak", k.instance.GetSpec().GetResource().GetName(), namespace)
 		}
 	} else {
 		k.Log.Debug("Custom Keycloak instance reference is not provided")

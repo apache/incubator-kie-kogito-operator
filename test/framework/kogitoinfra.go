@@ -16,7 +16,6 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -65,11 +64,11 @@ func GetKogitoInfraResourceStub(namespace, name, targetResourceType string) (*v1
 
 	return &v1beta1.KogitoInfra{
 		ObjectMeta: NewObjectMetadata(namespace, name),
-		Spec: api.KogitoInfraSpec{
+		Spec: v1beta1.KogitoInfraSpec{
 			Resource: *infraResource,
 		},
-		Status: api.KogitoInfraStatus{
-			Condition: api.KogitoInfraCondition{
+		Status: v1beta1.KogitoInfraStatus{
+			Condition: v1beta1.KogitoInfraCondition{
 				LastTransitionTime: v1.Now(),
 			},
 		},
@@ -77,18 +76,18 @@ func GetKogitoInfraResourceStub(namespace, name, targetResourceType string) (*v1
 }
 
 // Converts infra resource from name to Resource struct
-func parseKogitoInfraResource(targetResourceType string) (*api.Resource, error) {
+func parseKogitoInfraResource(targetResourceType string) (*v1beta1.Resource, error) {
 	switch targetResourceType {
 	case infrastructure.InfinispanKind:
-		return &api.Resource{APIVersion: infrastructure.InfinispanAPIVersion, Kind: infrastructure.InfinispanKind}, nil
+		return &v1beta1.Resource{APIVersion: infrastructure.InfinispanAPIVersion, Kind: infrastructure.InfinispanKind}, nil
 	case infrastructure.KafkaKind:
-		return &api.Resource{APIVersion: infrastructure.KafkaAPIVersion, Kind: infrastructure.KafkaKind}, nil
+		return &v1beta1.Resource{APIVersion: infrastructure.KafkaAPIVersion, Kind: infrastructure.KafkaKind}, nil
 	case infrastructure.KeycloakKind:
-		return &api.Resource{APIVersion: infrastructure.KeycloakAPIVersion, Kind: infrastructure.KeycloakKind}, nil
+		return &v1beta1.Resource{APIVersion: infrastructure.KeycloakAPIVersion, Kind: infrastructure.KeycloakKind}, nil
 	case infrastructure.MongoDBKind:
-		return &api.Resource{APIVersion: infrastructure.MongoDBAPIVersion, Kind: infrastructure.MongoDBKind}, nil
+		return &v1beta1.Resource{APIVersion: infrastructure.MongoDBAPIVersion, Kind: infrastructure.MongoDBKind}, nil
 	case infrastructure.KnativeEventingBrokerKind:
-		return &api.Resource{APIVersion: infrastructure.KnativeEventingAPIVersion, Kind: infrastructure.KnativeEventingBrokerKind}, nil
+		return &v1beta1.Resource{APIVersion: infrastructure.KnativeEventingAPIVersion, Kind: infrastructure.KnativeEventingBrokerKind}, nil
 	default:
 		return nil, fmt.Errorf("Unknown KogitoInfra target resource type %s", targetResourceType)
 	}

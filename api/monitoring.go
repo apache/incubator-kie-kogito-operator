@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package api contains API Schema definitions for the test
-// +k8s:deepcopy-gen=package,register
-// +groupName=app.kiegroup.org
 package api
+
+const (
+
+	// MonitoringDefaultPath default path
+	MonitoringDefaultPath = "/metrics"
+
+	// MonitoringDefaultScheme default scheme
+	MonitoringDefaultScheme = "http"
+)
+
+// MonitoringInterface ...
+type MonitoringInterface interface {
+	GetScheme() string
+	SetScheme(scheme string)
+	GetPath() string
+	SetPath(path string)
+}

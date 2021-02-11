@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package v1beta1
 
 // GitSource Git coordinates to locate the source code to build.
 // +k8s:openapi-gen=true
@@ -30,4 +30,34 @@ type GitSource struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git Context"
 	ContextDir string `json:"contextDir,omitempty"`
+}
+
+// GetURI ...
+func (g *GitSource) GetURI() string {
+	return g.URI
+}
+
+// SetURI ...
+func (g *GitSource) SetURI(uri string) {
+	g.URI = uri
+}
+
+// GetReference ...
+func (g *GitSource) GetReference() string {
+	return g.Reference
+}
+
+// SetReference ...
+func (g *GitSource) SetReference(reference string) {
+	g.Reference = reference
+}
+
+// GetContextDir ...
+func (g *GitSource) GetContextDir() string {
+	return g.ContextDir
+}
+
+// SetContextDir ...
+func (g *GitSource) SetContextDir(context string) {
+	g.ContextDir = context
 }

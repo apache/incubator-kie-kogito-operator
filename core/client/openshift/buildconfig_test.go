@@ -17,6 +17,7 @@ package openshift
 import (
 	"context"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +30,7 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFound(t *testing.T) {
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	buildCLI := newBuildConfigWithBCRetries(cli, 1, 1*time.Second)
 	buildOpts := &buildv1.BinaryBuildRequestOptions{AsFile: "myfile.dmn", ObjectMeta: v1.ObjectMeta{Name: "mybuild"}}
-	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, false, test.GetRegisteredSchema())
+	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, false, meta.GetRegisteredSchema())
 	// buildconfig is not there, raise an error
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "\"mybuild-builder\" not found")
@@ -41,7 +42,7 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFound_Binary(t *testing.T) {
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
 	buildCLI := newBuildConfigWithBCRetries(cli, 1, 1*time.Second)
 	buildOpts := &buildv1.BinaryBuildRequestOptions{AsFile: "target.tar.gz", ObjectMeta: v1.ObjectMeta{Name: "mybuild"}}
-	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, true, test.GetRegisteredSchema())
+	build, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, true, meta.GetRegisteredSchema())
 	// buildconfig is not there, raise an error
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "\"mybuild\" not found")
@@ -61,7 +62,7 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFoundThenFound(t *testing.T) {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		_, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, false, test.GetRegisteredSchema())
+		_, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, false, meta.GetRegisteredSchema())
 		// we don't have an actual server to do the rest call, but we can confirm that it was called
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unknown type used for body")
@@ -89,7 +90,7 @@ func Test_buildConfig_TriggerBuildFromFile_BCNotFoundThenFound_Binary(t *testing
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		_, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, true, test.GetRegisteredSchema())
+		_, err := buildCLI.TriggerBuildFromFile(t.Name(), nil, buildOpts, true, meta.GetRegisteredSchema())
 		// we don't have an actual server to do the rest call, but we can confirm that it was called
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unknown type used for body")

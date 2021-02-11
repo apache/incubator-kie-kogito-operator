@@ -15,52 +15,27 @@
 package test
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/client"
-	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
-	testapi "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
-
-type fakeKogitoInfraHandler struct {
-	client *client.Client
-}
-
-// CreateFakeKogitoInfraHandler ...
-func CreateFakeKogitoInfraHandler(client *client.Client) api.KogitoInfraHandler {
-	return &fakeKogitoInfraHandler{
-		client: client,
-	}
-}
-
-func (k *fakeKogitoInfraHandler) FetchKogitoInfraInstance(key types.NamespacedName) (api.KogitoInfraInterface, error) {
-	instance := &testapi.KogitoInfraTest{}
-	if exists, resultErr := kubernetes.ResourceC(k.client).FetchWithKey(key, instance); resultErr != nil {
-		return nil, resultErr
-	} else if !exists {
-		return nil, nil
-	} else {
-		return instance, nil
-	}
-}
 
 // CreateFakeKogitoKafka create fake kogito infra instance for kafka
 func CreateFakeKogitoKafka(namespace string) api.KogitoInfraInterface {
-	return &testapi.KogitoInfraTest{
+	return &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "kogito-kafka",
 			Namespace: namespace,
 		},
-		Spec: api.KogitoInfraSpec{
-			Resource: api.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				Kind:       "Kafka",
 				APIVersion: "kafka.strimzi.io/v1beta1",
 			},
 		},
-		Status: api.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]api.RuntimeProperties{
+		Status: v1beta1.KogitoInfraStatus{
+			RuntimeProperties: map[api.RuntimeType]v1beta1.RuntimeProperties{
 				api.QuarkusRuntimeType: {
 					AppProps: map[string]string{
 						"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.test.svc:9092",
@@ -73,7 +48,7 @@ func CreateFakeKogitoKafka(namespace string) api.KogitoInfraInterface {
 					},
 				},
 			},
-			Condition: api.KogitoInfraCondition{
+			Condition: v1beta1.KogitoInfraCondition{
 				Type:   api.SuccessInfraConditionType,
 				Status: v1.StatusSuccess,
 				Reason: "",
@@ -84,19 +59,19 @@ func CreateFakeKogitoKafka(namespace string) api.KogitoInfraInterface {
 
 // CreateFakeKogitoInfinispan create fake kogito infra instance for Infinispan
 func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
-	return &testapi.KogitoInfraTest{
+	return &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "kogito-Infinispan",
 			Namespace: namespace,
 		},
-		Spec: api.KogitoInfraSpec{
-			Resource: api.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				Kind:       "Infinispan",
 				APIVersion: "infinispan.org/v1",
 			},
 		},
-		Status: api.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]api.RuntimeProperties{
+		Status: v1beta1.KogitoInfraStatus{
+			RuntimeProperties: map[api.RuntimeType]v1beta1.RuntimeProperties{
 				api.QuarkusRuntimeType: {
 					AppProps: map[string]string{
 						"quarkus.infinispan-client.server-list": "infinispanInstance:11222",
@@ -109,7 +84,7 @@ func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
 					},
 				},
 			},
-			Volumes: []api.KogitoInfraVolume{
+			Volumes: []v1beta1.KogitoInfraVolume{
 				{
 					Mount: corev1.VolumeMount{
 						Name:      "tls-configuration",
@@ -117,9 +92,9 @@ func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
 						MountPath: "/home/kogito/certs",
 						SubPath:   "truststore.p12",
 					},
-					NamedVolume: api.ConfigVolume{
+					NamedVolume: v1beta1.ConfigVolume{
 						Name: "tls-configuration",
-						ConfigVolumeSource: api.ConfigVolumeSource{
+						ConfigVolumeSource: v1beta1.ConfigVolumeSource{
 							Secret: &corev1.SecretVolumeSource{
 								SecretName: "infinispan-secret",
 								Items: []corev1.KeyToPath{
@@ -133,7 +108,7 @@ func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
 					},
 				},
 			},
-			Condition: api.KogitoInfraCondition{
+			Condition: v1beta1.KogitoInfraCondition{
 				Type:   api.SuccessInfraConditionType,
 				Status: v1.StatusSuccess,
 				Reason: "",

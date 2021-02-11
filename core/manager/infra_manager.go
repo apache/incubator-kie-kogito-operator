@@ -17,7 +17,7 @@ package manager
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
@@ -97,7 +97,7 @@ func (k *kogitoInfraManager) IsKogitoInfraReady(key types.NamespacedName) (bool,
 	if err != nil {
 		return false, err
 	}
-	if infra.GetStatus().GetCondition().Type == api.FailureInfraConditionType {
+	if infra.GetStatus().GetCondition().GetType() == api.FailureInfraConditionType {
 		return false, nil
 	}
 	return true, nil
@@ -109,5 +109,5 @@ func (k *kogitoInfraManager) GetKogitoInfraConditionReason(key types.NamespacedN
 		return "", err
 	}
 
-	return infra.GetStatus().GetCondition().Reason, nil
+	return infra.GetStatus().GetCondition().GetReason(), nil
 }

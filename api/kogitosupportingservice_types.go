@@ -19,45 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// KogitoSupportingServiceInterface ...
-// +kubebuilder:object:generate=false
-type KogitoSupportingServiceInterface interface {
-	KogitoService
-	// GetSpec gets the Kogito Service specification structure.
-	GetSupportingServiceSpec() KogitoSupportingServiceSpecInterface
-	// GetStatus gets the Kogito Service Status structure.
-	GetSupportingServiceStatus() KogitoSupportingServiceStatusInterface
-}
-
-// KogitoSupportingServiceSpecInterface ...
-// +kubebuilder:object:generate=false
-type KogitoSupportingServiceSpecInterface interface {
-	KogitoServiceSpecInterface
-	GetServiceType() ServiceType
-	SetServiceType(serviceType ServiceType)
-}
-
-// KogitoSupportingServiceStatusInterface ...
-// +kubebuilder:object:generate=false
-type KogitoSupportingServiceStatusInterface interface {
-	KogitoServiceStatusInterface
-}
-
-// KogitoSupportingServiceListInterface ...
-// +kubebuilder:object:generate=false
-type KogitoSupportingServiceListInterface interface {
-	runtime.Object
-	// GetItems gets all items
-	GetItems() []KogitoSupportingServiceInterface
-}
-
-// KogitoSupportingServiceHandler ...
-// +kubebuilder:object:generate=false
-type KogitoSupportingServiceHandler interface {
-	FetchKogitoSupportingService(key types.NamespacedName) (KogitoSupportingServiceInterface, error)
-	FetchKogitoSupportingServiceList(namespace string) (KogitoSupportingServiceListInterface, error)
-}
-
 // ServiceType define resource type of supporting service
 type ServiceType string
 
@@ -77,3 +38,37 @@ const (
 	// TrustyUI supporting service resource type
 	TrustyUI ServiceType = "TrustyUI"
 )
+
+// KogitoSupportingServiceInterface ...
+type KogitoSupportingServiceInterface interface {
+	KogitoService
+	// GetSpec gets the Kogito Service specification structure.
+	GetSupportingServiceSpec() KogitoSupportingServiceSpecInterface
+	// GetStatus gets the Kogito Service Status structure.
+	GetSupportingServiceStatus() KogitoSupportingServiceStatusInterface
+}
+
+// KogitoSupportingServiceSpecInterface ...
+type KogitoSupportingServiceSpecInterface interface {
+	KogitoServiceSpecInterface
+	GetServiceType() ServiceType
+	SetServiceType(serviceType ServiceType)
+}
+
+// KogitoSupportingServiceStatusInterface ...
+type KogitoSupportingServiceStatusInterface interface {
+	KogitoServiceStatusInterface
+}
+
+// KogitoSupportingServiceListInterface ...
+type KogitoSupportingServiceListInterface interface {
+	runtime.Object
+	// GetItems gets all items
+	GetItems() []KogitoSupportingServiceInterface
+}
+
+// KogitoSupportingServiceHandler ...
+type KogitoSupportingServiceHandler interface {
+	FetchKogitoSupportingService(key types.NamespacedName) (KogitoSupportingServiceInterface, error)
+	FetchKogitoSupportingServiceList(namespace string) (KogitoSupportingServiceListInterface, error)
+}

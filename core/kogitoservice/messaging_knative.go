@@ -16,7 +16,7 @@ package kogitoservice
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
@@ -88,7 +88,7 @@ func (k *knativeMessagingDeployer) newTrigger(t messagingTopic, service api.Kogi
 			},
 		},
 		Spec: eventingv1.TriggerSpec{
-			Broker: infra.GetSpec().GetResource().Name,
+			Broker: infra.GetSpec().GetResource().GetName(),
 			Filter: &eventingv1.TriggerFilter{Attributes: eventingv1.TriggerFilterAttributes{"type": t.Name}},
 			Subscriber: duckv1.Destination{
 				Ref: &duckv1.KReference{
@@ -105,8 +105,8 @@ func (k *knativeMessagingDeployer) newTrigger(t messagingTopic, service api.Kogi
 // newSinkBinding creates a new SinkBinding object targeting the given KogitoInfra resource and binding the
 // deployment resource owned by the given KogitoService
 func (k *knativeMessagingDeployer) newSinkBinding(service api.KogitoService, infra api.KogitoInfraInterface) *sourcesv1alpha1.SinkBinding {
-	ns := infra.GetSpec().GetResource().Namespace
-	name := infra.GetSpec().GetResource().Name
+	ns := infra.GetSpec().GetResource().GetNamespace()
+	name := infra.GetSpec().GetResource().GetName()
 	if len(ns) == 0 {
 		ns = service.GetNamespace()
 	}
@@ -163,5 +163,5 @@ func (k *knativeMessagingDeployer) triggerExists(t messagingTopic, service api.K
 
 // IsKnativeEventingResource checks if provided KogitoInfra instance is for Knative eventing resource
 func isKnativeEventingResource(instance api.KogitoInfraInterface) bool {
-	return infrastructure.IsKnativeEventingResource(instance.GetSpec().GetResource().APIVersion, instance.GetSpec().GetResource().Kind)
+	return infrastructure.IsKnativeEventingResource(instance.GetSpec().GetResource().GetAPIVersion(), instance.GetSpec().GetResource().GetKind())
 }

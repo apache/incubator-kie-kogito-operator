@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
 package api
 
 import "fmt"
-
-/*
-Collection of common types among CRDs
-*/
 
 // Image is a definition of a Docker image.
 type Image struct {

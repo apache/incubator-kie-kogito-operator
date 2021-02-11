@@ -17,6 +17,7 @@ package kogitoservice
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,7 @@ func Test_GetKogitoServiceEndpoint(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	kogitoServiceHandler := NewKogitoServiceHandler(context)
 	actualURL := kogitoServiceHandler.GetKogitoServiceEndpoint(service)

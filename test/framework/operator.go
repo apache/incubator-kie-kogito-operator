@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"strings"
 
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -465,7 +465,7 @@ func DeployMongoDBOperatorFromYaml(namespace string) error {
 	context := &operator.Context{
 		Client: kubeClient,
 		Log:    logger.GetLogger(namespace),
-		Scheme: internal.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	mongoHandler := infrastructure.NewMongoDBHandler(context)
 	if !mongoHandler.IsMongoDBAvailable() {
@@ -526,7 +526,7 @@ func isMongoDBOperatorRunning(namespace string) (bool, error) {
 	context := &operator.Context{
 		Client: kubeClient,
 		Log:    logger.GetLogger(namespace),
-		Scheme: internal.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	mongoDBHandler := infrastructure.NewMongoDBHandler(context)
 	exists, err := mongoDBHandler.IsMongoDBOperatorAvailable(namespace)

@@ -16,7 +16,7 @@ package steps
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"path/filepath"
 
 	"github.com/cucumber/godog"

@@ -15,10 +15,12 @@
 package manager
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -26,32 +28,33 @@ import (
 
 func Test_ensureSingletonService(t *testing.T) {
 	ns := t.Name()
-	instance1 := &api2.KogitoSupportingServiceTest{
+	instance1 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index1",
 			Namespace: ns,
 		},
-		Spec: api2.KogitoSupportingServiceSpecTest{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
 	}
-	instance2 := &api2.KogitoSupportingServiceTest{
+	instance2 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "data-index2",
 			Namespace: ns,
 		},
-		Spec: api2.KogitoSupportingServiceSpecTest{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
 	}
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance1, instance2).OnOpenShift().Build()
-	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
+
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	supportingServiceManager := NewKogitoSupportingServiceManager(context, supportingServiceHandler)
 	assert.Errorf(t, supportingServiceManager.EnsureSingletonService(ns, api.DataIndex), "kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", api.DataIndex)
 }

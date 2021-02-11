@@ -15,12 +15,12 @@
 package controllers
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -32,13 +32,13 @@ import (
 func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	replicas := int32(1)
 
-	kogitoKafka := newSuccessfulKafkaInfra(t.Name())
-	kogitoInfinispan := newSuccessfulInfinispanInfra(t.Name())
+	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
+	kogitoInfinispan := test.CreateFakeKogitoInfinispan(t.Name())
 
 	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "example-quarkus", Namespace: t.Name()},
 		Spec: v1beta1.KogitoRuntimeSpec{
-			KogitoServiceSpec: api.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:      &replicas,
 				ServiceLabels: map[string]string{"process": "example-quarkus"},
 				Infra: []string{
@@ -49,8 +49,8 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 		},
 	}
 
-	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
-	r := KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
+	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
 
 	// first reconciliation
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
@@ -94,15 +94,15 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
 		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
-			KogitoServiceSpec: api.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Image:    "quay.io/custom/process-springboot-example-default:latest",
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(instance).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
@@ -130,115 +130,18 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
 		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
-			KogitoServiceSpec: api.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:            &replicas,
 				PropertiesConfigMap: "mysuper-cm",
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(instance, cm).Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm).Build()
 	// we take the ownership of the custom cm
-	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 	// we requeue..
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 	_, err := kubernetes.ResourceC(cli).Fetch(cm)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cm.OwnerReferences)
-}
-
-// newSuccessfulKafkaInfra create kogito infra instance for kafka
-func newSuccessfulKafkaInfra(namespace string) api.KogitoInfraInterface {
-	return &v1beta1.KogitoInfra{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "kogito-kafka",
-			Namespace: namespace,
-		},
-		Spec: api.KogitoInfraSpec{
-			Resource: api.Resource{
-				Kind:       "kafka.strimzi.io/v1beta1",
-				APIVersion: "Kafka",
-			},
-		},
-		Status: api.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]api.RuntimeProperties{
-				api.QuarkusRuntimeType: {
-					AppProps: map[string]string{
-						"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.test.svc:9092",
-					},
-					Env: []corev1.EnvVar{
-						{
-							Name:  "ENABLE_EVENTS",
-							Value: "true",
-						},
-					},
-				},
-			},
-
-			Condition: api.KogitoInfraCondition{
-				Type:   api.SuccessInfraConditionType,
-				Status: v1.StatusSuccess,
-				Reason: "",
-			},
-		},
-	}
-}
-
-// newSuccessfulInfinispanInfra create kogito infra instance for Infinispan
-func newSuccessfulInfinispanInfra(namespace string) api.KogitoInfraInterface {
-	return &v1beta1.KogitoInfra{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "kogito-Infinispan",
-			Namespace: namespace,
-		},
-		Spec: api.KogitoInfraSpec{
-			Resource: api.Resource{
-				Kind:       "infinispan.org/v1",
-				APIVersion: "Infinispan",
-			},
-		},
-		Status: api.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]api.RuntimeProperties{
-				api.QuarkusRuntimeType: {
-					AppProps: map[string]string{
-						"quarkus.infinispan-client.server-list": "infinispanInstance:11222",
-					},
-					Env: []corev1.EnvVar{
-						{
-							Name:  "ENABLE_PERSISTENCE",
-							Value: "true",
-						},
-					},
-				},
-			},
-			Volumes: []api.KogitoInfraVolume{
-				{
-					Mount: corev1.VolumeMount{
-						Name:      "tls-configuration",
-						ReadOnly:  true,
-						MountPath: "/home/kogito/certs",
-						SubPath:   "truststore.p12",
-					},
-					NamedVolume: api.ConfigVolume{
-						Name: "tls-configuration",
-						ConfigVolumeSource: api.ConfigVolumeSource{
-							Secret: &corev1.SecretVolumeSource{
-								SecretName: "infinispan-secret",
-								Items: []corev1.KeyToPath{
-									{
-										Key:  "tls.crt",
-										Path: "tls.crt",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			Condition: api.KogitoInfraCondition{
-				Type:   api.SuccessInfraConditionType,
-				Status: v1.StatusSuccess,
-				Reason: "",
-			},
-		},
-	}
 }

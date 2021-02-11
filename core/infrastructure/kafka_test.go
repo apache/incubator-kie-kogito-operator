@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
@@ -78,7 +79,7 @@ func Test_getKafkaInstanceWithName(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	kafkaHandler := NewKafkaHandler(context)
 	for _, tt := range tests {
@@ -139,7 +140,7 @@ func Test_resolveKafkaServerURI(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	kafkaHandler := NewKafkaHandler(context)
 	for _, tt := range tests {

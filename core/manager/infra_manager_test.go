@@ -15,12 +15,13 @@
 package manager
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -31,12 +32,12 @@ func TestMustFetchKogitoInfraInstance_InstanceNotFound(t *testing.T) {
 	ns := t.Name()
 	name := "InfinispanInfra"
 	cli := test.NewFakeClientBuilder().Build()
-	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	infraHandler := internal.NewKogitoInfraHandler(context)
 	infraManager := NewKogitoInfraManager(context, infraHandler)
 	_, err := infraManager.MustFetchKogitoInfraInstance(types.NamespacedName{Name: name, Namespace: ns})
 	assert.Error(t, err)
@@ -44,15 +45,15 @@ func TestMustFetchKogitoInfraInstance_InstanceNotFound(t *testing.T) {
 
 func TestRemoveKogitoInfraOwnership(t *testing.T) {
 	ns := t.Name()
-	scheme := test.GetRegisteredSchema()
-	travels := &api2.KogitoRuntimeTest{
+	scheme := meta.GetRegisteredSchema()
+	travels := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "travels",
 			Namespace: ns,
 			UID:       test.GenerateUID(),
 		},
-		Spec: api2.KogitoRuntimeSpecTest{
-			KogitoServiceSpec: api.KogitoServiceSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Infra: []string{
 					"infinispan_infra",
 					"kafka_infra",
@@ -61,7 +62,7 @@ func TestRemoveKogitoInfraOwnership(t *testing.T) {
 		},
 	}
 
-	kafkaInfra := &api2.KogitoInfraTest{
+	kafkaInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "kafka_infra",
 			Namespace: ns,
@@ -71,16 +72,16 @@ func TestRemoveKogitoInfraOwnership(t *testing.T) {
 	assert.NoError(t, err)
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(kafkaInfra).Build()
-	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	infraHandler := internal.NewKogitoInfraHandler(context)
 	infraManager := NewKogitoInfraManager(context, infraHandler)
 	err = infraManager.RemoveKogitoInfraOwnership(types.NamespacedName{Name: kafkaInfra.Name, Namespace: ns}, travels)
 	assert.NoError(t, err)
-	actualKafkaInfra := &api2.KogitoInfraTest{}
+	actualKafkaInfra := &v1beta1.KogitoInfra{}
 	exists, err := kubernetes.ResourceC(cli).FetchWithKey(types.NamespacedName{Name: "kafka_infra", Namespace: ns}, actualKafkaInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)

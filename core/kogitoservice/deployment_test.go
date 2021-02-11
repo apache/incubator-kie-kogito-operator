@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,7 +33,7 @@ func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deploymentHandler := NewDeploymentHandler(context)
 	deployment := deploymentHandler.CreateRequiredDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)
@@ -52,7 +53,7 @@ func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deploymentHandler := NewDeploymentHandler(context)
 	deployment := deploymentHandler.CreateRequiredDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)
@@ -72,7 +73,7 @@ func Test_createRequiredDeployment_CheckNilEnvs(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deploymentHandler := NewDeploymentHandler(context)
 	deployment := deploymentHandler.CreateRequiredDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)

@@ -15,11 +15,11 @@
 package kogitoinfra
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
@@ -93,14 +93,14 @@ func TestRetrieveMongoDBCredentialsFromInstance(t *testing.T) {
 					Context: &operator.Context{
 						Client: cli,
 						Log:    test.TestLogger,
-						Scheme: test.GetRegisteredSchema(),
+						Scheme: meta.GetRegisteredSchema(),
 					},
 				},
 			}
 
-			kogitoInfra := &api2.KogitoInfraTest{
-				Spec: api.KogitoInfraSpec{
-					Resource: api.Resource{
+			kogitoInfra := &v1beta1.KogitoInfra{
+				Spec: v1beta1.KogitoInfraSpec{
+					Resource: v1beta1.Resource{
 						Name:       "name",
 						Namespace:  "namespace",
 						Kind:       "kind",

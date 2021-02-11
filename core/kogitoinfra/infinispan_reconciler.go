@@ -17,7 +17,8 @@ package kogitoinfra
 import (
 	"context"
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -123,24 +124,24 @@ func (i *infinispanInfraReconciler) Reconcile() (requeue bool, resultErr error) 
 
 	infinispanHandler := infrastructure.NewInfinispanHandler(i.Context)
 	if !infinispanHandler.IsInfinispanAvailable() {
-		return false, errorForResourceAPINotFound(i.instance.GetSpec().GetResource().APIVersion)
+		return false, errorForResourceAPINotFound(i.instance.GetSpec().GetResource().GetAPIVersion())
 	}
 
 	// Step 1: check whether user has provided custom infinispan instance reference
-	if len(i.instance.GetSpec().GetResource().Name) > 0 {
+	if len(i.instance.GetSpec().GetResource().GetName()) > 0 {
 		i.Log.Debug("Custom infinispan instance reference is provided")
 
-		namespace := i.instance.GetSpec().GetResource().Namespace
+		namespace := i.instance.GetSpec().GetResource().GetNamespace()
 		if len(namespace) == 0 {
 			namespace = i.instance.GetNamespace()
 			i.Log.Debug("Namespace is not provided for custom resource, taking", "Namespace", namespace)
 		}
-		infinispanInstance, resultErr = infinispanHandler.FetchInfinispanInstance(types.NamespacedName{Name: i.instance.GetSpec().GetResource().Name, Namespace: namespace})
+		infinispanInstance, resultErr = infinispanHandler.FetchInfinispanInstance(types.NamespacedName{Name: i.instance.GetSpec().GetResource().GetName(), Namespace: namespace})
 		if resultErr != nil {
 			return false, resultErr
 		}
 		if infinispanInstance == nil {
-			return false, errorForResourceNotFound("Infinispan", i.instance.GetSpec().GetResource().Name, namespace)
+			return false, errorForResourceNotFound("Infinispan", i.instance.GetSpec().GetResource().GetName(), namespace)
 		}
 	} else {
 		// create/refer kogito-infinispan instance
@@ -224,8 +225,8 @@ func (i *infinispanInfraReconciler) getInfinispanRuntimeAppProps(name string, na
 	return appProps, nil
 }
 
-func (i *infinispanInfraReconciler) getInfinispanRuntimeProps(infinispanInstance *infinispan.Infinispan, runtime api.RuntimeType) (api.RuntimeProperties, error) {
-	runtimeProps := api.RuntimeProperties{}
+func (i *infinispanInfraReconciler) getInfinispanRuntimeProps(infinispanInstance *infinispan.Infinispan, runtime api.RuntimeType) (v1beta1.RuntimeProperties, error) {
+	runtimeProps := v1beta1.RuntimeProperties{}
 	appProps, err := i.getInfinispanRuntimeAppProps(infinispanInstance.Name, infinispanInstance.Namespace, runtime)
 	if err != nil {
 		return runtimeProps, err
@@ -247,7 +248,7 @@ func (i *infinispanInfraReconciler) updateInfinispanRuntimePropsInStatus(infinis
 	if err != nil {
 		return err
 	}
-	setRuntimeProperties(i.instance, runtime, runtimeProps)
+	setRuntimeProperties(i.instance, runtime, &runtimeProps)
 	i.Log.Debug("Following Infinispan runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
@@ -260,16 +261,16 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 	if err != nil || tlsSecret == nil {
 		return err
 	}
-	volume := api.KogitoInfraVolume{
+	volume := v1beta1.KogitoInfraVolume{
 		Mount: corev1.VolumeMount{
 			Name:      infinispanCertMountName,
 			ReadOnly:  true,
 			MountPath: truststoreMountPath,
 			SubPath:   truststoreSecretKey,
 		},
-		NamedVolume: api.ConfigVolume{
+		NamedVolume: v1beta1.ConfigVolume{
 			Name: infinispanCertMountName,
-			ConfigVolumeSource: api.ConfigVolumeSource{
+			ConfigVolumeSource: v1beta1.ConfigVolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: tlsSecret.Name,
 					Items: []corev1.KeyToPath{
@@ -284,7 +285,7 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 			},
 		},
 	}
-	i.instance.GetStatus().SetVolumes([]api.KogitoInfraVolume{volume})
+	i.instance.GetStatus().SetVolumes([]api.KogitoInfraVolumeInterface{&volume})
 	return nil
 }
 
@@ -370,7 +371,7 @@ func (i *infinispanInfraReconciler) createCustomKogitoInfinispanSecret(infinispa
 
 func hasInfinispanMountedVolume(infra api.KogitoInfraInterface) bool {
 	for _, volume := range infra.GetStatus().GetVolumes() {
-		if volume.NamedVolume.Name == infinispanCertMountName {
+		if volume.GetNamedVolume().GetName() == infinispanCertMountName {
 			return true
 		}
 	}

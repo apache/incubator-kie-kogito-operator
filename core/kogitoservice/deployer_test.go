@@ -15,9 +15,11 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
@@ -48,12 +50,12 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 		KafkaTopics:      []string{"mytopic"},
 	}
 
-	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	infraHandler := internal.NewKogitoInfraHandler(context)
 	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
 	reconcileAfter, err := deployer.Deploy()
 	assert.Error(t, err)
@@ -62,13 +64,13 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.GetStatus())
 	assert.Len(t, dataIndex.GetStatus().GetConditions(), 1)
-	assert.Equal(t, dataIndex.GetStatus().GetConditions()[0].Reason, api.ServiceReconciliationFailure)
+	assert.Equal(t, dataIndex.GetStatus().GetConditions()[0].GetReason(), api.ServiceReconciliationFailure)
 
 	// Infinispan is not ready :)
-	infraInfinispan.GetStatus().GetCondition().Message = "Headaches"
-	infraInfinispan.GetStatus().GetCondition().Status = corev1.ConditionFalse
-	infraInfinispan.GetStatus().GetCondition().Reason = api.ResourceNotReady
-	infraInfinispan.GetStatus().GetCondition().Type = api.FailureInfraConditionType
+	infraInfinispan.GetStatus().GetCondition().SetMessage("Headaches")
+	infraInfinispan.GetStatus().GetCondition().SetStatus(corev1.ConditionFalse)
+	infraInfinispan.GetStatus().GetCondition().SetReason(api.ResourceNotReady)
+	infraInfinispan.GetStatus().GetCondition().SetType(api.FailureInfraConditionType)
 
 	test.AssertCreate(t, cli, infraInfinispan)
 	test.AssertCreate(t, cli, infraKafka)
@@ -80,8 +82,8 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	assert.NotNil(t, dataIndex.GetStatus())
 	assert.Len(t, dataIndex.GetStatus().GetConditions(), 2)
 	for _, condition := range dataIndex.GetStatus().GetConditions() {
-		assert.Equal(t, condition.Type, api.FailedConditionType)
-		assert.Equal(t, condition.Status, corev1.ConditionFalse)
+		assert.Equal(t, condition.GetType(), api.FailedConditionType)
+		assert.Equal(t, condition.GetStatus(), corev1.ConditionFalse)
 	}
 }
 
@@ -99,12 +101,12 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 		Request:          newReconcileRequest(t.Name()),
 		KafkaTopics:      []string{requiredTopic},
 	}
-	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	infraHandler := internal.NewKogitoInfraHandler(context)
 	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
 	reconcileAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
@@ -126,12 +128,12 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 		DefaultImageName: "kogito-jobs-service",
 		Request:          newReconcileRequest(t.Name()),
 	}
-	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	infraHandler := internal.NewKogitoInfraHandler(context)
 	deployer := NewServiceDeployer(context, definition, service, infraHandler)
 	requeueAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
@@ -142,5 +144,5 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	assert.True(t, exists)
 	assert.Equal(t, 1, len(service.GetStatus().GetConditions()))
 	assert.Equal(t, int32(1), *service.GetSpec().GetReplicas())
-	assert.Equal(t, api.ProvisioningConditionType, service.GetStatus().GetConditions()[0].Type)
+	assert.Equal(t, api.ProvisioningConditionType, service.GetStatus().GetConditions()[0].GetType())
 }

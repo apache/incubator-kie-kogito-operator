@@ -12,24 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package v1beta1
 
-// WebHookType literal type to distinguish between different types of webHooks.
-type WebHookType string
-
-const (
-	// GitHubWebHook GitHub webHook.
-	GitHubWebHook WebHookType = "GitHub"
-	// GenericWebHook Generic webHook.
-	GenericWebHook WebHookType = "Generic"
-)
+import "github.com/kiegroup/kogito-cloud-operator/api"
 
 // WebHookSecret Secret to use for a given webHook.
 // +k8s:openapi-gen=true
 type WebHookSecret struct {
 	// WebHook type, either GitHub or Generic.
 	// +kubebuilder:validation:Enum=GitHub;Generic
-	Type WebHookType `json:"type,omitempty"`
+	Type api.WebHookType `json:"type,omitempty"`
 	// Secret value for webHook
 	Secret string `json:"secret,omitempty"`
+}
+
+// GetType ...
+func (w *WebHookSecret) GetType() api.WebHookType {
+	return w.Type
+}
+
+// SetType ...
+func (w *WebHookSecret) SetType(webHookType api.WebHookType) {
+	w.Type = webHookType
+}
+
+// GetSecret ...
+func (w *WebHookSecret) GetSecret() string {
+	return w.Secret
+}
+
+// SetSecret ...
+func (w *WebHookSecret) SetSecret(secret string) {
+	w.Secret = secret
 }

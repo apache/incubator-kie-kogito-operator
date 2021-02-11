@@ -15,7 +15,8 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
@@ -83,19 +84,21 @@ func (s *statusHandler) HandleStatusChange(instance api.KogitoBuildInterface, er
 
 func sortConditionsByTransitionTime(instance api.KogitoBuildInterface) {
 	sort.SliceStable(instance.GetStatus().GetConditions(), func(i, j int) bool {
-		return instance.GetStatus().GetConditions()[i].LastTransitionTime.Before(&instance.GetStatus().GetConditions()[j].LastTransitionTime)
+		firstTransitionTime := instance.GetStatus().GetConditions()[i].GetLastTransitionTime()
+		secondTransitionTime := instance.GetStatus().GetConditions()[j].GetLastTransitionTime()
+		return firstTransitionTime.Before(&secondTransitionTime)
 	})
 }
 
 func addConditionError(instance api.KogitoBuildInterface, err error) {
 	if err != nil {
-		instance.GetStatus().SetConditions(append(instance.GetStatus().GetConditions(), api.KogitoBuildConditions{
+		instance.GetStatus().AddCondition(&v1beta1.KogitoBuildConditions{
 			Type:               api.KogitoBuildFailure,
 			Status:             v1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
 			Reason:             api.OperatorFailureReason,
 			Message:            err.Error(),
-		}))
+		})
 	}
 }
 
@@ -140,7 +143,7 @@ func updateBuildsStatus(instance api.KogitoBuildInterface, client *client.Client
 		return false, err
 	}
 	if buildsStatus != nil && !reflect.DeepEqual(buildsStatus, instance.GetStatus().GetBuilds()) {
-		instance.GetStatus().SetBuilds(*buildsStatus)
+		instance.GetStatus().SetBuilds(buildsStatus)
 		return true, nil
 	}
 	return false, nil
@@ -148,14 +151,14 @@ func updateBuildsStatus(instance api.KogitoBuildInterface, client *client.Client
 
 func addCondition(instance api.KogitoBuildInterface, condition api.KogitoBuildConditionType, reason api.KogitoBuildConditionReason, message string) bool {
 	if len(instance.GetStatus().GetConditions()) == 0 ||
-		instance.GetStatus().GetConditions()[len(instance.GetStatus().GetConditions())-1].Type != condition {
-		instance.GetStatus().SetConditions(append(instance.GetStatus().GetConditions(), api.KogitoBuildConditions{
+		instance.GetStatus().GetConditions()[len(instance.GetStatus().GetConditions())-1].GetType() != condition {
+		instance.GetStatus().AddCondition(&v1beta1.KogitoBuildConditions{
 			Type:               condition,
 			Status:             v1.ConditionTrue,
 			LastTransitionTime: metav1.Now(),
 			Reason:             reason,
 			Message:            message,
-		}))
+		})
 		return true
 	}
 	return false

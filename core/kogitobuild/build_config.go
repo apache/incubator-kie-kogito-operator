@@ -15,7 +15,7 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -74,15 +74,15 @@ func (b *decoratorHandler) decoratorForRemoteSourceBuilder() decorator {
 	return func(build api.KogitoBuildInterface, bc *buildv1.BuildConfig) {
 		bc.Spec.Source.Type = buildv1.BuildSourceGit
 		// Remove the trailing slash, as it will be removed by OpenShift
-		bc.Spec.Source.ContextDir = strings.TrimSuffix(build.GetSpec().GetGitSource().ContextDir, "/")
+		bc.Spec.Source.ContextDir = strings.TrimSuffix(build.GetSpec().GetGitSource().GetContextDir(), "/")
 		bc.Spec.Source.Git = &buildv1.GitBuildSource{
-			URI: build.GetSpec().GetGitSource().URI,
-			Ref: build.GetSpec().GetGitSource().Reference,
+			URI: build.GetSpec().GetGitSource().GetURI(),
+			Ref: build.GetSpec().GetGitSource().GetReference(),
 		}
 		for _, hook := range build.GetSpec().GetWebHooks() {
 			var triggerPolicy buildv1.BuildTriggerPolicy
-			trigger := &buildv1.WebHookTrigger{SecretReference: &buildv1.SecretLocalReference{Name: hook.Secret}}
-			if hook.Type == api.GitHubWebHook {
+			trigger := &buildv1.WebHookTrigger{SecretReference: &buildv1.SecretLocalReference{Name: hook.GetSecret()}}
+			if hook.GetType() == api.GitHubWebHook {
 				triggerPolicy = buildv1.BuildTriggerPolicy{GitHubWebHook: trigger, Type: buildv1.GitHubWebHookBuildTriggerType}
 			} else {
 				trigger.AllowEnv = true
@@ -98,17 +98,17 @@ func (b *decoratorHandler) decoratorForRemoteSourceBuilder() decorator {
 func (b *decoratorHandler) decoratorForLocalSourceBuilder() decorator {
 	return func(build api.KogitoBuildInterface, bc *buildv1.BuildConfig) {
 		var envs []corev1.EnvVar
-		if len(build.GetSpec().GetArtifact().GroupID) > 0 {
-			b.Log.Debug("Setting final generated", "Artifact group ID", build.GetSpec().GetArtifact().GroupID)
-			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIDEnvVar, Value: build.GetSpec().GetArtifact().GroupID})
+		if len(build.GetSpec().GetArtifact().GetGroupID()) > 0 {
+			b.Log.Debug("Setting final generated", "Artifact group ID", build.GetSpec().GetArtifact().GetGroupID())
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIDEnvVar, Value: build.GetSpec().GetArtifact().GetGroupID()})
 		}
-		if len(build.GetSpec().GetArtifact().ArtifactID) > 0 {
-			b.Log.Debug("Setting final", "Generated artifact id", build.GetSpec().GetArtifact().ArtifactID)
-			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIDEnvVar, Value: build.GetSpec().GetArtifact().ArtifactID})
+		if len(build.GetSpec().GetArtifact().GetArtifactID()) > 0 {
+			b.Log.Debug("Setting final", "Generated artifact id", build.GetSpec().GetArtifact().GetArtifactID())
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIDEnvVar, Value: build.GetSpec().GetArtifact().GetArtifactID()})
 		}
-		if len(build.GetSpec().GetArtifact().Version) > 0 {
-			b.Log.Debug("Setting final generated", "Artifact version", build.GetSpec().GetArtifact().Version)
-			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactVersionEnvVar, Value: build.GetSpec().GetArtifact().Version})
+		if len(build.GetSpec().GetArtifact().GetVersion()) > 0 {
+			b.Log.Debug("Setting final generated", "Artifact version", build.GetSpec().GetArtifact().GetVersion())
+			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactVersionEnvVar, Value: build.GetSpec().GetArtifact().GetVersion()})
 		}
 		bc.Spec.Strategy.SourceStrategy.Env = append(bc.Spec.Strategy.SourceStrategy.Env, envs...)
 

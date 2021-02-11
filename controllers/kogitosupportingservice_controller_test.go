@@ -15,12 +15,12 @@
 package controllers
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -32,15 +32,15 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 		ObjectMeta: v1.ObjectMeta{Name: kogitosupportingservice.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType:       api.JobsService,
-			KogitoServiceSpec: api.KogitoServiceSpec{Replicas: &replicas},
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(instance).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
 	r := &KogitoSupportingServiceReconciler{
 		Client: cli,
 		Log:    logger.GetLogger("KogitoSupportingService"),
-		Scheme: internal.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	test.AssertReconcileMustNotRequeue(t, r, instance)
 }

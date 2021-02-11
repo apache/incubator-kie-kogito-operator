@@ -16,11 +16,11 @@ package kogitoinfra
 
 import (
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
@@ -30,10 +30,10 @@ import (
 )
 
 func Test_Reconcile_Infinispan(t *testing.T) {
-	kogitoInfra := &api2.KogitoInfraTest{
+	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
-		Spec: api.KogitoInfraSpec{
-			Resource: api.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.InfinispanAPIVersion,
 				Kind:       infrastructure.InfinispanKind,
 				Name:       "kogito-infinispan",
@@ -88,7 +88,7 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	context := &operator.Context{
 		Client: client,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	r := &infinispanInfraReconciler{
 		infraContext: infraContext{

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
@@ -69,7 +69,7 @@ func sanityCheck(build api.KogitoBuildInterface) error {
 		return fmt.Errorf("%s: %s", errorPrefix, "build Type is required")
 	}
 	if build.GetSpec().GetType() == api.RemoteSourceBuildType &&
-		len(build.GetSpec().GetGitSource().URI) == 0 {
+		len(build.GetSpec().GetGitSource().GetURI()) == 0 {
 		return fmt.Errorf("%s: %s %s", errorPrefix, "Git URL is required when build type is", api.RemoteSourceBuildType)
 	}
 	return nil

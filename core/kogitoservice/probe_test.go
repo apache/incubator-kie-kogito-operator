@@ -15,7 +15,7 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
@@ -48,7 +48,7 @@ func TestGetProbeForKogitoService_CustomConfiguration(t *testing.T) {
 	}
 
 	service := test.CreateFakeKogitoRuntime(t.Name())
-	service.GetSpec().SetProbes(api.KogitoProbe{
+	service.GetSpec().SetProbes(&v1beta1.KogitoProbe{
 		LivenessProbe: corev1.Probe{
 			InitialDelaySeconds: 100,
 			TimeoutSeconds:      10,

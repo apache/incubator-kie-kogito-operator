@@ -16,7 +16,7 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
@@ -89,14 +89,14 @@ func NewObjectMetadata(namespace string, name string) metav1.ObjectMeta {
 }
 
 // NewKogitoServiceSpec creates a new Kogito Service Spec object.
-func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName string) api.KogitoServiceSpec {
-	return api.KogitoServiceSpec{
+func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName string) v1beta1.KogitoServiceSpec {
+	return v1beta1.KogitoServiceSpec{
 		Replicas: &replicas,
 		Image:    NewImageOrDefault(fullImage, defaultImageName),
 		// Sets insecure image registry as service images can be stored in insecure registries
 		InsecureImageRegistry: true,
 		// Extends the probe interval for slow test environment
-		Probes: api.KogitoProbe{
+		Probes: v1beta1.KogitoProbe{
 			ReadinessProbe: corev1.Probe{
 				FailureThreshold: 12,
 			},
@@ -108,10 +108,10 @@ func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName str
 }
 
 // NewKogitoServiceStatus creates a new Kogito Service Status object.
-func NewKogitoServiceStatus() api.KogitoServiceStatus {
-	return api.KogitoServiceStatus{
-		ConditionsMeta: api.ConditionsMeta{
-			Conditions: []api.Condition{},
+func NewKogitoServiceStatus() v1beta1.KogitoServiceStatus {
+	return v1beta1.KogitoServiceStatus{
+		ConditionsMeta: v1beta1.ConditionsMeta{
+			Conditions: []v1beta1.Condition{},
 		},
 	}
 }

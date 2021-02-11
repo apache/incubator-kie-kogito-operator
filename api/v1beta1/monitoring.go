@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
-
-const (
-
-	// MonitoringDefaultPath default path
-	MonitoringDefaultPath = "/metrics"
-
-	// MonitoringDefaultScheme default scheme
-	MonitoringDefaultScheme = "http"
-)
+package v1beta1
 
 // Monitoring properties to connect with Monitoring service
 type Monitoring struct {
@@ -32,4 +23,24 @@ type Monitoring struct {
 	// HTTP path to scrape for metrics.
 	// +optional
 	Path string `json:"path,omitempty"`
+}
+
+// GetScheme ...
+func (m *Monitoring) GetScheme() string {
+	return m.Scheme
+}
+
+// SetScheme ...
+func (m *Monitoring) SetScheme(scheme string) {
+	m.Scheme = scheme
+}
+
+// GetPath ...
+func (m *Monitoring) GetPath() string {
+	return m.Path
+}
+
+// SetPath ...
+func (m *Monitoring) SetPath(path string) {
+	m.Path = path
 }

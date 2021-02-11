@@ -15,15 +15,15 @@
 package controllers
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitobuild"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
@@ -40,9 +40,9 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	instanceName := "quarkus-example"
 	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: api.GitSource{
+			GitSource: v1beta1.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: instanceName,
 			},
@@ -58,8 +58,8 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).UseScheme(internal.GetRegisteredSchema()).OnOpenShift().AddK8sObjects(instance).Build()
-	r := KogitoBuildReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
+	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
 
 	// first reconciliation
 	result := test.AssertReconcileMustRequeue(t, &r, instance)
@@ -123,9 +123,9 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	instanceLocalName := "quarkus-example-local"
 	instanceRemote := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: kogitoServiceName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: api.GitSource{
+			GitSource: v1beta1.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: kogitoServiceName,
 			},
@@ -134,14 +134,14 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	}
 	instanceLocal := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceLocalName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type:                api.LocalSourceBuildType,
 			Runtime:             api.QuarkusRuntimeType,
 			TargetKogitoRuntime: kogitoServiceName,
 		},
 	}
-	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
-	r := KogitoBuildReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
+	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
 
 	// first reconciliation
 	result := test.AssertReconcileMustRequeue(t, &r, instanceRemote)
@@ -154,7 +154,7 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    logger.GetLogger("kogitoBuild reconciler"),
-		Scheme: internal.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	imageStreamHandler := infrastructure.NewImageStreamHandler(context)
 	is, err := imageStreamHandler.MustFetchImageStream(types.NamespacedName{Name: kogitoServiceName, Namespace: t.Name()})

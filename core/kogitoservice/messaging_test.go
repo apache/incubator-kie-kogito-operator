@@ -15,9 +15,10 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -59,7 +60,7 @@ func Test_fetchRequiredTopics(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	m := messagingDeployer{Context: context}
 	topics, err := m.fetchRequiredTopicsForURL(instance, server.URL)
@@ -79,7 +80,7 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	m := messagingDeployer{Context: context}
 	topics, err := m.fetchRequiredTopicsForURL(instance, server.URL)

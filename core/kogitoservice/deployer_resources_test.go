@@ -18,6 +18,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	imgv1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -36,7 +38,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deployer := serviceDeployer{
 		Context:  context,
@@ -61,7 +63,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deployer := serviceDeployer{
 		Context:  context,
@@ -95,12 +97,12 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deployer := serviceDeployer{
 		Context:      context,
 		instance:     instance,
-		infraHandler: test.CreateFakeKogitoInfraHandler(cli),
+		infraHandler: internal.NewKogitoInfraHandler(context),
 		definition: ServiceDefinition{
 			DefaultImageName: "kogito-data-index-infinispan",
 			Request: reconcile.Request{
@@ -126,8 +128,8 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	// we should have TLS volumes created
 	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 2)                    // 1 for properties, 2 for tls
 	assert.Len(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, 2) // 1 for properties, 2 for tls
-	assert.Contains(t, deployment.Spec.Template.Spec.Volumes, kogitoInfinispan.GetStatus().GetVolumes()[0].NamedVolume.ToKubeVolume())
-	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, kogitoInfinispan.GetStatus().GetVolumes()[0].Mount)
+	assert.Contains(t, deployment.Spec.Template.Spec.Volumes, kogitoInfinispan.GetStatus().GetVolumes()[0].GetNamedVolume().ToKubeVolume())
+	assert.Contains(t, deployment.Spec.Template.Spec.Containers[0].VolumeMounts, kogitoInfinispan.GetStatus().GetVolumes()[0].GetMount())
 }
 
 func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *testing.T) {
@@ -150,7 +152,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deployer := serviceDeployer{
 		Context:  context,

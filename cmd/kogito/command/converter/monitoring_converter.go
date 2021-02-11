@@ -15,13 +15,13 @@
 package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 )
 
 // FromMonitoringFlagToMonitoring converts given MonitoringFlags into Monitoring
-func FromMonitoringFlagToMonitoring(monitoringFlags *flag.MonitoringFlags) api.Monitoring {
-	return api.Monitoring{
+func FromMonitoringFlagToMonitoring(monitoringFlags *flag.MonitoringFlags) v1beta1.Monitoring {
+	return v1beta1.Monitoring{
 		Scheme: monitoringFlags.Scheme,
 		Path:   monitoringFlags.Path,
 	}

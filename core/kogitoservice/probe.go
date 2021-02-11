@@ -15,7 +15,7 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -45,18 +45,18 @@ func getProbeForKogitoService(serviceDefinition ServiceDefinition, service api.K
 	switch serviceDefinition.HealthCheckProbe {
 	case QuarkusHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getQuarkusHealthCheckReadiness(service.GetSpec().GetProbes().ReadinessProbe),
-			liveness:  getQuarkusHealthCheckLiveness(service.GetSpec().GetProbes().LivenessProbe),
+			readiness: getQuarkusHealthCheckReadiness(service.GetSpec().GetProbes().GetReadinessProbe()),
+			liveness:  getQuarkusHealthCheckLiveness(service.GetSpec().GetProbes().GetLivenessProbe()),
 		}
 	case TCPHealthCheckProbe:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(service.GetSpec().GetProbes().ReadinessProbe),
-			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetProbes().LivenessProbe),
+			readiness: getTCPHealthCheckProbe(service.GetSpec().GetProbes().GetReadinessProbe()),
+			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetProbes().GetLivenessProbe()),
 		}
 	default:
 		return healthCheckProbe{
-			readiness: getTCPHealthCheckProbe(service.GetSpec().GetProbes().ReadinessProbe),
-			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetProbes().LivenessProbe),
+			readiness: getTCPHealthCheckProbe(service.GetSpec().GetProbes().GetReadinessProbe()),
+			liveness:  getTCPHealthCheckProbe(service.GetSpec().GetProbes().GetLivenessProbe()),
 		}
 	}
 }

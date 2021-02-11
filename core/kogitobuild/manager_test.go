@@ -15,11 +15,12 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"reflect"
 	"testing"
 
@@ -30,12 +31,12 @@ import (
 )
 
 func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
-	build := &api2.KogitoBuildTest{
+	build := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-example", Namespace: t.Name()},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Runtime: api.QuarkusRuntimeType,
 			Type:    api.RemoteSourceBuildType,
-			GitSource: api.GitSource{
+			GitSource: v1beta1.GitSource{
 				URI: "http://myrepo.com/namespace/project",
 			},
 		},
@@ -44,7 +45,7 @@ func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deltaProcessor := &deltaProcessor{Context: context, build: build}
 	manager := deltaProcessor.getBuildManager()
@@ -79,12 +80,12 @@ func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
 }
 
 func TestNewWhenBuildingFromLocalSource(t *testing.T) {
-	build := &api2.KogitoBuildTest{
+	build := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type:    api.LocalSourceBuildType,
 			Runtime: api.QuarkusRuntimeType,
 		},
@@ -93,7 +94,7 @@ func TestNewWhenBuildingFromLocalSource(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deltaProcessor := &deltaProcessor{Context: context, build: build}
 	manager := deltaProcessor.getBuildManager()
@@ -128,12 +129,12 @@ func TestNewWhenBuildingFromLocalSource(t *testing.T) {
 }
 
 func TestNewWhenBuildingFromBinary(t *testing.T) {
-	build := &api2.KogitoBuildTest{
+	build := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type:    api.BinaryBuildType,
 			Runtime: api.QuarkusRuntimeType,
 		},
@@ -143,7 +144,7 @@ func TestNewWhenBuildingFromBinary(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	deltaProcessor := &deltaProcessor{Context: context, build: build}
 	manager := deltaProcessor.getBuildManager()
@@ -168,12 +169,12 @@ func TestNewWhenBuildingFromBinary(t *testing.T) {
 }
 
 func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
-	build := &api2.KogitoBuildTest{
+	build := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
@@ -181,7 +182,7 @@ func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	manager, err := NewDeltaProcessor(context, build)
 	assert.Error(t, err)
@@ -189,12 +190,12 @@ func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
 }
 
 func TestNewWhenSanityCheckComplainAboutGit(t *testing.T) {
-	build := &api2.KogitoBuildTest{
+	build := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type:    api.RemoteSourceBuildType,
 			Runtime: api.QuarkusRuntimeType,
 		},
@@ -203,7 +204,7 @@ func TestNewWhenSanityCheckComplainAboutGit(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	manager, err := NewDeltaProcessor(context, build)
 	assert.Error(t, err)

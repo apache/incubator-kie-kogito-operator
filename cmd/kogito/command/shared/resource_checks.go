@@ -25,6 +25,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"k8s.io/apimachinery/pkg/types"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -180,7 +181,7 @@ func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client,
 	context := &operator.Context{
 		Client: kubeCli,
 		Log:    coreLogger,
-		Scheme: internal.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	infraHandler := internal.NewKogitoInfraHandler(context)
 	infraManager := manager.NewKogitoInfraManager(context, infraHandler)

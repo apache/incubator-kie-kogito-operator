@@ -16,7 +16,8 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sort"
@@ -62,21 +63,21 @@ func (k *kafkaInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	// Verify kafka
 	kafkaHandler := infrastructure.NewKafkaHandler(k.Context)
 	if !kafkaHandler.IsStrimziAvailable() {
-		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().APIVersion)
+		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().GetAPIVersion())
 	}
 
-	if len(k.instance.GetSpec().GetResource().Name) > 0 {
+	if len(k.instance.GetSpec().GetResource().GetName()) > 0 {
 		k.Log.Debug("Custom kafka instance reference is provided")
-		namespace := k.instance.GetSpec().GetResource().Namespace
+		namespace := k.instance.GetSpec().GetResource().GetNamespace()
 		if len(namespace) == 0 {
 			namespace = k.instance.GetNamespace()
 			k.Log.Debug("Namespace is not provided for custom resource, taking", "Namespace", namespace)
 		}
-		if kafkaInstance, resultErr = kafkaHandler.FetchKafkaInstance(types.NamespacedName{Name: k.instance.GetSpec().GetResource().Name, Namespace: namespace}); resultErr != nil {
+		if kafkaInstance, resultErr = kafkaHandler.FetchKafkaInstance(types.NamespacedName{Name: k.instance.GetSpec().GetResource().GetName(), Namespace: namespace}); resultErr != nil {
 			return false, resultErr
 		} else if kafkaInstance == nil {
 			return false,
-				errorForResourceNotFound("Kafka", k.instance.GetSpec().GetResource().Name, namespace)
+				errorForResourceNotFound("Kafka", k.instance.GetSpec().GetResource().GetName(), namespace)
 		}
 	} else {
 		// create/refer kogito-kafka instance
@@ -151,7 +152,7 @@ func (k *kafkaInfraReconciler) updateKafkaRuntimePropsInStatus(kafkaInstance *ka
 	if err != nil {
 		return errorForResourceNotReadyError(err)
 	}
-	setRuntimeProperties(k.instance, runtime, runtimeProps)
+	setRuntimeProperties(k.instance, runtime, &runtimeProps)
 	k.Log.Debug("Following Kafka runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
@@ -188,8 +189,8 @@ func (k *kafkaInfraReconciler) getKafkaRuntimeAppProps(kafkaInstance *kafkabetav
 	return appProps, nil
 }
 
-func (k *kafkaInfraReconciler) getKafkaRuntimeProps(kafkaInstance *kafkabetav1.Kafka, runtime api.RuntimeType) (api.RuntimeProperties, error) {
-	runtimeProps := api.RuntimeProperties{}
+func (k *kafkaInfraReconciler) getKafkaRuntimeProps(kafkaInstance *kafkabetav1.Kafka, runtime api.RuntimeType) (v1beta1.RuntimeProperties, error) {
+	runtimeProps := v1beta1.RuntimeProperties{}
 	appProps, err := k.getKafkaRuntimeAppProps(kafkaInstance, runtime)
 	if err != nil {
 		return runtimeProps, err

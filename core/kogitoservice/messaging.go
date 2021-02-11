@@ -17,7 +17,8 @@ package kogitoservice
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
@@ -97,19 +98,19 @@ func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance api.Kogi
 }
 
 func (m *messagingDeployer) setCloudEventsStatus(instance api.KogitoService, topics []messagingTopic) {
-	var eventsConsumed []api.KogitoCloudEventInfo
-	var eventsProduced []api.KogitoCloudEventInfo
+	var eventsConsumed []v1beta1.KogitoCloudEventInfo
+	var eventsProduced []v1beta1.KogitoCloudEventInfo
 	for _, topic := range topics {
 		for _, event := range topic.EventsMeta {
 			switch event.Kind {
 			case consumed:
-				eventsConsumed = append(eventsConsumed, api.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
+				eventsConsumed = append(eventsConsumed, v1beta1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
 			case produced:
-				eventsProduced = append(eventsProduced, api.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
+				eventsProduced = append(eventsProduced, v1beta1.KogitoCloudEventInfo{Type: event.Type, Source: event.Source})
 			}
 		}
 	}
-	instance.GetStatus().SetCloudEvents(api.KogitoCloudEventsStatus{
+	instance.GetStatus().SetCloudEvents(&v1beta1.KogitoCloudEventsStatus{
 		Consumes: eventsConsumed,
 		Produces: eventsProduced,
 	})

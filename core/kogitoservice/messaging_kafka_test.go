@@ -18,6 +18,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoinfra"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
@@ -38,12 +40,13 @@ func Test_createKafkaTopics(t *testing.T) {
 	context := &operator.Context{
 		Client: client,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
+	infraHandler := internal.NewKogitoInfraHandler(context)
 	k := kafkaMessagingDeployer{
 		messagingDeployer{
 			Context:      context,
-			infraHandler: test.CreateFakeKogitoInfraHandler(client),
+			infraHandler: infraHandler,
 			definition: ServiceDefinition{
 				KafkaTopics: []string{
 					"kogito-processinstances-events",

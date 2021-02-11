@@ -17,6 +17,7 @@ package framework
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -90,7 +91,7 @@ func TestIsOwner(t *testing.T) {
 }
 
 func TestAddOwnerReference(t *testing.T) {
-	scheme := test.GetRegisteredSchema()
+	scheme := meta.GetRegisteredSchema()
 	owner := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "deployment", Namespace: t.Name(), UID: test.GenerateUID()}}
 	owned := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "config-map", Namespace: t.Name(), UID: test.GenerateUID()}}
 
@@ -104,7 +105,7 @@ func TestAddOwnerReference(t *testing.T) {
 }
 
 func TestRemoveOwnerReference(t *testing.T) {
-	scheme := test.GetRegisteredSchema()
+	scheme := meta.GetRegisteredSchema()
 
 	owner := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "deployment", Namespace: t.Name(), UID: test.GenerateUID()}}
 	owned := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "config-map", Namespace: t.Name(), UID: test.GenerateUID()}}

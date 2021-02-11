@@ -20,7 +20,7 @@ import (
 	"flag"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"os"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -32,7 +32,7 @@ import (
 )
 
 var (
-	scheme   = internal.GetRegisteredSchema()
+	scheme   = meta.GetRegisteredSchema()
 	setupLog = logger.GetLogger("setup")
 )
 

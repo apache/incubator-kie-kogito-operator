@@ -16,7 +16,7 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 )
 
 // reconciliationError type for KogitoInfra reconciliation cycle cases.
@@ -53,8 +53,8 @@ func errorForUnsupportedAPI(instance api.KogitoInfraInterface) reconciliationErr
 	return reconciliationError{
 		Reason: api.UnsupportedAPIKind,
 		innerError: fmt.Errorf("API %s is not supported for kind %s. Supported APIs are: %v",
-			instance.GetSpec().GetResource().APIVersion,
-			instance.GetSpec().GetResource().Kind,
+			instance.GetSpec().GetResource().GetAPIVersion(),
+			instance.GetSpec().GetResource().GetKind(),
 			getSupportedResources()),
 	}
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +32,7 @@ func TestReconcileKogitoSupportingServiceMgmtConsole_Reconcile(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	r := &mgmtConsoleSupportingServiceResource{
 		supportingServiceContext: supportingServiceContext{
@@ -63,7 +64,7 @@ func TestReconcileKogitoSupportingServiceMgmtConsole_CustomImage(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	r := &mgmtConsoleSupportingServiceResource{
 		supportingServiceContext: supportingServiceContext{

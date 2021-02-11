@@ -15,14 +15,14 @@
 package v1beta1
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // KogitoSupportingServiceSpec defines the desired state of KogitoSupportingService.
 // +k8s:openapi-gen=true
 type KogitoSupportingServiceSpec struct {
-	api.KogitoServiceSpec `json:",inline"`
+	KogitoServiceSpec `json:",inline"`
 
 	// Defines the type for the supporting service, eg: DataIndex, JobsService
 	// Default value: JobsService
@@ -52,7 +52,7 @@ func (k *KogitoSupportingServiceSpec) SetServiceType(serviceType api.ServiceType
 // KogitoSupportingServiceStatus defines the observed state of KogitoSupportingService.
 // +k8s:openapi-gen=true
 type KogitoSupportingServiceStatus struct {
-	api.KogitoServiceStatus `json:",inline"`
+	KogitoServiceStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true

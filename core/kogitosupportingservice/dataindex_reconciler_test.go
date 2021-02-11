@@ -17,6 +17,8 @@ package kogitosupportingservice
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -32,15 +34,15 @@ func TestKogitoSupportingServiceDataIndex_Reconcile(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	r := &dataIndexSupportingServiceResource{
 		supportingServiceContext: supportingServiceContext{
 			Context:                  context,
 			instance:                 dataIndex,
-			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
-			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
-			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),
+			supportingServiceHandler: internal.NewKogitoSupportingServiceHandler(context),
+			infraHandler:             internal.NewKogitoInfraHandler(context),
+			runtimeHandler:           internal.NewKogitoRuntimeHandler(context),
 		},
 	}
 	requeueAfter, err := r.Reconcile()

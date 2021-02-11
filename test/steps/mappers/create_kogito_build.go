@@ -16,7 +16,7 @@ package mappers
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
@@ -101,7 +101,7 @@ func mapKogitoBuildWebhookTableRow(row *TableRow, kogitoBuild *v1beta1.KogitoBui
 	secondColumn := getSecondColumn(row)
 
 	if len(kogitoBuild.Spec.WebHooks) == 0 {
-		kogitoBuild.Spec.WebHooks = []api.WebHookSecret{{}}
+		kogitoBuild.Spec.WebHooks = []v1beta1.WebHookSecret{{}}
 	}
 
 	switch secondColumn {

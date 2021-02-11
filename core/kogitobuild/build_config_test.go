@@ -15,10 +15,11 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,9 +27,9 @@ import (
 )
 
 func Test_decoratorForSourceBuilder_enableIncrementalBuild_Test(t *testing.T) {
-	kogitoBuild := &api2.KogitoBuildTest{
+	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			DisableIncremental: false,
 			Type:               "LocalSource",
 		},
@@ -45,7 +46,7 @@ func Test_decoratorForSourceBuilder_enableIncrementalBuild_Test(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForSourceBuilder()(kogitoBuild, bc)
@@ -53,9 +54,9 @@ func Test_decoratorForSourceBuilder_enableIncrementalBuild_Test(t *testing.T) {
 	assert.Equal(t, true, *bc.Spec.CommonSpec.Strategy.SourceStrategy.Incremental)
 }
 func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
-	kogitoBuild := &api2.KogitoBuildTest{
+	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: v12.ObjectMeta{Name: "test", Namespace: "test"},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			DisableIncremental: true,
 			Type:               "LocalSource",
 		},
@@ -72,7 +73,7 @@ func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForSourceBuilder()(kogitoBuild, bc)
@@ -81,9 +82,9 @@ func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
 }
 
 func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
-	kogitoBuild := &api2.KogitoBuildTest{
-		Spec: api.KogitoBuildSpec{
-			GitSource: api.GitSource{
+	kogitoBuild := &v1beta1.KogitoBuild{
+		Spec: v1beta1.KogitoBuildSpec{
+			GitSource: v1beta1.GitSource{
 				URI:        "host:port",
 				Reference:  "my_branch",
 				ContextDir: "/mypath/",
@@ -95,7 +96,7 @@ func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
@@ -107,9 +108,9 @@ func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
 }
 
 func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
-	kogitoBuild := &api2.KogitoBuildTest{
-		Spec: api.KogitoBuildSpec{
-			WebHooks: []api.WebHookSecret{
+	kogitoBuild := &v1beta1.KogitoBuild{
+		Spec: v1beta1.KogitoBuildSpec{
+			WebHooks: []v1beta1.WebHookSecret{
 				{
 					Type:   api.GitHubWebHook,
 					Secret: "github_secret",
@@ -122,7 +123,7 @@ func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
@@ -134,9 +135,9 @@ func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
 }
 
 func Test_decoratorForRemoteSourceBuilder_genericWebHook(t *testing.T) {
-	kogitoBuild := &api2.KogitoBuildTest{
-		Spec: api.KogitoBuildSpec{
-			WebHooks: []api.WebHookSecret{
+	kogitoBuild := &v1beta1.KogitoBuild{
+		Spec: v1beta1.KogitoBuildSpec{
+			WebHooks: []v1beta1.WebHookSecret{
 				{
 					Type:   api.GenericWebHook,
 					Secret: "generic_secret",
@@ -149,7 +150,7 @@ func Test_decoratorForRemoteSourceBuilder_genericWebHook(t *testing.T) {
 	context := &operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
-		Scheme: test.GetRegisteredSchema(),
+		Scheme: meta.GetRegisteredSchema(),
 	}
 	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForRemoteSourceBuilder()(kogitoBuild, bc)

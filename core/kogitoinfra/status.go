@@ -15,7 +15,7 @@
 package kogitoinfra
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,30 +61,32 @@ func (r *statusHandler) UpdateBaseStatus(instance api.KogitoInfraInterface, err 
 // setResourceFailed sets the instance as failed
 func (r *statusHandler) setResourceFailed(instance api.KogitoInfraInterface, err error) {
 	infraCondition := instance.GetStatus().GetCondition()
-	if infraCondition.Message != err.Error() {
-		r.Log.Warn("Setting instance", "Failed", err)
-		infraCondition.Type = api.FailureInfraConditionType
-		infraCondition.Status = corev1.ConditionFalse
-		infraCondition.Message = err.Error()
-		infraCondition.Reason = reasonForError(err)
-		infraCondition.LastTransitionTime = metav1.Now()
+	if infraCondition.GetMessage() != err.Error() {
+		r.Log.Warn("Setting instance Failed", "reason", err.Error())
+		infraCondition.SetType(api.FailureInfraConditionType)
+		infraCondition.SetStatus(corev1.ConditionFalse)
+		infraCondition.SetMessage(err.Error())
+		infraCondition.SetReason(reasonForError(err))
+		infraCondition.SetLastTransitionTime(metav1.Now())
 	}
 }
 
 // setResourceSuccess sets the instance as success
 func (r *statusHandler) setResourceSuccess(instance api.KogitoInfraInterface) {
-	if instance.GetStatus().GetCondition().Type != api.SuccessInfraConditionType {
-		infraCondition := instance.GetStatus().GetCondition()
-		infraCondition.Type = api.SuccessInfraConditionType
-		infraCondition.Status = corev1.ConditionTrue
-		infraCondition.Message = ""
-		infraCondition.Reason = ""
-		infraCondition.LastTransitionTime = metav1.Now()
+	infraCondition := instance.GetStatus().GetCondition()
+	if infraCondition.GetType() != api.SuccessInfraConditionType {
+		r.Log.Warn("Setting instance Failed")
+		infraCondition.SetType(api.SuccessInfraConditionType)
+		infraCondition.SetStatus(corev1.ConditionTrue)
+		infraCondition.SetMessage("")
+		infraCondition.SetReason("")
+		infraCondition.SetLastTransitionTime(metav1.Now())
+		instance.GetStatus().SetCondition(infraCondition)
 	}
 }
 
 // setRuntimeProperties sets the instance status' runtime properties
-func setRuntimeProperties(instance api.KogitoInfraInterface, runtime api.RuntimeType, runtimeProps api.RuntimeProperties) {
+func setRuntimeProperties(instance api.KogitoInfraInterface, runtime api.RuntimeType, runtimeProps api.RuntimePropertiesInterface) {
 	if instance.GetStatus().GetRuntimeProperties() == nil {
 		instance.GetStatus().SetRuntimeProperties(api.RuntimePropertiesMap{})
 	}

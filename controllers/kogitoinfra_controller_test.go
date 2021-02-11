@@ -15,11 +15,11 @@
 package controllers
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
@@ -32,8 +32,8 @@ import (
 func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
-		Spec: api.KogitoInfraSpec{
-			Resource: api.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.InfinispanAPIVersion,
 				Kind:       infrastructure.InfinispanKind,
 				Name:       "kogito-infinispan",
@@ -41,9 +41,9 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 			},
 		},
 	}
-	client := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(kogitoInfra).Build()
-	scheme := internal.GetRegisteredSchema()
-	r := &KogitoInfraReconciler{Client: client, Scheme: scheme, Log: logger.GetLogger("kogito infra reconciler")}
+	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra).Build()
+	scheme := meta.GetRegisteredSchema()
+	r := &KogitoInfraReconciler{Client: client, Scheme: scheme, Log: test.TestLogger}
 	// basic checks
 	test.AssertReconcileMustNotRequeue(t, r, kogitoInfra)
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
@@ -57,8 +57,8 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 func Test_Reconcile_KafkaResource(t *testing.T) {
 	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},
-		Spec: api.KogitoInfraSpec{
-			Resource: api.Resource{
+		Spec: v1beta1.KogitoInfraSpec{
+			Resource: v1beta1.Resource{
 				APIVersion: infrastructure.KafkaAPIVersion,
 				Kind:       infrastructure.KafkaKind,
 				Name:       "kogito-kafka",
@@ -87,9 +87,9 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 		},
 	}
 
-	client := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(kogitoInfra, deployedKafkaInstance).Build()
+	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra, deployedKafkaInstance).Build()
 
-	scheme := internal.GetRegisteredSchema()
+	scheme := meta.GetRegisteredSchema()
 	r := &KogitoInfraReconciler{Client: client, Scheme: scheme, Log: logger.GetLogger("kogito infra reconciler")}
 	// basic checks
 	test.AssertReconcile(t, r, kogitoInfra)

@@ -16,7 +16,7 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -56,19 +56,19 @@ func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta
 			Namespace: namespace,
 		},
 		Status: v1beta1.KogitoRuntimeStatus{
-			KogitoServiceStatus: api.KogitoServiceStatus{
-				ConditionsMeta: api.ConditionsMeta{Conditions: []api.Condition{}},
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
+				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}},
 			},
 		},
 		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.RuntimeType(runtimeType),
-			KogitoServiceSpec: api.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Image: imageTag,
 				// Use insecure registry flag in tests
 				InsecureImageRegistry: true,
 				Replicas:              &replicas,
 				// Extends the probe interval for slow test environment
-				Probes: api.KogitoProbe{
+				Probes: v1beta1.KogitoProbe{
 					ReadinessProbe: corev1.Probe{
 						FailureThreshold: 12,
 					},

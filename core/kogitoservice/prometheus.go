@@ -15,7 +15,7 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"net/http"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -165,16 +165,16 @@ func (m *prometheusManager) createServiceMonitor(kogitoService api.KogitoService
 	return sm, nil
 }
 
-func getMonitoringPath(monitoring api.Monitoring) string {
-	path := monitoring.Path
+func getMonitoringPath(monitoring api.MonitoringInterface) string {
+	path := monitoring.GetPath()
 	if len(path) == 0 {
 		path = api.MonitoringDefaultPath
 	}
 	return path
 }
 
-func getMonitoringScheme(monitoring api.Monitoring) string {
-	scheme := monitoring.Scheme
+func getMonitoringScheme(monitoring api.MonitoringInterface) string {
+	scheme := monitoring.GetScheme()
 	if len(scheme) == 0 {
 		scheme = api.MonitoringDefaultScheme
 	}

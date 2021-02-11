@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package v1beta1
 
 import corev1 "k8s.io/api/core/v1"
 
@@ -27,4 +27,24 @@ type KogitoProbe struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
 	// +optional
 	ReadinessProbe corev1.Probe `json:"readinessProbe,omitempty"`
+}
+
+// GetLivenessProbe ...
+func (p *KogitoProbe) GetLivenessProbe() corev1.Probe {
+	return p.LivenessProbe
+}
+
+// SetLivenessProbe ...
+func (p *KogitoProbe) SetLivenessProbe(livenessProbe corev1.Probe) {
+	p.LivenessProbe = livenessProbe
+}
+
+// GetReadinessProbe ...
+func (p *KogitoProbe) GetReadinessProbe() corev1.Probe {
+	return p.ReadinessProbe
+}
+
+// SetReadinessProbe ...
+func (p *KogitoProbe) SetReadinessProbe(readinessProbe corev1.Probe) {
+	p.ReadinessProbe = readinessProbe
 }

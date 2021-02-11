@@ -16,12 +16,12 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -203,7 +203,7 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 		},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType: i.supportingService.serviceType,
-			KogitoServiceSpec: api.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:              &i.flags.Replicas,
 				Env:                   converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:                 i.flags.ImageFlags.Image,
@@ -216,8 +216,8 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 			},
 		},
 		Status: v1beta1.KogitoSupportingServiceStatus{
-			KogitoServiceStatus: api.KogitoServiceStatus{
-				ConditionsMeta: api.ConditionsMeta{Conditions: []api.Condition{}},
+			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
+				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}},
 			},
 		},
 	}

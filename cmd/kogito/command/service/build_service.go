@@ -16,17 +16,17 @@ package service
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"go.uber.org/zap"
 	"io"
@@ -85,7 +85,7 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 			Name:      flags.Name,
 			Namespace: flags.Project,
 		},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type:                      converter.FromResourceTypeToKogitoBuildType(resourceType),
 			DisableIncremental:        !flags.IncrementalBuild,
 			Env:                       converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
@@ -101,8 +101,8 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 			Artifact:                  converter.FromArtifactFlagsToArtifact(&flags.ArtifactFlags),
 			EnableMavenDownloadOutput: flags.EnableMavenDownloadOutput,
 		},
-		Status: api.KogitoBuildStatus{
-			Conditions: []api.KogitoBuildConditions{},
+		Status: v1beta1.KogitoBuildStatus{
+			Conditions: []v1beta1.KogitoBuildConditions{},
 		},
 	}
 
@@ -251,7 +251,7 @@ func (i buildService) triggerBuild(name string, namespace string, fileReader io.
 	}
 
 	log.Info(message.BuildTriggeringNewBuild)
-	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild, internal.GetRegisteredSchema())
+	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild, meta.GetRegisteredSchema())
 	if err != nil {
 		return err
 	}

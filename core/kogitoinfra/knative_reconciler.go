@@ -36,17 +36,17 @@ func initknativeInfraReconciler(context infraContext) Reconciler {
 func (k *knativeInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	knativeHandler := infrastructure.NewKnativeHandler(k.Context)
 	if !knativeHandler.IsKnativeEventingAvailable() {
-		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().APIVersion)
+		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().GetAPIVersion())
 	}
 
-	if len(k.instance.GetSpec().GetResource().Name) > 0 {
-		ns := k.instance.GetSpec().GetResource().Namespace
+	if len(k.instance.GetSpec().GetResource().GetName()) > 0 {
+		ns := k.instance.GetSpec().GetResource().GetNamespace()
 		if len(ns) == 0 {
 			k.Log.Debug("Namespace not defined, setting to current namespace")
 			ns = k.instance.GetNamespace()
 		}
 
-		broker, resultErr := knativeHandler.FetchBroker(types.NamespacedName{Name: k.instance.GetSpec().GetResource().Name, Namespace: ns})
+		broker, resultErr := knativeHandler.FetchBroker(types.NamespacedName{Name: k.instance.GetSpec().GetResource().GetName(), Namespace: ns})
 		if resultErr != nil {
 			return false, resultErr
 		} else if broker == nil {

@@ -16,7 +16,7 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
@@ -79,10 +79,10 @@ func GetKogitoBuildStub(namespace, runtimeType, name string) *v1beta1.KogitoBuil
 			Name:      name,
 			Namespace: namespace,
 		},
-		Status: api.KogitoBuildStatus{
-			Conditions: []api.KogitoBuildConditions{},
+		Status: v1beta1.KogitoBuildStatus{
+			Conditions: []v1beta1.KogitoBuildConditions{},
 		},
-		Spec: api.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Runtime:        api.RuntimeType(runtimeType),
 			MavenMirrorURL: config.GetMavenMirrorURL(),
 		},
