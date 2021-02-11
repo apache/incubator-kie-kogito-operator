@@ -17,9 +17,9 @@ package infrastructure
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

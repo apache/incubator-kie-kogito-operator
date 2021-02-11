@@ -18,7 +18,7 @@ import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/infrastructure/kafka/v1beta1"
 	testapi "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
 	appsv1 "github.com/openshift/api/apps/v1"

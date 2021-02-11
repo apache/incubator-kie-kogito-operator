@@ -23,8 +23,8 @@ import (
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/infrastructure/kafka/v1beta1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

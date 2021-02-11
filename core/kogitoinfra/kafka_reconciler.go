@@ -23,8 +23,8 @@ import (
 	"strings"
 	"time"
 
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/infrastructure/kafka/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

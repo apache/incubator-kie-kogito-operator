@@ -19,7 +19,7 @@ import (
 	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
+	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/infrastructure/kafka/v1beta1"
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
