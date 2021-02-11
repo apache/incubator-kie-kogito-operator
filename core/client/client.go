@@ -38,7 +38,6 @@ import (
 	controllercli "sigs.k8s.io/controller-runtime/pkg/client"
 	controllercliconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 )
@@ -64,8 +63,8 @@ type Client struct {
 }
 
 // NewForConsole will create a brand new client using the local machine
-func NewForConsole() *Client {
-	client, err := NewClientBuilder().WithBuildClient().WithDiscoveryClient().Build()
+func NewForConsole(scheme *runtime.Scheme) *Client {
+	client, err := NewClientBuilder().UseScheme(scheme).WithBuildClient().WithDiscoveryClient().Build()
 	if err != nil {
 		panic(err)
 	}
@@ -78,6 +77,7 @@ func NewForController(manager controllerruntime.Manager) *Client {
 	newClient, err := NewClientBuilder().
 		WithAllClients().
 		UseConfig(manager.GetConfig()).
+		UseScheme(manager.GetScheme()).
 		UseControllerClient(manager.GetClient()).
 		Build()
 	if err != nil {
@@ -115,7 +115,7 @@ func (c *Client) HasServerGroup(groupName string) bool {
 	return false
 }
 
-// MustEnsureClient will try to read the kube.yaml file from the host and connect to the cluster, if the Client or the Core Client is null.
+/*// MustEnsureClient will try to read the kube.yaml file from the host and connect to the cluster, if the Client or the Core Client is null.
 // Will panic if the connection won't be possible
 func MustEnsureClient(c *Client) controllercli.Client {
 	if c.ControlCli == nil {
@@ -136,15 +136,15 @@ func ensureKubeClient() (controllercli.Client, error) {
 		return nil, err
 	}
 	return newKubeClient(config, false)
-}
+}*/
 
-func newKubeClient(config *restclient.Config, useDynamicRestMapper bool) (controllercli.Client, error) {
+func newKubeClient(config *restclient.Config, scheme *runtime.Scheme, useDynamicRestMapper bool) (controllercli.Client, error) {
 	log.Debug("Creating a new core client for kube connection")
 	var options controllercli.Options
 	if useDynamicRestMapper {
-		options = newControllerCliOptionsWithDynamicMapper()
+		options = newControllerCliOptionsWithDynamicMapper(scheme)
 	} else {
-		options = newControllerCliOptions()
+		options = newControllerCliOptions(scheme)
 	}
 	controlCli, err := controllercli.New(config, options)
 	if err != nil {
@@ -203,10 +203,9 @@ func (r *restScope) Name() apimeta.RESTScopeName {
 // newControllerCliOptions creates the mapper and schema options for the inner fallback cli. If set to defaults, the Controller Cli will try
 // to discover the mapper by itself by querying the API, which can take too much time. Here we're setting this mapper manually.
 // So it's need to keep adding them or find some kind of auto register in the kube api/apimachinery
-func newControllerCliOptions() controllercli.Options {
+func newControllerCliOptions(scheme *runtime.Scheme) controllercli.Options {
 	options := controllercli.Options{}
-	builder := meta.GetRegisteredSchemeBuilder()
-	gvks, err := getGVKsFromAddToScheme(builder.AddToScheme)
+	gvks, err := getGVKsFromAddToScheme(scheme)
 	if err != nil {
 		log.Error(err, "Error while creating SchemeBuilder for Kubernetes client")
 		panic(err)
@@ -223,25 +222,20 @@ func newControllerCliOptions() controllercli.Options {
 			mapper.Add(gvk, &restScope{name: apimeta.RESTScopeNameNamespace})
 		}
 	}
-	options.Scheme = meta.GetRegisteredSchema()
+	options.Scheme = scheme
 	options.Mapper = mapper
 	return options
 }
 
-func newControllerCliOptionsWithDynamicMapper() controllercli.Options {
+func newControllerCliOptionsWithDynamicMapper(scheme *runtime.Scheme) controllercli.Options {
 	return controllercli.Options{
-		Scheme: meta.GetRegisteredSchema(),
+		Scheme: scheme,
 	}
 }
 
 // getGVKsFromAddToScheme takes in the runtime scheme and filters out all generic apimachinery meta types.
 // It returns just the GVK specific to this scheme.
-func getGVKsFromAddToScheme(addToSchemeFunc func(*runtime.Scheme) error) ([]schema.GroupVersionKind, error) {
-	s := runtime.NewScheme()
-	err := addToSchemeFunc(s)
-	if err != nil {
-		return nil, err
-	}
+func getGVKsFromAddToScheme(s *runtime.Scheme) ([]schema.GroupVersionKind, error) {
 	schemeAllKnownTypes := s.AllKnownTypes()
 	var ownGVKs []schema.GroupVersionKind
 	for gvk := range schemeAllKnownTypes {

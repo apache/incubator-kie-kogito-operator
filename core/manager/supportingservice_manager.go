@@ -18,8 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/api/apps/v1"
 )
 
@@ -30,23 +29,21 @@ type KogitoSupportingServiceManager interface {
 	FetchKogitoSupportingServiceDeployment(namespace string, serviceType api.ServiceType) (*v1.Deployment, error)
 }
 
+type kogitoSupportingServiceManager struct {
+	*operator.Context
+	supportingServiceHandler api.KogitoSupportingServiceHandler
+}
+
 // NewKogitoSupportingServiceManager ...
-func NewKogitoSupportingServiceManager(client *client.Client, log logger.Logger, supportingServiceHandler api.KogitoSupportingServiceHandler) KogitoSupportingServiceManager {
+func NewKogitoSupportingServiceManager(context *operator.Context, supportingServiceHandler api.KogitoSupportingServiceHandler) KogitoSupportingServiceManager {
 	return &kogitoSupportingServiceManager{
-		client:                   client,
-		log:                      log,
+		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,
 	}
 }
 
-type kogitoSupportingServiceManager struct {
-	client                   *client.Client
-	log                      logger.Logger
-	supportingServiceHandler api.KogitoSupportingServiceHandler
-}
-
 func (k kogitoSupportingServiceManager) EnsureSingletonService(namespace string, resourceType api.ServiceType) error {
-	k.log.Info("Ensuring only single instance of supporting service exists")
+	k.Log.Info("Ensuring only single instance of supporting service exists")
 	supportingServiceList, err := k.supportingServiceHandler.FetchKogitoSupportingServiceList(namespace)
 	if err != nil {
 		return err
@@ -83,17 +80,17 @@ func (k kogitoSupportingServiceManager) FetchKogitoSupportingServiceDeployment(n
 	if err != nil {
 		return nil, err
 	} else if supportingService == nil {
-		k.log.Debug("KogitoSupportingService objects not found", "service type", serviceType, "namespace", namespace)
+		k.Log.Debug("KogitoSupportingService objects not found", "service type", serviceType, "namespace", namespace)
 		return nil, nil
 	}
-	k.log.Debug("KogitoSupportingService objects found", "services", serviceType, "namespace", namespace)
+	k.Log.Debug("KogitoSupportingService objects found", "services", serviceType, "namespace", namespace)
 
-	deploymentHandler := infrastructure.NewDeploymentHandler(k.client, k.log)
+	deploymentHandler := infrastructure.NewDeploymentHandler(k.Context)
 	dcs, err := deploymentHandler.FetchDeploymentList(namespace)
 	if err != nil {
 		return nil, err
 	}
-	k.log.Debug("Looking for owned Deployments", "service type", serviceType)
+	k.Log.Debug("Looking for owned Deployments", "service type", serviceType)
 	for _, dc := range dcs.Items {
 		for _, owner := range dc.OwnerReferences {
 			if owner.UID == supportingService.GetUID() {

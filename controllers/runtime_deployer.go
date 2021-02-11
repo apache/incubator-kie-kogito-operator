@@ -21,14 +21,13 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/connector"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"reflect"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"io/ioutil"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -56,18 +55,16 @@ type RuntimeDeployerHandler interface {
 }
 
 type runtimeDeployerHandler struct {
-	client                   *client.Client
-	log                      logger.Logger
+	*operator.Context
 	instance                 api.KogitoRuntimeInterface
 	supportingServiceHandler api.KogitoSupportingServiceHandler
 	runtimeHandler           api.KogitoRuntimeHandler
 }
 
 // NewRuntimeDeployerHandler ...
-func NewRuntimeDeployerHandler(client *client.Client, log logger.Logger, instance api.KogitoRuntimeInterface, supportingServiceHandler api.KogitoSupportingServiceHandler, runtimeHandler api.KogitoRuntimeHandler) RuntimeDeployerHandler {
+func NewRuntimeDeployerHandler(context *operator.Context, instance api.KogitoRuntimeInterface, supportingServiceHandler api.KogitoSupportingServiceHandler, runtimeHandler api.KogitoRuntimeHandler) RuntimeDeployerHandler {
 	return &runtimeDeployerHandler{
-		client:                   client,
-		log:                      log,
+		Context:                  context,
 		instance:                 instance,
 		supportingServiceHandler: supportingServiceHandler,
 		runtimeHandler:           runtimeHandler,
@@ -112,7 +109,7 @@ func (d *runtimeDeployerHandler) OnDeploymentCreate(deployment *v1.Deployment) e
 		framework.AddIstioInjectSidecarAnnotation(&deployment.Spec.Template.ObjectMeta)
 	}
 
-	urlHandler := connector.NewURLHandler(d.client, d.log, d.runtimeHandler, d.supportingServiceHandler)
+	urlHandler := connector.NewURLHandler(d.Context, d.runtimeHandler, d.supportingServiceHandler)
 	if err := urlHandler.InjectDataIndexURLIntoDeployment(d.instance.GetNamespace(), deployment); err != nil {
 		return err
 	}
@@ -144,36 +141,36 @@ func (d *runtimeDeployerHandler) createProtoBufConfigMap(kogitoService api.Kogit
 }
 
 func (d *runtimeDeployerHandler) getProtobufData(kogitoService api.KogitoService) map[string]string {
-	deployerHandler := kogitoservice.NewDeploymentHandler(d.client, d.log)
+	deployerHandler := kogitoservice.NewDeploymentHandler(d.Context)
 	available, err := deployerHandler.IsDeploymentAvailable(kogitoService)
 	if err != nil {
-		d.log.Error(err, "failed to check deployment status")
+		d.Log.Error(err, "failed to check deployment status")
 		return nil
 	}
 	if !available {
-		d.log.Debug("deployment not available")
+		d.Log.Debug("deployment not available")
 		return nil
 	}
 
-	kogitoServiceHandler := kogitoservice.NewKogitoServiceHandler(d.log)
+	kogitoServiceHandler := kogitoservice.NewKogitoServiceHandler(d.Context)
 	protobufEndpoint := kogitoServiceHandler.GetKogitoServiceEndpoint(kogitoService) + protobufSubdir
 	protobufListURL := protobufEndpoint + protobufListFileName
 	protobufListBytes, err := getHTTPFileBytes(protobufListURL)
 	if err != nil {
-		d.log.Error(err, "failed to get protobuf file list")
+		d.Log.Error(err, "failed to get protobuf file list")
 		return nil
 	}
 	if protobufListBytes == nil {
-		d.log.Debug("no protobuf list found", "protobuf file", protobufListURL)
+		d.Log.Debug("no protobuf list found", "protobuf file", protobufListURL)
 		return nil
 	}
 	var protobufList []string
 	err = json.Unmarshal(protobufListBytes, &protobufList)
 	if err != nil {
-		d.log.Error(err, "failed to parse protobuf file list")
+		d.Log.Error(err, "failed to parse protobuf file list")
 		return nil
 	}
-	d.log.Debug("Protobuf List", protobufList)
+	d.Log.Debug("Protobuf List", protobufList)
 
 	var protobufFileBytes []byte
 	data := map[string]string{}
@@ -181,11 +178,11 @@ func (d *runtimeDeployerHandler) getProtobufData(kogitoService api.KogitoService
 		protobufFileURL := protobufEndpoint + fileName
 		protobufFileBytes, err = getHTTPFileBytes(protobufFileURL)
 		if err != nil {
-			d.log.Error(err, "failed to fetch protobuf", "Protobuf Url", protobufFileURL)
+			d.Log.Error(err, "failed to fetch protobuf", "Protobuf Url", protobufFileURL)
 			continue
 		}
 		if protobufFileBytes == nil {
-			d.log.Error(fmt.Errorf("protobuf Files not found"), "Protobuf Files not found", "Protobuf URL", protobufFileURL)
+			d.Log.Error(fmt.Errorf("protobuf Files not found"), "Protobuf Files not found", "Protobuf URL", protobufFileURL)
 			continue
 		}
 		data[fileName] = string(protobufFileBytes)

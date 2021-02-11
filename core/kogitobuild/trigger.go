@@ -16,9 +16,8 @@ package kogitobuild
 
 import (
 	"context"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	v1 "github.com/openshift/api/build/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,15 +39,13 @@ type TriggerHandler interface {
 }
 
 type triggerHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewTriggerHandler ...
-func NewTriggerHandler(client *client.Client, log logger.Logger) TriggerHandler {
+func NewTriggerHandler(context *operator.Context) TriggerHandler {
 	return &triggerHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
@@ -58,8 +55,8 @@ func (t *triggerHandler) StartNewBuild(buildConfig *v1.BuildConfig) error {
 	if err := t.cancelRunningBuilds(buildConfig); err != nil {
 		return err
 	}
-	if _, err := openshift.BuildConfigC(t.client).TriggerBuild(buildConfig, triggeredBy); err != nil {
-		t.log.Error(err, "Failed to start a new build", "For Build Config", buildConfig.Name)
+	if _, err := openshift.BuildConfigC(t.Client).TriggerBuild(buildConfig, triggeredBy); err != nil {
+		t.Log.Error(err, "Failed to start a new build", "For Build Config", buildConfig.Name)
 		return err
 	}
 	return nil
@@ -67,7 +64,7 @@ func (t *triggerHandler) StartNewBuild(buildConfig *v1.BuildConfig) error {
 
 // cancelRunningBuilds cancels any running builds for the given BuildConfig
 func (t *triggerHandler) cancelRunningBuilds(buildConfig *v1.BuildConfig) error {
-	builds, err := t.client.BuildCli.Builds(buildConfig.Namespace).List(context.TODO(),
+	builds, err := t.Client.BuildCli.Builds(buildConfig.Namespace).List(context.TODO(),
 		metav1.ListOptions{LabelSelector: strings.Join([]string{openshift.BuildConfigLabelSelector, buildConfig.Name}, "=")},
 	)
 	if err != nil {
@@ -84,35 +81,35 @@ func (t *triggerHandler) cancelRunningBuilds(buildConfig *v1.BuildConfig) error 
 				defer wg.Done()
 				err := wait.Poll(poolWaitTimeout, cancelUpdateTimeout, func() (bool, error) {
 					build.Status.Cancelled = true
-					_, err := t.client.BuildCli.Builds(build.Namespace).Update(context.TODO(), build, metav1.UpdateOptions{})
+					_, err := t.Client.BuildCli.Builds(build.Namespace).Update(context.TODO(), build, metav1.UpdateOptions{})
 					if err == nil {
 						return true, nil
 					} else if errors.IsConflict(err) {
 						// try again, someone just updated our status
-						build, err = t.client.BuildCli.Builds(build.Namespace).Get(context.TODO(), build.Name, metav1.GetOptions{})
+						build, err = t.Client.BuildCli.Builds(build.Namespace).Get(context.TODO(), build.Name, metav1.GetOptions{})
 						return false, err
 					}
 					return true, err
 				})
 				if err != nil {
-					t.log.Error(err, "Failed to cancel", "Build", build.Name)
+					t.Log.Error(err, "Failed to cancel", "Build", build.Name)
 					cancelError = err
 					return
 				}
 				// wait for the build to be cancelled
 				err = wait.Poll(poolWaitTimeout, cancelUpdateTimeout, func() (bool, error) {
-					updatedBuild, err := t.client.BuildCli.Builds(build.Namespace).Get(context.TODO(), build.Name, metav1.GetOptions{})
+					updatedBuild, err := t.Client.BuildCli.Builds(build.Namespace).Get(context.TODO(), build.Name, metav1.GetOptions{})
 					if err != nil {
 						return true, err
 					}
 					if updatedBuild.Status.Phase == v1.BuildPhaseCancelled {
-						t.log.Info("Successfully cancelled", "Build", build.Name, "Namespace", build.Namespace)
+						t.Log.Info("Successfully cancelled", "Build", build.Name, "Namespace", build.Namespace)
 						return true, nil
 					}
 					return false, nil
 				})
 				if err != nil {
-					t.log.Error(err, "Failed to fetch build during cancelling check phase", "Build", build.Name)
+					t.Log.Error(err, "Failed to fetch build during cancelling check phase", "Build", build.Name)
 					cancelError = err
 					return
 				}

@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"
 )
 

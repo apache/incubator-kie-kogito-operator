@@ -21,7 +21,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/install"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/project"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/remove"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
@@ -29,7 +30,7 @@ import (
 
 // DefaultBuildCommands creates a new start command for the Kogito CLI
 func DefaultBuildCommands() *cobra.Command {
-	return BuildCommands(client.NewForConsole(), os.Stdout)
+	return BuildCommands(client.NewForConsole(internal.GetRegisteredSchema()), os.Stdout)
 }
 
 // BuildCommands creates a customized start command for the Kogito CLI

@@ -18,21 +18,20 @@ import (
 	"context"
 	resource2 "github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 )
 
 // ResourceWriter interface to write kubernetes object
 type ResourceWriter interface {
 	// Create creates a new Kubernetes object in the cluster.
 	// Note that no checks will be performed in the cluster. If you're not sure, use CreateIfNotExists.
-	Create(resource meta.ResourceObject) error
+	Create(resource ResourceObject) error
 	// Delete delete the given object
-	Delete(resource meta.ResourceObject) error
+	Delete(resource ResourceObject) error
 	// Update the given object
-	Update(resource meta.ResourceObject) error
+	Update(resource ResourceObject) error
 	// UpdateStatus update the given object status
-	UpdateStatus(resource meta.ResourceObject) error
+	UpdateStatus(resource ResourceObject) error
 	// CreateResources create provided objects
 	CreateResources(resources []resource2.KubernetesResource) (bool, error)
 	// UpdateResources update provided objects
@@ -52,7 +51,7 @@ type resourceWriter struct {
 	client *client.Client
 }
 
-func (r *resourceWriter) Create(resource meta.ResourceObject) error {
+func (r *resourceWriter) Create(resource ResourceObject) error {
 	log.Info("Creating resource", "kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Create(context.TODO(), resource); err != nil {
 		log.Error(err, "Failed to create object. ")
@@ -61,7 +60,7 @@ func (r *resourceWriter) Create(resource meta.ResourceObject) error {
 	return nil
 }
 
-func (r *resourceWriter) Update(resource meta.ResourceObject) error {
+func (r *resourceWriter) Update(resource ResourceObject) error {
 	log.Debug("About to update resource", "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Update(context.TODO(), resource); err != nil {
 		return err
@@ -70,7 +69,7 @@ func (r *resourceWriter) Update(resource meta.ResourceObject) error {
 	return nil
 }
 
-func (r *resourceWriter) Delete(resource meta.ResourceObject) error {
+func (r *resourceWriter) Delete(resource ResourceObject) error {
 	if err := r.client.ControlCli.Delete(context.TODO(), resource); err != nil {
 		log.Error(err, "Failed to delete resource.", "name", resource.GetName())
 		return err
@@ -78,7 +77,7 @@ func (r *resourceWriter) Delete(resource meta.ResourceObject) error {
 	return nil
 }
 
-func (r *resourceWriter) UpdateStatus(resource meta.ResourceObject) error {
+func (r *resourceWriter) UpdateStatus(resource ResourceObject) error {
 	log.Debug("About to update status for object", "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Status().Update(context.TODO(), resource); err != nil {
 		return err

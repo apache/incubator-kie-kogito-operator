@@ -17,10 +17,10 @@ package kogitoinfra
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -146,43 +146,43 @@ func (i *mongoDBInfraReconciler) getMongoDBRuntimeProps(mongoDBInstance *mongodb
 }
 
 func (i *mongoDBInfraReconciler) updateMongoDBRuntimePropsInStatus(mongoDBInstance *mongodb.MongoDB, runtime api.RuntimeType) error {
-	i.log.Debug("going to Update MongoDB runtime properties in kogito infra instance status", "runtime", runtime)
+	i.Log.Debug("going to Update MongoDB runtime properties in kogito infra instance status", "runtime", runtime)
 	runtimeProps, err := i.getMongoDBRuntimeProps(mongoDBInstance, runtime)
 	if err != nil {
 		return err
 	}
 	setRuntimeProperties(i.instance, runtime, runtimeProps)
-	i.log.Debug("Following MongoDB runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
+	i.Log.Debug("Following MongoDB runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
 
 func (i *mongoDBInfraReconciler) loadDeployedMongoDBInstance(instanceName string, namespace string) (*mongodb.MongoDB, error) {
-	i.log.Debug("fetching deployed kogito mongoDB instance")
+	i.Log.Debug("fetching deployed kogito mongoDB instance")
 	mongoDBInstance := &mongodb.MongoDB{}
-	if exists, err := kubernetes.ResourceC(i.client).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, mongoDBInstance); err != nil {
-		i.log.Error(err, "Error occurs while fetching kogito mongoDB instance")
+	if exists, err := kubernetes.ResourceC(i.Client).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, mongoDBInstance); err != nil {
+		i.Log.Error(err, "Error occurs while fetching kogito mongoDB instance")
 		return nil, err
 	} else if !exists {
-		i.log.Debug("Kogito mongoDB instance is not exists")
+		i.Log.Debug("Kogito mongoDB instance is not exists")
 		return nil, nil
 	} else {
-		i.log.Debug("Kogito mongoDB instance found")
-		i.log.Debug("Kogito mongoDB instance found", "instance", mongoDBInstance)
+		i.Log.Debug("Kogito mongoDB instance found")
+		i.Log.Debug("Kogito mongoDB instance found", "instance", mongoDBInstance)
 		return mongoDBInstance, nil
 	}
 }
 
 func (i *mongoDBInfraReconciler) loadCustomKogitoMongoDBSecret(namespace string) (*corev1.Secret, error) {
-	i.log.Debug("Fetching", "secret", mongoDBSecretName)
+	i.Log.Debug("Fetching", "secret", mongoDBSecretName)
 	secret := &corev1.Secret{}
-	if exists, err := kubernetes.ResourceC(i.client).FetchWithKey(types.NamespacedName{Name: mongoDBSecretName, Namespace: namespace}, secret); err != nil {
-		i.log.Error(err, "Error occurs while fetching", "secret", mongoDBSecretName)
+	if exists, err := kubernetes.ResourceC(i.Client).FetchWithKey(types.NamespacedName{Name: mongoDBSecretName, Namespace: namespace}, secret); err != nil {
+		i.Log.Error(err, "Error occurs while fetching", "secret", mongoDBSecretName)
 		return nil, err
 	} else if !exists {
-		i.log.Debug("not found", "secret", mongoDBSecretName)
+		i.Log.Debug("not found", "secret", mongoDBSecretName)
 		return nil, nil
 	} else {
-		i.log.Debug("successfully fetched", "secret", mongoDBSecretName)
+		i.Log.Debug("successfully fetched", "secret", mongoDBSecretName)
 		return secret, nil
 	}
 }
@@ -190,9 +190,9 @@ func (i *mongoDBInfraReconciler) loadCustomKogitoMongoDBSecret(namespace string)
 // Setup authentication to MongoDB
 // https://github.com/mongodb/mongodb-kubernetes-operator/blob/master/docs/users.md
 func (i *mongoDBInfraReconciler) createCustomKogitoMongoDBSecret(namespace string, mongoDBInstance *mongodb.MongoDB) (*corev1.Secret, error) {
-	i.log.Debug("Creating new secret", "secret", mongoDBSecretName)
+	i.Log.Debug("Creating new secret", "secret", mongoDBSecretName)
 
-	credentials, err := i.retrieveMongoDBCredentialsFromInstance(i.client, i.instance, mongoDBInstance)
+	credentials, err := i.retrieveMongoDBCredentialsFromInstance(i.Client, i.instance, mongoDBInstance)
 	if err != nil {
 		return nil, err
 	}
@@ -209,32 +209,32 @@ func (i *mongoDBInfraReconciler) createCustomKogitoMongoDBSecret(namespace strin
 			infrastructure.MongoDBAppSecretDatabaseKey:     credentials.Database,
 		},
 	}
-	if err := framework.SetOwner(i.instance, i.scheme, secret); err != nil {
+	if err := framework.SetOwner(i.instance, i.Scheme, secret); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(i.client).Create(secret); err != nil {
-		i.log.Error(err, "Error occurs while creating", "secret", secret)
+	if err := kubernetes.ResourceC(i.Client).Create(secret); err != nil {
+		i.Log.Error(err, "Error occurs while creating", "secret", secret)
 		return nil, err
 	}
-	i.log.Debug("Successfully created", "Secret", secret)
+	i.Log.Debug("Successfully created", "Secret", secret)
 	return secret, nil
 }
 
-func initMongoDBInfraReconciler(context targetContext) *mongoDBInfraReconciler {
-	context.log = context.log.WithValues("resource", "mongoDB")
-	return &mongoDBInfraReconciler{
-		targetContext: context,
-	}
+type mongoDBInfraReconciler struct {
+	infraContext
 }
 
-type mongoDBInfraReconciler struct {
-	targetContext
+func initMongoDBInfraReconciler(context infraContext) *mongoDBInfraReconciler {
+	context.Log = context.Log.WithValues("resource", "mongoDB")
+	return &mongoDBInfraReconciler{
+		infraContext: context,
+	}
 }
 
 // Reconcile reconcile Kogito infra object
 func (i *mongoDBInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	var mongoDBInstance *mongodb.MongoDB
-	mongoDBHandler := infrastructure.NewMongoDBHandler(i.client, i.log)
+	mongoDBHandler := infrastructure.NewMongoDBHandler(i.Context)
 	if !mongoDBHandler.IsMongoDBAvailable() {
 		return false, errorForResourceAPINotFound(i.instance.GetSpec().GetResource().APIVersion)
 	}
@@ -244,7 +244,7 @@ func (i *mongoDBInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	mongoDBName := i.instance.GetSpec().GetResource().Name
 	if len(mongoDBNamespace) == 0 {
 		mongoDBNamespace = i.instance.GetNamespace()
-		i.log.Debug("Namespace is not provided for infrastructure MongoDB resource", "instance", i.instance.GetName(), "namespace", mongoDBNamespace)
+		i.Log.Debug("Namespace is not provided for infrastructure MongoDB resource", "instance", i.instance.GetName(), "namespace", mongoDBNamespace)
 	}
 	if len(mongoDBName) == 0 {
 		return false, errorForResourceConfigError(i.instance, "No resource name given")
@@ -256,11 +256,11 @@ func (i *mongoDBInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 		return false, errorForResourceNotFound("MongoDB", i.instance.GetSpec().GetResource().Name, mongoDBNamespace)
 	}
 
-	i.log.Debug("Got MongoDB instance", "instance", mongoDBInstance)
+	i.Log.Debug("Got MongoDB instance", "instance", mongoDBInstance)
 	if mongoDBInstance.Status.Phase != mongodb.Running {
 		return false, errorForResourceNotReadyError(fmt.Errorf("mongoDB instance %s not ready. Waiting for Status.Phase == Running", mongoDBInstance.Name))
 	}
-	i.log.Info("MongoDB instance is running")
+	i.Log.Info("MongoDB instance is running")
 	if resultErr = i.updateMongoDBRuntimePropsInStatus(mongoDBInstance, api.QuarkusRuntimeType); resultErr != nil {
 		return true, resultErr
 	}
@@ -298,7 +298,7 @@ func (i *mongoDBInfraReconciler) retrieveMongoDBCredentialsFromInstance(cli *cli
 	if user == nil {
 		return nil, errorForResourceConfigError(kogitoInfra, fmt.Sprintf("No user found in MongoDB configuration for username %s and authentication database %s", creds.Username, creds.AuthDatabase))
 	}
-	i.log.Debug("Found", "user", user.Name, "authDB", user.DB, "password ref", user.PasswordSecretRef)
+	i.Log.Debug("Found", "user", user.Name, "authDB", user.DB, "password ref", user.PasswordSecretRef)
 
 	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: user.PasswordSecretRef.Name, Namespace: mongoDBInstance.Namespace}}
 	if exists, err := kubernetes.ResourceC(cli).Fetch(secret); err != nil {
@@ -306,7 +306,7 @@ func (i *mongoDBInfraReconciler) retrieveMongoDBCredentialsFromInstance(cli *cli
 	} else if !exists {
 		return nil, errorForResourceNotFound("Secret", user.PasswordSecretRef.Name, kogitoInfra.GetNamespace())
 	} else {
-		i.log.Debug("Found MongoDB secret", "password ref", user.PasswordSecretRef.Name)
+		i.Log.Debug("Found MongoDB secret", "password ref", user.PasswordSecretRef.Name)
 		passwordKey := infrastructure.DefaultMongoDBPasswordSecretRef
 		if user.PasswordSecretRef.Key != "" {
 			passwordKey = user.PasswordSecretRef.Key
@@ -318,7 +318,7 @@ func (i *mongoDBInfraReconciler) retrieveMongoDBCredentialsFromInstance(cli *cli
 }
 
 func (i *mongoDBInfraReconciler) findMongoDBUserByUsernameAndAuthDatabase(mongoDBInstance *mongodb.MongoDB, username, authDB string) *mongodb.MongoDBUser {
-	i.log.Debug("Looking info", "user", username, "password", authDB)
+	i.Log.Debug("Looking info", "user", username, "password", authDB)
 
 	for _, user := range mongoDBInstance.Spec.Users {
 		if user.DB == authDB {

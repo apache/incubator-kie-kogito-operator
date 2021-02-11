@@ -16,14 +16,14 @@ package connector
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -67,7 +67,12 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
 
-	urlHandler := NewURLHandler(cli, logger.GetLogger("test"), runtimeHandler, supportingServiceHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	err := urlHandler.InjectDataIndexURLIntoKogitoRuntimeServices(ns)
 	assert.NoError(t, err)
 
@@ -112,7 +117,12 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 	cli := test.NewFakeClientBuilder().AddK8sObjects(app, dc, jobs).Build()
 	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
-	urlHandler := NewURLHandler(cli, logger.GetLogger("test"), runtimeHandler, supportingServiceHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	err := urlHandler.InjectJobsServicesURLIntoKogitoRuntimeServices(t.Name())
 	assert.NoError(t, err)
 	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 0)
@@ -158,7 +168,12 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dc, app, jobs).Build()
 	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
-	urlHandler := NewURLHandler(cli, test.TestLogger, runtimeHandler, supportingServiceHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	// first we inject
 	err := urlHandler.InjectJobsServicesURLIntoKogitoRuntimeServices(t.Name())
 	assert.NoError(t, err)
@@ -206,7 +221,12 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, dc, trustyService).Build()
 	runtimeHandler := test.CreateFakeKogitoRuntimeHandler(cli)
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
-	urlHandler := NewURLHandler(cli, logger.GetLogger("test"), runtimeHandler, supportingServiceHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	err := urlHandler.InjectTrustyURLIntoKogitoRuntimeServices(ns)
 	assert.NoError(t, err)
 
@@ -298,8 +318,11 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			urlHandler := &urlHandler{
-				client:                   tt.args.client,
-				log:                      logger.GetLogger("test"),
+				Context: &operator.Context{
+					Client: tt.args.client,
+					Log:    test.TestLogger,
+					Scheme: test.GetRegisteredSchema(),
+				},
 				runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(tt.args.client),
 				supportingServiceHandler: tt.args.supportingServiceHandler,
 			}

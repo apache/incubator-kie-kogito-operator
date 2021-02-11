@@ -30,26 +30,26 @@ const (
 
 // explainabilitySupportingServiceResource implementation of SupportingServiceResource
 type explainabilitySupportingServiceResource struct {
-	targetContext
+	supportingServiceContext
 }
 
-func initExplainabilitySupportingServiceResource(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "explainability")
+func initExplainabilitySupportingServiceResource(context supportingServiceContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "explainability")
 	return &explainabilitySupportingServiceResource{
-		targetContext: context,
+		supportingServiceContext: context,
 	}
 }
 
 // Reconcile reconcile Explainability Service
 func (e *explainabilitySupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
-	e.log.Info("Reconciling KogitoExplainability")
+	e.Log.Info("Reconciling KogitoExplainability")
 	definition := kogitoservice.ServiceDefinition{
 		DefaultImageName: DefaultExplainabilityImageName,
 		Request:          controller.Request{NamespacedName: types.NamespacedName{Name: e.instance.GetName(), Namespace: e.instance.GetNamespace()}},
 		KafkaTopics:      explainabilitykafkaTopics,
 		HealthCheckProbe: kogitoservice.QuarkusHealthCheckProbe,
 	}
-	return kogitoservice.NewServiceDeployer(definition, e.instance, e.client, e.scheme, e.log, e.infraHandler).Deploy()
+	return kogitoservice.NewServiceDeployer(e.Context, definition, e.instance, e.infraHandler).Deploy()
 }
 
 // Collection of kafka topics that should be handled by the Explainability service

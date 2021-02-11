@@ -37,21 +37,21 @@ const (
 
 // dataIndexSupportingServiceResource implementation of SupportingServiceResource
 type dataIndexSupportingServiceResource struct {
-	targetContext
+	supportingServiceContext
 }
 
-func initDataIndexSupportingServiceResource(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "dataIndex")
+func initDataIndexSupportingServiceResource(context supportingServiceContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "dataIndex")
 	return &dataIndexSupportingServiceResource{
-		targetContext: context,
+		supportingServiceContext: context,
 	}
 }
 
 // Reconcile reconcile Data Index
 func (d *dataIndexSupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
-	d.log.Info("Reconciling for KogitoDataIndex")
+	d.Log.Info("Reconciling for KogitoDataIndex")
 
-	urlHandler := connector.NewURLHandler(d.client, d.log, d.runtimeHandler, d.supportingServiceHandler)
+	urlHandler := connector.NewURLHandler(d.Context, d.runtimeHandler, d.supportingServiceHandler)
 	if err = urlHandler.InjectDataIndexURLIntoKogitoRuntimeServices(d.instance.GetNamespace()); err != nil {
 		return
 	}
@@ -65,7 +65,7 @@ func (d *dataIndexSupportingServiceResource) Reconcile() (reconcileAfter time.Du
 		Request:            controller1.Request{NamespacedName: types.NamespacedName{Name: d.instance.GetName(), Namespace: d.instance.GetNamespace()}},
 		HealthCheckProbe:   kogitoservice.QuarkusHealthCheckProbe,
 	}
-	return kogitoservice.NewServiceDeployer(definition, d.instance, d.client, d.scheme, d.log, d.infraHandler).Deploy()
+	return kogitoservice.NewServiceDeployer(d.Context, definition, d.instance, d.infraHandler).Deploy()
 }
 
 // Collection of kafka topics that should be handled by the Data-Index service
@@ -79,13 +79,13 @@ var dataIndexKafkaTopics = []string{
 
 func (d *dataIndexSupportingServiceResource) dataIndexOnDeploymentCreate(deployment *appsv1.Deployment) error {
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		protoBufHandler := connector.NewProtoBufHandler(d.client, d.log, d.supportingServiceHandler)
+		protoBufHandler := connector.NewProtoBufHandler(d.Context, d.supportingServiceHandler)
 		if err := protoBufHandler.MountProtoBufConfigMapsOnDeployment(deployment); err != nil {
 			return err
 		}
 	} else {
-		d.log.Warn("No container definition found for", "Service", d.instance.GetName())
-		d.log.Warn("Skipping applying custom Data Index deployment configuration")
+		d.Log.Warn("No container definition found for", "Service", d.instance.GetName())
+		d.Log.Warn("Skipping applying custom Data Index deployment configuration")
 	}
 	return nil
 }

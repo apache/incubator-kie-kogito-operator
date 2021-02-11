@@ -29,19 +29,19 @@ type sourceManager struct {
 
 func (m *sourceManager) GetRequestedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	decoratorHandler := NewDecoratorHandler(m.log)
+	decoratorHandler := NewDecoratorHandler(m.Context)
 	builderBC := newBuildConfig(m.build, decoratorHandler.decoratorForSourceBuilder(), m.getBuilderDecorator())
 	runtimeBC := newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForSourceRuntimeBuilder())
 	builderIS := newOutputImageStreamForBuilder(&builderBC)
-	runtimeIS, err := newOutputImageStreamForRuntime(&runtimeBC, m.build, m.client, m.log)
+	runtimeIS, err := newOutputImageStreamForRuntime(m.Context, &runtimeBC, m.build)
 	if err != nil {
 		return resources, err
 	}
-	if err := framework.SetOwner(m.build, m.scheme, &builderBC, &runtimeBC, &builderIS); err != nil {
+	if err := framework.SetOwner(m.build, m.Scheme, &builderBC, &runtimeBC, &builderIS); err != nil {
 		return resources, err
 	}
 	// the runtime ImageStream is a shared resource among other KogitoBuild instances and KogitoRuntime, we can't own it
-	if err := framework.AddOwnerReference(m.build, m.scheme, runtimeIS); err != nil {
+	if err := framework.AddOwnerReference(m.build, m.Scheme, runtimeIS); err != nil {
 		return resources, err
 	}
 	resources[reflect.TypeOf(imgv1.ImageStream{})] = []resource.KubernetesResource{&builderIS, runtimeIS}
@@ -50,7 +50,7 @@ func (m *sourceManager) GetRequestedResources() (map[reflect.Type][]resource.Kub
 }
 
 func (m *sourceManager) getBuilderDecorator() decorator {
-	decoratorHandler := NewDecoratorHandler(m.log)
+	decoratorHandler := NewDecoratorHandler(m.Context)
 	if api.LocalSourceBuildType == m.build.GetSpec().GetType() {
 		return decoratorHandler.decoratorForLocalSourceBuilder()
 	}

@@ -15,9 +15,9 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,13 +28,15 @@ func TestReconcileKogitoSupportingServiceTaskConsole_Reconcile(t *testing.T) {
 	ns := t.Name()
 	instance := test.CreateFakeTaskConsole(ns)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
-
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &taskConsoleSupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:  context,
 			instance: instance,
-			client:   cli,
-			log:      logger.GetLogger("task console reconciler"),
-			scheme:   test.GetRegisteredSchema(),
 		},
 	}
 	// first reconciliation
@@ -57,13 +59,15 @@ func TestReconcileKogitoSupportingServiceTaskConsole_CustomImage(t *testing.T) {
 	instance := test.CreateFakeTaskConsole(ns)
 	instance.GetSpec().SetImage("quay.io/mynamespace/super-task-console:0.1.3")
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
-
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &taskConsoleSupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
 			instance: instance,
-			client:   cli,
-			log:      logger.GetLogger("task console reconciler"),
-			scheme:   test.GetRegisteredSchema(),
+			Context:  context,
 		},
 	}
 	requeueAfter, err := r.Reconcile()

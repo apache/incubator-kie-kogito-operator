@@ -28,17 +28,17 @@ type binaryManager struct {
 
 func (m *binaryManager) GetRequestedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	decoratorHandler := NewDecoratorHandler(m.log)
+	decoratorHandler := NewDecoratorHandler(m.Context)
 	buildConfig := newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForBinaryRuntimeBuilder())
-	imageStream, err := newOutputImageStreamForRuntime(&buildConfig, m.build, m.client, m.log)
+	imageStream, err := newOutputImageStreamForRuntime(m.Context, &buildConfig, m.build)
 	if err != nil {
 		return resources, err
 	}
-	if err := framework.SetOwner(m.build, m.scheme, &buildConfig); err != nil {
+	if err := framework.SetOwner(m.build, m.Scheme, &buildConfig); err != nil {
 		return resources, nil
 	}
 	// we share the ImageStream among others resources, that's why we won't own it
-	if err := framework.AddOwnerReference(m.build, m.scheme, imageStream); err != nil {
+	if err := framework.AddOwnerReference(m.build, m.Scheme, imageStream); err != nil {
 		return resources, nil
 	}
 	resources[reflect.TypeOf(buildv1.BuildConfig{})] = []resource.KubernetesResource{&buildConfig}

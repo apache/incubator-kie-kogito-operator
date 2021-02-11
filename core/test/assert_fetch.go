@@ -17,23 +17,22 @@ package test
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 // AssertFetchMustExist fetches the given object and verify if exists in the context without errors
-func AssertFetchMustExist(t *testing.T, client *client.Client, resource meta.ResourceObject) {
+func AssertFetchMustExist(t *testing.T, client *client.Client, resource kubernetes.ResourceObject) {
 	exists, err := kubernetes.ResourceC(client).Fetch(resource)
 	assert.NoError(t, err)
 	assert.True(t, exists)
 }
 
 // AssertFetchWithKeyMustExist fetches the given object with the defined key and verify if it exists in the context without errors
-func AssertFetchWithKeyMustExist(t *testing.T, client *client.Client, resource meta.ResourceObject, instance metav1.Object) {
+func AssertFetchWithKeyMustExist(t *testing.T, client *client.Client, resource kubernetes.ResourceObject, instance metav1.Object) {
 	exists, err := kubernetes.ResourceC(client).FetchWithKey(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}, resource)
 	assert.NoError(t, err)
 	assert.True(t, exists)

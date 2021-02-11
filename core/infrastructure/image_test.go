@@ -16,7 +16,7 @@ package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"testing"
 
@@ -27,7 +27,12 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 	ns := t.Name()
 	is, tag := test.CreateImageStreams("jobs-service", ns, "my-data-index", GetKogitoImageVersion())
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
-	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false, cli, logger.GetLogger("image"))
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false)
 	image, err := imageHandler.ResolveImage()
 	assert.NoError(t, err)
 	// since we have imagestream and tag, we should see them here
@@ -37,7 +42,12 @@ func Test_imageHandler_resolveImageOnOpenShiftWithImageStreamCreated(t *testing.
 func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T) {
 	ns := t.Name()
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
-	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false, cli, logger.GetLogger("image"))
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false)
 	image, err := imageHandler.ResolveImage()
 	assert.NoError(t, err)
 	// on OpenShift and no ImageStream? Bye!
@@ -47,7 +57,12 @@ func Test_imageHandler_resolveImageOnOpenShiftNoImageStreamCreated(t *testing.T)
 func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 	ns := t.Name()
 	cli := test.NewFakeClientBuilder().Build()
-	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false, cli, logger.GetLogger("image"))
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, false)
 	image, err := imageHandler.ResolveImage()
 	assert.NoError(t, err)
 	// we should always have an image available on Kubernetes
@@ -57,7 +72,12 @@ func Test_imageHandler_resolveImageOnKubernetes(t *testing.T) {
 func Test_imageHandler_newImageHandlerInsecureImageRegistry(t *testing.T) {
 	ns := t.Name()
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
-	imageHandler := NewImageHandler(&api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, true, cli, logger.GetLogger("image"))
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	imageHandler := NewImageHandler(context, &api.Image{Name: "jobs-service"}, "jobs-service", "jobs-service", ns, false, true)
 	imageStream, err := imageHandler.CreateImageStreamIfNotExists()
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(imageStream.Spec.Tags))

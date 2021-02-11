@@ -18,13 +18,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type messagingTopicType string
@@ -59,21 +56,18 @@ type MessagingDeployer interface {
 }
 
 type messagingDeployer struct {
-	scheme       *runtime.Scheme
-	cli          *client.Client
+	*operator.Context
 	definition   ServiceDefinition
-	log          logger.Logger
 	infraHandler api.KogitoInfraHandler
 }
 
 // NewKnativeMessagingDeployer ...
-func NewKnativeMessagingDeployer(cli *client.Client, scheme *runtime.Scheme, definition ServiceDefinition, log logger.Logger, infraHandler api.KogitoInfraHandler) MessagingDeployer {
+func NewKnativeMessagingDeployer(context *operator.Context, definition ServiceDefinition, infraHandler api.KogitoInfraHandler) MessagingDeployer {
+	context.Log = context.Log.WithValues("messaging", "knative")
 	return &knativeMessagingDeployer{
 		messagingDeployer: messagingDeployer{
-			scheme:       scheme,
-			cli:          cli,
+			Context:      context,
 			definition:   definition,
-			log:          log.WithValues("messaging", "knative"),
 			infraHandler: infraHandler,
 		},
 	}
@@ -81,20 +75,19 @@ func NewKnativeMessagingDeployer(cli *client.Client, scheme *runtime.Scheme, def
 
 // NewKafkaMessagingDeployer handles messaging resources creation.
 // These resources can be required by the deployed service through a bound KogitoInfra.
-func NewKafkaMessagingDeployer(cli *client.Client, scheme *runtime.Scheme, definition ServiceDefinition, log logger.Logger, infraHandler api.KogitoInfraHandler) MessagingDeployer {
+func NewKafkaMessagingDeployer(context *operator.Context, definition ServiceDefinition, infraHandler api.KogitoInfraHandler) MessagingDeployer {
+	context.Log = context.Log.WithValues("messaging", "kafka")
 	return &kafkaMessagingDeployer{
 		messagingDeployer: messagingDeployer{
-			scheme:       scheme,
-			cli:          cli,
+			Context:      context,
 			definition:   definition,
-			log:          log.WithValues("messaging", "kafka"),
 			infraHandler: infraHandler,
 		},
 	}
 }
 
 func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance api.KogitoService) ([]messagingTopic, error) {
-	kogitoServiceHandler := NewKogitoServiceHandler(m.log)
+	kogitoServiceHandler := NewKogitoServiceHandler(m.Context)
 	topics, err := m.fetchRequiredTopicsForURL(instance, kogitoServiceHandler.GetKogitoServiceEndpoint(instance))
 	if err != nil {
 		return nil, err
@@ -123,13 +116,13 @@ func (m *messagingDeployer) setCloudEventsStatus(instance api.KogitoService, top
 }
 
 func (m *messagingDeployer) fetchRequiredTopicsForURL(instance api.KogitoService, serverURL string) ([]messagingTopic, error) {
-	deploymentHandler := NewDeploymentHandler(m.cli, m.log)
+	deploymentHandler := NewDeploymentHandler(m.Context)
 	available, err := deploymentHandler.IsDeploymentAvailable(instance)
 	if err != nil {
 		return nil, err
 	}
 	if !available {
-		m.log.Debug("Deployment not available yet for KogitoService", "KogitoService", instance.GetName())
+		m.Log.Debug("Deployment not available yet for KogitoService", "KogitoService", instance.GetName())
 		return nil, nil
 	}
 	topicsURL := fmt.Sprintf("%s%s", serverURL, topicInfoPath)
@@ -152,7 +145,7 @@ func (m *messagingDeployer) fetchRequiredTopicsForURL(instance api.KogitoService
 }
 
 func (m *messagingDeployer) fetchInfraDependency(service api.KogitoService, checker func(api.KogitoInfraInterface) bool) (api.KogitoInfraInterface, error) {
-	infraManager := manager.NewKogitoInfraManager(m.cli, m.log, m.scheme, m.infraHandler)
+	infraManager := manager.NewKogitoInfraManager(m.Context, m.infraHandler)
 	for _, infraName := range service.GetSpec().GetInfra() {
 		infra, err := infraManager.MustFetchKogitoInfraInstance(types.NamespacedName{Name: infraName, Namespace: service.GetNamespace()})
 		if err != nil {

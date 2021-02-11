@@ -31,22 +31,22 @@ const (
 
 // jobsServiceSupportingServiceResource implementation of SupportingServiceResource
 type jobsServiceSupportingServiceResource struct {
-	targetContext
+	supportingServiceContext
 }
 
-func initJobsServiceSupportingServiceResource(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "jobsService")
+func initJobsServiceSupportingServiceResource(context supportingServiceContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "jobsService")
 	return &jobsServiceSupportingServiceResource{
-		targetContext: context,
+		supportingServiceContext: context,
 	}
 }
 
 // Reconcile reconcile Jobs service
 func (j *jobsServiceSupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
-	j.log.Info("Reconciling for KogitoJobsService")
+	j.Log.Info("Reconciling for KogitoJobsService")
 
 	// clean up variables if needed
-	urlHandler := connector.NewURLHandler(j.client, j.log, j.runtimeHandler, j.supportingServiceHandler)
+	urlHandler := connector.NewURLHandler(j.Context, j.runtimeHandler, j.supportingServiceHandler)
 	if err = urlHandler.InjectJobsServicesURLIntoKogitoRuntimeServices(j.instance.GetNamespace()); err != nil {
 		return
 	}
@@ -57,7 +57,7 @@ func (j *jobsServiceSupportingServiceResource) Reconcile() (reconcileAfter time.
 		HealthCheckProbe: kogitoservice.QuarkusHealthCheckProbe,
 		KafkaTopics:      jobsServicekafkaTopics,
 	}
-	return kogitoservice.NewServiceDeployer(definition, j.instance, j.client, j.scheme, j.log, j.infraHandler).Deploy()
+	return kogitoservice.NewServiceDeployer(j.Context, definition, j.instance, j.infraHandler).Deploy()
 }
 
 // Collection of kafka topics that should be handled by the Jobs service

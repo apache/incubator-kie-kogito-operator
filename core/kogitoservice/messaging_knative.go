@@ -17,11 +17,11 @@ package kogitoservice
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework/util"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	sourcesv1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
@@ -45,7 +45,7 @@ func (k *knativeMessagingDeployer) CreateRequiredResources(service api.KogitoSer
 
 	// since we depend on Knative, let's bind a SinkBinding object to our deployment
 	sinkBinding := k.newSinkBinding(service, infra)
-	if err := kubernetes.ResourceC(k.cli).CreateIfNotExistsForOwner(sinkBinding, service, k.scheme); err != nil {
+	if err := kubernetes.ResourceC(k.Client).CreateIfNotExistsForOwner(sinkBinding, service, k.Scheme); err != nil {
 		return err
 	}
 
@@ -68,7 +68,7 @@ func (k *knativeMessagingDeployer) createKnativeTriggerIfNotExists(topic messagi
 			return err
 		} else if !exists {
 			knativeRes := k.newTrigger(topic, service, infra)
-			if err := kubernetes.ResourceC(k.cli).CreateForOwner(knativeRes, service, k.scheme); err != nil {
+			if err := kubernetes.ResourceC(k.Client).CreateForOwner(knativeRes, service, k.Scheme); err != nil {
 				return err
 			}
 		}
@@ -94,8 +94,8 @@ func (k *knativeMessagingDeployer) newTrigger(t messagingTopic, service api.Kogi
 				Ref: &duckv1.KReference{
 					Name:       service.GetName(),
 					Namespace:  service.GetNamespace(),
-					Kind:       meta.KindService.Name,
-					APIVersion: meta.KindService.GroupVersion.Version,
+					Kind:       openshift.KindService.Name,
+					APIVersion: openshift.KindService.GroupVersion.Version,
 				},
 			},
 		},
@@ -134,8 +134,8 @@ func (k *knativeMessagingDeployer) newSinkBinding(service api.KogitoService, inf
 			},
 			BindingSpec: alpha1.BindingSpec{
 				Subject: tracker.Reference{
-					APIVersion: meta.KindDeployment.GroupVersion.String(),
-					Kind:       meta.KindDeployment.Name,
+					APIVersion: openshift.KindDeployment.GroupVersion.String(),
+					Kind:       openshift.KindDeployment.Name,
 					Namespace:  service.GetNamespace(),
 					Name:       service.GetName(),
 				},
@@ -150,7 +150,7 @@ func (k *knativeMessagingDeployer) triggerExists(t messagingTopic, service api.K
 		framework.LabelAppKey: service.GetName(),
 		topicIdentifier:       t.Name,
 	}
-	if err := kubernetes.ResourceC(k.cli).ListWithNamespaceAndLabel(service.GetNamespace(), triggers, labels); err != nil {
+	if err := kubernetes.ResourceC(k.Client).ListWithNamespaceAndLabel(service.GetNamespace(), triggers, labels); err != nil {
 		return false, err
 	}
 	for _, trigger := range triggers.Items {

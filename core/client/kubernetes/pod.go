@@ -18,7 +18,7 @@ import (
 	"context"
 	"io/ioutil"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -35,7 +35,6 @@ type pod struct {
 }
 
 func newPod(c *client.Client) PodInterface {
-	client.MustEnsureClient(c)
 	return &pod{
 		client: c,
 	}

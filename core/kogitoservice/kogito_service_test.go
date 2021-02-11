@@ -15,6 +15,7 @@
 package kogitoservice
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"testing"
 
@@ -23,7 +24,13 @@ import (
 
 func Test_GetKogitoServiceEndpoint(t *testing.T) {
 	service := test.CreateFakeDataIndex(t.Name())
-	kogitoServiceHandler := NewKogitoServiceHandler(test.TestLogger)
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	kogitoServiceHandler := NewKogitoServiceHandler(context)
 	actualURL := kogitoServiceHandler.GetKogitoServiceEndpoint(service)
 	assert.Equal(t, "http://"+service.GetName()+"."+t.Name(), actualURL)
 }

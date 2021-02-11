@@ -19,11 +19,10 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -41,19 +40,20 @@ type DeltaProcessor interface {
 }
 
 type deltaProcessor struct {
-	build  api.KogitoBuildInterface
-	client *client.Client
-	scheme *runtime.Scheme
-	log    logger.Logger
+	*operator.Context
+	build api.KogitoBuildInterface
 }
 
 // NewDeltaProcessor creates a new DeltaProcessor instance for the given KogitoBuild
-func NewDeltaProcessor(build api.KogitoBuildInterface, client *client.Client, scheme *runtime.Scheme, log logger.Logger) (DeltaProcessor, error) {
+func NewDeltaProcessor(context *operator.Context, build api.KogitoBuildInterface) (DeltaProcessor, error) {
 	setDefaults(build)
 	if err := sanityCheck(build); err != nil {
 		return nil, err
 	}
-	return &deltaProcessor{build: build, client: client, scheme: scheme, log: log}, nil
+	return &deltaProcessor{
+		Context: context,
+		build:   build,
+	}, nil
 }
 
 // setDefaults sets the default values for the given KogitoBuild
@@ -76,10 +76,8 @@ func sanityCheck(build api.KogitoBuildInterface) error {
 }
 
 type manager struct {
-	build  api.KogitoBuildInterface
-	client *client.Client
-	scheme *runtime.Scheme
-	log    logger.Logger
+	build api.KogitoBuildInterface
+	*operator.Context
 }
 
 type buildManager interface {
@@ -108,16 +106,16 @@ func (d *deltaProcessor) ProcessDelta() (resultErr error) {
 		if !delta.HasChanges() {
 			continue
 		}
-		d.log.Info("Updating kogito build", "Create", len(delta.Added), "Update", len(delta.Updated), "Delete", len(delta.Removed), "Instance", resourceType)
-		_, resultErr = kubernetes.ResourceC(d.client).CreateResources(delta.Added)
+		d.Log.Info("Updating kogito build", "Create", len(delta.Added), "Update", len(delta.Updated), "Delete", len(delta.Removed), "Instance", resourceType)
+		_, resultErr = kubernetes.ResourceC(d.Client).CreateResources(delta.Added)
 		if resultErr != nil {
 			return
 		}
-		_, resultErr = kubernetes.ResourceC(d.client).UpdateResources(deployed[resourceType], delta.Updated)
+		_, resultErr = kubernetes.ResourceC(d.Client).UpdateResources(deployed[resourceType], delta.Updated)
 		if resultErr != nil {
 			return
 		}
-		_, resultErr = kubernetes.ResourceC(d.client).DeleteResources(delta.Removed)
+		_, resultErr = kubernetes.ResourceC(d.Client).DeleteResources(delta.Removed)
 		if resultErr != nil {
 			return
 		}
@@ -133,24 +131,22 @@ func (d *deltaProcessor) ProcessDelta() (resultErr error) {
 
 func (d *deltaProcessor) getBuildManager() buildManager {
 	manager := manager{
-		build:  d.build,
-		client: d.client,
-		scheme: d.scheme,
-		log:    d.log,
+		Context: d.Context,
+		build:   d.build,
 	}
 	if api.LocalSourceBuildType == d.build.GetSpec().GetType() ||
 		api.RemoteSourceBuildType == d.build.GetSpec().GetType() {
-		manager.log = manager.log.WithValues("build_type", "source")
+		manager.Log = manager.Log.WithValues("build_type", "source")
 		return &sourceManager{manager}
 	}
 
-	manager.log = manager.log.WithValues("build_type", "binary")
+	manager.Log = manager.Log.WithValues("build_type", "binary")
 	return &binaryManager{manager}
 }
 
 func (m *manager) GetDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	objectTypes := []runtime.Object{&buildv1.BuildConfigList{}, &imgv1.ImageStreamList{}}
-	resources, err := kubernetes.ResourceC(m.client).ListAll(objectTypes, m.build.GetNamespace(), m.build)
+	resources, err := kubernetes.ResourceC(m.Client).ListAll(objectTypes, m.build.GetNamespace(), m.build)
 	if err != nil {
 		return nil, err
 	}
@@ -196,8 +192,8 @@ func (d *deltaProcessor) onBuildConfigChange(instance api.KogitoBuildInterface, 
 		for _, bc := range buildConfigs {
 			// building from source
 			if bc.GetName() == GetBuildBuilderName(instance) {
-				d.log.Info("Changes detected for build config, starting again", "Build Config", bc.GetName())
-				triggerHandler := NewTriggerHandler(d.client, d.log)
+				d.Log.Info("Changes detected for build config, starting again", "Build Config", bc.GetName())
+				triggerHandler := NewTriggerHandler(d.Context)
 				if err := triggerHandler.StartNewBuild(bc.(*buildv1.BuildConfig)); err != nil {
 					return err
 				}
@@ -210,7 +206,7 @@ func (d *deltaProcessor) onBuildConfigChange(instance api.KogitoBuildInterface, 
 // AddSharedImageStreamToResources adds the shared ImageStream in the given resource map.
 // Normally used during reconciliation phase to bring a not yet owned ImageStream to the deployed list.
 func (m *manager) addSharedImageStreamToResources(resources map[reflect.Type][]resource.KubernetesResource, name, ns string) error {
-	if m.client.IsOpenshift() {
+	if m.Client.IsOpenshift() {
 		// is the image already there?
 		for _, is := range resources[reflect.TypeOf(imgv1.ImageStream{})] {
 			if is.GetName() == name &&
@@ -219,7 +215,7 @@ func (m *manager) addSharedImageStreamToResources(resources map[reflect.Type][]r
 			}
 		}
 		// fetch the shared image
-		imageStreamHandler := infrastructure.NewImageStreamHandler(m.client, m.log)
+		imageStreamHandler := infrastructure.NewImageStreamHandler(m.Context)
 		sharedImageStream, err := imageStreamHandler.FetchImageStream(types.NamespacedName{Name: name, Namespace: ns})
 		if err != nil {
 			return err

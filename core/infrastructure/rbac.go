@@ -15,10 +15,8 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	v1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,40 +40,38 @@ type RBACHandler interface {
 }
 
 type rbacHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewRBACHandler ...
-func NewRBACHandler(client *client.Client, log logger.Logger) RBACHandler {
+func NewRBACHandler(context *operator.Context) RBACHandler {
 	return &rbacHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 func (r *rbacHandler) SetupRBAC(namespace string) (err error) {
 	// create service viewer role
-	if err = kubernetes.ResourceC(r.client).CreateIfNotExists(getServiceViewerRole(namespace)); err != nil {
-		r.log.Error(err, "Fail to create role for service viewer")
+	if err = kubernetes.ResourceC(r.Client).CreateIfNotExists(getServiceViewerRole(namespace)); err != nil {
+		r.Log.Error(err, "Fail to create role for service viewer")
 		return
 	}
 
 	// create service viewer service account
-	if err = kubernetes.ResourceC(r.client).CreateIfNotExists(getServiceViewerServiceAccount(namespace)); err != nil {
-		r.log.Error(err, "Fail to create service account for service viewer")
+	if err = kubernetes.ResourceC(r.Client).CreateIfNotExists(getServiceViewerServiceAccount(namespace)); err != nil {
+		r.Log.Error(err, "Fail to create service account for service viewer")
 		return
 	}
 
 	// create service viewer rolebinding
-	if err = kubernetes.ResourceC(r.client).CreateIfNotExists(getServiceViewerRoleBinding(namespace)); err != nil {
-		r.log.Error(err, "Fail to create role binding for service viewer")
+	if err = kubernetes.ResourceC(r.Client).CreateIfNotExists(getServiceViewerRoleBinding(namespace)); err != nil {
+		r.Log.Error(err, "Fail to create role binding for service viewer")
 		return
 	}
 	return
 }
 
-func getServiceViewerServiceAccount(namespace string) meta.ResourceObject {
+func getServiceViewerServiceAccount(namespace string) kubernetes.ResourceObject {
 	return &v1.ServiceAccount{
 		ObjectMeta: v12.ObjectMeta{
 			Name:      RuntimeServiceAccountName,
@@ -84,7 +80,7 @@ func getServiceViewerServiceAccount(namespace string) meta.ResourceObject {
 	}
 }
 
-func getServiceViewerRole(namespace string) meta.ResourceObject {
+func getServiceViewerRole(namespace string) kubernetes.ResourceObject {
 	return &rbac.Role{
 		ObjectMeta: v12.ObjectMeta{
 			Name:      roleName,
@@ -99,7 +95,7 @@ func getServiceViewerRole(namespace string) meta.ResourceObject {
 		},
 	}
 }
-func getServiceViewerRoleBinding(namespace string) meta.ResourceObject {
+func getServiceViewerRoleBinding(namespace string) kubernetes.ResourceObject {
 	return &rbac.RoleBinding{
 		ObjectMeta: v12.ObjectMeta{
 			Name:      roleBindingName,

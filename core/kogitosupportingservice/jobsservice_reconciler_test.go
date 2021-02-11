@@ -15,9 +15,9 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -26,13 +26,15 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 	ns := t.Name()
 	jobsService := test.CreateFakeJobsService(ns)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(jobsService).OnOpenShift().Build()
-
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &jobsServiceSupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:                  context,
 			instance:                 jobsService,
-			client:                   cli,
-			log:                      logger.GetLogger("jobsService reconciler"),
-			scheme:                   test.GetRegisteredSchema(),
 			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
 			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
 			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),

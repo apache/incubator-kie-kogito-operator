@@ -27,8 +27,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 )
 

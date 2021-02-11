@@ -16,12 +16,10 @@ package connector
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"path"
@@ -45,16 +43,14 @@ type ProtoBufHandler interface {
 }
 
 type protoBufHandler struct {
-	client                   *client.Client
-	log                      logger.Logger
+	*operator.Context
 	supportingServiceHandler api.KogitoSupportingServiceHandler
 }
 
 // NewProtoBufHandler ...
-func NewProtoBufHandler(client *client.Client, log logger.Logger, supportingServiceHandler api.KogitoSupportingServiceHandler) ProtoBufHandler {
+func NewProtoBufHandler(context *operator.Context, supportingServiceHandler api.KogitoSupportingServiceHandler) ProtoBufHandler {
 	return &protoBufHandler{
-		client:                   client,
-		log:                      log,
+		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,
 	}
 }
@@ -75,7 +71,7 @@ func (p *protoBufHandler) MountProtoBufConfigMapsOnDeployment(deployment *appsv1
 
 // MountProtoBufConfigMapOnDataIndex mounts protobuf configMaps from KogitoRuntime services into the given deployment instance of DataIndex
 func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(kogitoRuntime api.KogitoRuntimeInterface) (err error) {
-	supportingServiceManager := manager.NewKogitoSupportingServiceManager(p.client, p.log, p.supportingServiceHandler)
+	supportingServiceManager := manager.NewKogitoSupportingServiceManager(p.Context, p.supportingServiceHandler)
 	deployment, err := supportingServiceManager.FetchKogitoSupportingServiceDeployment(kogitoRuntime.GetNamespace(), api.DataIndex)
 	if err != nil || deployment == nil {
 		return
@@ -90,7 +86,7 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(kogitoRuntime api.Ko
 		appendProtoBufVolumeMountIntoDeployment(deployment, cm)
 	}
 	updateProtoBufPropInToDeploymentEnv(deployment)
-	return kubernetes.ResourceC(p.client).Update(deployment)
+	return kubernetes.ResourceC(p.Client).Update(deployment)
 }
 
 func appendProtoBufVolumeIntoDeployment(deployment *appsv1.Deployment, cm corev1.ConfigMap) {
@@ -147,7 +143,7 @@ func updateProtoBufPropInToDeploymentEnv(deployment *appsv1.Deployment) {
 // getProtoBufConfigMapsForAllRuntimeServices will return every configMap labeled as "protobuf=true" in the given namespace
 func (p *protoBufHandler) getProtoBufConfigMapsForAllRuntimeServices(namespace string) (*corev1.ConfigMapList, error) {
 	cms := &corev1.ConfigMapList{}
-	if err := kubernetes.ResourceC(p.client).ListWithNamespaceAndLabel(namespace, cms, map[string]string{ConfigMapProtoBufEnabledLabelKey: "true"}); err != nil {
+	if err := kubernetes.ResourceC(p.Client).ListWithNamespaceAndLabel(namespace, cms, map[string]string{ConfigMapProtoBufEnabledLabelKey: "true"}); err != nil {
 		return nil, err
 	}
 	return cms, nil
@@ -160,7 +156,7 @@ func (p *protoBufHandler) getProtoBufConfigMapsForSpecificRuntimeService(kogitoR
 		ConfigMapProtoBufEnabledLabelKey: "true",
 		framework.LabelAppKey:            kogitoRuntime.GetName(),
 	}
-	if err := kubernetes.ResourceC(p.client).ListWithNamespaceAndLabel(kogitoRuntime.GetNamespace(), cms, labelMaps); err != nil {
+	if err := kubernetes.ResourceC(p.Client).ListWithNamespaceAndLabel(kogitoRuntime.GetNamespace(), cms, labelMaps); err != nil {
 		return nil, err
 	}
 	return cms, nil

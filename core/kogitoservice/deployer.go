@@ -18,16 +18,15 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"time"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/record"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -78,27 +77,23 @@ type ServiceDeployer interface {
 }
 
 type serviceDeployer struct {
+	*operator.Context
 	definition   ServiceDefinition
 	instance     api.KogitoService
-	client       *client.Client
-	scheme       *runtime.Scheme
 	recorder     record.EventRecorder
-	log          logger.Logger
 	infraHandler api.KogitoInfraHandler
 }
 
 // NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
-func NewServiceDeployer(definition ServiceDefinition, serviceType api.KogitoService, cli *client.Client, scheme *runtime.Scheme, log logger.Logger, infraHandler api.KogitoInfraHandler) ServiceDeployer {
+func NewServiceDeployer(context *operator.Context, definition ServiceDefinition, serviceType api.KogitoService, infraHandler api.KogitoInfraHandler) ServiceDeployer {
 	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
 		panic("No Request provided for the Service Deployer")
 	}
 	return &serviceDeployer{
+		Context:      context,
 		definition:   definition,
 		instance:     serviceType,
-		client:       cli,
-		scheme:       scheme,
-		recorder:     newRecorder(scheme, definition.Request.Name),
-		log:          log,
+		recorder:     newRecorder(context.Scheme, definition.Request.Name),
 		infraHandler: infraHandler,
 	}
 }
@@ -120,7 +115,7 @@ func (s *serviceDeployer) Deploy() (time.Duration, error) {
 	var err error
 
 	// always updateStatus its status
-	statusHandler := NewStatusHandler(s.client, s.log)
+	statusHandler := NewStatusHandler(s.Context)
 	defer statusHandler.HandleStatusUpdate(s.instance, &err)
 
 	// we need to take ownership of the custom configmap provided
@@ -162,19 +157,19 @@ func (s *serviceDeployer) Deploy() (time.Duration, error) {
 		if !delta.HasChanges() {
 			continue
 		}
-		s.log.Info("Will", "create", len(delta.Added), "update", len(delta.Updated), "delete", len(delta.Removed), "resourceType", resourceType)
+		s.Log.Info("Will", "create", len(delta.Added), "update", len(delta.Updated), "delete", len(delta.Removed), "resourceType", resourceType)
 
-		if _, err = kubernetes.ResourceC(s.client).CreateResources(delta.Added); err != nil {
+		if _, err = kubernetes.ResourceC(s.Client).CreateResources(delta.Added); err != nil {
 			return s.getReconcileResultFor(err)
 		}
 		s.generateEventForDeltaResources("Created", resourceType, delta.Added)
 
-		if _, err = kubernetes.ResourceC(s.client).UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
+		if _, err = kubernetes.ResourceC(s.Client).UpdateResources(deployedResources[resourceType], delta.Updated); err != nil {
 			return s.getReconcileResultFor(err)
 		}
 		s.generateEventForDeltaResources("Updated", resourceType, delta.Updated)
 
-		if _, err = kubernetes.ResourceC(s.client).DeleteResources(delta.Removed); err != nil {
+		if _, err = kubernetes.ResourceC(s.Client).DeleteResources(delta.Removed); err != nil {
 			return s.getReconcileResultFor(err)
 		}
 		s.generateEventForDeltaResources("Removed", resourceType, delta.Removed)
@@ -192,12 +187,12 @@ func (s *serviceDeployer) Deploy() (time.Duration, error) {
 
 func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, resourceType reflect.Type, addedResources []resource.KubernetesResource) {
 	for _, newResource := range addedResources {
-		s.recorder.Eventf(s.client, s.instance, v1.EventTypeNormal, eventReason, "%s %s: %s", eventReason, resourceType.Name(), newResource.GetName())
+		s.recorder.Eventf(s.Client, s.instance, v1.EventTypeNormal, eventReason, "%s %s: %s", eventReason, resourceType.Name(), newResource.GetName())
 	}
 }
 
 func (s *serviceDeployer) takeCustomConfigMapOwnership() (requeueAfter time.Duration, err error) {
-	configMapHandler := infrastructure.NewConfigMapHandler(s.client, s.log, s.scheme, s.recorder)
+	configMapHandler := infrastructure.NewConfigMapHandler(s.Context, s.recorder)
 	if updated, err := configMapHandler.TakeConfigMapOwnership(types.NamespacedName{Name: s.instance.GetSpec().GetPropertiesConfigMap(), Namespace: s.getNamespace()}, s.instance); err != nil {
 		return 0, err
 	} else if !updated {
@@ -207,7 +202,7 @@ func (s *serviceDeployer) takeCustomConfigMapOwnership() (requeueAfter time.Dura
 }
 
 func (s *serviceDeployer) takeKogitoInfraOwnership() error {
-	infraManager := manager.NewKogitoInfraManager(s.client, s.log, s.scheme, s.infraHandler)
+	infraManager := manager.NewKogitoInfraManager(s.Context, s.infraHandler)
 	for _, infraName := range s.instance.GetSpec().GetInfra() {
 		if err := infraManager.TakeKogitoInfraOwnership(types.NamespacedName{Name: infraName, Namespace: s.getNamespace()}, s.instance); err != nil {
 			return err
@@ -219,8 +214,8 @@ func (s *serviceDeployer) takeKogitoInfraOwnership() error {
 // checkInfraDependencies verifies if every KogitoInfra resource have an ok status.
 func (s *serviceDeployer) checkInfraDependencies() error {
 	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
-	s.log.Debug("Going to fetch kogito infra properties", "infra name", kogitoInfraReferences)
-	infraManager := manager.NewKogitoInfraManager(s.client, s.log, s.scheme, s.infraHandler)
+	s.Log.Debug("Going to fetch kogito infra properties", "infra name", kogitoInfraReferences)
+	infraManager := manager.NewKogitoInfraManager(s.Context, s.infraHandler)
 	for _, infraName := range kogitoInfraReferences {
 		if isReady, err := infraManager.IsKogitoInfraReady(types.NamespacedName{Name: infraName, Namespace: s.getNamespace()}); err != nil {
 			return err
@@ -236,12 +231,12 @@ func (s *serviceDeployer) checkInfraDependencies() error {
 }
 
 func (s *serviceDeployer) configureMessaging() error {
-	kafkaMessagingDeployer := NewKafkaMessagingDeployer(s.client, s.scheme, s.definition, s.log, s.infraHandler)
+	kafkaMessagingDeployer := NewKafkaMessagingDeployer(s.Context, s.definition, s.infraHandler)
 	if err := kafkaMessagingDeployer.CreateRequiredResources(s.instance); err != nil {
 		return errorForMessaging(err)
 	}
 
-	knativeMessagingDeployer := NewKnativeMessagingDeployer(s.client, s.scheme, s.definition, s.log, s.infraHandler)
+	knativeMessagingDeployer := NewKnativeMessagingDeployer(s.Context, s.definition, s.infraHandler)
 	if err := knativeMessagingDeployer.CreateRequiredResources(s.instance); err != nil {
 		return errorForMessaging(err)
 	}
@@ -249,15 +244,15 @@ func (s *serviceDeployer) configureMessaging() error {
 }
 
 func (s *serviceDeployer) configureMonitoring() error {
-	prometheusManager := NewPrometheusManager(s.client, s.log, s.scheme)
+	prometheusManager := NewPrometheusManager(s.Context)
 	if err := prometheusManager.ConfigurePrometheus(s.instance); err != nil {
-		s.log.Error(err, "Could not deploy prometheus monitoring")
+		s.Log.Error(err, "Could not deploy prometheus monitoring")
 		return errorForMonitoring(err)
 	}
 
-	grafanaDashboardManager := NewGrafanaDashboardManager(s.client, s.log, s.scheme)
+	grafanaDashboardManager := NewGrafanaDashboardManager(s.Context)
 	if err := grafanaDashboardManager.ConfigureGrafanaDashboards(s.instance); err != nil {
-		s.log.Error(err, "Could not deploy grafana dashboards")
+		s.Log.Error(err, "Could not deploy grafana dashboards")
 		return errorForDashboards(err)
 	}
 

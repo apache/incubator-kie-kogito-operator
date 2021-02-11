@@ -16,9 +16,7 @@ package kogitosupportingservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"k8s.io/apimachinery/pkg/runtime"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"time"
 )
 
@@ -27,11 +25,9 @@ type Reconciler interface {
 	Reconcile() (reconcileAfter time.Duration, resultErr error)
 }
 
-type targetContext struct {
-	client                   *client.Client
+type supportingServiceContext struct {
+	*operator.Context
 	instance                 api.KogitoSupportingServiceInterface
-	scheme                   *runtime.Scheme
-	log                      logger.Logger
 	infraHandler             api.KogitoInfraHandler
 	supportingServiceHandler api.KogitoSupportingServiceHandler
 	runtimeHandler           api.KogitoRuntimeHandler
@@ -43,20 +39,16 @@ type ReconcilerHandler interface {
 }
 
 type reconcilerHandler struct {
-	client                   *client.Client
-	log                      logger.Logger
-	scheme                   *runtime.Scheme
+	*operator.Context
 	infraHandler             api.KogitoInfraHandler
 	supportingServiceHandler api.KogitoSupportingServiceHandler
 	runtimeHandler           api.KogitoRuntimeHandler
 }
 
 // NewReconcilerHandler ...
-func NewReconcilerHandler(cli *client.Client, log logger.Logger, scheme *runtime.Scheme, infraHandler api.KogitoInfraHandler, supportingServiceHandler api.KogitoSupportingServiceHandler, runtimeHandler api.KogitoRuntimeHandler) ReconcilerHandler {
+func NewReconcilerHandler(context *operator.Context, infraHandler api.KogitoInfraHandler, supportingServiceHandler api.KogitoSupportingServiceHandler, runtimeHandler api.KogitoRuntimeHandler) ReconcilerHandler {
 	return &reconcilerHandler{
-		client:                   cli,
-		log:                      log,
-		scheme:                   scheme,
+		Context:                  context,
 		infraHandler:             infraHandler,
 		supportingServiceHandler: supportingServiceHandler,
 		runtimeHandler:           runtimeHandler,
@@ -65,12 +57,10 @@ func NewReconcilerHandler(cli *client.Client, log logger.Logger, scheme *runtime
 
 // getKogitoInfraReconciler identify and return request kogito infra reconciliation logic on bases of information provided in kogitoInfra value
 func (k *reconcilerHandler) GetSupportingServiceReconciler(instance api.KogitoSupportingServiceInterface) Reconciler {
-	k.log.Debug("going to fetch related kogito supporting service resource")
-	context := targetContext{
-		client:                   k.client,
+	k.Log.Debug("going to fetch related kogito supporting service resource")
+	context := supportingServiceContext{
+		Context:                  k.Context,
 		instance:                 instance,
-		scheme:                   k.scheme,
-		log:                      k.log,
 		infraHandler:             k.infraHandler,
 		supportingServiceHandler: k.supportingServiceHandler,
 		runtimeHandler:           k.runtimeHandler,
@@ -78,7 +68,7 @@ func (k *reconcilerHandler) GetSupportingServiceReconciler(instance api.KogitoSu
 	return getSupportedResources(context)[instance.GetSupportingServiceSpec().GetServiceType()]
 }
 
-func getSupportedResources(context targetContext) map[api.ServiceType]Reconciler {
+func getSupportedResources(context supportingServiceContext) map[api.ServiceType]Reconciler {
 	return map[api.ServiceType]Reconciler{
 		api.DataIndex:      initDataIndexSupportingServiceResource(context),
 		api.Explainability: initExplainabilitySupportingServiceResource(context),

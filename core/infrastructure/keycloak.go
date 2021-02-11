@@ -16,8 +16,7 @@ package infrastructure
 
 import (
 	"github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 )
 
 const (
@@ -41,19 +40,17 @@ type KeycloakHandler interface {
 }
 
 type keycloakHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewKeycloakHandler ...
-func NewKeycloakHandler(client *client.Client, log logger.Logger) KeycloakHandler {
+func NewKeycloakHandler(context *operator.Context) KeycloakHandler {
 	return &keycloakHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 // IsKeycloakAvailable checks if Strimzi CRD is available in the cluster
 func (k *keycloakHandler) IsKeycloakAvailable() bool {
-	return k.client.HasServerGroup(keycloakServerGroup)
+	return k.Client.HasServerGroup(keycloakServerGroup)
 }

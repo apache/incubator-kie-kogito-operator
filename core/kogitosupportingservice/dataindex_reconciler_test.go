@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -29,12 +29,15 @@ func TestKogitoSupportingServiceDataIndex_Reconcile(t *testing.T) {
 	dataIndex.GetSpec().AddInfra(kogitoKafka.GetName())
 	dataIndex.GetSpec().AddInfra(kogitoInfinispan.GetName())
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dataIndex, kogitoKafka, kogitoInfinispan).OnOpenShift().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &dataIndexSupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:                  context,
 			instance:                 dataIndex,
-			client:                   cli,
-			log:                      logger.GetLogger("data index reconciler"),
-			scheme:                   test.GetRegisteredSchema(),
 			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
 			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
 			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),

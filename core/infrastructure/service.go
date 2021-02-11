@@ -17,7 +17,7 @@ package infrastructure
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,13 +29,13 @@ type ServiceHandler interface {
 }
 
 type serviceHandler struct {
-	log logger.Logger
+	*operator.Context
 }
 
 // NewServiceHandler ...
-func NewServiceHandler(log logger.Logger) ServiceHandler {
+func NewServiceHandler(context *operator.Context) ServiceHandler {
 	return &serviceHandler{
-		log: log,
+		context,
 	}
 }
 
@@ -43,7 +43,7 @@ func (s *serviceHandler) CreateService(instance api.KogitoService, deployment *a
 	ports := framework.ExtractPortsFromContainer(&deployment.Spec.Template.Spec.Containers[0])
 	if len(ports) == 0 {
 		// a service without port to expose doesn't exist
-		s.log.Warn("The deployment spec doesn't have any ports exposed. Won't be possible to create a new service.", "deployment", deployment.Name)
+		s.Log.Warn("The deployment spec doesn't have any ports exposed. Won't be possible to create a new service.", "deployment", deployment.Name)
 		return nil
 	}
 

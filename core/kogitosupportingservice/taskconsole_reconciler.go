@@ -32,30 +32,30 @@ const (
 
 // taskConsoleSupportingServiceResource implementation of SupportingServiceResource
 type taskConsoleSupportingServiceResource struct {
-	targetContext
+	supportingServiceContext
 }
 
-func initTaskConsoleSupportingServiceResource(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "task-console")
+func initTaskConsoleSupportingServiceResource(context supportingServiceContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "task-console")
 	return &taskConsoleSupportingServiceResource{
-		targetContext: context,
+		supportingServiceContext: context,
 	}
 }
 
 // Reconcile reconcile Task Console
 func (t *taskConsoleSupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
-	t.log.Info("Reconciling for KogitoTaskConsole")
+	t.Log.Info("Reconciling for KogitoTaskConsole")
 	definition := kogitoservice.ServiceDefinition{
 		DefaultImageName:   DefaultTaskConsoleImageName,
 		Request:            controller.Request{NamespacedName: types.NamespacedName{Name: t.instance.GetName(), Namespace: t.instance.GetNamespace()}},
 		SingleReplica:      false,
 		OnDeploymentCreate: t.taskConsoleOnDeploymentCreate,
 	}
-	return kogitoservice.NewServiceDeployer(definition, t.instance, t.client, t.scheme, t.log, t.infraHandler).Deploy()
+	return kogitoservice.NewServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
 }
 
 func (t *taskConsoleSupportingServiceResource) taskConsoleOnDeploymentCreate(deployment *appsv1.Deployment) error {
-	urlHandler := connector.NewURLHandler(t.client, t.log, t.runtimeHandler, t.supportingServiceHandler)
+	urlHandler := connector.NewURLHandler(t.Context, t.runtimeHandler, t.supportingServiceHandler)
 	if err := urlHandler.InjectDataIndexURLIntoDeployment(t.instance.GetNamespace(), deployment); err != nil {
 		return err
 	}

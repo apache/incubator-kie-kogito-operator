@@ -16,10 +16,11 @@ package controllers
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	kogitocli "github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
-	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -66,7 +67,14 @@ func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (
 	log := f.Log.WithValues("name", request.Name, "namespace", request.Namespace)
 	log.Info("Reconciling for KogitoSupportingService finalizer")
 
-	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(f.Client, log)
+	// create context
+	context := &operator.Context{
+		Client: f.Client,
+		Log:    log,
+		Scheme: f.Scheme,
+	}
+
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	instance, err := supportingServiceHandler.FetchKogitoSupportingService(request.NamespacedName)
 	if err != nil {
 		return
@@ -75,8 +83,8 @@ func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (
 		log.Debug("KogitoSupportingService instance not found. Going to return reconciliation request", "name", request.Name, "namespace", request.Namespace)
 		return
 	}
-	infraHandler := internal.NewKogitoInfraHandler(f.Client, f.Log)
-	finalizerHandler := kogitoservice.NewFinalizerHandler(f.Client, log, f.Scheme, infraHandler)
+	infraHandler := internal.NewKogitoInfraHandler(context)
+	finalizerHandler := kogitoservice.NewFinalizerHandler(context, infraHandler)
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR

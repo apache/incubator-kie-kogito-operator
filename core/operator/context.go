@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package meta has functions that creates and/or define meta information of Kubernetes/OpenShift objects
-package meta
+package operator
+
+import (
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"k8s.io/apimachinery/pkg/runtime"
+)
+
+// Context ...
+type Context struct {
+	Client *client.Client
+	Log    logger.Logger
+	Scheme *runtime.Scheme
+}

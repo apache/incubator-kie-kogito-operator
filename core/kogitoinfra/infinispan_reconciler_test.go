@@ -18,7 +18,7 @@ import (
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	"github.com/stretchr/testify/assert"
@@ -85,12 +85,14 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 		AddK8sObjects(kogitoInfra, deployedInfinispan, deployedCustomSecret, infinispanService, tlsSecret).
 		Build()
 
-	scheme := test.GetRegisteredSchema()
+	context := &operator.Context{
+		Client: client,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &infinispanInfraReconciler{
-		targetContext: targetContext{
-			client:   client,
-			scheme:   scheme,
-			log:      logger.GetLogger("kogito infra reconciler"),
+		infraContext: infraContext{
+			Context:  context,
 			instance: kogitoInfra,
 		},
 	}

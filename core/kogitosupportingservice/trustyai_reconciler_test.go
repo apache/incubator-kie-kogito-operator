@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -27,13 +27,15 @@ func TestReconcileKogitoSupportingTrusty_Reconcile(t *testing.T) {
 	instance := test.CreateFakeTrustyAIService(ns)
 	instance.GetSpec().AddInfra(kogitoKafka.GetName())
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka).OnOpenShift().Build()
-
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &trustyAISupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:                  context,
 			instance:                 instance,
-			client:                   cli,
-			log:                      logger.GetLogger("trusty ai reconciler"),
-			scheme:                   test.GetRegisteredSchema(),
 			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
 			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
 			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),

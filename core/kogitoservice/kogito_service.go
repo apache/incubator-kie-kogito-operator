@@ -17,7 +17,7 @@ package kogitoservice
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"os"
 )
 
@@ -31,13 +31,13 @@ type ServiceHandler interface {
 }
 
 type kogitoServiceHandler struct {
-	log logger.Logger
+	*operator.Context
 }
 
 // NewKogitoServiceHandler ...
-func NewKogitoServiceHandler(log logger.Logger) ServiceHandler {
+func NewKogitoServiceHandler(context *operator.Context) ServiceHandler {
 	return &kogitoServiceHandler{
-		log: log,
+		context,
 	}
 }
 
@@ -55,9 +55,9 @@ func (k *kogitoServiceHandler) GetKogitoServiceEndpoint(kogitoService api.Kogito
 
 // getKogitoServiceURL provides kogito service URL for given instance name
 func (k *kogitoServiceHandler) getKogitoServiceURL(service api.KogitoService) string {
-	k.log.Debug("Creating kogito service instance URL.")
+	k.Log.Debug("Creating kogito service instance URL.")
 	// resolves to http://servicename.mynamespace for example
 	serviceURL := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())
-	k.log.Debug("", "kogito service instance URL", serviceURL)
+	k.Log.Debug("", "kogito service instance URL", serviceURL)
 	return serviceURL
 }

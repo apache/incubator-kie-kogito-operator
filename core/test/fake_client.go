@@ -16,9 +16,7 @@ package test
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/core/test/api"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -35,6 +33,7 @@ type FakeClientBuilder interface {
 	AddImageObjects(imageObjs ...runtime.Object) FakeClientBuilder
 	AddBuildObjects(buildObjs ...runtime.Object) FakeClientBuilder
 	OnOpenShift() FakeClientBuilder
+	UseScheme(scheme *runtime.Scheme) FakeClientBuilder
 	SupportPrometheus() FakeClientBuilder
 	SupportOLM() FakeClientBuilder
 	Build() *client.Client
@@ -53,6 +52,7 @@ type fakeClientStruct struct {
 	openShift  bool
 	prometheus bool
 	olm        bool
+	scheme     *runtime.Scheme
 }
 
 // AddK8sObjects ...
@@ -89,10 +89,19 @@ func (f *fakeClientStruct) OnOpenShift() FakeClientBuilder {
 	return f
 }
 
+func (f *fakeClientStruct) UseScheme(scheme *runtime.Scheme) FakeClientBuilder {
+	f.scheme = scheme
+	return f
+}
+
 // Build ...
 func (f *fakeClientStruct) Build() *client.Client {
 	// Create a fake client to mock API calls.
-	cli := fake.NewFakeClientWithScheme(GetRegisteredSchema(), f.objects...)
+	scheme := f.scheme
+	if scheme == nil {
+		scheme = GetRegisteredSchema()
+	}
+	cli := fake.NewFakeClientWithScheme(scheme, f.objects...)
 	// OpenShift Image Client Fake with image tag defined and image built
 	imgCli := imgfake.NewSimpleClientset(f.imageObjs...).ImageV1()
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase
@@ -104,17 +113,6 @@ func (f *fakeClientStruct) Build() *client.Client {
 		ImageCli:   imgCli,
 		Discovery:  f.createFakeDiscoveryClient(),
 	}
-}
-
-// GetRegisteredSchema ...
-func GetRegisteredSchema() *runtime.Scheme {
-	s := meta.GetRegisteredSchema()
-	err := api.AddToScheme(s)
-	if err != nil {
-		panic(err)
-	}
-	metav1.AddToGroupVersion(s, api.GroupVersion)
-	return s
 }
 
 // CreateFakeClient will create a fake client for mock test on Kubernetes env, use cases that depends on OpenShift should use CreateFakeClientOnOpenShift

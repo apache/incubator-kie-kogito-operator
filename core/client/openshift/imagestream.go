@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 
 	dockerv10 "github.com/openshift/api/image/docker10"
 	imgv1 "github.com/openshift/api/image/v1"
@@ -51,7 +51,6 @@ type ImageStreamInterface interface {
 }
 
 func newImageStream(c *client.Client) ImageStreamInterface {
-	client.MustEnsureClient(c)
 	return &imageStream{
 		client: c,
 	}

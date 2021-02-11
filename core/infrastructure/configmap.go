@@ -16,13 +16,11 @@ package infrastructure
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/record"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -32,39 +30,35 @@ type ConfigMapHandler interface {
 }
 
 type configMapHandler struct {
-	client   *client.Client
-	log      logger.Logger
-	scheme   *runtime.Scheme
+	*operator.Context
 	recorder record.EventRecorder
 }
 
 // NewConfigMapHandler ...
-func NewConfigMapHandler(client *client.Client, log logger.Logger, scheme *runtime.Scheme, recorder record.EventRecorder) ConfigMapHandler {
+func NewConfigMapHandler(context *operator.Context, recorder record.EventRecorder) ConfigMapHandler {
 	return &configMapHandler{
-		client:   client,
-		log:      log,
-		scheme:   scheme,
+		Context:  context,
 		recorder: recorder,
 	}
 }
 
 func (s *configMapHandler) TakeConfigMapOwnership(key types.NamespacedName, owner resource.KubernetesResource) (updated bool, err error) {
 	cm := &corev1.ConfigMap{}
-	exists, err := kubernetes.ResourceC(s.client).FetchWithKey(key, cm)
+	exists, err := kubernetes.ResourceC(s.Client).FetchWithKey(key, cm)
 	if err != nil {
 		return
 	}
 	if !exists {
-		s.recorder.Eventf(s.client, owner, corev1.EventTypeWarning, "NotExists", "ConfigMap %s does not exist", key.Name)
+		s.recorder.Eventf(s.Client, owner, corev1.EventTypeWarning, "NotExists", "ConfigMap %s does not exist", key.Name)
 		return
 	}
 	if framework.IsOwner(cm, owner) {
 		return
 	}
-	if err = framework.AddOwnerReference(owner, s.scheme, cm); err != nil {
+	if err = framework.AddOwnerReference(owner, s.Scheme, cm); err != nil {
 		return
 	}
-	if err = kubernetes.ResourceC(s.client).Update(cm); err != nil {
+	if err = kubernetes.ResourceC(s.Client).Update(cm); err != nil {
 		return
 	}
 	return true, nil

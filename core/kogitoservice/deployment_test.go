@@ -16,6 +16,7 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"testing"
 
@@ -28,7 +29,12 @@ func Test_createRequiredDeployment_CheckQuarkusProbe(t *testing.T) {
 	dataIndex := test.CreateFakeDataIndex(t.Name())
 	serviceDef := ServiceDefinition{HealthCheckProbe: QuarkusHealthCheckProbe}
 	cli := test.NewFakeClientBuilder().Build()
-	deploymentHandler := NewDeploymentHandler(cli, test.TestLogger)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	deploymentHandler := NewDeploymentHandler(context)
 	deployment := deploymentHandler.CreateRequiredDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe)
@@ -43,7 +49,12 @@ func Test_createRequiredDeployment_CheckDefaultProbe(t *testing.T) {
 	dataIndex := test.CreateFakeDataIndex(t.Name())
 	serviceDef := ServiceDefinition{}
 	cli := test.NewFakeClientBuilder().Build()
-	deploymentHandler := NewDeploymentHandler(cli, test.TestLogger)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	deploymentHandler := NewDeploymentHandler(context)
 	deployment := deploymentHandler.CreateRequiredDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.NotNil(t, deployment.Spec.Template.Spec.Containers[0].ReadinessProbe)
@@ -58,7 +69,12 @@ func Test_createRequiredDeployment_CheckNilEnvs(t *testing.T) {
 	dataIndex := test.CreateFakeDataIndex(t.Name())
 	serviceDef := ServiceDefinition{}
 	cli := test.NewFakeClientBuilder().Build()
-	deploymentHandler := NewDeploymentHandler(cli, test.TestLogger)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	deploymentHandler := NewDeploymentHandler(context)
 	deployment := deploymentHandler.CreateRequiredDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Env)

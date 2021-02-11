@@ -16,6 +16,7 @@ package client
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
@@ -35,6 +36,8 @@ func NewClientBuilder() Builder {
 type Builder interface {
 	// UseConfig sets the restconfig to use for the different CLIs
 	UseConfig(kubeconfig *restclient.Config) Builder
+	// UseScheme sets the scheme
+	UseScheme(scheme *runtime.Scheme) Builder
 	// UseControllerClient sets a specific controllerclient
 	UseControllerClient(controllerClient controllercli.Client) Builder
 	// UseControllerDynamicMapper will set a dynamic mapper to the constructed controller client. Cannot be used with `UseControllerClient`
@@ -58,6 +61,7 @@ type Builder interface {
 // Builder wraps information about what to create for a client before building it
 type builderStruct struct {
 	config        *restclient.Config
+	scheme        *runtime.Scheme
 	controllerCli controllercli.Client
 
 	useControllerDynamicMapper bool
@@ -71,6 +75,11 @@ type builderStruct struct {
 
 func (builder *builderStruct) UseConfig(kubeconfig *restclient.Config) Builder {
 	builder.config = kubeconfig
+	return builder
+}
+
+func (builder *builderStruct) UseScheme(scheme *runtime.Scheme) Builder {
+	builder.scheme = scheme
 	return builder
 }
 
@@ -133,7 +142,12 @@ func (builder *builderStruct) Build() (*Client, error) {
 
 	client.ControlCli = builder.controllerCli
 	if client.ControlCli == nil {
-		client.ControlCli, err = newKubeClient(config, builder.useControllerDynamicMapper)
+
+		scheme := builder.scheme
+		if scheme == nil {
+			return nil, fmt.Errorf("scheme not provided")
+		}
+		client.ControlCli, err = newKubeClient(config, scheme, builder.useControllerDynamicMapper)
 		if err != nil {
 			return nil, fmt.Errorf("Impossible to create new Kubernetes client: %v", err)
 		}

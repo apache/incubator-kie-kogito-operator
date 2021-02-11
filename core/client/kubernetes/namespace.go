@@ -17,7 +17,7 @@ package kubernetes
 import (
 	"context"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,10 +36,6 @@ type namespace struct {
 }
 
 func newNamespace(c *client.Client) *namespace {
-	if c == nil {
-		c = &client.Client{}
-	}
-	c.ControlCli = client.MustEnsureClient(c)
 	return &namespace{
 		client: c,
 	}

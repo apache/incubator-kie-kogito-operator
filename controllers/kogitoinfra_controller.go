@@ -17,6 +17,7 @@ package controllers
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoinfra"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -24,7 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -58,8 +59,15 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
 	log.Info("Reconciling KogitoInfra")
 
+	// create context
+	context := &operator.Context{
+		Client: r.Client,
+		Log:    log,
+		Scheme: r.Scheme,
+	}
+
 	// Fetch the KogitoInfra instance
-	infraHandler := internal.NewKogitoInfraHandler(r.Client, log)
+	infraHandler := internal.NewKogitoInfraHandler(context)
 	instance, resultErr := infraHandler.FetchKogitoInfraInstance(req.NamespacedName)
 	if resultErr != nil {
 		return reconcile.Result{}, resultErr
@@ -69,10 +77,10 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return reconcile.Result{}, nil
 	}
 
-	statusHandler := kogitoinfra.NewStatusHandler(r.Client, log)
+	statusHandler := kogitoinfra.NewStatusHandler(context)
 	defer statusHandler.UpdateBaseStatus(instance, &resultErr)
 
-	reconcilerHandler := kogitoinfra.NewReconcilerHandler(r.Client, log)
+	reconcilerHandler := kogitoinfra.NewReconcilerHandler(context)
 	reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance, r.Scheme)
 	if resultErr != nil {
 		return reconcilerHandler.GetReconcileResultFor(resultErr, false)

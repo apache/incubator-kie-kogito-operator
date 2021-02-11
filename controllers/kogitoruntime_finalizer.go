@@ -16,10 +16,11 @@ package controllers
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	kogitocli "github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
-	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -65,7 +66,14 @@ func (f *FinalizeKogitoRuntime) Reconcile(request reconcile.Request) (result rec
 	log := f.Log.WithValues("name", request.Name, "namespace", request.Namespace)
 	log.Info("Reconciling KogitoRuntime finalizer")
 
-	runtimeHandler := internal.NewKogitoRuntimeHandler(f.Client, log)
+	// create context
+	context := &operator.Context{
+		Client: f.Client,
+		Log:    log,
+		Scheme: f.Scheme,
+	}
+
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
 	instance, err := runtimeHandler.FetchKogitoRuntimeInstance(request.NamespacedName)
 	if err != nil {
 		return
@@ -75,8 +83,8 @@ func (f *FinalizeKogitoRuntime) Reconcile(request reconcile.Request) (result rec
 		return
 	}
 
-	infraHandler := internal.NewKogitoInfraHandler(f.Client, f.Log)
-	finalizerHandler := kogitoservice.NewFinalizerHandler(f.Client, log, f.Scheme, infraHandler)
+	infraHandler := internal.NewKogitoInfraHandler(context)
+	finalizerHandler := kogitoservice.NewFinalizerHandler(context, infraHandler)
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR

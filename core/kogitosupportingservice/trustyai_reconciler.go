@@ -31,20 +31,20 @@ const (
 
 // trustyAISupportingServiceResource implementation of SupportingServiceResource
 type trustyAISupportingServiceResource struct {
-	targetContext
+	supportingServiceContext
 }
 
-func initTrustyAISupportingServiceResource(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "trusty-AI")
+func initTrustyAISupportingServiceResource(context supportingServiceContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "trusty-AI")
 	return &trustyAISupportingServiceResource{
-		targetContext: context,
+		supportingServiceContext: context,
 	}
 }
 
 // Reconcile reconcile TrustyAI Service
 func (t *trustyAISupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
-	t.log.Info("Reconciling for KogitoTrusty")
-	urlHandler := connector.NewURLHandler(t.client, t.log, t.runtimeHandler, t.supportingServiceHandler)
+	t.Log.Info("Reconciling for KogitoTrusty")
+	urlHandler := connector.NewURLHandler(t.Context, t.runtimeHandler, t.supportingServiceHandler)
 	if err = urlHandler.InjectTrustyURLIntoKogitoRuntimeServices(t.instance.GetNamespace()); err != nil {
 		return
 	}
@@ -54,7 +54,7 @@ func (t *trustyAISupportingServiceResource) Reconcile() (reconcileAfter time.Dur
 		KafkaTopics:      trustyAiKafkaTopics,
 		HealthCheckProbe: kogitoservice.QuarkusHealthCheckProbe,
 	}
-	return kogitoservice.NewServiceDeployer(definition, t.instance, t.client, t.scheme, t.log, t.infraHandler).Deploy()
+	return kogitoservice.NewServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
 }
 
 // Collection of kafka topics that should be handled by the Trusty service

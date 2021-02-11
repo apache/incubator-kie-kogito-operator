@@ -15,9 +15,9 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,12 +28,15 @@ func TestReconcileKogitoSupportingServiceTrustyUI_Reconcile(t *testing.T) {
 	ns := t.Name()
 	instance := test.CreateFakeTrustyUIService(ns)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &trustyUISupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
 			instance: instance,
-			client:   cli,
-			log:      logger.GetLogger("trusty ui reconciler"),
-			scheme:   test.GetRegisteredSchema(),
+			Context:  context,
 		},
 	}
 
@@ -58,13 +61,15 @@ func TestReconcileKogitoTrustyUI_CustomImage(t *testing.T) {
 	instance := test.CreateFakeTrustyUIService(ns)
 	instance.GetSpec().SetImage("quay.io/mynamespace/awesome-trusty-ui:0.1.3")
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
-
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &trustyUISupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:  context,
 			instance: instance,
-			client:   cli,
-			log:      logger.GetLogger("trusty ui reconciler"),
-			scheme:   test.GetRegisteredSchema(),
 		},
 	}
 	requeueAfter, err := r.Reconcile()

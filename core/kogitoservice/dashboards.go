@@ -19,13 +19,11 @@ import (
 	"fmt"
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"net/http"
 	"strings"
 )
@@ -41,9 +39,7 @@ type GrafanaDashboardManager interface {
 }
 
 type grafanaDashboardManager struct {
-	client *client.Client
-	log    logger.Logger
-	scheme *runtime.Scheme
+	*operator.Context
 }
 
 // GrafanaDashboard is a structure that contains the fetched dashboards
@@ -53,18 +49,16 @@ type GrafanaDashboard struct {
 }
 
 // NewGrafanaDashboardManager ...
-func NewGrafanaDashboardManager(client *client.Client, log logger.Logger, scheme *runtime.Scheme) GrafanaDashboardManager {
+func NewGrafanaDashboardManager(context *operator.Context) GrafanaDashboardManager {
 	return &grafanaDashboardManager{
-		client: client,
-		log:    log,
-		scheme: scheme,
+		context,
 	}
 }
 
 func (d *grafanaDashboardManager) ConfigureGrafanaDashboards(kogitoService api.KogitoService) error {
 	grafanaAvailable := d.isGrafanaAvailable()
 	if !grafanaAvailable {
-		d.log.Debug("grafana operator not available in namespace")
+		d.Log.Debug("grafana operator not available in namespace")
 		return nil
 	}
 
@@ -79,21 +73,21 @@ func (d *grafanaDashboardManager) ConfigureGrafanaDashboards(kogitoService api.K
 
 // isPrometheusAvailable checks if Prometheus CRD is available in the cluster
 func (d *grafanaDashboardManager) isGrafanaAvailable() bool {
-	return d.client.HasServerGroup(grafanav1.SchemeGroupVersion.Group)
+	return d.Client.HasServerGroup(grafanav1.SchemeGroupVersion.Group)
 }
 
 func (d *grafanaDashboardManager) fetchGrafanaDashboards(instance api.KogitoService) ([]GrafanaDashboard, error) {
-	deploymentHandler := NewDeploymentHandler(d.client, d.log)
+	deploymentHandler := NewDeploymentHandler(d.Context)
 	available, err := deploymentHandler.IsDeploymentAvailable(instance)
 	if err != nil {
 		return nil, err
 	}
 	if !available {
-		d.log.Debug("Deployment not yet available")
+		d.Log.Debug("Deployment not yet available")
 		return nil, nil
 	}
 
-	kogitoServiceHandler := NewKogitoServiceHandler(d.log)
+	kogitoServiceHandler := NewKogitoServiceHandler(d.Context)
 	svcURL := kogitoServiceHandler.GetKogitoServiceEndpoint(instance)
 	dashboardNames, err := d.fetchGrafanaDashboardNamesForURL(svcURL)
 	if err != nil {
@@ -111,7 +105,7 @@ func (d *grafanaDashboardManager) fetchGrafanaDashboardNamesForURL(serverURL str
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		d.log.Debug("Dashboard list not found, the monitoring addon is disabled on the service. There are no dashboards to deploy.")
+		d.Log.Debug("Dashboard list not found, the monitoring addon is disabled on the service. There are no dashboards to deploy.")
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -146,7 +140,7 @@ func (d *grafanaDashboardManager) fetchDashboard(name, dashboardURL string) (*Gr
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		d.log.Debug("Dashboard not found, ignoring the resource.", "dashboard name", name)
+		d.Log.Debug("Dashboard not found, ignoring the resource.", "dashboard name", name)
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -154,7 +148,7 @@ func (d *grafanaDashboardManager) fetchDashboard(name, dashboardURL string) (*Gr
 	}
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		d.log.Error(err, "Error in reading")
+		d.Log.Error(err, "Error in reading")
 		return nil, err
 	}
 	return &GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)}, nil
@@ -176,8 +170,8 @@ func (d *grafanaDashboardManager) deployGrafanaDashboards(dashboards []GrafanaDa
 				Name: dashboard.Name,
 			},
 		}
-		if err := kubernetes.ResourceC(d.client).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, d.scheme); err != nil {
-			d.log.Error(err, "Error occurs while creating dashboard, not going to reconcile the resource", "dashboard name", dashboard.Name)
+		if err := kubernetes.ResourceC(d.Client).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, d.Scheme); err != nil {
+			d.Log.Error(err, "Error occurs while creating dashboard, not going to reconcile the resource", "dashboard name", dashboard.Name)
 			return err
 		}
 	}

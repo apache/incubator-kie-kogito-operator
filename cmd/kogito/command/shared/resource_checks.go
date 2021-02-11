@@ -19,11 +19,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"k8s.io/apimachinery/pkg/types"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -176,8 +177,13 @@ func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client,
 	coreLogger := logger.GetLogger("cli_kogito_infra")
 	coreLogger = coreLogger.WithValues("name", name, "namespace", namespace)
 
-	infraHandler := internal.NewKogitoInfraHandler(kubeCli, coreLogger)
-	infraManager := manager.NewKogitoInfraManager(kubeCli, coreLogger, nil, infraHandler)
+	context := &operator.Context{
+		Client: kubeCli,
+		Log:    coreLogger,
+		Scheme: internal.GetRegisteredSchema(),
+	}
+	infraHandler := internal.NewKogitoInfraHandler(context)
+	infraManager := manager.NewKogitoInfraManager(context, infraHandler)
 	_, err := infraManager.MustFetchKogitoInfraInstance(types.NamespacedName{Name: name, Namespace: namespace})
 	return err
 }

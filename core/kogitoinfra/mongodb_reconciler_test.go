@@ -17,7 +17,7 @@ package kogitoinfra
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	"testing"
@@ -89,9 +89,12 @@ func TestRetrieveMongoDBCredentialsFromInstance(t *testing.T) {
 			}
 			cli := test.NewFakeClientBuilder().AddK8sObjects(mongoDBInstance, secret).Build()
 			reconciler := mongoDBInfraReconciler{
-				targetContext: targetContext{
-					client: cli,
-					log:    logger.GetLogger("mongoDB reconciler"),
+				infraContext: infraContext{
+					Context: &operator.Context{
+						Client: cli,
+						Log:    test.TestLogger,
+						Scheme: test.GetRegisteredSchema(),
+					},
 				},
 			}
 

@@ -18,13 +18,12 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
 	"strings"
 
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	imgv1 "github.com/openshift/api/image/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -82,15 +81,13 @@ type ImageStreamHandler interface {
 }
 
 type imageStreamHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewImageSteamHandler ...
-func NewImageSteamHandler(client *client.Client, log logger.Logger) ImageStreamHandler {
+func NewImageSteamHandler(context *operator.Context) ImageStreamHandler {
 	return &imageStreamHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
@@ -116,7 +113,7 @@ func (k *imageStreamHandler) CreateRequiredKogitoImageStreams(build api.KogitoBu
 func (k *imageStreamHandler) createRequiredKogitoImageStreamTag(requiredStream imgv1.ImageStream) (created bool, err error) {
 	created = false
 	deployedStream := &imgv1.ImageStream{ObjectMeta: metav1.ObjectMeta{Name: requiredStream.Name, Namespace: requiredStream.Namespace}}
-	exists, err := kubernetes.ResourceC(k.client).Fetch(deployedStream)
+	exists, err := kubernetes.ResourceC(k.Client).Fetch(deployedStream)
 	tagExists := false
 	if err != nil {
 		return created, err
@@ -131,7 +128,7 @@ func (k *imageStreamHandler) createRequiredKogitoImageStreamTag(requiredStream i
 	}
 	// nor tag nor image stream exists, we can safely create a new one for us
 	if !tagExists && !exists {
-		if err := kubernetes.ResourceC(k.client).Create(&requiredStream); err != nil {
+		if err := kubernetes.ResourceC(k.Client).Create(&requiredStream); err != nil {
 			// double check since the object could've been created in another thread
 			if errors.IsAlreadyExists(err) {
 				exists = true
@@ -146,7 +143,7 @@ func (k *imageStreamHandler) createRequiredKogitoImageStreamTag(requiredStream i
 	// the required tag is not there, let's just add the required tag and move on
 	if !tagExists && exists {
 		deployedStream.Spec.Tags = append(deployedStream.Spec.Tags, requiredStream.Spec.Tags...)
-		if err := kubernetes.ResourceC(k.client).Update(deployedStream); err != nil {
+		if err := kubernetes.ResourceC(k.Client).Update(deployedStream); err != nil {
 			return created, err
 		}
 		created = true
@@ -316,9 +313,9 @@ func newOutputImageStreamForBuilder(bc *buildv1.BuildConfig) imgv1.ImageStream {
 
 // newOutputImageStreamForRuntime creates a new image stream for the Runtime
 // if one image stream is found in the namespace managed by other resources such as KogitoRuntime or other KogitoBuild, we add ourselves in the owner references
-func newOutputImageStreamForRuntime(bc *buildv1.BuildConfig, build api.KogitoBuildInterface, client *client.Client, log logger.Logger) (*imgv1.ImageStream, error) {
+func newOutputImageStreamForRuntime(context *operator.Context, bc *buildv1.BuildConfig, build api.KogitoBuildInterface) (*imgv1.ImageStream, error) {
 	isName, tag := getOutputImageStreamNameTag(bc)
-	imageHandler := newImageHandlerForBuiltServices(isName, tag, build.GetNamespace(), client, log)
+	imageHandler := newImageHandlerForBuiltServices(context, isName, tag, build.GetNamespace())
 	imageStream, err := imageHandler.CreateImageStreamIfNotExists()
 	if err != nil {
 		return nil, err
@@ -327,10 +324,10 @@ func newOutputImageStreamForRuntime(bc *buildv1.BuildConfig, build api.KogitoBui
 }
 
 // NewImageHandlerForBuiltServices creates a new handler for Kogito Services being built
-func newImageHandlerForBuiltServices(isName, tag, namespace string, cli *client.Client, log logger.Logger) infrastructure.ImageHandler {
+func newImageHandlerForBuiltServices(context *operator.Context, isName, tag, namespace string) infrastructure.ImageHandler {
 	image := &api.Image{
 		Name: isName,
 		Tag:  tag,
 	}
-	return infrastructure.NewImageHandler(image, image.Name, image.Name, namespace, false, false, cli, log)
+	return infrastructure.NewImageHandler(context, image, image.Name, image.Name, namespace, false, false)
 }

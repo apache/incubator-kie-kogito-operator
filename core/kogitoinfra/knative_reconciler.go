@@ -20,21 +20,21 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func initknativeInfraReconciler(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "knative")
-	return &knativeInfraReconciler{
-		targetContext: context,
-	}
-}
-
 // knativeInfraReconciler for Knative resources reconciliation
 type knativeInfraReconciler struct {
-	targetContext
+	infraContext
+}
+
+func initknativeInfraReconciler(context infraContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "knative")
+	return &knativeInfraReconciler{
+		infraContext: context,
+	}
 }
 
 // Reconcile ...
 func (k *knativeInfraReconciler) Reconcile() (requeue bool, resultErr error) {
-	knativeHandler := infrastructure.NewKnativeHandler(k.client)
+	knativeHandler := infrastructure.NewKnativeHandler(k.Context)
 	if !knativeHandler.IsKnativeEventingAvailable() {
 		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().APIVersion)
 	}
@@ -42,7 +42,7 @@ func (k *knativeInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	if len(k.instance.GetSpec().GetResource().Name) > 0 {
 		ns := k.instance.GetSpec().GetResource().Namespace
 		if len(ns) == 0 {
-			k.log.Debug("Namespace not defined, setting to current namespace")
+			k.Log.Debug("Namespace not defined, setting to current namespace")
 			ns = k.instance.GetNamespace()
 		}
 

@@ -16,6 +16,7 @@ package kogitoservice
 
 import (
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,7 +29,13 @@ func Test_fetchDashboardNames(t *testing.T) {
 	server := mockKogitoSvcReplies(t, serverHandler{Path: dashboardsPath + "list.json", JSONResponse: dashboardNames})
 	defer server.Close()
 
-	dashboardManager := grafanaDashboardManager{log: test.TestLogger}
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	dashboardManager := grafanaDashboardManager{Context: context}
 	dashboards, err := dashboardManager.fetchGrafanaDashboardNamesForURL(server.URL)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, dashboards)
@@ -58,8 +65,13 @@ func Test_fetchDashboards(t *testing.T) {
 
 	server := mockKogitoSvcReplies(t, handlers...)
 	defer server.Close()
-
-	dashboardManager := grafanaDashboardManager{log: test.TestLogger}
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	dashboardManager := grafanaDashboardManager{Context: context}
 	fetchedDashboardNames, err := dashboardManager.fetchGrafanaDashboardNamesForURL(server.URL)
 	assert.NoError(t, err)
 	dashboards, err := dashboardManager.fetchDashboards(server.URL, fetchedDashboardNames)
@@ -84,8 +96,12 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 			RawJSONDashboard: "[]",
 		},
 	}
-
-	dashboardManager := grafanaDashboardManager{client: cli, log: test.TestLogger, scheme: test.GetRegisteredSchema()}
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	dashboardManager := grafanaDashboardManager{Context: context}
 	err := dashboardManager.deployGrafanaDashboards(dashboards, service)
 	assert.NoError(t, err)
 

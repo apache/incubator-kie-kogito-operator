@@ -18,8 +18,7 @@ import (
 	"context"
 	resource2 "github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,9 +30,9 @@ import (
 // ResourceReader interface to read kubernetes object
 type ResourceReader interface {
 	// FetchWithKey fetches and binds a resource from the Kubernetes cluster with the defined key. If not exists, returns false.
-	FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (exists bool, err error)
+	FetchWithKey(key types.NamespacedName, resource ResourceObject) (exists bool, err error)
 	// Fetch fetches and binds a resource with given name and namespace from the Kubernetes cluster. If not exists, returns false.
-	Fetch(resource meta.ResourceObject) (exists bool, err error)
+	Fetch(resource ResourceObject) (exists bool, err error)
 	// ListWithNamespace fetches and binds a list resource from the Kubernetes cluster with the defined namespace.
 	ListWithNamespace(namespace string, list runtime.Object) error
 	// ListWithNamespaceAndLabel same as ListWithNamespace, but also limit the query scope by the given labels
@@ -53,11 +52,11 @@ type resourceReader struct {
 	client *client.Client
 }
 
-func (r *resourceReader) Fetch(resource meta.ResourceObject) (bool, error) {
+func (r *resourceReader) Fetch(resource ResourceObject) (bool, error) {
 	return r.FetchWithKey(types.NamespacedName{Name: resource.GetName(), Namespace: resource.GetNamespace()}, resource)
 }
 
-func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource meta.ResourceObject) (bool, error) {
+func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource ResourceObject) (bool, error) {
 	log.Debug("About to fetch object", "name", key.Name, "namespace", key.Namespace)
 	err := r.client.ControlCli.Get(context.TODO(), key, resource)
 	if err != nil && errors.IsNotFound(err) {

@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	"github.com/stretchr/testify/assert"
@@ -61,7 +62,12 @@ func TestMountProtoBufConfigMapsOnDeployment(t *testing.T) {
 		},
 	}
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
-	protoBufHandler := NewProtoBufHandler(cli, test.TestLogger, supportingServiceHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	protoBufHandler := NewProtoBufHandler(context, supportingServiceHandler)
 	err := protoBufHandler.MountProtoBufConfigMapsOnDeployment(deployment)
 	assert.NoError(t, err)
 	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 1)
@@ -132,10 +138,15 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	}
 
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
-	protoBufHandler := NewProtoBufHandler(cli, test.TestLogger, supportingServiceHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	protoBufHandler := NewProtoBufHandler(context, supportingServiceHandler)
 	err := protoBufHandler.MountProtoBufConfigMapOnDataIndex(runtimeService)
 	assert.NoError(t, err)
-	supportingServiceManager := manager.NewKogitoSupportingServiceManager(cli, test.TestLogger, supportingServiceHandler)
+	supportingServiceManager := manager.NewKogitoSupportingServiceManager(context, supportingServiceHandler)
 	deployment, err := supportingServiceManager.FetchKogitoSupportingServiceDeployment(t.Name(), api.DataIndex)
 	assert.NoError(t, err)
 
@@ -168,9 +179,13 @@ func Test_getProtoBufConfigMapsForAllRuntimeServices(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(cm1, cm2).Build()
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	protoBufHandler := &protoBufHandler{
-		client:                   cli,
-		log:                      test.TestLogger,
+		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,
 	}
 	cms, err := protoBufHandler.getProtoBufConfigMapsForAllRuntimeServices(t.Name())
@@ -209,9 +224,13 @@ func Test_getProtoBufConfigMapsForSpecificRuntimeService(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(cm1, cm2).Build()
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	protoBufHandler := &protoBufHandler{
-		client:                   cli,
-		log:                      test.TestLogger,
+		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,
 	}
 	cms, err := protoBufHandler.getProtoBufConfigMapsForSpecificRuntimeService(runtimeInstance)

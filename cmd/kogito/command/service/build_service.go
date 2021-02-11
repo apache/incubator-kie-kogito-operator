@@ -23,9 +23,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	buildv1 "github.com/openshift/api/build/v1"
 	"go.uber.org/zap"
 	"io"
@@ -250,7 +251,7 @@ func (i buildService) triggerBuild(name string, namespace string, fileReader io.
 	}
 
 	log.Info(message.BuildTriggeringNewBuild)
-	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild)
+	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild, internal.GetRegisteredSchema())
 	if err != nil {
 		return err
 	}

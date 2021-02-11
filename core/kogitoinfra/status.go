@@ -16,12 +16,11 @@ package kogitoinfra
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 )
 
 // StatusHandler ...
@@ -30,42 +29,40 @@ type StatusHandler interface {
 }
 
 type statusHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewStatusHandler ...
-func NewStatusHandler(client *client.Client, log logger.Logger) StatusHandler {
+func NewStatusHandler(context *operator.Context) StatusHandler {
 	return &statusHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 // updateBaseStatus updates the base status for the KogitoInfra instance
 func (r *statusHandler) UpdateBaseStatus(instance api.KogitoInfraInterface, err *error) {
-	r.log.Info("Updating Kogito Infra status")
+	r.Log.Info("Updating Kogito Infra status")
 	if *err != nil {
 		if reasonForError(*err) == api.ReconciliationFailure {
-			r.log.Info("Seems that an error occurred, setting", "failure state", *err)
+			r.Log.Info("Seems that an error occurred, setting", "failure state", *err)
 		}
 		r.setResourceFailed(instance, *err)
 	} else {
 		r.setResourceSuccess(instance)
-		r.log.Info("Kogito Infra successfully reconciled")
+		r.Log.Info("Kogito Infra successfully reconciled")
 	}
-	r.log.Info("Updating kogitoInfra value with new properties.")
-	if resultErr := kubernetes.ResourceC(r.client).UpdateStatus(instance); resultErr != nil {
-		r.log.Error(resultErr, "reconciliationError occurs while update kogitoInfra values")
+	r.Log.Info("Updating kogitoInfra value with new properties.")
+	if resultErr := kubernetes.ResourceC(r.Client).UpdateStatus(instance); resultErr != nil {
+		r.Log.Error(resultErr, "reconciliationError occurs while update kogitoInfra values")
 	}
-	r.log.Info("Successfully Update Kogito Infra status")
+	r.Log.Info("Successfully Update Kogito Infra status")
 }
 
 // setResourceFailed sets the instance as failed
 func (r *statusHandler) setResourceFailed(instance api.KogitoInfraInterface, err error) {
 	infraCondition := instance.GetStatus().GetCondition()
 	if infraCondition.Message != err.Error() {
-		r.log.Warn("Setting instance", "Failed", err)
+		r.Log.Warn("Setting instance", "Failed", err)
 		infraCondition.Type = api.FailureInfraConditionType
 		infraCondition.Status = corev1.ConditionFalse
 		infraCondition.Message = err.Error()

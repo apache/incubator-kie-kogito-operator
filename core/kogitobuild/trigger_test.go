@@ -15,9 +15,9 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,7 +44,12 @@ func TestStartNewBuild(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddBuildObjects(bc, runningBuild).Build()
-	triggerHandler := NewTriggerHandler(cli, logger.GetLogger("KogitoBuild"))
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	triggerHandler := NewTriggerHandler(context)
 	err := triggerHandler.StartNewBuild(bc)
 	// we reach an error state since the FakeCli can't update the status for our build.
 	// and thus the go routine that waits for this status will fail as well :)

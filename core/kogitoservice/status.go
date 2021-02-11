@@ -17,10 +17,9 @@ package kogitoservice
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 )
@@ -31,32 +30,30 @@ type StatusHandler interface {
 }
 
 type statusHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewStatusHandler ...
-func NewStatusHandler(client *client.Client, log logger.Logger) StatusHandler {
+func NewStatusHandler(context *operator.Context) StatusHandler {
 	return &statusHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 func (s *statusHandler) HandleStatusUpdate(instance api.KogitoService, err *error) {
-	s.log.Info("Updating status for Kogito Service")
+	s.Log.Info("Updating status for Kogito Service")
 	if statusErr := s.ensureResourcesStatusChanges(instance, *err); statusErr != nil {
-		s.log.Error(statusErr, "Error while updating Status for Kogito Service")
+		s.Log.Error(statusErr, "Error while updating Status for Kogito Service")
 		return
 	}
-	s.log.Info("Finished Kogito Service reconciliation")
+	s.Log.Info("Finished Kogito Service reconciliation")
 }
 
 func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService, errCondition error) (err error) {
 	if errCondition != nil {
 		instance.GetStatus().SetFailed(reasonForError(errCondition), errCondition)
 		if err := s.updateStatus(instance); err != nil {
-			s.log.Error(err, "Error while trying to set condition to error")
+			s.Log.Error(err, "Error while trying to set condition to error")
 			return err
 		}
 		// don't need to update anything else or we break the error state
@@ -86,7 +83,7 @@ func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService,
 
 	if updateStatus {
 		if err := s.updateStatus(instance); err != nil {
-			s.log.Error(err, "Error while trying to update status")
+			s.Log.Error(err, "Error while trying to update status")
 			return err
 		}
 	}
@@ -98,7 +95,7 @@ func (s *statusHandler) updateStatus(instance api.KogitoService) error {
 	if instance.GetStatus() != nil && instance.GetStatus().GetConditions() == nil {
 		instance.GetStatus().SetConditions([]api.Condition{})
 	}
-	err := kubernetes.ResourceC(s.client).UpdateStatus(instance)
+	err := kubernetes.ResourceC(s.Client).UpdateStatus(instance)
 	if err != nil {
 		return err
 	}
@@ -106,7 +103,7 @@ func (s *statusHandler) updateStatus(instance api.KogitoService) error {
 }
 
 func (s *statusHandler) updateImageStatus(instance api.KogitoService) (bool, error) {
-	deploymentHandler := infrastructure.NewDeploymentHandler(s.client, s.log)
+	deploymentHandler := infrastructure.NewDeploymentHandler(s.Context)
 	deployment, err := deploymentHandler.MustFetchDeployment(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err != nil {
 		return false, err
@@ -122,7 +119,7 @@ func (s *statusHandler) updateImageStatus(instance api.KogitoService) (bool, err
 }
 
 func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) (update bool, readyReplicas int32, err error) {
-	deploymentHandler := infrastructure.NewDeploymentHandler(s.client, s.log)
+	deploymentHandler := infrastructure.NewDeploymentHandler(s.Context)
 	deployment, err := deploymentHandler.MustFetchDeployment(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err != nil {
 		return false, 0, err
@@ -136,8 +133,8 @@ func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) (upda
 }
 
 func (s *statusHandler) updateRouteStatus(instance api.KogitoService) (bool, error) {
-	if s.client.IsOpenshift() {
-		routeHandler := infrastructure.NewRouteHandler(s.client, s.log)
+	if s.Client.IsOpenshift() {
+		routeHandler := infrastructure.NewRouteHandler(s.Context)
 		route, err := routeHandler.GetHostFromRoute(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 		if err != nil {
 			return false, err

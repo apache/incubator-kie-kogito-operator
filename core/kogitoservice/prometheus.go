@@ -16,16 +16,13 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"net/http"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -37,34 +34,30 @@ type PrometheusManager interface {
 }
 
 type prometheusManager struct {
-	client *client.Client
-	log    logger.Logger
-	scheme *runtime.Scheme
+	*operator.Context
 }
 
 // NewPrometheusManager ...
-func NewPrometheusManager(client *client.Client, log logger.Logger, scheme *runtime.Scheme) PrometheusManager {
+func NewPrometheusManager(context *operator.Context) PrometheusManager {
 	return &prometheusManager{
-		client: client,
-		log:    log,
-		scheme: scheme,
+		context,
 	}
 }
 
 func (m *prometheusManager) ConfigurePrometheus(kogitoService api.KogitoService) error {
 	prometheusAvailable := m.isPrometheusAvailable()
 	if !prometheusAvailable {
-		m.log.Debug("prometheus operator not available in namespace")
+		m.Log.Debug("prometheus operator not available in namespace")
 		return nil
 	}
 
-	deploymentHandler := NewDeploymentHandler(m.client, m.log)
+	deploymentHandler := NewDeploymentHandler(m.Context)
 	deploymentAvailable, err := deploymentHandler.IsDeploymentAvailable(kogitoService)
 	if err != nil {
 		return err
 	}
 	if !deploymentAvailable {
-		m.log.Debug("Deployment is currently not available, will try in next reconciliation loop")
+		m.Log.Debug("Deployment is currently not available, will try in next reconciliation loop")
 		return nil
 	}
 
@@ -82,11 +75,11 @@ func (m *prometheusManager) ConfigurePrometheus(kogitoService api.KogitoService)
 
 // isPrometheusAvailable checks if Prometheus CRD is available in the cluster
 func (m *prometheusManager) isPrometheusAvailable() bool {
-	return m.client.HasServerGroup(prometheusServerGroup)
+	return m.Client.HasServerGroup(prometheusServerGroup)
 }
 
 func (m *prometheusManager) isPrometheusAddOnAvailable(kogitoService api.KogitoService) (bool, error) {
-	kogitoServiceHandler := NewKogitoServiceHandler(m.log)
+	kogitoServiceHandler := NewKogitoServiceHandler(m.Context)
 	url := kogitoServiceHandler.GetKogitoServiceEndpoint(kogitoService)
 	url = url + getMonitoringPath(kogitoService.GetSpec().GetMonitoring())
 	if resp, err := http.Head(url); err != nil {
@@ -94,7 +87,7 @@ func (m *prometheusManager) isPrometheusAddOnAvailable(kogitoService api.KogitoS
 	} else if resp.StatusCode == http.StatusOK {
 		return true, nil
 	}
-	m.log.Debug("Non-OK Http Status received")
+	m.Log.Debug("Non-OK Http Status received")
 	return false, nil
 }
 
@@ -113,16 +106,16 @@ func (m *prometheusManager) createPrometheusServiceMonitorIfNotExists(kogitoServ
 }
 
 func (m *prometheusManager) loadDeployedServiceMonitor(instanceName, namespace string) (*monv1.ServiceMonitor, error) {
-	m.log.Debug("fetching deployed Service monitor instance", "instanceName", instanceName, "namespace", namespace)
+	m.Log.Debug("fetching deployed Service monitor instance", "instanceName", instanceName, "namespace", namespace)
 	serviceMonitor := &monv1.ServiceMonitor{}
-	if exits, err := kubernetes.ResourceC(m.client).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, serviceMonitor); err != nil {
-		m.log.Error(err, "Error occurs while fetching Service monitor instance")
+	if exits, err := kubernetes.ResourceC(m.Client).FetchWithKey(types.NamespacedName{Name: instanceName, Namespace: namespace}, serviceMonitor); err != nil {
+		m.Log.Error(err, "Error occurs while fetching Service monitor instance")
 		return nil, err
 	} else if !exits {
-		m.log.Debug("Service monitor instance is not exists")
+		m.Log.Debug("Service monitor instance is not exists")
 		return nil, nil
 	} else {
-		m.log.Debug("Service monitor instance found")
+		m.Log.Debug("Service monitor instance found")
 		return serviceMonitor, nil
 	}
 }
@@ -162,11 +155,11 @@ func (m *prometheusManager) createServiceMonitor(kogitoService api.KogitoService
 		},
 	}
 
-	if err := framework.SetOwner(kogitoService, m.scheme, sm); err != nil {
+	if err := framework.SetOwner(kogitoService, m.Scheme, sm); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(m.client).Create(sm); err != nil {
-		m.log.Error(err, "Error occurs while creating Service Monitor instance")
+	if err := kubernetes.ResourceC(m.Client).Create(sm); err != nil {
+		m.Log.Error(err, "Error occurs while creating Service Monitor instance")
 		return nil, err
 	}
 	return sm, nil

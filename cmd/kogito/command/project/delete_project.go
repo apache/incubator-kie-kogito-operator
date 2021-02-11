@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
 
 	corev1 "k8s.io/api/core/v1"

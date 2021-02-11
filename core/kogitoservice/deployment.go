@@ -18,8 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,22 +37,20 @@ type DeploymentHandler interface {
 }
 
 type deploymentHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewDeploymentHandler ...
-func NewDeploymentHandler(client *client.Client, log logger.Logger) DeploymentHandler {
+func NewDeploymentHandler(context *operator.Context) DeploymentHandler {
 	return &deploymentHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 func (d *deploymentHandler) CreateRequiredDeployment(service api.KogitoService, resolvedImage string, definition ServiceDefinition) *appsv1.Deployment {
 	if definition.SingleReplica && *service.GetSpec().GetReplicas() > singleReplica {
 		service.GetSpec().SetReplicas(singleReplica)
-		d.log.Warn("Service can't scale vertically, only one replica is allowed.", "service", service.GetName())
+		d.Log.Warn("Service can't scale vertically, only one replica is allowed.", "service", service.GetName())
 	}
 	replicas := service.GetSpec().GetReplicas()
 	probes := getProbeForKogitoService(definition, service)
@@ -113,7 +110,7 @@ func (d *deploymentHandler) IsDeploymentAvailable(kogitoService api.KogitoServic
 		return false, nil
 	}
 
-	coreDeployHandler := infrastructure.NewDeploymentHandler(d.client, d.log)
+	coreDeployHandler := infrastructure.NewDeploymentHandler(d.Context)
 	deployment, err := coreDeployHandler.FetchDeployment(types.NamespacedName{Name: kogitoService.GetName(), Namespace: kogitoService.GetNamespace()})
 	if err != nil {
 		return false, err

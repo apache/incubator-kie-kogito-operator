@@ -16,11 +16,11 @@ package kogitobuild
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -52,15 +52,13 @@ type StatusHandler interface {
 }
 
 type statusHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewStatusHandler ...
-func NewStatusHandler(client *client.Client, log logger.Logger) StatusHandler {
+func NewStatusHandler(context *operator.Context) StatusHandler {
 	return &statusHandler{
-		client: client,
-		log:    log,
+		Context: context,
 	}
 }
 
@@ -71,14 +69,14 @@ func (s *statusHandler) HandleStatusChange(instance api.KogitoBuildInterface, er
 		needUpdate = true
 		addConditionError(instance, err)
 	} else {
-		if needUpdate, err = handleConditionTransition(instance, s.client); err != nil {
-			s.log.Error(err, "Failed to update build status")
+		if needUpdate, err = handleConditionTransition(instance, s.Client); err != nil {
+			s.Log.Error(err, "Failed to update build status")
 		}
 	}
 	trimConditions(instance)
 	if needUpdate {
 		if err = s.updateStatus(instance); err != nil {
-			s.log.Error(err, "Failed to update KogitoBuild")
+			s.Log.Error(err, "Failed to update KogitoBuild")
 		}
 	}
 }
@@ -172,7 +170,7 @@ func trimConditions(instance api.KogitoBuildInterface) {
 }
 
 func (s *statusHandler) updateStatus(instance api.KogitoBuildInterface) error {
-	if err := kubernetes.ResourceC(s.client).UpdateStatus(instance); err != nil {
+	if err := kubernetes.ResourceC(s.Client).UpdateStatus(instance); err != nil {
 		return err
 	}
 	return nil

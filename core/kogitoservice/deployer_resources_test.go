@@ -16,6 +16,7 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	imgv1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
@@ -32,9 +33,13 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 	jobsService := test.CreateFakeJobsService(t.Name())
 	is, tag := test.CreateImageStreams("kogito-jobs-service", jobsService.GetNamespace(), jobsService.GetName(), infrastructure.GetKogitoImageVersion())
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	deployer := serviceDeployer{
-		client:   cli,
-		scheme:   test.GetRegisteredSchema(),
+		Context:  context,
 		instance: jobsService,
 		definition: ServiceDefinition{
 			DefaultImageName: "kogito-jobs-service",
@@ -42,7 +47,6 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 				NamespacedName: types.NamespacedName{Name: "jobs-service", Namespace: t.Name()},
 			},
 		},
-		log: test.TestLogger,
 	}
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
@@ -54,9 +58,13 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *testing.T) {
 	jobsService := test.CreateFakeJobsService(t.Name())
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	deployer := serviceDeployer{
-		client:   cli,
-		scheme:   test.GetRegisteredSchema(),
+		Context:  context,
 		instance: jobsService,
 		definition: ServiceDefinition{
 			DefaultImageName: "kogito-jobs-service",
@@ -64,7 +72,6 @@ func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *t
 				NamespacedName: types.NamespacedName{Name: "jobs-service", Namespace: t.Name()},
 			},
 		},
-		log: test.TestLogger,
 	}
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
@@ -85,10 +92,13 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 		AddK8sObjects(is, kogitoKafka, kogitoInfinispan).
 		AddImageObjects(tag).
 		Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	deployer := serviceDeployer{
-		client:       cli,
-		scheme:       test.GetRegisteredSchema(),
-		log:          test.TestLogger,
+		Context:      context,
 		instance:     instance,
 		infraHandler: test.CreateFakeKogitoInfraHandler(cli),
 		definition: ServiceDefinition{
@@ -137,9 +147,13 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(is, cm).AddImageObjects(tag).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	deployer := serviceDeployer{
-		client:   cli,
-		scheme:   test.GetRegisteredSchema(),
+		Context:  context,
 		instance: instance,
 		definition: ServiceDefinition{
 			DefaultImageName: "kogito-data-index-infinispan",

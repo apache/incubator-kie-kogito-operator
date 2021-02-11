@@ -21,10 +21,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -191,7 +190,7 @@ func GetDeployment(namespace, deploymentName string) (*apps.Deployment, error) {
 	return deployment, nil
 }
 
-func loadResource(namespace, uri string, resourceRef meta.ResourceObject, beforeCreate func(object interface{})) error {
+func loadResource(namespace, uri string, resourceRef kubernetes.ResourceObject, beforeCreate func(object interface{})) error {
 	GetLogger(namespace).Debug("loadResource", "uri", uri)
 
 	data, err := ReadFromURI(uri)
@@ -281,7 +280,7 @@ func IsCrdAvailable(crdName string) (bool, error) {
 }
 
 // DeleteObject deletes object
-func DeleteObject(o meta.ResourceObject) error {
+func DeleteObject(o kubernetes.ResourceObject) error {
 	return kubernetes.ResourceC(kubeClient).Delete(o)
 }
 

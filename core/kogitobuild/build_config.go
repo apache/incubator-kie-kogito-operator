@@ -17,7 +17,6 @@ package kogitobuild
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -58,13 +57,13 @@ type DecoratorHandler interface {
 }
 
 type decoratorHandler struct {
-	log logger.Logger
+	*operator.Context
 }
 
 // NewDecoratorHandler ...
-func NewDecoratorHandler(log logger.Logger) DecoratorHandler {
+func NewDecoratorHandler(context *operator.Context) DecoratorHandler {
 	return &decoratorHandler{
-		log: log,
+		context,
 	}
 }
 
@@ -100,15 +99,15 @@ func (b *decoratorHandler) decoratorForLocalSourceBuilder() decorator {
 	return func(build api.KogitoBuildInterface, bc *buildv1.BuildConfig) {
 		var envs []corev1.EnvVar
 		if len(build.GetSpec().GetArtifact().GroupID) > 0 {
-			b.log.Debug("Setting final generated", "Artifact group ID", build.GetSpec().GetArtifact().GroupID)
+			b.Log.Debug("Setting final generated", "Artifact group ID", build.GetSpec().GetArtifact().GroupID)
 			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenGroupIDEnvVar, Value: build.GetSpec().GetArtifact().GroupID})
 		}
 		if len(build.GetSpec().GetArtifact().ArtifactID) > 0 {
-			b.log.Debug("Setting final", "Generated artifact id", build.GetSpec().GetArtifact().ArtifactID)
+			b.Log.Debug("Setting final", "Generated artifact id", build.GetSpec().GetArtifact().ArtifactID)
 			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactIDEnvVar, Value: build.GetSpec().GetArtifact().ArtifactID})
 		}
 		if len(build.GetSpec().GetArtifact().Version) > 0 {
-			b.log.Debug("Setting final generated", "Artifact version", build.GetSpec().GetArtifact().Version)
+			b.Log.Debug("Setting final generated", "Artifact version", build.GetSpec().GetArtifact().Version)
 			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenArtifactVersionEnvVar, Value: build.GetSpec().GetArtifact().Version})
 		}
 		bc.Spec.Strategy.SourceStrategy.Env = append(bc.Spec.Strategy.SourceStrategy.Env, envs...)
@@ -148,11 +147,11 @@ func (b *decoratorHandler) decoratorForSourceBuilder() decorator {
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: builderLimitCPUEnvVarKey, Value: limitCPU})
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: builderLimitMemoryEnvVarKey, Value: limitMemory})
 		if len(build.GetSpec().GetMavenMirrorURL()) > 0 {
-			b.log.Info("Setting maven mirror", "Maven Mirror Url", build.GetSpec().GetMavenMirrorURL)
+			b.Log.Info("Setting maven mirror", "Maven Mirror Url", build.GetSpec().GetMavenMirrorURL)
 			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: build.GetSpec().GetMavenMirrorURL()})
 		}
 		if build.GetSpec().IsEnableMavenDownloadOutput() {
-			b.log.Debug("Enable logging for transfer progress of downloading/uploading maven dependencies")
+			b.Log.Debug("Enable logging for transfer progress of downloading/uploading maven dependencies")
 			envs = framework.EnvOverride(envs,
 				corev1.EnvVar{Name: mavenDownloadOutputEnvVar, Value: strconv.FormatBool(build.GetSpec().IsEnableMavenDownloadOutput())})
 		}

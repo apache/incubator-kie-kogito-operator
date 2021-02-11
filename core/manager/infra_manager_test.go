@@ -16,10 +16,11 @@ package manager
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -31,7 +32,12 @@ func TestMustFetchKogitoInfraInstance_InstanceNotFound(t *testing.T) {
 	name := "InfinispanInfra"
 	cli := test.NewFakeClientBuilder().Build()
 	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
-	infraManager := NewKogitoInfraManager(cli, test.TestLogger, test.GetRegisteredSchema(), infraHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	infraManager := NewKogitoInfraManager(context, infraHandler)
 	_, err := infraManager.MustFetchKogitoInfraInstance(types.NamespacedName{Name: name, Namespace: ns})
 	assert.Error(t, err)
 }
@@ -66,7 +72,12 @@ func TestRemoveKogitoInfraOwnership(t *testing.T) {
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(kafkaInfra).Build()
 	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
-	infraManager := NewKogitoInfraManager(cli, test.TestLogger, test.GetRegisteredSchema(), infraHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	infraManager := NewKogitoInfraManager(context, infraHandler)
 	err = infraManager.RemoveKogitoInfraOwnership(types.NamespacedName{Name: kafkaInfra.Name, Namespace: ns}, travels)
 	assert.NoError(t, err)
 	actualKafkaInfra := &api2.KogitoInfraTest{}

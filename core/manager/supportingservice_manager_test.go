@@ -16,6 +16,7 @@ package manager
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	"github.com/stretchr/testify/assert"
@@ -46,6 +47,11 @@ func Test_ensureSingletonService(t *testing.T) {
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance1, instance2).OnOpenShift().Build()
 	supportingServiceHandler := test.CreateFakeKogitoSupportingServiceHandler(cli)
-	supportingServiceManager := NewKogitoSupportingServiceManager(cli, test.TestLogger, supportingServiceHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	supportingServiceManager := NewKogitoSupportingServiceManager(context, supportingServiceHandler)
 	assert.Errorf(t, supportingServiceManager.EnsureSingletonService(ns, api.DataIndex), "kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", api.DataIndex)
 }

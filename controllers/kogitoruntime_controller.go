@@ -16,12 +16,13 @@ package controllers
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/connector"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -62,7 +63,15 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
 	log.Info("Reconciling for KogitoRuntime")
 
-	runtimeHandler := internal.NewKogitoRuntimeHandler(r.Client, log)
+	// create context
+	context := &operator.Context{
+		Client: r.Client,
+		Log:    log,
+		Scheme: r.Scheme,
+	}
+
+	// fetch the requested instance
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
 	instance, err := runtimeHandler.FetchKogitoRuntimeInstance(req.NamespacedName)
 	if err != nil {
 		return
@@ -72,19 +81,19 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		return
 	}
 
-	rbacHandler := infrastructure.NewRBACHandler(r.Client, log)
+	rbacHandler := infrastructure.NewRBACHandler(context)
 	if err = rbacHandler.SetupRBAC(req.Namespace); err != nil {
 		return
 	}
 
-	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(r.Client, r.Log)
-	protoBufHandler := connector.NewProtoBufHandler(r.Client, r.Log, supportingServiceHandler)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
+	protoBufHandler := connector.NewProtoBufHandler(context, supportingServiceHandler)
 	if err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance); err != nil {
 		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
 		return
 	}
 
-	deploymentHandler := NewRuntimeDeployerHandler(r.Client, log, instance, supportingServiceHandler, runtimeHandler)
+	deploymentHandler := NewRuntimeDeployerHandler(context, instance, supportingServiceHandler, runtimeHandler)
 	definition := kogitoservice.ServiceDefinition{
 		Request:            req,
 		DefaultImageTag:    infrastructure.LatestTag,
@@ -94,8 +103,8 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		OnGetComparators:   deploymentHandler.OnGetComparators,
 		CustomService:      true,
 	}
-	infraHandler := internal.NewKogitoInfraHandler(r.Client, log)
-	requeueAfter, err := kogitoservice.NewServiceDeployer(definition, instance, r.Client, r.Scheme, log, infraHandler).Deploy()
+	infraHandler := internal.NewKogitoInfraHandler(context)
+	requeueAfter, err := kogitoservice.NewServiceDeployer(context, definition, instance, infraHandler).Deploy()
 	if err != nil {
 		return
 	}

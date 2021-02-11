@@ -20,8 +20,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/test/config"
 	"github.com/kiegroup/kogito-cloud-operator/test/framework/mappers"
 	bddtypes "github.com/kiegroup/kogito-cloud-operator/test/types"

@@ -16,14 +16,14 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
 
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -49,7 +49,12 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	}
 
 	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
-	deployer := NewServiceDeployer(definition, dataIndex, cli, test.GetRegisteredSchema(), logger.GetLogger("deployer"), infraHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
 	reconcileAfter, err := deployer.Deploy()
 	assert.Error(t, err)
 	assert.Equal(t, time.Duration(0), reconcileAfter)
@@ -95,7 +100,12 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 		KafkaTopics:      []string{requiredTopic},
 	}
 	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
-	deployer := NewServiceDeployer(definition, dataIndex, cli, test.GetRegisteredSchema(), test.TestLogger, infraHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
 	reconcileAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
 	assert.Equal(t, time.Duration(0), reconcileAfter)
@@ -117,7 +127,12 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 		Request:          newReconcileRequest(t.Name()),
 	}
 	infraHandler := test.CreateFakeKogitoInfraHandler(cli)
-	deployer := NewServiceDeployer(definition, service, cli, test.GetRegisteredSchema(), logger.GetLogger("deployer"), infraHandler)
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	deployer := NewServiceDeployer(context, definition, service, infraHandler)
 	requeueAfter, err := deployer.Deploy()
 	assert.NoError(t, err)
 	assert.True(t, requeueAfter == 0)

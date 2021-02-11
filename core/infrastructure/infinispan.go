@@ -16,13 +16,11 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"k8s.io/apimachinery/pkg/runtime"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,9 +57,7 @@ type InfinispanHandler interface {
 }
 
 type infinispanHandler struct {
-	client *client.Client
-	log    logger.Logger
-	scheme *runtime.Scheme
+	*operator.Context
 }
 
 var (
@@ -81,39 +77,37 @@ type InfinispanCredential struct {
 }
 
 // NewInfinispanHandler ...
-func NewInfinispanHandler(client *client.Client, log logger.Logger, scheme *runtime.Scheme) InfinispanHandler {
+func NewInfinispanHandler(context *operator.Context) InfinispanHandler {
 	return &infinispanHandler{
-		client: client,
-		log:    log,
-		scheme: scheme,
+		context,
 	}
 }
 
 func (i *infinispanHandler) FetchInfinispanInstance(key types.NamespacedName) (*ispn.Infinispan, error) {
-	i.log.Debug("fetching deployed kogito infinispan instance")
+	i.Log.Debug("fetching deployed kogito infinispan instance")
 	infinispanInstance := &ispn.Infinispan{}
-	if exits, err := kubernetes.ResourceC(i.client).FetchWithKey(key, infinispanInstance); err != nil {
-		i.log.Error(err, "Error occurs while fetching infinispan instance")
+	if exits, err := kubernetes.ResourceC(i.Client).FetchWithKey(key, infinispanInstance); err != nil {
+		i.Log.Error(err, "Error occurs while fetching infinispan instance")
 		return nil, err
 	} else if !exits {
-		i.log.Debug("Infinispan instance is not exists")
+		i.Log.Debug("Infinispan instance is not exists")
 		return nil, nil
 	} else {
-		i.log.Debug("Infinispan instance found")
+		i.Log.Debug("Infinispan instance found")
 		return infinispanInstance, nil
 	}
 }
 
 // IsInfinispanAvailable checks whether Infinispan CRD is available or not
 func (i *infinispanHandler) IsInfinispanAvailable() bool {
-	return i.client.HasServerGroup(ispn.SchemeGroupVersion.Group)
+	return i.Client.HasServerGroup(ispn.SchemeGroupVersion.Group)
 }
 
 // FetchInfinispanInstanceURI provide infinispan URI for given instance name
 func (i *infinispanHandler) FetchInfinispanInstanceURI(key types.NamespacedName) (string, error) {
-	i.log.Debug("Fetching kogito infinispan instance URI.")
+	i.Log.Debug("Fetching kogito infinispan instance URI.")
 	service := &corev1.Service{}
-	if exits, err := kubernetes.ResourceC(i.client).FetchWithKey(key, service); err != nil {
+	if exits, err := kubernetes.ResourceC(i.Client).FetchWithKey(key, service); err != nil {
 		return "", err
 	} else if !exits {
 		return "", fmt.Errorf("service with name %s not exist for Infinispan instance in given namespace %s", key.Name, key.Namespace)
@@ -121,7 +115,7 @@ func (i *infinispanHandler) FetchInfinispanInstanceURI(key types.NamespacedName)
 		for _, port := range service.Spec.Ports {
 			if port.TargetPort.IntVal == defaultInfinispanPort {
 				uri := fmt.Sprintf("%s:%d", service.Name, port.TargetPort.IntVal)
-				i.log.Debug("", "kogito infinispan instance URI", uri)
+				i.Log.Debug("", "kogito infinispan instance URI", uri)
 				return uri, nil
 			}
 		}
@@ -132,17 +126,17 @@ func (i *infinispanHandler) FetchInfinispanInstanceURI(key types.NamespacedName)
 // GetInfinispanCredential gets the credential of the Infinispan server deployed with the Kogito Operator
 func (i *infinispanHandler) GetInfinispanCredential(infinispanInstance *ispn.Infinispan) (*InfinispanCredential, error) {
 	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: infinispanInstance.GetSecretName(), Namespace: infinispanInstance.Namespace}}
-	if exists, err := kubernetes.ResourceC(i.client).Fetch(secret); err != nil {
+	if exists, err := kubernetes.ResourceC(i.Client).Fetch(secret); err != nil {
 		return nil, err
 	} else if exists {
 		return getDefaultInfinispanCredential(secret)
 	}
-	i.log.Warn("Infinispan credential not found", "secret", infinispanInstance.GetSecretName())
+	i.Log.Warn("Infinispan credential not found", "secret", infinispanInstance.GetSecretName())
 	return nil, nil
 }
 
 func (i *infinispanHandler) CreateInfinispanInstance(key types.NamespacedName, owner metav1.Object) (*ispn.Infinispan, error) {
-	i.log.Info("Going to create a kogito infinispan instance (not for production use)")
+	i.Log.Info("Going to create a kogito infinispan instance (not for production use)")
 	infinispanRes := &ispn.Infinispan{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
@@ -156,14 +150,14 @@ func (i *infinispanHandler) CreateInfinispanInstance(key types.NamespacedName, o
 			},
 		},
 	}
-	if err := controllerutil.SetOwnerReference(owner, infinispanRes, i.scheme); err != nil {
+	if err := controllerutil.SetOwnerReference(owner, infinispanRes, i.Scheme); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(i.client).Create(infinispanRes); err != nil {
-		i.log.Error(err, "Error occurs while creating infinispan instance")
+	if err := kubernetes.ResourceC(i.Client).Create(infinispanRes); err != nil {
+		i.Log.Error(err, "Error occurs while creating infinispan instance")
 		return nil, err
 	}
-	i.log.Debug("Infinispan instance created successfully")
+	i.Log.Debug("Infinispan instance created successfully")
 	return infinispanRes, nil
 }
 

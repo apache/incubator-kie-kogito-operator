@@ -16,7 +16,8 @@ package kogitobuild
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,13 @@ func Test_decoratorForSourceBuilder_enableIncrementalBuild_Test(t *testing.T) {
 			CommonSpec: buildv1.CommonSpec{Resources: kogitoBuild.Spec.Resources},
 		},
 	}
-	decoratorHandler := NewDecoratorHandler(logger.GetLogger("KogitoBuild"))
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForSourceBuilder()(kogitoBuild, bc)
 
 	assert.Equal(t, true, *bc.Spec.CommonSpec.Strategy.SourceStrategy.Incremental)
@@ -61,7 +68,13 @@ func Test_decoratorForSourceBuilder_disableIncrementalBuild_Test(t *testing.T) {
 			CommonSpec: buildv1.CommonSpec{Resources: kogitoBuild.Spec.Resources},
 		},
 	}
-	decoratorHandler := NewDecoratorHandler(logger.GetLogger("KogitoBuild"))
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForSourceBuilder()(kogitoBuild, bc)
 
 	assert.Equal(t, false, *bc.Spec.CommonSpec.Strategy.SourceStrategy.Incremental)
@@ -78,7 +91,13 @@ func Test_decoratorForRemoteSourceBuilder_specSource(t *testing.T) {
 		},
 	}
 	bc := &buildv1.BuildConfig{}
-	decoratorHandler := NewDecoratorHandler(logger.GetLogger("KogitoBuild"))
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
 
 	assert.Equal(t, buildv1.BuildSourceGit, bc.Spec.Source.Type)
@@ -99,7 +118,13 @@ func Test_decoratorForRemoteSourceBuilder_githubWebHook(t *testing.T) {
 		},
 	}
 	bc := &buildv1.BuildConfig{}
-	decoratorHandler := NewDecoratorHandler(logger.GetLogger("KogitoBuild"))
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
 
 	assert.Equal(t, 1, len(bc.Spec.Triggers))
@@ -120,7 +145,13 @@ func Test_decoratorForRemoteSourceBuilder_genericWebHook(t *testing.T) {
 		},
 	}
 	bc := &buildv1.BuildConfig{}
-	decoratorHandler := NewDecoratorHandler(logger.GetLogger("KogitoBuild"))
+	cli := test.NewFakeClientBuilder().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForRemoteSourceBuilder()(kogitoBuild, bc)
 
 	assert.Equal(t, 1, len(bc.Spec.Triggers))

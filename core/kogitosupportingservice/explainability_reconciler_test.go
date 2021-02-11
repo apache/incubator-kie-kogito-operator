@@ -15,7 +15,7 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -28,12 +28,15 @@ func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) 
 	explainabilityService.GetSpec().AddInfra(kogitoKafka.GetName())
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(explainabilityService, kogitoKafka).OnOpenShift().Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &explainabilitySupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:                  context,
 			instance:                 explainabilityService,
-			client:                   cli,
-			log:                      logger.GetLogger("explainability reconciler"),
-			scheme:                   test.GetRegisteredSchema(),
 			infraHandler:             test.CreateFakeKogitoInfraHandler(cli),
 			supportingServiceHandler: test.CreateFakeKogitoSupportingServiceHandler(cli),
 			runtimeHandler:           test.CreateFakeKogitoRuntimeHandler(cli),

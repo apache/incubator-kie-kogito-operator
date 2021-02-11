@@ -16,9 +16,8 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	imgv1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,27 +48,25 @@ type ImageStreamHandler interface {
 }
 
 type imageStreamHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewImageStreamHandler ...
-func NewImageStreamHandler(client *client.Client, log logger.Logger) ImageStreamHandler {
+func NewImageStreamHandler(context *operator.Context) ImageStreamHandler {
 	return &imageStreamHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 // FetchImageStream gets the deployed ImageStream shared among Kogito Custom Resources
 func (i *imageStreamHandler) FetchImageStream(key types.NamespacedName) (*imgv1.ImageStream, error) {
 	imageStream := &imgv1.ImageStream{}
-	if exists, err := kubernetes.ResourceC(i.client).FetchWithKey(key, imageStream); err != nil {
+	if exists, err := kubernetes.ResourceC(i.Client).FetchWithKey(key, imageStream); err != nil {
 		return nil, err
 	} else if !exists {
 		return nil, nil
 	} else {
-		i.log.Debug("Successfully fetch deployed kogito infra reference")
+		i.Log.Debug("Successfully fetch deployed kogito infra reference")
 		return imageStream, nil
 	}
 }
@@ -81,7 +78,7 @@ func (i *imageStreamHandler) MustFetchImageStream(key types.NamespacedName) (*im
 	} else if imageStream == nil {
 		return nil, fmt.Errorf("image stream with name %s not found in namespace %s", key.Name, key.Namespace)
 	} else {
-		i.log.Debug("Successfully fetch deployed kogito infra reference")
+		i.Log.Debug("Successfully fetch deployed kogito infra reference")
 		return imageStream, nil
 	}
 }
@@ -89,7 +86,7 @@ func (i *imageStreamHandler) MustFetchImageStream(key types.NamespacedName) (*im
 // CreateImageStream creates the ImageStream referencing the given namespace.
 // Adds a docker image in the "From" reference based on the given image if `addFromReference` is set to `true`
 func (i *imageStreamHandler) CreateImageStream(name, namespace, imageName, tag string, addFromReference, insecureImageRegistry bool) *imgv1.ImageStream {
-	if i.client.IsOpenshift() {
+	if i.Client.IsOpenshift() {
 		imageStreamTagAnnotations[annotationKeyVersion] = tag
 		imageStream := &imgv1.ImageStream{
 			ObjectMeta: v1.ObjectMeta{Name: name, Namespace: namespace, Annotations: imageStreamAnnotations},

@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

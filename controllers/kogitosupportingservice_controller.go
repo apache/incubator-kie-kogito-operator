@@ -16,11 +16,12 @@ package controllers
 
 import (
 	appv1beta1 "github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -65,8 +66,15 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(req ctrl.Request) (result 
 	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
 	log.Info("Reconciling for KogitoSupportingService")
 
+	// create context
+	context := &operator.Context{
+		Client: r.Client,
+		Log:    log,
+		Scheme: r.Scheme,
+	}
+
 	// Fetch the KogitoSupportingService instance
-	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(r.Client, log)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
 	instance, resultErr := supportingServiceHandler.FetchKogitoSupportingService(req.NamespacedName)
 	if resultErr != nil {
 		return
@@ -76,14 +84,14 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(req ctrl.Request) (result 
 		return
 	}
 
-	supportingServiceManager := manager.NewKogitoSupportingServiceManager(r.Client, log, supportingServiceHandler)
+	supportingServiceManager := manager.NewKogitoSupportingServiceManager(context, supportingServiceHandler)
 	if resultErr = supportingServiceManager.EnsureSingletonService(req.Namespace, instance.GetSupportingServiceSpec().GetServiceType()); resultErr != nil {
 		return
 	}
 
-	runtimeHandler := internal.NewKogitoRuntimeHandler(r.Client, r.Log)
-	infraHandler := internal.NewKogitoInfraHandler(r.Client, log)
-	reconcileHandler := kogitosupportingservice.NewReconcilerHandler(r.Client, log, r.Scheme, infraHandler, supportingServiceHandler, runtimeHandler)
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
+	infraHandler := internal.NewKogitoInfraHandler(context)
+	reconcileHandler := kogitosupportingservice.NewReconcilerHandler(context, infraHandler, supportingServiceHandler, runtimeHandler)
 	reconciler := reconcileHandler.GetSupportingServiceReconciler(instance)
 	requeueAfter, resultErr := reconciler.Reconcile()
 	if resultErr != nil {

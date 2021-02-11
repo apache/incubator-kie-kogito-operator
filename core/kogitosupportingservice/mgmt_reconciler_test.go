@@ -15,9 +15,9 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,13 +28,15 @@ func TestReconcileKogitoSupportingServiceMgmtConsole_Reconcile(t *testing.T) {
 	ns := t.Name()
 	instance := test.CreateFakeMgmtConsole(ns)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
-
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &mgmtConsoleSupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:  context,
 			instance: instance,
-			client:   cli,
-			log:      logger.GetLogger("management console reconciler"),
-			scheme:   test.GetRegisteredSchema(),
 		},
 	}
 	// first reconciliation
@@ -58,13 +60,15 @@ func TestReconcileKogitoSupportingServiceMgmtConsole_CustomImage(t *testing.T) {
 	instance := test.CreateFakeMgmtConsole(ns)
 	instance.GetSpec().SetImage("quay.io/mynamespace/super-mgmt-console:0.1.3")
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
-
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	r := &mgmtConsoleSupportingServiceResource{
-		targetContext: targetContext{
+		supportingServiceContext: supportingServiceContext{
+			Context:  context,
 			instance: instance,
-			client:   cli,
-			log:      logger.GetLogger("management console reconciler"),
-			scheme:   test.GetRegisteredSchema(),
 		},
 	}
 	requeueAfter, err := r.Reconcile()

@@ -17,10 +17,10 @@ package controllers
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -49,8 +49,8 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 		},
 	}
 
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
-	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
+	r := KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}
 
 	// first reconciliation
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
@@ -100,9 +100,9 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(instance).OnOpenShift().Build()
 
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
@@ -136,11 +136,11 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm).Build()
+	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).AddK8sObjects(instance, cm).Build()
 	// we take the ownership of the custom cm
-	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 	// we requeue..
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 	_, err := kubernetes.ResourceC(cli).Fetch(cm)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cm.OwnerReferences)

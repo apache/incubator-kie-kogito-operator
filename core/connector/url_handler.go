@@ -17,11 +17,10 @@ package connector
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	"net/url"
 )
@@ -56,17 +55,15 @@ type URLHandler interface {
 }
 
 type urlHandler struct {
-	client                   *client.Client
-	log                      logger.Logger
+	*operator.Context
 	runtimeHandler           api.KogitoRuntimeHandler
 	supportingServiceHandler api.KogitoSupportingServiceHandler
 }
 
 // NewURLHandler ...
-func NewURLHandler(client *client.Client, log logger.Logger, runtimeHandler api.KogitoRuntimeHandler, supportingServiceHandler api.KogitoSupportingServiceHandler) URLHandler {
+func NewURLHandler(context *operator.Context, runtimeHandler api.KogitoRuntimeHandler, supportingServiceHandler api.KogitoSupportingServiceHandler) URLHandler {
 	return &urlHandler{
-		client:                   client,
-		log:                      log,
+		Context:                  context,
 		runtimeHandler:           runtimeHandler,
 		supportingServiceHandler: supportingServiceHandler,
 	}
@@ -75,13 +72,13 @@ func NewURLHandler(client *client.Client, log logger.Logger, runtimeHandler api.
 // InjectDataIndexURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Data Index route to each one
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func (u *urlHandler) InjectDataIndexURLIntoKogitoRuntimeServices(namespace string) error {
-	u.log.Debug("Injecting Data-Index Route in kogito Runtime")
+	u.Log.Debug("Injecting Data-Index Route in kogito Runtime")
 	return u.injectSupportingServiceURLIntoKogitoRuntime(namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, api.DataIndex)
 }
 
 // InjectDataIndexURLIntoDeployment will inject data-index route URL in to kogito runtime deployment env var
 func (u *urlHandler) InjectDataIndexURLIntoDeployment(namespace string, deployment *appsv1.Deployment) error {
-	u.log.Debug("Injecting Data-Index URL in kogito Runtime deployment")
+	u.Log.Debug("Injecting Data-Index URL in kogito Runtime deployment")
 	return u.injectSupportingServiceURLIntoDeployment(namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, deployment, api.DataIndex)
 }
 
@@ -89,29 +86,29 @@ func (u *urlHandler) InjectDataIndexURLIntoDeployment(namespace string, deployme
 // Won't trigger an update if the SupportingService already has the route set to avoid unnecessary reconciliation triggers
 func (u *urlHandler) InjectDataIndexURLIntoSupportingService(namespace string, serviceTypes ...api.ServiceType) error {
 	for _, serviceType := range serviceTypes {
-		u.log.Debug("Injecting Data-Index Route", "service", serviceType)
-		supportingServiceManager := manager.NewKogitoSupportingServiceManager(u.client, u.log, u.supportingServiceHandler)
+		u.Log.Debug("Injecting Data-Index Route", "service", serviceType)
+		supportingServiceManager := manager.NewKogitoSupportingServiceManager(u.Context, u.supportingServiceHandler)
 		deployment, err := supportingServiceManager.FetchKogitoSupportingServiceDeployment(namespace, serviceType)
 		if err != nil {
 			return err
 		}
 		if deployment == nil {
-			u.log.Debug("No deployment found for service, skipping to inject DataIndex URL", "service", serviceType)
+			u.Log.Debug("No deployment found for service, skipping to inject DataIndex URL", "service", serviceType)
 			return nil
 		}
 
-		u.log.Debug("Querying DataIndex route to inject into service", "service", serviceType)
+		u.Log.Debug("Querying DataIndex route to inject into service", "service", serviceType)
 		serviceEndpoints, err := u.getSupportingServiceEndpoints(namespace, dataIndexHTTPRouteEnv, dataIndexWSRouteEnv, api.DataIndex)
 		if err != nil {
 			return err
 		}
 		if serviceEndpoints != nil {
-			u.log.Debug("", "DataIndex route", serviceEndpoints.HTTPRouteURI)
+			u.Log.Debug("", "DataIndex route", serviceEndpoints.HTTPRouteURI)
 
 			updateHTTP, updateWS := u.updateServiceEndpointIntoDeploymentEnv(deployment, serviceEndpoints)
 			// update only once
 			if updateWS || updateHTTP {
-				if err := kubernetes.ResourceC(u.client).Update(deployment); err != nil {
+				if err := kubernetes.ResourceC(u.Client).Update(deployment); err != nil {
 					return err
 				}
 			}
@@ -123,26 +120,26 @@ func (u *urlHandler) InjectDataIndexURLIntoSupportingService(namespace string, s
 // InjectJobsServicesURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Jobs Services route to each one
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func (u *urlHandler) InjectJobsServicesURLIntoKogitoRuntimeServices(namespace string) error {
-	u.log.Debug("Injecting Jobs Service Route in kogito Runtime instances")
+	u.Log.Debug("Injecting Jobs Service Route in kogito Runtime instances")
 	return u.injectSupportingServiceURLIntoKogitoRuntime(namespace, jobsServicesHTTPRouteEnv, "", api.JobsService)
 }
 
 // InjectJobsServiceURLIntoKogitoRuntimeDeployment will inject jobs-service route URL in to kogito runtime deployment env var
 func (u *urlHandler) InjectJobsServiceURLIntoKogitoRuntimeDeployment(namespace string, deployment *appsv1.Deployment) error {
-	u.log.Debug("Injecting Jobs Service URL in kogito Runtime deployment")
+	u.Log.Debug("Injecting Jobs Service URL in kogito Runtime deployment")
 	return u.injectSupportingServiceURLIntoDeployment(namespace, jobsServicesHTTPRouteEnv, "", deployment, api.JobsService)
 }
 
 // InjectTrustyURLIntoKogitoRuntimeServices will query for every KogitoRuntime in the given namespace to inject the Trusty route to each one
 // Won't trigger an update if the KogitoRuntime already has the route set to avoid unnecessary reconciliation triggers
 func (u *urlHandler) InjectTrustyURLIntoKogitoRuntimeServices(namespace string) error {
-	u.log.Debug("Injecting Trusty AI URL Route in kogito runtime")
+	u.Log.Debug("Injecting Trusty AI URL Route in kogito runtime")
 	return u.injectSupportingServiceURLIntoKogitoRuntime(namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, api.TrustyAI)
 }
 
 // InjectTrustyURLIntoDeployment will inject Trusty route URL in to kogito runtime deployment env var
 func (u *urlHandler) InjectTrustyURLIntoDeployment(namespace string, deployment *appsv1.Deployment) error {
-	u.log.Debug("Injecting Trusty AI URL in kogito Runtime deployment")
+	u.Log.Debug("Injecting Trusty AI URL in kogito Runtime deployment")
 	return u.injectSupportingServiceURLIntoDeployment(namespace, trustyHTTPRouteEnv, trustyWSRouteEnv, deployment, api.TrustyAI)
 }
 
@@ -156,45 +153,45 @@ func (u *urlHandler) injectSupportingServiceURLIntoKogitoRuntime(namespace strin
 	}
 	if serviceEndpoints != nil {
 
-		u.log.Debug("", "resourceType", resourceType, "route", serviceEndpoints.HTTPRouteURI)
+		u.Log.Debug("", "resourceType", resourceType, "route", serviceEndpoints.HTTPRouteURI)
 
-		u.log.Debug("Querying KogitoRuntime instances to inject a route ", "namespace", namespace)
-		runtimeManager := manager.NewKogitoRuntimeManager(u.client, u.log, u.runtimeHandler)
+		u.Log.Debug("Querying KogitoRuntime instances to inject a route ", "namespace", namespace)
+		runtimeManager := manager.NewKogitoRuntimeManager(u.Context, u.runtimeHandler)
 		deployments, err := runtimeManager.FetchKogitoRuntimeDeployments(namespace)
 		if err != nil {
 			return err
 		}
-		u.log.Debug("", "Found KogitoRuntime instances", len(deployments), "namespace", namespace)
+		u.Log.Debug("", "Found KogitoRuntime instances", len(deployments), "namespace", namespace)
 		if len(deployments) == 0 {
-			u.log.Debug("No deployment found for KogitoRuntime, skipping to inject request resource type URL into KogitoRuntime", "request resource type", resourceType)
+			u.Log.Debug("No deployment found for KogitoRuntime, skipping to inject request resource type URL into KogitoRuntime", "request resource type", resourceType)
 			return nil
 		}
-		u.log.Debug("Querying resource route to inject into KogitoRuntimes", "resource", resourceType)
+		u.Log.Debug("Querying resource route to inject into KogitoRuntimes", "resource", resourceType)
 
 		for _, dep := range deployments {
 			updateHTTP, updateWS := u.updateServiceEndpointIntoDeploymentEnv(&dep, serviceEndpoints)
 			// update only once
 			if updateWS || updateHTTP {
-				if err := kubernetes.ResourceC(u.client).Update(&dep); err != nil {
+				if err := kubernetes.ResourceC(u.Client).Update(&dep); err != nil {
 					return err
 				}
 			}
 		}
 	}
-	u.log.Debug("Service Endpoint is nil")
+	u.Log.Debug("Service Endpoint is nil")
 	return nil
 }
 
 // InjectDataIndexURLIntoDeployment will inject Supporting service route URL in to kogito runtime deployment env var
 // It will call when Kogito runtime reconcile
 func (u *urlHandler) injectSupportingServiceURLIntoDeployment(namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, deployment *appsv1.Deployment, resourceType api.ServiceType) error {
-	u.log.Debug("Querying supporting service route to inject into Kogito runtime", "supporting service", resourceType)
+	u.Log.Debug("Querying supporting service route to inject into Kogito runtime", "supporting service", resourceType)
 	dataIndexEndpoints, err := u.getSupportingServiceEndpoints(namespace, serviceHTTPRouteEnv, serviceWSRouteEnv, resourceType)
 	if err != nil {
 		return err
 	}
 	if dataIndexEndpoints != nil {
-		u.log.Debug("", "resourceType", resourceType, "route", dataIndexEndpoints.HTTPRouteURI)
+		u.Log.Debug("", "resourceType", resourceType, "route", dataIndexEndpoints.HTTPRouteURI)
 		u.updateServiceEndpointIntoDeploymentEnv(deployment, dataIndexEndpoints)
 	}
 	return nil
@@ -202,7 +199,7 @@ func (u *urlHandler) injectSupportingServiceURLIntoDeployment(namespace string, 
 
 func (u *urlHandler) getSupportingServiceEndpoints(namespace string, serviceHTTPRouteEnv string, serviceWSRouteEnv string, resourceType api.ServiceType) (endpoints *ServiceEndpoints, err error) {
 	route := ""
-	supportingServiceManager := manager.NewKogitoSupportingServiceManager(u.client, u.log, u.supportingServiceHandler)
+	supportingServiceManager := manager.NewKogitoSupportingServiceManager(u.Context, u.supportingServiceHandler)
 	route, err = supportingServiceManager.FetchKogitoSupportingServiceRoute(namespace, resourceType)
 	if err != nil {
 		return
@@ -215,7 +212,7 @@ func (u *urlHandler) getSupportingServiceEndpoints(namespace string, serviceHTTP
 		var routeURL *url.URL
 		routeURL, err = url.Parse(route)
 		if err != nil {
-			u.log.Error(err, "Failed to parse route url, set to empty", "route url", route)
+			u.Log.Error(err, "Failed to parse route url, set to empty", "route url", route)
 			return
 		}
 		endpoints.HTTPRouteURI = routeURL.String()
@@ -239,11 +236,11 @@ func (u *urlHandler) updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.D
 			updateWS = framework.GetEnvVarFromContainer(serviceEndpoints.WSRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != serviceEndpoints.WSRouteURI
 		}
 		if updateHTTP {
-			u.log.Debug("Updating dc to inject route", "dc", deployment.GetName(), "route", serviceEndpoints.HTTPRouteURI)
+			u.Log.Debug("Updating dc to inject route", "dc", deployment.GetName(), "route", serviceEndpoints.HTTPRouteURI)
 			framework.SetEnvVar(serviceEndpoints.HTTPRouteEnv, serviceEndpoints.HTTPRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 		if updateWS {
-			u.log.Debug("Updating dc to inject route ", "dc", deployment.GetName(), "route", serviceEndpoints.WSRouteURI)
+			u.Log.Debug("Updating dc to inject route ", "dc", deployment.GetName(), "route", serviceEndpoints.WSRouteURI)
 			framework.SetEnvVar(serviceEndpoints.WSRouteEnv, serviceEndpoints.WSRouteURI, &deployment.Spec.Template.Spec.Containers[0])
 		}
 	}

@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitobuild"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
@@ -28,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -60,8 +61,15 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
 	log.Info("Reconciling for KogitoBuild")
 
+	// create context
+	context := &operator.Context{
+		Client: r.Client,
+		Log:    log,
+		Scheme: r.Scheme,
+	}
+
 	// fetch the requested instance
-	buildInstanceHandler := internal.NewKogitoBuildHandler(r.Client, log)
+	buildInstanceHandler := internal.NewKogitoBuildHandler(context)
 	instance, resultErr := buildInstanceHandler.FetchKogitoBuildInstance(req.NamespacedName)
 	if resultErr != nil {
 		return
@@ -70,7 +78,7 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 		return
 	}
 
-	buildStatusHandler := kogitobuild.NewStatusHandler(r.Client, log)
+	buildStatusHandler := kogitobuild.NewStatusHandler(context)
 	defer buildStatusHandler.HandleStatusChange(instance, resultErr)
 
 	if len(instance.GetSpec().GetRuntime()) == 0 {
@@ -83,7 +91,7 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 	}
 
 	// create the Kogito Image Streams to build the service if needed
-	buildImageHandler := kogitobuild.NewImageSteamHandler(r.Client, log)
+	buildImageHandler := kogitobuild.NewImageSteamHandler(context)
 	created, resultErr := buildImageHandler.CreateRequiredKogitoImageStreams(instance)
 	if resultErr != nil {
 		return result, fmt.Errorf("Error while creating Kogito ImageStreams: %s ", resultErr)
@@ -94,7 +102,7 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 	}
 
 	// get the build manager to start the reconciliation logic
-	deltaProcessor, resultErr := kogitobuild.NewDeltaProcessor(instance, r.Client, r.Scheme, log)
+	deltaProcessor, resultErr := kogitobuild.NewDeltaProcessor(context, instance)
 	if resultErr != nil {
 		return
 	}

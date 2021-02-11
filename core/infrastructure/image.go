@@ -17,10 +17,9 @@ package infrastructure
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/version"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/version"
 	imgv1 "github.com/openshift/api/image/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"strings"
@@ -58,6 +57,7 @@ type ImageHandler interface {
 
 // imageHandler defines the base structure for images in either OpenShift or Kubernetes clusters
 type imageHandler struct {
+	*operator.Context
 	// image is the CR structure attribute given by the user
 	image *api.Image
 	// defaultImageName is the default image name for this service. Used to resolve the image from the Kogito Team registry when no custom image is given.
@@ -68,28 +68,24 @@ type imageHandler struct {
 	namespace             string
 	addFromReference      bool
 	insecureImageRegistry bool
-	// client to handle API cluster calls
-	client *client.Client
-	log    logger.Logger
 }
 
 // NewImageHandler ...
-func NewImageHandler(image *api.Image, defaultImageName, imageStreamName, namespace string, addFromReference, insecureImageRegistry bool, client *client.Client, log logger.Logger) ImageHandler {
+func NewImageHandler(context *operator.Context, image *api.Image, defaultImageName, imageStreamName, namespace string, addFromReference, insecureImageRegistry bool) ImageHandler {
 	return &imageHandler{
+		Context:               context,
 		image:                 image,
 		defaultImageName:      defaultImageName,
 		imageStreamName:       imageStreamName,
 		namespace:             namespace,
 		addFromReference:      addFromReference,
 		insecureImageRegistry: insecureImageRegistry,
-		client:                client,
-		log:                   log,
 	}
 }
 
 func (i *imageHandler) CreateImageStreamIfNotExists() (*imgv1.ImageStream, error) {
-	if i.client.IsOpenshift() {
-		imageStreamHandler := NewImageStreamHandler(i.client, i.log)
+	if i.Client.IsOpenshift() {
+		imageStreamHandler := NewImageStreamHandler(i.Context)
 		imageStream, err := imageStreamHandler.FetchImageStream(types.NamespacedName{Name: i.imageStreamName, Namespace: i.namespace})
 		if err != nil {
 			return nil, err
@@ -105,9 +101,9 @@ func (i *imageHandler) CreateImageStreamIfNotExists() (*imgv1.ImageStream, error
 // resolveImage resolves images like "quay.io/kiegroup/kogito-jobs-service:latest" or "internal-registry/namespace/image:hash".
 // Can be empty if on OpenShift and the ImageStream is not ready.
 func (i *imageHandler) ResolveImage() (string, error) {
-	if i.client.IsOpenshift() {
+	if i.Client.IsOpenshift() {
 		// the image is on an ImageStreamTag object
-		ist, err := openshift.ImageStreamC(i.client).FetchTag(types.NamespacedName{Name: i.imageStreamName, Namespace: i.namespace}, i.resolveTag())
+		ist, err := openshift.ImageStreamC(i.Client).FetchTag(types.NamespacedName{Name: i.imageStreamName, Namespace: i.namespace}, i.resolveTag())
 		if err != nil {
 			return "", err
 		} else if ist == nil {

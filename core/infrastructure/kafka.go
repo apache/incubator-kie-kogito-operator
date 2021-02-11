@@ -17,13 +17,10 @@ package infrastructure
 import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -61,51 +58,47 @@ type KafkaHandler interface {
 }
 
 type kafkaHandler struct {
-	client *client.Client
-	log    logger.Logger
-	scheme *runtime.Scheme
+	*operator.Context
 }
 
 // NewKafkaHandler ...
-func NewKafkaHandler(client *client.Client, log logger.Logger, scheme *runtime.Scheme) KafkaHandler {
+func NewKafkaHandler(context *operator.Context) KafkaHandler {
 	return &kafkaHandler{
-		client: client,
-		log:    log,
-		scheme: scheme,
+		context,
 	}
 }
 
 // IsStrimziAvailable checks if Strimzi CRD is available in the cluster
 func (k *kafkaHandler) IsStrimziAvailable() bool {
-	return k.client.HasServerGroup(strimziServerGroup)
+	return k.Client.HasServerGroup(strimziServerGroup)
 }
 
 func (k *kafkaHandler) FetchKafkaInstance(key types.NamespacedName) (*v1beta1.Kafka, error) {
-	k.log.Debug("fetching deployed kafka instance")
+	k.Log.Debug("fetching deployed kafka instance")
 	kafkaInstance := &v1beta1.Kafka{}
-	if exists, err := kubernetes.ResourceC(k.client).FetchWithKey(key, kafkaInstance); err != nil {
-		k.log.Error(err, "Error occurs while fetching kogito kafka instance")
+	if exists, err := kubernetes.ResourceC(k.Client).FetchWithKey(key, kafkaInstance); err != nil {
+		k.Log.Error(err, "Error occurs while fetching kogito kafka instance")
 		return nil, err
 	} else if !exists {
-		k.log.Debug("kafka instance does not exist")
+		k.Log.Debug("kafka instance does not exist")
 		return nil, nil
 	} else {
-		k.log.Debug("kafka instance found")
+		k.Log.Debug("kafka instance found")
 		return kafkaInstance, nil
 	}
 }
 
 func (k *kafkaHandler) CreateKafkaInstance(key types.NamespacedName, owner resource.KubernetesResource) (*v1beta1.Kafka, error) {
-	k.log.Debug("Going to create Kafka instance")
+	k.Log.Debug("Going to create Kafka instance")
 	kafkaInstance := GetKafkaDefaultResource(key.Name, key.Namespace)
-	if err := framework.SetOwner(owner, k.scheme, kafkaInstance); err != nil {
+	if err := framework.SetOwner(owner, k.Scheme, kafkaInstance); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(k.client).Create(kafkaInstance); err != nil {
-		k.log.Error(err, "Error occurs while creating Kafka instance")
+	if err := kubernetes.ResourceC(k.Client).Create(kafkaInstance); err != nil {
+		k.Log.Error(err, "Error occurs while creating Kafka instance")
 		return nil, err
 	}
-	k.log.Debug("Kafka instance created successfully")
+	k.Log.Debug("Kafka instance created successfully")
 	return kafkaInstance, nil
 }
 
@@ -145,27 +138,27 @@ func GetKafkaDefaultResource(name, namespace string) *v1beta1.Kafka {
 }
 
 func (k *kafkaHandler) FetchKafkaTopic(key types.NamespacedName) (*v1beta1.KafkaTopic, error) {
-	k.log.Debug("Going to load deployed kafka topic", "topicName", key.Name)
+	k.Log.Debug("Going to load deployed kafka topic", "topicName", key.Name)
 	kafkaTopic := &v1beta1.KafkaTopic{}
-	if exits, err := kubernetes.ResourceC(k.client).FetchWithKey(key, kafkaTopic); err != nil {
-		k.log.Error(err, "Error occurs while fetching kogito kafka topic", "topicName", key.Name)
+	if exits, err := kubernetes.ResourceC(k.Client).FetchWithKey(key, kafkaTopic); err != nil {
+		k.Log.Error(err, "Error occurs while fetching kogito kafka topic", "topicName", key.Name)
 		return nil, err
 	} else if exits {
-		k.log.Debug("kafka topic found", "topicName", key.Name)
+		k.Log.Debug("kafka topic found", "topicName", key.Name)
 		return kafkaTopic, nil
 	}
-	k.log.Debug("kafka topic not exists", "topicName", key.Name)
+	k.Log.Debug("kafka topic not exists", "topicName", key.Name)
 	return nil, nil
 }
 
 func (k *kafkaHandler) CreateKafkaTopic(topicName, kafkaName, kafkaNamespace string) (*v1beta1.KafkaTopic, error) {
-	k.log.Debug("Going to create kafka topic", "topicName", topicName)
+	k.Log.Debug("Going to create kafka topic", "topicName", topicName)
 	kafkaTopic := getKafkaTopic(topicName, kafkaNamespace, kafkaName)
-	if err := kubernetes.ResourceC(k.client).Create(kafkaTopic); err != nil {
-		k.log.Error(err, "Error occurs while creating kogito Kafka topic")
+	if err := kubernetes.ResourceC(k.Client).Create(kafkaTopic); err != nil {
+		k.Log.Error(err, "Error occurs while creating kogito Kafka topic")
 		return nil, err
 	}
-	k.log.Debug("Kogito Kafka topic created successfully", "topicName", topicName)
+	k.Log.Debug("Kogito Kafka topic created successfully", "topicName", topicName)
 	return kafkaTopic, nil
 }
 
@@ -191,21 +184,21 @@ func getKafkaTopic(name, namespace, kafkaBroker string) *v1beta1.KafkaTopic {
 
 // ResolveKafkaServerURI returns the uri of the kafka instance
 func (k *kafkaHandler) ResolveKafkaServerURI(kafka *v1beta1.Kafka) (string, error) {
-	k.log.Debug("Resolving kafka URI", "kafka instance", kafka.Name)
+	k.Log.Debug("Resolving kafka URI", "kafka instance", kafka.Name)
 	if len(kafka.Status.Listeners) > 0 {
 		for _, listenerStatus := range kafka.Status.Listeners {
 			if listenerStatus.Type == "plain" && len(listenerStatus.Addresses) > 0 {
 				for _, listenerAddress := range listenerStatus.Addresses {
 					if len(listenerAddress.Host) > 0 && listenerAddress.Port > 0 {
 						kafkaURI := fmt.Sprintf("%s:%d", listenerAddress.Host, listenerAddress.Port)
-						k.log.Debug("Success fetch Kafka URI", "kafka instance", kafka.Name, "kafka URI", kafkaURI)
+						k.Log.Debug("Success fetch Kafka URI", "kafka instance", kafka.Name, "kafka URI", kafkaURI)
 						return kafkaURI, nil
 					}
 				}
 			}
 		}
 	}
-	k.log.Debug("Not able resolve URI for given kafka instance")
+	k.Log.Debug("Not able resolve URI for given kafka instance")
 	return "", fmt.Errorf("not able resolve URI for given kafka instance %s", kafka.Name)
 }
 

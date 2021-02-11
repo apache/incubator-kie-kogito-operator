@@ -16,9 +16,8 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -32,21 +31,19 @@ type DeploymentHandler interface {
 }
 
 type deploymentHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewDeploymentHandler ...
-func NewDeploymentHandler(client *client.Client, log logger.Logger) DeploymentHandler {
+func NewDeploymentHandler(context *operator.Context) DeploymentHandler {
 	return &deploymentHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 func (d *deploymentHandler) FetchDeployment(key types.NamespacedName) (*appsv1.Deployment, error) {
 	deployment := &appsv1.Deployment{}
-	_, err := kubernetes.ResourceC(d.client).FetchWithKey(key, deployment)
+	_, err := kubernetes.ResourceC(d.Client).FetchWithKey(key, deployment)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +52,7 @@ func (d *deploymentHandler) FetchDeployment(key types.NamespacedName) (*appsv1.D
 
 func (d *deploymentHandler) FetchDeploymentList(namespace string) (*appsv1.DeploymentList, error) {
 	dcs := &appsv1.DeploymentList{}
-	if err := kubernetes.ResourceC(d.client).ListWithNamespace(namespace, dcs); err != nil {
+	if err := kubernetes.ResourceC(d.Client).ListWithNamespace(namespace, dcs); err != nil {
 		return nil, err
 	}
 	return dcs, nil

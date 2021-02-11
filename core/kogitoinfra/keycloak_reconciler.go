@@ -16,8 +16,8 @@ package kogitoinfra
 
 import (
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -29,16 +29,16 @@ const (
 	keycloakMetricsExtension = "https://github.com/aerogear/keycloak-metrics-spi/releases/download/1.0.4/keycloak-metrics-spi-1.0.4.jar"
 )
 
-func initkeycloakInfraReconciler(context targetContext) *keycloakInfraReconciler {
-	context.log = context.log.WithValues("resource", "keycloak")
-	return &keycloakInfraReconciler{
-		targetContext: context,
-	}
-}
-
 // keycloakInfraReconciler implementation of KogitoInfraResource
 type keycloakInfraReconciler struct {
-	targetContext
+	infraContext
+}
+
+func initkeycloakInfraReconciler(context infraContext) *keycloakInfraReconciler {
+	context.Log = context.Log.WithValues("resource", "keycloak")
+	return &keycloakInfraReconciler{
+		infraContext: context,
+	}
 }
 
 // AppendKeycloakWatchedObjects ...
@@ -49,17 +49,17 @@ func AppendKeycloakWatchedObjects(b *builder.Builder) *builder.Builder {
 // Reconcile reconcile Kogito infra object
 func (k *keycloakInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	var keycloakInstance *keycloakv1alpha1.Keycloak
-	keycloakHandler := infrastructure.NewKeycloakHandler(k.client, k.log)
+	keycloakHandler := infrastructure.NewKeycloakHandler(k.Context)
 	if !keycloakHandler.IsKeycloakAvailable() {
 		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().APIVersion)
 	}
 
 	if len(k.instance.GetSpec().GetResource().Name) > 0 {
-		k.log.Debug("Custom Keycloak instance reference is provided")
+		k.Log.Debug("Custom Keycloak instance reference is provided")
 		namespace := k.instance.GetSpec().GetResource().Namespace
 		if len(namespace) == 0 {
 			namespace = k.instance.GetNamespace()
-			k.log.Debug("Namespace is not provided for custom resource, taking instance", "Namespace", namespace)
+			k.Log.Debug("Namespace is not provided for custom resource, taking instance", "Namespace", namespace)
 		}
 		if keycloakInstance, resultErr = k.loadDeployedKeycloakInstance(k.instance.GetSpec().GetResource().Name, namespace); resultErr != nil {
 			return false, resultErr
@@ -67,7 +67,7 @@ func (k *keycloakInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 			return false, errorForResourceNotFound("Keycloak", k.instance.GetSpec().GetResource().Name, namespace)
 		}
 	} else {
-		k.log.Debug("Custom Keycloak instance reference is not provided")
+		k.Log.Debug("Custom Keycloak instance reference is not provided")
 		// check whether Keycloak instance exist
 		keycloakInstance, resultErr := k.loadDeployedKeycloakInstance(infrastructure.KeycloakInstanceName, k.instance.GetNamespace())
 		if resultErr != nil {
@@ -87,23 +87,23 @@ func (k *keycloakInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 }
 
 func (k *keycloakInfraReconciler) loadDeployedKeycloakInstance(name string, namespace string) (*keycloakv1alpha1.Keycloak, error) {
-	k.log.Debug("fetching deployed kogito Keycloak instance")
+	k.Log.Debug("fetching deployed kogito Keycloak instance")
 	keycloakInstance := &keycloakv1alpha1.Keycloak{}
-	if exits, err := kubernetes.ResourceC(k.client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, keycloakInstance); err != nil {
-		k.log.Error(err, "Error occurs while fetching kogito Keycloak instance")
+	if exits, err := kubernetes.ResourceC(k.Client).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, keycloakInstance); err != nil {
+		k.Log.Error(err, "Error occurs while fetching kogito Keycloak instance")
 		return nil, err
 	} else if !exits {
-		k.log.Debug("Kogito Keycloak instance is not exists")
+		k.Log.Debug("Kogito Keycloak instance is not exists")
 		return nil, nil
 	} else {
-		k.log.Debug("Kogito Keycloak instance found")
+		k.Log.Debug("Kogito Keycloak instance found")
 		return keycloakInstance, nil
 	}
 }
 
 func (k *keycloakInfraReconciler) createNewKeycloakInstance(name string, namespace string) (*keycloakv1alpha1.Keycloak, error) {
-	k.log.Debug("Going to create kogito Keycloak instance")
-	k.log.Debug("Creating default resources for Keycloak installation for Kogito Infra", "Namespace", namespace)
+	k.Log.Debug("Going to create kogito Keycloak instance")
+	k.Log.Debug("Creating default resources for Keycloak installation for Kogito Infra", "Namespace", namespace)
 	keycloakInstance := &keycloakv1alpha1.Keycloak{
 		ObjectMeta: v1.ObjectMeta{Namespace: namespace, Name: name},
 		Spec: keycloakv1alpha1.KeycloakSpec{
@@ -112,13 +112,13 @@ func (k *keycloakInfraReconciler) createNewKeycloakInstance(name string, namespa
 			ExternalAccess: keycloakv1alpha1.KeycloakExternalAccess{Enabled: true},
 		},
 	}
-	if err := controllerutil.SetOwnerReference(k.instance, keycloakInstance, k.scheme); err != nil {
+	if err := controllerutil.SetOwnerReference(k.instance, keycloakInstance, k.Scheme); err != nil {
 		return nil, err
 	}
-	if err := kubernetes.ResourceC(k.client).Create(keycloakInstance); err != nil {
-		k.log.Error(err, "Error occurs while creating kogito Keycloak instance")
+	if err := kubernetes.ResourceC(k.Client).Create(keycloakInstance); err != nil {
+		k.Log.Error(err, "Error occurs while creating kogito Keycloak instance")
 		return nil, err
 	}
-	k.log.Debug("Successfully created Kogito Keycloak instance")
+	k.Log.Debug("Successfully created Kogito Keycloak instance")
 	return keycloakInstance, nil
 }

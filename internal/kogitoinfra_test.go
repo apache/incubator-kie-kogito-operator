@@ -16,7 +16,7 @@ package internal
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,8 +33,13 @@ func TestFetchKogitoInfraInstance_InstanceFound(t *testing.T) {
 			Namespace: ns,
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra).Build()
-	infraHandler := NewKogitoInfraHandler(cli, logger.GetLogger("KogitoInfra"))
+	cli := test.NewFakeClientBuilder().UseScheme(GetRegisteredSchema()).AddK8sObjects(kogitoInfra).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	infraHandler := NewKogitoInfraHandler(context)
 	instance, err := infraHandler.FetchKogitoInfraInstance(types.NamespacedName{Name: name, Namespace: ns})
 	assert.NoError(t, err)
 	assert.NotNil(t, instance)
@@ -43,8 +48,13 @@ func TestFetchKogitoInfraInstance_InstanceFound(t *testing.T) {
 func TestFetchKogitoInfraInstance_InstanceNotFound(t *testing.T) {
 	ns := t.Name()
 	name := "InfinispanInfra"
-	cli := test.NewFakeClientBuilder().Build()
-	infraHandler := NewKogitoInfraHandler(cli, logger.GetLogger("KogitoInfra"))
+	cli := test.NewFakeClientBuilder().UseScheme(GetRegisteredSchema()).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	infraHandler := NewKogitoInfraHandler(context)
 	instance, err := infraHandler.FetchKogitoInfraInstance(types.NamespacedName{Name: name, Namespace: ns})
 	assert.NoError(t, err)
 	assert.Nil(t, instance)

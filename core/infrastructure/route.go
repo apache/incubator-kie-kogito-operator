@@ -15,10 +15,9 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,21 +32,19 @@ type RouteHandler interface {
 }
 
 type routeHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewRouteHandler ...
-func NewRouteHandler(client *client.Client, log logger.Logger) RouteHandler {
+func NewRouteHandler(context *operator.Context) RouteHandler {
 	return &routeHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 func (r *routeHandler) FetchRoute(key types.NamespacedName) (*routev1.Route, error) {
 	route := &routev1.Route{}
-	exists, err := kubernetes.ResourceC(r.client).FetchWithKey(key, route)
+	exists, err := kubernetes.ResourceC(r.Client).FetchWithKey(key, route)
 	if err != nil {
 		return nil, err
 	} else if !exists {
@@ -67,7 +64,7 @@ func (r *routeHandler) GetHostFromRoute(routeKey types.NamespacedName) (string, 
 // createRequiredRoute creates a new Route resource based on the given Service
 func (r *routeHandler) CreateRoute(service *corev1.Service) (route *routev1.Route) {
 	if service == nil || len(service.Spec.Ports) == 0 {
-		r.log.Warn("Impossible to create a Route without a target service")
+		r.Log.Warn("Impossible to create a Route without a target service")
 		return route
 	}
 
@@ -78,7 +75,7 @@ func (r *routeHandler) CreateRoute(service *corev1.Service) (route *routev1.Rout
 				TargetPort: intstr.FromString(service.Spec.Ports[0].Name),
 			},
 			To: routev1.RouteTargetReference{
-				Kind: meta.KindService.Name,
+				Kind: openshift.KindService.Name,
 				Name: service.Name,
 			},
 		},

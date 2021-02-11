@@ -20,9 +20,10 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
 	test3 "github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	v1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -150,6 +151,7 @@ func Test_DeployCmd_SWFile(t *testing.T) {
 		context.CommandFactory{BuildCommands: BuildCommands},
 		test3.NewFakeClientBuilder().
 			OnOpenShift().
+			UseScheme(internal.GetRegisteredSchema()).
 			AddK8sObjects(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}).
 			AddBuildObjects(&v1.BuildConfig{ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus-builder", Namespace: ns}}).
 			Build())

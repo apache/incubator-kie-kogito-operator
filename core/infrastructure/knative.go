@@ -15,8 +15,8 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/eventing/pkg/apis/eventing"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
@@ -39,24 +39,24 @@ type KnativeHandler interface {
 }
 
 type knativeHandler struct {
-	client *client.Client
+	*operator.Context
 }
 
 // NewKnativeHandler ...
-func NewKnativeHandler(client *client.Client) KnativeHandler {
+func NewKnativeHandler(context *operator.Context) KnativeHandler {
 	return &knativeHandler{
-		client: client,
+		context,
 	}
 }
 
 // IsKnativeEventingAvailable checks if Knative Eventing CRDs are available in the cluster
 func (k *knativeHandler) IsKnativeEventingAvailable() bool {
-	return k.client.HasServerGroup(eventing.GroupName)
+	return k.Client.HasServerGroup(eventing.GroupName)
 }
 
 func (k *knativeHandler) FetchBroker(key types.NamespacedName) (*eventingv1.Broker, error) {
 	broker := &eventingv1.Broker{}
-	if exists, err := kubernetes.ResourceC(k.client).FetchWithKey(key, broker); err != nil {
+	if exists, err := kubernetes.ResourceC(k.Client).FetchWithKey(key, broker); err != nil {
 		return nil, err
 	} else if !exists {
 		return nil, nil

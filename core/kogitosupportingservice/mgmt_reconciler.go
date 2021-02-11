@@ -32,30 +32,30 @@ const (
 
 // mgmtConsoleSupportingServiceResource implementation of SupportingServiceResource
 type mgmtConsoleSupportingServiceResource struct {
-	targetContext
+	supportingServiceContext
 }
 
-func initMgmtConsoleSupportingServiceResource(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "mgmt-console")
+func initMgmtConsoleSupportingServiceResource(context supportingServiceContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "mgmt-console")
 	return &mgmtConsoleSupportingServiceResource{
-		targetContext: context,
+		supportingServiceContext: context,
 	}
 }
 
 // Reconcile reconcile Management Console
 func (m *mgmtConsoleSupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
-	m.log.Info("Reconciling for KogitoMgmtConsole")
+	m.Log.Info("Reconciling for KogitoMgmtConsole")
 	definition := kogitoservice.ServiceDefinition{
 		DefaultImageName:   DefaultMgmtConsoleImageName,
 		Request:            controller.Request{NamespacedName: types.NamespacedName{Name: m.instance.GetName(), Namespace: m.instance.GetNamespace()}},
 		SingleReplica:      false,
 		OnDeploymentCreate: m.mgmtConsoleOnDeploymentCreate,
 	}
-	return kogitoservice.NewServiceDeployer(definition, m.instance, m.client, m.scheme, m.log, m.infraHandler).Deploy()
+	return kogitoservice.NewServiceDeployer(m.Context, definition, m.instance, m.infraHandler).Deploy()
 }
 
 func (m *mgmtConsoleSupportingServiceResource) mgmtConsoleOnDeploymentCreate(deployment *appsv1.Deployment) error {
-	urlHandler := connector.NewURLHandler(m.client, m.log, m.runtimeHandler, m.supportingServiceHandler)
+	urlHandler := connector.NewURLHandler(m.Context, m.runtimeHandler, m.supportingServiceHandler)
 	if err := urlHandler.InjectDataIndexURLIntoDeployment(m.instance.GetNamespace(), deployment); err != nil {
 		return err
 	}

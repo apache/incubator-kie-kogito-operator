@@ -43,16 +43,16 @@ func AppendKafkaWatchedObjects(b *builder.Builder) *builder.Builder {
 	return b
 }
 
-func initkafkaInfraReconciler(context targetContext) *kafkaInfraReconciler {
-	context.log = context.log.WithValues("resource", "kafka")
+func initkafkaInfraReconciler(context infraContext) *kafkaInfraReconciler {
+	context.Log = context.Log.WithValues("resource", "kafka")
 	return &kafkaInfraReconciler{
-		targetContext: context,
+		infraContext: context,
 	}
 }
 
 // kafkaInfraReconciler implementation of KogitoInfraResource
 type kafkaInfraReconciler struct {
-	targetContext
+	infraContext
 }
 
 // Reconcile reconcile Kogito infra object
@@ -60,17 +60,17 @@ func (k *kafkaInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 	var kafkaInstance *kafkabetav1.Kafka
 
 	// Verify kafka
-	kafkaHandler := infrastructure.NewKafkaHandler(k.client, k.log, k.scheme)
+	kafkaHandler := infrastructure.NewKafkaHandler(k.Context)
 	if !kafkaHandler.IsStrimziAvailable() {
 		return false, errorForResourceAPINotFound(k.instance.GetSpec().GetResource().APIVersion)
 	}
 
 	if len(k.instance.GetSpec().GetResource().Name) > 0 {
-		k.log.Debug("Custom kafka instance reference is provided")
+		k.Log.Debug("Custom kafka instance reference is provided")
 		namespace := k.instance.GetSpec().GetResource().Namespace
 		if len(namespace) == 0 {
 			namespace = k.instance.GetNamespace()
-			k.log.Debug("Namespace is not provided for custom resource, taking", "Namespace", namespace)
+			k.Log.Debug("Namespace is not provided for custom resource, taking", "Namespace", namespace)
 		}
 		if kafkaInstance, resultErr = kafkaHandler.FetchKafkaInstance(types.NamespacedName{Name: k.instance.GetSpec().GetResource().Name, Namespace: namespace}); resultErr != nil {
 			return false, resultErr
@@ -80,7 +80,7 @@ func (k *kafkaInfraReconciler) Reconcile() (requeue bool, resultErr error) {
 		}
 	} else {
 		// create/refer kogito-kafka instance
-		k.log.Debug("Custom kafka instance reference is not provided")
+		k.Log.Debug("Custom kafka instance reference is not provided")
 
 		// check whether kafka instance exist
 		kafkaInstance, resultErr = kafkaHandler.FetchKafkaInstance(types.NamespacedName{Name: infrastructure.KafkaInstanceName, Namespace: k.instance.GetNamespace()})
@@ -139,25 +139,25 @@ func (k *kafkaInfraReconciler) mustParseKafkaTransition(transitionTime string) (
 	}
 	parsedTime, err := time.Parse(kafkabetav1.KafkaLastTransitionTimeLayout, transitionTime)
 	if err != nil {
-		k.log.Error(err, "Impossible to parse", "Kafka time condition", transitionTime)
+		k.Log.Error(err, "Impossible to parse", "Kafka time condition", transitionTime)
 		return nil, false
 	}
 	return &parsedTime, true
 }
 
 func (k *kafkaInfraReconciler) updateKafkaRuntimePropsInStatus(kafkaInstance *kafkabetav1.Kafka, runtime api.RuntimeType) error {
-	k.log.Debug("going to Update Kafka runtime properties in kogito infra instance status", "runtime", runtime)
+	k.Log.Debug("going to Update Kafka runtime properties in kogito infra instance status", "runtime", runtime)
 	runtimeProps, err := k.getKafkaRuntimeProps(kafkaInstance, runtime)
 	if err != nil {
 		return errorForResourceNotReadyError(err)
 	}
 	setRuntimeProperties(k.instance, runtime, runtimeProps)
-	k.log.Debug("Following Kafka runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
+	k.Log.Debug("Following Kafka runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
 
 func (k *kafkaInfraReconciler) getKafkaEnvVars(kafkaInstance *kafkabetav1.Kafka) ([]corev1.EnvVar, error) {
-	kafkaHandler := infrastructure.NewKafkaHandler(k.client, k.log, k.scheme)
+	kafkaHandler := infrastructure.NewKafkaHandler(k.Context)
 	kafkaURI, err := kafkaHandler.ResolveKafkaServerURI(kafkaInstance)
 	if err != nil {
 		return nil, err
@@ -172,7 +172,7 @@ func (k *kafkaInfraReconciler) getKafkaEnvVars(kafkaInstance *kafkabetav1.Kafka)
 }
 
 func (k *kafkaInfraReconciler) getKafkaRuntimeAppProps(kafkaInstance *kafkabetav1.Kafka, runtime api.RuntimeType) (map[string]string, error) {
-	kafkaHandler := infrastructure.NewKafkaHandler(k.client, k.log, k.scheme)
+	kafkaHandler := infrastructure.NewKafkaHandler(k.Context)
 	kafkaURI, err := kafkaHandler.ResolveKafkaServerURI(kafkaInstance)
 	if err != nil {
 		return nil, err

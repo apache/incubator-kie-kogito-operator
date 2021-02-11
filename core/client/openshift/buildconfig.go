@@ -19,14 +19,16 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"io"
+	coreappsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	buildv1 "github.com/openshift/api/build/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -41,6 +43,25 @@ const (
 	BuildConfigLabelSelector = "buildconfig"
 )
 
+// DefinitionKind is a resource kind representation from a Kubernetes/Openshift cluster
+type DefinitionKind struct {
+	// Name of the resource
+	Name string
+	// IsFromOpenShift identifies if this Resource only exists on OpenShift cluster
+	IsFromOpenShift bool
+	// Identifies the group version for the OpenShift APIs
+	GroupVersion schema.GroupVersion
+}
+
+var (
+	// KindService for service
+	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
+	// KindBuildRequest for a BuildRequest
+	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.GroupVersion}
+	// KindDeployment for Kubernetes Deployment
+	KindDeployment = DefinitionKind{"Deployment", false, coreappsv1.SchemeGroupVersion}
+)
+
 // BuildState describes the state of the build
 type BuildState struct {
 	ImageExists bool
@@ -51,13 +72,12 @@ type BuildState struct {
 type BuildConfigInterface interface {
 	EnsureImageBuild(bc *buildv1.BuildConfig, labelSelector, imageName string) (BuildState, error)
 	TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) (bool, error)
-	TriggerBuildFromFile(namespace string, r io.Reader, options *buildv1.BinaryBuildRequestOptions, binaryBuild bool) (*buildv1.Build, error)
+	TriggerBuildFromFile(namespace string, r io.Reader, options *buildv1.BinaryBuildRequestOptions, binaryBuild bool, scheme *runtime.Scheme) (*buildv1.Build, error)
 	GetBuildsStatus(bc *buildv1.BuildConfig, labelSelector string) (*api.Builds, error)
 	GetBuildsStatusByLabel(namespace, labelSelector string) (*api.Builds, error)
 }
 
 func newBuildConfig(c *client.Client) BuildConfigInterface {
-	client.MustEnsureClient(c)
 	return &buildConfig{
 		client:                 c,
 		checkBcRetries:         checkBcRetries,
@@ -67,7 +87,6 @@ func newBuildConfig(c *client.Client) BuildConfigInterface {
 
 // internal use for unit tests, do not make it public
 func newBuildConfigWithBCRetries(c *client.Client, retries int, retriesInterval time.Duration) BuildConfigInterface {
-	client.MustEnsureClient(c)
 	return &buildConfig{
 		client:                 c,
 		checkBcRetries:         retries,
@@ -132,7 +151,7 @@ func (b *buildConfig) TriggerBuild(bc *buildv1.BuildConfig, triggeredBy string) 
 
 // TriggerBuildFromFile will be called by kogito-cli when a build from file is performed.
 // When called a new build will be triggered with the request kogito resource or a tgz file.
-func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader, options *buildv1.BinaryBuildRequestOptions, binaryBuild bool) (*buildv1.Build, error) {
+func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader, options *buildv1.BinaryBuildRequestOptions, binaryBuild bool, scheme *runtime.Scheme) (*buildv1.Build, error) {
 	result := &buildv1.Build{}
 
 	buildName := options.Name
@@ -161,7 +180,7 @@ func (b *buildConfig) TriggerBuildFromFile(namespace string, bodyPost io.Reader,
 		Name(buildName).
 		SubResource("instantiatebinary").
 		Body(bodyPost).
-		VersionedParams(options, runtime.NewParameterCodec(meta.GetRegisteredSchema())).
+		VersionedParams(options, runtime.NewParameterCodec(scheme)).
 		Do(context.TODO()).
 		Into(result)
 	return result, errPost
@@ -261,8 +280,17 @@ func (b *buildConfig) checkBuildConfigExists(bc *buildv1.BuildConfig) (bool, err
 func newBuildRequest(triggeredBy string, bc *buildv1.BuildConfig) buildv1.BuildRequest {
 	buildRequest := buildv1.BuildRequest{ObjectMeta: metav1.ObjectMeta{Name: bc.Name}}
 	buildRequest.TriggeredBy = []buildv1.BuildTriggerCause{{Message: fmt.Sprintf("Triggered by %s operator", triggeredBy)}}
-	meta.SetGroupVersionKind(&buildRequest.TypeMeta, meta.KindBuildRequest)
+	SetGroupVersionKind(&buildRequest.TypeMeta, KindBuildRequest)
 	return buildRequest
+}
+
+// SetGroupVersionKind sets the group, version and kind for the resource
+func SetGroupVersionKind(typeMeta *metav1.TypeMeta, kind DefinitionKind) {
+	typeMeta.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   kind.GroupVersion.Group,
+		Version: kind.GroupVersion.Version,
+		Kind:    kind.Name,
+	})
 }
 
 func (b *buildConfig) waitForBuildConfig(retries int, retryInterval time.Duration, f func() error) (err error) {

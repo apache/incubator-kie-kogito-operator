@@ -15,9 +15,8 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,43 +58,41 @@ type MongoDBHandler interface {
 }
 
 type mongoDBHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewMongoDBHandler ...
-func NewMongoDBHandler(client *client.Client, log logger.Logger) MongoDBHandler {
+func NewMongoDBHandler(context *operator.Context) MongoDBHandler {
 	return &mongoDBHandler{
-		client: client,
-		log:    log,
+		context,
 	}
 }
 
 // IsMongoDBAvailable checks if MongoDB CRD is available in the cluster
 func (m *mongoDBHandler) IsMongoDBAvailable() bool {
-	return m.client.HasServerGroup(mongoDBServerGroup)
+	return m.Client.HasServerGroup(mongoDBServerGroup)
 }
 
 // IsMongoDBOperatorAvailable verify if MongoDB Operator is running in the given namespace and the CRD is available
 func (m *mongoDBHandler) IsMongoDBOperatorAvailable(namespace string) (bool, error) {
-	m.log.Debug("Checking if MongoDB Operator is available in the namespace", "namespace", namespace)
+	m.Log.Debug("Checking if MongoDB Operator is available in the namespace", "namespace", namespace)
 	// first check for CRD
 	if m.IsMongoDBAvailable() {
-		m.log.Debug("MongoDB CRDs available. Checking if MongoDB Operator is deployed in the namespace", "namespace", namespace)
+		m.Log.Debug("MongoDB CRDs available. Checking if MongoDB Operator is deployed in the namespace", "namespace", namespace)
 		// then check if there's an MongoDB Operator deployed
 		deployment := &v1.Deployment{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: MongoDBOperatorName}}
 		exists := false
 		var err error
-		if exists, err = kubernetes.ResourceC(m.client).Fetch(deployment); err != nil {
+		if exists, err = kubernetes.ResourceC(m.Client).Fetch(deployment); err != nil {
 			return false, nil
 		}
 		if exists {
-			m.log.Debug("MongoDB Operator is available in the namespace", "namespace", namespace)
+			m.Log.Debug("MongoDB Operator is available in the namespace", "namespace", namespace)
 			return true, nil
 		}
 	} else {
-		m.log.Debug("Couldn't find MongoDB CRDs")
+		m.Log.Debug("Couldn't find MongoDB CRDs")
 	}
-	m.log.Debug("Looks like MongoDB Operator is not available in the namespace", "namespace", namespace)
+	m.Log.Debug("Looks like MongoDB Operator is not available in the namespace", "namespace", namespace)
 	return false, nil
 }

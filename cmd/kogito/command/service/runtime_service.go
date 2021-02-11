@@ -23,11 +23,12 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -106,8 +107,13 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 
 func printMgmtConsoleInfo(client *client.Client, project string) error {
 	log := context.GetDefaultLogger()
-	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(client, logger.GetLogger("deploy_runtime"))
-	supportingServiceManager := manager.NewKogitoSupportingServiceManager(client, logger.GetLogger("deploy_runtime"), supportingServiceHandler)
+	context := &operator.Context{
+		Client: client,
+		Log:    logger.GetLogger("deploy_runtime"),
+		Scheme: internal.GetRegisteredSchema(),
+	}
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
+	supportingServiceManager := manager.NewKogitoSupportingServiceManager(context, supportingServiceHandler)
 	route, err := supportingServiceManager.FetchKogitoSupportingServiceRoute(project, api.MgmtConsole)
 	if err != nil {
 		return err

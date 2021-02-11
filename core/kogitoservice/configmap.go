@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"github.com/imdario/mergo"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sort"
@@ -39,24 +39,27 @@ const (
 
 // AppPropsConfigMapHandler ...
 type AppPropsConfigMapHandler interface {
-	GetAppPropConfigMapContentHash(service api.KogitoService, appProps map[string]string, cli *client.Client) (string, *corev1.ConfigMap, error)
+	GetAppPropConfigMapContentHash(service api.KogitoService, appProps map[string]string) (string, *corev1.ConfigMap, error)
 }
 
 type appPropsConfigMapHandler struct {
+	*operator.Context
 }
 
 // NewAppPropsConfigMapHandler ...
-func NewAppPropsConfigMapHandler() AppPropsConfigMapHandler {
-	return &appPropsConfigMapHandler{}
+func NewAppPropsConfigMapHandler(context *operator.Context) AppPropsConfigMapHandler {
+	return &appPropsConfigMapHandler{
+		context,
+	}
 }
 
 // GetAppPropConfigMapContentHash calculates the hash of the application.properties contents in the ConfigMap
 // If the ConfigMap doesn't exist, create a new one and return it.
-func (c *appPropsConfigMapHandler) GetAppPropConfigMapContentHash(service api.KogitoService, appProps map[string]string, cli *client.Client) (string, *corev1.ConfigMap, error) {
+func (c *appPropsConfigMapHandler) GetAppPropConfigMapContentHash(service api.KogitoService, appProps map[string]string) (string, *corev1.ConfigMap, error) {
 	configMapName := getAppPropConfigMapName(service)
 	configMap := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: configMapName, Namespace: service.GetNamespace()}}
 
-	exist, err := kubernetes.ResourceC(cli).Fetch(configMap)
+	exist, err := kubernetes.ResourceC(c.Client).Fetch(configMap)
 	if err != nil {
 		return "", nil, err
 	}

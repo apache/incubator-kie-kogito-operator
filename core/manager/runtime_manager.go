@@ -17,8 +17,7 @@ package manager
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/api/apps/v1"
 )
 
@@ -28,16 +27,14 @@ type KogitoRuntimeManager interface {
 }
 
 type kogitoRuntimeManager struct {
-	client         *client.Client
-	log            logger.Logger
+	*operator.Context
 	runtimeHandler api.KogitoRuntimeHandler
 }
 
 // NewKogitoRuntimeManager ...
-func NewKogitoRuntimeManager(client *client.Client, log logger.Logger, runtimeHandler api.KogitoRuntimeHandler) KogitoRuntimeManager {
+func NewKogitoRuntimeManager(context *operator.Context, runtimeHandler api.KogitoRuntimeHandler) KogitoRuntimeManager {
 	return &kogitoRuntimeManager{
-		client:         client,
-		log:            log,
+		Context:        context,
 		runtimeHandler: runtimeHandler,
 	}
 }
@@ -52,12 +49,12 @@ func (k *kogitoRuntimeManager) FetchKogitoRuntimeDeployments(namespace string) (
 		return kdcs, nil
 	}
 
-	deploymentHandler := infrastructure.NewDeploymentHandler(k.client, k.log)
+	deploymentHandler := infrastructure.NewDeploymentHandler(k.Context)
 	deps, err := deploymentHandler.FetchDeploymentList(namespace)
 	if err != nil {
 		return nil, err
 	}
-	k.log.Debug("Looking for Deployments owned by KogitoRuntime")
+	k.Log.Debug("Looking for Deployments owned by KogitoRuntime")
 	for _, dep := range deps.Items {
 		for _, owner := range dep.OwnerReferences {
 			for _, app := range kogitoRuntimeServices.GetItems() {

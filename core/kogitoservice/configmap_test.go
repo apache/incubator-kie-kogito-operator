@@ -16,8 +16,9 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
@@ -210,10 +211,15 @@ func TestGetAppPropConfigMapContentHash(t *testing.T) {
 		},
 	}
 
-	handler := NewAppPropsConfigMapHandler()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := handler.GetAppPropConfigMapContentHash(tt.args.instance, tt.args.appProps, tt.args.cli)
+			context := &operator.Context{
+				Client: tt.args.cli,
+				Log:    test.TestLogger,
+				Scheme: test.GetRegisteredSchema(),
+			}
+			handler := NewAppPropsConfigMapHandler(context)
+			got, got1, err := handler.GetAppPropConfigMapContentHash(tt.args.instance, tt.args.appProps)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAppPropConfigMapContentHash() error = %v, wantErr %v", err, tt.wantErr)
 				return

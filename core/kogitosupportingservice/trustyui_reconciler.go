@@ -32,30 +32,30 @@ const (
 
 // trustyUISupportingServiceResource implementation of SupportingServiceResource
 type trustyUISupportingServiceResource struct {
-	targetContext
+	supportingServiceContext
 }
 
-func initTrustyUISupportingServiceResource(context targetContext) Reconciler {
-	context.log = context.log.WithValues("resource", "trusty-AI")
+func initTrustyUISupportingServiceResource(context supportingServiceContext) Reconciler {
+	context.Log = context.Log.WithValues("resource", "trusty-AI")
 	return &trustyUISupportingServiceResource{
-		targetContext: context,
+		supportingServiceContext: context,
 	}
 }
 
 // Reconcile reconcile TrustyUI Service
 func (t *trustyUISupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
-	t.log.Info("Reconciling for KogitoTrustyUI")
+	t.Log.Info("Reconciling for KogitoTrustyUI")
 	definition := kogitoservice.ServiceDefinition{
 		DefaultImageName:   DefaultTrustyUIImageName,
 		Request:            controller.Request{NamespacedName: types.NamespacedName{Name: t.instance.GetName(), Namespace: t.instance.GetNamespace()}},
 		SingleReplica:      false,
 		OnDeploymentCreate: t.trustyUIOnDeploymentCreate,
 	}
-	return kogitoservice.NewServiceDeployer(definition, t.instance, t.client, t.scheme, t.log, t.infraHandler).Deploy()
+	return kogitoservice.NewServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
 }
 
 func (t *trustyUISupportingServiceResource) trustyUIOnDeploymentCreate(deployment *appsv1.Deployment) error {
-	urlHandler := connector.NewURLHandler(t.client, t.log, t.runtimeHandler, t.supportingServiceHandler)
+	urlHandler := connector.NewURLHandler(t.Context, t.runtimeHandler, t.supportingServiceHandler)
 	if err := urlHandler.InjectTrustyURLIntoDeployment(t.instance.GetNamespace(), deployment); err != nil {
 		return err
 	}

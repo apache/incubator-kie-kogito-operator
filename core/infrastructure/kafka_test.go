@@ -16,9 +16,9 @@ package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
@@ -75,8 +75,12 @@ func Test_getKafkaInstanceWithName(t *testing.T) {
 			false,
 		},
 	}
-
-	kafkaHandler := NewKafkaHandler(cli, logger.GetLogger("kafka"), test.GetRegisteredSchema())
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	kafkaHandler := NewKafkaHandler(context)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := kafkaHandler.FetchKafkaInstance(types.NamespacedName{Name: tt.args.name, Namespace: tt.args.namespace})
@@ -132,7 +136,12 @@ func Test_resolveKafkaServerURI(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().Build()
-	kafkaHandler := NewKafkaHandler(cli, logger.GetLogger("kafka"), test.GetRegisteredSchema())
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	kafkaHandler := NewKafkaHandler(context)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, _ := kafkaHandler.ResolveKafkaServerURI(tt.args.kafka); got != tt.want {

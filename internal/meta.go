@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package meta
+package internal
 
 import (
 	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
@@ -20,7 +20,6 @@ import (
 	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	kafkabetav1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -37,8 +36,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/kubernetes/scheme"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
@@ -46,67 +44,12 @@ import (
 	olmv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
 )
 
-var log = logger.GetLogger("meta")
-
-// DefinitionKind is a resource kind representation from a Kubernetes/Openshift cluster
-type DefinitionKind struct {
-	// Name of the resource
-	Name string
-	// IsFromOpenShift identifies if this Resource only exists on OpenShift cluster
-	IsFromOpenShift bool
-	// Identifies the group version for the OpenShift APIs
-	GroupVersion schema.GroupVersion
-}
-
-var (
-	// KindService for service
-	KindService = DefinitionKind{"Service", false, corev1.SchemeGroupVersion}
-	// KindBuildRequest for a BuildRequest
-	KindBuildRequest = DefinitionKind{"BuildRequest", true, buildv1.GroupVersion}
-	// KindDeployment for Kubernetes Deployment
-	KindDeployment = DefinitionKind{"Deployment", false, coreappsv1.SchemeGroupVersion}
-)
-
-// SetGroupVersionKind sets the group, version and kind for the resource
-func SetGroupVersionKind(typeMeta *metav1.TypeMeta, kind DefinitionKind) {
-	typeMeta.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   kind.GroupVersion.Group,
-		Version: kind.GroupVersion.Version,
-		Kind:    kind.Name,
-	})
-}
-
-// GetRegisteredSchemeBuilder gets the SchemeBuilder with all the desired APIs registered
-func GetRegisteredSchemeBuilder() runtime.SchemeBuilder {
-	return runtime.NewSchemeBuilder(
-		v1beta1.SchemeBuilder.AddToScheme,
-		corev1.AddToScheme,
-		coreappsv1.AddToScheme,
-		buildv1.Install,
-		rbac.AddToScheme,
-		appsv1.Install,
-		coreappsv1.AddToScheme,
-		routev1.Install,
-		imgv1.Install,
-		apiextensionsv1beta1.AddToScheme,
-		kafkabetav1.SchemeBuilder.AddToScheme,
-		mongodb.SchemeBuilder.AddToScheme,
-		infinispanv1.AddToScheme,
-		keycloakv1alpha1.SchemeBuilder.AddToScheme,
-		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
-		monv1.SchemeBuilder.AddToScheme,
-		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme,
-		grafana.AddToScheme,
-		olmv1.AddToScheme)
-}
-
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
 func GetRegisteredSchema() *runtime.Scheme {
-	s := scheme.Scheme
-	schemes := GetRegisteredSchemeBuilder()
+	s := runtime.NewScheme()
+	schemes := getRegisteredSchemeBuilder()
 	err := schemes.AddToScheme(s)
 	if err != nil {
-		log.Error(err, "Failed to register APIs schemes")
 		panic(err)
 	}
 
@@ -127,4 +70,29 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, olmv1.SchemeGroupVersion)
 
 	return s
+}
+
+// getRegisteredSchemeBuilder gets the SchemeBuilder with all the desired APIs registered
+func getRegisteredSchemeBuilder() runtime.SchemeBuilder {
+	return runtime.NewSchemeBuilder(
+		v1beta1.SchemeBuilder.AddToScheme,
+		clientgoscheme.AddToScheme,
+		corev1.AddToScheme,
+		coreappsv1.AddToScheme,
+		buildv1.Install,
+		rbac.AddToScheme,
+		appsv1.Install,
+		coreappsv1.AddToScheme,
+		routev1.Install,
+		imgv1.Install,
+		apiextensionsv1beta1.AddToScheme,
+		kafkabetav1.SchemeBuilder.AddToScheme,
+		mongodb.SchemeBuilder.AddToScheme,
+		infinispanv1.AddToScheme,
+		keycloakv1alpha1.SchemeBuilder.AddToScheme,
+		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
+		monv1.SchemeBuilder.AddToScheme,
+		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme,
+		grafana.AddToScheme,
+		olmv1.AddToScheme)
 }

@@ -16,11 +16,12 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoinfra"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"testing"
 
 	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/core/api/kafka/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -34,11 +35,14 @@ func Test_createKafkaTopics(t *testing.T) {
 	service := test.CreateFakeDataIndex(t.Name())
 	service.GetSpec().AddInfra(infraKafka.GetName())
 	client := test.NewFakeClientBuilder().AddK8sObjects(infraKafka, service).Build()
+	context := &operator.Context{
+		Client: client,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
 	k := kafkaMessagingDeployer{
 		messagingDeployer{
-			scheme:       test.GetRegisteredSchema(),
-			cli:          client,
-			log:          test.TestLogger,
+			Context:      context,
 			infraHandler: test.CreateFakeKogitoInfraHandler(client),
 			definition: ServiceDefinition{
 				KafkaTopics: []string{

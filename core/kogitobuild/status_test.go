@@ -18,7 +18,7 @@ import (
 	"errors"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework/util"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	api2 "github.com/kiegroup/kogito-cloud-operator/core/test/api"
 	buildv1 "github.com/openshift/api/build/v1"
@@ -44,8 +44,12 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
 	err := errors.New("error")
-
-	buildStatusHandler := NewStatusHandler(cli, logger.GetLogger("kogitoBuild"))
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	buildStatusHandler := NewStatusHandler(context)
 	buildStatusHandler.HandleStatusChange(instance, err)
 
 	test.AssertFetchMustExist(t, cli, instance)
@@ -80,8 +84,12 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
-
-	deltaProcessor := &deltaProcessor{build: instance, client: cli, scheme: test.GetRegisteredSchema(), log: logger.GetLogger("KogitoBuild")}
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	deltaProcessor := &deltaProcessor{Context: context, build: instance}
 	manager := deltaProcessor.getBuildManager()
 	requested, err := manager.GetRequestedResources()
 	assert.NoError(t, err)
@@ -144,7 +152,12 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	// recreating the Client with our objects to make sure that the BCs will be there
 	cli = test.NewFakeClientBuilder().AddK8sObjects(k8sObjs...).AddBuildObjects(buildObjs...).Build()
 	err = nil
-	buildStatusHandler := NewStatusHandler(cli, logger.GetLogger("kogitoBuild"))
+	context1 := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	buildStatusHandler := NewStatusHandler(context1)
 	buildStatusHandler.HandleStatusChange(instance, err)
 	test.AssertFetchMustExist(t, cli, instance)
 	assert.Len(t, instance.Status.Conditions, 1)

@@ -16,6 +16,7 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"testing"
 
@@ -54,8 +55,13 @@ func Test_fetchRequiredTopics(t *testing.T) {
 
 	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: responseWithTopics})
 	defer server.Close()
-
-	m := messagingDeployer{cli: test.NewFakeClientBuilder().AddK8sObjects(createAvailableDeployment(instance)).Build()}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(createAvailableDeployment(instance)).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	m := messagingDeployer{Context: context}
 	topics, err := m.fetchRequiredTopicsForURL(instance, server.URL)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, topics)
@@ -69,8 +75,13 @@ func Test_fetchRequiredTopicsWithEmptyReply(t *testing.T) {
 
 	server := mockKogitoSvcReplies(t, serverHandler{Path: topicInfoPath, JSONResponse: emptyResponse})
 	defer server.Close()
-
-	m := messagingDeployer{cli: test.NewFakeClientBuilder().AddK8sObjects(createAvailableDeployment(instance)).Build()}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(createAvailableDeployment(instance)).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: test.GetRegisteredSchema(),
+	}
+	m := messagingDeployer{Context: context}
 	topics, err := m.fetchRequiredTopicsForURL(instance, server.URL)
 	assert.NoError(t, err)
 	assert.Empty(t, topics)

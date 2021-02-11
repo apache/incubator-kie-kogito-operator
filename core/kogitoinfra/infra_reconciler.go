@@ -18,8 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strings"
@@ -33,11 +32,9 @@ type Reconciler interface {
 	Reconcile() (requeue bool, resultErr error)
 }
 
-type targetContext struct {
-	client   *client.Client
+type infraContext struct {
+	*operator.Context
 	instance api.KogitoInfraInterface
-	scheme   *runtime.Scheme
-	log      logger.Logger
 }
 
 // ReconcilerHandler ...
@@ -47,26 +44,22 @@ type ReconcilerHandler interface {
 }
 
 type reconcilerHandler struct {
-	client *client.Client
-	log    logger.Logger
+	*operator.Context
 }
 
 // NewReconcilerHandler ...
-func NewReconcilerHandler(cli *client.Client, log logger.Logger) ReconcilerHandler {
+func NewReconcilerHandler(context *operator.Context) ReconcilerHandler {
 	return &reconcilerHandler{
-		client: cli,
-		log:    log,
+		context,
 	}
 }
 
 // getKogitoInfraReconciler identify and return request kogito infra reconciliation logic on bases of information provided in kogitoInfra value
 func (k *reconcilerHandler) GetInfraReconciler(instance api.KogitoInfraInterface, scheme *runtime.Scheme) (Reconciler, error) {
-	k.log.Debug("going to fetch related kogito infra resource")
-	context := targetContext{
-		client:   k.client,
+	k.Log.Debug("going to fetch related kogito infra resource")
+	context := infraContext{
+		Context:  k.Context,
 		instance: instance,
-		scheme:   scheme,
-		log:      k.log,
 	}
 	if infraRes, ok := getSupportedInfraResources(context)[resourceClassForInstance(instance)]; ok {
 		return infraRes, nil
@@ -82,7 +75,7 @@ func getResourceClass(kind, APIVersion string) string {
 	return strings.ToLower(fmt.Sprintf("%s.%s", kind, APIVersion))
 }
 
-func getSupportedInfraResources(context targetContext) map[string]Reconciler {
+func getSupportedInfraResources(context infraContext) map[string]Reconciler {
 	return map[string]Reconciler{
 		getResourceClass(infrastructure.InfinispanKind, infrastructure.InfinispanAPIVersion):                 initInfinispanInfraReconciler(context),
 		getResourceClass(infrastructure.KafkaKind, infrastructure.KafkaAPIVersion):                           initkafkaInfraReconciler(context),
@@ -95,23 +88,23 @@ func getSupportedInfraResources(context targetContext) map[string]Reconciler {
 func (k *reconcilerHandler) GetReconcileResultFor(err error, requeue bool) (reconcile.Result, error) {
 	switch reasonForError(err) {
 	case api.ReconciliationFailure:
-		k.log.Warn("Error while reconciling KogitoInfra", "error", err.Error())
+		k.Log.Warn("Error while reconciling KogitoInfra", "error", err.Error())
 		return reconcile.Result{RequeueAfter: 0, Requeue: false}, err
 	case api.ResourceMissingResourceConfig, api.ResourceConfigError:
-		k.log.Error(err, "KogitoInfra configuration error")
+		k.Log.Error(err, "KogitoInfra configuration error")
 		return reconcile.Result{RequeueAfter: 0, Requeue: false}, nil
 	}
 
 	// no requeue, no errors, stop reconciliation
 	if !requeue && err == nil {
-		k.log.Debug("No need reconciliation for KogitoInfra")
+		k.Log.Debug("No need reconciliation for KogitoInfra")
 		return reconcile.Result{RequeueAfter: 0, Requeue: false}, nil
 	}
 	// caller is asking for a reconciliation
 	if err == nil {
-		k.log.Info("Waiting for all resources to be created, scheduling reconciliation.", "reconciliation interval", reconciliationStandardInterval.String())
+		k.Log.Info("Waiting for all resources to be created, scheduling reconciliation.", "reconciliation interval", reconciliationStandardInterval.String())
 	} else { // reconciliation duo to a problem in the env (CRDs missing), infra deployments not ready, operators not installed.. etc. See errors.go
-		k.log.Info("Err", err.Error(), "Scheduling reconciliation", "reconciliation interval", reconciliationStandardInterval.String())
+		k.Log.Info("Err", err.Error(), "Scheduling reconciliation", "reconciliation interval", reconciliationStandardInterval.String())
 	}
 	return reconcile.Result{RequeueAfter: reconciliationStandardInterval}, nil
 }

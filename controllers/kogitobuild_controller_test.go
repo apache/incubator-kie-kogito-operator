@@ -17,12 +17,13 @@ package controllers
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/api"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitobuild"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
@@ -57,8 +58,8 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
-	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogitoBuild reconciler")}
+	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).UseScheme(internal.GetRegisteredSchema()).OnOpenShift().AddK8sObjects(instance).Build()
+	r := KogitoBuildReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}
 
 	// first reconciliation
 	result := test.AssertReconcileMustRequeue(t, &r, instance)
@@ -139,8 +140,8 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 			TargetKogitoRuntime: kogitoServiceName,
 		},
 	}
-	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
-	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogitoBuild reconciler")}
+	cli := test.NewFakeClientBuilder().UseScheme(internal.GetRegisteredSchema()).OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
+	r := KogitoBuildReconciler{Client: cli, Scheme: internal.GetRegisteredSchema(), Log: test.TestLogger}
 
 	// first reconciliation
 	result := test.AssertReconcileMustRequeue(t, &r, instanceRemote)
@@ -150,7 +151,12 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	// now we create the objects for Remote
 	result = test.AssertReconcileMustNotRequeue(t, &r, instanceRemote)
 
-	imageStreamHandler := infrastructure.NewImageStreamHandler(cli, logger.GetLogger("kogitoBuild reconciler"))
+	context := &operator.Context{
+		Client: cli,
+		Log:    logger.GetLogger("kogitoBuild reconciler"),
+		Scheme: internal.GetRegisteredSchema(),
+	}
+	imageStreamHandler := infrastructure.NewImageStreamHandler(context)
 	is, err := imageStreamHandler.MustFetchImageStream(types.NamespacedName{Name: kogitoServiceName, Namespace: t.Name()})
 	assert.NoError(t, err)
 	assert.Len(t, is.OwnerReferences, 2) // we have two owners!
