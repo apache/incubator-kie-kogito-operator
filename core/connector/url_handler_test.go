@@ -283,7 +283,7 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	type args struct {
 		client                   *client.Client
 		namespace                string
-		supportingServiceHandler api.KogitoSupportingServiceHandler
+		supportingServiceHandler internal.KogitoSupportingServiceHandler
 	}
 	tests := []struct {
 		name        string

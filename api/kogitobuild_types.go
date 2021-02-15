@@ -18,7 +18,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 // KogitoBuildType describes the build types supported by the KogitoBuild CR
@@ -138,9 +137,4 @@ type KogitoBuildConditionsInterface interface {
 	SetReason(reason KogitoBuildConditionReason)
 	GetMessage() string
 	SetMessage(message string)
-}
-
-// KogitoBuildHandler ...
-type KogitoBuildHandler interface {
-	FetchKogitoBuildInstance(key types.NamespacedName) (KogitoBuildInterface, error)
 }

@@ -18,7 +18,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 // KogitoInfraConditionType ...
@@ -139,9 +138,4 @@ type RuntimePropertiesInterface interface {
 	SetAppProps(appProps map[string]string)
 	GetEnv() []v1.EnvVar
 	SetEnv(env []v1.EnvVar)
-}
-
-// KogitoInfraHandler ...
-type KogitoInfraHandler interface {
-	FetchKogitoInfraInstance(key types.NamespacedName) (KogitoInfraInterface, error)
 }

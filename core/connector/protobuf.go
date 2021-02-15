@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"path"
@@ -44,11 +45,11 @@ type ProtoBufHandler interface {
 
 type protoBufHandler struct {
 	*operator.Context
-	supportingServiceHandler api.KogitoSupportingServiceHandler
+	supportingServiceHandler internal.KogitoSupportingServiceHandler
 }
 
 // NewProtoBufHandler ...
-func NewProtoBufHandler(context *operator.Context, supportingServiceHandler api.KogitoSupportingServiceHandler) ProtoBufHandler {
+func NewProtoBufHandler(context *operator.Context, supportingServiceHandler internal.KogitoSupportingServiceHandler) ProtoBufHandler {
 	return &protoBufHandler{
 		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,

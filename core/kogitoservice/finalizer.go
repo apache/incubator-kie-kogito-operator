@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -30,11 +31,11 @@ type FinalizerHandler interface {
 
 type finalizerHandler struct {
 	*operator.Context
-	infraHandler api.KogitoInfraHandler
+	infraHandler internal.KogitoInfraHandler
 }
 
 // NewFinalizerHandler ...
-func NewFinalizerHandler(context *operator.Context, infraHandler api.KogitoInfraHandler) FinalizerHandler {
+func NewFinalizerHandler(context *operator.Context, infraHandler internal.KogitoInfraHandler) FinalizerHandler {
 	return &finalizerHandler{
 		Context:      context,
 		infraHandler: infraHandler,

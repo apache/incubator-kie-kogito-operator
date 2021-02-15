@@ -16,7 +16,6 @@ package api
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 // KogitoRuntimeInterface ...
@@ -45,10 +44,4 @@ type KogitoRuntimeSpecInterface interface {
 // KogitoRuntimeStatusInterface ...
 type KogitoRuntimeStatusInterface interface {
 	KogitoServiceStatusInterface
-}
-
-// KogitoRuntimeHandler ...
-type KogitoRuntimeHandler interface {
-	FetchKogitoRuntimeInstance(key types.NamespacedName) (KogitoRuntimeInterface, error)
-	FetchAllKogitoRuntimeInstances(namespace string) (KogitoRuntimeListInterface, error)
 }

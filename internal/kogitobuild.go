@@ -26,8 +26,13 @@ type kogitoBuildHandler struct {
 	*operator.Context
 }
 
+// KogitoBuildHandler ...
+type KogitoBuildHandler interface {
+	FetchKogitoBuildInstance(key types.NamespacedName) (api.KogitoBuildInterface, error)
+}
+
 // NewKogitoBuildHandler ...
-func NewKogitoBuildHandler(context *operator.Context) api.KogitoBuildHandler {
+func NewKogitoBuildHandler(context *operator.Context) KogitoBuildHandler {
 	return &kogitoBuildHandler{
 		Context: context,
 	}

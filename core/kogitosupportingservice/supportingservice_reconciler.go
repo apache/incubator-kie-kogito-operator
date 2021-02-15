@@ -17,6 +17,7 @@ package kogitosupportingservice
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"time"
 )
 
@@ -28,9 +29,9 @@ type Reconciler interface {
 type supportingServiceContext struct {
 	*operator.Context
 	instance                 api.KogitoSupportingServiceInterface
-	infraHandler             api.KogitoInfraHandler
-	supportingServiceHandler api.KogitoSupportingServiceHandler
-	runtimeHandler           api.KogitoRuntimeHandler
+	infraHandler             internal.KogitoInfraHandler
+	supportingServiceHandler internal.KogitoSupportingServiceHandler
+	runtimeHandler           internal.KogitoRuntimeHandler
 }
 
 // ReconcilerHandler ...
@@ -40,13 +41,13 @@ type ReconcilerHandler interface {
 
 type reconcilerHandler struct {
 	*operator.Context
-	infraHandler             api.KogitoInfraHandler
-	supportingServiceHandler api.KogitoSupportingServiceHandler
-	runtimeHandler           api.KogitoRuntimeHandler
+	infraHandler             internal.KogitoInfraHandler
+	supportingServiceHandler internal.KogitoSupportingServiceHandler
+	runtimeHandler           internal.KogitoRuntimeHandler
 }
 
 // NewReconcilerHandler ...
-func NewReconcilerHandler(context *operator.Context, infraHandler api.KogitoInfraHandler, supportingServiceHandler api.KogitoSupportingServiceHandler, runtimeHandler api.KogitoRuntimeHandler) ReconcilerHandler {
+func NewReconcilerHandler(context *operator.Context, infraHandler internal.KogitoInfraHandler, supportingServiceHandler internal.KogitoSupportingServiceHandler, runtimeHandler internal.KogitoRuntimeHandler) ReconcilerHandler {
 	return &reconcilerHandler{
 		Context:                  context,
 		infraHandler:             infraHandler,

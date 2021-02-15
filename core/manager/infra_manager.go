@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -35,11 +36,11 @@ type KogitoInfraManager interface {
 
 type kogitoInfraManager struct {
 	*operator.Context
-	infraHandler api.KogitoInfraHandler
+	infraHandler internal.KogitoInfraHandler
 }
 
 // NewKogitoInfraManager ...
-func NewKogitoInfraManager(context *operator.Context, infraHandler api.KogitoInfraHandler) KogitoInfraManager {
+func NewKogitoInfraManager(context *operator.Context, infraHandler internal.KogitoInfraHandler) KogitoInfraManager {
 	return &kogitoInfraManager{
 		Context:      context,
 		infraHandler: infraHandler,

@@ -26,8 +26,14 @@ type kogitoRuntimeHandler struct {
 	*operator.Context
 }
 
+// KogitoRuntimeHandler ...
+type KogitoRuntimeHandler interface {
+	FetchKogitoRuntimeInstance(key types.NamespacedName) (api.KogitoRuntimeInterface, error)
+	FetchAllKogitoRuntimeInstances(namespace string) (api.KogitoRuntimeListInterface, error)
+}
+
 // NewKogitoRuntimeHandler ...
-func NewKogitoRuntimeHandler(context *operator.Context) api.KogitoRuntimeHandler {
+func NewKogitoRuntimeHandler(context *operator.Context) KogitoRuntimeHandler {
 	return &kogitoRuntimeHandler{
 		context,
 	}

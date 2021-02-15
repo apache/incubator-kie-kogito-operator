@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/api/apps/v1"
 )
 
@@ -31,11 +32,11 @@ type KogitoSupportingServiceManager interface {
 
 type kogitoSupportingServiceManager struct {
 	*operator.Context
-	supportingServiceHandler api.KogitoSupportingServiceHandler
+	supportingServiceHandler internal.KogitoSupportingServiceHandler
 }
 
 // NewKogitoSupportingServiceManager ...
-func NewKogitoSupportingServiceManager(context *operator.Context, supportingServiceHandler api.KogitoSupportingServiceHandler) KogitoSupportingServiceManager {
+func NewKogitoSupportingServiceManager(context *operator.Context, supportingServiceHandler internal.KogitoSupportingServiceHandler) KogitoSupportingServiceManager {
 	return &kogitoSupportingServiceManager{
 		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,

@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 )
@@ -59,11 +60,11 @@ type MessagingDeployer interface {
 type messagingDeployer struct {
 	*operator.Context
 	definition   ServiceDefinition
-	infraHandler api.KogitoInfraHandler
+	infraHandler internal.KogitoInfraHandler
 }
 
 // NewKnativeMessagingDeployer ...
-func NewKnativeMessagingDeployer(context *operator.Context, definition ServiceDefinition, infraHandler api.KogitoInfraHandler) MessagingDeployer {
+func NewKnativeMessagingDeployer(context *operator.Context, definition ServiceDefinition, infraHandler internal.KogitoInfraHandler) MessagingDeployer {
 	context.Log = context.Log.WithValues("messaging", "knative")
 	return &knativeMessagingDeployer{
 		messagingDeployer: messagingDeployer{
@@ -76,7 +77,7 @@ func NewKnativeMessagingDeployer(context *operator.Context, definition ServiceDe
 
 // NewKafkaMessagingDeployer handles messaging resources creation.
 // These resources can be required by the deployed service through a bound KogitoInfra.
-func NewKafkaMessagingDeployer(context *operator.Context, definition ServiceDefinition, infraHandler api.KogitoInfraHandler) MessagingDeployer {
+func NewKafkaMessagingDeployer(context *operator.Context, definition ServiceDefinition, infraHandler internal.KogitoInfraHandler) MessagingDeployer {
 	context.Log = context.Log.WithValues("messaging", "kafka")
 	return &kafkaMessagingDeployer{
 		messagingDeployer: messagingDeployer{

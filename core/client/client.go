@@ -115,29 +115,6 @@ func (c *Client) HasServerGroup(groupName string) bool {
 	return false
 }
 
-/*// MustEnsureClient will try to read the kube.yaml file from the host and connect to the cluster, if the Client or the Core Client is null.
-// Will panic if the connection won't be possible
-func MustEnsureClient(c *Client) controllercli.Client {
-	if c.ControlCli == nil {
-		// fallback to the KubeClient
-		var err error
-		if c.ControlCli, err = ensureKubeClient(); err != nil {
-			panic(fmt.Sprintf("Error while trying to create a new kubernetes client: %s", err))
-		}
-	}
-
-	return c.ControlCli
-}
-
-func ensureKubeClient() (controllercli.Client, error) {
-	log.Debug("Verifying kube core client dependencies")
-	config, err := buildKubeConnectionConfig()
-	if err != nil {
-		return nil, err
-	}
-	return newKubeClient(config, false)
-}*/
-
 func newKubeClient(config *restclient.Config, scheme *runtime.Scheme, useDynamicRestMapper bool) (controllercli.Client, error) {
 	log.Debug("Creating a new core client for kube connection")
 	var options controllercli.Options

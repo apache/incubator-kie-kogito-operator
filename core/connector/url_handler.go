@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	appsv1 "k8s.io/api/apps/v1"
 	"net/url"
 )
@@ -56,12 +57,12 @@ type URLHandler interface {
 
 type urlHandler struct {
 	*operator.Context
-	runtimeHandler           api.KogitoRuntimeHandler
-	supportingServiceHandler api.KogitoSupportingServiceHandler
+	runtimeHandler           internal.KogitoRuntimeHandler
+	supportingServiceHandler internal.KogitoSupportingServiceHandler
 }
 
 // NewURLHandler ...
-func NewURLHandler(context *operator.Context, runtimeHandler api.KogitoRuntimeHandler, supportingServiceHandler api.KogitoSupportingServiceHandler) URLHandler {
+func NewURLHandler(context *operator.Context, runtimeHandler internal.KogitoRuntimeHandler, supportingServiceHandler internal.KogitoSupportingServiceHandler) URLHandler {
 	return &urlHandler{
 		Context:                  context,
 		runtimeHandler:           runtimeHandler,

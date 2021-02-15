@@ -15,9 +15,9 @@
 package manager
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/api/apps/v1"
 )
 
@@ -28,11 +28,11 @@ type KogitoRuntimeManager interface {
 
 type kogitoRuntimeManager struct {
 	*operator.Context
-	runtimeHandler api.KogitoRuntimeHandler
+	runtimeHandler internal.KogitoRuntimeHandler
 }
 
 // NewKogitoRuntimeManager ...
-func NewKogitoRuntimeManager(context *operator.Context, runtimeHandler api.KogitoRuntimeHandler) KogitoRuntimeManager {
+func NewKogitoRuntimeManager(context *operator.Context, runtimeHandler internal.KogitoRuntimeHandler) KogitoRuntimeManager {
 	return &kogitoRuntimeManager{
 		Context:        context,
 		runtimeHandler: runtimeHandler,

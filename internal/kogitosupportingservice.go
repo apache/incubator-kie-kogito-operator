@@ -26,8 +26,14 @@ type kogitoSupportingServiceHandler struct {
 	*operator.Context
 }
 
+// KogitoSupportingServiceHandler ...
+type KogitoSupportingServiceHandler interface {
+	FetchKogitoSupportingService(key types.NamespacedName) (api.KogitoSupportingServiceInterface, error)
+	FetchKogitoSupportingServiceList(namespace string) (api.KogitoSupportingServiceListInterface, error)
+}
+
 // NewKogitoSupportingServiceHandler ...
-func NewKogitoSupportingServiceHandler(context *operator.Context) api.KogitoSupportingServiceHandler {
+func NewKogitoSupportingServiceHandler(context *operator.Context) KogitoSupportingServiceHandler {
 	return &kogitoSupportingServiceHandler{
 		context,
 	}

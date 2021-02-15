@@ -16,7 +16,6 @@ package api
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 // ServiceType define resource type of supporting service
@@ -65,10 +64,4 @@ type KogitoSupportingServiceListInterface interface {
 	runtime.Object
 	// GetItems gets all items
 	GetItems() []KogitoSupportingServiceInterface
-}
-
-// KogitoSupportingServiceHandler ...
-type KogitoSupportingServiceHandler interface {
-	FetchKogitoSupportingService(key types.NamespacedName) (KogitoSupportingServiceInterface, error)
-	FetchKogitoSupportingServiceList(namespace string) (KogitoSupportingServiceListInterface, error)
 }

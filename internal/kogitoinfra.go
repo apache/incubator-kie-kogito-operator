@@ -26,8 +26,13 @@ type kogitoInfraHandler struct {
 	*operator.Context
 }
 
+// KogitoInfraHandler ...
+type KogitoInfraHandler interface {
+	FetchKogitoInfraInstance(key types.NamespacedName) (api.KogitoInfraInterface, error)
+}
+
 // NewKogitoInfraHandler ...
-func NewKogitoInfraHandler(context *operator.Context) api.KogitoInfraHandler {
+func NewKogitoInfraHandler(context *operator.Context) KogitoInfraHandler {
 	return &kogitoInfraHandler{
 		context,
 	}

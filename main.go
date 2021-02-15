@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/meta"
+	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -32,9 +33,13 @@ import (
 )
 
 var (
-	scheme   = meta.GetRegisteredSchema()
+	scheme   *runtime.Scheme
 	setupLog = logger.GetLogger("setup")
 )
+
+func init() {
+	scheme = meta.GetRegisteredSchema()
+}
 
 func main() {
 	var metricsAddr string
