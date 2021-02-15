@@ -19,8 +19,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // KogitoSupportingServiceManager ...
@@ -30,13 +30,19 @@ type KogitoSupportingServiceManager interface {
 	FetchKogitoSupportingServiceDeployment(namespace string, serviceType api.ServiceType) (*v1.Deployment, error)
 }
 
+// KogitoSupportingServiceHandler ...
+type KogitoSupportingServiceHandler interface {
+	FetchKogitoSupportingService(key types.NamespacedName) (api.KogitoSupportingServiceInterface, error)
+	FetchKogitoSupportingServiceList(namespace string) (api.KogitoSupportingServiceListInterface, error)
+}
+
 type kogitoSupportingServiceManager struct {
 	*operator.Context
-	supportingServiceHandler internal.KogitoSupportingServiceHandler
+	supportingServiceHandler KogitoSupportingServiceHandler
 }
 
 // NewKogitoSupportingServiceManager ...
-func NewKogitoSupportingServiceManager(context *operator.Context, supportingServiceHandler internal.KogitoSupportingServiceHandler) KogitoSupportingServiceManager {
+func NewKogitoSupportingServiceManager(context *operator.Context, supportingServiceHandler KogitoSupportingServiceHandler) KogitoSupportingServiceManager {
 	return &kogitoSupportingServiceManager{
 		Context:                  context,
 		supportingServiceHandler: supportingServiceHandler,

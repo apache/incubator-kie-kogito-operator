@@ -15,10 +15,11 @@
 package manager
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // KogitoRuntimeManager ...
@@ -26,13 +27,19 @@ type KogitoRuntimeManager interface {
 	FetchKogitoRuntimeDeployments(namespace string) ([]v1.Deployment, error)
 }
 
+// KogitoRuntimeHandler ...
+type KogitoRuntimeHandler interface {
+	FetchKogitoRuntimeInstance(key types.NamespacedName) (api.KogitoRuntimeInterface, error)
+	FetchAllKogitoRuntimeInstances(namespace string) (api.KogitoRuntimeListInterface, error)
+}
+
 type kogitoRuntimeManager struct {
 	*operator.Context
-	runtimeHandler internal.KogitoRuntimeHandler
+	runtimeHandler KogitoRuntimeHandler
 }
 
 // NewKogitoRuntimeManager ...
-func NewKogitoRuntimeManager(context *operator.Context, runtimeHandler internal.KogitoRuntimeHandler) KogitoRuntimeManager {
+func NewKogitoRuntimeManager(context *operator.Context, runtimeHandler KogitoRuntimeHandler) KogitoRuntimeManager {
 	return &kogitoRuntimeManager{
 		Context:        context,
 		runtimeHandler: runtimeHandler,

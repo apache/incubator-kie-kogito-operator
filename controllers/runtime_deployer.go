@@ -21,8 +21,8 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/connector"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
+	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"reflect"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
@@ -58,12 +58,12 @@ type RuntimeDeployerHandler interface {
 type runtimeDeployerHandler struct {
 	*operator.Context
 	instance                 api.KogitoRuntimeInterface
-	supportingServiceHandler internal.KogitoSupportingServiceHandler
-	runtimeHandler           internal.KogitoRuntimeHandler
+	supportingServiceHandler manager.KogitoSupportingServiceHandler
+	runtimeHandler           manager.KogitoRuntimeHandler
 }
 
 // NewRuntimeDeployerHandler ...
-func NewRuntimeDeployerHandler(context *operator.Context, instance api.KogitoRuntimeInterface, supportingServiceHandler internal.KogitoSupportingServiceHandler, runtimeHandler internal.KogitoRuntimeHandler) RuntimeDeployerHandler {
+func NewRuntimeDeployerHandler(context *operator.Context, instance api.KogitoRuntimeInterface, supportingServiceHandler manager.KogitoSupportingServiceHandler, runtimeHandler manager.KogitoRuntimeHandler) RuntimeDeployerHandler {
 	return &runtimeDeployerHandler{
 		Context:                  context,
 		instance:                 instance,

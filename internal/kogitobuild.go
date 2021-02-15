@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -26,13 +27,8 @@ type kogitoBuildHandler struct {
 	*operator.Context
 }
 
-// KogitoBuildHandler ...
-type KogitoBuildHandler interface {
-	FetchKogitoBuildInstance(key types.NamespacedName) (api.KogitoBuildInterface, error)
-}
-
 // NewKogitoBuildHandler ...
-func NewKogitoBuildHandler(context *operator.Context) KogitoBuildHandler {
+func NewKogitoBuildHandler(context *operator.Context) manager.KogitoBuildHandler {
 	return &kogitoBuildHandler{
 		Context: context,
 	}

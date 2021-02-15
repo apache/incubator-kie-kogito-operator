@@ -19,7 +19,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"time"
@@ -82,11 +81,11 @@ type serviceDeployer struct {
 	definition   ServiceDefinition
 	instance     api.KogitoService
 	recorder     record.EventRecorder
-	infraHandler internal.KogitoInfraHandler
+	infraHandler manager.KogitoInfraHandler
 }
 
 // NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
-func NewServiceDeployer(context *operator.Context, definition ServiceDefinition, serviceType api.KogitoService, infraHandler internal.KogitoInfraHandler) ServiceDeployer {
+func NewServiceDeployer(context *operator.Context, definition ServiceDefinition, serviceType api.KogitoService, infraHandler manager.KogitoInfraHandler) ServiceDeployer {
 	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
 		panic("No Request provided for the Service Deployer")
 	}

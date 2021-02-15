@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
@@ -283,7 +284,7 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	type args struct {
 		client                   *client.Client
 		namespace                string
-		supportingServiceHandler internal.KogitoSupportingServiceHandler
+		supportingServiceHandler manager.KogitoSupportingServiceHandler
 	}
 	tests := []struct {
 		name        string

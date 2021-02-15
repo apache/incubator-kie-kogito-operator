@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -26,14 +27,8 @@ type kogitoRuntimeHandler struct {
 	*operator.Context
 }
 
-// KogitoRuntimeHandler ...
-type KogitoRuntimeHandler interface {
-	FetchKogitoRuntimeInstance(key types.NamespacedName) (api.KogitoRuntimeInterface, error)
-	FetchAllKogitoRuntimeInstances(namespace string) (api.KogitoRuntimeListInterface, error)
-}
-
 // NewKogitoRuntimeHandler ...
-func NewKogitoRuntimeHandler(context *operator.Context) KogitoRuntimeHandler {
+func NewKogitoRuntimeHandler(context *operator.Context) manager.KogitoRuntimeHandler {
 	return &kogitoRuntimeHandler{
 		context,
 	}
