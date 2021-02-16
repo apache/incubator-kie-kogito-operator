@@ -35,6 +35,7 @@ pipeline {
         // Environment required by OLM tests when run from process
         OP_TEST_CONTAINER_OPT = '-t'
         OP_TEST_DEBUG = 1
+        OP_TEST_CONTAINER_TOOL = 'docker'
     }
 
     stages {
