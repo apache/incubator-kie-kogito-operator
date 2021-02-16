@@ -17,17 +17,19 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"regexp"
+	"strings"
+
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"net/http"
-	"strings"
 )
 
 // GrafanaDashboard is a structure that contains the fetched dashboards
@@ -39,6 +41,10 @@ type GrafanaDashboard struct {
 const (
 	// dashboardPath which the dashboards are fetched
 	dashboardsPath = "/monitoring/dashboards/"
+)
+
+var (
+	dashboardNameRegex = regexp.MustCompile("[^a-zA-Z0-9]+")
 )
 
 func fetchGrafanaDashboards(cli *client.Client, instance v1beta1.KogitoService) ([]GrafanaDashboard, error) {
@@ -129,7 +135,7 @@ func configureGrafanaDashboards(client *client.Client, kogitoService v1beta1.Kog
 
 func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, kogitoService v1beta1.KogitoService, scheme *runtime.Scheme, namespace string) error {
 	for _, dashboard := range dashboards {
-		resourceName := strings.ReplaceAll(strings.ToLower(dashboard.Name), ".json", "")
+		resourceName := sanitizeDashboardName(dashboard.Name)
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      resourceName,
@@ -149,4 +155,9 @@ func deployGrafanaDashboards(dashboards []GrafanaDashboard, cli *client.Client, 
 		}
 	}
 	return nil
+}
+
+func sanitizeDashboardName(name string) string {
+	name = strings.ReplaceAll(strings.ToLower(name), ".json", "")
+	return dashboardNameRegex.ReplaceAllString(name, "")
 }
