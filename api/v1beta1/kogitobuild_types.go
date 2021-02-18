@@ -207,9 +207,9 @@ func (k *KogitoBuildSpec) SetRuntime(runtime api.RuntimeType) {
 
 // GetWebHooks ...
 func (k *KogitoBuildSpec) GetWebHooks() []api.WebHookSecretInterface {
-	var webHooks []api.WebHookSecretInterface
-	for _, webHook := range k.WebHooks {
-		webHooks = append(webHooks, &webHook)
+	webHooks := make([]api.WebHookSecretInterface, len(k.WebHooks))
+	for i, v := range k.WebHooks {
+		webHooks[i] = api.WebHookSecretInterface(v)
 	}
 	return webHooks
 }
@@ -218,8 +218,8 @@ func (k *KogitoBuildSpec) GetWebHooks() []api.WebHookSecretInterface {
 func (k *KogitoBuildSpec) SetWebHooks(webhooks []api.WebHookSecretInterface) {
 	var newWebHooks []WebHookSecret
 	for _, webHook := range webhooks {
-		if newWebHook, ok := webHook.(*WebHookSecret); ok {
-			newWebHooks = append(newWebHooks, *newWebHook)
+		if newWebHook, ok := webHook.(WebHookSecret); ok {
+			newWebHooks = append(newWebHooks, newWebHook)
 		}
 	}
 	k.WebHooks = newWebHooks
@@ -336,9 +336,9 @@ func (k *KogitoBuildStatus) SetLatestBuild(latestBuild string) {
 
 // GetConditions ...
 func (k *KogitoBuildStatus) GetConditions() []api.KogitoBuildConditionsInterface {
-	var conditions []api.KogitoBuildConditionsInterface
-	for _, condition := range k.Conditions {
-		conditions = append(conditions, &condition)
+	conditions := make([]api.KogitoBuildConditionsInterface, len(k.Conditions))
+	for i, v := range k.Conditions {
+		conditions[i] = api.KogitoBuildConditionsInterface(v)
 	}
 	return conditions
 }
@@ -347,8 +347,8 @@ func (k *KogitoBuildStatus) GetConditions() []api.KogitoBuildConditionsInterface
 func (k *KogitoBuildStatus) SetConditions(conditions []api.KogitoBuildConditionsInterface) {
 	var newConditions []KogitoBuildConditions
 	for _, condition := range conditions {
-		if newCondition, ok := condition.(*KogitoBuildConditions); ok {
-			newConditions = append(newConditions, *newCondition)
+		if newCondition, ok := condition.(KogitoBuildConditions); ok {
+			newConditions = append(newConditions, newCondition)
 		}
 	}
 	k.Conditions = newConditions
@@ -482,53 +482,28 @@ type KogitoBuildConditions struct {
 }
 
 // GetType ...
-func (k *KogitoBuildConditions) GetType() api.KogitoBuildConditionType {
+func (k KogitoBuildConditions) GetType() api.KogitoBuildConditionType {
 	return k.Type
 }
 
-// SetType ...
-func (k *KogitoBuildConditions) SetType(conditionType api.KogitoBuildConditionType) {
-	k.Type = conditionType
-}
-
 // GetStatus ...
-func (k *KogitoBuildConditions) GetStatus() corev1.ConditionStatus {
+func (k KogitoBuildConditions) GetStatus() corev1.ConditionStatus {
 	return k.Status
 }
 
-// SetStatus ...
-func (k *KogitoBuildConditions) SetStatus(status corev1.ConditionStatus) {
-	k.Status = status
-}
-
 // GetLastTransitionTime ...
-func (k *KogitoBuildConditions) GetLastTransitionTime() metav1.Time {
+func (k KogitoBuildConditions) GetLastTransitionTime() metav1.Time {
 	return k.LastTransitionTime
 }
 
-// SetLastTransitionTime ...
-func (k *KogitoBuildConditions) SetLastTransitionTime(lastTransitionTime metav1.Time) {
-	k.LastTransitionTime = lastTransitionTime
-}
-
 // GetReason ...
-func (k *KogitoBuildConditions) GetReason() api.KogitoBuildConditionReason {
+func (k KogitoBuildConditions) GetReason() api.KogitoBuildConditionReason {
 	return k.Reason
 }
 
-// SetReason ...
-func (k *KogitoBuildConditions) SetReason(reason api.KogitoBuildConditionReason) {
-	k.Reason = reason
-}
-
 // GetMessage ...
-func (k *KogitoBuildConditions) GetMessage() string {
+func (k KogitoBuildConditions) GetMessage() string {
 	return k.Message
-}
-
-// SetMessage ...
-func (k *KogitoBuildConditions) SetMessage(message string) {
-	k.Message = message
 }
 
 // +kubebuilder:object:root=true

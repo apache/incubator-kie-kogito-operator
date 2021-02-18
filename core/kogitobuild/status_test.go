@@ -54,14 +54,14 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	buildStatusHandler.HandleStatusChange(instance, err)
 
 	test.AssertFetchMustExist(t, cli, instance)
-	assert.Len(t, instance.Status.Conditions, 1)
+	assert.Equal(t, 1, len(instance.Status.Conditions))
 	assert.Equal(t, api.OperatorFailureReason, instance.Status.Conditions[0].Reason)
 
 	// ops, same error?
 	buildStatusHandler.HandleStatusChange(instance, err)
 	// start queueing
 	test.AssertFetchMustExist(t, cli, instance)
-	assert.Len(t, instance.Status.Conditions, 2)
+	assert.Equal(t, 2, len(instance.Status.Conditions))
 	assert.Equal(t, api.OperatorFailureReason, instance.Status.Conditions[1].Reason)
 
 	// kill that buffer

@@ -27,21 +27,11 @@ type WebHookSecret struct {
 }
 
 // GetType ...
-func (w *WebHookSecret) GetType() api.WebHookType {
+func (w WebHookSecret) GetType() api.WebHookType {
 	return w.Type
 }
 
-// SetType ...
-func (w *WebHookSecret) SetType(webHookType api.WebHookType) {
-	w.Type = webHookType
-}
-
 // GetSecret ...
-func (w *WebHookSecret) GetSecret() string {
+func (w WebHookSecret) GetSecret() string {
 	return w.Secret
-}
-
-// SetSecret ...
-func (w *WebHookSecret) SetSecret(secret string) {
-	w.Secret = secret
 }

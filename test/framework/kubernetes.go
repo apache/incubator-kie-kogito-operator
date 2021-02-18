@@ -17,6 +17,7 @@ package framework
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"strings"
 	"sync"
 	"time"
@@ -47,7 +48,7 @@ func InitKubeClient() error {
 	mux.Lock()
 	defer mux.Unlock()
 	if kubeClient == nil {
-		newClient, err := client.NewClientBuilder().UseControllerDynamicMapper().WithDiscoveryClient().WithBuildClient().WithKubernetesExtensionClient().Build()
+		newClient, err := client.NewClientBuilder(meta.GetRegisteredSchema()).UseControllerDynamicMapper().WithDiscoveryClient().WithBuildClient().WithKubernetesExtensionClient().Build()
 		if err != nil {
 			return fmt.Errorf("Error initializing kube client: %v", err)
 		}

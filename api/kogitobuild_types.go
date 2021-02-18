@@ -128,13 +128,8 @@ type BuildsInterface interface {
 // KogitoBuildConditionsInterface ...
 type KogitoBuildConditionsInterface interface {
 	GetType() KogitoBuildConditionType
-	SetType(conditionType KogitoBuildConditionType)
 	GetStatus() corev1.ConditionStatus
-	SetStatus(status corev1.ConditionStatus)
 	GetLastTransitionTime() metav1.Time
-	SetLastTransitionTime(lastTransitionTime metav1.Time)
 	GetReason() KogitoBuildConditionReason
-	SetReason(reason KogitoBuildConditionReason)
 	GetMessage() string
-	SetMessage(message string)
 }

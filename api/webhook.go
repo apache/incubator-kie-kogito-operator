@@ -27,7 +27,5 @@ const (
 // WebHookSecretInterface ...
 type WebHookSecretInterface interface {
 	GetType() WebHookType
-	SetType(webHookType WebHookType)
 	GetSecret() string
-	SetSecret(secret string)
 }

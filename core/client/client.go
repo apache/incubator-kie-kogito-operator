@@ -64,7 +64,7 @@ type Client struct {
 
 // NewForConsole will create a brand new client using the local machine
 func NewForConsole(scheme *runtime.Scheme) *Client {
-	client, err := NewClientBuilder().UseScheme(scheme).WithBuildClient().WithDiscoveryClient().Build()
+	client, err := NewClientBuilder(scheme).WithBuildClient().WithDiscoveryClient().Build()
 	if err != nil {
 		panic(err)
 	}
@@ -74,10 +74,9 @@ func NewForConsole(scheme *runtime.Scheme) *Client {
 // NewForController creates a new client based on the rest config and the controller client created by Operator SDK
 // Panic if something goes wrong
 func NewForController(manager controllerruntime.Manager) *Client {
-	newClient, err := NewClientBuilder().
+	newClient, err := NewClientBuilder(manager.GetScheme()).
 		WithAllClients().
 		UseConfig(manager.GetConfig()).
-		UseScheme(manager.GetScheme()).
 		UseControllerClient(manager.GetClient()).
 		Build()
 	if err != nil {

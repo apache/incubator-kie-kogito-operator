@@ -28,16 +28,16 @@ import (
 )
 
 // NewClientBuilder creates a builder to setup the client
-func NewClientBuilder() Builder {
-	return &builderStruct{}
+func NewClientBuilder(scheme *runtime.Scheme) Builder {
+	return &builderStruct{
+		scheme: scheme,
+	}
 }
 
 // Builder wraps information about what to create for a client before building it
 type Builder interface {
 	// UseConfig sets the restconfig to use for the different CLIs
 	UseConfig(kubeconfig *restclient.Config) Builder
-	// UseScheme sets the scheme
-	UseScheme(scheme *runtime.Scheme) Builder
 	// UseControllerClient sets a specific controllerclient
 	UseControllerClient(controllerClient controllercli.Client) Builder
 	// UseControllerDynamicMapper will set a dynamic mapper to the constructed controller client. Cannot be used with `UseControllerClient`
@@ -75,11 +75,6 @@ type builderStruct struct {
 
 func (builder *builderStruct) UseConfig(kubeconfig *restclient.Config) Builder {
 	builder.config = kubeconfig
-	return builder
-}
-
-func (builder *builderStruct) UseScheme(scheme *runtime.Scheme) Builder {
-	builder.scheme = scheme
 	return builder
 }
 

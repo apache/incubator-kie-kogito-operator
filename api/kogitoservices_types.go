@@ -94,7 +94,5 @@ type KogitoCloudEventsStatusInterface interface {
 // KogitoCloudEventInfoInterface ...
 type KogitoCloudEventInfoInterface interface {
 	GetType() string
-	SetType(cloudEventType string)
 	GetSource() string
-	SetSource(source string)
 }

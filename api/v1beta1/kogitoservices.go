@@ -89,9 +89,9 @@ type KogitoCloudEventsStatus struct {
 
 // GetConsumes ...
 func (k *KogitoCloudEventsStatus) GetConsumes() []api.KogitoCloudEventInfoInterface {
-	var consumes []api.KogitoCloudEventInfoInterface
-	for _, consume := range k.Consumes {
-		consumes = append(consumes, &consume)
+	consumes := make([]api.KogitoCloudEventInfoInterface, len(k.Consumes))
+	for i, v := range k.Consumes {
+		consumes[i] = api.KogitoCloudEventInfoInterface(v)
 	}
 	return consumes
 }
@@ -100,8 +100,8 @@ func (k *KogitoCloudEventsStatus) GetConsumes() []api.KogitoCloudEventInfoInterf
 func (k *KogitoCloudEventsStatus) SetConsumes(consumes []api.KogitoCloudEventInfoInterface) {
 	var newConsumes []KogitoCloudEventInfo
 	for _, consume := range consumes {
-		if newConsume, ok := consume.(*KogitoCloudEventInfo); ok {
-			newConsumes = append(newConsumes, *newConsume)
+		if newConsume, ok := consume.(KogitoCloudEventInfo); ok {
+			newConsumes = append(newConsumes, newConsume)
 		}
 	}
 	k.Consumes = newConsumes
@@ -109,9 +109,9 @@ func (k *KogitoCloudEventsStatus) SetConsumes(consumes []api.KogitoCloudEventInf
 
 // GetProduces ...
 func (k *KogitoCloudEventsStatus) GetProduces() []api.KogitoCloudEventInfoInterface {
-	var produces []api.KogitoCloudEventInfoInterface
-	for _, produce := range k.Produces {
-		produces = append(produces, &produce)
+	produces := make([]api.KogitoCloudEventInfoInterface, len(k.Produces))
+	for i, v := range k.Produces {
+		produces[i] = api.KogitoCloudEventInfoInterface(v)
 	}
 	return produces
 }
@@ -120,8 +120,8 @@ func (k *KogitoCloudEventsStatus) GetProduces() []api.KogitoCloudEventInfoInterf
 func (k *KogitoCloudEventsStatus) SetProduces(produces []api.KogitoCloudEventInfoInterface) {
 	var newProduces []KogitoCloudEventInfo
 	for _, produce := range produces {
-		if newProduce, ok := produce.(*KogitoCloudEventInfo); ok {
-			newProduces = append(newProduces, *newProduce)
+		if newProduce, ok := produce.(KogitoCloudEventInfo); ok {
+			newProduces = append(newProduces, newProduce)
 		}
 	}
 	k.Produces = newProduces
@@ -136,23 +136,13 @@ type KogitoCloudEventInfo struct {
 }
 
 // GetType ...
-func (k *KogitoCloudEventInfo) GetType() string {
+func (k KogitoCloudEventInfo) GetType() string {
 	return k.Type
 }
 
-// SetType ...
-func (k *KogitoCloudEventInfo) SetType(cloudEventType string) {
-	k.Type = cloudEventType
-}
-
 // GetSource ...
-func (k *KogitoCloudEventInfo) GetSource() string {
+func (k KogitoCloudEventInfo) GetSource() string {
 	return k.Source
-}
-
-// SetSource ...
-func (k *KogitoCloudEventInfo) SetSource(source string) {
-	k.Source = source
 }
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.

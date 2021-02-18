@@ -136,9 +136,9 @@ func (k *KogitoInfraStatus) SetRuntimeProperties(runtimeProperties api.RuntimePr
 
 // GetVolumes ...
 func (k *KogitoInfraStatus) GetVolumes() []api.KogitoInfraVolumeInterface {
-	var volumes []api.KogitoInfraVolumeInterface
-	for _, volume := range k.Volumes {
-		volumes = append(volumes, &volume)
+	volumes := make([]api.KogitoInfraVolumeInterface, len(k.Volumes))
+	for i, v := range k.Volumes {
+		volumes[i] = api.KogitoInfraVolumeInterface(v)
 	}
 	return volumes
 }
@@ -147,8 +147,8 @@ func (k *KogitoInfraStatus) GetVolumes() []api.KogitoInfraVolumeInterface {
 func (k *KogitoInfraStatus) SetVolumes(infraVolumes []api.KogitoInfraVolumeInterface) {
 	var volumes []KogitoInfraVolume
 	for _, volume := range infraVolumes {
-		if newVolume, ok := volume.(*KogitoInfraVolume); ok {
-			volumes = append(volumes, *newVolume)
+		if newVolume, ok := volume.(KogitoInfraVolume); ok {
+			volumes = append(volumes, newVolume)
 		}
 	}
 	k.Volumes = volumes
@@ -357,25 +357,13 @@ type KogitoInfraVolume struct {
 }
 
 // GetMount ...
-func (k *KogitoInfraVolume) GetMount() v1.VolumeMount {
+func (k KogitoInfraVolume) GetMount() v1.VolumeMount {
 	return k.Mount
 }
 
-// SetMount ...
-func (k *KogitoInfraVolume) SetMount(mount v1.VolumeMount) {
-	k.Mount = mount
-}
-
 // GetNamedVolume ...
-func (k *KogitoInfraVolume) GetNamedVolume() api.ConfigVolumeInterface {
+func (k KogitoInfraVolume) GetNamedVolume() api.ConfigVolumeInterface {
 	return &k.NamedVolume
-}
-
-// SetNamedVolume ...
-func (k *KogitoInfraVolume) SetNamedVolume(configVolume api.ConfigVolumeInterface) {
-	if newNamedVolume, ok := configVolume.(*ConfigVolume); ok {
-		k.NamedVolume = *newNamedVolume
-	}
 }
 
 // +kubebuilder:object:root=true

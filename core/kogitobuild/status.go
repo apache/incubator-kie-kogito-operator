@@ -92,7 +92,7 @@ func sortConditionsByTransitionTime(instance api.KogitoBuildInterface) {
 
 func addConditionError(instance api.KogitoBuildInterface, err error) {
 	if err != nil {
-		instance.GetStatus().AddCondition(&v1beta1.KogitoBuildConditions{
+		instance.GetStatus().AddCondition(v1beta1.KogitoBuildConditions{
 			Type:               api.KogitoBuildFailure,
 			Status:             v1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
@@ -152,7 +152,7 @@ func updateBuildsStatus(instance api.KogitoBuildInterface, client *client.Client
 func addCondition(instance api.KogitoBuildInterface, condition api.KogitoBuildConditionType, reason api.KogitoBuildConditionReason, message string) bool {
 	if len(instance.GetStatus().GetConditions()) == 0 ||
 		instance.GetStatus().GetConditions()[len(instance.GetStatus().GetConditions())-1].GetType() != condition {
-		instance.GetStatus().AddCondition(&v1beta1.KogitoBuildConditions{
+		instance.GetStatus().AddCondition(v1beta1.KogitoBuildConditions{
 			Type:               condition,
 			Status:             v1.ConditionTrue,
 			LastTransitionTime: metav1.Now(),

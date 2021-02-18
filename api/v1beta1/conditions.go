@@ -32,53 +32,28 @@ type Condition struct {
 }
 
 // GetType ...
-func (c *Condition) GetType() api.ConditionType {
+func (c Condition) GetType() api.ConditionType {
 	return c.Type
 }
 
-// SetType ...
-func (c *Condition) SetType(conditionType api.ConditionType) {
-	c.Type = conditionType
-}
-
 // GetStatus ...
-func (c *Condition) GetStatus() corev1.ConditionStatus {
+func (c Condition) GetStatus() corev1.ConditionStatus {
 	return c.Status
 }
 
-// SetStatus ...
-func (c *Condition) SetStatus(status corev1.ConditionStatus) {
-	c.Status = status
-}
-
 // GetLastTransitionTime ...
-func (c *Condition) GetLastTransitionTime() metav1.Time {
+func (c Condition) GetLastTransitionTime() metav1.Time {
 	return c.LastTransitionTime
 }
 
-// SetLastTransitionTime ...
-func (c *Condition) SetLastTransitionTime(lastTransitionTime metav1.Time) {
-	c.LastTransitionTime = lastTransitionTime
-}
-
 // GetReason ...
-func (c *Condition) GetReason() api.KogitoServiceConditionReason {
+func (c Condition) GetReason() api.KogitoServiceConditionReason {
 	return c.Reason
 }
 
-// SetReason ...
-func (c *Condition) SetReason(reason api.KogitoServiceConditionReason) {
-	c.Reason = reason
-}
-
 // GetMessage ...
-func (c *Condition) GetMessage() string {
+func (c Condition) GetMessage() string {
 	return c.Message
-}
-
-// SetMessage ...
-func (c *Condition) SetMessage(message string) {
-	c.Message = message
 }
 
 // ConditionsMeta definition of a Condition structure
@@ -92,9 +67,9 @@ type ConditionsMeta struct {
 
 // GetConditions returns the conditions history
 func (c *ConditionsMeta) GetConditions() []api.ConditionInterface {
-	var conditions []api.ConditionInterface
-	for _, condition := range c.Conditions {
-		conditions = append(conditions, &condition)
+	conditions := make([]api.ConditionInterface, len(c.Conditions))
+	for i, v := range c.Conditions {
+		conditions[i] = api.ConditionInterface(v)
 	}
 	return conditions
 }
@@ -103,8 +78,8 @@ func (c *ConditionsMeta) GetConditions() []api.ConditionInterface {
 func (c *ConditionsMeta) SetConditions(conditions []api.ConditionInterface) {
 	var newConditions []Condition
 	for _, condition := range conditions {
-		if newCondition, ok := condition.(*Condition); ok {
-			newConditions = append(newConditions, *newCondition)
+		if newCondition, ok := condition.(Condition); ok {
+			newConditions = append(newConditions, newCondition)
 		}
 
 	}

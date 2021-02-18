@@ -127,9 +127,7 @@ type ConfigVolumeInterface interface {
 // KogitoInfraVolumeInterface ...
 type KogitoInfraVolumeInterface interface {
 	GetMount() v1.VolumeMount
-	SetMount(mount v1.VolumeMount)
 	GetNamedVolume() ConfigVolumeInterface
-	SetNamedVolume(configVolume ConfigVolumeInterface)
 }
 
 // RuntimePropertiesInterface ...

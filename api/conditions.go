@@ -52,15 +52,10 @@ const (
 // ConditionInterface defines the detailed condition for the resource
 type ConditionInterface interface {
 	GetType() ConditionType
-	SetType(conditionType ConditionType)
 	GetStatus() corev1.ConditionStatus
-	SetStatus(status corev1.ConditionStatus)
 	GetLastTransitionTime() metav1.Time
-	SetLastTransitionTime(lastTransitionTime metav1.Time)
 	GetReason() KogitoServiceConditionReason
-	SetReason(reason KogitoServiceConditionReason)
 	GetMessage() string
-	SetMessage(message string)
 }
 
 // ConditionMetaInterface defines the base information for kogito services conditions
