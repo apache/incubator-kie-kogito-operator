@@ -147,7 +147,7 @@ func (b *decoratorHandler) decoratorForSourceBuilder() decorator {
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: builderLimitCPUEnvVarKey, Value: limitCPU})
 		envs = framework.EnvOverride(envs, corev1.EnvVar{Name: builderLimitMemoryEnvVarKey, Value: limitMemory})
 		if len(build.GetSpec().GetMavenMirrorURL()) > 0 {
-			b.Log.Info("Setting maven mirror", "Maven Mirror Url", build.GetSpec().GetMavenMirrorURL)
+			b.Log.Info("Setting maven mirror", "Maven Mirror Url", build.GetSpec().GetMavenMirrorURL())
 			envs = framework.EnvOverride(envs, corev1.EnvVar{Name: mavenMirrorURLEnvVar, Value: build.GetSpec().GetMavenMirrorURL()})
 		}
 		if build.GetSpec().IsEnableMavenDownloadOutput() {
