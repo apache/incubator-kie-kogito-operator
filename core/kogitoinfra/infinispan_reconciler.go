@@ -225,8 +225,8 @@ func (i *infinispanInfraReconciler) getInfinispanRuntimeAppProps(name string, na
 	return appProps, nil
 }
 
-func (i *infinispanInfraReconciler) getInfinispanRuntimeProps(infinispanInstance *infinispan.Infinispan, runtime api.RuntimeType) (v1beta1.RuntimeProperties, error) {
-	runtimeProps := v1beta1.RuntimeProperties{}
+func (i *infinispanInfraReconciler) getInfinispanRuntimeProps(infinispanInstance *infinispan.Infinispan, runtime api.RuntimeType) (api.RuntimePropertiesInterface, error) {
+	runtimeProps := &v1beta1.RuntimeProperties{}
 	appProps, err := i.getInfinispanRuntimeAppProps(infinispanInstance.Name, infinispanInstance.Namespace, runtime)
 	if err != nil {
 		return runtimeProps, err
@@ -248,7 +248,7 @@ func (i *infinispanInfraReconciler) updateInfinispanRuntimePropsInStatus(infinis
 	if err != nil {
 		return err
 	}
-	setRuntimeProperties(i.instance, runtime, &runtimeProps)
+	setRuntimeProperties(i.instance, runtime, runtimeProps)
 	i.Log.Debug("Following Infinispan runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
@@ -261,6 +261,7 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 	if err != nil || tlsSecret == nil {
 		return err
 	}
+	var volumes []api.KogitoInfraVolumeInterface
 	volume := v1beta1.KogitoInfraVolume{
 		Mount: corev1.VolumeMount{
 			Name:      infinispanCertMountName,
@@ -285,7 +286,8 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 			},
 		},
 	}
-	i.instance.GetStatus().SetVolumes([]api.KogitoInfraVolumeInterface{&volume})
+	volumes = append(volumes, volume)
+	i.instance.GetStatus().SetVolumes(volumes)
 	return nil
 }
 

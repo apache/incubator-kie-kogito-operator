@@ -63,21 +63,15 @@ type KogitoInfraInterface interface {
 // KogitoInfraSpecInterface ...
 type KogitoInfraSpecInterface interface {
 	GetResource() ResourceInterface
-	SetResource(resource ResourceInterface)
 	GetInfraProperties() map[string]string
-	SetInfraProperties(infraProperties map[string]string)
 }
 
 // ResourceInterface ...
 type ResourceInterface interface {
 	GetAPIVersion() string
-	SetAPIVersion(apiVersion string)
 	GetKind() string
-	SetKind(kind string)
 	GetNamespace() string
-	SetNamespace(namespace string)
 	GetName() string
-	SetName(name string)
 }
 
 // KogitoInfraStatusInterface ...
@@ -133,7 +127,5 @@ type KogitoInfraVolumeInterface interface {
 // RuntimePropertiesInterface ...
 type RuntimePropertiesInterface interface {
 	GetAppProps() map[string]string
-	SetAppProps(appProps map[string]string)
 	GetEnv() []v1.EnvVar
-	SetEnv(env []v1.EnvVar)
 }

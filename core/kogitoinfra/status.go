@@ -81,7 +81,6 @@ func (r *statusHandler) setResourceSuccess(instance api.KogitoInfraInterface) {
 		infraCondition.SetMessage("")
 		infraCondition.SetReason("")
 		infraCondition.SetLastTransitionTime(metav1.Now())
-		instance.GetStatus().SetCondition(infraCondition)
 	}
 }
 
@@ -90,5 +89,7 @@ func setRuntimeProperties(instance api.KogitoInfraInterface, runtime api.Runtime
 	if instance.GetStatus().GetRuntimeProperties() == nil {
 		instance.GetStatus().SetRuntimeProperties(api.RuntimePropertiesMap{})
 	}
-	instance.GetStatus().GetRuntimeProperties()[runtime] = runtimeProps
+	rp := instance.GetStatus().GetRuntimeProperties()
+	rp[runtime] = runtimeProps
+	instance.GetStatus().SetRuntimeProperties(rp)
 }

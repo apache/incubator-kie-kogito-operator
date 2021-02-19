@@ -17,6 +17,7 @@ package kogitoinfra
 import (
 	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
@@ -100,4 +101,9 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	requeue, err := r.Reconcile()
 	assert.NoError(t, err)
 	assert.False(t, requeue)
+
+	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+
 }

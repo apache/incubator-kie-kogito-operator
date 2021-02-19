@@ -42,21 +42,9 @@ func (k *KogitoInfraSpec) GetResource() api.ResourceInterface {
 	return &k.Resource
 }
 
-// SetResource ...
-func (k *KogitoInfraSpec) SetResource(resource api.ResourceInterface) {
-	if newResource, ok := resource.(*Resource); ok {
-		k.Resource = *newResource
-	}
-}
-
 // GetInfraProperties ...
 func (k *KogitoInfraSpec) GetInfraProperties() map[string]string {
 	return k.InfraProperties
-}
-
-// SetInfraProperties ...
-func (k *KogitoInfraSpec) SetInfraProperties(infraProperties map[string]string) {
-	k.InfraProperties = infraProperties
 }
 
 // RuntimeProperties defines the variables that will be
@@ -68,23 +56,13 @@ type RuntimeProperties struct {
 }
 
 // GetAppProps ...
-func (r *RuntimeProperties) GetAppProps() map[string]string {
+func (r RuntimeProperties) GetAppProps() map[string]string {
 	return r.AppProps
 }
 
-// SetAppProps ...
-func (r *RuntimeProperties) SetAppProps(appProps map[string]string) {
-	r.AppProps = appProps
-}
-
 // GetEnv ...
-func (r *RuntimeProperties) GetEnv() []v1.EnvVar {
+func (r RuntimeProperties) GetEnv() []v1.EnvVar {
 	return r.Env
-}
-
-// SetEnv ...
-func (r *RuntimeProperties) SetEnv(env []v1.EnvVar) {
-	r.Env = env
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra.
@@ -95,7 +73,7 @@ type KogitoInfraStatus struct {
 	// +optional
 	// Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	RuntimeProperties map[api.RuntimeType]RuntimeProperties `json:"runtimeProperties,omitempty"`
+	RuntimeProperties map[api.RuntimeType]*RuntimeProperties `json:"runtimeProperties,omitempty"`
 
 	// +optional
 	// +listType=atomic
@@ -120,16 +98,16 @@ func (k *KogitoInfraStatus) SetCondition(condition api.KogitoInfraConditionInter
 func (k *KogitoInfraStatus) GetRuntimeProperties() api.RuntimePropertiesMap {
 	runtimeProperties := make(api.RuntimePropertiesMap, len(k.RuntimeProperties))
 	for key, value := range k.RuntimeProperties {
-		runtimeProperties[key] = &value
+		runtimeProperties[key] = api.RuntimePropertiesInterface(value)
 	}
 	return runtimeProperties
 }
 
 // SetRuntimeProperties ...
 func (k *KogitoInfraStatus) SetRuntimeProperties(runtimeProperties api.RuntimePropertiesMap) {
-	newRuntimeProperties := make(map[api.RuntimeType]RuntimeProperties, len(runtimeProperties))
-	for key, value := range k.RuntimeProperties {
-		newRuntimeProperties[key] = value
+	newRuntimeProperties := make(map[api.RuntimeType]*RuntimeProperties, len(runtimeProperties))
+	for key, value := range runtimeProperties {
+		newRuntimeProperties[key] = value.(*RuntimeProperties)
 	}
 	k.RuntimeProperties = newRuntimeProperties
 }
@@ -247,19 +225,9 @@ func (r *Resource) GetAPIVersion() string {
 	return r.APIVersion
 }
 
-// SetAPIVersion ...
-func (r *Resource) SetAPIVersion(apiVersion string) {
-	r.APIVersion = apiVersion
-}
-
 // GetKind ...
 func (r *Resource) GetKind() string {
 	return r.Kind
-}
-
-// SetKind ...
-func (r *Resource) SetKind(kind string) {
-	r.Kind = kind
 }
 
 // GetNamespace ...
@@ -267,19 +235,9 @@ func (r *Resource) GetNamespace() string {
 	return r.Namespace
 }
 
-// SetNamespace ...
-func (r *Resource) SetNamespace(namespace string) {
-	r.Namespace = namespace
-}
-
 // GetName ...
 func (r *Resource) GetName() string {
 	return r.Name
-}
-
-// SetName ...
-func (r *Resource) SetName(name string) {
-	r.Name = name
 }
 
 /*
