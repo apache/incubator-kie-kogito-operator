@@ -129,7 +129,7 @@ func (i *mongoDBInfraReconciler) getMongoDBRuntimeAppProps(mongoDBInstance *mong
 	return appProps, nil
 }
 
-func (i *mongoDBInfraReconciler) getMongoDBRuntimeProps(mongoDBInstance *mongodb.MongoDB, runtime api.RuntimeType) (v1beta1.RuntimeProperties, error) {
+func (i *mongoDBInfraReconciler) getMongoDBRuntimeProps(mongoDBInstance *mongodb.MongoDB, runtime api.RuntimeType) (api.RuntimePropertiesInterface, error) {
 	runtimeProps := v1beta1.RuntimeProperties{}
 	appProps, err := i.getMongoDBRuntimeAppProps(mongoDBInstance, runtime)
 	if err != nil {
@@ -152,7 +152,7 @@ func (i *mongoDBInfraReconciler) updateMongoDBRuntimePropsInStatus(mongoDBInstan
 	if err != nil {
 		return err
 	}
-	setRuntimeProperties(i.instance, runtime, &runtimeProps)
+	setRuntimeProperties(i.instance, runtime, runtimeProps)
 	i.Log.Debug("Following MongoDB runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }

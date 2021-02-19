@@ -152,7 +152,7 @@ func (k *kafkaInfraReconciler) updateKafkaRuntimePropsInStatus(kafkaInstance *ka
 	if err != nil {
 		return errorForResourceNotReadyError(err)
 	}
-	setRuntimeProperties(k.instance, runtime, &runtimeProps)
+	setRuntimeProperties(k.instance, runtime, runtimeProps)
 	k.Log.Debug("Following Kafka runtime properties are set in infra status:", "runtime", runtime, "properties", runtimeProps)
 	return nil
 }
@@ -189,7 +189,7 @@ func (k *kafkaInfraReconciler) getKafkaRuntimeAppProps(kafkaInstance *kafkabetav
 	return appProps, nil
 }
 
-func (k *kafkaInfraReconciler) getKafkaRuntimeProps(kafkaInstance *kafkabetav1.Kafka, runtime api.RuntimeType) (v1beta1.RuntimeProperties, error) {
+func (k *kafkaInfraReconciler) getKafkaRuntimeProps(kafkaInstance *kafkabetav1.Kafka, runtime api.RuntimeType) (api.RuntimePropertiesInterface, error) {
 	runtimeProps := v1beta1.RuntimeProperties{}
 	appProps, err := k.getKafkaRuntimeAppProps(kafkaInstance, runtime)
 	if err != nil {

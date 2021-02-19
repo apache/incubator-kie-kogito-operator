@@ -55,7 +55,7 @@ func TestKogitoInfra_Status(t *testing.T) {
 	infraCondition.SetStatus(corev1.ConditionTrue)
 	infraCondition.SetReason(api.ReconciliationFailure)
 	infraCondition.SetMessage("Infra success")
-	quarkusRuntimeProperties := &RuntimeProperties{
+	quarkusRuntimeProperties := RuntimeProperties{
 		AppProps: map[string]string{
 			"key1": "value1",
 			"key2": "value2",
@@ -69,7 +69,7 @@ func TestKogitoInfra_Status(t *testing.T) {
 			},
 		},
 	}
-	springbootRuntimeProperties := &RuntimeProperties{
+	springbootRuntimeProperties := RuntimeProperties{
 		AppProps: map[string]string{
 			"key3": "value3",
 			"key4": "value4",
@@ -83,13 +83,9 @@ func TestKogitoInfra_Status(t *testing.T) {
 			},
 		},
 	}
+	status.AddRuntimeProperties(api.QuarkusRuntimeType, quarkusRuntimeProperties)
+	status.AddRuntimeProperties(api.SpringBootRuntimeType, springbootRuntimeProperties)
 
-	runtimeProperties := make(api.RuntimePropertiesMap)
-	runtimeProperties[api.QuarkusRuntimeType] = quarkusRuntimeProperties
-	runtimeProperties[api.SpringBootRuntimeType] = springbootRuntimeProperties
-
-	status.SetRuntimeProperties(runtimeProperties)
-	var volumes []api.KogitoInfraVolumeInterface
 	volume1 := KogitoInfraVolume{
 		Mount: corev1.VolumeMount{
 			Name: "volumeMount1",
@@ -107,10 +103,8 @@ func TestKogitoInfra_Status(t *testing.T) {
 			Name: "configVolume2",
 		},
 	}
-
-	volumes = append(volumes, volume1)
-	volumes = append(volumes, volume2)
-	status.SetVolumes(volumes)
+	status.AddVolumes(volume1)
+	status.AddVolumes(volume2)
 
 	assert.Equal(t, api.SuccessInfraConditionType, status.GetCondition().GetType())
 	assert.Equal(t, corev1.ConditionTrue, status.GetCondition().GetStatus())

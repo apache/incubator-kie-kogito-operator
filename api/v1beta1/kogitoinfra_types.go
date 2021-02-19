@@ -73,7 +73,7 @@ type KogitoInfraStatus struct {
 	// +optional
 	// Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	RuntimeProperties map[api.RuntimeType]*RuntimeProperties `json:"runtimeProperties,omitempty"`
+	RuntimeProperties map[api.RuntimeType]RuntimeProperties `json:"runtimeProperties,omitempty"`
 
 	// +optional
 	// +listType=atomic
@@ -103,13 +103,14 @@ func (k *KogitoInfraStatus) GetRuntimeProperties() api.RuntimePropertiesMap {
 	return runtimeProperties
 }
 
-// SetRuntimeProperties ...
-func (k *KogitoInfraStatus) SetRuntimeProperties(runtimeProperties api.RuntimePropertiesMap) {
-	newRuntimeProperties := make(map[api.RuntimeType]*RuntimeProperties, len(runtimeProperties))
-	for key, value := range runtimeProperties {
-		newRuntimeProperties[key] = value.(*RuntimeProperties)
+// AddRuntimeProperties ...
+func (k *KogitoInfraStatus) AddRuntimeProperties(runtimeType api.RuntimeType, runtimeProperties api.RuntimePropertiesInterface) {
+	rp := k.RuntimeProperties
+	if rp == nil {
+		rp = make(map[api.RuntimeType]RuntimeProperties)
 	}
-	k.RuntimeProperties = newRuntimeProperties
+	rp[runtimeType] = runtimeProperties.(RuntimeProperties)
+	k.RuntimeProperties = rp
 }
 
 // GetVolumes ...
@@ -121,15 +122,9 @@ func (k *KogitoInfraStatus) GetVolumes() []api.KogitoInfraVolumeInterface {
 	return volumes
 }
 
-// SetVolumes ...
-func (k *KogitoInfraStatus) SetVolumes(infraVolumes []api.KogitoInfraVolumeInterface) {
-	var volumes []KogitoInfraVolume
-	for _, volume := range infraVolumes {
-		if newVolume, ok := volume.(KogitoInfraVolume); ok {
-			volumes = append(volumes, newVolume)
-		}
-	}
-	k.Volumes = volumes
+// AddVolumes ...
+func (k *KogitoInfraStatus) AddVolumes(infraVolume api.KogitoInfraVolumeInterface) {
+	k.Volumes = append(k.Volumes, infraVolume.(KogitoInfraVolume))
 }
 
 // KogitoInfraCondition ...

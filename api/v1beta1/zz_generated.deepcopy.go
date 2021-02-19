@@ -456,17 +456,9 @@ func (in *KogitoInfraStatus) DeepCopyInto(out *KogitoInfraStatus) {
 	in.Condition.DeepCopyInto(&out.Condition)
 	if in.RuntimeProperties != nil {
 		in, out := &in.RuntimeProperties, &out.RuntimeProperties
-		*out = make(map[api.RuntimeType]*RuntimeProperties, len(*in))
+		*out = make(map[api.RuntimeType]RuntimeProperties, len(*in))
 		for key, val := range *in {
-			var outVal *RuntimeProperties
-			if val == nil {
-				(*out)[key] = nil
-			} else {
-				in, out := &val, &outVal
-				*out = new(RuntimeProperties)
-				(*in).DeepCopyInto(*out)
-			}
-			(*out)[key] = outVal
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.Volumes != nil {

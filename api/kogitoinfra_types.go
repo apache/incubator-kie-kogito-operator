@@ -79,9 +79,9 @@ type KogitoInfraStatusInterface interface {
 	GetCondition() KogitoInfraConditionInterface
 	SetCondition(condition KogitoInfraConditionInterface)
 	GetRuntimeProperties() RuntimePropertiesMap
-	SetRuntimeProperties(runtimeProperties RuntimePropertiesMap)
+	AddRuntimeProperties(runtimeType RuntimeType, runtimeProperties RuntimePropertiesInterface)
 	GetVolumes() []KogitoInfraVolumeInterface
-	SetVolumes(infraVolumes []KogitoInfraVolumeInterface)
+	AddVolumes(infraVolume KogitoInfraVolumeInterface)
 }
 
 // RuntimePropertiesMap defines the map that KogitoInfraStatus

@@ -86,10 +86,5 @@ func (r *statusHandler) setResourceSuccess(instance api.KogitoInfraInterface) {
 
 // setRuntimeProperties sets the instance status' runtime properties
 func setRuntimeProperties(instance api.KogitoInfraInterface, runtime api.RuntimeType, runtimeProps api.RuntimePropertiesInterface) {
-	if instance.GetStatus().GetRuntimeProperties() == nil {
-		instance.GetStatus().SetRuntimeProperties(api.RuntimePropertiesMap{})
-	}
-	rp := instance.GetStatus().GetRuntimeProperties()
-	rp[runtime] = runtimeProps
-	instance.GetStatus().SetRuntimeProperties(rp)
+	instance.GetStatus().AddRuntimeProperties(runtime, runtimeProps)
 }

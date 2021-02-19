@@ -35,7 +35,7 @@ func CreateFakeKogitoKafka(namespace string) api.KogitoInfraInterface {
 			},
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]*v1beta1.RuntimeProperties{
+			RuntimeProperties: map[api.RuntimeType]v1beta1.RuntimeProperties{
 				api.QuarkusRuntimeType: {
 					AppProps: map[string]string{
 						"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.test.svc:9092",
@@ -71,7 +71,7 @@ func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
 			},
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]*v1beta1.RuntimeProperties{
+			RuntimeProperties: map[api.RuntimeType]v1beta1.RuntimeProperties{
 				api.QuarkusRuntimeType: {
 					AppProps: map[string]string{
 						"quarkus.infinispan-client.server-list": "infinispanInstance:11222",
