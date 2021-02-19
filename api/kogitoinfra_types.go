@@ -81,7 +81,7 @@ type KogitoInfraStatusInterface interface {
 	GetRuntimeProperties() RuntimePropertiesMap
 	AddRuntimeProperties(runtimeType RuntimeType, runtimeProperties RuntimePropertiesInterface)
 	GetVolumes() []KogitoInfraVolumeInterface
-	AddVolumes(infraVolume KogitoInfraVolumeInterface)
+	SetVolumes(infraVolumes []KogitoInfraVolumeInterface)
 }
 
 // RuntimePropertiesMap defines the map that KogitoInfraStatus

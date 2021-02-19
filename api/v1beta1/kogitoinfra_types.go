@@ -122,9 +122,15 @@ func (k *KogitoInfraStatus) GetVolumes() []api.KogitoInfraVolumeInterface {
 	return volumes
 }
 
-// AddVolumes ...
-func (k *KogitoInfraStatus) AddVolumes(infraVolume api.KogitoInfraVolumeInterface) {
-	k.Volumes = append(k.Volumes, infraVolume.(KogitoInfraVolume))
+// SetVolumes ...
+func (k *KogitoInfraStatus) SetVolumes(infraVolumes []api.KogitoInfraVolumeInterface) {
+	var volumes []KogitoInfraVolume
+	for _, volume := range infraVolumes {
+		if newVolume, ok := volume.(KogitoInfraVolume); ok {
+			volumes = append(volumes, newVolume)
+		}
+	}
+	k.Volumes = volumes
 }
 
 // KogitoInfraCondition ...

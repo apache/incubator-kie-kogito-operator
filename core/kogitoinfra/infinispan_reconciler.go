@@ -261,6 +261,7 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 	if err != nil || tlsSecret == nil {
 		return err
 	}
+	var volumes []api.KogitoInfraVolumeInterface
 	volume := v1beta1.KogitoInfraVolume{
 		Mount: corev1.VolumeMount{
 			Name:      infinispanCertMountName,
@@ -285,7 +286,8 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 			},
 		},
 	}
-	i.instance.GetStatus().AddVolumes(volume)
+	volumes = append(volumes, volume)
+	i.instance.GetStatus().SetVolumes(volumes)
 	return nil
 }
 
