@@ -44,7 +44,7 @@ jobs:
         run: |
           make vet
           git diff
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml\|go.tools.mod\|go.tools.sum' || :)
           generated_changed_files=$(git status -s | grep zz_generated || :)
           [[ -z "$generated_changed_files" ]] || (printf "There is change in auto-generated files, Please make sure to upgrade openapi-gen" && exit 1)
           [[ -z "$changed_files" ]] ||  (printf "Change is detected in some files: \n$changed_files\n Did you run 'make vet' before sending the PR?" && exit 1)
@@ -52,12 +52,12 @@ jobs:
       - name: Check Headers
         run: |
           ./hack/addheaders.sh
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml\|go.tools.mod\|go.tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are missing the headers: \n$changed_files\n Did you run 'make test' before sending the PR" && exit 1)
       - name: Check Formatting
         run: |
           ./hack/go-fmt.sh
-          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml' || :)
+          changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml\|go.tools.mod\|go.tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
       - name: Install golinters
         run: |
