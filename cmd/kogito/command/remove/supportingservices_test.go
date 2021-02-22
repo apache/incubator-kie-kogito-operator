@@ -16,10 +16,11 @@ package remove
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,9 +51,9 @@ func Test_removeRuntimeServiceCommand_SingletonService(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove jobs-service -p %s", ns)
 	jobsService := &v1beta1.KogitoSupportingService{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitosupportingservice.DefaultJobsServiceName, Namespace: ns},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.JobsService,
+			ServiceType: api.JobsService,
 		},
 	}
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService)
@@ -60,7 +61,7 @@ func Test_removeRuntimeServiceCommand_SingletonService(t *testing.T) {
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
 	assert.NotContains(t, lines, "There's no service jobs-service")
-	assert.Contains(t, lines, infrastructure.DefaultJobsServiceName)
+	assert.Contains(t, lines, kogitosupportingservice.DefaultJobsServiceName)
 	assert.Contains(t, lines, "has been successfully removed")
 }
 
@@ -68,16 +69,16 @@ func Test_removeRuntimeServiceCommand_MoreThenOneService(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove jobs-service -p %s", ns)
 	jobsService1 := &v1beta1.KogitoSupportingService{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitosupportingservice.DefaultJobsServiceName, Namespace: ns},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.JobsService,
+			ServiceType: api.JobsService,
 		},
 	}
 
 	jobsService2 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: "my-job-service", Namespace: ns},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.JobsService,
+			ServiceType: api.JobsService,
 		},
 	}
 
@@ -85,7 +86,7 @@ func Test_removeRuntimeServiceCommand_MoreThenOneService(t *testing.T) {
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, infrastructure.DefaultJobsServiceName)
+	assert.Contains(t, lines, kogitosupportingservice.DefaultJobsServiceName)
 	assert.Contains(t, lines, "my-job-service")
 	assert.Contains(t, lines, "has been successfully removed")
 }
@@ -94,16 +95,16 @@ func Test_removeRuntimeServiceCommand_DifferentService(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove jobs-service -p %s", ns)
 	jobsService1 := &v1beta1.KogitoSupportingService{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: ns},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitosupportingservice.DefaultJobsServiceName, Namespace: ns},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.JobsService,
+			ServiceType: api.JobsService,
 		},
 	}
 
 	jobsService2 := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{Name: "data-index", Namespace: ns},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.DataIndex,
+			ServiceType: api.DataIndex,
 		},
 	}
 
@@ -111,7 +112,7 @@ func Test_removeRuntimeServiceCommand_DifferentService(t *testing.T) {
 
 	lines, _, err := test.ExecuteCli()
 	assert.NoError(t, err)
-	assert.Contains(t, lines, infrastructure.DefaultJobsServiceName)
+	assert.Contains(t, lines, kogitosupportingservice.DefaultJobsServiceName)
 	assert.NotContains(t, lines, "data-index")
 	assert.Contains(t, lines, "has been successfully removed")
 }

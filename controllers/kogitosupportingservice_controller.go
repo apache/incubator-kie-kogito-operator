@@ -15,26 +15,25 @@
 package controllers
 
 import (
-	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	appv1beta1 "github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
 	imgv1 "github.com/openshift/api/image/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	routev1 "github.com/openshift/api/route/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-
-	appv1beta1 "github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 )
 
 //var log = logger.GetLogger("kogitoSupportingService_controller")
@@ -64,32 +63,43 @@ type KogitoSupportingServiceReconciler struct {
 // Reconcile reads that state of the cluster for a KogitoSupportingService object and makes changes based on the state read
 // and what is in the KogitoSupportingService.Spec
 func (r *KogitoSupportingServiceReconciler) Reconcile(req ctrl.Request) (result ctrl.Result, resultErr error) {
+	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
+	log.Info("Reconciling for KogitoSupportingService")
+
+	// create context
+	context := &operator.Context{
+		Client: r.Client,
+		Log:    log,
+		Scheme: r.Scheme,
+	}
+
 	// Fetch the KogitoSupportingService instance
-	r.Log.Info("Reconciling KogitoSupportingService for", "Instance", req.Name, "Namespace", req.Namespace)
-	instance, resultErr := infrastructure.FetchKogitoSupportingService(r.Client, req.Name, req.Namespace)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
+	instance, resultErr := supportingServiceHandler.FetchKogitoSupportingService(req.NamespacedName)
 	if resultErr != nil {
 		return
 	}
 	if instance == nil {
-		r.Log.Debug("Instance not found", "kogitoSupportingService", req.Name, "Namespace", req.Namespace)
+		log.Debug("kogitoSupportingService Instance not found")
 		return
 	}
 
-	r.Log.Debug("Going to reconcile service", "Type", instance.Spec.ServiceType)
-	if resultErr = ensureSingletonService(r.Client, req.Namespace, instance.Spec.ServiceType); resultErr != nil {
+	supportingServiceManager := manager.NewKogitoSupportingServiceManager(context, supportingServiceHandler)
+	if resultErr = supportingServiceManager.EnsureSingletonService(req.Namespace, instance.GetSupportingServiceSpec().GetServiceType()); resultErr != nil {
 		return
 	}
 
-	r.Log.Debug("going to fetch related kogito supporting Service resource", "Instance", instance.Name, "Type", instance.Spec.ServiceType)
-	supportingResource := r.getKogitoSupportingServices(instance)[instance.Spec.ServiceType]
-
-	requeueAfter, resultErr := supportingResource.Reconcile(r.Client, instance, r.Scheme)
+	runtimeHandler := internal.NewKogitoRuntimeHandler(context)
+	infraHandler := internal.NewKogitoInfraHandler(context)
+	reconcileHandler := kogitosupportingservice.NewReconcilerHandler(context, infraHandler, supportingServiceHandler, runtimeHandler)
+	reconciler := reconcileHandler.GetSupportingServiceReconciler(instance)
+	requeueAfter, resultErr := reconciler.Reconcile()
 	if resultErr != nil {
 		return
 	}
 
 	if requeueAfter > 0 {
-		r.Log.Info("Waiting for all resources to be created, scheduling for 30 seconds from now")
+		log.Info("Waiting for all resources to be created, scheduling for 30 seconds from now")
 		result.RequeueAfter = requeueAfter
 		result.Requeue = true
 	}
@@ -115,57 +125,15 @@ func (r *KogitoSupportingServiceReconciler) SetupWithManager(mgr ctrl.Manager) e
 		Owns(&corev1.Service{}).Owns(&appsv1.Deployment{}).Owns(&corev1.ConfigMap{})
 
 	infraHandler := &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1beta1.KogitoSupportingService{}}
-	b.Watches(&source.Kind{Type: &appv1beta1.KogitoInfra{}}, infraHandler)
+	infraPred := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			return reflect.DeepEqual(e.MetaNew.GetOwnerReferences(), e.MetaOld.GetOwnerReferences())
+		},
+	}
+	b.Watches(&source.Kind{Type: &appv1beta1.KogitoInfra{}}, infraHandler, builder.WithPredicates(infraPred))
 
 	if r.IsOpenshift() {
 		b.Owns(&routev1.Route{}).Owns(&imgv1.ImageStream{})
 	}
 	return b.Complete(r)
-}
-
-// fetches all the supported services managed by kogitoSupportingService controller
-func (r *KogitoSupportingServiceReconciler) getKogitoSupportingServices(instance *appv1beta1.KogitoSupportingService) map[appv1beta1.ServiceType]SupportingServiceResource {
-	return map[appv1beta1.ServiceType]SupportingServiceResource{
-		appv1beta1.DataIndex:      &dataIndexSupportingServiceResource{log: logger.GetLogger("data-index")},
-		appv1beta1.Explainability: &explainabilitySupportingServiceResource{log: logger.GetLogger("explainability")},
-		appv1beta1.JobsService:    &jobsServiceSupportingServiceResource{log: logger.GetLogger("jobs-service")},
-		appv1beta1.MgmtConsole:    &mgmtConsoleSupportingServiceResource{log: logger.GetLogger("mgmt-console")},
-		appv1beta1.TaskConsole:    &taskConsoleSupportingServiceResource{log: logger.GetLogger("task-console")},
-		appv1beta1.TrustyAI:       &trustyAISupportingServiceResource{log: logger.GetLogger("trusty-AI")},
-		appv1beta1.TrustyUI:       &trustyUISupportingServiceResource{log: logger.GetLogger("trusty-UI")},
-	}
-}
-
-func ensureSingletonService(client *client.Client, namespace string, resourceType appv1beta1.ServiceType) error {
-	supportingServiceList := &appv1beta1.KogitoSupportingServiceList{}
-	if err := kubernetes.ResourceC(client).ListWithNamespace(namespace, supportingServiceList); err != nil {
-		return err
-	}
-
-	var kogitoSupportingService []appv1beta1.KogitoSupportingService
-	for _, service := range supportingServiceList.Items {
-		if service.Spec.ServiceType == resourceType {
-			kogitoSupportingService = append(kogitoSupportingService, service)
-		}
-	}
-
-	if len(kogitoSupportingService) > 1 {
-		return fmt.Errorf("kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", resourceType)
-	}
-	return nil
-}
-
-// Check is the testService is available in the slice of allServices
-func contains(allServices []appv1beta1.ServiceType, testService appv1beta1.ServiceType) bool {
-	for _, a := range allServices {
-		if a == testService {
-			return true
-		}
-	}
-	return false
-}
-
-// SupportingServiceResource Interface to represent type of kogito supporting service resources like JobsService & MgmtConcole
-type SupportingServiceResource interface {
-	Reconcile(client *client.Client, instance *appv1beta1.KogitoSupportingService, scheme *runtime.Scheme) (reconcileAfter time.Duration, resultErr error)
 }

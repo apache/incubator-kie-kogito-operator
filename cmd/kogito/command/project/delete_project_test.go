@@ -16,10 +16,9 @@ package project
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 

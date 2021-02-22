@@ -16,12 +16,12 @@ package shared
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
 
 	v1 "k8s.io/api/core/v1"
 )

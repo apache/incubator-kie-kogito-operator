@@ -15,7 +15,7 @@
 package flag
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +28,8 @@ type MonitoringFlags struct {
 
 // AddMonitoringFlags adds the monitoring flags to the given command
 func AddMonitoringFlags(command *cobra.Command, flags *MonitoringFlags) {
-	command.Flags().StringVar(&flags.Scheme, "monitoring-scheme", v1beta1.MonitoringDefaultScheme, "HTTP scheme to use for scraping.Default is "+v1beta1.MonitoringDefaultScheme)
-	command.Flags().StringVar(&flags.Path, "monitoring-path", v1beta1.MonitoringDefaultPath, "HTTP path to scrape for metrics. Default is "+v1beta1.MonitoringDefaultPath)
+	command.Flags().StringVar(&flags.Scheme, "monitoring-scheme", api.MonitoringDefaultScheme, "HTTP scheme to use for scraping.Default is "+api.MonitoringDefaultScheme)
+	command.Flags().StringVar(&flags.Path, "monitoring-path", api.MonitoringDefaultPath, "HTTP path to scrape for metrics. Default is "+api.MonitoringDefaultPath)
 }
 
 // CheckMonitoringArgs validates the MonitoringFlags flags

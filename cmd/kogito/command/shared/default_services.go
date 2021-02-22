@@ -15,8 +15,10 @@
 package shared
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,9 +28,9 @@ var defaultServiceStatus = v1beta1.KogitoServiceStatus{ConditionsMeta: v1beta1.C
 // GetDefaultDataIndex gets the default Data Index instance
 func GetDefaultDataIndex(namespace string) v1beta1.KogitoSupportingService {
 	return v1beta1.KogitoSupportingService{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultDataIndexName, Namespace: namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitosupportingservice.DefaultDataIndexName, Namespace: namespace},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.DataIndex,
+			ServiceType: api.DataIndex,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &defaultReplicas,
 				Infra: []string{
@@ -44,9 +46,9 @@ func GetDefaultDataIndex(namespace string) v1beta1.KogitoSupportingService {
 // GetDefaultJobsService gets the default Jobs Service instance
 func GetDefaultJobsService(namespace string) v1beta1.KogitoSupportingService {
 	return v1beta1.KogitoSupportingService{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitosupportingservice.DefaultJobsServiceName, Namespace: namespace},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.JobsService,
+			ServiceType: api.JobsService,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &defaultReplicas,
 			},
@@ -58,9 +60,9 @@ func GetDefaultJobsService(namespace string) v1beta1.KogitoSupportingService {
 // GetDefaultMgmtConsole gets the default Management Console instance
 func GetDefaultMgmtConsole(namespace string) v1beta1.KogitoSupportingService {
 	return v1beta1.KogitoSupportingService{
-		ObjectMeta: metav1.ObjectMeta{Name: infrastructure.DefaultMgmtConsoleName, Namespace: namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: kogitosupportingservice.DefaultMgmtConsoleName, Namespace: namespace},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.MgmtConsole,
+			ServiceType: api.MgmtConsole,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &defaultReplicas,
 			},

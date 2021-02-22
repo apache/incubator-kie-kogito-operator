@@ -18,36 +18,27 @@ package main
 
 import (
 	"flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
+	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appv1beta1 "github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme   *runtime.Scheme
+	setupLog = logger.GetLogger("setup")
 )
 
 func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	utilruntime.Must(appv1beta1.AddToScheme(scheme))
-	// all schemas required by Kogito Operator
-	builder := meta.GetRegisteredSchemeBuilder()
-	utilruntime.Must(builder.AddToScheme(scheme))
-	// +kubebuilder:scaffold:scheme
+	scheme = meta.GetRegisteredSchema()
 }
 
 func main() {

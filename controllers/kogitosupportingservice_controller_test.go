@@ -15,12 +15,12 @@
 package controllers
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
@@ -29,64 +29,39 @@ import (
 func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 	replicas := int32(1)
 	instance := &v1beta1.KogitoSupportingService{
-		ObjectMeta: v1.ObjectMeta{Name: infrastructure.DefaultJobsServiceName, Namespace: t.Name()},
+		ObjectMeta: v1.ObjectMeta{Name: kogitosupportingservice.DefaultJobsServiceName, Namespace: t.Name()},
 		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType:       v1beta1.JobsService,
+			ServiceType:       api.JobsService,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
-	r := &jobsServiceSupportingServiceResource{log: logger.GetLogger("suppporting service reconciler")}
-	// first reconciliation
-
-	requeueAfter, err := r.Reconcile(cli, instance, meta.GetRegisteredSchema())
-	assert.NoError(t, err)
-	assert.True(t, requeueAfter == 0)
-	// second time
-	requeueAfter, err = r.Reconcile(cli, instance, meta.GetRegisteredSchema())
-	assert.NoError(t, err)
-	assert.True(t, requeueAfter == 0)
-
-	_, err = kubernetes.ResourceC(cli).Fetch(instance)
-	assert.NoError(t, err)
-	assert.NotNil(t, instance.Status)
-	assert.Len(t, instance.Status.Conditions, 1)
+	r := &KogitoSupportingServiceReconciler{
+		Client: cli,
+		Log:    logger.GetLogger("KogitoSupportingService"),
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	test.AssertReconcileMustNotRequeue(t, r, instance)
 }
 
 func TestContains(t *testing.T) {
-	allServices := []v1beta1.ServiceType{
-		v1beta1.MgmtConsole,
-		v1beta1.JobsService,
-		v1beta1.TrustyAI,
+	allServices := []api.ServiceType{
+		api.MgmtConsole,
+		api.JobsService,
+		api.TrustyAI,
 	}
-	testService := v1beta1.DataIndex
+	testService := api.DataIndex
 
 	assert.False(t, contains(allServices, testService))
 }
 
-func Test_ensureSingletonService(t *testing.T) {
-	ns := t.Name()
-	instance1 := &v1beta1.KogitoSupportingService{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "data-index1",
-			Namespace: ns,
-		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.DataIndex,
-		},
+// Check is the testService is available in the slice of allServices
+func contains(allServices []api.ServiceType, testService api.ServiceType) bool {
+	for _, a := range allServices {
+		if a == testService {
+			return true
+		}
 	}
-	instance2 := &v1beta1.KogitoSupportingService{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "data-index2",
-			Namespace: ns,
-		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: v1beta1.DataIndex,
-		},
-	}
-
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance1, instance2).OnOpenShift().Build()
-	assert.Errorf(t, ensureSingletonService(cli, ns, v1beta1.DataIndex), "kogito Supporting Service(%s) already exists, please delete the duplicate before proceeding", v1beta1.DataIndex)
-
+	return false
 }
