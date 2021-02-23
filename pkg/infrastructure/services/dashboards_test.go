@@ -15,6 +15,8 @@
 package services
 
 import (
+	"testing"
+
 	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
@@ -22,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func Test_fetchDashboardNames(t *testing.T) {
@@ -86,11 +87,11 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 
 	dashboards := []GrafanaDashboard{
 		{
-			Name:             "mydashboard",
+			Name:             "my dashboard* .json",
 			RawJSONDashboard: "[]",
 		},
 		{
-			Name:             "myseconddashboard",
+			Name:             "mySecond%Dashboard@.json",
 			RawJSONDashboard: "[]",
 		},
 	}
