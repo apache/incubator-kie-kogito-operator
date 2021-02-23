@@ -16,13 +16,12 @@ package shared
 
 import (
 	"fmt"
-
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
-	kogitocli "github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
+	kogitocli "github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 )
 
 type serviceInfoMessages struct {
@@ -96,45 +95,45 @@ func (s *servicesInstallation) InstallSupportingService(supportingService *v1bet
 	return s
 }
 
-func getSupportingServiceInfoMessages(serviceType v1beta1.ServiceType) *serviceInfoMessages {
+func getSupportingServiceInfoMessages(serviceType api.ServiceType) *serviceInfoMessages {
 	switch serviceType {
-	case v1beta1.DataIndex:
+	case api.DataIndex:
 		return &serviceInfoMessages{
 			errCreating: message.DataIndexErrCreating,
 			installed:   message.DataIndexSuccessfulInstalled,
 			checkStatus: message.SupportingServiceCheckStatus,
 		}
-	case v1beta1.JobsService:
+	case api.JobsService:
 		return &serviceInfoMessages{
 			errCreating: message.JobsServiceErrCreating,
 			installed:   message.JobsServiceSuccessfulInstalled,
 			checkStatus: message.SupportingServiceCheckStatus,
 		}
-	case v1beta1.MgmtConsole:
+	case api.MgmtConsole:
 		return &serviceInfoMessages{
 			errCreating: message.MgmtConsoleErrCreating,
 			installed:   message.MgmtConsoleSuccessfulInstalled,
 			checkStatus: message.SupportingServiceCheckStatus,
 		}
-	case v1beta1.Explainability:
+	case api.Explainability:
 		return &serviceInfoMessages{
 			errCreating: message.ExplainabilityErrCreating,
 			installed:   message.ExplainabilitySuccessfulInstalled,
 			checkStatus: message.SupportingServiceCheckStatus,
 		}
-	case v1beta1.TrustyAI:
+	case api.TrustyAI:
 		return &serviceInfoMessages{
 			errCreating: message.TrustyErrCreating,
 			installed:   message.TrustySuccessfulInstalled,
 			checkStatus: message.SupportingServiceCheckStatus,
 		}
-	case v1beta1.TrustyUI:
+	case api.TrustyUI:
 		return &serviceInfoMessages{
 			errCreating: message.TrustyUIErrCreating,
 			installed:   message.TrustyUISuccessfulInstalled,
 			checkStatus: message.SupportingServiceCheckStatus,
 		}
-	case v1beta1.TaskConsole:
+	case api.TaskConsole:
 		return &serviceInfoMessages{
 			errCreating: message.TaskConsoleErrCreating,
 			installed:   message.TaskConsoleSuccessfulInstalled,
@@ -160,7 +159,7 @@ func (s *servicesInstallation) GetError() error {
 	return s.err
 }
 
-func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject, messages *serviceInfoMessages) error {
+func (s *servicesInstallation) installKogitoService(resource kubernetes.ResourceObject, messages *serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
 		if err := kubernetes.ResourceC(s.client).Create(resource); err != nil {
@@ -173,8 +172,13 @@ func (s *servicesInstallation) installKogitoService(resource meta.ResourceObject
 }
 
 func (s *servicesInstallation) CheckOperatorCRDs() ServicesInstallation {
-	if !s.client.IsKogitoCRDsAvailable() {
+	if !IsKogitoCRDsAvailable(s.client) {
 		s.err = fmt.Errorf("kogito Operator CRDs not Found in the cluster. Please install operator before using")
 	}
 	return s
+}
+
+// IsKogitoCRDsAvailable detects if the CRDs for kogito-operator are available or not
+func IsKogitoCRDsAvailable(client *kogitocli.Client) bool {
+	return client.HasServerGroup(v1beta1.GroupVersion.Group)
 }

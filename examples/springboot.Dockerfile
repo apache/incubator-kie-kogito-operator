@@ -11,4 +11,3 @@ FROM quay.io/kiegroup/kogito-springboot-ubi8:latest
 
 # the *.jar was left to make this file project agnostic, but ideally you would need only the application binary, such as process-springboot-example.jar
 COPY target/*.jar $KOGITO_HOME/bin
-COPY target/classes/persistence/ $KOGITO_HOME/data/protobufs

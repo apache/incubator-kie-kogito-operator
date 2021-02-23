@@ -15,6 +15,7 @@
 package converter
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
@@ -28,7 +29,7 @@ func FromWebHookFlagsToWebHookSecret(flags *flag.WebHookFlags) (webHooks []v1bet
 	webHookMap := util.FromStringsKeyPairToMap(flags.WebHook)
 	for webHookType, secret := range webHookMap {
 		webHooks = append(webHooks, v1beta1.WebHookSecret{
-			Type:   v1beta1.WebHookType(webHookType),
+			Type:   api.WebHookType(webHookType),
 			Secret: secret,
 		})
 	}

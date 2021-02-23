@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,59 +15,45 @@
 package v1beta1
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ConditionType is the type of condition
-type ConditionType string
-
-const (
-	// DeployedConditionType - The KogitoService is deployed
-	DeployedConditionType ConditionType = "Deployed"
-	// ProvisioningConditionType - The KogitoService is being provisioned
-	ProvisioningConditionType ConditionType = "Provisioning"
-	// FailedConditionType - The KogitoService is in a failed state
-	FailedConditionType ConditionType = "Failed"
-)
-
-// KogitoServiceConditionReason is the type of reason
-type KogitoServiceConditionReason string
-
-const (
-	// CreateResourceFailedReason - Unable to create the requested resources
-	CreateResourceFailedReason KogitoServiceConditionReason = "CreateResourceFailed"
-	// KogitoInfraNotReadyReason - Unable to deploy Kogito Infra
-	KogitoInfraNotReadyReason KogitoServiceConditionReason = "KogitoInfraNotReadyReason"
-	// ServiceReconciliationFailure - Unable to determine the error
-	ServiceReconciliationFailure KogitoServiceConditionReason = "ReconciliationFailure"
-	// MessagingIntegrationFailureReason ...
-	MessagingIntegrationFailureReason KogitoServiceConditionReason = "MessagingProvisionFailure"
-	// MonitoringIntegrationFailureReason ...
-	MonitoringIntegrationFailureReason KogitoServiceConditionReason = "MonitoringIntegrationFailure"
-	// InternalServiceNotReachable ...
-	InternalServiceNotReachable KogitoServiceConditionReason = "InternalServiceNotReachable"
-)
+const maxBufferCondition = 5
 
 // Condition is the detailed condition for the resource
 type Condition struct {
-	Type               ConditionType                `json:"type"`
-	Status             corev1.ConditionStatus       `json:"status"`
-	LastTransitionTime metav1.Time                  `json:"lastTransitionTime,omitempty"`
-	Reason             KogitoServiceConditionReason `json:"reason,omitempty"`
-	Message            string                       `json:"message,omitempty"`
+	Type               api.ConditionType                `json:"type"`
+	Status             corev1.ConditionStatus           `json:"status"`
+	LastTransitionTime metav1.Time                      `json:"lastTransitionTime,omitempty"`
+	Reason             api.KogitoServiceConditionReason `json:"reason,omitempty"`
+	Message            string                           `json:"message,omitempty"`
 }
 
-const maxBufferCondition = 5
+// GetType ...
+func (c Condition) GetType() api.ConditionType {
+	return c.Type
+}
 
-// ConditionMetaInterface defines the base information for kogito services conditions
-// +kubebuilder:object:generate=false
-type ConditionMetaInterface interface {
-	SetDeployed() bool
-	SetProvisioning() bool
-	SetFailed(reason KogitoServiceConditionReason, err error)
-	GetConditions() []Condition
-	SetConditions(conditions []Condition)
+// GetStatus ...
+func (c Condition) GetStatus() corev1.ConditionStatus {
+	return c.Status
+}
+
+// GetLastTransitionTime ...
+func (c Condition) GetLastTransitionTime() metav1.Time {
+	return c.LastTransitionTime
+}
+
+// GetReason ...
+func (c Condition) GetReason() api.KogitoServiceConditionReason {
+	return c.Reason
+}
+
+// GetMessage ...
+func (c Condition) GetMessage() string {
+	return c.Message
 }
 
 // ConditionsMeta definition of a Condition structure
@@ -80,23 +66,34 @@ type ConditionsMeta struct {
 }
 
 // GetConditions returns the conditions history
-func (c *ConditionsMeta) GetConditions() []Condition {
-	return c.Conditions
+func (c *ConditionsMeta) GetConditions() []api.ConditionInterface {
+	conditions := make([]api.ConditionInterface, len(c.Conditions))
+	for i, v := range c.Conditions {
+		conditions[i] = api.ConditionInterface(v)
+	}
+	return conditions
 }
 
 // SetConditions sets the conditions history
-func (c *ConditionsMeta) SetConditions(conditions []Condition) {
-	c.Conditions = conditions
+func (c *ConditionsMeta) SetConditions(conditions []api.ConditionInterface) {
+	var newConditions []Condition
+	for _, condition := range conditions {
+		if newCondition, ok := condition.(Condition); ok {
+			newConditions = append(newConditions, newCondition)
+		}
+
+	}
+	c.Conditions = newConditions
 }
 
 // SetDeployed Updates the condition with the DeployedCondition and True status
 func (c *ConditionsMeta) SetDeployed() bool {
 	size := len(c.Conditions)
-	if size > 0 && c.Conditions[size-1].Type == DeployedConditionType {
+	if size > 0 && c.Conditions[size-1].Type == api.DeployedConditionType {
 		return false
 	}
 	condition := Condition{
-		Type:               DeployedConditionType,
+		Type:               api.DeployedConditionType,
 		Status:             corev1.ConditionTrue,
 		LastTransitionTime: metav1.Now(),
 	}
@@ -107,11 +104,11 @@ func (c *ConditionsMeta) SetDeployed() bool {
 // SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
 func (c *ConditionsMeta) SetProvisioning() bool {
 	size := len(c.Conditions)
-	if size > 0 && c.Conditions[size-1].Type == ProvisioningConditionType {
+	if size > 0 && c.Conditions[size-1].Type == api.ProvisioningConditionType {
 		return false
 	}
 	condition := Condition{
-		Type:               ProvisioningConditionType,
+		Type:               api.ProvisioningConditionType,
 		Status:             corev1.ConditionTrue,
 		LastTransitionTime: metav1.Now(),
 	}
@@ -120,9 +117,9 @@ func (c *ConditionsMeta) SetProvisioning() bool {
 }
 
 // SetFailed Sets the failed condition with the error reason and message
-func (c *ConditionsMeta) SetFailed(reason KogitoServiceConditionReason, err error) {
+func (c *ConditionsMeta) SetFailed(reason api.KogitoServiceConditionReason, err error) {
 	condition := Condition{
-		Type:               FailedConditionType,
+		Type:               api.FailedConditionType,
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             reason,

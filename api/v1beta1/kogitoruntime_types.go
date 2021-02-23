@@ -15,6 +15,7 @@
 package v1beta1
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,7 +35,25 @@ type KogitoRuntimeSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="runtime"
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +kubebuilder:validation:Enum=quarkus;springboot
-	Runtime RuntimeType `json:"runtime,omitempty"`
+	Runtime api.RuntimeType `json:"runtime,omitempty"`
+}
+
+// GetRuntime ...
+func (k *KogitoRuntimeSpec) GetRuntime() api.RuntimeType {
+	if len(k.Runtime) == 0 {
+		k.Runtime = api.QuarkusRuntimeType
+	}
+	return k.Runtime
+}
+
+// IsEnableIstio ...
+func (k *KogitoRuntimeSpec) IsEnableIstio() bool {
+	return k.EnableIstio
+}
+
+// SetEnableIstio ...
+func (k *KogitoRuntimeSpec) SetEnableIstio(enableIstio bool) {
+	k.EnableIstio = enableIstio
 }
 
 // KogitoRuntimeStatus defines the observed state of KogitoRuntime.
@@ -64,21 +83,23 @@ type KogitoRuntime struct {
 	Status KogitoRuntimeStatus `json:"status,omitempty"`
 }
 
-// GetRuntime ...
-func (k *KogitoRuntimeSpec) GetRuntime() RuntimeType {
-	if len(k.Runtime) == 0 {
-		k.Runtime = QuarkusRuntimeType
-	}
-	return k.Runtime
+// GetRuntimeSpec ...
+func (k *KogitoRuntime) GetRuntimeSpec() api.KogitoRuntimeSpecInterface {
+	return &k.Spec
+}
+
+// GetRuntimeStatus ...
+func (k *KogitoRuntime) GetRuntimeStatus() api.KogitoRuntimeStatusInterface {
+	return &k.Status
 }
 
 // GetSpec ...
-func (k *KogitoRuntime) GetSpec() KogitoServiceSpecInterface {
+func (k *KogitoRuntime) GetSpec() api.KogitoServiceSpecInterface {
 	return &k.Spec
 }
 
 // GetStatus ...
-func (k *KogitoRuntime) GetStatus() KogitoServiceStatusInterface {
+func (k *KogitoRuntime) GetStatus() api.KogitoServiceStatusInterface {
 	return &k.Status
 }
 
@@ -91,17 +112,13 @@ type KogitoRuntimeList struct {
 	Items           []KogitoRuntime `json:"items"`
 }
 
-// GetItemsCount ...
-func (l *KogitoRuntimeList) GetItemsCount() int {
-	return len(l.Items)
-}
-
-// GetItemAt ...
-func (l *KogitoRuntimeList) GetItemAt(index int) KogitoService {
-	if len(l.Items) > index {
-		return KogitoService(&l.Items[index])
+// GetItems ...
+func (k *KogitoRuntimeList) GetItems() []api.KogitoRuntimeInterface {
+	models := make([]api.KogitoRuntimeInterface, len(k.Items))
+	for i, v := range k.Items {
+		models[i] = &v
 	}
-	return nil
+	return models
 }
 
 func init() {

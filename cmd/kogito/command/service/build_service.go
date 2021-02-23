@@ -16,15 +16,17 @@ package service
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"go.uber.org/zap"
 	"io"
@@ -137,8 +139,8 @@ func (i buildService) validatePreRequisite(flags *flag.BuildFlags, log *zap.Suga
 	}
 
 	if flags.Native {
-		if v1beta1.RuntimeType(flags.RuntimeTypeFlags.Runtime) != v1beta1.QuarkusRuntimeType {
-			return fmt.Errorf("native builds are only supported with %s runtime", v1beta1.QuarkusRuntimeType)
+		if api.RuntimeType(flags.RuntimeTypeFlags.Runtime) != api.QuarkusRuntimeType {
+			return fmt.Errorf("native builds are only supported with %s runtime", api.QuarkusRuntimeType)
 		}
 	}
 	return nil
@@ -249,7 +251,7 @@ func (i buildService) triggerBuild(name string, namespace string, fileReader io.
 	}
 
 	log.Info(message.BuildTriggeringNewBuild)
-	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild)
+	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild, meta.GetRegisteredSchema())
 	if err != nil {
 		return err
 	}

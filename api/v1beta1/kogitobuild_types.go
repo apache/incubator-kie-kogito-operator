@@ -15,21 +15,10 @@
 package v1beta1
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-// KogitoBuildType describes the build types supported by the KogitoBuild CR
-type KogitoBuildType string
-
-const (
-	// BinaryBuildType builds takes an uploaded binary file already compiled and creates a Kogito service image from it.
-	BinaryBuildType KogitoBuildType = "Binary"
-	// RemoteSourceBuildType builds pulls the source code from a Git repository, builds the binary and then the final Kogito service image.
-	RemoteSourceBuildType KogitoBuildType = "RemoteSource"
-	// LocalSourceBuildType builds takes an uploaded resource files such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image.
-	LocalSourceBuildType KogitoBuildType = "LocalSource"
 )
 
 // KogitoBuildSpec defines the desired state of KogitoBuild.
@@ -42,7 +31,7 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="DisableIncremental Builds"
 	// +kubebuilder:validation:Enum=Binary;RemoteSource;LocalSource
-	Type KogitoBuildType `json:"type"`
+	Type api.KogitoBuildType `json:"type"`
 
 	// DisableIncremental indicates that source to image builds should NOT be incremental. Defaults to false.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
@@ -71,7 +60,7 @@ type KogitoBuildSpec struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
 	// +optional
 	// +kubebuilder:validation:Enum=quarkus;springboot
-	Runtime RuntimeType `json:"runtime,omitempty"`
+	Runtime api.RuntimeType `json:"runtime,omitempty"`
 
 	// WebHooks secrets for source to image builds based on Git repositories (Remote Sources).
 	// +listType=atomic
@@ -164,6 +153,160 @@ func (k *KogitoBuildSpec) AddResourceLimit(name, value string) {
 	k.Resources.Limits[corev1.ResourceName(name)] = resource.MustParse(value)
 }
 
+// GetType ...
+func (k *KogitoBuildSpec) GetType() api.KogitoBuildType {
+	return k.Type
+}
+
+// SetType ...
+func (k *KogitoBuildSpec) SetType(buildType api.KogitoBuildType) {
+	k.Type = buildType
+}
+
+// IsDisableIncremental ...
+func (k *KogitoBuildSpec) IsDisableIncremental() bool {
+	return k.DisableIncremental
+}
+
+// SetDisableIncremental ...
+func (k *KogitoBuildSpec) SetDisableIncremental(disableIncremental bool) {
+	k.DisableIncremental = disableIncremental
+}
+
+// GetEnv ...
+func (k *KogitoBuildSpec) GetEnv() []corev1.EnvVar {
+	return k.Env
+}
+
+// SetEnv ...
+func (k *KogitoBuildSpec) SetEnv(env []corev1.EnvVar) {
+	k.Env = env
+}
+
+// GetGitSource ...
+func (k *KogitoBuildSpec) GetGitSource() api.GitSourceInterface {
+	return &k.GitSource
+}
+
+// SetGitSource ...
+func (k *KogitoBuildSpec) SetGitSource(gitSource api.GitSourceInterface) {
+	if newGitSource, ok := gitSource.(*GitSource); ok {
+		k.GitSource = *newGitSource
+	}
+}
+
+// GetRuntime ...
+func (k *KogitoBuildSpec) GetRuntime() api.RuntimeType {
+	return k.Runtime
+}
+
+// SetRuntime ...
+func (k *KogitoBuildSpec) SetRuntime(runtime api.RuntimeType) {
+	k.Runtime = runtime
+}
+
+// GetWebHooks ...
+func (k *KogitoBuildSpec) GetWebHooks() []api.WebHookSecretInterface {
+	webHooks := make([]api.WebHookSecretInterface, len(k.WebHooks))
+	for i, v := range k.WebHooks {
+		webHooks[i] = api.WebHookSecretInterface(v)
+	}
+	return webHooks
+}
+
+// SetWebHooks ...
+func (k *KogitoBuildSpec) SetWebHooks(webhooks []api.WebHookSecretInterface) {
+	var newWebHooks []WebHookSecret
+	for _, webHook := range webhooks {
+		if newWebHook, ok := webHook.(WebHookSecret); ok {
+			newWebHooks = append(newWebHooks, newWebHook)
+		}
+	}
+	k.WebHooks = newWebHooks
+}
+
+// IsNative ...
+func (k *KogitoBuildSpec) IsNative() bool {
+	return k.Native
+}
+
+// SetNative ...
+func (k *KogitoBuildSpec) SetNative(native bool) {
+	k.Native = native
+}
+
+// GetResources ...
+func (k *KogitoBuildSpec) GetResources() corev1.ResourceRequirements {
+	return k.Resources
+}
+
+// SetResources ...
+func (k *KogitoBuildSpec) SetResources(resources corev1.ResourceRequirements) {
+	k.Resources = resources
+}
+
+// GetMavenMirrorURL ...
+func (k *KogitoBuildSpec) GetMavenMirrorURL() string {
+	return k.MavenMirrorURL
+}
+
+// SetMavenMirrorURL ...
+func (k *KogitoBuildSpec) SetMavenMirrorURL(mavenMirrorURL string) {
+	k.MavenMirrorURL = mavenMirrorURL
+}
+
+// GetBuildImage ...
+func (k *KogitoBuildSpec) GetBuildImage() string {
+	return k.BuildImage
+}
+
+// SetBuildImage ...
+func (k *KogitoBuildSpec) SetBuildImage(buildImage string) {
+	k.BuildImage = buildImage
+}
+
+// GetRuntimeImage ...
+func (k *KogitoBuildSpec) GetRuntimeImage() string {
+	return k.RuntimeImage
+}
+
+// SetRuntimeImage ...
+func (k *KogitoBuildSpec) SetRuntimeImage(runtime string) {
+	k.RuntimeImage = runtime
+}
+
+// GetTargetKogitoRuntime ...
+func (k *KogitoBuildSpec) GetTargetKogitoRuntime() string {
+	return k.TargetKogitoRuntime
+}
+
+// SetTargetKogitoRuntime ....
+func (k *KogitoBuildSpec) SetTargetKogitoRuntime(targetRuntime string) {
+	k.TargetKogitoRuntime = targetRuntime
+}
+
+// GetArtifact ...
+func (k *KogitoBuildSpec) GetArtifact() api.ArtifactInterface {
+	return &k.Artifact
+}
+
+// SetArtifact ...
+func (k *KogitoBuildSpec) SetArtifact(artifact api.ArtifactInterface) {
+	if newArtifact, ok := artifact.(*Artifact); ok {
+		k.Artifact = *newArtifact
+	}
+}
+
+// IsEnableMavenDownloadOutput ...
+func (k *KogitoBuildSpec) IsEnableMavenDownloadOutput() bool {
+	return k.EnableMavenDownloadOutput
+}
+
+// SetEnableMavenDownloadOutput ...
+func (k *KogitoBuildSpec) SetEnableMavenDownloadOutput(enableMavenDownloadOutput bool) {
+	k.EnableMavenDownloadOutput = enableMavenDownloadOutput
+}
+
 // KogitoBuildStatus defines the observed state of KogitoBuild.
 // +k8s:openapi-gen=true
 type KogitoBuildStatus struct {
@@ -181,58 +324,51 @@ type KogitoBuildStatus struct {
 	Builds Builds `json:"builds"`
 }
 
-// KogitoBuildConditionType ...
-type KogitoBuildConditionType string
-
-const (
-	// KogitoBuildSuccessful condition for a successful build.
-	KogitoBuildSuccessful KogitoBuildConditionType = "Successful"
-	// KogitoBuildFailure condition for a failure build.
-	KogitoBuildFailure KogitoBuildConditionType = "Failed"
-	// KogitoBuildRunning condition for a running build.
-	KogitoBuildRunning KogitoBuildConditionType = "Running"
-)
-
-// KogitoBuildConditionReason ...
-type KogitoBuildConditionReason string
-
-const (
-	// OperatorFailureReason when operator fails to reconcile.
-	OperatorFailureReason KogitoBuildConditionReason = "OperatorFailure"
-	// BuildFailureReason when build fails.
-	BuildFailureReason KogitoBuildConditionReason = "BuildFailure"
-)
-
-// KogitoBuildConditions describes the conditions for this build instance according to Kubernetes status interface.
-type KogitoBuildConditions struct {
-	// Type of this condition
-	Type KogitoBuildConditionType `json:"type"`
-	// Status ...
-	Status corev1.ConditionStatus `json:"status"`
-	// LastTransitionTime ...
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Reason of this condition
-	Reason KogitoBuildConditionReason `json:"reason,omitempty"`
-	// Message ...
-	Message string `json:"message,omitempty"`
+// GetLatestBuild ...
+func (k *KogitoBuildStatus) GetLatestBuild() string {
+	return k.LatestBuild
 }
 
-// GitSource Git coordinates to locate the source code to build.
-// +k8s:openapi-gen=true
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Git Source"
-type GitSource struct {
-	// Git URI for the s2i source.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git URI"
-	URI string `json:"uri"`
-	// Branch to use in the Git repository.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git Reference"
-	Reference string `json:"reference,omitempty"`
-	// Context/subdirectory where the code is located, relative to the repo root.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Git Context"
-	ContextDir string `json:"contextDir,omitempty"`
+// SetLatestBuild ...
+func (k *KogitoBuildStatus) SetLatestBuild(latestBuild string) {
+	k.LatestBuild = latestBuild
+}
+
+// GetConditions ...
+func (k *KogitoBuildStatus) GetConditions() []api.KogitoBuildConditionsInterface {
+	conditions := make([]api.KogitoBuildConditionsInterface, len(k.Conditions))
+	for i, v := range k.Conditions {
+		conditions[i] = api.KogitoBuildConditionsInterface(v)
+	}
+	return conditions
+}
+
+// SetConditions ...
+func (k *KogitoBuildStatus) SetConditions(conditions []api.KogitoBuildConditionsInterface) {
+	var newConditions []KogitoBuildConditions
+	for _, condition := range conditions {
+		if newCondition, ok := condition.(KogitoBuildConditions); ok {
+			newConditions = append(newConditions, newCondition)
+		}
+	}
+	k.Conditions = newConditions
+}
+
+// AddCondition ...
+func (k *KogitoBuildStatus) AddCondition(condition api.KogitoBuildConditionsInterface) {
+	k.SetConditions(append(k.GetConditions(), condition))
+}
+
+// GetBuilds ...
+func (k *KogitoBuildStatus) GetBuilds() api.BuildsInterface {
+	return &k.Builds
+}
+
+// SetBuilds ...
+func (k *KogitoBuildStatus) SetBuilds(builds api.BuildsInterface) {
+	if newBuilds, ok := builds.(*Builds); ok {
+		k.Builds = *newBuilds
+	}
 }
 
 // Builds ...
@@ -261,43 +397,113 @@ type Builds struct {
 	Cancelled []string `json:"cancelled,omitempty"`
 }
 
-// Artifact contains override information for building the Maven artifact.
-// + optional
-// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Final Artifact"
-type Artifact struct {
-
-	//Indicates the unique identifier of the organization or group that created the project.
-	// + optional
-	GroupID string `json:"groupId,omitempty"`
-
-	//Indicates the unique base name of the primary artifact being generated.
-	// + optional
-	ArtifactID string `json:"artifactId,omitempty"`
-
-	//Indicates the version of the artifact generated by the project.
-	// + optional
-	Version string `json:"version,omitempty"`
+// GetNew ...
+func (b *Builds) GetNew() []string {
+	return b.New
 }
 
-// WebHookType literal type to distinguish between different types of webHooks.
-type WebHookType string
+// SetNew ...
+func (b *Builds) SetNew(newBuilds []string) {
+	b.New = newBuilds
+}
 
-const (
-	// GitHubWebHook GitHub webHook.
-	GitHubWebHook WebHookType = "GitHub"
-	// GenericWebHook Generic webHook.
-	GenericWebHook WebHookType = "Generic"
-)
+// GetPending ...
+func (b *Builds) GetPending() []string {
+	return b.Pending
+}
 
-// WebHookSecret Secret to use for a given webHook.
-// +k8s:openapi-gen=true
-type WebHookSecret struct {
-	// WebHook type, either GitHub or Generic.
-	// +kubebuilder:validation:Enum=GitHub;Generic
-	Type WebHookType `json:"type,omitempty"`
-	// Secret value for webHook
-	Secret string `json:"secret,omitempty"`
+// SetPending ...
+func (b *Builds) SetPending(pendingBuilds []string) {
+	b.Pending = pendingBuilds
+}
+
+// GetRunning ...
+func (b *Builds) GetRunning() []string {
+	return b.Running
+}
+
+// SetRunning ...
+func (b *Builds) SetRunning(runningBuilds []string) {
+	b.Running = runningBuilds
+}
+
+// GetComplete ...
+func (b *Builds) GetComplete() []string {
+	return b.Complete
+}
+
+// SetComplete ...
+func (b *Builds) SetComplete(completeBuilds []string) {
+	b.Complete = completeBuilds
+}
+
+// GetFailed ...
+func (b *Builds) GetFailed() []string {
+	return b.Failed
+}
+
+// SetFailed ...
+func (b *Builds) SetFailed(failedBuilds []string) {
+	b.Failed = failedBuilds
+}
+
+// GetError ...
+func (b *Builds) GetError() []string {
+	return b.Error
+}
+
+// SetError ...
+func (b *Builds) SetError(errorBuilds []string) {
+	b.Error = errorBuilds
+}
+
+// GetCancelled ...
+func (b *Builds) GetCancelled() []string {
+	return b.Cancelled
+}
+
+// SetCancelled ...
+func (b *Builds) SetCancelled(cancelled []string) {
+	b.Cancelled = cancelled
+}
+
+// KogitoBuildConditions describes the conditions for this build instance according to Kubernetes status interface.
+type KogitoBuildConditions struct {
+	// Type of this condition
+	Type api.KogitoBuildConditionType `json:"type"`
+	// Status ...
+	Status corev1.ConditionStatus `json:"status"`
+	// LastTransitionTime ...
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	// Reason of this condition
+	Reason api.KogitoBuildConditionReason `json:"reason,omitempty"`
+	// Message ...
+	Message string `json:"message,omitempty"`
+}
+
+// GetType ...
+func (k KogitoBuildConditions) GetType() api.KogitoBuildConditionType {
+	return k.Type
+}
+
+// GetStatus ...
+func (k KogitoBuildConditions) GetStatus() corev1.ConditionStatus {
+	return k.Status
+}
+
+// GetLastTransitionTime ...
+func (k KogitoBuildConditions) GetLastTransitionTime() metav1.Time {
+	return k.LastTransitionTime
+}
+
+// GetReason ...
+func (k KogitoBuildConditions) GetReason() api.KogitoBuildConditionReason {
+	return k.Reason
+}
+
+// GetMessage ...
+func (k KogitoBuildConditions) GetMessage() string {
+	return k.Message
 }
 
 // +kubebuilder:object:root=true
@@ -321,6 +527,16 @@ type KogitoBuild struct {
 
 	Spec   KogitoBuildSpec   `json:"spec,omitempty"`
 	Status KogitoBuildStatus `json:"status,omitempty"`
+}
+
+// GetSpec provide spec of Kogito Build
+func (k *KogitoBuild) GetSpec() api.KogitoBuildSpecInterface {
+	return &k.Spec
+}
+
+// GetStatus provide status of Kogito Build
+func (k *KogitoBuild) GetStatus() api.KogitoBuildStatusInterface {
+	return &k.Status
 }
 
 // +kubebuilder:object:root=true

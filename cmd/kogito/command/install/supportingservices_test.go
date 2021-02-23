@@ -16,15 +16,14 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-cloud-operator/core/kogitosupportingservice"
 	"testing"
-
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 
 	"github.com/stretchr/testify/assert"
 
@@ -46,7 +45,7 @@ func Test_InstallSupportingServiceCmd_DefaultConfiguration(t *testing.T) {
 	// This should be created, given the command above
 	dataIndex := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      infrastructure.DefaultDataIndexName,
+			Name:      kogitosupportingservice.DefaultDataIndexName,
 			Namespace: ns,
 		},
 	}
@@ -72,7 +71,7 @@ func Test_InstallSupportingServiceCmd_CustomConfiguration(t *testing.T) {
 	// This should be created, given the command above
 	dataIndex := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      infrastructure.DefaultDataIndexName,
+			Name:      kogitosupportingservice.DefaultDataIndexName,
 			Namespace: ns,
 		},
 	}
