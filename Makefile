@@ -13,8 +13,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Image URL to use all building/pushing image targets
 IMG ?= quay.io/kiegroup/kogito-cloud-operator:$(VERSION)
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+# Produce CRDs with v1 extension which is required by kubernetes v1.22+, The CRDs will stop working in kubernets <= v1.15
+CRD_OPTIONS ?= "crd:crdVersions=v1"
 
 # Image tag to build the image with
 IMAGE ?= $(IMG)
