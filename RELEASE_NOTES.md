@@ -7,5 +7,6 @@
 ## Bug Fixes
 - [KOGITO-4332](https://issues.redhat.com/browse/KOGITO-4332) - Operator does not have rights on mongodb crds
 - [KOGITO-4210](https://issues.redhat.com/browse/KOGITO-4210) - Fix probe config for Quarkus deployments
+- [KOGITO-4529](https://issues.redhat.com/browse/KOGITO-4529) - Throwing nil pointer dereference for Knative broker KogitoInfra
 
 ## Known Issues
