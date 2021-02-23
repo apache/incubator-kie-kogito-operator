@@ -7,5 +7,6 @@
 ## Bug Fixes
 - [KOGITO-4332](https://issues.redhat.com/browse/KOGITO-4332) - Operator does not have rights on mongodb crds
 - [KOGITO-4210](https://issues.redhat.com/browse/KOGITO-4210) - Fix probe config for Quarkus deployments
+- [KOGITO-4521](https://issues.redhat.com/browse/KOGITO-4521) - `process-quarkus-example` does not start correctly on Openshift with `persistence,events` profile
 
 ## Known Issues
