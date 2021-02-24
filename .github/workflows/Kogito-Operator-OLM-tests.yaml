@@ -8,6 +8,7 @@ on:
       - 'deploy/**'
       - 'hack/ci/**'
       - 'pkg/**'
+      - '.github/workflows/Kogito-Operator-OLM-tests.yaml'
 env:
   OP_TEST_CONTAINER_TOOL: docker
   GO_VERSION: 1.14
@@ -47,6 +48,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-mod-
       - run: go mod tidy
+      - name: Install Cekit and dependencies
+        run: |
+          sudo apt install -y libkrb5-dev
+          sudo pip3 install cekit==3.8.0 odcs docker docker-squash
       - name: Build Operator Image
         env:
           BUILDER: docker

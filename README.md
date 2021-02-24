@@ -116,6 +116,8 @@ Before you begin fixing issues or adding new features to the Kogito Operator, re
 - [Go](https://golang.org/) v1.14 is installed.
 - [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
+- [Python 3.x](https://www.python.org/downloads/) v3.x is installed
+- [Cekit](https://cekit.io/) v3.8.0+ is installed
 
 ### Building the Kogito Operator
 
