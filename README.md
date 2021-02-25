@@ -27,6 +27,7 @@ For information about the Kogito Operator architecture and instructions for usin
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
     * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator-using-intellij-idea)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
+  * [Releasing Kogito Operator](#releasing-kogito-operator)
   
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -447,3 +448,12 @@ Running Kogito operator in remote debug on VSCode and GoLand is very similar to 
 ## Guide for Kogito Developers
 
 If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
+
+## Releasing Kogito Operator
+
+When releasing the new version of kogito-operator in [community-operators](https://github.com/operator-framework/community-operators). One can use `make olm-manifests` it would create the manifests in the `build/_output/olm/<version>` directory in format which the community-operators repo expects.
+One can then just copy the directory into the [kogito-operator](https://github.com/operator-framework/community-operators/tree/master/community-operators/kogito-operator) and raise the PR.
+
+Note: One needs to create two separate PRs with this folder added in [upstream-kogito-operator](https://github.com/operator-framework/community-operators/tree/master/upstream-community-operators/kogito-operator) and [community-kogito-operator](https://github.com/operator-framework/community-operators/tree/master/community-operators/kogito-operator) respectively.
+
+Before raising the PR, make sure the `replaces` field in the CSV is correct
