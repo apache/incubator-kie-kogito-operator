@@ -332,4 +332,8 @@ olm-tests:
 	./hack/ci/run-olm-tests.sh
 
 # Run this before any PR to make sure everything is updated, so CI won't fail
-before-pr: generate manifests bundle generate-installer test
+before-pr: vet test
+
+#Run this to create a bundle dir structure in which OLM accepts. The bundle will be available in `build/_output/olm/<current-version>`
+olm-manifests: bundle
+	./hack/create-olm-manifests.sh
