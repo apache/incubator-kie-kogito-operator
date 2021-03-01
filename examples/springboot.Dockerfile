@@ -1,5 +1,6 @@
-FROM quay.io/kiegroup/kogito-springboot-ubi8:latest
+FROM quay.io/kiegroup/kogito-runtime-jvm:latest
 
+ENV RUNTIME_TYPE springboot
 # How to use this image with a simple example:
 # 1. Clone kogito-examples repository
 # 2. Build the process-springboot-example with `mvn clean package -DskipTests=true
