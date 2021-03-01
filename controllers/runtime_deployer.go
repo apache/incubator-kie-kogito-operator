@@ -17,24 +17,27 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/connector"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-cloud-operator/core/manager"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"reflect"
+
+	"io/ioutil"
+	"net/http"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
-	"io/ioutil"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"net/http"
 )
 
 const (
@@ -171,7 +174,7 @@ func (d *runtimeDeployerHandler) getProtobufData(kogitoService api.KogitoService
 		d.Log.Error(err, "failed to parse protobuf file list")
 		return nil
 	}
-	d.Log.Debug("Protobuf List", protobufList)
+	d.Log.Debug("Protobuf List", "files", strings.Join(protobufList, ","))
 
 	var protobufFileBytes []byte
 	data := map[string]string{}
