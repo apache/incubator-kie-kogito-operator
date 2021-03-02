@@ -434,13 +434,13 @@ API server listening at: [::]:2345
 **Create the Go Remote run/debug configuration:**
 
 1. Click `Edit | Run Configurations`. Alternatively, click the list of run/debug configurations on the toolbar and select `Edit Configurations`.  
-![alt text](docsmages/add_configuration.png?raw=true)
+![alt text](./community-kogito-operator/docs/images/add_configuration.png?raw=true)
 2. In the `Run/Debug Configurations` dialog, click the `Add` button (`+`) and select `Go Remote`.
-![alt text](docsmages/add_go_remote_config.png?raw=true)
+![alt text](./community-kogito-operator/docs/images/add_go_remote_config.png?raw=true)
 3. In the Host field, type the host IP address (in our case `localhost`).
 4. In the Port field, type the debugger port that you configured in above `dlv` command (in our case it's `2345`).
 5. Click `OK`.          
-![alt text](docsmages/remote_debug_configurations.png?raw=true)
+![alt text](./community-kogito-operator/docs/images/remote_debug_configurations.png?raw=true)
 6. Put the breakpoint in your code.
 7. From the list of `run/debug configurations` on the toolbar, select the created Go Remote configuration and click the `Debug <configuration_name>` button 
 
