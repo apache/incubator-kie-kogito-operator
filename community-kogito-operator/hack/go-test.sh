@@ -27,3 +27,4 @@ source  ${testdir}/setup-envtest.sh; fetch_envtest_tools  ${testdir}; setup_envt
 go test ./cmd/... -p=1 -count=1 -coverprofile cmd-cover.out; \
 go test ./controllers/... -p=1 -count=1 -coverprofile controllers-cover.out
 go test ./core/... -p=1 -count=1 -coverprofile core-cover.out
+ls -l $(pwd)

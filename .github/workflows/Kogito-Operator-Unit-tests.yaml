@@ -55,21 +55,21 @@ jobs:
       - name: Upload results of cmd to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./cmd-cover.out
+          file: ./community-kogito-operator/cmd-cover.out
           flags: cli
           name: cli-test
           fail_ci_if_error: true
       - name: Upload results of operator to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./core-cover.out
+          file: ./community-kogito-operator/core-cover.out
           flags: operator
           name: operator-test
           fail_ci_if_error: true
       - name: Upload results of operator to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./controllers-cover.out
+          file: ./community-kogito-operator/controllers-cover.out
           flags: controllers
           name: controllers-test
           fail_ci_if_error: true
