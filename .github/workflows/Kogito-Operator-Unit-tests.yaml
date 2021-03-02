@@ -49,27 +49,17 @@ jobs:
       - name: Run unit tests
         run: |
           ./hack/go-test.sh
-      - name: Check current dir
-        run: |
-          echo "current dir" $(pwd)
-      - name: Upload results of cmd to codecov
+      - name: Upload results of cli to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./community-kogito-operator/cmd-cover.out
+          file: ./community-kogito-operator/cli-cover.out
           flags: cli
           name: cli-test
           fail_ci_if_error: true
       - name: Upload results of operator to codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./community-kogito-operator/core-cover.out
+          file: ./community-kogito-operator/operator-cover.out
           flags: operator
           name: operator-test
-          fail_ci_if_error: true
-      - name: Upload results of operator to codecov
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./community-kogito-operator/controllers-cover.out
-          flags: controllers
-          name: controllers-test
           fail_ci_if_error: true
