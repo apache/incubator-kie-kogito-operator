@@ -15,8 +15,8 @@
 package converter
 
 import (
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/community-kogito-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/util"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework"
 	v1 "k8s.io/api/core/v1"
 	"strings"
 )

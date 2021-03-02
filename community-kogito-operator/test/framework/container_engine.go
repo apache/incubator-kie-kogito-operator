@@ -14,7 +14,7 @@
 
 package framework
 
-import "github.com/kiegroup/community-kogito-operator/test/config"
+import "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/config"
 
 // ContainerEngine is the engine providing container and registry functionality
 type ContainerEngine interface {

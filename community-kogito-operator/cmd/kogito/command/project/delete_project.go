@@ -16,9 +16,9 @@ package project
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
 
 	corev1 "k8s.io/api/core/v1"

@@ -15,11 +15,11 @@
 package framework
 
 import (
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/api/v1beta1"
-	"github.com/kiegroup/community-kogito-operator/core/kogitosupportingservice"
-	"github.com/kiegroup/community-kogito-operator/test/config"
-	bddtypes "github.com/kiegroup/community-kogito-operator/test/types"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/kogitosupportingservice"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/config"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/types"
 )
 
 // InstallKogitoExplainabilityService install the Kogito Explainability service

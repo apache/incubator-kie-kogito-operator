@@ -16,8 +16,8 @@ package steps
 
 import (
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/community-kogito-operator/test/framework"
-	"github.com/kiegroup/community-kogito-operator/test/steps/mappers"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/steps/mappers"
 	v1 "k8s.io/api/core/v1"
 )
 

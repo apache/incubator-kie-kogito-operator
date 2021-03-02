@@ -15,11 +15,11 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/core/client"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
-	"github.com/kiegroup/community-kogito-operator/core/test"
-	"github.com/kiegroup/community-kogito-operator/meta"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/meta"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"

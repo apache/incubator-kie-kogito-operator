@@ -16,7 +16,7 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

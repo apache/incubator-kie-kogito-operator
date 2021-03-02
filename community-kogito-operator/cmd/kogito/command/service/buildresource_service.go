@@ -16,10 +16,10 @@ package service
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/iozip"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/iozip"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/message"
 	"io"
 	"net/http"
 	"net/url"

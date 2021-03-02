@@ -16,9 +16,9 @@ package steps
 
 import (
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/community-kogito-operator/test/framework"
-	"github.com/kiegroup/community-kogito-operator/test/steps/mappers"
-	bddtypes "github.com/kiegroup/community-kogito-operator/test/types"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/steps/mappers"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/types"
 )
 
 // RegisterCliSteps register all CLI steps existing

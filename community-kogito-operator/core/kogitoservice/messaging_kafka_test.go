@@ -15,15 +15,15 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/kogitoinfra"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
-	"github.com/kiegroup/community-kogito-operator/core/test"
-	"github.com/kiegroup/community-kogito-operator/internal"
-	"github.com/kiegroup/community-kogito-operator/meta"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/kogitoinfra"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/meta"
 	"testing"
 
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	kafkav1beta1 "github.com/kiegroup/community-kogito-operator/core/infrastructure/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	kafkav1beta1 "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/infrastructure/kafka/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
 )

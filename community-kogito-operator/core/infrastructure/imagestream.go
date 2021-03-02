@@ -16,8 +16,8 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
 	imgv1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -17,7 +17,7 @@ package framework
 import (
 	"os"
 
-	"github.com/kiegroup/community-kogito-operator/test/config"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/config"
 )
 
 // CheckCliBinaryExist checks if the CLI binary does exist

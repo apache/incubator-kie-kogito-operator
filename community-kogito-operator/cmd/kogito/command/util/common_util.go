@@ -16,7 +16,7 @@ package util
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework"
 	"os"
 	"strings"
 )

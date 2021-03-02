@@ -15,11 +15,11 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
-	"github.com/kiegroup/community-kogito-operator/core/test"
-	"github.com/kiegroup/community-kogito-operator/internal"
-	"github.com/kiegroup/community-kogito-operator/meta"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

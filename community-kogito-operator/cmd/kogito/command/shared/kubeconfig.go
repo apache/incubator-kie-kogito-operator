@@ -16,9 +16,9 @@ package shared
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
 	"k8s.io/client-go/tools/clientcmd"
 	"strings"
 )

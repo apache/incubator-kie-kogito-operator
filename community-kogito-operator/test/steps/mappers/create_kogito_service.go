@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/community-kogito-operator/test/types"
-	bddtypes "github.com/kiegroup/community-kogito-operator/test/types"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/types"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/types"
 )
 
 // *** Whenever you add new parsing functionality here please add corresponding DataTable example to every file in steps which can use the functionality ***

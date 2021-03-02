@@ -15,13 +15,13 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
 	"net/http"
 
 	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/community-kogito-operator/core/framework"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

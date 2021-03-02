@@ -16,12 +16,12 @@ package shared
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/api/v1beta1"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/message"
-	kogitocli "github.com/kiegroup/community-kogito-operator/core/client"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/message"
+	kogitocli "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
 )
 
 type serviceInfoMessages struct {

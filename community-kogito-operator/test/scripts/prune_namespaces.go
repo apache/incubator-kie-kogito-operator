@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/kiegroup/community-kogito-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/framework"
 )
 
 func main() {

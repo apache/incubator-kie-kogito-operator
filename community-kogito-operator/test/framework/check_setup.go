@@ -17,7 +17,7 @@ package framework
 import (
 	"fmt"
 
-	"github.com/kiegroup/community-kogito-operator/test/config"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/config"
 )
 
 var verifications = []func() error{

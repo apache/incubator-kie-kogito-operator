@@ -15,9 +15,9 @@
 package record
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/community-kogito-operator/core/test"
-	"github.com/kiegroup/community-kogito-operator/meta"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"testing"

@@ -17,10 +17,10 @@ package kogitoservice
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/api/v1beta1"
-	"github.com/kiegroup/community-kogito-operator/core/manager"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 )

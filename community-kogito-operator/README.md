@@ -1,6 +1,6 @@
 # Kogito Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/community-kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/community-kogito-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-cloud-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-cloud-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-cloud-operator/community-kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-cloud-operator/community-kogito-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-cloud-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-cloud-operator)
 
 The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
 
@@ -44,10 +44,10 @@ You can quickly install the operator in your local cluster by executing the foll
 ```shell script
 NAMESPACE=mynamespace
 VERSION=<current_operator_version>
-kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/community-kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
+kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
 ```
 
-Replace the values above to match your context. The version information you can grab from the [releases page](https://github.com/kiegroup/community-kogito-operator/releases).
+Replace the values above to match your context. The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/releases).
 
 Alternatively, if you cloned this repo just do:
 
@@ -89,7 +89,7 @@ In general, the unit tests that are provided with the Kogito Operator are based 
 
 ### Kogito Operator collaboration and pull requests
 
-Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/kiegroup/community-kogito-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.
+Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.
 
 After you update the source with your new proposed feature or bug fix, open a [pull request (PR)](https://help.github.com/en/articles/about-pull-requests) that meets the following requirements:
 
@@ -102,7 +102,7 @@ After you update the source with your new proposed feature or bug fix, open a [p
 
 After you send your PR, a maintainer will review your code and might ask you to make changes and to [squash your commits](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we can merge.
 
-If you have any questions, contact a Kogito Operator maintainer in the [issues page](https://github.com/kiegroup/community-kogito-operator/issues).
+If you have any questions, contact a Kogito Operator maintainer in the [issues page](https://github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/issues).
 
 ## Kogito Operator development
 

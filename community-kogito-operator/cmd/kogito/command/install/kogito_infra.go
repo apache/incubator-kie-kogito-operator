@@ -16,11 +16,11 @@ package install
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/api/v1beta1"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/converter"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/converter"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -69,7 +69,7 @@ func (i *infraCommand) RegisterHook() {
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
 	Please note that this command requires the Kogito Operator installed in the cluster.
-	For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/community-kogito-operator#kogito-operator-installation.
+	For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator/community-kogito-operator#kogito-operator-installation.
 		`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,

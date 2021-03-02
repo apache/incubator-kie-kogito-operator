@@ -28,7 +28,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appv1beta1 "github.com/kiegroup/community-kogito-operator/api/v1beta1"
+	appv1beta1 "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
 	// +kubebuilder:scaffold:imports
 )
 

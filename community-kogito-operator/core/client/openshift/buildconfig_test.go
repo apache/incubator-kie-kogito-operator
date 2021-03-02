@@ -16,8 +16,8 @@ package openshift
 
 import (
 	"context"
-	"github.com/kiegroup/community-kogito-operator/core/test"
-	"github.com/kiegroup/community-kogito-operator/meta"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

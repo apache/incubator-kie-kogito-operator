@@ -15,8 +15,8 @@
 package types
 
 import (
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
 )
 
 // KogitoServiceHolder Helper structure holding informations which are not available in KogitoService

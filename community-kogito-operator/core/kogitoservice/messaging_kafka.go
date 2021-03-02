@@ -15,9 +15,9 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/core/infrastructure"
-	infra2 "github.com/kiegroup/community-kogito-operator/core/kogitoinfra"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/infrastructure"
+	infra2 "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/kogitoinfra"
 	"k8s.io/apimachinery/pkg/types"
 )
 

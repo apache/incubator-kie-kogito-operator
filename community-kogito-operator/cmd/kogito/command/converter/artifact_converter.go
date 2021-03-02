@@ -15,8 +15,8 @@
 package converter
 
 import (
-	"github.com/kiegroup/community-kogito-operator/api/v1beta1"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/flag"
 )
 
 // FromArtifactFlagsToArtifact converts given ArtifactFlags into Artifact

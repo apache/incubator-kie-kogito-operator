@@ -16,7 +16,7 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/infrastructure"
 
 	"github.com/spf13/cobra"
 )

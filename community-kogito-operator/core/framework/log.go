@@ -15,7 +15,7 @@
 package framework
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/logger"
 )
 
 var log = logger.GetLogger("framework")

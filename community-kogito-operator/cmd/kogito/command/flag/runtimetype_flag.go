@@ -16,8 +16,8 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/core/framework/util"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework/util"
 	"github.com/spf13/cobra"
 )
 

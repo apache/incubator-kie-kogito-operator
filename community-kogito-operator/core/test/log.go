@@ -14,7 +14,7 @@
 
 package test
 
-import "github.com/kiegroup/community-kogito-operator/core/logger"
+import "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/logger"
 
 // TestLogger ...
 var TestLogger = logger.GetLogger("test")

@@ -15,13 +15,13 @@
 package controllers
 
 import (
-	appv1beta1 "github.com/kiegroup/community-kogito-operator/api/v1beta1"
-	"github.com/kiegroup/community-kogito-operator/core/client"
-	"github.com/kiegroup/community-kogito-operator/core/kogitosupportingservice"
-	"github.com/kiegroup/community-kogito-operator/core/logger"
-	"github.com/kiegroup/community-kogito-operator/core/manager"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
-	"github.com/kiegroup/community-kogito-operator/internal"
+	appv1beta1 "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/kogitosupportingservice"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/internal"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"

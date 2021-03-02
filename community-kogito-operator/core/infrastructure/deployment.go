@@ -16,8 +16,8 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

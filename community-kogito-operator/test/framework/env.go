@@ -15,7 +15,7 @@
 package framework
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/framework/util"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework/util"
 )
 
 func getEnvUsername() string {

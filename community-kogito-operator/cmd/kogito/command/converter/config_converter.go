@@ -16,11 +16,11 @@ package converter
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/community-kogito-operator/core/client"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/community-kogito-operator/core/kogitoservice"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/util"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/kogitoservice"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

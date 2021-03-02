@@ -16,15 +16,15 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/infrastructure"
 
-	"github.com/kiegroup/community-kogito-operator/api/v1beta1"
-	"github.com/kiegroup/community-kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/community-kogito-operator/core/framework"
-	"github.com/kiegroup/community-kogito-operator/test/config"
-	"github.com/kiegroup/community-kogito-operator/test/framework/mappers"
-	bddtypes "github.com/kiegroup/community-kogito-operator/test/types"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/config"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/framework/mappers"
+	bddtypes "github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/types"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

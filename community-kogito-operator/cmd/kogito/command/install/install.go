@@ -15,7 +15,7 @@
 package install
 
 import (
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
 	"github.com/spf13/cobra"
 )
 

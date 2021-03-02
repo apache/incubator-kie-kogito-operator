@@ -16,9 +16,9 @@ package project
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/test"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"

@@ -22,7 +22,7 @@ fi
 
 echo "....... Installing Kogito Operator ${VERSION} ......."
 
-declare url="https://github.com/kiegroup/community-kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
+declare url="https://github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
 
 if [ -z "${NAMESPACE}" ]; then
   kubectl apply -f "${url}" -n "${NAMESPACE}"

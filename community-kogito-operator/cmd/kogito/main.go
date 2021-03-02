@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command"
 )
 
 // Main starts the Kogito CLI

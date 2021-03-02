@@ -15,7 +15,7 @@
 package deploy
 
 import (
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/test"
 	"os"
 	"testing"
 )

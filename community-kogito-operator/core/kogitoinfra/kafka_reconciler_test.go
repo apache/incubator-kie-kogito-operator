@@ -15,7 +15,7 @@
 package kogitoinfra
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/infrastructure/kafka/v1beta1"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/infrastructure/kafka/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"

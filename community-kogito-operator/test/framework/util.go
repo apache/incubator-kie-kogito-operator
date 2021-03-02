@@ -16,9 +16,9 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/community-kogito-operator/api"
-	"github.com/kiegroup/community-kogito-operator/core/infrastructure"
-	"github.com/kiegroup/community-kogito-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/test"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -28,8 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kiegroup/community-kogito-operator/core/framework"
-	"github.com/kiegroup/community-kogito-operator/test/config"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/config"
 )
 
 // GenerateNamespaceName generates a namespace name, taking configuration into account (local or not)

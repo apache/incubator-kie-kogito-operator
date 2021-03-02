@@ -15,7 +15,7 @@
 package context
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
 	"github.com/spf13/cobra"
 )
 

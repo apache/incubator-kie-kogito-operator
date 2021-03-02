@@ -1,4 +1,4 @@
-module github.com/vaibhavjainwiz/kogito-cloud-operator/community-kogito-operator
+module github.com/kiegroup/kogito-cloud-operator/community-kogito-operator
 
 require (
 	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482

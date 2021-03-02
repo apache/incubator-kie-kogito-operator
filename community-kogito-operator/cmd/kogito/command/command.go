@@ -15,14 +15,14 @@
 package command
 
 import (
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/completion"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/deploy"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/install"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/project"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/remove"
-	"github.com/kiegroup/community-kogito-operator/core/client"
-	"github.com/kiegroup/community-kogito-operator/meta"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/completion"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/deploy"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/install"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/project"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/remove"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/meta"
 	"github.com/spf13/cobra"
 	"io"
 	"os"

@@ -15,8 +15,8 @@
 package kubernetes
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/client"
-	"github.com/kiegroup/community-kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/logger"
 )
 
 var log = logger.GetLogger("kubernetes_client")

@@ -16,7 +16,7 @@ package context
 
 import (
 	"github.com/go-logr/logr"
-	"github.com/kiegroup/community-kogito-operator/core/framework/util"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/framework/util"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"

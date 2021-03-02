@@ -15,8 +15,8 @@
 package converter
 
 import (
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/community-kogito-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

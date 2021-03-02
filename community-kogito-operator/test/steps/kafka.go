@@ -16,8 +16,8 @@ package steps
 
 import (
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/community-kogito-operator/core/infrastructure"
-	"github.com/kiegroup/community-kogito-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/framework"
 )
 
 func registerKafkaSteps(ctx *godog.ScenarioContext, data *Data) {

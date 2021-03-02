@@ -20,8 +20,8 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/community-kogito-operator/test/config"
-	"github.com/kiegroup/community-kogito-operator/test/framework"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/config"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/test/framework"
 )
 
 func registerOperatorSteps(ctx *godog.ScenarioContext, data *Data) {

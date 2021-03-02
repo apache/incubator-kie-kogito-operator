@@ -1,6 +1,6 @@
-module github.com/kiegroup/product-kogito-operator
+module github.com/kiegroup/kogito-cloud-operator/product-kogito-operator
 
-go 1.13
+go 1.14
 
 require (
 	github.com/go-logr/logr v0.1.0
@@ -9,4 +9,5 @@ require (
 	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v0.18.6
 	sigs.k8s.io/controller-runtime v0.6.3
+	github.com/kiegroup/kogito-cloud-operator/community-kogito-operator v0.0.3
 )

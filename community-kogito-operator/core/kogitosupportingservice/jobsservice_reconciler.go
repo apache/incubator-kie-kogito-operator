@@ -15,8 +15,8 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/community-kogito-operator/core/connector"
-	"github.com/kiegroup/community-kogito-operator/core/kogitoservice"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/connector"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/kogitoservice"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"

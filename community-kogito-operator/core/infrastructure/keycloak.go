@@ -16,7 +16,7 @@ package infrastructure
 
 import (
 	"github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
-	"github.com/kiegroup/community-kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/operator"
 )
 
 const (
