@@ -2,12 +2,12 @@ name: Kogito Operator OLM Checks
 on:
   pull_request:
     paths:
-      - 'api/**'
-      - 'cmd/**'
-      - 'controllers/**'
-      - 'deploy/**'
-      - 'hack/ci/**'
-      - 'pkg/**'
+      - 'community-kogito-operator/api/**'
+      - 'community-kogito-operator/cmd/**'
+      - 'community-kogito-operator/controllers/**'
+      - 'community-kogito-operator/deploy/**'
+      - 'community-kogito-operator/hack/ci/**'
+      - 'community-kogito-operator/pkg/**'
 env:
   OP_TEST_CONTAINER_TOOL: docker
   GO_VERSION: 1.14
@@ -17,6 +17,8 @@ jobs:
   olm_integration:
     name: OLM Integration Test
     runs-on: ubuntu-latest
+    env:
+      working-directory: ./community-kogito-operator
     steps:
       - name: Check out code
         uses: actions/checkout@v2

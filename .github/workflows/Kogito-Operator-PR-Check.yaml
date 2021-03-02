@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOLANG_LINT_VERSION: v1.27.0
+      working-directory: ./community-kogito-operator
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2

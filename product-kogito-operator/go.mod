@@ -3,12 +3,23 @@ module github.com/kiegroup/kogito-cloud-operator/product-kogito-operator
 go 1.14
 
 require (
+	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
+	github.com/coreos/prometheus-operator v0.40.0
 	github.com/go-logr/logr v0.1.0
+	github.com/integr8ly/grafana-operator/v3 v3.4.0
+	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/kiegroup/kogito-cloud-operator/community-kogito-operator v0.0.3
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
+	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
+	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20200321030439-57b580e57e88
+	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
+	github.com/stretchr/testify v1.6.1
+	k8s.io/api v0.18.8
+	k8s.io/apiextensions-apiserver v0.18.6
 	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v12.0.0+incompatible
+	knative.dev/eventing v0.18.0
 	sigs.k8s.io/controller-runtime v0.6.3
 
 )
@@ -48,4 +59,4 @@ replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+inc
 // Required by Helm
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
 
-replace github.com/kiegroup/kogito-cloud-operator/community-kogito-operator v0.0.3 => /home/vaibhavjain/RedHatRepo/kogito-cloud-operator/community-kogito-operator
+replace github.com/kiegroup/kogito-cloud-operator/community-kogito-operator v0.0.3 => ../community-kogito-operator

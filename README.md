@@ -447,7 +447,7 @@ API server listening at: [::]:2345
 Running Kogito operator in remote debug on VSCode and GoLand is very similar to above procedure. Please follow these article to the setup remote debugger on [VSCode](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-using-vscode-130k) and [GoLand](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-in-goland-kl6)
 ## Guide for Kogito Developers
 
-If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
+If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](community-kogito-operator/docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
 
 ## Releasing Kogito Operator
 

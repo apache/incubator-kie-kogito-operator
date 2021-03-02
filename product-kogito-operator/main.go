@@ -18,30 +18,27 @@ package main
 
 import (
 	"flag"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/community-kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/product-kogito-operator/meta"
+	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appv1 "github.com/kiegroup/kogito-cloud-operator/product-kogito-operator/api/v1"
 	"github.com/kiegroup/kogito-cloud-operator/product-kogito-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme   *runtime.Scheme
+	setupLog = logger.GetLogger("setup")
 )
 
 func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	utilruntime.Must(appv1.AddToScheme(scheme))
-	// +kubebuilder:scaffold:scheme
+	scheme = meta.GetRegisteredSchema()
 }
 
 func main() {
@@ -54,27 +51,31 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
-
+	watchNamespace := getWatchNamespace()
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "c0867edb.kiegroup.org",
+		LeaderElectionID:   "4662f1d5.kiegroup.org",
+		Namespace:          watchNamespace,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
+	kubeCli := client.NewForController(mgr)
+
 	if err = (&controllers.KogitoRuntimeReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("KogitoRuntime"),
+		Client: kubeCli,
+		Log:    logger.GetLogger("kogitoruntime_controllers"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
 		os.Exit(1)
 	}
+
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
@@ -82,4 +83,22 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+// getWatchNamespace returns the Namespace the operator should be watching for changes
+func getWatchNamespace() string {
+	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+	// which specifies the Namespace to watch.
+	// An empty value means the operator is running with cluster scope.
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+
+	ns, _ := os.LookupEnv(watchNamespaceEnvVar)
+
+	// Check if operator is running as cluster scoped
+	if len(ns) == 0 {
+		setupLog.Info(
+			"The operator is running as cluster scoped. It will watch and manage resources in all namespaces",
+			"Env Var lookup", watchNamespaceEnvVar)
+	}
+	return ns
 }
