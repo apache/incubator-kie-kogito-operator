@@ -13,12 +13,13 @@ env:
   GO_VERSION: 1.14
   OP_TEST_DEBUG: 1
   OP_TEST_CONTAINER_OPT: "-t"
+defaults:
+  run:
+    working-directory: ./community-kogito-operator
 jobs:
   olm_integration:
     name: OLM Integration Test
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./community-kogito-operator
     steps:
       - name: Check out code
         uses: actions/checkout@v2
