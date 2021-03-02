@@ -2,11 +2,11 @@ name: Kogito Operator Unit Tests
 on:
   pull_request:
     paths:
-      - 'api/**.go'
-      - 'controllers/**.go'
-      - 'internal/**.go'
-      - 'core/**.go'
-      - 'cmd/**.go'
+      - 'community-kogito-operator/api/**.go'
+      - 'community-kogito-operator/controllers/**.go'
+      - 'community-kogito-operator/internal/**.go'
+      - 'community-kogito-operator/core/**.go'
+      - 'community-kogito-operator/cmd/**.go'
 env:
   GO_VERSION: 1.14
 defaults:
@@ -49,6 +49,9 @@ jobs:
       - name: Run unit tests
         run: |
           ./hack/go-test.sh
+      - name: Check current dir
+        run: |
+          echo "current dir" $(pwd)
       - name: Upload results of cmd to codecov
         uses: codecov/codecov-action@v1
         with:
