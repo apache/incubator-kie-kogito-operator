@@ -44,7 +44,7 @@ const (
 )
 
 var (
-	dashboardNameRegex = regexp.MustCompile("[^a-zA-Z0-9]+")
+	dashboardNameRegex = regexp.MustCompile("[^a-zA-Z0-9-_]+")
 )
 
 func fetchGrafanaDashboards(cli *client.Client, instance v1beta1.KogitoService) ([]GrafanaDashboard, error) {

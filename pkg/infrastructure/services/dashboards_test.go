@@ -87,7 +87,7 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 
 	dashboards := []GrafanaDashboard{
 		{
-			Name:             "my dashboard* .json",
+			Name:             "my dash-board* .json",
 			RawJSONDashboard: "[]",
 		},
 		{
@@ -101,7 +101,7 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 
 	dashboard := &grafanav1.GrafanaDashboard{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "mydashboard",
+			Name:      "mydash-board",
 			Namespace: t.Name(),
 		},
 	}
