@@ -15,12 +15,12 @@
 package controllers
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/meta"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/framework"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/test"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/framework"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -42,15 +42,15 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 				Replicas:      &replicas,
 				ServiceLabels: map[string]string{"process": "example-quarkus"},
 				Infra: []string{
-					kogitoKafka.Name,
-					kogitoInfinispan.Name,
+					kogitoKafka.GetName(),
+					kogitoInfinispan.GetName(),
 				},
 			},
 		},
 	}
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
-	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogito runtime reconciler")}
+	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
 
 	// first reconciliation
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
@@ -93,7 +93,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
 		Spec: v1beta1.KogitoRuntimeSpec{
-			Runtime: v1beta1.SpringBootRuntimeType,
+			Runtime: api.SpringBootRuntimeType,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Image:    "quay.io/custom/process-springboot-example-default:latest",
@@ -102,7 +102,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogito runtime reconciler")}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
@@ -129,7 +129,7 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
 		Spec: v1beta1.KogitoRuntimeSpec{
-			Runtime: v1beta1.SpringBootRuntimeType,
+			Runtime: api.SpringBootRuntimeType,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:            &replicas,
 				PropertiesConfigMap: "mysuper-cm",
@@ -138,9 +138,9 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm).Build()
 	// we take the ownership of the custom cm
-	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogito runtime reconciler")}, instance)
+	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 	// we requeue..
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: logger.GetLogger("kogito runtime reconciler")}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 	_, err := kubernetes.ResourceC(cli).Fetch(cm)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cm.OwnerReferences)

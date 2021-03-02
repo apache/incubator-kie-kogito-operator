@@ -18,38 +18,27 @@ package main
 
 import (
 	"flag"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/logger"
-	buildv1 "github.com/openshift/api/build/v1"
-	imagev1 "github.com/openshift/api/image/v1"
-	routev1 "github.com/openshift/api/route/v1"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
+	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appv1beta1 "github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme   *runtime.Scheme
+	setupLog = logger.GetLogger("setup")
 )
 
 func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	utilruntime.Must(appv1beta1.AddToScheme(scheme))
-	utilruntime.Must(routev1.Install(scheme))
-	utilruntime.Must(imagev1.Install(scheme))
-	utilruntime.Must(buildv1.Install(scheme))
-	// +kubebuilder:scaffold:scheme
+	scheme = meta.GetRegisteredSchema()
 }
 
 func main() {
@@ -76,8 +65,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	kubeCli := client.NewForController(mgr)
+
 	if err = (&controllers.KogitoRuntimeReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoruntime_controllers"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -85,7 +76,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.KogitoSupportingServiceReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoSupportingService-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -93,7 +84,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.KogitoBuildReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoBuild-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -101,7 +92,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.KogitoInfraReconciler{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoInfra-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -109,7 +100,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.FinalizeKogitoSupportingService{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoSupportingService-finalizer"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -117,7 +108,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.FinalizeKogitoRuntime{
-		Client: client.NewForController(mgr.GetConfig()),
+		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoRuntime-finalizer"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
@@ -140,12 +131,13 @@ func getWatchNamespace() string {
 	// An empty value means the operator is running with cluster scope.
 	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
 
-	ns, found := os.LookupEnv(watchNamespaceEnvVar)
-	if !found {
-		setupLog.Info("unable to get WatchNamespace, "+
-			"the manager will watch and manage resources in all namespaces",
+	ns, _ := os.LookupEnv(watchNamespaceEnvVar)
+
+	// Check if operator is running as cluster scoped
+	if len(ns) == 0 {
+		setupLog.Info(
+			"The operator is running as cluster scoped. It will watch and manage resources in all namespaces",
 			"Env Var lookup", watchNamespaceEnvVar)
-		return ""
 	}
 	return ns
 }

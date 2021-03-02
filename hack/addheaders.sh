@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-which addlicense > /dev/null || go get -u github.com/google/addlicense
 
-addlicense -c "Red Hat, Inc. and/or its affiliates" -l=apache cmd hack pkg api controllers
+command -v  addlicense > /dev/null || go get -modfile=go.tools.mod -u github.com/google/addlicense
+
+addlicense -c "Red Hat, Inc. and/or its affiliates" -l=apache cmd hack api controllers core internal meta version

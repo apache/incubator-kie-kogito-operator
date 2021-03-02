@@ -106,7 +106,7 @@ func TestNewProject_WhenTheresNoNamedFlag(t *testing.T) {
 func TestNewProject_WhenTheresNoName(t *testing.T) {
 	cli := "new-project"
 	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
-	lines, _, err := test.ExecuteCli()
+	_, errLines, err := test.ExecuteCli()
 	assert.Error(t, err)
-	assert.Contains(t, lines, "Please set a project for new-project")
+	assert.Contains(t, errLines, "Please set a project for new-project")
 }

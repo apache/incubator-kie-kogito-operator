@@ -27,6 +27,7 @@ For information about the Kogito Operator architecture and instructions for usin
     * [Running the Kogito Operator locally](#running-the-kogito-operator-locally)
     * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator-using-intellij-idea)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
+  * [Releasing Kogito Operator](#releasing-kogito-operator)
   
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -43,7 +44,7 @@ You can quickly install the operator in your local cluster by executing the foll
 ```shell script
 NAMESPACE=mynamespace
 VERSION=<current_operator_version>
-kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-cloud-operator/releases/download/${VERSION}kogito-operator.yaml"
+kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-cloud-operator/releases/download/${VERSION}/kogito-operator.yaml"
 ```
 
 Replace the values above to match your context. The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-cloud-operator/releases).
@@ -84,7 +85,7 @@ For adding the `golangci-lint` with VScode, install the [Go Plugin](https://mark
 
 For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://sdk.operatorframework.io/docs/golang/legacy/unit-testing/).
 
-In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitobuild_controller_test.go`](../master/pkg/controller/kogitobuild/kogitobuild_controller_test.go) test file.
+In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitobuild_controller_test.go`](../master/controllers/kogitobuild_controller_test.go) test file.
 
 ### Kogito Operator collaboration and pull requests
 
@@ -128,75 +129,64 @@ The output of this command is a ready-to-use Kogito Operator image that you can 
 
 ### Deploying to OpenShift 4.x for development purposes
 
-To install the Kogito Operator on OpenShift 4.x for end-to-end (E2E) testing, ensure that you have access to a `quay.io`
-account to create an application repository.
+Prerequisites:
+
+1. Ensure that you [built the Kogito operator](#building-the-kogito-operator) first and pushed it to a registry reachable from the OpenShift cluster.
+
+2. [Operator registry tool](https://github.com/operator-framework/operator-registry) is installed in your system and available as `opm` command
+
 
 Follow the steps below:
 
-1. Run `make prepare-olm version=2.0.0-snapshot`. Bear in mind that if there're different versions
-in the `deploy/olm-catalog/kogito-operator/kogito-operator.package.yaml` file, every CSV must
-be included in the output folder. At this time, the script did not copy previous CSV versions to the
-output folder, so it must be copied manually.
+1. Make sure that you defined environment variable `BUNDLE_IMG`. This variable will be used as an image tag used to store bundle image (containing all the operator metadata).
 
-2. Grab [Quay credentials](https://github.com/operator-framework/operator-courier/#authentication) with:
+2. Make sure that you defined environment variable `CATALOG_IMG`. This variable will be used as an image tag used to store custom catalog image (containing reference to the custom bundle image).
 
-```
-$ export QUAY_USERNAME=youruser
-$ export QUAY_PASSWORD=yourpass
+3. Make sure that you defined environment variable `IMAGE` pointing to the custom Kogito operator image tag which you built.
 
-$ AUTH_TOKEN=$(curl -sH "Content-Type: application/json" -XPOST https://quay.io/cnr/api/v1/users/login -d '
-{
-    "user": {
-        "username": "'"${QUAY_USERNAME}"'",
-        "password": "'"${QUAY_PASSWORD}"'"
-    }
-}' | jq -r '.token')
+4. Make sure that you defined environment variable `BUILDER` defining container runtime engine used to build and push images. Default value is `podman`.
+
+5. Update the bundle metadata to point to the custom Kogito operator image by running this command:
+```bash
+$ make update-bundle
 ```
 
-3. Set courier variables:
-
-```
-$ export OPERATOR_DIR=build/_output/operatorhub/
-$ export QUAY_NAMESPACE=kiegroup # should be different in your environment
-$ export PACKAGE_NAME=kogito-operator
-$ export PACKAGE_VERSION=2.0.0-snapshot
-$ export TOKEN=$AUTH_TOKEN
+6. Build the bundle image by running this command:
+```bash
+$ make bundle-build
 ```
 
-If you push to another quay repository, replace `QUAY_NAMESPACE` with your user name or the other namespace.
-The push command does not overwrite an existing repository, so you must delete the bundle before you can
-build and upload a new version. After you upload the bundle, create an
-[Operator Source](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#linking-the-quay-application-repository-to-your-openshift-40-cluster)
-to load your operator bundle in OpenShift.
-
-4. Run `operator-courier` to publish the operator application to Quay:
-
-```
-operator-courier push "$OPERATOR_DIR" "$QUAY_NAMESPACE" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$TOKEN"
+7. Push the built bundle image by running this command:
+```bash
+$ make bundle-push
 ```
 
-5. Check if the application was pushed successfully in Quay.io. The OpenShift cluster needs access to the created application.
-Ensure that the application is **public** or that you have configured the private repository credentials in the cluster.
-To make the application public, go to your `quay.io` account, and in the **Applications** tab look for the `kogito-operator`
-application. Under the settings section, click **make public**.
-
-6. Publish the operator source to your OpenShift cluster:
-
-```
-$ oc create -f deploy/olm-catalog/kogito-operator/kogito-operator-operatorsource.yaml
+8. Build the catalog image by running this command:
+```bash
+$ make catalog-build
 ```
 
-Replace `registryNamespace` in the `kogito-operator-operatorsource.yaml` file with your quay namespace.
-The name, display name, and publisher of the Operator are the only other attributes that you can modify.
+9. Push the built catalog image by running this command:
+```bash
+$ make catalog-push
+```
+
+10. Define pushed catalog image as a catalog source for your OpenShift cluster by running this command:
+```bash
+$ cat << EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: custom-kogito-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: ${CATALOG_IMG}
+EOF
+```
 
 After several minutes, the Operator appears under **Catalog** -> **OperatorHub** in the OpenShift Web Console.
-To find the Operator, filter the provider type by _Custom_.
-
-To verify the operator status, run the following command:
-
-```bash
-$ oc describe operatorsource.operators.coreos.com/kogito-operator -n openshift-marketplace
-```
+To find the Operator, filter the provider type by _custom-kogito-catalog_.
 
 ### Running BDD Tests
 
@@ -251,6 +241,11 @@ You can set those optional keys:
   *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
 - `operator_tag` is the Operator image tag.  
   *Default is the current version*.
+- `operator_namespaced` Set true if you want to run operator namespace scoped.
+  *Default is false*.
+- `operator_installation_source` Defines what source is used to install Kogito operator. Available options are `olm` and `yaml`.
+  *Default is yaml*.
+- `operator_catalog_image` Specifies catalog image containing Kogito operator bundle. Needs to be specified when `operator_installation_source` is set to `olm`.
 <!--- files/binaries -->
 - `deploy_uri` set operator *deploy* folder.  
   *Default is ./deploy*.
@@ -386,6 +381,7 @@ All options from BDD tests do also apply here.
 | @infinispan        | Tests using the infinispan operator                                                |
 | @kafka             | Tests using the kafka operator                                                     |
 | @keycloak          | Tests using the keycloak operator                                                  |
+| @knative           | Tests using the Knative functionality                                              |
 
 ### Running the Kogito Operator locally
 
@@ -452,3 +448,12 @@ Running Kogito operator in remote debug on VSCode and GoLand is very similar to 
 ## Guide for Kogito Developers
 
 If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
+
+## Releasing Kogito Operator
+
+When releasing the new version of kogito-operator in [community-operators](https://github.com/operator-framework/community-operators). One can use `make olm-manifests` it would create the manifests in the `build/_output/olm/<version>` directory in format which the community-operators repo expects.
+One can then just copy the directory into the [kogito-operator](https://github.com/operator-framework/community-operators/tree/master/community-operators/kogito-operator) and raise the PR.
+
+Note: One needs to create two separate PRs with this folder added in [upstream-kogito-operator](https://github.com/operator-framework/community-operators/tree/master/upstream-community-operators/kogito-operator) and [community-kogito-operator](https://github.com/operator-framework/community-operators/tree/master/community-operators/kogito-operator) respectively.
+
+Before raising the PR, make sure the `replaces` field in the CSV is correct

@@ -15,6 +15,7 @@
 package service
 
 import (
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/converter"
@@ -22,9 +23,13 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/infrastructure"
+	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/logger"
+	"github.com/kiegroup/kogito-cloud-operator/core/manager"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -103,14 +108,21 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 
 func printMgmtConsoleInfo(client *client.Client, project string) error {
 	log := context.GetDefaultLogger()
-	endpoint, err := infrastructure.GetManagementConsoleEndpoint(client, project)
+	context := &operator.Context{
+		Client: client,
+		Log:    logger.GetLogger("deploy_runtime"),
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
+	supportingServiceManager := manager.NewKogitoSupportingServiceManager(context, supportingServiceHandler)
+	route, err := supportingServiceManager.FetchKogitoSupportingServiceRoute(project, api.MgmtConsole)
 	if err != nil {
 		return err
 	}
-	if endpoint == nil {
+	if len(route) == 0 {
 		log.Info(message.RuntimeServiceMgmtConsole)
 	} else {
-		log.Infof(message.RuntimeServiceMgmtConsoleEndpoint, endpoint.HTTPRouteURI)
+		log.Infof(message.RuntimeServiceMgmtConsoleEndpoint, route)
 	}
 	return nil
 }

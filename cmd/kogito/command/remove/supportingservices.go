@@ -16,11 +16,11 @@ package remove
 
 import (
 	"fmt"
-
+	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/pkg/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +30,7 @@ type removeSupportingServiceFlags struct {
 
 type removableSupportingService struct {
 	cmdName     string
-	serviceType v1beta1.ServiceType
+	serviceType api.ServiceType
 	aliases     []string
 }
 
@@ -45,32 +45,32 @@ type removeSupportingServiceCommand struct {
 var removableSupportingServices = []removableSupportingService{
 	{
 		cmdName:     "data-index",
-		serviceType: v1beta1.DataIndex,
+		serviceType: api.DataIndex,
 	},
 	{
 		cmdName:     "explainability",
-		serviceType: v1beta1.Explainability,
+		serviceType: api.Explainability,
 	},
 	{
 		cmdName:     "jobs-service",
-		serviceType: v1beta1.JobsService,
+		serviceType: api.JobsService,
 	},
 	{
 		cmdName:     "mgmt-console",
-		serviceType: v1beta1.MgmtConsole,
+		serviceType: api.MgmtConsole,
 		aliases:     []string{"management-console"},
 	},
 	{
 		cmdName:     "task-console",
-		serviceType: v1beta1.TaskConsole,
+		serviceType: api.TaskConsole,
 	},
 	{
 		cmdName:     "trusty",
-		serviceType: v1beta1.TrustyAI,
+		serviceType: api.TrustyAI,
 	},
 	{
 		cmdName:     "trusty-ui",
-		serviceType: v1beta1.TrustyUI,
+		serviceType: api.TrustyUI,
 	},
 }
 

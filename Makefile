@@ -2,19 +2,19 @@
 VERSION ?= 2.0.0-snapshot
 # Default bundle image tag
 BUNDLE_IMG ?= quay.io/kiegroup/kogito-cloud-operator-bundle:$(VERSION)
+# Default catalog image tag
+CATALOG_IMG ?= quay.io/kiegroup/kogito-cloud-operator-catalog:$(VERSION)
 # Options for 'bundle-build'
-ifneq ($(origin CHANNELS), undefined)
+CHANNELS=alpha,1.x
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
-endif
-ifneq ($(origin DEFAULT_CHANNEL), undefined)
+DEFAULT_CHANNEL=1.x
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
-endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Image URL to use all building/pushing image targets
 IMG ?= quay.io/kiegroup/kogito-cloud-operator:$(VERSION)
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+# Produce CRDs with v1 extension which is required by kubernetes v1.22+, The CRDs will stop working in kubernets <= v1.15
+CRD_OPTIONS ?= "crd:crdVersions=v1"
 
 # Image tag to build the image with
 IMAGE ?= $(IMG)
@@ -59,7 +59,7 @@ deploy: manifests kustomize
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./api/v1beta1" output:crd:artifacts:config=config/crd/bases
 
 # Run go fmt against code
 fmt:
@@ -133,6 +133,21 @@ bundle: manifests kustomize
 bundle-build:
 	$(BUILDER) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
+# Push the bundle image.
+.PHONY: bundle-push
+bundle-push:
+	$(BUILDER) push ${BUNDLE_IMG}
+
+# Build the catalog image.
+.PHONY: catalog-build
+catalog-build:
+	opm index add -c ${BUILDER} --bundles ${BUNDLE_IMG}  --tag ${CATALOG_IMG}
+
+# Push the catalog image.
+.PHONY: catalog-push
+catalog-push:
+	$(BUILDER) push ${CATALOG_IMG}
+
 generate-installer: generate manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/default > kogito-operator.yaml
@@ -178,6 +193,8 @@ olm_namespace=
 operator_image=
 operator_tag=
 operator_namespaced=false
+operator_installation_source=
+operator_catalog_image=
 # files/binaries
 operator_yaml_uri=
 cli_path=
@@ -279,6 +296,8 @@ run-tests:
 		--image_cache_mode ${image_cache_mode} \
 		--http_retry_nb ${http_retry_nb} \
 		--olm_namespace ${olm_namespace} \
+		--operator_installation_source ${operator_installation_source} \
+		--operator_catalog_image ${operator_catalog_image} \
 		$${opts_str}
 
 .PHONY: run-smoke-tests
@@ -293,6 +312,11 @@ run-performance-tests:
 build-examples-images:
 	make run-tests feature=scripts/examples cr_deployment_only=true
 
+# Update bundle manifest files for test purposes, will override default image tag and remove the replaces field
+.PHONY: update-bundle
+update-bundle:
+	./hack/update-bundle.sh ${IMAGE}
+
 .PHONY: bump-version
 new_version = ""
 bump-version:
@@ -303,3 +327,13 @@ bump-version:
 image ?= $2
 deploy-operator-on-ocp:
 	./hack/deploy-operator-on-ocp.sh $(image)
+
+olm-tests:
+	./hack/ci/run-olm-tests.sh
+
+# Run this before any PR to make sure everything is updated, so CI won't fail
+before-pr: vet test
+
+#Run this to create a bundle dir structure in which OLM accepts. The bundle will be available in `build/_output/olm/<current-version>`
+olm-manifests: bundle
+	./hack/create-olm-manifests.sh

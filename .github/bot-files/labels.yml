@@ -9,7 +9,10 @@ labels:
     labels:
       - 'cli 💻'
   - paths:
-      - pkg/**
+      - api/**
+      - controllers/**
+      - internal/**
+      - core/**
     labels:
       - 'operator :cloud:'
   - paths:

@@ -9,13 +9,12 @@ pipeline {
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 90, unit: 'MINUTES')
-        disableConcurrentBuilds()
     }
     environment {
         OPENSHIFT_INTERNAL_REGISTRY = "image-registry.openshift-image-registry.svc:5000"
 
         // Use buildah container engine in this pipeline
-        CONTAINER_ENGINE="buildah"
+        CONTAINER_ENGINE="podman"
     }
     stages {
         stage('Initialize') {
@@ -51,38 +50,46 @@ pipeline {
             steps {
                 sh """
                     set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
-                    cd pkg/version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
+                    cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
                     ${CONTAINER_ENGINE} tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                    ${CONTAINER_ENGINE} push --tls-verify=false docker://${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                 """
             }
         }
-        stage("Build examples' images for testing"){
-            steps {
-                // Do not build native images for the PR checks
-                // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
+
+        stage('Run BDD tests') {
+            options {
+                lock("BDD tests ${OPENSHIFT_API}")
             }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+            stages {
+                stage("Build examples' images for testing"){
+                    steps {
+                        // Do not build native images for the PR checks
+                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                        sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                        }
+                    }
                 }
-            }
-        }
-        stage('Running smoke tests') {
-            steps {
-                // Run just smoke tests to verify basic operator functionality
-                sh """
-                    make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
-                """
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                    archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                    sh "cd test && go run scripts/prune_namespaces.go"
+                stage('Running smoke tests') {
+                    steps {
+                        // Run just smoke tests to verify basic operator functionality
+                        sh """
+                            make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
+                        """
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                            sh "cd test && go run scripts/prune_namespaces.go"
+                        }
+                    }
                 }
             }
         }
@@ -100,6 +107,7 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     testParamsMap["load_default_config"] = true
     testParamsMap["ci"] = "jenkins"
     testParamsMap["load_factor"] = 3
+    testParamsMap['disable_maven_native_build_container'] = true
 
     testParamsMap["operator_image"] = "${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator"
     testParamsMap["operator_tag"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"

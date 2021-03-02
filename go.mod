@@ -4,14 +4,14 @@ require (
 	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
 	github.com/coreos/prometheus-operator v0.40.0
 	github.com/cucumber/gherkin-go/v11 v11.0.0
-	github.com/cucumber/godog v0.10.0
+	github.com/cucumber/godog v0.11.0
 	github.com/cucumber/messages-go/v10 v10.0.3
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1
 	github.com/go-openapi/spec v0.19.7
 	github.com/google/uuid v1.1.1
 	github.com/imdario/mergo v0.3.9
-	github.com/infinispan/infinispan-operator v0.0.0-20200803092941-2b0528367f08
+	github.com/infinispan/infinispan-operator v0.0.0-20210106103300-03aa6d76d1b2
 	github.com/integr8ly/grafana-operator/v3 v3.4.0
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/machinebox/graphql v0.2.2
@@ -23,13 +23,16 @@ require (
 	github.com/openshift/client-go v0.0.0-20200116152001-92a2713fa240
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20200321030439-57b580e57e88
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
-	github.com/spf13/cobra v1.0.0
+	github.com/sirupsen/logrus v1.7.0 // indirect
+	github.com/spf13/cobra v1.1.1
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 	golang.org/x/tools v0.0.0-20200916195026-c9a70fc28ce3 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.18.8
 	k8s.io/apiextensions-apiserver v0.18.6
 	k8s.io/apimachinery v0.18.8
