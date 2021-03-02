@@ -1,15 +1,15 @@
 # bin
-bin/*
+*/bin/*
 
 # Temporary Build Files
-build/_output/
-build/_test/
-target/
+*/build/_output/
+*/build/_test/
+*/target/
 *-packr.go
 *.tar.gz
 
 # Log Files
-community-kogito-operator/test/logs
+*/test/logs
 
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 ### Emacs ###
@@ -99,4 +99,4 @@ tags
 !vendor/**
 
 # testbin
-testbin/**
+*/testbin/**
