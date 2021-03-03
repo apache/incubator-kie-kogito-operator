@@ -28,6 +28,7 @@ pipeline {
                         usermod --add-subuids 10000-75535 \$(whoami)
                         usermod --add-subgids 10000-75535 \$(whoami)
                     """
+                    sh "cd community-kogito-operator"
                }
             }
         }
