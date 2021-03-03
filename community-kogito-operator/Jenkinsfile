@@ -28,33 +28,40 @@ pipeline {
                         usermod --add-subuids 10000-75535 \$(whoami)
                         usermod --add-subgids 10000-75535 \$(whoami)
                     """
-                    sh "cd community-kogito-operator"
                }
             }
         }
         stage('Test Kogito Operator & CLI') {
             steps {
-                sh 'make test'
+                dir('community-kogito-operator'){
+                    sh 'make test'
+                }
             }
         }
         stage('Build Kogito Operator') {
             steps {
-                sh "make BUILDER=${CONTAINER_ENGINE}"
+                dir('community-kogito-operator'){
+                   sh "make BUILDER=${CONTAINER_ENGINE}"
+                }
             }
         }
         stage('Build Kogito CLI') {
             steps {
-                sh 'make build-cli'
+                dir('community-kogito-operator'){
+                    sh 'make build-cli'
+                }
             }
         }
         stage('Push Operator Image to Openshift Registry') {
             steps {
-                sh """
-                    set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
-                    cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
-                    ${CONTAINER_ENGINE} tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                    ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                """
+                dir('community-kogito-operator'){
+                    sh """
+                        set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
+                        cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
+                        ${CONTAINER_ENGINE} tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                        ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    """
+                }
             }
         }
 
@@ -65,30 +72,36 @@ pipeline {
             stages {
                 stage("Build examples' images for testing"){
                     steps {
-                        // Do not build native images for the PR checks
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
+                        dir('community-kogito-operator'){
+                            // Do not build native images for the PR checks
+                            // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                            sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
+                        }
                     }
                     post {
                         always {
-                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                            archiveArtifacts artifacts: 'community-kogito-operator/test/logs/*/error */*.log', allowEmptyArchive: true
+                            junit testResults: 'community-kogito-operator/test/logs/**/junit.xml', allowEmptyResults: true
                         }
                     }
                 }
                 stage('Running smoke tests') {
                     steps {
                         // Run just smoke tests to verify basic operator functionality
-                        sh """
-                            make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
-                        """
+                        dir('community-kogito-operator'){
+                            sh """
+                                make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
+                            """
+                        }
                     }
                     post {
                         always {
-                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                            archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                            sh "cd test && go run scripts/prune_namespaces.go"
+                            archiveArtifacts artifacts: 'community-kogito-operator/test/logs/*/error */*.log', allowEmptyArchive: true
+                            archiveArtifacts artifacts: 'community-kogito-operator/test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
+                            junit testResults: 'community-kogito-operator/test/logs/**/junit.xml', allowEmptyResults: true
+                            dir('community-kogito-operator'){
+                                sh "cd test && go run scripts/prune_namespaces.go"
+                            }
                         }
                     }
                 }
