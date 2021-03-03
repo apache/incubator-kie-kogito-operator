@@ -1,12 +1,8 @@
 name: Kogito Operator PR Checks
 on:
   pull_request:
-    paths-ignore:
-      - "README.md"
-      - "RELEASE_NOTES.md"
-      - "examples/**"
-      - "LICENSE"
-      - "Makefile"
+    paths:
+      - 'community-kogito-operator/**'
 env:
   OPERATOR_SDK_VERSION: v1.2.0
   GO_VERSION: 1.14

@@ -74,7 +74,7 @@ void setupPrJob(String jobFolder) {
 }
 
 void setupDeployJob(String jobFolder, KogitoJobType jobType) {
-    def jobParams = getJobParams('kogito-operator-deploy', jobFolder, 'Jenkinsfile.deploy', 'Kogito Cloud Operator Deploy')
+    def jobParams = getJobParams('kogito-operator-deploy', jobFolder, 'community-kogito-operator/Jenkinsfile.deploy', 'Kogito Cloud Operator Deploy')
     if (jobType == KogitoJobType.PR) {
         jobParams.git.branch = '${GIT_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
@@ -146,7 +146,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
 }
 
 void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
-    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-operator-promote', jobFolder, 'Jenkinsfile.promote', 'Kogito Cloud Operator Promote')).with {
+    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-operator-promote', jobFolder, 'community-kogito-operator/Jenkinsfile.promote', 'Kogito Cloud Operator Promote')).with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
