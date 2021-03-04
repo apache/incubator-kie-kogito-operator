@@ -14,8 +14,6 @@ jobs:
   golint:
     name: Lint
     runs-on: ubuntu-latest
-    env:
-      GOLANG_LINT_VERSION: v1.27.0
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -59,10 +57,6 @@ jobs:
           ./hack/go-fmt.sh
           changed_files=$(git status -s | grep -v 'go.mod\|go.sum\|kogito-operator.yaml\|go.tools.mod\|go.tools.sum' || :)
           [[ -z "$changed_files" ]] ||  (printf "Some files are not formatted properly: \n$changed_files\n Did you run 'make test' before sending the PR?" && exit 1)
-      - name: Install golinters
-        run: |
-          go get -u golang.org/x/lint/golint
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $GOLANG_LINT_VERSION
       - name: Check lint
         run: ./hack/go-lint.sh
 
