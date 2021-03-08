@@ -78,7 +78,7 @@ generate: controller-gen
 # Build the docker image
 docker-build:
 	cekit -v build $(BUILDER)
-
+	$(BUILDER) tag operator-runtime ${IMAGE}
 # Push the docker image
 docker-push:
 	$(BUILDER) push ${IMAGE}

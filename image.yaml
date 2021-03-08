@@ -9,8 +9,8 @@
     install:
       - name: org.kie.kogito.goModDownload
       - name: org.kie.kogito.buildOperator
-- name: quay.io/kiegroup/kogito-cloud-operator
-  version: 2.0.0-snapshot
+- name: operator-runtime
+  version: 1.0.0
   from: registry.access.redhat.com/ubi8/ubi-minimal:latest
   description: Runtime Image for the Operator
 
