@@ -5,6 +5,8 @@ The operator will be deployed over an Openshift or Kubernetes cluster. In this e
 
 # Table of contents
 
+
+
 * [Install Minikube](#install-minikube)
 * [Build Artifacts](#build-artifacts)
 * [Build the Kogito Application Images](#build-the-kogito-application-images)
