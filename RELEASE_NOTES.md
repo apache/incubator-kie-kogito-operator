@@ -4,6 +4,7 @@
 - [KOGITO-4059](https://issues.redhat.com/browse/KOGITO-4059) - Refactor Kogito operator into internal and core component
 - [KOGITO-4173](https://issues.redhat.com/browse/KOGITO-4173) - Adjust default probe URL for Quarkus
 - [KOGITO-3784](https://issues.redhat.com/browse/KOGITO-4173) - Update CustomResourceDefinition to apiextensions.k8s.io/v1
+- [KOGITO-233](https://issues.redhat.com/browse/KOGITO-233)   - Migrate Operator image generation to CEKit 
 ## Bug Fixes
 - [KOGITO-4332](https://issues.redhat.com/browse/KOGITO-4332) - Operator does not have rights on mongodb crds
 - [KOGITO-4210](https://issues.redhat.com/browse/KOGITO-4210) - Fix probe config for Quarkus deployments
