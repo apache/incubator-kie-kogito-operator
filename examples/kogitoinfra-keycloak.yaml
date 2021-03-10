@@ -1,4 +1,7 @@
-#Keycloak operator should be pre-installed in namespace
+# Keycloak operator should be pre-installed in namespace
+# And a Keycloak resource must be created in the same namespace of this resource
+# See instructions to install and configure your Keycloak server:
+# https://www.keycloak.org/getting-started/getting-started-operator-kubernetes
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoInfra
 metadata:
@@ -7,3 +10,4 @@ spec:
   resource:
     apiVersion: keycloak.org/v1alpha1
     kind: Keycloak
+    name: kogito-keycloak

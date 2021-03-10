@@ -27,7 +27,7 @@ type KogitoInfraSpec struct {
 
 	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Resource Resource `json:"resource,omitempty"`
+	Resource Resource `json:"resource"`
 
 	// +optional
 	// +mapType=atomic
@@ -218,7 +218,7 @@ type Resource struct {
 	// Name of referred resource.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Name"
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 }
 
 // GetAPIVersion ...
@@ -226,9 +226,19 @@ func (r *Resource) GetAPIVersion() string {
 	return r.APIVersion
 }
 
+// SetAPIVersion ...
+func (r *Resource) SetAPIVersion(apiVersion string) {
+	r.APIVersion = apiVersion
+}
+
 // GetKind ...
 func (r *Resource) GetKind() string {
 	return r.Kind
+}
+
+// SetKind ...
+func (r *Resource) SetKind(kind string) {
+	r.Kind = kind
 }
 
 // GetNamespace ...
@@ -236,9 +246,19 @@ func (r *Resource) GetNamespace() string {
 	return r.Namespace
 }
 
+// SetNamespace ...
+func (r *Resource) SetNamespace(namespace string) {
+	r.Namespace = namespace
+}
+
 // GetName ...
 func (r *Resource) GetName() string {
 	return r.Name
+}
+
+// SetName ...
+func (r *Resource) SetName(name string) {
+	r.Name = name
 }
 
 /*
