@@ -385,6 +385,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraSpec(ref commo
 						},
 					},
 				},
+				Required: []string{"resource"},
 			},
 		},
 		Dependencies: []string{

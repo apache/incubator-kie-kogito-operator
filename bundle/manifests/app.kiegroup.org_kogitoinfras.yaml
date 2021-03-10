@@ -75,7 +75,10 @@ spec:
                 required:
                 - apiVersion
                 - kind
+                - name
                 type: object
+            required:
+            - resource
             type: object
           status:
             description: KogitoInfraStatus defines the observed state of KogitoInfra.

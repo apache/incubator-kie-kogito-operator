@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,47 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package steps
+package test
 
 import (
-	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure/kafka/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/test/framework"
-	"github.com/kiegroup/kogito-cloud-operator/test/installers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func registerKafkaSteps(ctx *godog.ScenarioContext, data *Data) {
-	ctx.Step(`^Kafka Operator is deployed$`, data.kafkaOperatorIsDeployed)
-	ctx.Step(`^Kafka instance "([^"]*)" has (\d+) (?:pod|pods) running within (\d+) (?:minute|minutes)$`, data.kafkaInstanceHasPodsRunningWithinMinutes)
-	ctx.Step(`^Kafka instance "([^"]*)" is deployed$`, data.kafkaInstanceIsDeployed)
-	ctx.Step(`^Kafka topic "([^"]*)" is deployed$`, data.kafkaTopicIsDeployed)
-}
-
-func (data *Data) kafkaOperatorIsDeployed() error {
-	return installers.GetKafkaInstaller().Install(data.Namespace)
-}
-
-func (data *Data) kafkaInstanceHasPodsRunningWithinMinutes(name string, numberOfPods, timeOutInMin int) error {
-	return framework.WaitForPodsWithLabel(data.Namespace, "strimzi.io/name", name+"-entity-operator", numberOfPods, timeOutInMin)
-}
-
-func (data *Data) kafkaInstanceIsDeployed(name string) error {
-	kafka := getKafkaDefaultResource(name, data.Namespace)
-
-	if err := framework.DeployKafkaInstance(data.Namespace, kafka); err != nil {
-		return err
-	}
-
-	return framework.WaitForPodsWithLabel(data.Namespace, "strimzi.io/name", name+"-entity-operator", 1, 5)
-}
-
-func (data *Data) kafkaTopicIsDeployed(name string) error {
-	return framework.DeployKafkaTopic(data.Namespace, name, infrastructure.KafkaInstanceName)
-}
-
-func getKafkaDefaultResource(name, namespace string) *v1beta1.Kafka {
+// CreateFakeKafka creates a Kafka resource with default configuration
+func CreateFakeKafka(name, namespace string) *v1beta1.Kafka {
 	return &v1beta1.Kafka{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

@@ -69,9 +69,13 @@ type KogitoInfraSpecInterface interface {
 // ResourceInterface ...
 type ResourceInterface interface {
 	GetAPIVersion() string
+	SetAPIVersion(apiVersion string)
 	GetKind() string
+	SetKind(kind string)
 	GetNamespace() string
+	SetNamespace(namespace string)
 	GetName() string
+	SetName(name string)
 }
 
 // KogitoInfraStatusInterface ...
