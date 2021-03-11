@@ -22,8 +22,10 @@ const (
 	SourceToImageBuild BinaryBuildType = "SourceToImageBuild"
 	// BinarySpringBootJvmBuild is a Spring Boot JVM binary build
 	BinarySpringBootJvmBuild BinaryBuildType = "BinarySpringBootJvmBuild"
-	// BinaryQuarkusJvmBuild is a Quarkus JVM binary build
-	BinaryQuarkusJvmBuild BinaryBuildType = "BinaryQuarkusJvmBuild"
+	// BinaryQuarkusFastJvmBuild is a Quarkus JVM binary build with Fast Jar
+	BinaryQuarkusFastJvmBuild BinaryBuildType = "BinaryQuarkusFastJvmBuild"
+	// BinaryQuarkusLegacyJvmBuild is a Quarkus JVM binary build with Legacy Jar
+	BinaryQuarkusLegacyJvmBuild BinaryBuildType = "BinaryQuarkusLegacyJvmBuild"
 	// BinaryQuarkusNativeBuild is a Quarkus native binary build
 	BinaryQuarkusNativeBuild BinaryBuildType = "BinaryQuarkusNativeBuild"
 )

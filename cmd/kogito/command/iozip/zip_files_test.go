@@ -18,14 +18,15 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"encoding/hex"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+	"github.com/stretchr/testify/assert"
 )
 
 var baseTempDir = "/tmp/kogito-test/"
@@ -148,7 +149,68 @@ func TestCompressAsTGZQuarkusNative(t *testing.T) {
 	os.RemoveAll(baseTempDir)
 }
 
-func TestCompressAsTGZQuarkusJvm(t *testing.T) {
+func TestCompressAsTGZQuarkusFastJvm(t *testing.T) {
+	libTempDir := baseTempDir + "lib/"
+	quarkusFastJarTempDir := baseTempDir + "quarkus-app/"
+	quarkusFastJarLibTempDir := quarkusFastJarTempDir + "lib/"
+	quarkusFastJarLibMainTempDir := quarkusFastJarLibTempDir + "main/"
+	quarkusFastJarLibBootTempDir := quarkusFastJarLibTempDir + "boot/"
+	quarkusFastJarQuarkusTempDir := quarkusFastJarTempDir + "quarkus/"
+	quarkusFastJarAppTempDir := quarkusFastJarTempDir + "app/"
+	test.Mkdir(libTempDir)
+	test.Mkdir(quarkusFastJarTempDir)
+	test.Mkdir(quarkusFastJarLibTempDir)
+	test.Mkdir(quarkusFastJarLibMainTempDir)
+	test.Mkdir(quarkusFastJarLibBootTempDir)
+	test.Mkdir(quarkusFastJarQuarkusTempDir)
+	test.Mkdir(quarkusFastJarAppTempDir)
+
+	simpleContent := []byte("hello World!!")
+	baseFiles := []string{"file.json", "file2-runner", "file3-runner.jar", "file4.unsupported"}
+	libFiles := []string{"file5.jar", "file6.unsupported"}
+	quarkusFastJarLibMainFiles := []string{"filelibmain.jar", "filelibmain.unsupported"}
+	quarkusFastJarLibBootFiles := []string{"filelibboot.jar", "filelibboot.unsupported"}
+	quarkusFastJarQuarkusFiles := []string{"file9.dat"}
+	quarkusFastJarFiles := []string{"quarkus-run.jar", "file11.unsupported"}
+
+	writeFiles(t, baseTempDir, baseFiles, simpleContent)
+	writeFiles(t, libTempDir, libFiles, simpleContent)
+	writeFiles(t, quarkusFastJarLibMainTempDir, quarkusFastJarLibMainFiles, simpleContent)
+	writeFiles(t, quarkusFastJarLibBootTempDir, quarkusFastJarLibBootFiles, simpleContent)
+	writeFiles(t, quarkusFastJarQuarkusTempDir, quarkusFastJarQuarkusFiles, simpleContent)
+	writeFiles(t, quarkusFastJarTempDir, quarkusFastJarFiles, simpleContent)
+
+	// ensure files in nested dirs work without trailing slash
+	ioR, err := CompressAsTGZ(strings.TrimSuffix(baseTempDir, "/"), flag.BinaryQuarkusFastJvmBuild)
+	assert.Nil(t, err)
+	fileToWrite, err1 := ioutil.TempFile(baseTempDir, "compressed_kogito_resources_*.tgz")
+	assert.Nil(t, err1)
+
+	if _, err2 := io.Copy(fileToWrite, ioR); err2 != nil {
+		panic(err2)
+	}
+	defer fileToWrite.Close()
+
+	// test if file is tgz and if the tgz contains the right files.
+	// is Gzip?
+	testGzip, err := os.Open(fileToWrite.Name())
+	assert.Nil(t, err)
+	defer testGzip.Close()
+
+	filesFromGzip := getFilesFromGzip(t, fileToWrite)
+	filesInGzip := []string{"file.json", "file3-runner.jar", "quarkus-app/quarkus-run.jar", "quarkus-app/lib/main/filelibmain.jar", "quarkus-app/lib/boot/filelibboot.jar", "quarkus-app/quarkus/file9.dat"}
+	filesNotInGzip := []string{"file2-runner", "file4.unsupported", "lib/file6.unsupported", "lib/file5.jar", "quarkus-app/file11.unsupported", "quarkus-app/lib/main/filelibmain.unsupported", "quarkus-app/lib/boot/filelibboot.unsupported"}
+	for _, file := range filesInGzip {
+		assert.True(t, contains(file, filesFromGzip))
+	}
+	for _, file := range filesNotInGzip {
+		assert.False(t, contains(file, filesFromGzip))
+	}
+
+	os.RemoveAll(baseTempDir)
+}
+
+func TestCompressAsTGZQuarkusLegacyJvm(t *testing.T) {
 	libTempDir := baseTempDir + "lib/"
 	quarkusLibTempDir := baseTempDir + "quarkus-app/lib/"
 	test.Mkdir(libTempDir)
@@ -164,7 +226,7 @@ func TestCompressAsTGZQuarkusJvm(t *testing.T) {
 	writeFiles(t, quarkusLibTempDir, quarkusLibFiles, simpleContent)
 
 	// ensure files in nested dirs work without trailing slash
-	ioR, err := CompressAsTGZ(strings.TrimSuffix(baseTempDir, "/"), flag.BinaryQuarkusJvmBuild)
+	ioR, err := CompressAsTGZ(strings.TrimSuffix(baseTempDir, "/"), flag.BinaryQuarkusLegacyJvmBuild)
 	assert.Nil(t, err)
 	fileToWrite, err1 := ioutil.TempFile(baseTempDir, "compressed_kogito_resources_*.tgz")
 	assert.Nil(t, err1)

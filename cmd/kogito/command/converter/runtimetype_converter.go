@@ -22,6 +22,11 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 )
 
+var (
+	quarkusLegacyJarSuffix = "-runner.jar"
+	quarkusRuntimeSuffixes = []string{quarkusLegacyJarSuffix, "quarkus-app", "-runner"}
+)
+
 // FromRuntimeFlagsToRuntimeType converts given RuntimeTypeFlags into RuntimeType
 func FromRuntimeFlagsToRuntimeType(flags *flag.RuntimeTypeFlags) api.RuntimeType {
 	return api.RuntimeType(flags.Runtime)
@@ -41,14 +46,34 @@ func FromArgsToRuntimeType(flags *flag.RuntimeTypeFlags, resourceType flag.Resou
 		}
 
 		for _, file := range files {
-			if strings.HasSuffix(file.Name(), "quarkus-app") ||
-				strings.HasSuffix(file.Name(), "-runner") ||
-				strings.HasSuffix(file.Name(), "-runner.jar") {
-				return api.QuarkusRuntimeType, nil
+			for _, fileSuffix := range quarkusRuntimeSuffixes {
+				if strings.HasSuffix(file.Name(), fileSuffix) {
+					return api.QuarkusRuntimeType, nil
+				}
 			}
 		}
 		return api.SpringBootRuntimeType, nil
 	}
 
 	return runtimeType, nil
+}
+
+// ToQuarkusLegacyJarType determines what the type of quarkus jar is based on resources
+func ToQuarkusLegacyJarType(resourceType flag.ResourceType, resource string) (bool, error) {
+	switch resourceType {
+	case flag.LocalBinaryDirectoryResource:
+		files, err := ioutil.ReadDir(resource)
+		if err != nil {
+			return false, err
+		}
+
+		for _, file := range files {
+			if strings.HasSuffix(file.Name(), quarkusLegacyJarSuffix) {
+				return true, nil
+			}
+		}
+		return false, nil
+	default:
+		return false, nil
+	}
 }

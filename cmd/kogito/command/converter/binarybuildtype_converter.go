@@ -21,7 +21,7 @@ import (
 
 // FromArgsToBinaryBuildType determines what kind of binary
 // build the user is creating based on their passed arguments.
-func FromArgsToBinaryBuildType(resourceType flag.ResourceType, runtime api.RuntimeType, native bool) flag.BinaryBuildType {
+func FromArgsToBinaryBuildType(resourceType flag.ResourceType, runtime api.RuntimeType, native bool, legacy bool) flag.BinaryBuildType {
 	if resourceType == flag.LocalBinaryDirectoryResource {
 		if runtime == api.SpringBootRuntimeType {
 			return flag.BinarySpringBootJvmBuild
@@ -29,7 +29,10 @@ func FromArgsToBinaryBuildType(resourceType flag.ResourceType, runtime api.Runti
 		if native {
 			return flag.BinaryQuarkusNativeBuild
 		}
-		return flag.BinaryQuarkusJvmBuild
+		if legacy {
+			return flag.BinaryQuarkusLegacyJvmBuild
+		}
+		return flag.BinaryQuarkusFastJvmBuild
 	}
 	return flag.SourceToImageBuild
 }
