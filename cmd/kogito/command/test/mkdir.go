@@ -15,6 +15,7 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -38,6 +39,20 @@ func TempDirWithFile(dir string, file string) string {
 		panic(err)
 	}
 	_, err = ioutil.TempFile(tmpDir, file)
+	if err != nil {
+		panic(err)
+	}
+	return tmpDir
+}
+
+// TempDirWithSubDir creates a temporary directory dir with a
+// temporary subDir
+func TempDirWithSubDir(dir string, subDir string) string {
+	tmpDir, err := ioutil.TempDir("", dir)
+	if err != nil {
+		panic(err)
+	}
+	err = os.Mkdir(fmt.Sprintf("%s/%s", tmpDir, subDir), 0755)
 	if err != nil {
 		panic(err)
 	}

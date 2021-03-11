@@ -10,5 +10,13 @@ ENV RUNTIME_TYPE quarkus
 # 5. Push it: docker push quay.io/<yournamespace>/process-quarkus-example:latest
 # 6. Deploy it on Kubernetes with the kogito operator, as a reference use process-quarkus-example-runtime.yaml
 
-COPY target/*-runner.jar $KOGITO_HOME/bin
-COPY target/lib $KOGITO_HOME/bin/lib
+ENV RUNTIME_TYPE quarkus
+
+COPY target/quarkus-app/lib/ $KOGITO_HOME/bin/lib/
+COPY target/quarkus-app/*.jar $KOGITO_HOME/bin
+COPY target/quarkus-app/app/ $KOGITO_HOME/bin/app/
+COPY target/quarkus-app/quarkus/ $KOGITO_HOME/bin/quarkus/
+
+# For the legacy quarkus application jar use the commands below
+# COPY target/*-runner.jar $KOGITO_HOME/bin
+# COPY target/lib $KOGITO_HOME/bin/lib

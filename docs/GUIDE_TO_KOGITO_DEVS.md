@@ -5,12 +5,16 @@ The operator will be deployed over an Openshift or Kubernetes cluster. In this e
 
 # Table of contents
 
-* [Install Minikube](#install-minikube)
-* [Build Artifacts](#build-artifacts)
-* [Build the Kogito Application Images](#build-the-kogito-application-images)
-* [Build the Kogito Service Image](#build-the-kogito-service-image)
-* [Install the Operator](#install-the-operator)
-* [Run Kogito Service with Kogito Operator](#run-kogito-service-with-kogito-operator)
+* [Guide for Core/Runtimes team to Smoke test local changes on Openshift/k8s Cluster.](#guide-for-coreruntimes-team-to-smoke-test-local-changes-on-openshiftk8s-cluster)
+* [Table of contents](#table-of-contents)
+  * [Install Minikube](#install-minikube)
+    * [Prerequisites](#prerequisites)
+  * [Build Artifacts](#build-artifacts)
+  * [Build the Kogito Application Images](#build-the-kogito-application-images)
+  * [Build the Kogito Service Image](#build-the-kogito-service-image)
+    * [Base Images](#base-images)
+  * [Install the Operator](#install-the-operator)
+  * [Run Kogito Service with Kogito Operator](#run-kogito-service-with-kogito-operator)
 
 ## Install Minikube
 
@@ -103,8 +107,12 @@ Now create a Dockerfile inside the `kogito-examples/process-business-rules-quark
 FROM quay.io/kiegroup/kogito-runtime-jvm:latest
 ENV RUNTIME_TYPE quarkus
 
-COPY target/*-runner.jar $KOGITO_HOME/bin    
-COPY target/lib $KOGITO_HOME/bin/lib
+ENV RUNTIME_TYPE quarkus
+
+COPY target/quarkus-app/lib/ $KOGITO_HOME/bin/lib/
+COPY target/quarkus-app/*.jar $KOGITO_HOME/bin
+COPY target/quarkus-app/app/ $KOGITO_HOME/bin/app/
+COPY target/quarkus-app/quarkus/ $KOGITO_HOME/bin/quarkus/
 ```
 
 ```shell-script

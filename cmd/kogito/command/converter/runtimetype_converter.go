@@ -15,10 +15,11 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"io/ioutil"
 	"strings"
+
+	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 )
 
 // FromRuntimeFlagsToRuntimeType converts given RuntimeTypeFlags into RuntimeType
@@ -40,7 +41,9 @@ func FromArgsToRuntimeType(flags *flag.RuntimeTypeFlags, resourceType flag.Resou
 		}
 
 		for _, file := range files {
-			if strings.HasSuffix(file.Name(), "-runner") || strings.HasSuffix(file.Name(), "-runner.jar") {
+			if strings.HasSuffix(file.Name(), "quarkus-app") ||
+				strings.HasSuffix(file.Name(), "-runner") ||
+				strings.HasSuffix(file.Name(), "-runner.jar") {
 				return api.QuarkusRuntimeType, nil
 			}
 		}

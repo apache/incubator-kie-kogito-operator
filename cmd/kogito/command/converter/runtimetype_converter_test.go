@@ -15,12 +15,13 @@
 package converter
 
 import (
+	"os"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 func Test_FromRuntimeFlagsToRuntimeType_SpringBoot(t *testing.T) {
@@ -64,7 +65,20 @@ func Test_FromArgsToRuntime_BinaryBuild_SpringBoot(t *testing.T) {
 	assert.Equal(t, api.SpringBootRuntimeType, runtimeType)
 }
 
-func Test_FromArgsToRuntime_BinaryBuild_Quarkus(t *testing.T) {
+func Test_FromArgsToRuntime_BinaryBuild_QuarkusFastJar(t *testing.T) {
+	flags := &flag.RuntimeTypeFlags{
+		Runtime: "quarkus",
+	}
+
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
+	defer os.RemoveAll(tmpDir)
+
+	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
+	assert.Nil(t, err)
+	assert.Equal(t, api.QuarkusRuntimeType, runtimeType)
+}
+
+func Test_FromArgsToRuntime_BinaryBuild_QuarkusLegacyJar(t *testing.T) {
 	flags := &flag.RuntimeTypeFlags{
 		Runtime: "quarkus",
 	}
