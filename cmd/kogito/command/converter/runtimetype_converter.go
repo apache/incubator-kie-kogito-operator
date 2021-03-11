@@ -23,8 +23,8 @@ import (
 )
 
 var (
-	quarkusLegacyJarSuffix = "-runner.jar"
-	quarkusRuntimeSuffixes = []string{quarkusLegacyJarSuffix, "quarkus-app", "-runner"}
+	quarkusLegacyJarSuffix       = "-runner.jar"
+	quarkusRuntimeTargetSuffixes = []string{quarkusLegacyJarSuffix, "quarkus-app", "-runner"}
 )
 
 // FromRuntimeFlagsToRuntimeType converts given RuntimeTypeFlags into RuntimeType
@@ -46,7 +46,7 @@ func FromArgsToRuntimeType(flags *flag.RuntimeTypeFlags, resourceType flag.Resou
 		}
 
 		for _, file := range files {
-			for _, fileSuffix := range quarkusRuntimeSuffixes {
+			for _, fileSuffix := range quarkusRuntimeTargetSuffixes {
 				if strings.HasSuffix(file.Name(), fileSuffix) {
 					return api.QuarkusRuntimeType, nil
 				}

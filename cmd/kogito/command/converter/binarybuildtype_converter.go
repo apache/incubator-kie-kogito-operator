@@ -30,9 +30,9 @@ func FromArgsToBinaryBuildType(resourceType flag.ResourceType, runtime api.Runti
 			return flag.BinaryQuarkusNativeBuild
 		}
 		if legacy {
-			return flag.BinaryQuarkusLegacyJvmBuild
+			return flag.BinaryQuarkusLegacyJarJvmBuild
 		}
-		return flag.BinaryQuarkusFastJvmBuild
+		return flag.BinaryQuarkusFastJarJvmBuild
 	}
 	return flag.SourceToImageBuild
 }

@@ -37,8 +37,8 @@ func TestFromArgsToBinaryBuildType(t *testing.T) {
 	}{
 		{"Spring Boot JVM binary build", args{flag.LocalBinaryDirectoryResource, api.SpringBootRuntimeType, false, false}, flag.BinarySpringBootJvmBuild},
 		{"Quarkus native binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, true, false}, flag.BinaryQuarkusNativeBuild},
-		{"Quarkus Fast JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false, false}, flag.BinaryQuarkusFastJvmBuild},
-		{"Quarkus Legacy JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false, true}, flag.BinaryQuarkusLegacyJvmBuild},
+		{"Quarkus Fast JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false, false}, flag.BinaryQuarkusFastJarJvmBuild},
+		{"Quarkus Legacy JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false, true}, flag.BinaryQuarkusLegacyJarJvmBuild},
 		{"s2i build", args{flag.GitFileResource, api.QuarkusRuntimeType, true, false}, flag.SourceToImageBuild},
 	}
 	for _, tt := range tests {

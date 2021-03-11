@@ -181,7 +181,7 @@ func TestCompressAsTGZQuarkusFastJvm(t *testing.T) {
 	writeFiles(t, quarkusFastJarTempDir, quarkusFastJarFiles, simpleContent)
 
 	// ensure files in nested dirs work without trailing slash
-	ioR, err := CompressAsTGZ(strings.TrimSuffix(baseTempDir, "/"), flag.BinaryQuarkusFastJvmBuild)
+	ioR, err := CompressAsTGZ(strings.TrimSuffix(baseTempDir, "/"), flag.BinaryQuarkusFastJarJvmBuild)
 	assert.Nil(t, err)
 	fileToWrite, err1 := ioutil.TempFile(baseTempDir, "compressed_kogito_resources_*.tgz")
 	assert.Nil(t, err1)
@@ -226,7 +226,7 @@ func TestCompressAsTGZQuarkusLegacyJvm(t *testing.T) {
 	writeFiles(t, quarkusLibTempDir, quarkusLibFiles, simpleContent)
 
 	// ensure files in nested dirs work without trailing slash
-	ioR, err := CompressAsTGZ(strings.TrimSuffix(baseTempDir, "/"), flag.BinaryQuarkusLegacyJvmBuild)
+	ioR, err := CompressAsTGZ(strings.TrimSuffix(baseTempDir, "/"), flag.BinaryQuarkusLegacyJarJvmBuild)
 	assert.Nil(t, err)
 	fileToWrite, err1 := ioutil.TempFile(baseTempDir, "compressed_kogito_resources_*.tgz")
 	assert.Nil(t, err1)

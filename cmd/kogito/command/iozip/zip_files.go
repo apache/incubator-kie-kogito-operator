@@ -34,19 +34,19 @@ import (
 const pomFile = "pom.xml"
 
 var supportedExtensions = map[flag.BinaryBuildType][]string{
-	flag.SourceToImageBuild:          {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties", ".sw.json", ".sw.yaml"},
-	flag.BinaryQuarkusLegacyJvmBuild: {".jar", ".json"},
-	flag.BinaryQuarkusFastJvmBuild:   {".jar", ".json", "dat"},
-	flag.BinarySpringBootJvmBuild:    {".jar", ".json"},
-	flag.BinaryQuarkusNativeBuild:    {"-runner", ".json"},
+	flag.SourceToImageBuild:             {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties", ".sw.json", ".sw.yaml"},
+	flag.BinaryQuarkusLegacyJarJvmBuild: {".jar", ".json"},
+	flag.BinaryQuarkusFastJarJvmBuild:   {".jar", ".json", "dat"},
+	flag.BinarySpringBootJvmBuild:       {".jar", ".json"},
+	flag.BinaryQuarkusNativeBuild:       {"-runner", ".json"},
 }
 
 var binaryAddedFolders = map[flag.BinaryBuildType][]string{
-	flag.SourceToImageBuild:          {},
-	flag.BinaryQuarkusLegacyJvmBuild: {"lib/"},
-	flag.BinaryQuarkusFastJvmBuild:   {"quarkus-app/", "quarkus-app/lib/", "quarkus-app/lib/main/", "quarkus-app/lib/boot/", "quarkus-app/app/", "quarkus-app/quarkus/"},
-	flag.BinarySpringBootJvmBuild:    {},
-	flag.BinaryQuarkusNativeBuild:    {},
+	flag.SourceToImageBuild:             {},
+	flag.BinaryQuarkusLegacyJarJvmBuild: {"lib/"},
+	flag.BinaryQuarkusFastJarJvmBuild:   {"quarkus-app/", "quarkus-app/lib/", "quarkus-app/lib/main/", "quarkus-app/lib/boot/", "quarkus-app/app/", "quarkus-app/quarkus/"},
+	flag.BinarySpringBootJvmBuild:       {},
+	flag.BinaryQuarkusNativeBuild:       {},
 }
 
 func zipFile(absoluteFilePath string, fileInfo os.FileInfo, resource string, binaryBuildType flag.BinaryBuildType, tarWriter *tar.Writer) (string, error) {
