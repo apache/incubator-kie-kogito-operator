@@ -16,6 +16,8 @@ package service
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
@@ -29,7 +31,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"go.uber.org/zap"
-	"io"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -80,6 +81,11 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 		return err
 	}
 
+	legacy, err := converter.ToQuarkusLegacyJarType(resourceType, resource)
+	if err != nil {
+		return err
+	}
+
 	kogitoBuild := v1beta1.KogitoBuild{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      flags.Name,
@@ -118,7 +124,7 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 		return err
 	}
 
-	binaryBuildType := converter.FromArgsToBinaryBuildType(resourceType, runtime, native)
+	binaryBuildType := converter.FromArgsToBinaryBuildType(resourceType, runtime, native, legacy)
 	if err := i.createBuildIfRequires(flags.Name, flags.Project, resource, resourceType, binaryBuildType); err != nil {
 		return err
 	}
