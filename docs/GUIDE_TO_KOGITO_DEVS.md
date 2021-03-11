@@ -107,8 +107,6 @@ Now create a Dockerfile inside the `kogito-examples/process-business-rules-quark
 FROM quay.io/kiegroup/kogito-runtime-jvm:latest
 ENV RUNTIME_TYPE quarkus
 
-ENV RUNTIME_TYPE quarkus
-
 COPY target/quarkus-app/lib/ $KOGITO_HOME/bin/lib/
 COPY target/quarkus-app/*.jar $KOGITO_HOME/bin
 COPY target/quarkus-app/app/ $KOGITO_HOME/bin/app/

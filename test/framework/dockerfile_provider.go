@@ -24,8 +24,6 @@ import (
 )
 
 const (
-	protobufFolder = "target/META-INF/resources/persistence/protobuf/"
-
 	quarkusFastJarFolder = "quarkus-app"
 	quarkusFastJarName   = "quarkus-run.jar"
 
