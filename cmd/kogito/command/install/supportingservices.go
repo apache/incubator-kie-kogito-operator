@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
@@ -54,14 +55,9 @@ var installableSupportingServices = []installableSupportingService{
 		serviceName: kogitosupportingservice.DefaultDataIndexName,
 		displayName: "Data Index",
 		serviceType: api.DataIndex,
-		description: `'install data-index' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito services.
+		description: `'install data-index --infra kogito-infra-infinispan --infra kogito-infra-kafka' will deploy the Data Index service to enable capturing and indexing data produced by one or more Kogito services.
 
-If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other project or infrastructure.
-If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Data Index service's project.
-Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given project.
-
-If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
-Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other project or infrastructure.
+The --infra parameter MUST be specified. It needs to point to Kafka KogitoInfra object and also either Infinispan or MongoDB KogitoInfra object.
 
 For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
 	},
@@ -70,11 +66,9 @@ For more information on Kogito Data Index Service see: https://github.com/kiegro
 		serviceName: kogitosupportingservice.DefaultExplainabilityName,
 		displayName: "Explainability",
 		serviceType: api.Explainability,
-		description: `'install explainability' will deploy the Explainability service to provide analysis on the decisions that have been taken by a kogito runtime application.
+		description: `'install explainability --infra kogito-infra-kafka' will deploy the Explainability service to provide analysis on the decisions that have been taken by a kogito runtime application.
 
-If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other project or infrastructure.
-If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the deployed Kafka server in the Explainability service's project.
-Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given project.`,
+The --infra parameter MUST be specified. It needs to point to Kafka KogitoInfra object.`,
 	},
 	{
 		cmdName:     "jobs-service",
@@ -82,10 +76,6 @@ Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator
 		displayName: "Jobs",
 		serviceType: api.JobsService,
 		description: `'install jobs-service' deploys the Jobs Service to enable scheduling jobs that aim to be fired at a given time for Kogito services.
-
-If 'enable-persistence' flag is set and 'infinispan-url' is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure.
-Use 'infinispan-url' and set 'enable-persistence' flag if you plan to connect to an external Infinispan server that is already provided 
-in other project or infrastructure.
 
 For more information on Kogito Jobs Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service`,
 	},
@@ -119,14 +109,9 @@ For more information on Task Console see: https://github.com/kiegroup/kogito-run
 		serviceName: kogitosupportingservice.DefaultTrustyName,
 		displayName: "Trusty",
 		serviceType: api.TrustyAI,
-		description: `'install trusty' will deploy the Trusty service to enable capturing tracing events produced by one or more Kogito services and provide analysis capabilities on top of the data.
+		description: `'install trusty --infra kogito-infra-infinispan --infra kogito-infra-kafka' will deploy the Trusty service to enable capturing tracing events produced by one or more Kogito services and provide analysis capabilities on top of the data.
 
-If kafka-url is provided, it will be used to connect to the external Kafka server that is deployed in other namespace or infrastructure.
-If kafka-instance is provided instead, the value will be used as the Strimzi Kafka instance name to locate the Kafka server deployed in the Trusty service's namespace.
-Otherwise, the operator will try to deploy a Kafka instance via Strimzi operator for you using Kogito Infrastructure in the given namespace.
-
-If infinispan-url is not provided, a new Infinispan server will be deployed for you using Kogito Infrastructure, if no one exists in the given project.
-Only use infinispan-url if you plan to connect to an external Infinispan server that is already provided in other namespace or infrastructure.
+The --infra parameter MUST be specified. It needs to point to Kafka KogitoInfra object and to Infinispan KogitoInfra object.
 
 See https://github.com/kiegroup/kogito-apps/tree/master/trusty/README.md for more information about the trusty service.`,
 	},
