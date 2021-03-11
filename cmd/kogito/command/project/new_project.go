@@ -49,8 +49,7 @@ func (i *newProjectCommand) RegisterHook() {
 		Use:     "new-project NAME",
 		Aliases: []string{"new-ns"},
 		Short:   "Creates a new Kogito Project for your Kogito Services",
-		Long: `new-project will create a Kubernetes Namespace with the provided project where your Kogito Services will be deployed. This project then will be used to deploy all infrastructure
-				bits needed for the deployed Kogito Services to run.`,
+		Long:    `new-project will create a Kubernetes Namespace with the provided project where your Kogito Services will be deployed.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
@@ -90,7 +89,7 @@ func (i *newProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 
 		log.Infof(message.ProjectCreatedSuccessfully, ns.Name)
 
-		return handleServicesInstallation(&i.flags, i.Client)
+		return nil
 	}
 
 	log.Infof(message.ProjectAlreadyExists, i.flags.project)

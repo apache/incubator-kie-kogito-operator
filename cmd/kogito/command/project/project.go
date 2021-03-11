@@ -16,46 +16,13 @@ package project
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/spf13/cobra"
 )
 
 type projectFlags struct {
-	project                  string
-	installDataIndex         bool
-	installJobsService       bool
-	installManagementConsole bool
+	project string
 }
 
 func addProjectFlagsToCommand(command *cobra.Command, pFlags *projectFlags) {
 	command.Flags().StringVarP(&pFlags.project, "project", "n", "", message.ProjectCurrentContext)
-	command.Flags().BoolVar(&pFlags.installDataIndex, "install-data-index", false, message.InstallDataIndex)
-	command.Flags().BoolVar(&pFlags.installJobsService, "install-jobs-service", false, message.InstallJobsService)
-	command.Flags().BoolVar(&pFlags.installManagementConsole, "install-mgmt-console", false, message.InstallMgmtConsole)
-}
-
-func handleServicesInstallation(pFlags *projectFlags, cli *client.Client) error {
-	install := shared.
-		ServicesInstallationBuilder(cli, pFlags.project).
-		CheckOperatorCRDs()
-
-	if pFlags.installDataIndex {
-		persistenceInfra := shared.GetDefaultPersistenceInfra(pFlags.project)
-		install.InstallInfraService(persistenceInfra)
-		messagingInfra := shared.GetDefaultMessagingInfra(pFlags.project)
-		install.InstallInfraService(messagingInfra)
-		dataIndex := shared.GetDefaultDataIndex(pFlags.project)
-		install.InstallSupportingService(&dataIndex)
-	}
-	if pFlags.installJobsService {
-		jobsService := shared.GetDefaultJobsService(pFlags.project)
-		install.InstallSupportingService(&jobsService)
-	}
-	if pFlags.installManagementConsole {
-		mgmtConsole := shared.GetDefaultMgmtConsole(pFlags.project)
-		install.InstallSupportingService(&mgmtConsole)
-	}
-
-	return install.GetError()
 }
