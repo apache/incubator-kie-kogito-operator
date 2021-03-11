@@ -16,8 +16,6 @@ package framework
 
 import "github.com/kiegroup/kogito-cloud-operator/api"
 
-const maxBufferCondition = 5
-
 // ConditionCollection ...
 type ConditionCollection interface {
 	AddCondition(condition api.ConditionInterface) []api.ConditionInterface
@@ -49,14 +47,5 @@ func (c *conditionCollection) removeOldCondition(index int) {
 }
 
 func (c *conditionCollection) pushCondition(newCondition api.ConditionInterface) {
-	if len(c.conditions) >= maxBufferCondition {
-		c.removeOldestCondition()
-		c.pushCondition(newCondition)
-	} else {
-		c.conditions = append(c.conditions, newCondition)
-	}
-}
-
-func (c *conditionCollection) removeOldestCondition() {
-	c.conditions = c.conditions[1:len(c.conditions)]
+	c.conditions = append(c.conditions, newCondition)
 }
