@@ -1,5 +1,7 @@
 ## Enhancements
-- [KOGITO-233](https://issues.redhat.com/browse/KOGITO-233)   - Migrate Operator image generation to CEKit
+- [KOGITO-233](https://issues.redhat.com/browse/KOGITO-233)   - Migrate Operator image generation to CEKit 
+- [KOGITO-3784](https://issues.redhat.com/browse/KOGITO-4173) - Update CustomResourceDefinition to apiextensions.k8s.io/v1
+- [KOGITO-4059](https://issues.redhat.com/browse/KOGITO-4059) - Refactor Kogito operator into internal and core component
 - [KOGITO-4199](https://issues.redhat.com/browse/KOGITO-4199) - Remove provisioning of Infinispan and Kafka instances
 
 ## Bug Fixes

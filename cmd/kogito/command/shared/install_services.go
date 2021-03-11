@@ -38,19 +38,19 @@ type servicesInstallation struct {
 
 // ServicesInstallation provides an interface for handling infrastructure services installation
 type ServicesInstallation interface {
-	// BuildService build kogito service.
+	// InstallBuildService build kogito service.
 	// Depends on the Operator, install it first.
 	InstallBuildService(build *v1beta1.KogitoBuild) ServicesInstallation
-	// DeployService deploy Runtime service.
+	// InstallRuntimeService deploy Runtime service.
 	// Depends on the Operator, install it first.
 	InstallRuntimeService(runtime *v1beta1.KogitoRuntime) ServicesInstallation
 	// InstallSupportingService installs supporting services. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
 	InstallSupportingService(supportingService *v1beta1.KogitoSupportingService) ServicesInstallation
-	// InstallInfraService install kogito Infra.
+	// InstallInfraResource install kogito Infra.
 	// Depends on the Operator, install it first.
-	InstallInfraService(infra *v1beta1.KogitoInfra) ServicesInstallation
-	// CheckOperatorCRDs checks wheather the CRDs are available on the cluster or not
+	InstallInfraResource(infra *v1beta1.KogitoInfra) ServicesInstallation
+	// CheckOperatorCRDs checks whether the CRDs are available on the cluster or not
 	CheckOperatorCRDs() ServicesInstallation
 	// GetError return any given error during the installation process
 	GetError() error
@@ -66,7 +66,7 @@ func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) Ser
 
 func (s *servicesInstallation) InstallBuildService(build *v1beta1.KogitoBuild) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(build,
+		s.err = s.installKogitoResource(build,
 			&serviceInfoMessages{
 				errCreating: message.BuildServiceErrCreating,
 				installed:   message.BuildServiceSuccessfulInstalled,
@@ -78,7 +78,7 @@ func (s *servicesInstallation) InstallBuildService(build *v1beta1.KogitoBuild) S
 
 func (s *servicesInstallation) InstallRuntimeService(runtime *v1beta1.KogitoRuntime) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(runtime,
+		s.err = s.installKogitoResource(runtime,
 			&serviceInfoMessages{
 				errCreating: message.RuntimeServiceErrCreating,
 				installed:   message.RuntimeServiceSuccessfulInstalled,
@@ -90,7 +90,7 @@ func (s *servicesInstallation) InstallRuntimeService(runtime *v1beta1.KogitoRunt
 
 func (s *servicesInstallation) InstallSupportingService(supportingService *v1beta1.KogitoSupportingService) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(supportingService, getSupportingServiceInfoMessages(supportingService.Spec.ServiceType))
+		s.err = s.installKogitoResource(supportingService, getSupportingServiceInfoMessages(supportingService.Spec.ServiceType))
 	}
 	return s
 }
@@ -143,9 +143,9 @@ func getSupportingServiceInfoMessages(serviceType api.ServiceType) *serviceInfoM
 	return nil
 }
 
-func (s *servicesInstallation) InstallInfraService(infra *v1beta1.KogitoInfra) ServicesInstallation {
+func (s *servicesInstallation) InstallInfraResource(infra *v1beta1.KogitoInfra) ServicesInstallation {
 	if s.err == nil {
-		s.err = s.installKogitoService(infra,
+		s.err = s.installKogitoResource(infra,
 			&serviceInfoMessages{
 				errCreating: message.InfraServiceErrCreating,
 				installed:   message.InfraServiceSuccessfulInstalled,
@@ -159,7 +159,7 @@ func (s *servicesInstallation) GetError() error {
 	return s.err
 }
 
-func (s *servicesInstallation) installKogitoService(resource kubernetes.ResourceObject, messages *serviceInfoMessages) error {
+func (s *servicesInstallation) installKogitoResource(resource kubernetes.ResourceObject, messages *serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
 		if err := kubernetes.ResourceC(s.client).Create(resource); err != nil {

@@ -25,6 +25,7 @@ spec:
   resource:
     apiVersion: infinispan.org/v1
     kind: Infinispan
+    name: kogito-infinispan
 ---
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoBuild
