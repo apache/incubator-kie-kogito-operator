@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
@@ -51,7 +52,7 @@ func (s *statusHandler) HandleStatusUpdate(instance api.KogitoService, err *erro
 
 func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService, errCondition error) (err error) {
 	if errCondition != nil {
-		instance.GetStatus().SetFailed(reasonForError(errCondition), errCondition)
+		s.SetFailed(instance.GetStatus(), reasonForError(errCondition), errCondition)
 		if err := s.updateStatus(instance); err != nil {
 			s.Log.Error(err, "Error while trying to set condition to error")
 			return err
@@ -76,9 +77,9 @@ func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService,
 	updateStatus = changed || updateStatus
 
 	if readyReplicas == *instance.GetSpec().GetReplicas() && readyReplicas > 0 {
-		updateStatus = instance.GetStatus().SetDeployed() || updateStatus
+		updateStatus = s.SetDeployed(instance.GetStatus()) || updateStatus
 	} else {
-		updateStatus = instance.GetStatus().SetProvisioning() || updateStatus
+		updateStatus = s.SetProvisioning(instance.GetStatus()) || updateStatus
 	}
 
 	if updateStatus {
@@ -150,4 +151,38 @@ func (s *statusHandler) updateRouteStatus(instance api.KogitoService) (bool, err
 		}
 	}
 	return false, nil
+}
+
+// SetDeployed Updates the condition with the DeployedCondition and True status
+func (s *statusHandler) SetDeployed(c api.ConditionMetaInterface) bool {
+	size := len(c.GetConditions())
+	if size > 0 && c.GetConditions()[size-1].GetType() == api.DeployedConditionType {
+		return false
+	}
+	condition := c.NewDeployedCondition()
+	c.SetConditions(s.addCondition(c, condition))
+	return true
+}
+
+// SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
+func (s *statusHandler) SetProvisioning(c api.ConditionMetaInterface) bool {
+	size := len(c.GetConditions())
+	if size > 0 && c.GetConditions()[size-1].GetType() == api.ProvisioningConditionType {
+		return false
+	}
+	condition := c.NewProvisioningCondition()
+	c.SetConditions(s.addCondition(c, condition))
+	return true
+}
+
+// SetFailed Sets the failed condition with the error reason and message
+func (s *statusHandler) SetFailed(c api.ConditionMetaInterface, reason api.KogitoServiceConditionReason, err error) {
+	condition := c.NewFailedCondition(reason, err)
+	c.SetConditions(s.addCondition(c, condition))
+}
+
+// addCondition adds a condition to the condition array ensuring the max buffer
+func (s *statusHandler) addCondition(c api.ConditionMetaInterface, condition api.ConditionInterface) []api.ConditionInterface {
+	conditionCollection := framework.NewConditionCollection(c.GetConditions())
+	return conditionCollection.AddCondition(condition)
 }

@@ -20,8 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const maxBufferCondition = 5
-
 // Condition is the detailed condition for the resource
 type Condition struct {
 	Type               api.ConditionType                `json:"type"`
@@ -86,54 +84,31 @@ func (c *ConditionsMeta) SetConditions(conditions []api.ConditionInterface) {
 	c.Conditions = newConditions
 }
 
-// SetDeployed Updates the condition with the DeployedCondition and True status
-func (c *ConditionsMeta) SetDeployed() bool {
-	size := len(c.Conditions)
-	if size > 0 && c.Conditions[size-1].Type == api.DeployedConditionType {
-		return false
-	}
-	condition := Condition{
+// NewDeployedCondition ...
+func (c *ConditionsMeta) NewDeployedCondition() api.ConditionInterface {
+	return Condition{
 		Type:               api.DeployedConditionType,
 		Status:             corev1.ConditionTrue,
 		LastTransitionTime: metav1.Now(),
 	}
-	c.Conditions = c.addCondition(condition)
-	return true
 }
 
-// SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
-func (c *ConditionsMeta) SetProvisioning() bool {
-	size := len(c.Conditions)
-	if size > 0 && c.Conditions[size-1].Type == api.ProvisioningConditionType {
-		return false
-	}
-	condition := Condition{
+// NewProvisioningCondition ...
+func (c *ConditionsMeta) NewProvisioningCondition() api.ConditionInterface {
+	return Condition{
 		Type:               api.ProvisioningConditionType,
 		Status:             corev1.ConditionTrue,
 		LastTransitionTime: metav1.Now(),
 	}
-	c.Conditions = c.addCondition(condition)
-	return true
 }
 
-// SetFailed Sets the failed condition with the error reason and message
-func (c *ConditionsMeta) SetFailed(reason api.KogitoServiceConditionReason, err error) {
-	condition := Condition{
+// NewFailedCondition ...
+func (c *ConditionsMeta) NewFailedCondition(reason api.KogitoServiceConditionReason, err error) api.ConditionInterface {
+	return Condition{
 		Type:               api.FailedConditionType,
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             reason,
 		Message:            err.Error(),
 	}
-	c.Conditions = c.addCondition(condition)
-}
-
-// addCondition adds a condition to the condition array ensuring the max buffer
-func (c *ConditionsMeta) addCondition(condition Condition) []Condition {
-	size := len(c.Conditions) + 1
-	first := 0
-	if size > maxBufferCondition {
-		first = size - maxBufferCondition
-	}
-	return append(c.Conditions, condition)[first:size]
 }

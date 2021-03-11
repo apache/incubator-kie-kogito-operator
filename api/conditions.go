@@ -60,9 +60,9 @@ type ConditionInterface interface {
 
 // ConditionMetaInterface defines the base information for kogito services conditions
 type ConditionMetaInterface interface {
-	SetDeployed() bool
-	SetProvisioning() bool
-	SetFailed(reason KogitoServiceConditionReason, err error)
+	NewDeployedCondition() ConditionInterface
+	NewProvisioningCondition() ConditionInterface
+	NewFailedCondition(reason KogitoServiceConditionReason, err error) ConditionInterface
 	GetConditions() []ConditionInterface
 	SetConditions(conditions []ConditionInterface)
 }

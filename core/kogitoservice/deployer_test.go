@@ -80,11 +80,10 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	assert.Equal(t, reconcileAfter, reconciliationIntervalAfterInfraError)
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.GetStatus())
-	assert.Len(t, dataIndex.GetStatus().GetConditions(), 2)
-	for _, condition := range dataIndex.GetStatus().GetConditions() {
-		assert.Equal(t, condition.GetType(), api.FailedConditionType)
-		assert.Equal(t, condition.GetStatus(), corev1.ConditionFalse)
-	}
+	assert.Len(t, dataIndex.GetStatus().GetConditions(), 1)
+	condition := dataIndex.GetStatus().GetConditions()[0]
+	assert.Equal(t, condition.GetType(), api.FailedConditionType)
+	assert.Equal(t, condition.GetStatus(), corev1.ConditionFalse)
 }
 
 func Test_serviceDeployer_DataIndex(t *testing.T) {

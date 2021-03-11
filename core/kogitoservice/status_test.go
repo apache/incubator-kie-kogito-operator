@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package kogitoservice
 
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/api"
+	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"testing"
 	"time"
 
@@ -27,32 +28,37 @@ import (
 
 func TestSetDeployed(t *testing.T) {
 	now := metav1.Now()
-	conditions := ConditionsMeta{}
-	assert.True(t, conditions.SetDeployed())
+	conditionsMeta := &v1beta1.ConditionsMeta{}
+	statusHandler := statusHandler{}
+	status := statusHandler.SetDeployed(conditionsMeta)
+	assert.True(t, status)
 
-	assert.NotEmpty(t, conditions)
-	assert.Equal(t, api.DeployedConditionType, conditions.Conditions[0].Type)
-	assert.Equal(t, corev1.ConditionTrue, conditions.Conditions[0].Status)
-	assert.True(t, now.Before(&conditions.Conditions[0].LastTransitionTime))
+	assert.NotEmpty(t, conditionsMeta)
+	assert.Equal(t, api.DeployedConditionType, conditionsMeta.Conditions[0].Type)
+	assert.Equal(t, corev1.ConditionTrue, conditionsMeta.Conditions[0].Status)
+	assert.True(t, now.Before(&conditionsMeta.Conditions[0].LastTransitionTime))
 }
 
 func TestSetDeployedSkipUpdate(t *testing.T) {
-	conditionsMeta := ConditionsMeta{}
-	conditionsMeta.SetDeployed()
+	conditionsMeta := &v1beta1.ConditionsMeta{}
+	statusHandler := statusHandler{}
+	status := statusHandler.SetDeployed(conditionsMeta)
+	assert.True(t, status)
 
-	assert.NotEmpty(t, conditionsMeta)
-	condition := conditionsMeta.Conditions[0]
+	// trying to set same deployed status again
+	status = statusHandler.SetDeployed(conditionsMeta)
+	assert.False(t, status)
 
-	assert.False(t, conditionsMeta.SetDeployed())
 	assert.Equal(t, 1, len(conditionsMeta.Conditions))
-	assert.Equal(t, condition, conditionsMeta.Conditions[0])
+	assert.Equal(t, api.DeployedConditionType, conditionsMeta.Conditions[0].Type)
 }
 
 func TestSetProvisioning(t *testing.T) {
 	now := metav1.Now()
-	conditionsMeta := ConditionsMeta{}
-	assert.True(t, conditionsMeta.SetProvisioning())
-
+	conditionsMeta := &v1beta1.ConditionsMeta{}
+	statusHandler := statusHandler{}
+	status := statusHandler.SetProvisioning(conditionsMeta)
+	assert.True(t, status)
 	assert.NotEmpty(t, conditionsMeta.Conditions)
 	assert.Equal(t, api.ProvisioningConditionType, conditionsMeta.Conditions[0].Type)
 	assert.Equal(t, corev1.ConditionTrue, conditionsMeta.Conditions[0].Status)
@@ -60,29 +66,30 @@ func TestSetProvisioning(t *testing.T) {
 }
 
 func TestSetProvisioningSkipUpdate(t *testing.T) {
-	conditionsMeta := ConditionsMeta{}
-	assert.True(t, conditionsMeta.SetProvisioning())
+	conditionsMeta := &v1beta1.ConditionsMeta{}
+	statusHandler := statusHandler{}
+	status := statusHandler.SetProvisioning(conditionsMeta)
+	assert.True(t, status)
 
-	assert.NotEmpty(t, conditionsMeta.Conditions)
-	condition := conditionsMeta.Conditions[0]
+	// trying to set same deployed status again
+	status = statusHandler.SetProvisioning(conditionsMeta)
+	assert.False(t, status)
 
-	assert.False(t, conditionsMeta.SetProvisioning())
 	assert.Equal(t, 1, len(conditionsMeta.Conditions))
-	assert.Equal(t, condition, conditionsMeta.Conditions[0])
+	assert.Equal(t, api.ProvisioningConditionType, conditionsMeta.Conditions[0].Type)
 }
 
 func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	now := metav1.Now()
 	// we set a sleep to not conflict the time
 	time.Sleep(1 * time.Second)
-	conditionsMeta := ConditionsMeta{}
-
-	assert.True(t, conditionsMeta.SetProvisioning())
-	assert.True(t, conditionsMeta.SetDeployed())
-
+	conditionsMeta := &v1beta1.ConditionsMeta{}
+	statusHandler := statusHandler{}
+	assert.True(t, statusHandler.SetProvisioning(conditionsMeta))
+	assert.True(t, statusHandler.SetDeployed(conditionsMeta))
 	assert.NotEmpty(t, conditionsMeta.Conditions)
-	condition := conditionsMeta.Conditions[0]
 	assert.Equal(t, 2, len(conditionsMeta.Conditions))
+	condition := conditionsMeta.Conditions[0]
 	assert.Equal(t, api.ProvisioningConditionType, condition.Type)
 	assert.Equal(t, corev1.ConditionTrue, condition.Status)
 	assert.True(t, now.Before(&condition.LastTransitionTime))
@@ -92,22 +99,11 @@ func TestSetProvisioningAndThenDeployed(t *testing.T) {
 	assert.True(t, condition.LastTransitionTime.Before(&conditionsMeta.Conditions[1].LastTransitionTime))
 }
 
-func TestBuffer(t *testing.T) {
-	conditionsMeta := ConditionsMeta{}
-	for i := 0; i < maxBufferCondition+2; i++ {
-		conditionsMeta.SetFailed(api.ServiceReconciliationFailure, fmt.Errorf("error %d", i))
-	}
-	size := len(conditionsMeta.Conditions)
-	assert.Equal(t, maxBufferCondition, size)
-	assert.Equal(t, "error 6", conditionsMeta.Conditions[size-1].Message)
-}
-
 func TestSetFailed(t *testing.T) {
-	conditionsMeta := ConditionsMeta{}
 	failureMessage := "Unknown error occurs"
-
-	conditionsMeta.SetFailed(api.ServiceReconciliationFailure, fmt.Errorf(failureMessage))
-
+	conditionsMeta := &v1beta1.ConditionsMeta{}
+	statusHandler := statusHandler{}
+	statusHandler.SetFailed(conditionsMeta, api.ServiceReconciliationFailure, fmt.Errorf(failureMessage))
 	assert.NotEmpty(t, conditionsMeta.Conditions)
 	assert.Equal(t, 1, len(conditionsMeta.Conditions))
 	condition := conditionsMeta.Conditions[0]
