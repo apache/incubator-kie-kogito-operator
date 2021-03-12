@@ -3,6 +3,7 @@
 - [KOGITO-3507](https://issues.redhat.com/browse/KOGITO-3507) - Images should allow an easy way to import an external certificate in jdk/graalvm
 - [KOGITO-4199](https://issues.redhat.com/browse/KOGITO-4199) - Remove provisioning of Infinispan and Kafka instances
 - [KOGITO-4333](https://issues.redhat.com/browse/KOGITO-4333) - Hardening Kogito Operator permissions
+- [KOGITO-4322](https://issues.redhat.com/browse/KOGITO-4322) - Add startup probes
 
 ## Bug Fixes
 - [KOGITO-4469](https://issues.redhat.com/browse/KOGITO-4469) - Conditions should reflect latest evaluated status

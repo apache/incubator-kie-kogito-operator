@@ -27,6 +27,11 @@ type KogitoProbe struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
 	// +optional
 	ReadinessProbe corev1.Probe `json:"readinessProbe,omitempty"`
+
+	// StartupProbe describes how the Kogito container startup probe should work
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
+	// +optional
+	StartupProbe corev1.Probe `json:"startupProbe,omitempty"`
 }
 
 // GetLivenessProbe ...
@@ -47,4 +52,14 @@ func (p *KogitoProbe) GetReadinessProbe() corev1.Probe {
 // SetReadinessProbe ...
 func (p *KogitoProbe) SetReadinessProbe(readinessProbe corev1.Probe) {
 	p.ReadinessProbe = readinessProbe
+}
+
+// GetStartupProbe ...
+func (p *KogitoProbe) GetStartupProbe() corev1.Probe {
+	return p.StartupProbe
+}
+
+// SetStartupProbe ...
+func (p *KogitoProbe) SetStartupProbe(startupProbe corev1.Probe) {
+	p.StartupProbe = startupProbe
 }
