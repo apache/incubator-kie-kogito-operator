@@ -15,7 +15,7 @@ def getDefaultJobParams() {
         git: [
             author: "${GIT_AUTHOR_NAME}",
             branch: "${GIT_BRANCH}",
-            repository: 'kogito-cloud-operator',
+            repository: 'kogito-operator',
             credentials: "${GIT_AUTHOR_CREDENTIALS_ID}",
             token_credentials: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}"
         ]
@@ -120,7 +120,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
         }
 
         environmentVariables {
-            env('REPO_NAME', 'kogito-cloud-operator')
+            env('REPO_NAME', 'kogito-operator')
             env('PROPERTIES_FILE_NAME', 'deployment.properties')
 
             env('OPERATOR_IMAGE_NAME', 'kogito-cloud-operator')
@@ -178,7 +178,7 @@ void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
         }
 
         environmentVariables {
-            env('REPO_NAME', 'kogito-cloud-operator')
+            env('REPO_NAME', 'kogito-operator')
             env('PROPERTIES_FILE_NAME', 'deployment.properties')
 
             env('RELEASE', jobType == KogitoJobType.RELEASE)
