@@ -15,48 +15,55 @@
 package framework
 
 import (
-	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
+	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
 func TestConditionCollection(t *testing.T) {
-	conditions := make([]api.ConditionInterface, 5)
+	var conditions []api.ConditionInterface
 	conditionCollection := NewConditionCollection(conditions)
 	newCondition := v1beta1.Condition{
 		Type:               api.DeployedConditionType,
 		LastTransitionTime: metav1.Now(),
 	}
 	conditions = conditionCollection.AddCondition(newCondition)
-	fmt.Println(conditions)
+	assert.Equal(t, api.DeployedConditionType, conditions[0].GetType())
 
 	newCondition2 := v1beta1.Condition{
 		Type:               api.FailedConditionType,
 		LastTransitionTime: metav1.Now(),
 	}
 	conditions = conditionCollection.AddCondition(newCondition2)
-	fmt.Println(conditions)
+	assert.Equal(t, api.DeployedConditionType, conditions[0].GetType())
+	assert.Equal(t, api.FailedConditionType, conditions[1].GetType())
 
 	newCondition3 := v1beta1.Condition{
 		Type:               api.ProvisioningConditionType,
 		LastTransitionTime: metav1.Now(),
 	}
 	conditions = conditionCollection.AddCondition(newCondition3)
-	fmt.Println(conditions)
+	assert.Equal(t, api.DeployedConditionType, conditions[0].GetType())
+	assert.Equal(t, api.FailedConditionType, conditions[1].GetType())
+	assert.Equal(t, api.ProvisioningConditionType, conditions[2].GetType())
 
 	newCondition4 := v1beta1.Condition{
 		Type:               api.DeployedConditionType,
 		LastTransitionTime: metav1.Now(),
 	}
 	conditions = conditionCollection.AddCondition(newCondition4)
-	fmt.Println(conditions)
+	assert.Equal(t, api.FailedConditionType, conditions[0].GetType())
+	assert.Equal(t, api.ProvisioningConditionType, conditions[1].GetType())
+	assert.Equal(t, api.DeployedConditionType, conditions[2].GetType())
 
 	newCondition5 := v1beta1.Condition{
 		Type:               api.ProvisioningConditionType,
 		LastTransitionTime: metav1.Now(),
 	}
 	conditions = conditionCollection.AddCondition(newCondition5)
-	fmt.Println(conditions)
+	assert.Equal(t, api.FailedConditionType, conditions[0].GetType())
+	assert.Equal(t, api.DeployedConditionType, conditions[1].GetType())
+	assert.Equal(t, api.ProvisioningConditionType, conditions[2].GetType())
 }
