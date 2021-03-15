@@ -256,7 +256,7 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
         environmentVariables {
             env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
 
-            env('REPO_NAME', 'kogito-cloud-operator')
+            env('REPO_NAME', 'kogito-operator')
             env('CONTAINER_ENGINE', 'docker')
             env('CONTAINER_TLS_OPTIONS', '')
             env('MAX_REGISTRY_RETRIES', 3)
@@ -314,7 +314,7 @@ void setupExamplesImagesPromoteJob(String jobFolder, KogitoJobType jobType) {
             env('RELEASE', jobType == KogitoJobType.RELEASE)
             env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
 
-            env('REPO_NAME', 'kogito-cloud-operator')
+            env('REPO_NAME', 'kogito-operator')
             env('CONTAINER_ENGINE', 'podman')
             env('CONTAINER_TLS_OPTIONS', '--tls-verify=false')
             env('MAX_REGISTRY_RETRIES', 3)
