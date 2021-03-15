@@ -30,7 +30,7 @@ type KogitoInfraManager interface {
 	TakeKogitoInfraOwnership(key types.NamespacedName, owner resource.KubernetesResource) error
 	RemoveKogitoInfraOwnership(key types.NamespacedName, owner resource.KubernetesResource) error
 	IsKogitoInfraReady(key types.NamespacedName) (bool, error)
-	GetKogitoInfraConditionReason(key types.NamespacedName) (api.KogitoInfraConditionReason, error)
+	GetKogitoInfraConditionReason(key types.NamespacedName) (string, error)
 }
 
 // KogitoInfraHandler ...
@@ -102,17 +102,17 @@ func (k *kogitoInfraManager) IsKogitoInfraReady(key types.NamespacedName) (bool,
 	if err != nil {
 		return false, err
 	}
-	if infra.GetStatus().GetCondition().GetType() == api.FailureInfraConditionType {
+	if infra.GetStatus().GetCondition().Type == string(api.FailureInfraConditionType) {
 		return false, nil
 	}
 	return true, nil
 }
 
-func (k *kogitoInfraManager) GetKogitoInfraConditionReason(key types.NamespacedName) (api.KogitoInfraConditionReason, error) {
+func (k *kogitoInfraManager) GetKogitoInfraConditionReason(key types.NamespacedName) (string, error) {
 	infra, err := k.MustFetchKogitoInfraInstance(key)
 	if err != nil {
 		return "", err
 	}
 
-	return infra.GetStatus().GetCondition().GetReason(), nil
+	return infra.GetStatus().GetCondition().Reason, nil
 }

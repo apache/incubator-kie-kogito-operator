@@ -118,7 +118,7 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 			InfraProperties: converter.FromPropertiesFlagToStringMap(&i.flags.PropertiesFlag),
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			Condition: v1beta1.KogitoInfraCondition{},
+			Condition: v1.Condition{},
 		},
 	}
 

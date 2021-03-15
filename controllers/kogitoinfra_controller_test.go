@@ -51,7 +51,7 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, kogitoInfra.Status.Condition.Message)
 	// we haven't created the Infinispan server and we are informing our KogitoInfra instance that it will require it :)
-	assert.Equal(t, api.ResourceNotFound, kogitoInfra.Status.Condition.Reason)
+	assert.Equal(t, string(api.ResourceNotFound), kogitoInfra.Status.Condition.Reason)
 }
 
 func Test_Reconcile_KafkaResource(t *testing.T) {

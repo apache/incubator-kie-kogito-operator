@@ -68,7 +68,7 @@ func (r RuntimeProperties) GetEnv() []v1.EnvVar {
 // KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
-	Condition KogitoInfraCondition `json:"condition,omitempty"`
+	Condition metav1.Condition `json:"condition,omitempty"`
 
 	// +optional
 	// Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.
@@ -83,15 +83,13 @@ type KogitoInfraStatus struct {
 }
 
 // GetCondition ...
-func (k *KogitoInfraStatus) GetCondition() api.KogitoInfraConditionInterface {
-	return &k.Condition
+func (k *KogitoInfraStatus) GetCondition() metav1.Condition {
+	return k.Condition
 }
 
 // SetCondition ...
-func (k *KogitoInfraStatus) SetCondition(condition api.KogitoInfraConditionInterface) {
-	if newCondition, ok := condition.(*KogitoInfraCondition); ok {
-		k.Condition = *newCondition
-	}
+func (k *KogitoInfraStatus) SetCondition(condition metav1.Condition) {
+	k.Condition = condition
 }
 
 // GetRuntimeProperties ...
@@ -131,70 +129,6 @@ func (k *KogitoInfraStatus) SetVolumes(infraVolumes []api.KogitoInfraVolumeInter
 		}
 	}
 	k.Volumes = volumes
-}
-
-// KogitoInfraCondition ...
-type KogitoInfraCondition struct {
-	// Type ...
-	Type api.KogitoInfraConditionType `json:"type"`
-	// Status ...
-	Status v1.ConditionStatus `json:"status"`
-	// LastTransitionTime ...
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Message ...
-	Message string `json:"message,omitempty"`
-	// Reason ...
-	Reason api.KogitoInfraConditionReason `json:"reason,omitempty"`
-}
-
-// GetType ...
-func (k *KogitoInfraCondition) GetType() api.KogitoInfraConditionType {
-	return k.Type
-}
-
-// SetType ...
-func (k *KogitoInfraCondition) SetType(infraConditionType api.KogitoInfraConditionType) {
-	k.Type = infraConditionType
-}
-
-// GetStatus ...
-func (k *KogitoInfraCondition) GetStatus() v1.ConditionStatus {
-	return k.Status
-}
-
-// SetStatus ...
-func (k *KogitoInfraCondition) SetStatus(status v1.ConditionStatus) {
-	k.Status = status
-}
-
-// GetLastTransitionTime ...
-func (k *KogitoInfraCondition) GetLastTransitionTime() metav1.Time {
-	return k.LastTransitionTime
-}
-
-// SetLastTransitionTime ...
-func (k *KogitoInfraCondition) SetLastTransitionTime(lastTransitionTime metav1.Time) {
-	k.LastTransitionTime = lastTransitionTime
-}
-
-// GetMessage ...
-func (k *KogitoInfraCondition) GetMessage() string {
-	return k.Message
-}
-
-// SetMessage ...
-func (k *KogitoInfraCondition) SetMessage(message string) {
-	k.Message = message
-}
-
-// GetReason ...
-func (k *KogitoInfraCondition) GetReason() api.KogitoInfraConditionReason {
-	return k.Reason
-}
-
-// SetReason ...
-func (k *KogitoInfraCondition) SetReason(reason api.KogitoInfraConditionReason) {
-	k.Reason = reason
 }
 
 // Resource provide reference infra resource

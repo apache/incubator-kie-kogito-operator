@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
@@ -48,13 +49,17 @@ func TestKogitoInfra_Spec(t *testing.T) {
 }
 
 func TestKogitoInfra_Status(t *testing.T) {
-	instance1 := &KogitoInfra{}
+	instance1 := &KogitoInfra{
+		Status: KogitoInfraStatus{
+			Condition: metav1.Condition{
+				Type:    string(api.SuccessInfraConditionType),
+				Status:  metav1.ConditionTrue,
+				Reason:  string(api.ReconciliationFailure),
+				Message: "Infra success",
+			},
+		},
+	}
 	status := instance1.GetStatus()
-	infraCondition := status.GetCondition()
-	infraCondition.SetType(api.SuccessInfraConditionType)
-	infraCondition.SetStatus(corev1.ConditionTrue)
-	infraCondition.SetReason(api.ReconciliationFailure)
-	infraCondition.SetMessage("Infra success")
 	quarkusRuntimeProperties := RuntimeProperties{
 		AppProps: map[string]string{
 			"key1": "value1",
@@ -107,10 +112,10 @@ func TestKogitoInfra_Status(t *testing.T) {
 	volumes = append(volumes, volume1, volume2)
 	status.SetVolumes(volumes)
 
-	assert.Equal(t, api.SuccessInfraConditionType, status.GetCondition().GetType())
-	assert.Equal(t, corev1.ConditionTrue, status.GetCondition().GetStatus())
-	assert.Equal(t, api.ReconciliationFailure, status.GetCondition().GetReason())
-	assert.Equal(t, "Infra success", status.GetCondition().GetMessage())
+	assert.Equal(t, api.SuccessInfraConditionType, status.GetCondition().Type)
+	assert.Equal(t, corev1.ConditionTrue, status.GetCondition().Status)
+	assert.Equal(t, api.ReconciliationFailure, status.GetCondition().Reason)
+	assert.Equal(t, "Infra success", status.GetCondition().Message)
 	assert.Equal(t, 2, len(status.GetRuntimeProperties()))
 	assert.Equal(t, 2, len(status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()))
 	assert.Equal(t, "value1", status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()["key1"])

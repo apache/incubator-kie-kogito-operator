@@ -21,7 +21,6 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"github.com/kiegroup/kogito-cloud-operator/meta"
 	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
 
@@ -67,10 +66,13 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	assert.Len(t, dataIndex.GetStatus().GetConditions(), 3)
 
 	// Infinispan is not ready :)
-	infraInfinispan.GetStatus().GetCondition().SetMessage("Headaches")
-	infraInfinispan.GetStatus().GetCondition().SetStatus(corev1.ConditionFalse)
-	infraInfinispan.GetStatus().GetCondition().SetReason(api.ResourceNotReady)
-	infraInfinispan.GetStatus().GetCondition().SetType(api.FailureInfraConditionType)
+	infraCondition := v1.Condition{
+		Message: "Headaches",
+		Status:  v1.ConditionFalse,
+		Reason:  string(api.ResourceNotReady),
+		Type:    string(api.FailureInfraConditionType),
+	}
+	infraInfinispan.GetStatus().SetCondition(infraCondition)
 
 	test.AssertCreate(t, cli, infraInfinispan)
 	test.AssertCreate(t, cli, infraKafka)

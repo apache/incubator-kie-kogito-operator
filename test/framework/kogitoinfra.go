@@ -70,7 +70,7 @@ func GetKogitoInfraResourceStub(namespace, name, targetResourceType, targetResou
 			Resource: *infraResource,
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			Condition: v1beta1.KogitoInfraCondition{
+			Condition: v1.Condition{
 				LastTransitionTime: v1.Now(),
 			},
 		},

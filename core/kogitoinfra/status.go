@@ -17,7 +17,6 @@ package kogitoinfra
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
@@ -42,46 +41,55 @@ func NewStatusHandler(context *operator.Context) StatusHandler {
 // updateBaseStatus updates the base status for the KogitoInfra instance
 func (r *statusHandler) UpdateBaseStatus(instance api.KogitoInfraInterface, err *error) {
 	r.Log.Info("Updating Kogito Infra status")
+	updateStatus := false
 	if *err != nil {
 		if reasonForError(*err) == api.ReconciliationFailure {
 			r.Log.Info("Seems that an error occurred, setting", "failure state", *err)
 		}
-		r.setResourceFailed(instance, *err)
+		updateStatus = r.setResourceFailed(instance, *err)
 	} else {
-		r.setResourceSuccess(instance)
+		updateStatus = r.setResourceSuccess(instance)
 		r.Log.Info("Kogito Infra successfully reconciled")
 	}
-	r.Log.Info("Updating kogitoInfra value with new properties.")
-	if resultErr := kubernetes.ResourceC(r.Client).UpdateStatus(instance); resultErr != nil {
-		r.Log.Error(resultErr, "reconciliationError occurs while update kogitoInfra values")
+	if updateStatus {
+		r.Log.Info("Updating kogitoInfra value with new properties.")
+		if resultErr := kubernetes.ResourceC(r.Client).UpdateStatus(instance); resultErr != nil {
+			r.Log.Error(resultErr, "reconciliationError occurs while update kogitoInfra values")
+		}
+		r.Log.Info("Successfully Update Kogito Infra status")
 	}
-	r.Log.Info("Successfully Update Kogito Infra status")
 }
 
 // setResourceFailed sets the instance as failed
-func (r *statusHandler) setResourceFailed(instance api.KogitoInfraInterface, err error) {
+func (r *statusHandler) setResourceFailed(instance api.KogitoInfraInterface, err error) bool {
 	infraCondition := instance.GetStatus().GetCondition()
-	if infraCondition.GetMessage() != err.Error() {
+	if infraCondition.Message != err.Error() {
 		r.Log.Warn("Setting instance Failed", "reason", err.Error())
-		infraCondition.SetType(api.FailureInfraConditionType)
-		infraCondition.SetStatus(corev1.ConditionFalse)
-		infraCondition.SetMessage(err.Error())
-		infraCondition.SetReason(reasonForError(err))
-		infraCondition.SetLastTransitionTime(metav1.Now())
+		infraCondition.Type = string(api.FailureInfraConditionType)
+		infraCondition.Status = metav1.ConditionFalse
+		infraCondition.Message = err.Error()
+		infraCondition.Reason = string(reasonForError(err))
+		infraCondition.LastTransitionTime = metav1.Now()
+		instance.GetStatus().SetCondition(infraCondition)
+		return true
 	}
+	return false
 }
 
 // setResourceSuccess sets the instance as success
-func (r *statusHandler) setResourceSuccess(instance api.KogitoInfraInterface) {
+func (r *statusHandler) setResourceSuccess(instance api.KogitoInfraInterface) bool {
 	infraCondition := instance.GetStatus().GetCondition()
-	if infraCondition.GetType() != api.SuccessInfraConditionType {
-		r.Log.Warn("Setting instance Failed")
-		infraCondition.SetType(api.SuccessInfraConditionType)
-		infraCondition.SetStatus(corev1.ConditionTrue)
-		infraCondition.SetMessage("")
-		infraCondition.SetReason("")
-		infraCondition.SetLastTransitionTime(metav1.Now())
+	if infraCondition.Type != string(api.SuccessInfraConditionType) {
+		r.Log.Warn("Setting instance Successes")
+		infraCondition.Type = string(api.SuccessInfraConditionType)
+		infraCondition.Status = metav1.ConditionTrue
+		infraCondition.Message = ""
+		infraCondition.Reason = ""
+		infraCondition.LastTransitionTime = metav1.Now()
+		instance.GetStatus().SetCondition(infraCondition)
+		return true
 	}
+	return false
 }
 
 // setRuntimeProperties sets the instance status' runtime properties

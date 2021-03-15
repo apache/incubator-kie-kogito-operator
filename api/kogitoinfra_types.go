@@ -80,8 +80,8 @@ type ResourceInterface interface {
 
 // KogitoInfraStatusInterface ...
 type KogitoInfraStatusInterface interface {
-	GetCondition() KogitoInfraConditionInterface
-	SetCondition(condition KogitoInfraConditionInterface)
+	GetCondition() metav1.Condition
+	SetCondition(condition metav1.Condition)
 	GetRuntimeProperties() RuntimePropertiesMap
 	AddRuntimeProperties(runtimeType RuntimeType, runtimeProperties RuntimePropertiesInterface)
 	GetVolumes() []KogitoInfraVolumeInterface
@@ -91,20 +91,6 @@ type KogitoInfraStatusInterface interface {
 // RuntimePropertiesMap defines the map that KogitoInfraStatus
 // will use to link the runtime to their variables.
 type RuntimePropertiesMap map[RuntimeType]RuntimePropertiesInterface
-
-// KogitoInfraConditionInterface ...
-type KogitoInfraConditionInterface interface {
-	GetType() KogitoInfraConditionType
-	SetType(infraConditionType KogitoInfraConditionType)
-	GetStatus() v1.ConditionStatus
-	SetStatus(status v1.ConditionStatus)
-	GetLastTransitionTime() metav1.Time
-	SetLastTransitionTime(lastTransitionTime metav1.Time)
-	GetMessage() string
-	SetMessage(message string)
-	GetReason() KogitoInfraConditionReason
-	SetReason(reason KogitoInfraConditionReason)
-}
 
 // ConfigVolumeSourceInterface ...
 type ConfigVolumeSourceInterface interface {

@@ -402,7 +402,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref com
 				Properties: map[string]spec.Schema{
 					"condition": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraCondition"),
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 						},
 					},
 					"runtimeProperties": {
@@ -441,7 +441,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref com
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraCondition", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.RuntimeProperties"},
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.RuntimeProperties", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
