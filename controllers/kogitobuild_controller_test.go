@@ -114,8 +114,8 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	result = test.AssertReconcileMustNotRequeue(t, &r, instance)
 	test.AssertFetchMustExist(t, cli, instance)
 
-	assert.Len(t, instance.Status.Conditions, 1)
-	assert.Equal(t, api.KogitoBuildRunning, instance.Status.Conditions[0].Type)
+	assert.Len(t, instance.Status.Conditions, 2)
+	assert.Equal(t, string(api.KogitoBuildRunning), instance.Status.Conditions[0].Type)
 }
 
 func TestReconcileKogitoBuildMultiple(t *testing.T) {

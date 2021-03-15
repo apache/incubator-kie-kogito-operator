@@ -108,7 +108,9 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 			EnableMavenDownloadOutput: flags.EnableMavenDownloadOutput,
 		},
 		Status: v1beta1.KogitoBuildStatus{
-			Conditions: []v1beta1.KogitoBuildConditions{},
+			ConditionsMeta: v1beta1.ConditionsMeta{
+				Conditions: []v1.Condition{},
+			},
 		},
 	}
 

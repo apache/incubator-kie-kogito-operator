@@ -80,7 +80,9 @@ func GetKogitoBuildStub(namespace, runtimeType, name string) *v1beta1.KogitoBuil
 			Namespace: namespace,
 		},
 		Status: v1beta1.KogitoBuildStatus{
-			Conditions: []v1beta1.KogitoBuildConditions{},
+			ConditionsMeta: v1beta1.ConditionsMeta{
+				Conditions: []metav1.Condition{},
+			},
 		},
 		Spec: v1beta1.KogitoBuildSpec{
 			Runtime:        api.RuntimeType(runtimeType),

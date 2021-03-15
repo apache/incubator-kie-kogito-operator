@@ -54,22 +54,16 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	buildStatusHandler.HandleStatusChange(instance, err)
 
 	test.AssertFetchMustExist(t, cli, instance)
-	assert.Equal(t, 1, len(instance.Status.Conditions))
-	assert.Equal(t, api.OperatorFailureReason, instance.Status.Conditions[0].Reason)
+	assert.Equal(t, 3, len(instance.Status.Conditions))
+	assert.Equal(t, string(api.KogitoBuildFailure), instance.Status.Conditions[0].Type)
 
 	// ops, same error?
-	buildStatusHandler.HandleStatusChange(instance, err)
+	buildStatusHandler.HandleStatusChange(instance, nil)
 	// start queueing
 	test.AssertFetchMustExist(t, cli, instance)
 	assert.Equal(t, 2, len(instance.Status.Conditions))
-	assert.Equal(t, api.OperatorFailureReason, instance.Status.Conditions[1].Reason)
-
-	// kill that buffer
-	for n := 0; n <= maxConditionsBuffer; n++ {
-		buildStatusHandler.HandleStatusChange(instance, err)
-	}
-	test.AssertFetchMustExist(t, cli, instance)
-	assert.Len(t, instance.Status.Conditions, maxConditionsBuffer)
+	assert.Equal(t, string(api.KogitoBuildRunning), instance.Status.Conditions[0].Type)
+	assert.Equal(t, string(api.KogitoBuildSuccessful), instance.Status.Conditions[1].Type)
 }
 
 func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
@@ -161,9 +155,9 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	buildStatusHandler := NewStatusHandler(context1)
 	buildStatusHandler.HandleStatusChange(instance, err)
 	test.AssertFetchMustExist(t, cli, instance)
-	assert.Len(t, instance.Status.Conditions, 1)
+	assert.Len(t, instance.Status.Conditions, 3)
 	// only the younger
-	assert.Equal(t, api.KogitoBuildFailure, instance.Status.Conditions[0].Type)
+	assert.Equal(t, string(api.KogitoBuildFailure), instance.Status.Conditions[0].Type)
 	assert.Equal(t, builds[len(builds)-1].Name, instance.Status.LatestBuild)
 	assert.Len(t, instance.Status.Builds.Cancelled, 1)
 	assert.Len(t, instance.Status.Builds.New, 1)

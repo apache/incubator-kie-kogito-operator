@@ -16,35 +16,16 @@ package kogitobuild
 
 import (
 	"github.com/kiegroup/kogito-cloud-operator/api"
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-cloud-operator/core/client"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/openshift"
 	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"sort"
 	"strings"
-)
-
-const (
-	// maxConditionsBuffer describes the max count of Conditions in the status field
-	maxConditionsBuffer = 5
-)
-
-var (
-	buildConditionStatus = map[buildv1.BuildPhase]api.KogitoBuildConditionType{
-		buildv1.BuildPhaseError:     api.KogitoBuildFailure,
-		buildv1.BuildPhaseFailed:    api.KogitoBuildFailure,
-		buildv1.BuildPhaseCancelled: api.KogitoBuildFailure,
-		buildv1.BuildPhaseNew:       api.KogitoBuildRunning,
-		buildv1.BuildPhasePending:   api.KogitoBuildRunning,
-		buildv1.BuildPhaseRunning:   api.KogitoBuildRunning,
-		buildv1.BuildPhaseComplete:  api.KogitoBuildSuccessful,
-	}
 )
 
 // StatusHandler ...
@@ -64,48 +45,119 @@ func NewStatusHandler(context *operator.Context) StatusHandler {
 }
 
 func (s *statusHandler) HandleStatusChange(instance api.KogitoBuildInterface, err error) {
-	needUpdate := false
-	sortConditionsByTransitionTime(instance)
+	updateStatus := false
 	if err != nil {
-		needUpdate = true
-		addConditionError(instance, err)
+		updateStatus = s.setFailedCondition(instance.GetStatus(), api.OperatorFailureReason, err.Error())
 	} else {
-		if needUpdate, err = handleConditionTransition(instance, s.Client); err != nil {
+		if updateStatus, err = s.handleConditionTransition(instance, s.Client); err != nil {
 			s.Log.Error(err, "Failed to update build status")
 		}
 	}
-	trimConditions(instance)
-	if needUpdate {
+	if updateStatus {
 		if err = s.updateStatus(instance); err != nil {
 			s.Log.Error(err, "Failed to update KogitoBuild")
 		}
 	}
 }
 
-func sortConditionsByTransitionTime(instance api.KogitoBuildInterface) {
-	sort.SliceStable(instance.GetStatus().GetConditions(), func(i, j int) bool {
-		firstTransitionTime := instance.GetStatus().GetConditions()[i].GetLastTransitionTime()
-		secondTransitionTime := instance.GetStatus().GetConditions()[j].GetLastTransitionTime()
-		return firstTransitionTime.Before(&secondTransitionTime)
-	})
-}
-
-func addConditionError(instance api.KogitoBuildInterface, err error) {
-	if err != nil {
-		instance.GetStatus().AddCondition(v1beta1.KogitoBuildConditions{
-			Type:               api.KogitoBuildFailure,
-			Status:             v1.ConditionFalse,
-			LastTransitionTime: metav1.Now(),
-			Reason:             api.OperatorFailureReason,
-			Message:            err.Error(),
-		})
+// newSuccessfulCondition ...
+func (s *statusHandler) newSuccessfulCondition(status metav1.ConditionStatus) metav1.Condition {
+	return metav1.Condition{
+		Type:               string(api.KogitoBuildSuccessful),
+		Status:             status,
+		LastTransitionTime: metav1.Now(),
 	}
 }
 
-func handleConditionTransition(instance api.KogitoBuildInterface, client *client.Client) (changed bool, err error) {
-	if changed, err = updateBuildsStatus(instance, client); err != nil {
+// newRunningCondition ...
+func (s *statusHandler) newRunningCondition(status metav1.ConditionStatus) metav1.Condition {
+	return metav1.Condition{
+		Type:               string(api.KogitoBuildRunning),
+		Status:             status,
+		LastTransitionTime: metav1.Now(),
+	}
+}
+
+// NewFailedCondition ...
+func (s *statusHandler) newFailedCondition(reason api.KogitoBuildConditionReason, message string) metav1.Condition {
+	return metav1.Condition{
+		Type:               string(api.KogitoBuildFailure),
+		Status:             metav1.ConditionTrue,
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(reason),
+		Message:            message,
+	}
+}
+
+// SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
+func (s *statusHandler) setSuccessful(c api.ConditionMetaInterface, status metav1.ConditionStatus) bool {
+	for _, condition := range c.GetConditions() {
+		if condition.Type == string(api.KogitoBuildSuccessful) {
+			if condition.Status == status {
+				return false
+			}
+			condition.Status = status
+			condition.LastTransitionTime = metav1.Now()
+			return true
+		}
+	}
+	successfulCondition := s.newSuccessfulCondition(status)
+	c.AddCondition(successfulCondition)
+	return true
+}
+
+// SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
+func (s *statusHandler) setRunning(c api.ConditionMetaInterface, status metav1.ConditionStatus) bool {
+	for _, condition := range c.GetConditions() {
+		if condition.Type == string(api.KogitoBuildRunning) {
+			if condition.Status == status {
+				return false
+			}
+			condition.Status = status
+			condition.LastTransitionTime = metav1.Now()
+			return true
+		}
+	}
+	runningCondition := s.newRunningCondition(status)
+	c.AddCondition(runningCondition)
+	return true
+}
+
+// SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
+func (s *statusHandler) setFailed(c api.ConditionMetaInterface, reason api.KogitoBuildConditionReason, message string) bool {
+	for _, condition := range c.GetConditions() {
+		if condition.Type == string(api.KogitoBuildFailure) {
+			if condition.Message != message {
+				condition.Message = message
+				condition.LastTransitionTime = metav1.Now()
+				return true
+			}
+			return false
+		}
+	}
+	failedCondition := s.newFailedCondition(reason, message)
+	c.AddCondition(failedCondition)
+	return true
+}
+
+func (s *statusHandler) removeFailedCondition(c api.ConditionMetaInterface) bool {
+	for i, condition := range c.GetConditions() {
+		if condition.Type == string(api.KogitoBuildFailure) {
+			c.RemoveCondition(i)
+			return true
+		}
+	}
+	return false
+}
+
+func (s *statusHandler) handleConditionTransition(instance api.KogitoBuildInterface, client *client.Client) (updateStatus bool, err error) {
+	changed := false
+	changed, err = updateBuildsStatus(instance, client)
+	if err != nil {
 		return false, err
 	}
+	updateStatus = updateStatus || changed
+
 	builds := &buildv1.BuildList{}
 	err = kubernetes.ResourceC(client).ListWithNamespaceAndLabel(
 		instance.GetNamespace(), builds,
@@ -113,23 +165,25 @@ func handleConditionTransition(instance api.KogitoBuildInterface, client *client
 			framework.LabelAppKey: GetApplicationName(instance),
 			LabelKeyBuildType:     string(instance.GetSpec().GetType())})
 	if err != nil {
-		return changed, err
+		return false, err
 	}
 	if len(builds.Items) > 0 {
 		sort.SliceStable(builds.Items, func(i, j int) bool {
 			return builds.Items[i].CreationTimestamp.After(builds.Items[j].CreationTimestamp.Time)
 		})
-		instance.GetStatus().SetLatestBuild(builds.Items[0].Name)
-		condition := buildConditionStatus[builds.Items[0].Status.Phase]
-		if condition == api.KogitoBuildFailure {
-			return addCondition(instance, condition, api.BuildFailureReason, builds.Items[0].Status.Message), nil
+		latestBuild := builds.Items[0]
+		if latestBuild.Name != instance.GetStatus().GetLatestBuild() {
+			instance.GetStatus().SetLatestBuild(latestBuild.Name)
+			changed = true
 		}
-		return addCondition(instance, condition, "", builds.Items[0].Status.Message), nil
+		updateStatus = updateStatus || changed
+
+		changed = s.addCondition(latestBuild, instance.GetStatus())
+		updateStatus = updateStatus || changed
+		return updateStatus, nil
 	}
-	return addCondition(
-		instance,
-		api.KogitoBuildRunning,
-		"", "") || changed, nil
+	changed = s.setRunningCondition(instance.GetStatus())
+	return updateStatus || changed, nil
 }
 
 func updateBuildsStatus(instance api.KogitoBuildInterface, client *client.Client) (changed bool, err error) {
@@ -149,27 +203,55 @@ func updateBuildsStatus(instance api.KogitoBuildInterface, client *client.Client
 	return false, nil
 }
 
-func addCondition(instance api.KogitoBuildInterface, condition api.KogitoBuildConditionType, reason api.KogitoBuildConditionReason, message string) bool {
-	if len(instance.GetStatus().GetConditions()) == 0 ||
-		instance.GetStatus().GetConditions()[len(instance.GetStatus().GetConditions())-1].GetType() != condition {
-		instance.GetStatus().AddCondition(v1beta1.KogitoBuildConditions{
-			Type:               condition,
-			Status:             v1.ConditionTrue,
-			LastTransitionTime: metav1.Now(),
-			Reason:             reason,
-			Message:            message,
-		})
-		return true
+func (s *statusHandler) addCondition(build buildv1.Build, c api.ConditionMetaInterface) bool {
+	switch build.Status.Phase {
+	case buildv1.BuildPhaseFailed, buildv1.BuildPhaseCancelled:
+		return s.setFailedCondition(c, api.BuildFailureReason, build.Status.Message)
+	case buildv1.BuildPhaseNew, buildv1.BuildPhasePending, buildv1.BuildPhaseRunning:
+		return s.setRunningCondition(c)
+	case buildv1.BuildPhaseComplete:
+		return s.setSuccessfulCondition(c)
 	}
 	return false
 }
 
-func trimConditions(instance api.KogitoBuildInterface) {
-	if len(instance.GetStatus().GetConditions()) > maxConditionsBuffer {
-		low := len(instance.GetStatus().GetConditions()) - maxConditionsBuffer
-		high := len(instance.GetStatus().GetConditions())
-		instance.GetStatus().SetConditions(instance.GetStatus().GetConditions()[low:high])
-	}
+func (s *statusHandler) setFailedCondition(c api.ConditionMetaInterface, reason api.KogitoBuildConditionReason, message string) (updateStatus bool) {
+	changed := false
+	changed = s.setFailed(c, reason, message)
+	updateStatus = updateStatus || changed
+
+	changed = s.setRunning(c, metav1.ConditionFalse)
+	updateStatus = updateStatus || changed
+
+	changed = s.setSuccessful(c, metav1.ConditionFalse)
+	updateStatus = updateStatus || changed
+	return
+}
+
+func (s *statusHandler) setRunningCondition(c api.ConditionMetaInterface) (updateStatus bool) {
+	changed := false
+	changed = s.removeFailedCondition(c)
+	updateStatus = updateStatus || changed
+
+	changed = s.setRunning(c, metav1.ConditionTrue)
+	updateStatus = updateStatus || changed
+
+	changed = s.setSuccessful(c, metav1.ConditionFalse)
+	updateStatus = updateStatus || changed
+	return
+}
+
+func (s *statusHandler) setSuccessfulCondition(c api.ConditionMetaInterface) (updateStatus bool) {
+	changed := false
+	changed = s.removeFailedCondition(c)
+	updateStatus = updateStatus || changed
+
+	changed = s.setRunning(c, metav1.ConditionFalse)
+	updateStatus = updateStatus || changed
+
+	changed = s.setSuccessful(c, metav1.ConditionTrue)
+	updateStatus = updateStatus || changed
+	return
 }
 
 func (s *statusHandler) updateStatus(instance api.KogitoBuildInterface) error {

@@ -273,12 +273,6 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref com
 				Description: "KogitoBuildStatus defines the observed state of KogitoBuild.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"latestBuild": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 					"conditions": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
@@ -286,15 +280,21 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref com
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "History of conditions for the resource, shows the status of the younger builder controlled by this instance",
+							Description: "History of conditions for the resource",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildConditions"),
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 									},
 								},
 							},
+						},
+					},
+					"latestBuild": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"builds": {
@@ -308,7 +308,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref com
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildConditions"},
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 

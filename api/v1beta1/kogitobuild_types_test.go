@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
@@ -88,12 +89,14 @@ func TestKogitoBuildStatus(t *testing.T) {
 	instance := &KogitoBuild{
 		Status: KogitoBuildStatus{
 			LatestBuild: "build1",
-			Conditions: []KogitoBuildConditions{
-				{
-					Type: api.KogitoBuildSuccessful,
-				},
-				{
-					Type: api.KogitoBuildFailure,
+			ConditionsMeta: ConditionsMeta{
+				Conditions: []metav1.Condition{
+					{
+						Type: string(api.KogitoBuildSuccessful),
+					},
+					{
+						Type: string(api.KogitoBuildFailure),
+					},
 				},
 			},
 			Builds: Builds{
@@ -105,25 +108,11 @@ func TestKogitoBuildStatus(t *testing.T) {
 	status := instance.GetStatus()
 	assert.Equal(t, "build1", status.GetLatestBuild())
 	assert.Equal(t, 2, len(status.GetConditions()))
-	assert.Equal(t, api.KogitoBuildSuccessful, status.GetConditions()[0].GetType())
-	assert.Equal(t, api.KogitoBuildFailure, status.GetConditions()[1].GetType())
+	assert.Equal(t, api.KogitoBuildSuccessful, status.GetConditions()[0].Type)
+	assert.Equal(t, api.KogitoBuildFailure, status.GetConditions()[1].Type)
 	assert.Equal(t, 2, len(status.GetBuilds().GetNew()))
 	assert.Equal(t, "new1", status.GetBuilds().GetNew()[0])
 	assert.Equal(t, "new2", status.GetBuilds().GetNew()[1])
-}
-
-func TestKogitoBuild_KogitoBuildCondition(t *testing.T) {
-	buildCondition := KogitoBuildConditions{
-		Type:    api.KogitoBuildSuccessful,
-		Status:  corev1.ConditionTrue,
-		Reason:  api.OperatorFailureReason,
-		Message: "Build success",
-	}
-
-	assert.Equal(t, api.KogitoBuildSuccessful, buildCondition.GetType())
-	assert.Equal(t, corev1.ConditionTrue, buildCondition.GetStatus())
-	assert.Equal(t, api.OperatorFailureReason, buildCondition.GetReason())
-	assert.Equal(t, "Build success", buildCondition.GetMessage())
 }
 
 func TestKogitoBuild_Builds(t *testing.T) {
