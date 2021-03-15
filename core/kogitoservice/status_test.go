@@ -23,6 +23,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
+	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
@@ -43,15 +44,16 @@ func TestReconciliation_ErrorOccur(t *testing.T) {
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
-	assert.Len(t, instance.Status.Conditions, 3)
-	failedCondition := getSpecificCondition(instance.GetStatus(), api.FailedConditionType)
+	conditions := *instance.Status.Conditions
+	assert.Len(t, conditions, 3)
+	failedCondition := getSpecificCondition(conditions, api.FailedConditionType)
 	assert.NotNil(t, failedCondition)
 
-	provisionedCondition := getSpecificCondition(instance.GetStatus(), api.ProvisioningConditionType)
+	provisionedCondition := getSpecificCondition(conditions, api.ProvisioningConditionType)
 	assert.NotNil(t, provisionedCondition)
 	assert.Equal(t, metav1.ConditionFalse, provisionedCondition.Status)
 
-	deployedCondition := getSpecificCondition(instance.GetStatus(), api.DeployedConditionType)
+	deployedCondition := getSpecificCondition(conditions, api.DeployedConditionType)
 	assert.NotNil(t, deployedCondition)
 	assert.Equal(t, metav1.ConditionFalse, deployedCondition.Status)
 }
@@ -72,15 +74,16 @@ func TestReconciliation_RecoverableErrorOccur(t *testing.T) {
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
-	assert.Len(t, instance.Status.Conditions, 3)
-	failedCondition := getSpecificCondition(instance.GetStatus(), api.FailedConditionType)
+	conditions := *instance.Status.Conditions
+	assert.Len(t, conditions, 3)
+	failedCondition := getSpecificCondition(conditions, api.FailedConditionType)
 	assert.NotNil(t, failedCondition)
 
-	provisionedCondition := getSpecificCondition(instance.GetStatus(), api.ProvisioningConditionType)
+	provisionedCondition := getSpecificCondition(conditions, api.ProvisioningConditionType)
 	assert.NotNil(t, provisionedCondition)
 	assert.Equal(t, metav1.ConditionTrue, provisionedCondition.Status)
 
-	deployedCondition := getSpecificCondition(instance.GetStatus(), api.DeployedConditionType)
+	deployedCondition := getSpecificCondition(conditions, api.DeployedConditionType)
 	assert.NotNil(t, deployedCondition)
 	assert.Equal(t, metav1.ConditionFalse, deployedCondition.Status)
 }
@@ -101,13 +104,14 @@ func TestReconciliation(t *testing.T) {
 	_, err = kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
-	assert.Len(t, instance.Status.Conditions, 2)
+	conditions := *instance.Status.Conditions
+	assert.Len(t, conditions, 2)
 
-	provisionedCondition := getSpecificCondition(instance.GetStatus(), api.ProvisioningConditionType)
+	provisionedCondition := getSpecificCondition(conditions, api.ProvisioningConditionType)
 	assert.NotNil(t, provisionedCondition)
 	assert.Equal(t, metav1.ConditionTrue, provisionedCondition.Status)
 
-	deployedCondition := getSpecificCondition(instance.GetStatus(), api.DeployedConditionType)
+	deployedCondition := getSpecificCondition(conditions, api.DeployedConditionType)
 	assert.NotNil(t, deployedCondition)
 	assert.Equal(t, metav1.ConditionFalse, deployedCondition.Status)
 }
@@ -137,22 +141,18 @@ func TestReconciliation_PodAlreadyRunning(t *testing.T) {
 	_, err = kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
-	assert.Len(t, instance.Status.Conditions, 2)
+	conditions := *instance.Status.Conditions
+	assert.Len(t, conditions, 2)
 
-	provisionedCondition := getSpecificCondition(instance.GetStatus(), api.ProvisioningConditionType)
+	provisionedCondition := getSpecificCondition(conditions, api.ProvisioningConditionType)
 	assert.NotNil(t, provisionedCondition)
 	assert.Equal(t, metav1.ConditionFalse, provisionedCondition.Status)
 
-	deployedCondition := getSpecificCondition(instance.GetStatus(), api.DeployedConditionType)
+	deployedCondition := getSpecificCondition(conditions, api.DeployedConditionType)
 	assert.NotNil(t, deployedCondition)
 	assert.Equal(t, metav1.ConditionTrue, deployedCondition.Status)
 }
 
-func getSpecificCondition(c api.ConditionMetaInterface, conditionType api.ConditionType) *metav1.Condition {
-	for _, condition := range c.GetConditions() {
-		if condition.Type == string(conditionType) {
-			return &condition
-		}
-	}
-	return nil
+func getSpecificCondition(conditions []metav1.Condition, conditionType api.KogitoServiceConditionType) *metav1.Condition {
+	return meta2.FindStatusCondition(conditions, string(conditionType))
 }

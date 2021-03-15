@@ -310,7 +310,11 @@ func (k *KogitoBuildSpec) SetEnableMavenDownloadOutput(enableMavenDownloadOutput
 // KogitoBuildStatus defines the observed state of KogitoBuild.
 // +k8s:openapi-gen=true
 type KogitoBuildStatus struct {
-	ConditionsMeta `json:",inline"`
+	// +listType=atomic
+	// History of conditions for the resource
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	Conditions *[]metav1.Condition `json:"conditions"`
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Latest Build"
 	LatestBuild string `json:"latestBuild,omitempty"`
@@ -318,6 +322,16 @@ type KogitoBuildStatus struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Builds"
 	Builds Builds `json:"builds"`
+}
+
+// GetConditions ...
+func (k *KogitoBuildStatus) GetConditions() *[]metav1.Condition {
+	return k.Conditions
+}
+
+// SetConditions ...
+func (k *KogitoBuildStatus) SetConditions(conditions *[]metav1.Condition) {
+	k.Conditions = conditions
 }
 
 // GetLatestBuild ...

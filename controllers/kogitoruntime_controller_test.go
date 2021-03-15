@@ -60,7 +60,7 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
-	assert.Len(t, instance.Status.Conditions, 2)
+	assert.Len(t, *instance.Status.Conditions, 2)
 
 	// svc discovery
 	svc := &corev1.Service{ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
@@ -107,7 +107,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
-	assert.Len(t, instance.Status.Conditions, 2)
+	assert.Len(t, *instance.Status.Conditions, 2)
 
 	// image stream
 	is := imagev1.ImageStream{

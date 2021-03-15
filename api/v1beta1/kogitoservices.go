@@ -19,11 +19,16 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // KogitoServiceStatus is the basic structure for any Kogito Service status.
 type KogitoServiceStatus struct {
-	ConditionsMeta `json:",inline"`
+	// +listType=atomic
+	// History of conditions for the resource
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	Conditions *[]metav1.Condition `json:"conditions"`
 	// General conditions for the Kogito Service deployment.
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Deployment Conditions"
@@ -39,6 +44,16 @@ type KogitoServiceStatus struct {
 	// Describes the CloudEvents that this instance can consume or produce
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	CloudEvents KogitoCloudEventsStatus `json:"cloudEvents,omitempty"`
+}
+
+// GetConditions ...
+func (k *KogitoServiceStatus) GetConditions() *[]metav1.Condition {
+	return k.Conditions
+}
+
+// SetConditions ...
+func (k *KogitoServiceStatus) SetConditions(conditions *[]metav1.Condition) {
+	k.Conditions = conditions
 }
 
 // GetDeploymentConditions gets the deployment conditions for the service.

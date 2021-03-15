@@ -21,6 +21,36 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// KogitoServiceConditionType is the type of condition
+type KogitoServiceConditionType string
+
+const (
+	// DeployedConditionType - The KogitoService is deployed
+	DeployedConditionType KogitoServiceConditionType = "Deployed"
+	// ProvisioningConditionType - The KogitoService is being provisioned
+	ProvisioningConditionType KogitoServiceConditionType = "Provisioning"
+	// FailedConditionType - The KogitoService is in a failed state
+	FailedConditionType KogitoServiceConditionType = "Failed"
+)
+
+// KogitoServiceConditionReason is the type of reason
+type KogitoServiceConditionReason string
+
+const (
+	// CreateResourceFailedReason - Unable to create the requested resources
+	CreateResourceFailedReason KogitoServiceConditionReason = "CreateResourceFailed"
+	// KogitoInfraNotReadyReason - Unable to deploy Kogito Infra
+	KogitoInfraNotReadyReason KogitoServiceConditionReason = "KogitoInfraNotReadyReason"
+	// ServiceReconciliationFailure - Unable to determine the error
+	ServiceReconciliationFailure KogitoServiceConditionReason = "ReconciliationFailure"
+	// MessagingIntegrationFailureReason ...
+	MessagingIntegrationFailureReason KogitoServiceConditionReason = "MessagingProvisionFailure"
+	// MonitoringIntegrationFailureReason ...
+	MonitoringIntegrationFailureReason KogitoServiceConditionReason = "MonitoringIntegrationFailure"
+	// InternalServiceNotReachable ...
+	InternalServiceNotReachable KogitoServiceConditionReason = "InternalServiceNotReachable"
+)
+
 // KogitoService defines the interface for any Kogito service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
 type KogitoService interface {
 	metav1.Object
@@ -72,7 +102,8 @@ type KogitoServiceSpecInterface interface {
 
 // KogitoServiceStatusInterface defines the basic interface for the Kogito Service status.
 type KogitoServiceStatusInterface interface {
-	ConditionMetaInterface
+	GetConditions() *[]metav1.Condition
+	SetConditions(conditions *[]metav1.Condition)
 	GetDeploymentConditions() []appsv1.DeploymentCondition
 	SetDeploymentConditions(deploymentConditions []appsv1.DeploymentCondition)
 	GetImage() string

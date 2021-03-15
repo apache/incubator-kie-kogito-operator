@@ -63,7 +63,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.GetStatus())
-	assert.Len(t, dataIndex.GetStatus().GetConditions(), 3)
+	assert.Len(t, *dataIndex.GetStatus().GetConditions(), 3)
 
 	// Infinispan is not ready :)
 	infraCondition := v1.Condition{
@@ -82,7 +82,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	assert.Equal(t, reconcileAfter, reconciliationIntervalAfterInfraError)
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.GetStatus())
-	assert.Len(t, dataIndex.GetStatus().GetConditions(), 3)
+	assert.Len(t, *dataIndex.GetStatus().GetConditions(), 3)
 }
 
 func Test_serviceDeployer_DataIndex(t *testing.T) {
@@ -153,12 +153,13 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.Equal(t, 2, len(service.GetStatus().GetConditions()))
-	provisioningCondition := getSpecificCondition(service.GetStatus(), api.ProvisioningConditionType)
+	conditions := *service.Status.Conditions
+	assert.Equal(t, 2, len(conditions))
+	provisioningCondition := getSpecificCondition(conditions, api.ProvisioningConditionType)
 	assert.NotNil(t, provisioningCondition)
 	assert.Equal(t, v1.ConditionFalse, provisioningCondition.Status)
 
-	deployedCondition := getSpecificCondition(service.GetStatus(), api.DeployedConditionType)
+	deployedCondition := getSpecificCondition(conditions, api.DeployedConditionType)
 	assert.NotNil(t, deployedCondition)
 	assert.Equal(t, v1.ConditionTrue, deployedCondition.Status)
 

@@ -20,9 +20,9 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 )
 
 // StatusHandler ...
@@ -51,78 +51,67 @@ func (s *statusHandler) HandleStatusUpdate(instance api.KogitoService, err *erro
 }
 
 func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService, errCondition error) (err error) {
-	updateStatus := false
-	changed := false
+	instance.GetStatus().SetConditions(&[]metav1.Condition{})
 	if errCondition != nil {
-		changed = s.setFailed(instance.GetStatus(), reasonForError(errCondition), errCondition)
-		updateStatus = updateStatus || changed
-
-		if isReconciliationError(errCondition) {
-			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionTrue)
-			updateStatus = updateStatus || changed
-		} else {
-			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionFalse)
-			updateStatus = updateStatus || changed
-		}
-
-		availableReplicas, err := s.fetchReadyReplicas(instance)
-		if err != nil {
+		if err = s.setFailedConditions(instance, reasonForError(errCondition), errCondition); err != nil {
 			return err
-		}
-		if availableReplicas > 0 {
-			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionTrue)
-			updateStatus = updateStatus || changed
-		} else {
-			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionFalse)
-			updateStatus = updateStatus || changed
 		}
 	} else {
-		changed = s.removeFailedCondition(instance.GetStatus())
-		updateStatus = updateStatus || changed
-
-		availableReplicas, err := s.fetchReadyReplicas(instance)
-		if err != nil {
+		if err = s.handleConditionTransition(instance); err != nil {
 			return err
 		}
-		expectedReplicas := *instance.GetSpec().GetReplicas()
-		if expectedReplicas == availableReplicas {
-			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionTrue)
-			updateStatus = updateStatus || changed
-			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionFalse)
-			updateStatus = updateStatus || changed
-		} else if availableReplicas > 0 && availableReplicas < expectedReplicas {
-			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionTrue)
-			updateStatus = updateStatus || changed
-			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionTrue)
-			updateStatus = updateStatus || changed
-		} else if availableReplicas == 0 {
-			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionFalse)
-			updateStatus = updateStatus || changed
-			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionTrue)
-			updateStatus = updateStatus || changed
-		}
-
-		if changed, err = s.updateImageStatus(instance); err != nil {
+		if err = s.updateImageStatus(instance); err != nil {
 			return err
 		}
-		updateStatus = changed || updateStatus
-
-		if changed, err = s.updateRouteStatus(instance); err != nil {
+		if err = s.updateRouteStatus(instance); err != nil {
 			return err
 		}
-		updateStatus = changed || updateStatus
-
-		if changed, err = s.updateDeploymentStatus(instance); err != nil {
+		if err = s.updateDeploymentStatus(instance); err != nil {
 			return err
 		}
-		updateStatus = changed || updateStatus
+	}
+	if err := s.updateStatus(instance); err != nil {
+		s.Log.Error(err, "Error while trying to update status")
+		return err
+	}
+	return nil
+}
+
+func (s *statusHandler) setFailedConditions(instance api.KogitoService, reason api.KogitoServiceConditionReason, errCondition error) error {
+	s.setFailed(instance.GetStatus().GetConditions(), reason, errCondition)
+	if isReconciliationError(errCondition) {
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+	} else {
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionFalse)
 	}
 
-	if updateStatus {
-		if err := s.updateStatus(instance); err != nil {
-			s.Log.Error(err, "Error while trying to update status")
-			return err
-		}
+	availableReplicas, err := s.fetchReadyReplicas(instance)
+	if err != nil {
+		return err
+	}
+	if availableReplicas > 0 {
+		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+	} else {
+		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionFalse)
+	}
+	return nil
+}
+
+func (s *statusHandler) handleConditionTransition(instance api.KogitoService) error {
+	availableReplicas, err := s.fetchReadyReplicas(instance)
+	if err != nil {
+		return err
+	}
+	expectedReplicas := *instance.GetSpec().GetReplicas()
+	if expectedReplicas == availableReplicas {
+		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionFalse)
+	} else if availableReplicas > 0 && availableReplicas < expectedReplicas {
+		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+	} else if availableReplicas == 0 {
+		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionFalse)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
 	}
 	return nil
 }
@@ -135,53 +124,43 @@ func (s *statusHandler) updateStatus(instance api.KogitoService) error {
 	return nil
 }
 
-func (s *statusHandler) updateImageStatus(instance api.KogitoService) (bool, error) {
+func (s *statusHandler) updateImageStatus(instance api.KogitoService) error {
 	deploymentHandler := infrastructure.NewDeploymentHandler(s.Context)
 	deployment, err := deploymentHandler.MustFetchDeployment(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err != nil {
-		return false, err
+		return err
 	}
 	if len(deployment.Spec.Template.Spec.Containers) > 0 {
 		image := deployment.Spec.Template.Spec.Containers[0].Image
-		if len(image) > 0 && image != instance.GetStatus().GetImage() {
-			instance.GetStatus().SetImage(deployment.Spec.Template.Spec.Containers[0].Image)
-			return true, nil
-		}
+		instance.GetStatus().SetImage(image)
 	}
-	return false, nil
+	return nil
 }
 
-func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) (update bool, err error) {
+func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) error {
 	deploymentHandler := infrastructure.NewDeploymentHandler(s.Context)
 	deployment, err := deploymentHandler.MustFetchDeployment(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err != nil {
-		return false, err
+		return err
 	}
-
-	if !reflect.DeepEqual(instance.GetStatus().GetDeploymentConditions(), deployment.Status.Conditions) {
-		instance.GetStatus().SetDeploymentConditions(deployment.Status.Conditions)
-		return true, nil
-	}
-	return false, nil
+	instance.GetStatus().SetDeploymentConditions(deployment.Status.Conditions)
+	return nil
 }
 
-func (s *statusHandler) updateRouteStatus(instance api.KogitoService) (bool, error) {
+func (s *statusHandler) updateRouteStatus(instance api.KogitoService) error {
 	if s.Client.IsOpenshift() {
 		routeHandler := infrastructure.NewRouteHandler(s.Context)
 		route, err := routeHandler.GetHostFromRoute(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 		if err != nil {
-			return false, err
+			return err
 		}
 
 		if len(route) > 0 {
 			uri := fmt.Sprintf("http://%s", route)
-			if uri != instance.GetStatus().GetExternalURI() {
-				instance.GetStatus().SetExternalURI(uri)
-				return true, nil
-			}
+			instance.GetStatus().SetExternalURI(uri)
 		}
 	}
-	return false, nil
+	return nil
 }
 
 // NewDeployedCondition ...
@@ -214,69 +193,21 @@ func (s *statusHandler) newFailedCondition(reason api.KogitoServiceConditionReas
 }
 
 // SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
-func (s *statusHandler) setProvisioning(c api.ConditionMetaInterface, status metav1.ConditionStatus) bool {
-	for _, condition := range c.GetConditions() {
-		if condition.Type == string(api.ProvisioningConditionType) {
-			if condition.Status == status {
-				return false
-			}
-			condition.Status = status
-			condition.LastTransitionTime = metav1.Now()
-			return true
-		}
-	}
+func (s *statusHandler) setProvisioning(conditions *[]metav1.Condition, status metav1.ConditionStatus) {
 	provisionCondition := s.newProvisioningCondition(status)
-	c.AddCondition(provisionCondition)
-	return true
+	meta.SetStatusCondition(conditions, provisionCondition)
 }
 
 // SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
-func (s *statusHandler) setDeployed(c api.ConditionMetaInterface, status metav1.ConditionStatus) bool {
-	for _, condition := range c.GetConditions() {
-		if condition.Type == string(api.DeployedConditionType) {
-			if condition.Status == status {
-				return false
-			}
-			condition.Status = status
-			condition.LastTransitionTime = metav1.Now()
-			return true
-		}
-	}
+func (s *statusHandler) setDeployed(conditions *[]metav1.Condition, status metav1.ConditionStatus) {
 	deployedCondition := s.newDeployedCondition(status)
-	c.AddCondition(deployedCondition)
-	return true
+	meta.SetStatusCondition(conditions, deployedCondition)
 }
 
 // SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
-func (s *statusHandler) setFailed(c api.ConditionMetaInterface, reason api.KogitoServiceConditionReason, err error) bool {
-	for _, condition := range c.GetConditions() {
-		if condition.Type == string(api.FailedConditionType) {
-			if s.isFailedConditionChange(condition, reason, err) {
-				condition.Reason = string(reason)
-				condition.Message = err.Error()
-				condition.LastTransitionTime = metav1.Now()
-				return true
-			}
-			return false
-		}
-	}
-	deployedCondition := s.newFailedCondition(reason, err)
-	c.AddCondition(deployedCondition)
-	return true
-}
-
-func (s *statusHandler) removeFailedCondition(c api.ConditionMetaInterface) bool {
-	for i, condition := range c.GetConditions() {
-		if condition.Type == string(api.FailedConditionType) {
-			c.RemoveCondition(i)
-			return true
-		}
-	}
-	return false
-}
-
-func (s *statusHandler) isFailedConditionChange(oldCondition metav1.Condition, reason api.KogitoServiceConditionReason, err error) bool {
-	return !(oldCondition.Reason == string(reason) && oldCondition.Message == err.Error())
+func (s *statusHandler) setFailed(conditions *[]metav1.Condition, reason api.KogitoServiceConditionReason, err error) {
+	failedCondition := s.newFailedCondition(reason, err)
+	meta.SetStatusCondition(conditions, failedCondition)
 }
 
 func (s *statusHandler) fetchReadyReplicas(instance api.KogitoService) (int32, error) {

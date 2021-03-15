@@ -98,7 +98,8 @@ type KogitoBuildSpecInterface interface {
 
 // KogitoBuildStatusInterface ...
 type KogitoBuildStatusInterface interface {
-	ConditionMetaInterface
+	GetConditions() *[]metav1.Condition
+	SetConditions(conditions *[]metav1.Condition)
 	GetLatestBuild() string
 	SetLatestBuild(latestBuild string)
 	GetBuilds() BuildsInterface
