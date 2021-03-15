@@ -1,0 +1,154 @@
+@Library('jenkins-pipeline-shared-libraries')_
+
+helper = null
+
+pipeline {
+    agent {
+        label 'kogito-operator-slave && !master'
+    }
+
+    // Needed for local build
+    tools {
+        jdk 'kie-jdk11'
+    }
+
+    options {
+        timeout(time: 360, unit: 'MINUTES')
+    }
+
+    // parameters {
+    // For parameters, check into .jenkins/dsl/jobs.groovy file
+    // }
+
+    environment {
+        // Static env is defined into .jenkins/dsl/jobs.groovy file
+
+        JAVA_HOME = "${GRAALVM_HOME}"
+    }
+
+    stages {
+        stage('Setup pipeline') {
+            steps {
+                script {
+                    helper = load '.jenkins/scripts/helper.groovy'
+                    helper.initPipeline()
+                }
+            }
+        }
+        stage('Initialize') {
+            steps {
+                script {
+                    helper.updateDisplayName()
+                    helper.checkoutRepo()
+
+                    // Openshift login is needed for the examples generation
+                    openshift.loginOpenshift()
+
+                    helper.loginRegistry()
+                }
+            }
+            post {
+                success {
+                    script {
+                        properties.add('git.branch', helper.getBuildBranch())
+                        properties.add('git.author', helper.getGitAuthor())
+                    }
+                }
+            }
+        }
+
+        stage('Build examples images') {
+            steps {
+                script {
+                    try {
+                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
+                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                        sh "make build-examples-images concurrent=3 operator_namespaced=true ${getExamplesBuildParameters(false)}"
+                    } catch (err) {
+                        unstable("Error building non-native examples' images. Check the junit results.")
+                    }
+
+                    if (!params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS) {
+                        try {
+                            // Optaplanner taking a lot of resources, we should not build in parallel
+                            // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+                            // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                            sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
+                        } catch (err) {
+                            unstable("Error building native examples' images. Check the junit results.")
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                }
+            }
+        }
+
+        stage('Handle built images') {
+            steps {
+                script {
+                    // Retrieve the list of images
+                    images = readFile(file: 'test/logs/built_project_image_names.log').split('\n')
+
+                    if (helper.getImageRegistry() == 'quay.io') {
+                        // Set visible each repo
+                        images.each {
+                            helper.makeQuayImagePublic(helper.getFullImageName(it))
+                        }
+                    }
+
+                    // Store image deployment information
+                    properties.add(helper.getImageRegistryProperty(), helper.getImageRegistry())
+                    properties.add(helper.getImageNamespaceProperty(), helper.getImageNamespace())
+                    properties.add(helper.getImageNamePrefixProperty(), helper.getImageNamePrefix())
+                    properties.add(helper.getImageNameSuffixProperty(), helper.getImageNameSuffix())
+                    properties.add(helper.getImageNamesProperty(), images.join(','))
+                    properties.add(helper.getImageTagProperty(), helper.getImageTag())
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                properties.writeToFile(env.PROPERTIES_FILE_NAME)
+                archiveArtifacts(artifacts: env.PROPERTIES_FILE_NAME)
+            }
+        }
+        cleanup {
+            script {
+                util.cleanNode(containerEngine)
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+// BDD parameters
+////////////////////////////////////////////////////////////////////////
+
+String getExamplesBuildParameters(boolean nativeTag = false) {
+    Map testParamsMap = helper.getBDDCommonParameters(true)
+
+    testParamsMap['image_cache_mode'] = 'never'
+    testParamsMap.putAll(helper.getBDDRuntimeImageParameters())
+    
+    // May be used by the features ...
+    testParamsMap.putAll(helper.getBDDBuildImageParameters('KOGITO_IMAGES'))
+    testParamsMap.putAll(helper.getBDDServicesImageParameters('KOGITO_IMAGES'))
+
+    def tags = nativeTag ? [ helper.getNativeTag() ] : [ helper.getNonNativeTag() ]
+    if (params.BDD_TEST_TAGS) {
+        tags.add(params.BDD_TEST_TAGS)
+    }
+    testParamsMap['tags'] = tags.join('&&')
+
+    String testParams = testParamsMap.findAll { entry -> entry.getValue() }
+                            .collect { entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
+    echo "Example Build parameters = ${testParams}"
+    return testParams
+}

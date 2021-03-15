@@ -1,7 +1,5 @@
 @Library('jenkins-pipeline-shared-libraries')_
 
-IMAGES = ['kogito-cloud-operator']
-
 helper = null
 
 pipeline {
@@ -46,8 +44,6 @@ pipeline {
 
                         assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
                     }
-
-                    helper.installGitHubReleaseCLI()
                 }
             }
         }
@@ -56,7 +52,7 @@ pipeline {
                 script {
                     helper.loginRegistry(baseImageParamsPrefix)
 
-                    for (String imageName : IMAGES) {
+                    for (String imageName : getImages()) {
                         container.pullImage(helper.getImageFullTag(imageName, baseImageParamsPrefix))
                     }
                 }
@@ -65,10 +61,14 @@ pipeline {
         stage('Tag images') {
             steps {
                 script {
-                    for (String imageName : IMAGES) {
+                    for (String imageName : getImages()) {
                         container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix))
                         if (helper.isDeployLatestTag()) {
                             container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
+                        }
+                        String reducedTag = getPromoteReducedTag()
+                        if (reducedTag) {
+                            container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
                         }
                     }
                 }
@@ -79,37 +79,18 @@ pipeline {
                 script {
                     helper.loginRegistry(promoteImageParamsPrefix)
 
-                    for (String imageName : IMAGES) {
+                    for (String imageName : getImages()) {
                         container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix))
                         if (helper.isDeployLatestTag()) {
                             container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
                         }
-
-                        if (helper.getImageRegistry() == 'quay.io') {
-                            helper.makeQuayImagePublic(helper.getFullImageName(imageName))
-                        }
-                    }
-                }
-            }
-        }
-        stage('Merge PR, tag and release CLI') {
-            when {
-                expression { return helper.isRelease() }
-            }
-            steps {
-                script {
-                    dir(helper.getRepoName()) {
-                        helper.checkoutRepo()
-
-                        // Merge PR
-                        String prLink = properties.retrieve("${getRepoName()}.pr.link")
-                        if (prLink) {
-                            githubscm.mergePR(prLink, helper.getGitAuthorCredsID())
-                            githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorCredsID())
+                        String reducedTag = getPromoteReducedTag()
+                        if (reducedTag) {
+                            container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
                         }
 
-                        if (helper.isRelease() && helper.getGitTag()) {
-                            helper.releaseCLI()
+                        if (helper.getImageRegistry(promoteImageParamsPrefix) == 'quay.io') {
+                            helper.makeQuayImagePublic(helper.getFullImageName(imageName), promoteImageParamsPrefix)
                         }
                     }
                 }
@@ -123,4 +104,19 @@ pipeline {
             }
         }
     }
+}
+
+List getImages() {
+    return helper.getImageNames(baseImageParamsPrefix)
+}
+
+String getPromoteReducedTag() {
+    String tag = helper.getImageTag(promoteImageParamsPrefix)
+    try {
+        String[] versionSplit = tag.split('\\.')
+        return "${versionSplit[0]}.${versionSplit[1]}"
+    } catch (error) {
+        echo "${tag} cannot be reduced to the format X.Y"
+    }
+    return ''
 }
