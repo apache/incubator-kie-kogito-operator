@@ -15,11 +15,12 @@
 package converter
 
 import (
+	"os"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 func Test_FromArgsToNative_NotBinaryBuild(t *testing.T) {
@@ -28,7 +29,21 @@ func Test_FromArgsToNative_NotBinaryBuild(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_FromArgsToNative_BinaryBuild_NotNative(t *testing.T) {
+func Test_FromArgsToNative_BinaryBuild_FastJar_NotNative(t *testing.T) {
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
+	defer os.RemoveAll(tmpDir)
+
+	// test correct use case of no native flag, returns false
+	native, err := FromArgsToNative(false, flag.LocalBinaryDirectoryResource, tmpDir)
+	assert.False(t, native)
+	assert.Nil(t, err)
+
+	// test incorrect use case of native flag, returns error
+	_, err = FromArgsToNative(true, flag.LocalBinaryDirectoryResource, tmpDir)
+	assert.Error(t, err)
+}
+
+func Test_FromArgsToNative_BinaryBuild_Legacy_NotNative(t *testing.T) {
 	tmpDir := test.TempDirWithFile("target", "*-runner.jar")
 	defer os.RemoveAll(tmpDir)
 

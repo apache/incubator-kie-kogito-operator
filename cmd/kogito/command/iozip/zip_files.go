@@ -19,23 +19,34 @@ import (
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
 )
 
 const pomFile = "pom.xml"
 
 var supportedExtensions = map[flag.BinaryBuildType][]string{
-	flag.SourceToImageBuild:       {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties", ".sw.json", ".sw.yaml"},
-	flag.BinaryQuarkusJvmBuild:    {".jar", ".json"},
-	flag.BinarySpringBootJvmBuild: {".jar", ".json"},
-	flag.BinaryQuarkusNativeBuild: {"-runner", ".json"},
+	flag.SourceToImageBuild:             {".dmn", ".drl", ".bpmn", ".bpmn2", ".properties", ".sw.json", ".sw.yaml"},
+	flag.BinaryQuarkusLegacyJarJvmBuild: {".jar", ".json"},
+	flag.BinaryQuarkusFastJarJvmBuild:   {".jar", ".json", "dat"},
+	flag.BinarySpringBootJvmBuild:       {".jar", ".json"},
+	flag.BinaryQuarkusNativeBuild:       {"-runner", ".json"},
+}
+
+var binaryAddedFolders = map[flag.BinaryBuildType][]string{
+	flag.SourceToImageBuild:             {},
+	flag.BinaryQuarkusLegacyJarJvmBuild: {"lib/"},
+	flag.BinaryQuarkusFastJarJvmBuild:   {"quarkus-app/", "quarkus-app/lib/", "quarkus-app/lib/main/", "quarkus-app/lib/boot/", "quarkus-app/app/", "quarkus-app/quarkus/"},
+	flag.BinarySpringBootJvmBuild:       {},
+	flag.BinaryQuarkusNativeBuild:       {},
 }
 
 func zipFile(absoluteFilePath string, fileInfo os.FileInfo, resource string, binaryBuildType flag.BinaryBuildType, tarWriter *tar.Writer) (string, error) {
@@ -184,10 +195,11 @@ func CompressAsTGZ(resource string, binaryBuildType flag.BinaryBuildType) (io.Re
 		filesFound, err = zipFilesInDir(resource, resource, binaryBuildType, tarWriter)
 	}
 	// look in lib dir as well for Quarkus JVM builds
-	if binaryBuildType == flag.BinaryQuarkusJvmBuild {
-		var libFilesFound []string
-		libFilesFound, err = zipFilesInDir(resource+"lib/", resource, binaryBuildType, tarWriter)
-		filesFound = append(filesFound, libFilesFound...)
+	for _, addedFolder := range binaryAddedFolders[binaryBuildType] {
+		log.Infof("Copying added folder %s", addedFolder)
+		var addedFolderFilesFound []string
+		addedFolderFilesFound, err = zipFilesInDir(fmt.Sprintf("%s%s", resource, addedFolder), resource, binaryBuildType, tarWriter)
+		filesFound = append(filesFound, addedFolderFilesFound...)
 	}
 
 	if err != nil {

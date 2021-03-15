@@ -55,12 +55,12 @@ Feature: Kogito Service Performance
   @persistence
   @infinispan
   Scenario Outline: Quarkus Kogito Service Performance with Maven profile <profile>, with persistence and with requests <requests>
-    Given Kogito Operator is deployed with Infinispan operator
+    Given Kogito Operator is deployed
+    And Infinispan Operator is deployed
     And Infinispan instance "external-infinispan" is deployed for performance within 5 minute(s) with configuration:
       | username | developer |
       | password | mypass    |
-    And Install Infinispan Kogito Infra "external-infinispan" within 5 minutes with configuration:
-      | resource | name | external-infinispan |
+    And Install Infinispan Kogito Infra "external-infinispan" targeting service "external-infinispan" within 5 minutes
     And Clone Kogito examples into local directory
     And Local example service "process-quarkus-example" is built by Maven using profile "<profile>" and deployed to runtime registry
     And Deploy quarkus example service "process-quarkus-example" from runtime registry with configuration:
@@ -140,12 +140,12 @@ Feature: Kogito Service Performance
   @persistence
   @infinispan
   Scenario Outline: Spring Boot Kogito Service Performance with persistence and with requests <requests>
-    Given Kogito Operator is deployed with Infinispan operator
+    Given Kogito Operator is deployed
+    And Infinispan Operator is deployed
     And Infinispan instance "external-infinispan" is deployed for performance within 5 minute(s) with configuration:
       | username | developer |
       | password | mypass    |
-    And Install Infinispan Kogito Infra "external-infinispan" within 5 minutes with configuration:
-      | resource | name | external-infinispan |
+    And Install Infinispan Kogito Infra "external-infinispan" targeting service "external-infinispan" within 5 minutes
     And Clone Kogito examples into local directory
     And Local example service "process-springboot-example" is built by Maven using profile "default" and deployed to runtime registry
     And Deploy springboot example service "process-springboot-example" from runtime registry with configuration:

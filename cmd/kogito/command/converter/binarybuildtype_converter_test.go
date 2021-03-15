@@ -15,9 +15,10 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api"
 	"reflect"
 	"testing"
+
+	"github.com/kiegroup/kogito-cloud-operator/api"
 
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 )
@@ -27,20 +28,22 @@ func TestFromArgsToBinaryBuildType(t *testing.T) {
 		resourceType flag.ResourceType
 		runtime      api.RuntimeType
 		native       bool
+		legacy       bool
 	}
 	tests := []struct {
 		name string
 		args args
 		want flag.BinaryBuildType
 	}{
-		{"Spring Boot JVM binary build", args{flag.LocalBinaryDirectoryResource, api.SpringBootRuntimeType, false}, flag.BinarySpringBootJvmBuild},
-		{"Quarkus native binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, true}, flag.BinaryQuarkusNativeBuild},
-		{"Quarkus JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false}, flag.BinaryQuarkusJvmBuild},
-		{"s2i build", args{flag.GitFileResource, api.QuarkusRuntimeType, true}, flag.SourceToImageBuild},
+		{"Spring Boot JVM binary build", args{flag.LocalBinaryDirectoryResource, api.SpringBootRuntimeType, false, false}, flag.BinarySpringBootJvmBuild},
+		{"Quarkus native binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, true, false}, flag.BinaryQuarkusNativeBuild},
+		{"Quarkus Fast JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false, false}, flag.BinaryQuarkusFastJarJvmBuild},
+		{"Quarkus Legacy JVM binary build", args{flag.LocalBinaryDirectoryResource, api.QuarkusRuntimeType, false, true}, flag.BinaryQuarkusLegacyJarJvmBuild},
+		{"s2i build", args{flag.GitFileResource, api.QuarkusRuntimeType, true, false}, flag.SourceToImageBuild},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := FromArgsToBinaryBuildType(tt.args.resourceType, tt.args.runtime, tt.args.native); !reflect.DeepEqual(got, tt.want) {
+			if got := FromArgsToBinaryBuildType(tt.args.resourceType, tt.args.runtime, tt.args.native, tt.args.legacy); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("FromArgsToBinaryBuildType() = %v, want %v", got, tt.want)
 			}
 		})

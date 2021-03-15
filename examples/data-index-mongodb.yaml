@@ -1,4 +1,7 @@
-#Strimzi operator should be pre-installed in namespace
+# Strimzi operator should be pre-installed in namespace
+# And have installed a Kafka cluster named "kogito-kafka" in the same namespace of the Kogito resources
+# Follow these instructions to setup the Kafka cluster:
+# https://strimzi.io/docs/operators/master/quickstart.html
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoInfra
 metadata:
@@ -7,6 +10,7 @@ spec:
   resource:
     apiVersion: kafka.strimzi.io/v1beta1
     kind: Kafka
+    name: kogito-kafka
 ---
 # Mongodb kubernetes operator and MongoDB instance should be pre-installed in namespace
 # See https://github.com/mongodb/mongodb-kubernetes-operator

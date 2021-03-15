@@ -90,7 +90,7 @@ func (i *useProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 
 		log.Infof(message.ProjectSet, i.flags.project)
 
-		return handleServicesInstallation(&i.flags, i.Client)
+		return nil
 	}
 
 	return fmt.Errorf(message.ProjectNotFound, i.flags.project, i.flags.project)

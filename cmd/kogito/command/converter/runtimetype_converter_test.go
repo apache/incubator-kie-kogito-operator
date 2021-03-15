@@ -15,12 +15,13 @@
 package converter
 
 import (
+	"os"
+	"testing"
+
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"testing"
 )
 
 func Test_FromRuntimeFlagsToRuntimeType_SpringBoot(t *testing.T) {
@@ -64,7 +65,20 @@ func Test_FromArgsToRuntime_BinaryBuild_SpringBoot(t *testing.T) {
 	assert.Equal(t, api.SpringBootRuntimeType, runtimeType)
 }
 
-func Test_FromArgsToRuntime_BinaryBuild_Quarkus(t *testing.T) {
+func Test_FromArgsToRuntime_BinaryBuild_QuarkusFastJar(t *testing.T) {
+	flags := &flag.RuntimeTypeFlags{
+		Runtime: "quarkus",
+	}
+
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
+	defer os.RemoveAll(tmpDir)
+
+	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
+	assert.Nil(t, err)
+	assert.Equal(t, api.QuarkusRuntimeType, runtimeType)
+}
+
+func Test_FromArgsToRuntime_BinaryBuild_QuarkusLegacyJar(t *testing.T) {
 	flags := &flag.RuntimeTypeFlags{
 		Runtime: "quarkus",
 	}
@@ -88,4 +102,40 @@ func Test_FromArgsToRuntime_BinaryBuild_QuarkusNative(t *testing.T) {
 	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
 	assert.Nil(t, err)
 	assert.Equal(t, api.QuarkusRuntimeType, runtimeType)
+}
+
+func Test_ToQuarkusLegacyJarType_WithFastJar(t *testing.T) {
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
+	defer os.RemoveAll(tmpDir)
+
+	legacy, err := ToQuarkusLegacyJarType(flag.LocalBinaryDirectoryResource, tmpDir)
+	assert.Nil(t, err)
+	assert.False(t, legacy)
+}
+
+func Test_ToQuarkusLegacyJarType_WithLegacyJar(t *testing.T) {
+	tmpDir := test.TempDirWithFile("target", "*-runner.jar")
+	defer os.RemoveAll(tmpDir)
+
+	legacy, err := ToQuarkusLegacyJarType(flag.LocalBinaryDirectoryResource, tmpDir)
+	assert.Nil(t, err)
+	assert.True(t, legacy)
+}
+
+func Test_ToQuarkusLegacyJarType_WithNative(t *testing.T) {
+	tmpDir := test.TempDirWithFile("target", "*-runner")
+	defer os.RemoveAll(tmpDir)
+
+	legacy, err := ToQuarkusLegacyJarType(flag.LocalBinaryDirectoryResource, tmpDir)
+	assert.Nil(t, err)
+	assert.False(t, legacy)
+}
+
+func Test_ToQuarkusLegacyJarType_NotBinaryBuild(t *testing.T) {
+	tmpDir := test.TempDirWithFile("target", "*-runner.jar")
+	defer os.RemoveAll(tmpDir)
+
+	legacy, err := ToQuarkusLegacyJarType(flag.LocalFileResource, tmpDir)
+	assert.Nil(t, err)
+	assert.False(t, legacy)
 }
