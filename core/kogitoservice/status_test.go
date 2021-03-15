@@ -17,98 +17,76 @@ package kogitoservice
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/api"
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"testing"
-	"time"
-
+	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-cloud-operator/meta"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
-func TestSetDeployed(t *testing.T) {
-	now := metav1.Now()
-	conditionsMeta := &v1beta1.ConditionsMeta{}
-	statusHandler := statusHandler{}
-	status := statusHandler.SetDeployed(conditionsMeta)
-	assert.True(t, status)
+func TestReconciliationErrorOccurs_Error(t *testing.T) {
+	instance := test.CreateFakeDataIndex(t.Name())
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	statusHandler := NewStatusHandler(context)
+	reconciliationError := fmt.Errorf("test error")
+	statusHandler.HandleStatusUpdate(instance, &reconciliationError)
+	assert.NotNil(t, instance)
 
-	assert.NotEmpty(t, conditionsMeta)
-	assert.Equal(t, api.DeployedConditionType, conditionsMeta.Conditions[0].Type)
-	assert.Equal(t, corev1.ConditionTrue, conditionsMeta.Conditions[0].Status)
-	assert.True(t, now.Before(&conditionsMeta.Conditions[0].LastTransitionTime))
+	_, err := kubernetes.ResourceC(cli).Fetch(instance)
+	assert.NoError(t, err)
+	assert.NotNil(t, instance.Status)
+	assert.Len(t, instance.Status.Conditions, 3)
+	failedCondition := getSpecificCondition(instance.GetStatus(), api.FailedConditionType)
+	assert.NotNil(t, failedCondition)
+
+	provisionedCondition := getSpecificCondition(instance.GetStatus(), api.ProvisioningConditionType)
+	assert.NotNil(t, provisionedCondition)
+	assert.Equal(t, metav1.ConditionFalse, provisionedCondition.Status)
+
+	deployedCondition := getSpecificCondition(instance.GetStatus(), api.DeployedConditionType)
+	assert.NotNil(t, deployedCondition)
+	assert.Equal(t, metav1.ConditionFalse, deployedCondition.Status)
 }
 
-func TestSetDeployedSkipUpdate(t *testing.T) {
-	conditionsMeta := &v1beta1.ConditionsMeta{}
-	statusHandler := statusHandler{}
-	status := statusHandler.SetDeployed(conditionsMeta)
-	assert.True(t, status)
+func TestReconciliation(t *testing.T) {
+	instance := test.CreateFakeDataIndex(t.Name())
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	statusHandler := NewStatusHandler(context)
+	var err error = nil
+	statusHandler.HandleStatusUpdate(instance, &err)
+	assert.NotNil(t, instance)
 
-	// trying to set same deployed status again
-	status = statusHandler.SetDeployed(conditionsMeta)
-	assert.False(t, status)
+	_, err = kubernetes.ResourceC(cli).Fetch(instance)
+	assert.NoError(t, err)
+	assert.NotNil(t, instance.Status)
+	assert.Len(t, instance.Status.Conditions, 2)
 
-	assert.Equal(t, 1, len(conditionsMeta.Conditions))
-	assert.Equal(t, api.DeployedConditionType, conditionsMeta.Conditions[0].Type)
+	provisionedCondition := getSpecificCondition(instance.GetStatus(), api.ProvisioningConditionType)
+	assert.NotNil(t, provisionedCondition)
+	assert.Equal(t, metav1.ConditionTrue, provisionedCondition.Status)
+
+	deployedCondition := getSpecificCondition(instance.GetStatus(), api.DeployedConditionType)
+	assert.NotNil(t, deployedCondition)
+	assert.Equal(t, metav1.ConditionFalse, deployedCondition.Status)
 }
 
-func TestSetProvisioning(t *testing.T) {
-	now := metav1.Now()
-	conditionsMeta := &v1beta1.ConditionsMeta{}
-	statusHandler := statusHandler{}
-	status := statusHandler.SetProvisioning(conditionsMeta)
-	assert.True(t, status)
-	assert.NotEmpty(t, conditionsMeta.Conditions)
-	assert.Equal(t, api.ProvisioningConditionType, conditionsMeta.Conditions[0].Type)
-	assert.Equal(t, corev1.ConditionTrue, conditionsMeta.Conditions[0].Status)
-	assert.True(t, now.Before(&conditionsMeta.Conditions[0].LastTransitionTime))
-}
-
-func TestSetProvisioningSkipUpdate(t *testing.T) {
-	conditionsMeta := &v1beta1.ConditionsMeta{}
-	statusHandler := statusHandler{}
-	status := statusHandler.SetProvisioning(conditionsMeta)
-	assert.True(t, status)
-
-	// trying to set same deployed status again
-	status = statusHandler.SetProvisioning(conditionsMeta)
-	assert.False(t, status)
-
-	assert.Equal(t, 1, len(conditionsMeta.Conditions))
-	assert.Equal(t, api.ProvisioningConditionType, conditionsMeta.Conditions[0].Type)
-}
-
-func TestSetProvisioningAndThenDeployed(t *testing.T) {
-	now := metav1.Now()
-	// we set a sleep to not conflict the time
-	time.Sleep(1 * time.Second)
-	conditionsMeta := &v1beta1.ConditionsMeta{}
-	statusHandler := statusHandler{}
-	assert.True(t, statusHandler.SetProvisioning(conditionsMeta))
-	assert.True(t, statusHandler.SetDeployed(conditionsMeta))
-	assert.NotEmpty(t, conditionsMeta.Conditions)
-	assert.Equal(t, 2, len(conditionsMeta.Conditions))
-	condition := conditionsMeta.Conditions[0]
-	assert.Equal(t, api.ProvisioningConditionType, condition.Type)
-	assert.Equal(t, corev1.ConditionTrue, condition.Status)
-	assert.True(t, now.Before(&condition.LastTransitionTime))
-
-	assert.Equal(t, api.DeployedConditionType, conditionsMeta.Conditions[1].Type)
-	assert.Equal(t, corev1.ConditionTrue, conditionsMeta.Conditions[1].Status)
-	assert.True(t, condition.LastTransitionTime.Before(&conditionsMeta.Conditions[1].LastTransitionTime))
-}
-
-func TestSetFailed(t *testing.T) {
-	failureMessage := "Unknown error occurs"
-	conditionsMeta := &v1beta1.ConditionsMeta{}
-	statusHandler := statusHandler{}
-	statusHandler.SetFailed(conditionsMeta, api.ServiceReconciliationFailure, fmt.Errorf(failureMessage))
-	assert.NotEmpty(t, conditionsMeta.Conditions)
-	assert.Equal(t, 1, len(conditionsMeta.Conditions))
-	condition := conditionsMeta.Conditions[0]
-	assert.Equal(t, api.FailedConditionType, condition.Type)
-	assert.Equal(t, corev1.ConditionFalse, condition.Status)
-	assert.Equal(t, api.ServiceReconciliationFailure, condition.Reason)
-	assert.Equal(t, failureMessage, condition.Message)
+func getSpecificCondition(c api.ConditionMetaInterface, conditionType api.ConditionType) *metav1.Condition {
+	for _, condition := range c.GetConditions() {
+		if condition.Type == string(conditionType) {
+			return &condition
+		}
+	}
+	return nil
 }

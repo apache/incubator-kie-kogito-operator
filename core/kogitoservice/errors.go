@@ -96,6 +96,14 @@ func reasonForError(err error) api.KogitoServiceConditionReason {
 	return api.ServiceReconciliationFailure
 }
 
+func isReconciliationError(err error) bool {
+	switch err.(type) {
+	case reconciliationError:
+		return true
+	}
+	return false
+}
+
 func reconciliationIntervalForError(err error) time.Duration {
 	switch t := err.(type) {
 	case reconciliationError:

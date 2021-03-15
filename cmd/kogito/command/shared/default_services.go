@@ -23,7 +23,7 @@ import (
 )
 
 var defaultReplicas = int32(1)
-var defaultServiceStatus = v1beta1.KogitoServiceStatus{ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}}}
+var defaultServiceStatus = v1beta1.KogitoServiceStatus{ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []metav1.Condition{}}}
 
 // GetDefaultDataIndex gets the default Data Index instance
 func GetDefaultDataIndex(namespace string) v1beta1.KogitoSupportingService {

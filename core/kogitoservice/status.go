@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-cloud-operator/api"
 	"github.com/kiegroup/kogito-cloud-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-cloud-operator/core/framework"
 	"github.com/kiegroup/kogito-cloud-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-cloud-operator/core/operator"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 )
@@ -51,35 +51,71 @@ func (s *statusHandler) HandleStatusUpdate(instance api.KogitoService, err *erro
 }
 
 func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService, errCondition error) (err error) {
+	updateStatus := false
+	changed := false
 	if errCondition != nil {
-		s.SetFailed(instance.GetStatus(), reasonForError(errCondition), errCondition)
-		if err := s.updateStatus(instance); err != nil {
-			s.Log.Error(err, "Error while trying to set condition to error")
+		changed = s.setFailed(instance.GetStatus(), reasonForError(errCondition), errCondition)
+		updateStatus = updateStatus || changed
+
+		if isReconciliationError(errCondition) {
+			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionTrue)
+			updateStatus = updateStatus || changed
+		} else {
+			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionFalse)
+			updateStatus = updateStatus || changed
+		}
+
+		availableReplicas, err := s.fetchReadyReplicas(instance)
+		if err != nil {
 			return err
 		}
-		// don't need to update anything else or we break the error state
-		return nil
-	}
-	var readyReplicas int32
-	changed := false
-	updateStatus, err := s.updateImageStatus(instance)
-	if err != nil {
-		return err
-	}
-	if changed, readyReplicas, err = s.updateDeploymentStatus(instance); err != nil {
-		return err
-	}
-	updateStatus = changed || updateStatus
-
-	if changed, err = s.updateRouteStatus(instance); err != nil {
-		return err
-	}
-	updateStatus = changed || updateStatus
-
-	if readyReplicas == *instance.GetSpec().GetReplicas() && readyReplicas > 0 {
-		updateStatus = s.SetDeployed(instance.GetStatus()) || updateStatus
+		if availableReplicas > 0 {
+			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionTrue)
+			updateStatus = updateStatus || changed
+		} else {
+			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionFalse)
+			updateStatus = updateStatus || changed
+		}
 	} else {
-		updateStatus = s.SetProvisioning(instance.GetStatus()) || updateStatus
+		changed = s.removeFailedCondition(instance.GetStatus())
+		updateStatus = updateStatus || changed
+
+		availableReplicas, err := s.fetchReadyReplicas(instance)
+		if err != nil {
+			return err
+		}
+		expectedReplicas := *instance.GetSpec().GetReplicas()
+		if expectedReplicas == availableReplicas {
+			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionTrue)
+			updateStatus = updateStatus || changed
+			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionFalse)
+			updateStatus = updateStatus || changed
+		} else if availableReplicas > 0 && availableReplicas < expectedReplicas {
+			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionTrue)
+			updateStatus = updateStatus || changed
+			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionTrue)
+			updateStatus = updateStatus || changed
+		} else if availableReplicas == 0 {
+			changed = s.setDeployed(instance.GetStatus(), metav1.ConditionFalse)
+			updateStatus = updateStatus || changed
+			changed = s.setProvisioning(instance.GetStatus(), metav1.ConditionTrue)
+			updateStatus = updateStatus || changed
+		}
+
+		if changed, err = s.updateImageStatus(instance); err != nil {
+			return err
+		}
+		updateStatus = changed || updateStatus
+
+		if changed, err = s.updateRouteStatus(instance); err != nil {
+			return err
+		}
+		updateStatus = changed || updateStatus
+
+		if changed, err = s.updateDeploymentStatus(instance); err != nil {
+			return err
+		}
+		updateStatus = changed || updateStatus
 	}
 
 	if updateStatus {
@@ -92,11 +128,6 @@ func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService,
 }
 
 func (s *statusHandler) updateStatus(instance api.KogitoService) error {
-	// Sanity check since the Status CR needs a reference for the object
-	if instance.GetStatus() != nil && instance.GetStatus().GetConditions() == nil {
-		conditions := make([]api.ConditionInterface, 1)
-		instance.GetStatus().SetConditions(conditions)
-	}
 	err := kubernetes.ResourceC(s.Client).UpdateStatus(instance)
 	if err != nil {
 		return err
@@ -120,18 +151,18 @@ func (s *statusHandler) updateImageStatus(instance api.KogitoService) (bool, err
 	return false, nil
 }
 
-func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) (update bool, readyReplicas int32, err error) {
+func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) (update bool, err error) {
 	deploymentHandler := infrastructure.NewDeploymentHandler(s.Context)
 	deployment, err := deploymentHandler.MustFetchDeployment(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err != nil {
-		return false, 0, err
+		return false, err
 	}
 
 	if !reflect.DeepEqual(instance.GetStatus().GetDeploymentConditions(), deployment.Status.Conditions) {
 		instance.GetStatus().SetDeploymentConditions(deployment.Status.Conditions)
-		return true, deployment.Status.ReadyReplicas, nil
+		return true, nil
 	}
-	return false, deployment.Status.ReadyReplicas, nil
+	return false, nil
 }
 
 func (s *statusHandler) updateRouteStatus(instance api.KogitoService) (bool, error) {
@@ -153,36 +184,106 @@ func (s *statusHandler) updateRouteStatus(instance api.KogitoService) (bool, err
 	return false, nil
 }
 
-// SetDeployed Updates the condition with the DeployedCondition and True status
-func (s *statusHandler) SetDeployed(c api.ConditionMetaInterface) bool {
-	size := len(c.GetConditions())
-	if size > 0 && c.GetConditions()[size-1].GetType() == api.DeployedConditionType {
-		return false
+// NewDeployedCondition ...
+func (s *statusHandler) newDeployedCondition(status metav1.ConditionStatus) metav1.Condition {
+	return metav1.Condition{
+		Type:               string(api.DeployedConditionType),
+		Status:             status,
+		LastTransitionTime: metav1.Now(),
 	}
-	condition := c.NewDeployedCondition()
-	c.SetConditions(s.addCondition(c, condition))
+}
+
+// NewProvisioningCondition ...
+func (s *statusHandler) newProvisioningCondition(status metav1.ConditionStatus) metav1.Condition {
+	return metav1.Condition{
+		Type:               string(api.ProvisioningConditionType),
+		Status:             status,
+		LastTransitionTime: metav1.Now(),
+	}
+}
+
+// NewFailedCondition ...
+func (s *statusHandler) newFailedCondition(reason api.KogitoServiceConditionReason, err error) metav1.Condition {
+	return metav1.Condition{
+		Type:               string(api.FailedConditionType),
+		Status:             metav1.ConditionTrue,
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(reason),
+		Message:            err.Error(),
+	}
+}
+
+// SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
+func (s *statusHandler) setProvisioning(c api.ConditionMetaInterface, status metav1.ConditionStatus) bool {
+	for _, condition := range c.GetConditions() {
+		if condition.Type == string(api.ProvisioningConditionType) {
+			if condition.Status == status {
+				return false
+			}
+			condition.Status = status
+			condition.LastTransitionTime = metav1.Now()
+			return true
+		}
+	}
+	provisionCondition := s.newProvisioningCondition(status)
+	c.AddCondition(provisionCondition)
 	return true
 }
 
 // SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
-func (s *statusHandler) SetProvisioning(c api.ConditionMetaInterface) bool {
-	size := len(c.GetConditions())
-	if size > 0 && c.GetConditions()[size-1].GetType() == api.ProvisioningConditionType {
-		return false
+func (s *statusHandler) setDeployed(c api.ConditionMetaInterface, status metav1.ConditionStatus) bool {
+	for _, condition := range c.GetConditions() {
+		if condition.Type == string(api.DeployedConditionType) {
+			if condition.Status == status {
+				return false
+			}
+			condition.Status = status
+			condition.LastTransitionTime = metav1.Now()
+			return true
+		}
 	}
-	condition := c.NewProvisioningCondition()
-	c.SetConditions(s.addCondition(c, condition))
+	deployedCondition := s.newDeployedCondition(status)
+	c.AddCondition(deployedCondition)
 	return true
 }
 
-// SetFailed Sets the failed condition with the error reason and message
-func (s *statusHandler) SetFailed(c api.ConditionMetaInterface, reason api.KogitoServiceConditionReason, err error) {
-	condition := c.NewFailedCondition(reason, err)
-	c.SetConditions(s.addCondition(c, condition))
+// SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
+func (s *statusHandler) setFailed(c api.ConditionMetaInterface, reason api.KogitoServiceConditionReason, err error) bool {
+	for _, condition := range c.GetConditions() {
+		if condition.Type == string(api.FailedConditionType) {
+			if s.isFailedConditionChange(condition, reason, err) {
+				condition.Reason = string(reason)
+				condition.Message = err.Error()
+				condition.LastTransitionTime = metav1.Now()
+				return true
+			}
+			return false
+		}
+	}
+	deployedCondition := s.newFailedCondition(reason, err)
+	c.AddCondition(deployedCondition)
+	return true
 }
 
-// addCondition adds a condition to the condition array ensuring the max buffer
-func (s *statusHandler) addCondition(c api.ConditionMetaInterface, condition api.ConditionInterface) []api.ConditionInterface {
-	conditionCollection := framework.NewConditionCollection(c.GetConditions())
-	return conditionCollection.AddCondition(condition)
+func (s *statusHandler) removeFailedCondition(c api.ConditionMetaInterface) bool {
+	for i, condition := range c.GetConditions() {
+		if condition.Type == string(api.FailedConditionType) {
+			c.RemoveCondition(i)
+			return true
+		}
+	}
+	return false
+}
+
+func (s *statusHandler) isFailedConditionChange(oldCondition metav1.Condition, reason api.KogitoServiceConditionReason, err error) bool {
+	return !(oldCondition.Reason == string(reason) && oldCondition.Message == err.Error())
+}
+
+func (s *statusHandler) fetchReadyReplicas(instance api.KogitoService) (int32, error) {
+	deploymentHandler := infrastructure.NewDeploymentHandler(s.Context)
+	readyReplicas, err := deploymentHandler.FetchReadyReplicas(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
+	if err != nil {
+		return 0, err
+	}
+	return readyReplicas, nil
 }

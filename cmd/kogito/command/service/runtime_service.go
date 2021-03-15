@@ -85,7 +85,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 		},
 		Status: v1beta1.KogitoRuntimeStatus{
 			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
-				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}},
+				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1.Condition{}},
 			},
 		},
 	}

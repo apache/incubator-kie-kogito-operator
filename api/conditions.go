@@ -15,7 +15,6 @@
 package api
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -49,20 +48,9 @@ const (
 	InternalServiceNotReachable KogitoServiceConditionReason = "InternalServiceNotReachable"
 )
 
-// ConditionInterface defines the detailed condition for the resource
-type ConditionInterface interface {
-	GetType() ConditionType
-	GetStatus() corev1.ConditionStatus
-	GetLastTransitionTime() metav1.Time
-	GetReason() KogitoServiceConditionReason
-	GetMessage() string
-}
-
 // ConditionMetaInterface defines the base information for kogito services conditions
 type ConditionMetaInterface interface {
-	NewDeployedCondition() ConditionInterface
-	NewProvisioningCondition() ConditionInterface
-	NewFailedCondition(reason KogitoServiceConditionReason, err error) ConditionInterface
-	GetConditions() []ConditionInterface
-	SetConditions(conditions []ConditionInterface)
+	GetConditions() []metav1.Condition
+	AddCondition(condition metav1.Condition)
+	RemoveCondition(index int)
 }

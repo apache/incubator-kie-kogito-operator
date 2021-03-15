@@ -697,7 +697,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSt
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Condition"),
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 									},
 								},
 							},
@@ -741,7 +741,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSt
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Condition", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition"},
+			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 

@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/internal"
 	"github.com/kiegroup/kogito-cloud-operator/meta"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"testing"
 	"time"
@@ -63,8 +64,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.GetStatus())
-	assert.Len(t, dataIndex.GetStatus().GetConditions(), 1)
-	assert.Equal(t, dataIndex.GetStatus().GetConditions()[0].GetReason(), api.ServiceReconciliationFailure)
+	assert.Len(t, dataIndex.GetStatus().GetConditions(), 3)
 
 	// Infinispan is not ready :)
 	infraInfinispan.GetStatus().GetCondition().SetMessage("Headaches")
@@ -80,10 +80,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	assert.Equal(t, reconcileAfter, reconciliationIntervalAfterInfraError)
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.GetStatus())
-	assert.Len(t, dataIndex.GetStatus().GetConditions(), 1)
-	condition := dataIndex.GetStatus().GetConditions()[0]
-	assert.Equal(t, condition.GetType(), api.FailedConditionType)
-	assert.Equal(t, condition.GetStatus(), corev1.ConditionFalse)
+	assert.Len(t, dataIndex.GetStatus().GetConditions(), 3)
 }
 
 func Test_serviceDeployer_DataIndex(t *testing.T) {
@@ -122,7 +119,18 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 
 func Test_serviceDeployer_Deploy(t *testing.T) {
 	service := test.CreateFakeJobsService(t.Name())
-	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
+
+	deployment := &appsv1.Deployment{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      service.GetName(),
+			Namespace: service.GetNamespace(),
+		},
+		Status: appsv1.DeploymentStatus{
+			Replicas: singleReplica,
+		},
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(service, deployment).OnOpenShift().Build()
+
 	definition := ServiceDefinition{
 		DefaultImageName: "kogito-jobs-service",
 		Request:          newReconcileRequest(t.Name()),
@@ -141,7 +149,14 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.Equal(t, 1, len(service.GetStatus().GetConditions()))
+	assert.Equal(t, 2, len(service.GetStatus().GetConditions()))
+	provisioningCondition := getSpecificCondition(service.GetStatus(), api.ProvisioningConditionType)
+	assert.NotNil(t, provisioningCondition)
+	assert.Equal(t, v1.ConditionFalse, provisioningCondition.Status)
+
+	deployedCondition := getSpecificCondition(service.GetStatus(), api.DeployedConditionType)
+	assert.NotNil(t, deployedCondition)
+	assert.Equal(t, v1.ConditionTrue, deployedCondition.Status)
+
 	assert.Equal(t, int32(1), *service.GetSpec().GetReplicas())
-	assert.Equal(t, api.ProvisioningConditionType, service.GetStatus().GetConditions()[0].GetType())
 }

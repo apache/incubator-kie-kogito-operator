@@ -111,7 +111,7 @@ func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName str
 func NewKogitoServiceStatus() v1beta1.KogitoServiceStatus {
 	return v1beta1.KogitoServiceStatus{
 		ConditionsMeta: v1beta1.ConditionsMeta{
-			Conditions: []v1beta1.Condition{},
+			Conditions: []metav1.Condition{},
 		},
 	}
 }

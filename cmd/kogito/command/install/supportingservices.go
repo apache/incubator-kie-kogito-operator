@@ -217,7 +217,7 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 		},
 		Status: v1beta1.KogitoSupportingServiceStatus{
 			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
-				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}},
+				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []metav1.Condition{}},
 			},
 		},
 	}
