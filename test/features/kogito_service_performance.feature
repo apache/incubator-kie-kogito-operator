@@ -9,11 +9,11 @@ Feature: Kogito Service Performance
     Given Namespace is created
 
   @quarkus
-  Scenario Outline: Quarkus Kogito Service Performance with Maven profile <profile>, without persistence and with requests <requests>
+  Scenario Outline: Quarkus Kogito Service Performance with native <native>, without persistence and with requests <requests>
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory
     And Local example service "process-quarkus-example" is built by Maven and deployed to runtime registry with Maven configuration:
-      | profile | <profile> |
+      | native | <native> |
     And Deploy quarkus example service "process-quarkus-example" from runtime registry with configuration:
        | runtime-env | JAVA_OPTIONS | -Xmx10G  |
     And Kogito Runtime "process-quarkus-example" has 1 pods running within 10 minutes
@@ -36,26 +36,26 @@ Feature: Kogito Service Performance
 
 
     Examples:
-      | profile | requests |
-      | default | 40000    |
-      | default | 80000    |
-#      | default | 160000   |
-#      | default | 320000   |
+      | native   | requests |
+      | disabled | 40000    |
+      | disabled | 80000    |
+      # | disabled | 160000   |
+      # | disabled | 320000   |
 
     @native
     Examples:
-      | profile | requests |
-      | native  | 40000    |
-      | native  | 80000    |
-#      | native | 160000   |
-#      | native | 320000   |
+      | native   | requests |
+      | enabled  | 40000    |
+      | enabled  | 80000    |
+      # | enabled  | 160000   |
+      # | enabled  | 320000   |
 
 #####
 
   @quarkus
   @persistence
   @infinispan
-  Scenario Outline: Quarkus Kogito Service Performance with Maven profile <profile>, with persistence and with requests <requests>
+  Scenario Outline: Quarkus Kogito Service Performance with native <native>, with persistence and with requests <requests>
     Given Kogito Operator is deployed
     And Infinispan Operator is deployed
     And Infinispan instance "external-infinispan" is deployed for performance within 5 minute(s) with configuration:
@@ -64,7 +64,8 @@ Feature: Kogito Service Performance
     And Install Infinispan Kogito Infra "external-infinispan" targeting service "external-infinispan" within 5 minutes
     And Clone Kogito examples into local directory
     And Local example service "process-quarkus-example" is built by Maven and deployed to runtime registry with Maven configuration:
-      | profile | <profile> |
+      | profile | persistence |
+      | native  | <native>    |
     And Deploy quarkus example service "process-quarkus-example" from runtime registry with configuration:
       | runtime-env | JAVA_OPTIONS | -Xmx10G             |
       | config      | infra        | external-infinispan |
@@ -88,19 +89,19 @@ Feature: Kogito Service Performance
 
 
     Examples:
-      | profile     | requests |
-      | persistence | 40000    |
-      | persistence | 80000    |
-#      | persistence | 160000   |
-#      | persistence | 320000   |
+      | native   | requests |
+      | disabled | 40000    |
+      | disabled | 80000    |
+      # | disabled | 160000   |
+      # | disabled | 320000   |
 
     @native
     Examples:
-      | profile            | requests |
-      | native,persistence | 40000    |
-      | native,persistence | 80000    |
-#      | native,persistence | 160000   |
-#      | native,persistence | 320000   |
+      | native  | requests |
+      | enabled | 40000    |
+      | enabled | 80000    |
+      # | enabled | 160000   |
+      # | enabled | 320000   |
 
 #####
 
@@ -133,8 +134,8 @@ Feature: Kogito Service Performance
       | requests |
       | 40000    |
       | 80000    |
-#      | 160000   |
-#      | 320000   |
+      # | 160000   |
+      # | 320000   |
 
 #####
 
@@ -175,5 +176,5 @@ Feature: Kogito Service Performance
       | requests |
       | 40000    |
       | 80000    |
-#      | 160000   |
-#      | 320000   |
+      # | 160000   |
+      # | 320000   |

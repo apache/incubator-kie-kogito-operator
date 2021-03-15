@@ -396,7 +396,7 @@ Feature: Deploy Kogito Runtime
 #####
 
   @knative
-  Scenario: Deploy process-knative-quickstart-quarkus with Maven profile default using Kogito Runtime
+  Scenario: Deploy process-knative-quickstart-quarkus using Kogito Runtime
     Given Kogito Operator is deployed
     And Install Knative eventing
     And Deploy Knative Broker "default"

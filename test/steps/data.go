@@ -173,7 +173,7 @@ func handleScenarioResult(data *Data, scenario *godog.Scenario, err error) {
 	var parentLogFolder string
 	if err != nil {
 		framework.GetLogger(data.Namespace).Error(err, "Error in scenario", "scenarioName", scenario.GetName())
-		parentLogFolder = "errors"
+		parentLogFolder = "error"
 	} else {
 		parentLogFolder = "success"
 		framework.GetLogger(data.Namespace).Info("Successful scenario", "scenarioName", scenario.GetName())
