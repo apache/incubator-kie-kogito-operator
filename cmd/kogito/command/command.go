@@ -15,14 +15,14 @@
 package command
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/completion"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/deploy"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/install"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/project"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/remove"
-	"github.com/kiegroup/kogito-cloud-operator/core/client"
-	"github.com/kiegroup/kogito-cloud-operator/meta"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/completion"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/deploy"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/install"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/project"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/remove"
+	"github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/spf13/cobra"
 	"io"
 	"os"

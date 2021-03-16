@@ -48,12 +48,12 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
-    containerImage: quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot
+    containerImage: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito services.
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-    repository: https://github.com/kiegroup/kogito-cloud-operator
+    repository: https://github.com/kiegroup/kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
   labels:
@@ -273,7 +273,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot
+                image: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
                 name: manager
                 resources: {}
               terminationGracePeriodSeconds: 10
@@ -332,9 +332,9 @@ spec:
   - name: Product Page
     url: https://kogito.kie.org/
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-cloud-operator/blob/master/README.md
+    url: https://github.com/kiegroup/kogito-operator/blob/master/README.md
   - name: Source
-    url: https://github.com/kiegroup/kogito-cloud-operator/
+    url: https://github.com/kiegroup/kogito-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat

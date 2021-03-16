@@ -16,8 +16,8 @@ package service
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"

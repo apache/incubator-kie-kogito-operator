@@ -17,7 +17,7 @@ package flag
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/util"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/util"
 	"github.com/spf13/cobra"
 )
 
