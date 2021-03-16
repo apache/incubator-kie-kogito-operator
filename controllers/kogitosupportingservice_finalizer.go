@@ -15,12 +15,12 @@
 package controllers
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	kogitocli "github.com/kiegroup/kogito-cloud-operator/core/client"
-	"github.com/kiegroup/kogito-cloud-operator/core/kogitoservice"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/core/operator"
-	"github.com/kiegroup/kogito-cloud-operator/internal"
+	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/kogitoservice"
+	"github.com/kiegroup/kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/internal"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"

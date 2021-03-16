@@ -15,7 +15,7 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

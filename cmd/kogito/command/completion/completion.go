@@ -16,7 +16,7 @@ package completion
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/spf13/cobra"
 	"os"
 )

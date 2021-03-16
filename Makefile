@@ -1,9 +1,9 @@
 # Current Operator version
 VERSION ?= 2.0.0-snapshot
 # Default bundle image tag
-BUNDLE_IMG ?= quay.io/kiegroup/kogito-cloud-operator-bundle:$(VERSION)
+BUNDLE_IMG ?= quay.io/kiegroup/kogito-operator-bundle:$(VERSION)
 # Default catalog image tag
-CATALOG_IMG ?= quay.io/kiegroup/kogito-cloud-operator-catalog:$(VERSION)
+CATALOG_IMG ?= quay.io/kiegroup/kogito-operator-catalog:$(VERSION)
 # Options for 'bundle-build'
 CHANNELS=alpha,1.x
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -12,7 +12,7 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Image URL to use all building/pushing image targets
-IMG ?= quay.io/kiegroup/kogito-cloud-operator:$(VERSION)
+IMG ?= quay.io/kiegroup/kogito-operator:$(VERSION)
 # Produce CRDs with v1 extension which is required by kubernetes v1.22+, The CRDs will stop working in kubernets <= v1.15
 CRD_OPTIONS ?= "crd:crdVersions=v1"
 

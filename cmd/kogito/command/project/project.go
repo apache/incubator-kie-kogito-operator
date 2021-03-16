@@ -15,7 +15,7 @@
 package project
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
 	"github.com/spf13/cobra"
 )
 

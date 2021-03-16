@@ -16,11 +16,11 @@ package deploy
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/service"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-cloud-operator/core/client"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/service"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/spf13/cobra"
 )
 
@@ -73,7 +73,7 @@ func (i *deployCommand) RegisterHook() {
 	Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 	To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
 	Please note that this command requires the Kogito Operator installed in the cluster.
-	For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-cloud-operator#kogito-operator-installation.
+	For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-operator#kogito-operator-installation.
 		`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,

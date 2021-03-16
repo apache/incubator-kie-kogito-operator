@@ -1,4 +1,4 @@
-module github.com/kiegroup/kogito-cloud-operator
+module github.com/kiegroup/kogito-operator
 
 go 1.14
 

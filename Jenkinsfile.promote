@@ -1,6 +1,6 @@
 @Library('jenkins-pipeline-shared-libraries')_
 
-IMAGES = ['kogito-cloud-operator']
+IMAGES = ['kogito-operator']
 
 helper = null
 

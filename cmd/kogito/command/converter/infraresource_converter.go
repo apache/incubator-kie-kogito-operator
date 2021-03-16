@@ -15,8 +15,8 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/flag"
+	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 )
 
 // FromInfraResourceFlagsToResource converts given InfraResourceFlags into Resource
