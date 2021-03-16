@@ -208,6 +208,7 @@ trusty_image_tag=
 trusty_ui_image_tag=
 runtime_application_image_registry=
 runtime_application_image_namespace=
+runtime_application_image_name_prefix=
 runtime_application_image_name_suffix=
 runtime_application_image_version=
 # build
@@ -273,6 +274,7 @@ run-tests:
 		--trusty_ui_image_tag ${trusty_ui_image_tag} \
 		--runtime_application_image_registry ${runtime_application_image_registry} \
 		--runtime_application_image_namespace ${runtime_application_image_namespace} \
+		--runtime_application_image_name_prefix ${runtime_application_image_name_prefix} \
 		--runtime_application_image_name_suffix ${runtime_application_image_name_suffix} \
 		--runtime_application_image_version ${runtime_application_image_version} \
 		--custom_maven_repo $(custom_maven_repo) \

@@ -1,6 +1,6 @@
 @Library('jenkins-pipeline-shared-libraries')_
 
-deployProperties = [:]
+helper = null
 
 pipeline {
     agent {
@@ -25,11 +25,6 @@ pipeline {
 
         JAVA_HOME = "${GRAALVM_HOME}"
 
-        OPENSHIFT_API = credentials('OPENSHIFT_API')
-        OPENSHIFT_REGISTRY = credentials('OPENSHIFT_REGISTRY')
-        OPENSHIFT_INTERNAL_REGISTRY = 'image-registry.openshift-image-registry.svc:5000'
-        OPENSHIFT_CREDS_KEY = 'OPENSHIFT_CREDS'
-
         BOT_BRANCH_HASH = "${util.generateHash(10)}"
 
         // Environment required by OLM tests when run from process
@@ -39,35 +34,38 @@ pipeline {
     }
 
     stages {
+        stage('Setup pipeline') {
+            steps {
+                script {
+                    helper = load '.jenkins/scripts/helper.groovy'
+                    helper.initPipeline()
+                }
+            }
+        }
         stage('Initialize') {
             steps {
                 script {
-                    clean()
+                    helper.updateDisplayName()
+                    helper.checkoutRepo()
 
-                    // Make sure Openshift is available and can authenticate before continuing
-                    loginOpenshift()
-
-                    if (params.DISPLAY_NAME) {
-                        currentBuild.displayName = params.DISPLAY_NAME
-                    }
-
-                    checkoutRepo()
-
-                    if (isRelease()) {
+                    if (helper.isRelease()) {
                         // Verify version is set and if on right release branch
-                        assert getProjectVersion()
+                        assert helper.getProjectVersion()
 
-                        assert getBuildBranch() == util.getReleaseBranchFromVersion(getProjectVersion())
+                        assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
                     }
+
+                    // Verify we have the connectivity to Openshift
+                    openshift.loginOpenshift()
                 }
             }
             post {
                 success {
                     script {
-                        setDeployPropertyIfNeeded('git.branch', getBuildBranch())
-                        setDeployPropertyIfNeeded('git.author', getGitAuthor())
-                        setDeployPropertyIfNeeded('project.version', getProjectVersion())
-                        setDeployPropertyIfNeeded('release', isRelease())
+                        properties.add('git.branch', helper.getBuildBranch())
+                        properties.add('git.author', helper.getGitAuthor())
+                        properties.add('project.version', helper.getProjectVersion())
+                        properties.add('release', helper.isRelease())
                     }
                 }
             }
@@ -75,25 +73,25 @@ pipeline {
 
         stage('Prepare for PR') {
             when {
-                expression { return isRelease() }
+                expression { return helper.isRelease() }
             }
             steps {
                 script {
-                    githubscm.forkRepo(getBotAuthorCredsID())
-                    githubscm.createBranch(getBotBranch())
+                    githubscm.forkRepo(helper.getBotAuthorCredsID())
+                    githubscm.createBranch(helper.getBotBranch())
                 }
             }
         }
 
         stage('Update version') {
             when {
-                expression { return getProjectVersion() != '' }
+                expression { return helper.getProjectVersion() }
             }
             steps {
                 script {
-                    sh "make bump-version new_version=${getProjectVersion()}"
+                    sh "make bump-version new_version=${helper.getProjectVersion()}"
 
-                    githubscm.commitChanges("Update project version to ${getProjectVersion()}", {
+                    githubscm.commitChanges("Update project version to ${helper.getProjectVersion()}", {
                         sh '''
                             git add .
                             git reset -- go.mod
@@ -105,6 +103,11 @@ pipeline {
         }
 
         stage('Test Kogito Operator & CLI') {
+            when {
+                expression {
+                    return helper.shouldLaunchTests()
+                }
+            }
             steps {
                 sh 'make test'
             }
@@ -112,7 +115,7 @@ pipeline {
 
         stage('Build Kogito Operator') {
             steps {
-                sh 'make BUILDER=docker'
+                sh "make BUILDER=${env.CONTAINER_ENGINE}"
             }
         }
 
@@ -129,97 +132,54 @@ pipeline {
             }
         }
         stage('Run OLM tests') {
+            when {
+                expression {
+                    return helper.shouldLaunchTests()
+                }
+            }
             steps {
                 sh 'make olm-tests'
             }
         }
         stage('Push Operator Image to Openshift Registry') {
             steps {
-                loginOpenshiftRegistry()
-                sh """
-                    docker tag quay.io/kiegroup/${env.OPERATOR_IMAGE_NAME}:${getOperatorVersion()} ${buildTempOpenshiftImageFullName()}
-                    docker push ${buildTempOpenshiftImageFullName()}
-                """
+                script {
+                    container.loginOpenshiftRegistry()
+
+                    container.tagImage("quay.io/kiegroup/${env.OPERATOR_IMAGE_NAME}:${getOperatorVersion()}", 
+                                            helper.buildTempOpenshiftImageFullName())
+                    container.pushImage(helper.buildTempOpenshiftImageFullName())
+                }
             }
         }
 
         stage('Run BDD tests') {
             when {
                 expression {
-                    return shouldLaunchTests()
+                    return helper.shouldLaunchTests()
                 }
             }
             options {
-                // Lock on image tags and OCP API as we don't want to conflict on build example images
-                // That still allows to run 2 parallel build with different tags, those will only block on `Run BDD tests` part
-                lock("BDD tests on branch ${params.KOGITO_IMAGES_TAG} and OCP API ${getLockOpenshiftApi()}")
+                // Lock on OCP API as we want only one run at a time
+                lock("BDD tests on OCP API ${getLockOpenshiftApi()}")
             }
-            stages {
-                stage('Build examples images for testing') {
-                    when {
-                        expression { return !params.SKIP_TEST_BUILD_IMAGES }
-                    }
-                    steps {
-                        script {
-                            // Need to login to Openshift Registry for application images to be pushed
-                            loginOpenshiftRegistry()
-                            // Needed for the native builds (see comment below)
-                            loginDockerToOpenshiftRegistry()
-
-                            try {
-                                // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                                // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                                sh "make build-examples-images tags='${getNonNativeTag()}' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
-                            } catch (err) {
-                                unstable("Error building non-native examples' images. Check the junit results.")
-                            }
-
-                            if (!params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS) {
-                                try {
-                                    // Optaplanner taking a lot of resources, we should not build in parallel
-                                    // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                                    // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                                    sh "make build-examples-images tags='${getNativeTag()}' concurrent=1 operator_namespaced=true ${getBDDParameters('never', false, 'docker')}"
-                                } catch (err) {
-                                    unstable("Error building native examples' images. Check the junit results.")
-                                }
-                            }
-                        }
-                    }
-                    post {
-                        always {
-                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                        }
+            steps {
+                script {
+                    // Catch and set unstable so the temp image is still pushed and we get the deployment properties,
+                    // in case we decide to continue in the release
+                    try {
+                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
+                        sh "make run-tests timeout=360 load_factor=1 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
+                    } catch (err) {
+                        unstable('Tests are failing')
                     }
                 }
-
-                stage('Run Full Testing') {
-                    options {
-                        // Lock on OCP API as we want only one run at a time
-                        lock("BDD tests on OCP API ${getLockOpenshiftApi()}")
-                    }
-                    steps {
-                        script {
-                            // Catch and set unstable so the temp image is still pushed and we get the deployment properties,
-                            // in case we decide to continue in the release
-                            try {
-                                // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                                sh "make run-tests timeout=360 load_factor=1 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters('always', true, 'docker', true)}"
-                            } catch (err) {
-                                unstable('Tests are failing')
-                            }
-                        }
-                    }
-                    post {
-                        always {
-                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                            archiveArtifacts artifacts: 'test/logs/*/openshift-operators/*.log', allowEmptyArchive: true
-                            archiveArtifacts artifacts: 'test/logs/*/kogito-operator-system/*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                            sh 'cd test && go run scripts/prune_namespaces.go'
-                        }
-                    }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                    sh 'cd test && go run scripts/prune_namespaces.go'
                 }
             }
         }
@@ -227,39 +187,37 @@ pipeline {
         stage('Push to registry') {
             steps {
                 script {
-                    if (isDeployImageInOpenshiftRegistry()) {
-                        loginOpenshiftRegistry()
-                    } else if (getDeployImageRegistryCredentials() != '') {
-                        loginContainerRegistry(getDeployImageRegistry(), getDeployImageRegistryCredentials())
-                    }
-                    tagImage()
-                    pushImage()
+                    helper.loginRegistry()
+                    
+                    container.tagImage(helper.buildTempOpenshiftImageFullName(), helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
+                    container.pushImage(helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
 
                     // Store image deployment information
-                    String imgPrefix = "${getRepoName()}.image"
-                    setDeployPropertyIfNeeded("${imgPrefix}.registry", getDeployImageRegistry())
-                    setDeployPropertyIfNeeded("${imgPrefix}.namespace", getDeployImageNamespace())
-                    setDeployPropertyIfNeeded("${imgPrefix}.name-suffix", getDeployImageNameSuffix())
-                    setDeployPropertyIfNeeded("${imgPrefix}.tag", getDeployImageTag())
+                    properties.add(helper.getImageRegistryProperty(), helper.getImageRegistry())
+                    properties.add(helper.getImageNamespaceProperty(), helper.getImageNamespace())
+                    properties.add(helper.getImageNamePrefixProperty(), helper.getImageNamePrefix())
+                    properties.add(helper.getImageNameSuffixProperty(), helper.getImageNameSuffix())
+                    properties.add(helper.getImageTagProperty(), helper.getImageTag())
                 }
             }
         }
 
         stage('Create PR') {
             when {
-                expression { return isRelease() }
+                expression { return helper.isRelease() }
             }
             steps {
                 script {
-                    String prMsg = "[${getBuildBranch()}] Update version to ${getProjectVersion()}"
+                    String prMsg = "[${helper.getBuildBranch()}] Update version to ${helper.getProjectVersion()}"
                     def prBody = "Generated by build ${BUILD_TAG}: ${BUILD_URL}.\nPlease do not merge, it shoud be merged automatically."
-                    githubscm.pushObject('origin', getBotBranch(), getBotAuthorCredsID())
-                    deployProperties["${getRepoName()}.pr.link"] = githubscm.createPR(prMsg, prBody, getBuildBranch(), getBotAuthorCredsID())
+                    githubscm.pushObject('origin', helper.getBotBranch(), helper.getBotAuthorCredsID())
+                    prLink = githubscm.createPR(prMsg, prBody, helper.getBuildBranch(), helper.getBotAuthorCredsID())
+                    properties.add("${helper.getRepoName()}.pr.link", prLink)
 
-                    setDeployPropertyIfNeeded("${getRepoName()}.pr.source.uri", "https://github.com/${getBotAuthor()}/${getRepoName()}")
-                    setDeployPropertyIfNeeded("${getRepoName()}.pr.source.ref", getBotBranch())
-                    setDeployPropertyIfNeeded("${getRepoName()}.pr.target.uri", "https://github.com/${getGitAuthor()}/${getRepoName()}")
-                    setDeployPropertyIfNeeded("${getRepoName()}.pr.target.ref", getBuildBranch())
+                    properties.add("${getRepoName()}.pr.source.uri", "https://github.com/${getBotAuthor()}/${getRepoName()}")
+                    properties.add("${getRepoName()}.pr.source.ref", getBotBranch())
+                    properties.add("${getRepoName()}.pr.target.uri", "https://github.com/${getGitAuthor()}/${getRepoName()}")
+                    properties.add("${getRepoName()}.pr.target.ref", getBuildBranch())
                 }
             }
         }
@@ -267,91 +225,20 @@ pipeline {
     post {
         always {
             script {
-                def propertiesStr = deployProperties.collect { entry ->  "${entry.key}=${entry.value}" }.join('\n')
-                writeFile(text: propertiesStr, file: env.PROPERTIES_FILE_NAME)
+                properties.writeToFile(env.PROPERTIES_FILE_NAME)
                 archiveArtifacts(artifacts: env.PROPERTIES_FILE_NAME)
             }
-            clean()
+        }
+        cleanup {
+            script {
+                util.cleanNode(containerEngine)
+            }
         }
     }
 }
 
-void clean() {
-    cleanImages()
-    cleanWs()
-}
-
-void cleanImages() {
-    sh 'docker rm -f \$(docker ps -a -q) || date'
-    sh 'docker rmi -f \$(docker images -q) || date'
-}
-
-void checkoutRepo() {
-    deleteDir()
-    checkout(githubscm.resolveRepository(getRepoName(), getGitAuthor(), getBuildBranch(), false))
-}
-
 String getOperatorVersion() {
     return sh(script: 'source ./hack/env.sh > /dev/null && echo $(getOperatorVersion)', returnStdout: true).trim()
-}
-
-void tagImage() {
-    sh "docker tag ${buildTempOpenshiftImageFullName()} ${buildFinalImageFullName()}"
-}
-
-void pushImage() {
-    sh "docker push ${buildFinalImageFullName()}"
-}
-
-String buildTempOpenshiftImageFullName(boolean internal=false) {
-    return "${getTempOpenshiftImageName(internal)}:${getTempTag()}"
-}
-String getTempOpenshiftImageName(boolean internal=false) {
-    String registry = internal ? env.OPENSHIFT_INTERNAL_REGISTRY : env.OPENSHIFT_REGISTRY
-    return "${registry}/openshift/${env.OPERATOR_IMAGE_NAME}"
-}
-
-String buildFinalImageFullName() {
-    String finalImageName = env.OPERATOR_IMAGE_NAME
-    if (getDeployImageNameSuffix() != '') {
-        finalImageName += '-' + getDeployImageNameSuffix()
-    }
-    return "${getDeployImageRegistry()}/${getDeployImageNamespace()}/${finalImageName}:${getDeployImageTag()}"
-}
-
-void loginOpenshift() {
-    withCredentials([usernamePassword(credentialsId: env.OPENSHIFT_CREDS_KEY, usernameVariable: 'OC_USER', passwordVariable: 'OC_PWD')]) {
-        sh "oc login --username=${OC_USER} --password=${OC_PWD} --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
-    }
-}
-
-void loginOpenshiftRegistry() {
-    loginOpenshift()
-    // username can be anything. See https://docs.openshift.com/container-platform/4.4/registry/accessing-the-registry.html#registry-accessing-directly_accessing-the-registry
-    sh "set +x && docker login -u anything -p \$(oc whoami -t) ${env.OPENSHIFT_REGISTRY}"
-}
-
-void loginDockerToOpenshiftRegistry() {
-    loginOpenshift()
-    // username can be anything. See https://docs.openshift.com/container-platform/4.4/registry/accessing-the-registry.html#registry-accessing-directly_accessing-the-registry
-    sh "set +x && docker login -u anything -p \$(oc whoami -t) ${env.OPENSHIFT_REGISTRY}"
-}
-
-void loginContainerRegistry(String registry, String credsId) {
-    withCredentials([usernamePassword(credentialsId: credsId, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PWD')]) {
-        sh "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} ${registry}"
-    }
-}
-
-String getTempTag() {
-    hash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-    return "pr-${hash}"
-}
-
-void setDeployPropertyIfNeeded(String key, def value) {
-    if (value != null && value != '') {
-        deployProperties[key] = value
-    }
 }
 
 // Special method to get the Openshift API in the lock because env is not accessible yet
@@ -362,167 +249,29 @@ void getLockOpenshiftApi() {
 }
 
 ////////////////////////////////////////////////////////////////////////
-// Deploy image information
-////////////////////////////////////////////////////////////////////////
-
-boolean isDeployImageInOpenshiftRegistry() {
-    return params.IMAGE_USE_OPENSHIFT_REGISTRY
-}
-
-String getDeployImageRegistryCredentials() {
-    return isDeployImageInOpenshiftRegistry() ? '' : params.IMAGE_REGISTRY_CREDENTIALS
-}
-
-String getDeployImageRegistry() {
-    return isDeployImageInOpenshiftRegistry() ? env.OPENSHIFT_REGISTRY : params.IMAGE_REGISTRY
-}
-
-String getDeployImageNamespace() {
-    return isDeployImageInOpenshiftRegistry() ? 'openshift' : params.IMAGE_NAMESPACE
-}
-
-String getDeployImageNameSuffix() {
-    return params.IMAGE_NAME_SUFFIX
-}
-
-String getDeployImageTag() {
-    if (params.IMAGE_TAG != '') {
-        return params.IMAGE_TAG
-    } else {
-        sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-// Utils
-////////////////////////////////////////////////////////////////////////
-
-boolean isRelease() {
-    return env.RELEASE.toBoolean()
-}
-
-String getRepoName() {
-    return env.REPO_NAME
-}
-
-String getBuildBranch() {
-    return params.BUILD_BRANCH_NAME
-}
-
-String getGitAuthor() {
-    return "${GIT_AUTHOR}"
-}
-
-String getBotBranch() {
-    return "${getProjectVersion()}-${env.BOT_BRANCH_HASH}"
-}
-
-String getBotAuthor() {
-    return env.GIT_AUTHOR_BOT
-}
-
-String getBotAuthorCredsID() {
-    return env.BOT_CREDENTIALS_ID
-}
-
-String getProjectVersion() {
-    return params.PROJECT_VERSION
-}
-
-boolean shouldLaunchTests() {
-    return !params.SKIP_TESTS
-}
-
-////////////////////////////////////////////////////////////////////////
 // BDD parameters
-////////////////////////////////////////////////////////////////////////
 
-String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false, String container_engine='podman', boolean addParamsTags = false) {
-    testParamsMap = [:]
+String getBDDParameters() {
+    Map testParamsMap = helper.getBDDCommonParameters(true)
 
-    testParamsMap['load_default_config'] = true
-    testParamsMap['ci'] = 'jenkins'
+    testParamsMap.putAll(helper.getBDDBuildImageParameters('KOGITO_IMAGES'))
+    testParamsMap.putAll(helper.getBDDServicesImageParameters('KOGITO_IMAGES'))
 
-    testParamsMap['operator_image'] = getTempOpenshiftImageName(true)
-    testParamsMap['operator_tag'] = getTempTag()
+    testParamsMap['image_cache_mode'] = params.EXAMPLES_IMAGES_CACHE_MODE
+    testParamsMap.putAll(helper.getBDDRuntimeImageParameters('EXAMPLES_IMAGES'))
 
-    String mavenRepository = env.MAVEN_ARTIFACT_REPOSITORY ?: (isRelease() ? env.DEFAULT_STAGING_REPOSITORY : '')
-    if (mavenRepository) {
-        // No mirror if we set directly the Maven repository
-        // Tests will be slower but we need to test against specific artifacts
-        testParamsMap['custom_maven_repo'] = mavenRepository
-        testParamsMap['maven_ignore_self_signed_certificate'] = true
+    // Add tags
+    def tags = []
+    if (params.BDD_TEST_TAGS) {
+        tags.add(params.BDD_TEST_TAGS)
     }
-    if (env.MAVEN_MIRROR_REPOSITORY) {
-        testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
-        testParamsMap['maven_ignore_self_signed_certificate'] = true
+    if (params.SKIP_NATIVE_TESTS) {
+        tags.add(helper.getNonNativeTag())
     }
+    testParamsMap['tags'] = tags.join('&&')
 
-    if (params.KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY) {
-        testParamsMap['build_image_registry'] = env.OPENSHIFT_INTERNAL_REGISTRY
-        testParamsMap['services_image_registry'] = env.OPENSHIFT_INTERNAL_REGISTRY
-        testParamsMap['build_image_namespace'] = 'openshift'
-        testParamsMap['services_image_namespace'] = 'openshift'
-    } else {
-        if (params.KOGITO_IMAGES_REGISTRY != '') {
-            testParamsMap['build_image_registry'] = params.KOGITO_IMAGES_REGISTRY
-            testParamsMap['services_image_registry'] = params.KOGITO_IMAGES_REGISTRY
-        }
-        if (params.KOGITO_IMAGES_NAMESPACE != '') {
-            testParamsMap['build_image_namespace'] = params.KOGITO_IMAGES_NAMESPACE
-            testParamsMap['services_image_namespace'] = params.KOGITO_IMAGES_NAMESPACE
-        }
-    }
-    // runtime_application_image are built in this pipeline so we can just use Openshift registry for them
-    testParamsMap['image_cache_mode'] = image_cache_mode
-    testParamsMap['runtime_application_image_registry'] = runtime_app_registry_internal ? env.OPENSHIFT_INTERNAL_REGISTRY : env.OPENSHIFT_REGISTRY
-    testParamsMap['runtime_application_image_namespace'] = 'openshift'
-
-    if (params.KOGITO_IMAGES_NAME_SUFFIX != '') {
-        testParamsMap['build_image_name_suffix'] = params.KOGITO_IMAGES_NAME_SUFFIX
-        testParamsMap['services_image_name_suffix'] = params.KOGITO_IMAGES_NAME_SUFFIX
-        testParamsMap['runtime_application_image_name_suffix'] = params.KOGITO_IMAGES_NAME_SUFFIX
-    }
-
-    if (params.KOGITO_IMAGES_TAG != '') {
-        testParamsMap['build_image_version'] = params.KOGITO_IMAGES_TAG
-        testParamsMap['services_image_version'] = params.KOGITO_IMAGES_TAG
-        testParamsMap['runtime_application_image_version'] = params.KOGITO_IMAGES_TAG
-    }
-
-    if (params.EXAMPLES_REF != '') {
-        testParamsMap['examples_ref'] = params.EXAMPLES_REF
-    }
-    if (params.EXAMPLES_URI != '') {
-        testParamsMap['examples_uri'] = params.EXAMPLES_URI
-    }
-
-    testParamsMap['container_engine'] = container_engine
-
-    if (addParamsTags) {
-        def tags = ''
-        if (params.BDD_TEST_TAGS) {
-            tags = addTag(tags, params.BDD_TEST_TAGS)
-        }
-        if (params.SKIP_NATIVE_TESTS) {
-            tags = addTag(tags, getNonNativeTag())
-        }
-        testParamsMap['tags'] = tags
-    }
-
-    String testParams = testParamsMap.collect { entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
+    String testParams = testParamsMap.findAll { entry -> entry.getValue() }
+                            .collect { entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
     echo "BDD parameters = ${testParams}"
     return testParams
-}
-
-String addTag(String tags, String tagToAdd) {
-    return tags ? "${tags} && ${tagToAdd}" : tagToAdd
-}
-
-String getNativeTag() {
-    return '@native'
-}
-
-String getNonNativeTag() {
-    return "~${getNativeTag()}"
 }
