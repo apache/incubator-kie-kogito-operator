@@ -132,7 +132,7 @@ func Test_serviceDeployer_Deploy(t *testing.T) {
 			Namespace: service.GetNamespace(),
 		},
 		Status: appsv1.DeploymentStatus{
-			Replicas: singleReplica,
+			AvailableReplicas: singleReplica,
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(service, deployment).OnOpenShift().Build()

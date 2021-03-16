@@ -124,7 +124,7 @@ func TestReconciliation_PodAlreadyRunning(t *testing.T) {
 			Namespace: instance.Namespace,
 		},
 		Status: appsv1.DeploymentStatus{
-			Replicas: 1,
+			AvailableReplicas: 1,
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, deployment).Build()

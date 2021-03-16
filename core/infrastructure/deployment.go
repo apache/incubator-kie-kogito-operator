@@ -85,6 +85,5 @@ func (d *deploymentHandler) FetchReadyReplicas(key types.NamespacedName) (int32,
 	if err != nil {
 		return 0, err
 	}
-	return deployment.Status.Replicas, nil
-
+	return deployment.Status.AvailableReplicas, nil
 }

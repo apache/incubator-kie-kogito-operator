@@ -53,5 +53,7 @@ func TestUpdateBaseStatus(t *testing.T) {
 	conditions := *instance.Status.Conditions
 	assert.Equal(t, 2, len(conditions))
 	assert.Equal(t, string(api.KogitoInfraFailure), conditions[0].Type)
+	assert.Equal(t, v1.ConditionTrue, conditions[0].Status)
 	assert.Equal(t, string(api.KogitoInfraSuccess), conditions[1].Type)
+	assert.Equal(t, v1.ConditionFalse, conditions[1].Status)
 }
