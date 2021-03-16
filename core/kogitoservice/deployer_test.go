@@ -66,13 +66,15 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 	assert.Len(t, *dataIndex.GetStatus().GetConditions(), 3)
 
 	// Infinispan is not ready :)
-	infraCondition := v1.Condition{
-		Message: "Headaches",
-		Status:  v1.ConditionFalse,
-		Reason:  string(api.ResourceNotReady),
-		Type:    string(api.FailureInfraConditionType),
+	infraCondition := &[]v1.Condition{
+		{
+			Message: "Headaches",
+			Status:  v1.ConditionFalse,
+			Reason:  string(api.ResourceNotReady),
+			Type:    string(api.KogitoInfraFailure),
+		},
 	}
-	infraInfinispan.GetStatus().SetCondition(infraCondition)
+	infraInfinispan.GetStatus().SetConditions(infraCondition)
 
 	test.AssertCreate(t, cli, infraInfinispan)
 	test.AssertCreate(t, cli, infraKafka)

@@ -117,9 +117,6 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 			Resource:        converter.FromInfraResourceFlagsToResource(&i.flags.InfraResourceFlags),
 			InfraProperties: converter.FromPropertiesFlagToStringMap(&i.flags.PropertiesFlag),
 		},
-		Status: v1beta1.KogitoInfraStatus{
-			Condition: v1.Condition{},
-		},
 	}
 
 	log.Debugf("Trying to install Kogito Infra Service '%s'", kogitoInfra.Name)

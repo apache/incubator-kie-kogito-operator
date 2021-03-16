@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-cloud-operator/core/logger"
 	"github.com/kiegroup/kogito-cloud-operator/core/test"
 	"github.com/kiegroup/kogito-cloud-operator/meta"
+	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	"testing"
 
 	"github.com/kiegroup/kogito-cloud-operator/api/v1beta1"
@@ -49,9 +50,11 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.True(t, exists)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, kogitoInfra.Status.Condition.Message)
+	failureCondition := meta2.FindStatusCondition(*kogitoInfra.Status.Conditions, string(api.KogitoInfraFailure))
+	assert.NotNil(t, failureCondition)
+	assert.NotEmpty(t, failureCondition.Message)
 	// we haven't created the Infinispan server and we are informing our KogitoInfra instance that it will require it :)
-	assert.Equal(t, string(api.ResourceNotFound), kogitoInfra.Status.Condition.Reason)
+	assert.Equal(t, string(api.ResourceNotFound), failureCondition.Reason)
 }
 
 func Test_Reconcile_KafkaResource(t *testing.T) {

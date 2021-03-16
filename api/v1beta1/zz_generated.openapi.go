@@ -400,9 +400,22 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref com
 				Description: "KogitoInfraStatus defines the observed state of KogitoInfra.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"condition": {
+					"conditions": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+							Description: "History of conditions for the resource",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+									},
+								},
+							},
 						},
 					},
 					"runtimeProperties": {
@@ -438,6 +451,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref com
 						},
 					},
 				},
+				Required: []string{"conditions"},
 			},
 		},
 		Dependencies: []string{

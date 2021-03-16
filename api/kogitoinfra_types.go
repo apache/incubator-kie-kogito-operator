@@ -24,10 +24,10 @@ import (
 type KogitoInfraConditionType string
 
 const (
-	// SuccessInfraConditionType ...
-	SuccessInfraConditionType KogitoInfraConditionType = "Success"
-	// FailureInfraConditionType ...
-	FailureInfraConditionType KogitoInfraConditionType = "Failure"
+	// KogitoInfraSuccess ...
+	KogitoInfraSuccess KogitoInfraConditionType = "Success"
+	// KogitoInfraFailure ...
+	KogitoInfraFailure KogitoInfraConditionType = "Failure"
 )
 
 // KogitoInfraConditionReason describes the reasons for reconciliation failure
@@ -80,8 +80,8 @@ type ResourceInterface interface {
 
 // KogitoInfraStatusInterface ...
 type KogitoInfraStatusInterface interface {
-	GetCondition() metav1.Condition
-	SetCondition(condition metav1.Condition)
+	GetConditions() *[]metav1.Condition
+	SetConditions(conditions *[]metav1.Condition)
 	GetRuntimeProperties() RuntimePropertiesMap
 	AddRuntimeProperties(runtimeType RuntimeType, runtimeProperties RuntimePropertiesInterface)
 	GetVolumes() []KogitoInfraVolumeInterface

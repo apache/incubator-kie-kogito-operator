@@ -68,7 +68,11 @@ func (r RuntimeProperties) GetEnv() []v1.EnvVar {
 // KogitoInfraStatus defines the observed state of KogitoInfra.
 // +k8s:openapi-gen=true
 type KogitoInfraStatus struct {
-	Condition metav1.Condition `json:"condition,omitempty"`
+	// +listType=atomic
+	// History of conditions for the resource
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	Conditions *[]metav1.Condition `json:"conditions"`
 
 	// +optional
 	// Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.
@@ -82,14 +86,14 @@ type KogitoInfraStatus struct {
 	Volumes []KogitoInfraVolume `json:"volumes,omitempty"`
 }
 
-// GetCondition ...
-func (k *KogitoInfraStatus) GetCondition() metav1.Condition {
-	return k.Condition
+// GetConditions ...
+func (k *KogitoInfraStatus) GetConditions() *[]metav1.Condition {
+	return k.Conditions
 }
 
-// SetCondition ...
-func (k *KogitoInfraStatus) SetCondition(condition metav1.Condition) {
-	k.Condition = condition
+// SetConditions ...
+func (k *KogitoInfraStatus) SetConditions(conditions *[]metav1.Condition) {
+	k.Conditions = conditions
 }
 
 // GetRuntimeProperties ...

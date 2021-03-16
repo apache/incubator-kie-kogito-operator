@@ -51,11 +51,13 @@ func TestKogitoInfra_Spec(t *testing.T) {
 func TestKogitoInfra_Status(t *testing.T) {
 	instance1 := &KogitoInfra{
 		Status: KogitoInfraStatus{
-			Condition: metav1.Condition{
-				Type:    string(api.SuccessInfraConditionType),
-				Status:  metav1.ConditionTrue,
-				Reason:  string(api.ReconciliationFailure),
-				Message: "Infra success",
+			Conditions: &[]metav1.Condition{
+				{
+					Type:    string(api.KogitoInfraSuccess),
+					Status:  metav1.ConditionTrue,
+					Reason:  string(api.ReconciliationFailure),
+					Message: "Infra success",
+				},
 			},
 		},
 	}
@@ -112,10 +114,11 @@ func TestKogitoInfra_Status(t *testing.T) {
 	volumes = append(volumes, volume1, volume2)
 	status.SetVolumes(volumes)
 
-	assert.Equal(t, api.SuccessInfraConditionType, status.GetCondition().Type)
-	assert.Equal(t, corev1.ConditionTrue, status.GetCondition().Status)
-	assert.Equal(t, api.ReconciliationFailure, status.GetCondition().Reason)
-	assert.Equal(t, "Infra success", status.GetCondition().Message)
+	conditions := *status.GetConditions()
+	assert.Equal(t, api.KogitoInfraSuccess, conditions[0].Type)
+	assert.Equal(t, corev1.ConditionTrue, conditions[0].Status)
+	assert.Equal(t, api.ReconciliationFailure, conditions[0].Reason)
+	assert.Equal(t, "Infra success", conditions[0].Message)
 	assert.Equal(t, 2, len(status.GetRuntimeProperties()))
 	assert.Equal(t, 2, len(status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()))
 	assert.Equal(t, "value1", status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()["key1"])
