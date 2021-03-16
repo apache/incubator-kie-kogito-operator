@@ -28,6 +28,7 @@ For information about the Kogito Operator architecture and instructions for usin
     * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator-using-intellij-idea)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
   * [Releasing Kogito Operator](#releasing-kogito-operator)
+* [Kogito Operator tested integrations](#kogito-operator-tested-integrations)
   
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -354,7 +355,6 @@ All options from BDD tests do also apply here.
 | ------------------ | ---------------------------------------------------------------------------------- |
 | @smoke             | Smoke tests verifying basic functionality                                          |
 | @performance       | Performance tests                                                                  |
-| @olm               | OLM integration tests                                                              |
 | @travelagency      | Travel agency tests                                                                |
 |                    |                                                                                    |
 | @disabled          | Disabled tests, usually with comment describing reasons                            |
@@ -368,7 +368,6 @@ All options from BDD tests do also apply here.
 | @jobsservice       | Tests including Jobs service                                                       |
 | @managementconsole | Tests including Management console                                                 |
 | @trustyui          | Tests including Trusty UI                                                          |
-| @infra             | Tests checking KogitoInfra functionality                                           |
 |                    |                                                                                    |
 | @binary            | Tests using Kogito applications built locally and uploaded to OCP as a binary file |
 | @native            | Tests using native build                                                           |
@@ -448,6 +447,7 @@ API server listening at: [::]:2345
 7. From the list of `run/debug configurations` on the toolbar, select the created Go Remote configuration and click the `Debug <configuration_name>` button 
 
 Running Kogito operator in remote debug on VSCode and GoLand is very similar to above procedure. Please follow these article to the setup remote debugger on [VSCode](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-using-vscode-130k) and [GoLand](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-in-goland-kl6)
+
 ## Guide for Kogito Developers
 
 If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
@@ -460,3 +460,16 @@ One can then just copy the directory into the [kogito-operator](https://github.c
 Note: One needs to create two separate PRs with this folder added in [upstream-kogito-operator](https://github.com/operator-framework/community-operators/tree/master/upstream-community-operators/kogito-operator) and [community-kogito-operator](https://github.com/operator-framework/community-operators/tree/master/community-operators/kogito-operator) respectively.
 
 Before raising the PR, make sure the `replaces` field in the CSV is correct
+
+## Kogito Operator tested integrations
+
+Kogito operator integrates with various other technologies and operators. The tested certification matrix is listed below:
+
+| Technology         | Tested version                                                |
+| ------------------ | ------------------------------------------------------------- |
+| Infinispan         | Infinispan operator 2.0.6 (deployed by OLM `2.0.x` channel)   |
+| Kafka              | Strimzi 0.21.1 (deployed by OLM `stable` channel)             |
+| Keycloak           | Keycloak operator 12.0.3 (deployed by OLM `alpha` channel)    |
+| Prometheus         | Prometheus operator 0.37.0 (deployed by OLM `beta` channel)   |
+| Grafana            | Grafana operator 3.9.0 (deployed by OLM `alpha` channel)      |
+| MongoDB            | MongoDB Community Kubernetes Operator 0.2.2                   |
