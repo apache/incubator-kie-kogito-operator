@@ -108,7 +108,12 @@ pipeline {
                             githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorCredsID())
                         }
 
-                        if (helper.isRelease() && helper.getGitTag()) {
+                        if (helper.getGitTag()) {
+                            if (githubscm.isTagExist(helper.getGitTag())) {
+                                githubscm.removeLocalTag(helper.getGitTag())
+                                githubscm.removeRemoteTag('origin', helper.getGitTag(), helper.getGitAuthorCredsID())
+                            }
+
                             helper.releaseCLI()
                         }
                     }
