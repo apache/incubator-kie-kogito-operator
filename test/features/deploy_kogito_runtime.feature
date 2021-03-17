@@ -314,7 +314,6 @@ Feature: Deploy Kogito Runtime
 
     @quarkus
     @native
-    @test
     Examples:
       | runtime    | example-service                     | native  |
       | quarkus    | process-mongodb-persistence-quarkus | enabled |
