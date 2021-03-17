@@ -360,6 +360,8 @@ All options from BDD tests do also apply here.
 | @disabled          | Disabled tests, usually with comment describing reasons                            |
 | @cli               | Tests to be executed only using Kogito CLI                                         |
 |                    |                                                                                    |
+| @rhpam             | Tests to be executed for RHPAM Kogito operator                                     |
+|                    |                                                                                    |
 | @springboot        | SpringBoot tests                                                                   |
 | @quarkus           | Quarkus tests                                                                      |
 |                    |                                                                                    |

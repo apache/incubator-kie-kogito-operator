@@ -60,8 +60,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCall
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -79,8 +80,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCall
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -98,8 +100,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCall
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -117,8 +120,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCall
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -136,8 +140,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCall
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -155,8 +160,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCall
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -174,8 +180,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCall
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -197,6 +204,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_GitSource(ref common.ReferenceC
 					"uri": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Git URI for the s2i source.",
+							Default:     "",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -245,17 +253,20 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuild(ref common.Referenc
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
 						},
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildSpec"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildStatus"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildStatus"),
 						},
 					},
 				},
@@ -285,7 +296,8 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuildStatus(ref common.Re
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 									},
 								},
 							},
@@ -300,6 +312,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuildStatus(ref common.Re
 					"builds": {
 						SchemaProps: spec.SchemaProps{
 							Description: "History of builds",
+							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.Builds"),
 						},
 					},
@@ -335,17 +348,20 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfra(ref common.Referenc
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
 						},
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraSpec"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraStatus"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraStatus"),
 						},
 					},
 				},
@@ -366,10 +382,16 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.Refe
 					"resource": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak.",
+							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.Resource"),
 						},
 					},
 					"infraProperties": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-map-type": "atomic",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
 							Description: "Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type. For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail",
 							Type:        []string{"object"},
@@ -377,8 +399,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.Refe
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -412,7 +435,8 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 									},
 								},
 							},
@@ -426,7 +450,8 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties"),
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties"),
 									},
 								},
 							},
@@ -444,7 +469,8 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume"),
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume"),
 									},
 								},
 							},
@@ -482,17 +508,20 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoRuntime(ref common.Refere
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
 						},
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeSpec"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeStatus"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeStatus"),
 						},
 					},
 				},
@@ -526,17 +555,20 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingService(ref com
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
 						},
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceSpec"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceStatus"),
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceStatus"),
 						},
 					},
 				},
@@ -573,7 +605,8 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.EnvVar"),
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/api/core/v1.EnvVar"),
 									},
 								},
 							},
@@ -596,6 +629,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Defined compute resource requirements for the deployed service.",
+							Default:     map[string]interface{}{},
 							Ref:         ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
@@ -607,8 +641,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -622,8 +657,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -643,8 +679,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -653,6 +690,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 					"monitoring": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Create Service monitor instance to connect with Monitoring service",
+							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.Monitoring"),
 						},
 					},
@@ -664,8 +702,9 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -674,12 +713,14 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 					"probes": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Configure liveness, readiness and startup probes for containers",
+							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoProbe"),
 						},
 					},
 					"serviceType": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Defines the type for the supporting service, eg: DataIndex, JobsService Default value: JobsService",
+							Default:     "",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -712,7 +753,8 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceStatus(r
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 									},
 								},
 							},
@@ -725,7 +767,8 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceStatus(r
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/apps/v1.DeploymentCondition"),
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/api/apps/v1.DeploymentCondition"),
 									},
 								},
 							},
@@ -748,6 +791,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceStatus(r
 					"cloudEvents": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Describes the CloudEvents that this instance can consume or produce",
+							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoCloudEventsStatus"),
 						},
 					},

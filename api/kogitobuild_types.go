@@ -82,6 +82,8 @@ type KogitoBuildSpecInterface interface {
 	SetNative(native bool)
 	GetResources() corev1.ResourceRequirements
 	SetResources(resources corev1.ResourceRequirements)
+	AddResourceRequest(name, value string)
+	AddResourceLimit(name, value string)
 	GetMavenMirrorURL() string
 	SetMavenMirrorURL(mavenMirrorURL string)
 	GetBuildImage() string
