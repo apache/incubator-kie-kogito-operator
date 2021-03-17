@@ -272,27 +272,35 @@ Feature: Deploy Kogito Runtime
       | config | infra         | kafka            |
     And Clone Kogito examples into local directory
     And Local example service "<example-service>" is built by Maven and deployed to runtime registry with Maven configuration:
-      | profile | persistence,events |
-      | native  | <native>           |
+      | profile | events   |
+      | native  | <native> |
 
     When Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
       | config | infra | kogito-mongodb   |
       | config | infra | kafka            |
       # Setup short name as it can create some problems with route name too long ...
       | config | name  | process-mongodb  |
-    And Kogito Runtime "<example-service>" has 1 pods running within 10 minutes
-    And Start "orders" process on service "<example-service>" within 3 minutes with body:
+    And Kogito Runtime "process-mongodb" has 1 pods running within 10 minutes
+    And Start "deals" process on service "process-mongodb" within 3 minutes with body:
       """json
       {
-        "approver" : "john",
-        "order" : {
-          "orderNumber" : "12345",
-          "shipped" : false
+        "name" : "my fancy deal",
+        "traveller" : {
+          "firstName" : "John",
+          "lastName" : "Doe",
+          "email" : "jon.doe@example.com",
+          "nationality" : "American",
+          "address" : {
+            "street" : "main street",
+            "city" : "Boston",
+            "zipCode" : "10005",
+            "country" : "US" 
+          }
         }
       }
       """
 
-    Then GraphQL request on Data Index service returns ProcessInstances processName "orders" within 2 minutes
+    Then GraphQL request on Data Index service returns ProcessInstances processName "Deal Review" within 2 minutes
 
     @springboot
     Examples:
@@ -306,6 +314,7 @@ Feature: Deploy Kogito Runtime
 
     @quarkus
     @native
+    @test
     Examples:
       | runtime    | example-service                     | native  |
       | quarkus    | process-mongodb-persistence-quarkus | enabled |
@@ -454,72 +463,6 @@ Feature: Deploy Kogito Runtime
     Examples:
       | runtime    | example-service         |
       | quarkus    | process-quarkus-example |
-
-#####
-
-  @failover
-  @persistence
-  @mongodb
-  Scenario Outline: Test Kogito Runtime <example-service> failover with Infinispan
-    Given Kogito Operator is deployed
-    And MongoDB Operator is deployed
-    And Clone Kogito examples into local directory
-    And Local example service "<example-service>" is built by Maven and deployed to runtime registry with Maven configuration:
-      | profile | persistence |
-    And MongoDB instance "kogito-mongodb" is deployed with configuration:
-      | username | developer            |
-      | password | mypass               |
-      | database | kogito_dataindex     |
-    And Install MongoDB Kogito Infra "kogito-mongodb" targeting service "kogito-mongodb" within 5 minutes with configuration:
-      | config   | username | developer            |
-      | config   | database | kogito_dataindex     |
-
-    When Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
-      | config | infra | kogito-mongodb   |
-      # Setup short name as it can create some problems with route name too long ...
-      | config | name  | process-mongodb  |
-    And Kogito Runtime "<example-service>" has 1 pods running within 10 minutes
-    And Start "orders" process on service "<example-service>" within 3 minutes with body:
-      """json
-      {
-        "approver" : "john",
-        "order" : {
-          "orderNumber" : "12345",
-          "shipped" : false
-        }
-      }
-      """
-
-    Then Service "<example-service>" contains 1 instances of process with name "orders"
-
-    When Scale Infinispan instance "kogito-infinispan" to 0 pods within 2 minutes
-    Then HTTP GET request on service "<example-service>" with path "orders" fails within 2 minutes
-
-    When Scale Infinispan instance "kogito-infinispan" to 1 pods within 2 minutes
-    Then Service "<example-service>" contains 0 instances of process with name "orders" within 2 minutes
-
-    When Start "orders" process on service "<example-service>" within 3 minutes with body:
-      """json
-      {
-        "approver" : "john",
-        "order" : {
-          "orderNumber" : "12345",
-          "shipped" : false
-        }
-      }
-      """
-
-    Then Service "<example-service>" contains 1 instances of process with name "orders"
-
-    @springboot
-    Examples:
-      | runtime    | example-service                        |
-      | springboot | process-mongodb-persistence-springboot |
-
-    @quarkus
-    Examples:
-      | runtime    | example-service                     |
-      | quarkus    | process-mongodb-persistence-quarkus |
 
 #####
 
