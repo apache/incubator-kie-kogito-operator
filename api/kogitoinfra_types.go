@@ -48,6 +48,8 @@ const (
 	ResourceConfigError KogitoInfraConditionReason = "ResourceConfigError"
 	// ResourceMissingResourceConfig related resource is missing a config information to continue
 	ResourceMissingResourceConfig KogitoInfraConditionReason = "ResourceMissingConfig"
+	// ResourceSuccessfullyConfigured ..
+	ResourceSuccessfullyConfigured KogitoInfraConditionReason = "ResourceSuccessfullyConfigured"
 )
 
 // KogitoInfraInterface ...

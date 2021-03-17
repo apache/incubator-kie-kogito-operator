@@ -44,9 +44,7 @@ func (s *statusHandler) UpdateBaseStatus(instance api.KogitoInfraInterface, err 
 	s.Log.Info("Updating Kogito Infra status")
 	instance.GetStatus().SetConditions(&[]metav1.Condition{})
 	if *err != nil {
-		if reasonForError(*err) == api.ReconciliationFailure {
-			s.Log.Info("Seems that an error occurred, setting", "failure state", *err)
-		}
+		s.Log.Info("Seems that an error occurred, setting failure state", "Error", *err)
 		s.setResourceFailed(instance.GetStatus().GetConditions(), *err)
 	} else {
 		s.setResourceSuccess(instance.GetStatus().GetConditions())
@@ -61,16 +59,17 @@ func (s *statusHandler) UpdateBaseStatus(instance api.KogitoInfraInterface, err 
 
 // setResourceFailed sets the instance as failed
 func (s *statusHandler) setResourceFailed(conditions *[]metav1.Condition, err error) {
-	failedCondition := s.newFailedCondition(reasonForError(err), err.Error())
+	reason := reasonForError(err)
+	failedCondition := s.newFailedCondition(reason, err.Error())
 	meta.SetStatusCondition(conditions, failedCondition)
 
-	successCondition := s.newSuccessCondition(metav1.ConditionFalse)
+	successCondition := s.newSuccessCondition(metav1.ConditionFalse, reason)
 	meta.SetStatusCondition(conditions, successCondition)
 }
 
 // setResourceSuccess sets the instance as success
 func (s *statusHandler) setResourceSuccess(conditions *[]metav1.Condition) {
-	successCondition := s.newSuccessCondition(metav1.ConditionFalse)
+	successCondition := s.newSuccessCondition(metav1.ConditionTrue, api.ResourceSuccessfullyConfigured)
 	meta.SetStatusCondition(conditions, successCondition)
 }
 
@@ -86,11 +85,12 @@ func (s *statusHandler) newFailedCondition(reason api.KogitoInfraConditionReason
 }
 
 // NewFailedCondition ...
-func (s *statusHandler) newSuccessCondition(status metav1.ConditionStatus) metav1.Condition {
+func (s *statusHandler) newSuccessCondition(status metav1.ConditionStatus, reason api.KogitoInfraConditionReason) metav1.Condition {
 	return metav1.Condition{
 		Type:               string(api.KogitoInfraSuccess),
 		Status:             status,
 		LastTransitionTime: metav1.Now(),
+		Reason:             string(reason),
 	}
 }
 

@@ -63,6 +63,7 @@ func (s *statusHandler) newSuccessfulCondition(status metav1.ConditionStatus) me
 		Type:               string(api.KogitoBuildSuccessful),
 		Status:             status,
 		LastTransitionTime: metav1.Now(),
+		Reason:             string(status),
 	}
 }
 
@@ -72,6 +73,7 @@ func (s *statusHandler) newRunningCondition(status metav1.ConditionStatus) metav
 		Type:               string(api.KogitoBuildRunning),
 		Status:             status,
 		LastTransitionTime: metav1.Now(),
+		Reason:             string(status),
 	}
 }
 

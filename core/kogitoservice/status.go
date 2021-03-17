@@ -82,7 +82,7 @@ func (s *statusHandler) setFailedConditions(instance api.KogitoService, reason a
 	if isReconciliationError(errCondition) {
 		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
 	} else {
-		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionFalse)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionUnknown)
 	}
 
 	availableReplicas, err := s.fetchReadyReplicas(instance)
@@ -165,19 +165,31 @@ func (s *statusHandler) updateRouteStatus(instance api.KogitoService) error {
 
 // NewDeployedCondition ...
 func (s *statusHandler) newDeployedCondition(status metav1.ConditionStatus) metav1.Condition {
+	reason := api.SuccessfulDeployedReason
+	if status == metav1.ConditionFalse {
+		reason = api.FailedDeployedReason
+	}
 	return metav1.Condition{
 		Type:               string(api.DeployedConditionType),
 		Status:             status,
 		LastTransitionTime: metav1.Now(),
+		Reason:             string(reason),
 	}
 }
 
 // NewProvisioningCondition ...
 func (s *statusHandler) newProvisioningCondition(status metav1.ConditionStatus) metav1.Condition {
+	reason := api.SuccessfulProvisioningReason
+	if status == metav1.ConditionFalse {
+		reason = api.FailedProvisioningReason
+	} else if status == metav1.ConditionUnknown {
+		reason = api.UnknownProvisioningReason
+	}
 	return metav1.Condition{
 		Type:               string(api.ProvisioningConditionType),
 		Status:             status,
 		LastTransitionTime: metav1.Now(),
+		Reason:             string(reason),
 	}
 }
 
