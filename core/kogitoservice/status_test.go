@@ -51,7 +51,7 @@ func TestReconciliation_ErrorOccur(t *testing.T) {
 
 	provisionedCondition := getSpecificCondition(conditions, api.ProvisioningConditionType)
 	assert.NotNil(t, provisionedCondition)
-	assert.Equal(t, metav1.ConditionUnknown, provisionedCondition.Status)
+	assert.Equal(t, metav1.ConditionFalse, provisionedCondition.Status)
 
 	deployedCondition := getSpecificCondition(conditions, api.DeployedConditionType)
 	assert.NotNil(t, deployedCondition)

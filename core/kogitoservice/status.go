@@ -80,9 +80,9 @@ func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService,
 func (s *statusHandler) setFailedConditions(instance api.KogitoService, reason api.KogitoServiceConditionReason, errCondition error) error {
 	s.setFailed(instance.GetStatus().GetConditions(), reason, errCondition)
 	if isReconciliationError(errCondition) {
-		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue, api.ProvisioningInProgressReason)
 	} else {
-		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionUnknown)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionFalse, api.FailedProvisioningReason)
 	}
 
 	availableReplicas, err := s.fetchReadyReplicas(instance)
@@ -105,13 +105,13 @@ func (s *statusHandler) handleConditionTransition(instance api.KogitoService) er
 	expectedReplicas := *instance.GetSpec().GetReplicas()
 	if expectedReplicas == availableReplicas {
 		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
-		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionFalse)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionFalse, api.FinishedProvisioningReason)
 	} else if availableReplicas > 0 && availableReplicas < expectedReplicas {
 		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
-		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue, api.ProvisioningInProgressReason)
 	} else if availableReplicas == 0 {
 		s.setDeployed(instance.GetStatus().GetConditions(), metav1.ConditionFalse)
-		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue)
+		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue, api.ProvisioningInProgressReason)
 	}
 	return nil
 }
@@ -178,13 +178,7 @@ func (s *statusHandler) newDeployedCondition(status metav1.ConditionStatus) meta
 }
 
 // NewProvisioningCondition ...
-func (s *statusHandler) newProvisioningCondition(status metav1.ConditionStatus) metav1.Condition {
-	reason := api.SuccessfulProvisioningReason
-	if status == metav1.ConditionFalse {
-		reason = api.FailedProvisioningReason
-	} else if status == metav1.ConditionUnknown {
-		reason = api.UnknownProvisioningReason
-	}
+func (s *statusHandler) newProvisioningCondition(status metav1.ConditionStatus, reason api.KogitoServiceConditionReason) metav1.Condition {
 	return metav1.Condition{
 		Type:               string(api.ProvisioningConditionType),
 		Status:             status,
@@ -205,8 +199,8 @@ func (s *statusHandler) newFailedCondition(reason api.KogitoServiceConditionReas
 }
 
 // SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
-func (s *statusHandler) setProvisioning(conditions *[]metav1.Condition, status metav1.ConditionStatus) {
-	provisionCondition := s.newProvisioningCondition(status)
+func (s *statusHandler) setProvisioning(conditions *[]metav1.Condition, status metav1.ConditionStatus, reason api.KogitoServiceConditionReason) {
+	provisionCondition := s.newProvisioningCondition(status, reason)
 	meta.SetStatusCondition(conditions, provisionCondition)
 }
 
