@@ -15,7 +15,7 @@
 package service
 
 import (
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/test"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
 	"os"
 	"testing"
 )

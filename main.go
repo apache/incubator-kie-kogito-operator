@@ -18,9 +18,9 @@ package main
 
 import (
 	"flag"
-	"github.com/kiegroup/kogito-cloud-operator/core/client"
-	"github.com/kiegroup/kogito-cloud-operator/core/logger"
-	"github.com/kiegroup/kogito-cloud-operator/meta"
+	"github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-operator/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 
@@ -28,7 +28,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/kiegroup/kogito-cloud-operator/controllers"
+	"github.com/kiegroup/kogito-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 

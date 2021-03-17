@@ -1,7 +1,7 @@
 domain: kiegroup.org
 layout: go.kubebuilder.io/v2
 projectName: kogito-operator
-repo: github.com/kiegroup/kogito-cloud-operator
+repo: github.com/kiegroup/kogito-operator
 resources:
 - group: app
   kind: KogitoRuntime

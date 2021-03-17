@@ -51,8 +51,8 @@ pipeline {
                 sh """
                     set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
                     cd version/ && TAG_OPERATOR=\$(grep -m 1 'Version =' version.go) && TAG_OPERATOR=\$(echo \${TAG_OPERATOR#*=} | tr -d '"')
-                    ${CONTAINER_ENGINE} tag quay.io/kiegroup/kogito-cloud-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                    ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} tag quay.io/kiegroup/kogito-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/kogito-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/kogito-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                 """
             }
         }
@@ -109,7 +109,7 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
     testParamsMap["load_factor"] = 3
     testParamsMap['disable_maven_native_build_container'] = true
 
-    testParamsMap["operator_image"] = "${OPENSHIFT_REGISTRY}/openshift/kogito-cloud-operator"
+    testParamsMap["operator_image"] = "${OPENSHIFT_REGISTRY}/openshift/kogito-operator"
     testParamsMap["operator_tag"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
     
     if(env.MAVEN_MIRROR_REPOSITORY){

@@ -1,6 +1,6 @@
 # Kogito Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-cloud-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-cloud-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-cloud-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-cloud-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-operator)
 
 The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
 
@@ -44,10 +44,10 @@ You can quickly install the operator in your local cluster by executing the foll
 ```shell script
 NAMESPACE=mynamespace
 VERSION=<current_operator_version>
-kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-cloud-operator/releases/download/${VERSION}/kogito-operator.yaml"
+kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
 ```
 
-Replace the values above to match your context. The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-cloud-operator/releases).
+Replace the values above to match your context. The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-operator/releases).
 
 Alternatively, if you cloned this repo just do:
 
@@ -89,7 +89,7 @@ In general, the unit tests that are provided with the Kogito Operator are based 
 
 ### Kogito Operator collaboration and pull requests
 
-Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/kiegroup/kogito-cloud-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.
+Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/kiegroup/kogito-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.
 
 After you update the source with your new proposed feature or bug fix, open a [pull request (PR)](https://help.github.com/en/articles/about-pull-requests) that meets the following requirements:
 
@@ -102,7 +102,7 @@ After you update the source with your new proposed feature or bug fix, open a [p
 
 After you send your PR, a maintainer will review your code and might ask you to make changes and to [squash your commits](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we can merge.
 
-If you have any questions, contact a Kogito Operator maintainer in the [issues page](https://github.com/kiegroup/kogito-cloud-operator/issues).
+If you have any questions, contact a Kogito Operator maintainer in the [issues page](https://github.com/kiegroup/kogito-operator/issues).
 
 ## Kogito Operator development
 
@@ -240,7 +240,7 @@ You can set those optional keys:
 - `olm_namespace` Set the namespace which is used for cluster scope operators. Default is 'openshift-operators'.
 <!--- operator information -->
 - `operator_image` is the Operator image full name.  
-  *Default: operator_image=quay.io/kiegroup/kogito-cloud-operator*.
+  *Default: operator_image=quay.io/kiegroup/kogito-operator*.
 - `operator_tag` is the Operator image tag.  
   *Default is the current version*.
 - `operator_namespaced` Set true if you want to run operator namespace scoped.
@@ -310,9 +310,9 @@ make run-tests 2>&1 | tee log.out
 
 ```
 $ make
-$ docker tag quay.io/kiegroup/kogito-cloud-operator:2.0.0-snapshot quay.io/{USERNAME}/kogito-cloud-operator:2.0.0-snapshot
-$ docker push quay.io/{USERNAME}/kogito-cloud-operator:2.0.0-snapshot
-$ make run-tests operator_image=quay.io/{USERNAME}/kogito-cloud-operator
+$ docker tag quay.io/kiegroup/kogito-operator:2.0.0-snapshot quay.io/{USERNAME}/kogito-operator:2.0.0-snapshot
+$ docker push quay.io/{USERNAME}/kogito-operator:2.0.0-snapshot
+$ make run-tests operator_image=quay.io/{USERNAME}/kogito-operator
 ```
 
 **NOTE:** Replace {USERNAME} with the username/group you want to push to. Docker needs to be logged in to quay.io and be able to push to your username/group.

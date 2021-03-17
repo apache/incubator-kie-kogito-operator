@@ -26,22 +26,22 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds":                        schema_kiegroup_kogito_cloud_operator_api_v1beta1_Builds(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.GitSource":                     schema_kiegroup_kogito_cloud_operator_api_v1beta1_GitSource(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuild":                   schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuild(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildStatus":             schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfra":                   schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfra(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraSpec":               schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraSpec(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraStatus":             schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoRuntime":                 schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoRuntime(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingService":       schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingService(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceSpec":   schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSpec(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceStatus": schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceStatus(ref),
-		"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.WebHookSecret":                 schema_kiegroup_kogito_cloud_operator_api_v1beta1_WebHookSecret(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.Builds":                        schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.GitSource":                     schema_kiegroup_kogito_operator_api_v1beta1_GitSource(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuild":                   schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuild(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildStatus":             schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuildStatus(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfra":                   schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfra(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraSpec":               schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraStatus":             schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntime":                 schema_kiegroup_kogito_operator_api_v1beta1_KogitoRuntime(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingService":       schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingService(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceSpec":   schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceStatus": schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceStatus(ref),
+		"github.com/kiegroup/kogito-operator/api/v1beta1.WebHookSecret":                 schema_kiegroup_kogito_operator_api_v1beta1_WebHookSecret(ref),
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_Builds(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_Builds(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -187,7 +187,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_Builds(ref common.Referen
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_GitSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_GitSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -222,7 +222,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_GitSource(ref common.Refe
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuild(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuild(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -250,23 +250,23 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuild(ref common.Re
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildSpec"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildStatus"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildSpec", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoBuildStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildSpec", "github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuildStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -300,7 +300,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref com
 					"builds": {
 						SchemaProps: spec.SchemaProps{
 							Description: "History of builds",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds"),
+							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.Builds"),
 						},
 					},
 				},
@@ -308,11 +308,11 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoBuildStatus(ref com
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Builds", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.Builds", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfra(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfra(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -340,23 +340,23 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfra(ref common.Re
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraSpec"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraStatus"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraSpec", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraSpec", "github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -366,7 +366,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraSpec(ref commo
 					"resource": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak.",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Resource"),
+							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.Resource"),
 						},
 					},
 					"infraProperties": {
@@ -389,11 +389,11 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraSpec(ref commo
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Resource"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.Resource"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -426,7 +426,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref com
 								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.RuntimeProperties"),
+										Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties"),
 									},
 								},
 							},
@@ -444,7 +444,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref com
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraVolume"),
+										Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume"),
 									},
 								},
 							},
@@ -455,11 +455,11 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoInfraStatus(ref com
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.RuntimeProperties", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoRuntime(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoRuntime(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -487,23 +487,23 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoRuntime(ref common.
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoRuntimeSpec"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoRuntimeStatus"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoRuntimeSpec", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoRuntimeStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeSpec", "github.com/kiegroup/kogito-operator/api/v1beta1.KogitoRuntimeStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingService(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingService(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -531,23 +531,23 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingService(r
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceSpec"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceStatus"),
+							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceSpec", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoSupportingServiceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceSpec", "github.com/kiegroup/kogito-operator/api/v1beta1.KogitoSupportingServiceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -653,7 +653,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSp
 					"monitoring": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Create Service monitor instance to connect with Monitoring service",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Monitoring"),
+							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.Monitoring"),
 						},
 					},
 					"config": {
@@ -674,7 +674,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSp
 					"probes": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Configure liveness, readiness and startup probes for containers",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoProbe"),
+							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoProbe"),
 						},
 					},
 					"serviceType": {
@@ -689,11 +689,11 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSp
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoProbe", "github.com/kiegroup/kogito-cloud-operator/api/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoProbe", "github.com/kiegroup/kogito-operator/api/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -748,7 +748,7 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSt
 					"cloudEvents": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Describes the CloudEvents that this instance can consume or produce",
-							Ref:         ref("github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoCloudEventsStatus"),
+							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoCloudEventsStatus"),
 						},
 					},
 				},
@@ -756,11 +756,11 @@ func schema_kiegroup_kogito_cloud_operator_api_v1beta1_KogitoSupportingServiceSt
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-cloud-operator/api/v1beta1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
-func schema_kiegroup_kogito_cloud_operator_api_v1beta1_WebHookSecret(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_kiegroup_kogito_operator_api_v1beta1_WebHookSecret(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{

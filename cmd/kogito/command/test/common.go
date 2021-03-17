@@ -16,13 +16,13 @@ package test
 
 import (
 	"bytes"
-	"github.com/kiegroup/kogito-cloud-operator/core/test"
+	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/spf13/cobra"
 	"strings"
 
-	"github.com/kiegroup/kogito-cloud-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-cloud-operator/core/client"
-	clitest "github.com/kiegroup/kogito-cloud-operator/core/client/test"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/core/client"
+	clitest "github.com/kiegroup/kogito-operator/core/client/test"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
