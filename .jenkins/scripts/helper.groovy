@@ -66,7 +66,16 @@ void installGitHubReleaseCLI() {
     sh 'go get github.com/github-release/github-release'
 }
 
-void releaseCLI() {
+void createRelease() {
+    if (isReleaseExist()) {
+        deleteRelease()
+    }
+
+    if (githubscm.isTagExist('origin', getGitTag())) {
+        githubscm.removeLocalTag(getGitTag())
+        githubscm.removeRemoteTag('origin', getGitTag(), getGitAuthorCredsID())
+    }
+
     sh "make build-cli release=true version=${getProjectVersion()}"
     def releaseName = "Kogito Operator and CLI Version ${getProjectVersion()}"
     def description = 'Kogito Operator is a Kubernetes based operator for Kogito Runtimes\' deployment from the source. Additionally, to facilitate interactions with the operator, we also offer a CLI (Command Line Interface) to deploy Kogito applications.'
@@ -84,6 +93,26 @@ void releaseCLI() {
             github-release upload --tag ${getGitTag()} --name \"${linuxFileName}\" --file \"${releasePath}${linuxFileName}\"
             github-release upload --tag ${getGitTag()} --name \"${windowsFileName}\" --file \"${releasePath}${windowsFileName}\"
             github-release upload --tag ${getGitTag()} --name \"${yamlInstaller}\" --file \"${yamlInstaller}\"
+        """
+    }
+}
+
+boolean isReleaseExist() {
+    releaseExistStatus = -1
+    withCredentials([string(credentialsId: env.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
+        releaseExistStatus = sh(returnStatus: true, script: """
+            export GITHUB_USER=${getGitAuthor()}
+            github-release info --tag ${getGitTag()}
+        """)
+    }
+    return releaseExistStatus == 0
+}
+
+void deleteRelease() {
+    withCredentials([string(credentialsId: env.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
+        sh """
+            export GITHUB_USER=${getGitAuthor()}
+            github-release delete --tag ${getGitTag()}
         """
     }
 }
