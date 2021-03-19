@@ -83,11 +83,6 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				Probes:                converter.FromProbeFlagToKogitoProbe(&flags.ProbeFlags),
 			},
 		},
-		Status: v1beta1.KogitoRuntimeStatus{
-			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
-				ConditionsMeta: v1beta1.ConditionsMeta{Conditions: []v1beta1.Condition{}},
-			},
-		},
 	}
 
 	log.Debugf("Trying to deploy Kogito Service '%s'", kogitoRuntime.Name)

@@ -107,9 +107,6 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 			Artifact:                  converter.FromArtifactFlagsToArtifact(&flags.ArtifactFlags),
 			EnableMavenDownloadOutput: flags.EnableMavenDownloadOutput,
 		},
-		Status: v1beta1.KogitoBuildStatus{
-			Conditions: []v1beta1.KogitoBuildConditions{},
-		},
 	}
 
 	log.Debugf("Trying to build Kogito Service '%s'", kogitoBuild.Name)

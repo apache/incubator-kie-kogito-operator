@@ -310,18 +310,28 @@ func (k *KogitoBuildSpec) SetEnableMavenDownloadOutput(enableMavenDownloadOutput
 // KogitoBuildStatus defines the observed state of KogitoBuild.
 // +k8s:openapi-gen=true
 type KogitoBuildStatus struct {
+	// +listType=atomic
+	// History of conditions for the resource
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	Conditions *[]metav1.Condition `json:"conditions"`
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Latest Build"
 	LatestBuild string `json:"latestBuild,omitempty"`
-	// +listType=atomic
-	// History of conditions for the resource, shows the status of the younger builder controlled by this instance
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
-	Conditions []KogitoBuildConditions `json:"conditions"`
 	// History of builds
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Builds"
 	Builds Builds `json:"builds"`
+}
+
+// GetConditions ...
+func (k *KogitoBuildStatus) GetConditions() *[]metav1.Condition {
+	return k.Conditions
+}
+
+// SetConditions ...
+func (k *KogitoBuildStatus) SetConditions(conditions *[]metav1.Condition) {
+	k.Conditions = conditions
 }
 
 // GetLatestBuild ...
@@ -332,31 +342,6 @@ func (k *KogitoBuildStatus) GetLatestBuild() string {
 // SetLatestBuild ...
 func (k *KogitoBuildStatus) SetLatestBuild(latestBuild string) {
 	k.LatestBuild = latestBuild
-}
-
-// GetConditions ...
-func (k *KogitoBuildStatus) GetConditions() []api.KogitoBuildConditionsInterface {
-	conditions := make([]api.KogitoBuildConditionsInterface, len(k.Conditions))
-	for i, v := range k.Conditions {
-		conditions[i] = api.KogitoBuildConditionsInterface(v)
-	}
-	return conditions
-}
-
-// SetConditions ...
-func (k *KogitoBuildStatus) SetConditions(conditions []api.KogitoBuildConditionsInterface) {
-	var newConditions []KogitoBuildConditions
-	for _, condition := range conditions {
-		if newCondition, ok := condition.(KogitoBuildConditions); ok {
-			newConditions = append(newConditions, newCondition)
-		}
-	}
-	k.Conditions = newConditions
-}
-
-// AddCondition ...
-func (k *KogitoBuildStatus) AddCondition(condition api.KogitoBuildConditionsInterface) {
-	k.SetConditions(append(k.GetConditions(), condition))
 }
 
 // GetBuilds ...
@@ -465,45 +450,6 @@ func (b *Builds) GetCancelled() []string {
 // SetCancelled ...
 func (b *Builds) SetCancelled(cancelled []string) {
 	b.Cancelled = cancelled
-}
-
-// KogitoBuildConditions describes the conditions for this build instance according to Kubernetes status interface.
-type KogitoBuildConditions struct {
-	// Type of this condition
-	Type api.KogitoBuildConditionType `json:"type"`
-	// Status ...
-	Status corev1.ConditionStatus `json:"status"`
-	// LastTransitionTime ...
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Reason of this condition
-	Reason api.KogitoBuildConditionReason `json:"reason,omitempty"`
-	// Message ...
-	Message string `json:"message,omitempty"`
-}
-
-// GetType ...
-func (k KogitoBuildConditions) GetType() api.KogitoBuildConditionType {
-	return k.Type
-}
-
-// GetStatus ...
-func (k KogitoBuildConditions) GetStatus() corev1.ConditionStatus {
-	return k.Status
-}
-
-// GetLastTransitionTime ...
-func (k KogitoBuildConditions) GetLastTransitionTime() metav1.Time {
-	return k.LastTransitionTime
-}
-
-// GetReason ...
-func (k KogitoBuildConditions) GetReason() api.KogitoBuildConditionReason {
-	return k.Reason
-}
-
-// GetMessage ...
-func (k KogitoBuildConditions) GetMessage() string {
-	return k.Message
 }
 
 // +kubebuilder:object:root=true

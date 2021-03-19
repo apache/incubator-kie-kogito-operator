@@ -98,11 +98,10 @@ type KogitoBuildSpecInterface interface {
 
 // KogitoBuildStatusInterface ...
 type KogitoBuildStatusInterface interface {
+	GetConditions() *[]metav1.Condition
+	SetConditions(conditions *[]metav1.Condition)
 	GetLatestBuild() string
 	SetLatestBuild(latestBuild string)
-	GetConditions() []KogitoBuildConditionsInterface
-	SetConditions(conditions []KogitoBuildConditionsInterface)
-	AddCondition(condition KogitoBuildConditionsInterface)
 	GetBuilds() BuildsInterface
 	SetBuilds(builds BuildsInterface)
 }
@@ -123,13 +122,4 @@ type BuildsInterface interface {
 	SetError(errorBuilds []string)
 	GetCancelled() []string
 	SetCancelled(cancelled []string)
-}
-
-// KogitoBuildConditionsInterface ...
-type KogitoBuildConditionsInterface interface {
-	GetType() KogitoBuildConditionType
-	GetStatus() corev1.ConditionStatus
-	GetLastTransitionTime() metav1.Time
-	GetReason() KogitoBuildConditionReason
-	GetMessage() string
 }

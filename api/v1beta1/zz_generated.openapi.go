@@ -273,12 +273,6 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuildStatus(ref common.Re
 				Description: "KogitoBuildStatus defines the observed state of KogitoBuild.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"latestBuild": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 					"conditions": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
@@ -286,15 +280,21 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuildStatus(ref common.Re
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "History of conditions for the resource, shows the status of the younger builder controlled by this instance",
+							Description: "History of conditions for the resource",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildConditions"),
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 									},
 								},
 							},
+						},
+					},
+					"latestBuild": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"builds": {
@@ -308,7 +308,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoBuildStatus(ref common.Re
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.Builds", "github.com/kiegroup/kogito-operator/api/v1beta1.KogitoBuildConditions"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.Builds", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -400,9 +400,22 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 				Description: "KogitoInfraStatus defines the observed state of KogitoInfra.",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"condition": {
+					"conditions": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraCondition"),
+							Description: "History of conditions for the resource",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+									},
+								},
+							},
 						},
 					},
 					"runtimeProperties": {
@@ -438,10 +451,11 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 						},
 					},
 				},
+				Required: []string{"conditions"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraCondition", "github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -698,7 +712,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceStatus(r
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/kiegroup/kogito-operator/api/v1beta1.Condition"),
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
 									},
 								},
 							},
@@ -742,7 +756,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceStatus(r
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.Condition", "github.com/kiegroup/kogito-operator/api/v1beta1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoCloudEventsStatus", "k8s.io/api/apps/v1.DeploymentCondition", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
