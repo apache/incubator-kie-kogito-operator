@@ -16,3 +16,17 @@ Feature: Build process-mongodb-persistence-quarkus images
     Examples:
       | native  |
       | enabled |
+
+  Scenario Outline: Build native process-mongodb-persistence-quarkus image with profile <profile> and native <native>
+    Then Local example service "process-mongodb-persistence-quarkus" is built by Maven and deployed to runtime registry with Maven configuration:
+      | profile | <profile> |
+      | native  | <native>  |
+
+    Examples:
+      | profile | native  |
+      | events  | disabled |
+
+    @native
+    Examples:
+      | profile | native  |
+      | events  | enabled |
