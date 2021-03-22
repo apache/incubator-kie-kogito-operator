@@ -100,6 +100,7 @@ func (s *statusHandler) setFailedConditions(instance api.KogitoService, reason a
 }
 
 func (s *statusHandler) handleConditionTransition(instance api.KogitoService) error {
+	s.removeFailedCondition(instance.GetStatus().GetConditions())
 	availableReplicas, err := s.fetchReadyReplicas(instance)
 	if err != nil {
 		return err
@@ -213,6 +214,13 @@ func (s *statusHandler) setDeployed(conditions *[]metav1.Condition, status metav
 func (s *statusHandler) setFailed(conditions *[]metav1.Condition, reason api.KogitoServiceConditionReason, err error) {
 	failedCondition := s.newFailedCondition(reason, err)
 	meta.SetStatusCondition(conditions, failedCondition)
+}
+
+func (s *statusHandler) removeFailedCondition(conditions *[]metav1.Condition) {
+	failedCondition := meta.FindStatusCondition(*conditions, string(api.FailedConditionType))
+	if failedCondition != nil {
+		meta.RemoveStatusCondition(conditions, string(api.FailedConditionType))
+	}
 }
 
 func (s *statusHandler) fetchReadyReplicas(instance api.KogitoService) (int32, error) {
