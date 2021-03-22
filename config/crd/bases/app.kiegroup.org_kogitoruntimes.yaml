@@ -486,6 +486,22 @@ spec:
                 description: Additional labels to be added to the Service managed
                   by the operator.
                 type: object
+              trustStore:
+                description: Custom TrustStore that will be used by this service to
+                  make calls to TLS endpoints
+                properties:
+                  configMapName:
+                    description: ConfigMapName is the name of the ConfigMap that has
+                      the KeyStore file
+                    type: string
+                  passwordSecretName:
+                    description: PasswordSecretName is the Secret name for the password
+                      for the given KeyStore. It's expected that the secret has a
+                      key named `keyStorePassword` if there's more than one key.
+                    type: string
+                required:
+                - configMapName
+                type: object
             type: object
           status:
             description: KogitoRuntimeStatus defines the observed state of KogitoRuntime.

@@ -717,6 +717,12 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoProbe"),
 						},
 					},
+					"trustStore": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom TrustStore that will be used by this service to make calls to TLS endpoints",
+							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.TLSKeyStore"),
+						},
+					},
 					"serviceType": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Defines the type for the supporting service, eg: DataIndex, JobsService Default value: JobsService",
@@ -730,7 +736,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoProbe", "github.com/kiegroup/kogito-operator/api/v1beta1.Monitoring", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoProbe", "github.com/kiegroup/kogito-operator/api/v1beta1.Monitoring", "github.com/kiegroup/kogito-operator/api/v1beta1.TLSKeyStore", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

@@ -61,6 +61,8 @@ const (
 	UnknownProvisioningReason KogitoServiceConditionReason = "UnrecoverableError"
 	// FinishedProvisioningReason ...
 	FinishedProvisioningReason KogitoServiceConditionReason = "RequestedReplicasEqualToAvailableReplicas"
+	// TrustStoreMountFailureReason happens when the controller tries to mount a given TrustStore in the target service and fails
+	TrustStoreMountFailureReason KogitoServiceConditionReason = "TrustStoreMountFailure"
 )
 
 // KogitoService defines the interface for any Kogito service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
@@ -110,6 +112,8 @@ type KogitoServiceSpecInterface interface {
 	GetConfig() map[string]string
 	GetProbes() KogitoProbeInterface
 	SetProbes(probes KogitoProbeInterface)
+	GetTrustStore() TLSKeyStoreInterface
+	SetTrustStore(trustStore TLSKeyStoreInterface)
 }
 
 // KogitoServiceStatusInterface defines the basic interface for the Kogito Service status.
