@@ -62,24 +62,11 @@ pipeline {
                 lock("BDD tests ${OPENSHIFT_API}")
             }
             stages {
-                stage("Build examples' images for testing"){
-                    steps {
-                        // Do not build native images for the PR checks
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images tags='~@native' concurrent=3 operator_namespaced=true ${getBDDParameters('never', false)}"
-                    }
-                    post {
-                        always {
-                            archiveArtifacts artifacts: 'test/logs/*/error */*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                        }
-                    }
-                }
                 stage('Running smoke tests') {
                     steps {
                         // Run just smoke tests to verify basic operator functionality
                         sh """
-                            make run-smoke-tests concurrent=5 ${getBDDParameters('always', true)}
+                            make run-smoke-tests concurrent=5 ${getBDDParameters()}
                         """
                     }
                     post {
@@ -101,7 +88,7 @@ pipeline {
     }
 }
 
-String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_internal=false) {
+String getBDDParameters() {
     testParamsMap = [:]
 
     testParamsMap["load_default_config"] = true
@@ -117,11 +104,10 @@ String getBDDParameters(String image_cache_mode, boolean runtime_app_registry_in
         testParamsMap["maven_ignore_self_signed_certificate"] = true
     }
     
-    // runtime_application_image are built in this pipeline so we can just use Openshift registry for them
-    testParamsMap["image_cache_mode"] = image_cache_mode
-    testParamsMap["runtime_application_image_registry"] = runtime_app_registry_internal ? env.OPENSHIFT_INTERNAL_REGISTRY : env.OPENSHIFT_REGISTRY
-    testParamsMap["runtime_application_image_namespace"] = "openshift"
-    testParamsMap["runtime_application_image_version"] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
+    // Reuse runtime application images from nightly builds
+    testParamsMap["image_cache_mode"] = "always"
+    testParamsMap["runtime_application_image_registry"] = "quay.io"
+    testParamsMap["runtime_application_image_namespace"] = "kiegroup"
     
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
 
