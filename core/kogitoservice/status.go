@@ -51,7 +51,9 @@ func (s *statusHandler) HandleStatusUpdate(instance api.KogitoService, err *erro
 }
 
 func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService, errCondition error) (err error) {
-	instance.GetStatus().SetConditions(&[]metav1.Condition{})
+	if instance.GetStatus().GetConditions() == nil {
+		instance.GetStatus().SetConditions(&[]metav1.Condition{})
+	}
 	if errCondition != nil {
 		if err = s.setFailedConditions(instance, reasonForError(errCondition), errCondition); err != nil {
 			return err
@@ -170,31 +172,28 @@ func (s *statusHandler) newDeployedCondition(status metav1.ConditionStatus) meta
 		reason = api.FailedDeployedReason
 	}
 	return metav1.Condition{
-		Type:               string(api.DeployedConditionType),
-		Status:             status,
-		LastTransitionTime: metav1.Now(),
-		Reason:             string(reason),
+		Type:   string(api.DeployedConditionType),
+		Status: status,
+		Reason: string(reason),
 	}
 }
 
 // NewProvisioningCondition ...
 func (s *statusHandler) newProvisioningCondition(status metav1.ConditionStatus, reason api.KogitoServiceConditionReason) metav1.Condition {
 	return metav1.Condition{
-		Type:               string(api.ProvisioningConditionType),
-		Status:             status,
-		LastTransitionTime: metav1.Now(),
-		Reason:             string(reason),
+		Type:   string(api.ProvisioningConditionType),
+		Status: status,
+		Reason: string(reason),
 	}
 }
 
 // NewFailedCondition ...
 func (s *statusHandler) newFailedCondition(reason api.KogitoServiceConditionReason, err error) metav1.Condition {
 	return metav1.Condition{
-		Type:               string(api.FailedConditionType),
-		Status:             metav1.ConditionTrue,
-		LastTransitionTime: metav1.Now(),
-		Reason:             string(reason),
-		Message:            err.Error(),
+		Type:    string(api.FailedConditionType),
+		Status:  metav1.ConditionTrue,
+		Reason:  string(reason),
+		Message: err.Error(),
 	}
 }
 

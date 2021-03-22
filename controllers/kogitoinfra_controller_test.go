@@ -50,7 +50,7 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.True(t, exists)
 	assert.NoError(t, err)
-	failureCondition := meta2.FindStatusCondition(*kogitoInfra.Status.Conditions, string(api.KogitoInfraFailure))
+	failureCondition := meta2.FindStatusCondition(*kogitoInfra.Status.Conditions, string(api.KogitoInfraConfigured))
 	assert.NotNil(t, failureCondition)
 	assert.NotEmpty(t, failureCondition.Message)
 	// we haven't created the Infinispan server and we are informing our KogitoInfra instance that it will require it :)

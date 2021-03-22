@@ -50,8 +50,31 @@ type KogitoBuildConditionReason string
 const (
 	// OperatorFailureReason when operator fails to reconcile.
 	OperatorFailureReason KogitoBuildConditionReason = "OperatorFailure"
-	// BuildFailureReason when build fails.
-	BuildFailureReason KogitoBuildConditionReason = "BuildFailure"
+
+	// BuildPhaseNewReason is automatically assigned to a newly created build.
+	BuildPhaseNewReason KogitoBuildConditionReason = "New"
+
+	// BuildPhasePendingReason indicates that a pod name has been assigned and a build is
+	// about to start running.
+	BuildPhasePendingReason KogitoBuildConditionReason = "Pending"
+
+	// BuildPhaseRunningReason indicates that a pod has been created and a build is running.
+	BuildPhaseRunningReason KogitoBuildConditionReason = "Running"
+
+	// BuildPhaseCompleteReason indicates that a build has been successful.
+	BuildPhaseCompleteReason KogitoBuildConditionReason = "Complete"
+
+	// BuildPhaseFailedReason indicates that a build has executed and failed.
+	BuildPhaseFailedReason KogitoBuildConditionReason = "Failed"
+
+	// BuildPhaseErrorReason indicates that an error prevented the build from executing.
+	BuildPhaseErrorReason KogitoBuildConditionReason = "Error"
+
+	// BuildPhaseCancelledReason indicates that a running/pending build was stopped from executing.
+	BuildPhaseCancelledReason KogitoBuildConditionReason = "Cancelled"
+
+	// BuildNotStartedReason indicates that a build is not started yet.
+	BuildNotStartedReason KogitoBuildConditionReason = "NotYetStarted"
 )
 
 // KogitoBuildInterface ...
