@@ -82,16 +82,6 @@ func (s *statusHandler) newConfiguredCondition(status metav1.ConditionStatus, re
 	}
 }
 
-// NewFailedCondition ...
-func (s *statusHandler) newSuccessCondition(status metav1.ConditionStatus, reason api.KogitoInfraConditionReason) metav1.Condition {
-	return metav1.Condition{
-		Type:               string(api.KogitoInfraSuccess),
-		Status:             status,
-		LastTransitionTime: metav1.Now(),
-		Reason:             string(reason),
-	}
-}
-
 // setRuntimeProperties sets the instance status' runtime properties
 func setRuntimeProperties(instance api.KogitoInfraInterface, runtime api.RuntimeType, runtimeProps api.RuntimePropertiesInterface) {
 	instance.GetStatus().AddRuntimeProperties(runtime, runtimeProps)
