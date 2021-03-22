@@ -108,8 +108,8 @@ pipeline {
                             githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorCredsID())
                         }
 
-                        if (helper.isRelease() && helper.getGitTag()) {
-                            helper.releaseCLI()
+                        if (helper.getGitTag()) {
+                            helper.createRelease()
                         }
                     }
                 }
