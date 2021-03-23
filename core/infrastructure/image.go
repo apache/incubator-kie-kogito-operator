@@ -34,9 +34,9 @@ const (
 	// LatestTag the default name for latest image tag
 	LatestTag = "latest"
 	// imageRegistryEnvVar ...
-	imageRegistryEnvVar = "image.registry"
+	imageRegistryEnvVar = "IMAGE_REGISTRY"
 	// imageNamespaceEnvVar ...
-	imageNamespaceEnvVar = "image.namespace"
+	imageNamespaceEnvVar = "IMAGE_NAMESPACE"
 	// defaultImageRegistry the default services image repository
 	defaultImageRegistry = "quay.io"
 	// defaultImageNamespace the default services image namespace

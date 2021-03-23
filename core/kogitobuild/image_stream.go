@@ -34,9 +34,9 @@ import (
 const (
 	customKogitoImagePrefix   = "custom-"
 	labelKeyVersion           = "version"
-	kogitoBuilderImageEnvVar  = "builder.image"
-	kogitoRuntimeJVMEnvVar    = "runtime.image"
-	kogitoRuntimeNativeEnvVar = "runtime.native.image"
+	kogitoBuilderImageEnvVar  = "BUILDER_IMAGE"
+	kogitoRuntimeJVMEnvVar    = "RUNTIME_IMAGE"
+	kogitoRuntimeNativeEnvVar = "RUNTIME_NATIVE_IMAGE"
 	// defaultBuilderImage Builder Image for Kogito
 	defaultBuilderImage = "kogito-builder"
 	// defaultRuntimeJVM Runtime Image for Kogito with  JRE

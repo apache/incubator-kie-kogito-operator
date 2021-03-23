@@ -449,15 +449,15 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                - name: builder.image
+                - name: BUILDER_IMAGE
                   value: kogito-builder
-                - name: runtime.image
+                - name: RUNTIME_IMAGE
                   value: kogito-runtime-jvm
-                - name: runtime.native.image
+                - name: RUNTIME_NATIVE_IMAGE
                   value: kogito-runtime-native
-                - name: image.namespace
+                - name: IMAGE_NAMESPACE
                   value: kiegroup
-                - name: image.registry
+                - name: IMAGE_REGISTRY
                   value: quay.io
                 image: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
                 name: manager
