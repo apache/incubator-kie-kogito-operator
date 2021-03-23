@@ -32,7 +32,7 @@ metadata:
   name: conversion-workflow
 spec:
   replicas: 1
-  image: quay.io/ricardozanini/conversion-workflow:latest
+  image: <your image>
   trustStore:
     configMapName: kogito-truststore
     passwordSecretName: kogito-truststore-key
