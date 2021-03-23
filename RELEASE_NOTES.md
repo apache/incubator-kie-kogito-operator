@@ -11,5 +11,6 @@
 - [KOGITO-4644](https://issues.redhat.com/browse/KOGITO-4644) - Operator Binary build & BDD tests should handle correctly fast jars
 - [KOGITO-4453](https://issues.redhat.com/browse/KOGITO-4453) - Operator overwrites user's configmap provided with propertiesConfigMap
 - [KOGITO-4469](https://issues.redhat.com/browse/KOGITO-4469) - Conditions should reflect latest evaluated status
+- [KOGITO-4753](https://issues.redhat.com/browse/KOGITO-4753) - Cannot deploy Kogito operator together with RHPAM Kogito operator
 
 ## Known Issues
