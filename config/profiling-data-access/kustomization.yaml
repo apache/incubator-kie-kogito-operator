@@ -8,9 +8,5 @@ namespace: kogito-operator-system
 # field above.
 namePrefix: kogito-operator-
 
-# Labels to add to all resources and selectors.
-#commonLabels:
-#  someName: someValue
-
-bases:
-- ../full
+resources:
+- bases/profiling_data_access_pod.yaml

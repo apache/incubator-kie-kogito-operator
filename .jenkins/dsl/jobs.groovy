@@ -52,6 +52,7 @@ if (isMainBranch()) {
 // Nightly jobs
 folder(KogitoConstants.KOGITO_DSL_NIGHTLY_FOLDER)
 folder(nightlyBranchFolder)
+setupProfilingJob(nightlyBranchFolder)
 setupDeployJob(nightlyBranchFolder, KogitoJobType.NIGHTLY)
 setupPromoteJob(nightlyBranchFolder, KogitoJobType.NIGHTLY)
 setupExamplesImagesDeployJob(nightlyBranchFolder, KogitoJobType.NIGHTLY)
@@ -75,6 +76,31 @@ void setupPrJob(String jobFolder) {
     def jobParams = getDefaultJobParams()
     jobParams.job.folder = jobFolder
     KogitoJobTemplate.createPRJob(this, jobParams)
+}
+
+void setupProfilingJob(String jobFolder) {
+    def jobParams = getJobParams('kogito-operator-profiling', jobFolder, 'Jenkinsfile.profiling', 'Kogito Cloud Operator Profiling')
+    jobParams.triggers = [ cron : '@midnight' ]
+    KogitoJobTemplate.createPipelineJob(this, jobParams).with {
+        parameters {
+            stringParam('BUILD_BRANCH_NAME', "${GIT_BRANCH}", 'Set the Git branch to checkout')
+        }
+
+        environmentVariables {
+            env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
+
+            env('REPO_NAME', 'kogito-operator')
+            env('OPERATOR_IMAGE_NAME', 'kogito-operator-profiling')
+            env('CONTAINER_ENGINE', 'docker')
+            env('CONTAINER_TLS_OPTIONS', '')
+            env('MAX_REGISTRY_RETRIES', 3)
+            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
+            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
+            
+            env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
+            env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_ARTIFACTS_REPOSITORY}")
+        }
+    }
 }
 
 void setupDeployJob(String jobFolder, KogitoJobType jobType) {

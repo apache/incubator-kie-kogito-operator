@@ -18,12 +18,13 @@ package main
 
 import (
 	"flag"
+	"os"
+	"strings"
+
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/meta"
 	"k8s.io/apimachinery/pkg/runtime"
-	"os"
-	"strings"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,21 +37,22 @@ import (
 var (
 	scheme   *runtime.Scheme
 	setupLog = logger.GetLogger("setup")
+
+	metricsAddr          string
+	enableLeaderElection bool
 )
 
 func init() {
 	scheme = meta.GetRegisteredSchema()
-}
 
-func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.Parse()
+}
 
+func main() {
+	flag.Parse()
 	ctrl.SetLogger(zap.New(zap.UseDevMode(isDebugMode())))
 	watchNamespace := getWatchNamespace()
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{

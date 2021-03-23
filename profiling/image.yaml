@@ -1,0 +1,35 @@
+# Create a copy of ../image.yaml file
+- name: operator-builder
+  version: 1.0.0
+  from: golang:1.14
+  description: Builder Image for the profiling Operator
+
+  modules:
+    repositories:
+      - path: modules
+    install:
+      - name: org.kie.kogito.goModDownload
+      - name: org.kie.kogito.buildProfilingOperator
+
+- name: operator-runtime
+  version: 1.0.0
+  from: registry.access.redhat.com/ubi8/ubi-minimal:latest
+  description: Runtime Image for the profiling Operator
+
+  envs:
+    - name: OPERATOR
+      value: /manager
+
+  artifacts:
+    - name: manager
+      image: operator-builder
+      path: /workspace/manager
+      dest: /
+    - name: entrypoint
+      path: profiling/entrypoint-profiling
+      target: entrypoint-profiling
+      dest: /
+  run:
+    workdir: /
+    entrypoint:
+      - "/entrypoint-profiling"
