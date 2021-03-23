@@ -185,7 +185,7 @@ func Test_serviceDeployer_createRequiredResources_MountTrustStore(t *testing.T) 
 	}
 	trustStoreKey := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "kogitoTrustStoreKey", Namespace: t.Name()},
-		StringData: map[string]string{trustStoreSecretKey: "changeit"},
+		Data:       map[string][]byte{trustStoreSecretKey: []byte("changeit")},
 	}
 	instance := test.CreateFakeKogitoRuntime(t.Name())
 	instance.Spec.TrustStore = v1beta1.TLSKeyStore{
@@ -212,6 +212,19 @@ func Test_serviceDeployer_createRequiredResources_MountTrustStore(t *testing.T) 
 		success = success && assert.Equal(t, "cacerts", trustStoreVolume.ConfigMap.Items[0].Key)
 		success = success && assert.Equal(t, "cacerts", trustStoreVolume.ConfigMap.Items[0].Path)
 
+		return success
+	}, "TrustStore Volume is incorrectly mounted")
+
+	assert.Condition(t, func() (success bool) {
+		var trustStoreEnvVar corev1.EnvVar
+		for _, env := range deployment.Spec.Template.Spec.Containers[0].Env {
+			if env.Name == trustStoreEnvVarCertFileName {
+				trustStoreEnvVar = env
+				break
+			}
+		}
+		success = assert.NotNil(t, trustStoreEnvVar)
+		success = success && assert.Equal(t, "cacerts", trustStoreEnvVar.Value)
 		return success
 	}, "TrustStore Volume is incorrectly mounted")
 

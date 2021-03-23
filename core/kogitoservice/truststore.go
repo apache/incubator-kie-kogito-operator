@@ -29,7 +29,7 @@ const (
 	trustStoreSecretKey          = "keyStorePassword"
 	trustStoreEnvVarPassword     = "CUSTOM_TRUSTSTORE_PASSWORD"
 	trustStoreEnvVarCertFileName = "CUSTOM_TRUSTSTORE"
-	trustStoreVolumeName         = "trustStore"
+	trustStoreVolumeName         = "custom-truststore"
 )
 
 // TrustStoreHandler takes care of mounting the custom TrustStore in a given Deployment based on api.KogitoService spec
@@ -93,12 +93,12 @@ func (t *trustStoreHandler) mountTrustStoreFile(deployment *appsv1.Deployment, s
 	}
 	trustStoreMount := v1.VolumeMount{
 		Name:      trustStoreVolumeName,
-		MountPath: trustStoreMountPath,
-		ReadOnly:  true,
+		MountPath: trustStoreMountPath + "/" + trustStoreFileName,
+		SubPath:   trustStoreFileName,
 	}
 
 	framework.AddVolumeToDeployment(deployment, trustStoreMount, trustStoreVolume)
-	framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+	deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
 		Name:  trustStoreEnvVarCertFileName,
 		Value: trustStoreFileName,
 	})
@@ -119,10 +119,10 @@ func (t *trustStoreHandler) mapTrustStorePassword(deployment *appsv1.Deployment,
 		} else if !exists {
 			return errorForTrustStoreMount("Failed to find Secret named " + secret.Name + " in the namespace " + secret.Namespace)
 		}
-		if _, ok := secret.StringData[trustStoreSecretKey]; !ok {
+		if _, ok := secret.Data[trustStoreSecretKey]; !ok {
 			return errorForTrustStoreMount("Failed to find a key named " + trustStoreSecretKey + " in the Secret " + secret.Name + " for the container's Truststore")
 		}
-		framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env,
+		deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env,
 			framework.CreateSecretEnvVar(trustStoreEnvVarPassword, secret.Name, trustStoreSecretKey))
 	}
 	return nil

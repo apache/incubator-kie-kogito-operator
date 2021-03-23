@@ -1,0 +1,38 @@
+# Create a configMap with your customized JKS TrustStore.
+# Be aware that you can only have one, so add all your trusted certificates to this file.
+# You can use KeyStore explore (https://keystore-explorer.org/) to manage your TrustStore locally before creating the CM.
+
+# 1. Run the following command from your terminal:
+# kubectl create configmap kogito-truststore --from-file=cacerts
+# this will generate a ConfigMap with only the file (BinaryData) required by the operator to mount this truststore in your KogitoService
+# kind: ConfigMap
+# apiVersion: v1
+# metadata:
+#   name: kogito-truststore
+# binaryData:
+#   cacerts: >-
+#    (suppressed hash data)
+
+# 2. It's a good practice to add a password to your TrustStore. The JVM default one is "changeit".
+# We need to create a Secret to hold this value for us.
+# Please note that the key must be named `keyStorePassword`
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kogito-truststore-key
+data:
+  # changeit
+  keyStorePassword: Y2hhbmdlaXQK
+---
+# 3. Supposed you already have Kogito Operator installed, just deploy your service:
+# Attention! The Secret and ConfigMap must exist before deploying the service, otherwise your deployment will fail.
+apiVersion: app.kiegroup.org/v1beta1
+kind: KogitoRuntime
+metadata:
+  name: conversion-workflow
+spec:
+  replicas: 1
+  image: quay.io/ricardozanini/conversion-workflow:latest
+  trustStore:
+    configMapName: kogito-truststore
+    passwordSecretName: kogito-truststore-key
