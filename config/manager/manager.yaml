@@ -34,4 +34,14 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.annotations['olm.targetNamespaces']
+          - name: builder.image
+            value: kogito-builder
+          - name: runtime.image
+            value: kogito-runtime-jvm
+          - name: runtime.native.image
+            value: kogito-runtime-native
+          - name: image.namespace
+            value: kiegroup
+          - name: image.registry
+            value: quay.io
       terminationGracePeriodSeconds: 10
