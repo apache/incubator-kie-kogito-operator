@@ -44,4 +44,5 @@ spec:
             value: kiegroup
           - name: IMAGE_REGISTRY
             value: quay.io
+      serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

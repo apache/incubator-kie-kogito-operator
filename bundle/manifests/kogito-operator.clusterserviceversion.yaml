@@ -413,7 +413,7 @@ spec:
           - subjectaccessreviews
           verbs:
           - create
-        serviceAccountName: default
+        serviceAccountName: kogito-operator-controller-manager
       deployments:
       - name: kogito-operator-controller-manager
         spec:
@@ -462,6 +462,7 @@ spec:
                 image: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
                 name: manager
                 resources: {}
+              serviceAccountName: kogito-operator-controller-manager
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
@@ -492,7 +493,7 @@ spec:
           verbs:
           - create
           - patch
-        serviceAccountName: default
+        serviceAccountName: kogito-operator-controller-manager
     strategy: deployment
   installModes:
   - supported: true
