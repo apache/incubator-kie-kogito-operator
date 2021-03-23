@@ -720,6 +720,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 					"trustStore": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Custom TrustStore that will be used by this service to make calls to TLS endpoints",
+							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.TLSKeyStore"),
 						},
 					},

@@ -15,6 +15,11 @@
 package kogitoservice
 
 import (
+	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
@@ -35,21 +40,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 	jobsService := test.CreateFakeJobsService(t.Name())
 	is, tag := test.CreateImageStreams("kogito-jobs-service", jobsService.GetNamespace(), jobsService.GetName(), infrastructure.GetKogitoImageVersion())
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
-	context := &operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	deployer := serviceDeployer{
-		Context:  context,
-		instance: jobsService,
-		definition: ServiceDefinition{
-			DefaultImageName: "kogito-jobs-service",
-			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: "jobs-service", Namespace: t.Name()},
-			},
-		},
-	}
+	deployer := newTestSupServiceDeployer(cli, jobsService, "kogito-jobs-service")
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
@@ -60,21 +51,7 @@ func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *tes
 func Test_serviceDeployer_createRequiredResources_OnOCPNoImageStreamCreated(t *testing.T) {
 	jobsService := test.CreateFakeJobsService(t.Name())
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
-	context := &operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	deployer := serviceDeployer{
-		Context:  context,
-		instance: jobsService,
-		definition: ServiceDefinition{
-			DefaultImageName: "kogito-jobs-service",
-			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: "jobs-service", Namespace: t.Name()},
-			},
-		},
-	}
+	deployer := newTestSupServiceDeployer(cli, jobsService, "kogito-jobs-service")
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
@@ -101,21 +78,7 @@ func Test_serviceDeployer_createRequiredResources_NoImageStreamCreated_CreateWit
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(propertiesConfigMap).Build()
-	context := &operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	deployer := serviceDeployer{
-		Context:  context,
-		instance: instance,
-		definition: ServiceDefinition{
-			DefaultImageName: "kogito-jobs-service",
-			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: "jobs-service", Namespace: t.Name()},
-			},
-		},
-	}
+	deployer := newTestSupServiceDeployer(cli, instance, "kogito-jobs-service")
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
@@ -137,21 +100,7 @@ func Test_serviceDeployer_createRequiredResources_NoImageStreamCreated_CreateWit
 	propertiesConfigMapName := "jobs-service-cm"
 	instance := test.CreateFakeJobsServiceWithPropertiesConfigMap(t.Name(), propertiesConfigMapName)
 	cli := test.NewFakeClientBuilder().Build()
-	context := &operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	deployer := serviceDeployer{
-		Context:  context,
-		instance: instance,
-		definition: ServiceDefinition{
-			DefaultImageName: "kogito-jobs-service",
-			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: "jobs-service", Namespace: t.Name()},
-			},
-		},
-	}
+	deployer := newTestSupServiceDeployer(cli, instance, "kogito-jobs-service")
 	resources, err := deployer.createRequiredResources()
 	assert.Errorf(t, err, "propertiesConfigMap %s not found", propertiesConfigMapName)
 	assert.Empty(t, resources)
@@ -170,22 +119,8 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 		AddK8sObjects(is, kogitoKafka, kogitoInfinispan, kogitoKnative).
 		AddImageObjects(tag).
 		Build()
-	context := &operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	deployer := serviceDeployer{
-		Context:      context,
-		instance:     instance,
-		infraHandler: internal.NewKogitoInfraHandler(context),
-		definition: ServiceDefinition{
-			DefaultImageName: "kogito-data-index-infinispan",
-			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: "data-index", Namespace: t.Name()},
-			},
-		},
-	}
+	deployer := newTestSupServiceDeployer(cli, instance, "kogito-data-index-infinispan")
+	deployer.infraHandler = internal.NewKogitoInfraHandler(deployer.Context)
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
@@ -217,7 +152,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "data-index" + appPropConfigMapSuffix,
+			Name:      instance.Name + appPropConfigMapSuffix,
 			Namespace: instance.GetNamespace(),
 		},
 		Data: map[string]string{
@@ -225,21 +160,7 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(is, cm).AddImageObjects(tag).Build()
-	context := &operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	deployer := serviceDeployer{
-		Context:  context,
-		instance: instance,
-		definition: ServiceDefinition{
-			DefaultImageName: "kogito-data-index-infinispan",
-			Request: reconcile.Request{
-				NamespacedName: types.NamespacedName{Name: "data-index", Namespace: t.Name()},
-			},
-		},
-	}
+	deployer := newTestSupServiceDeployer(cli, instance, "kogito-data-index-infinispan")
 	resources, err := deployer.createRequiredResources()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resources)
@@ -255,4 +176,125 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 	assert.True(t, ok)
 	_, ok = deployment.Spec.Template.Annotations[AppPropContentHashKey]
 	assert.True(t, ok)
+}
+
+func Test_serviceDeployer_createRequiredResources_MountTrustStore(t *testing.T) {
+	trustStore := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "kogitoTrustStore", Namespace: t.Name()},
+		BinaryData: map[string][]byte{"cacerts": []byte("mycerthashs")},
+	}
+	trustStoreKey := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "kogitoTrustStoreKey", Namespace: t.Name()},
+		StringData: map[string]string{trustStoreSecretKey: "changeit"},
+	}
+	instance := test.CreateFakeKogitoRuntime(t.Name())
+	instance.Spec.TrustStore = v1beta1.TLSKeyStore{
+		ConfigMapName:      trustStore.Name,
+		PasswordSecretName: trustStoreKey.Name,
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(trustStore, trustStoreKey, instance).Build()
+	deployer := newTestServiceDeployer(cli, instance)
+	_ = assertDeployerNoErrorAndCreateResources(t, deployer, cli, instance)
+
+	deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
+	test.AssertFetchMustExist(t, cli, deployment)
+	assert.Condition(t, func() (success bool) {
+		var trustStoreVolume corev1.Volume
+		for _, volume := range deployment.Spec.Template.Spec.Volumes {
+			if volume.Name == trustStoreVolumeName {
+				trustStoreVolume = volume
+			}
+		}
+		// makes it easy to debug
+		success = assert.NotNil(t, &trustStoreVolume)
+		success = success && assert.NotNil(t, trustStoreVolume.ConfigMap)
+		success = success && assert.Len(t, trustStoreVolume.ConfigMap.Items, 1)
+		success = success && assert.Equal(t, "cacerts", trustStoreVolume.ConfigMap.Items[0].Key)
+		success = success && assert.Equal(t, "cacerts", trustStoreVolume.ConfigMap.Items[0].Path)
+
+		return success
+	}, "TrustStore Volume is incorrectly mounted")
+
+}
+
+func Test_serviceDeployer_createRequiredResources_MountTrustStore_MissingCM(t *testing.T) {
+	instance := test.CreateFakeKogitoRuntime(t.Name())
+	instance.Spec.TrustStore = v1beta1.TLSKeyStore{
+		ConfigMapName: "missingCM",
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+	deployer := newTestServiceDeployer(cli, instance)
+	resources, err := deployer.createRequiredResources()
+	assert.Error(t, err)
+	assert.Empty(t, resources)
+	assert.Equal(t, api.TrustStoreMountFailureReason, reasonForError(err))
+}
+
+func Test_serviceDeployer_createRequiredResources_MountTrustStore_CMManyKeys(t *testing.T) {
+	trustStore := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "kogitoTrustStore", Namespace: t.Name()},
+		BinaryData: map[string][]byte{"cacerts": []byte("mycerthashs"), "cacert2": []byte("mycerthashs")},
+	}
+	instance := test.CreateFakeKogitoRuntime(t.Name())
+	instance.Spec.TrustStore = v1beta1.TLSKeyStore{
+		ConfigMapName: trustStore.Name,
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(trustStore, instance).Build()
+	deployer := newTestServiceDeployer(cli, instance)
+	resources, err := deployer.createRequiredResources()
+	assert.Error(t, err)
+	assert.Empty(t, resources)
+	assert.Equal(t, api.TrustStoreMountFailureReason, reasonForError(err))
+}
+
+func assertDeployerNoErrorAndCreateResources(t *testing.T, deployer serviceDeployer, cli *client.Client, instance api.KogitoService) map[reflect.Type][]resource.KubernetesResource {
+	resources, err := deployer.createRequiredResources()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, resources)
+	test.AssertFetchMustExist(t, cli, instance)
+
+	for _, resourceType := range resources {
+		for _, k8sResource := range resourceType {
+			// if the resource already exists, we just ignore.
+			_ = kubernetes.ResourceC(cli).Create(k8sResource)
+		}
+	}
+	return resources
+}
+
+func newTestSupServiceDeployer(cli *client.Client, instance api.KogitoService, imageName string) serviceDeployer {
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	return serviceDeployer{Context: context, instance: instance,
+		definition: ServiceDefinition{
+			DefaultImageName: imageName,
+			Request: reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      instance.GetName(),
+					Namespace: instance.GetNamespace(),
+				},
+			},
+		},
+	}
+}
+
+func newTestServiceDeployer(cli *client.Client, instance api.KogitoService) serviceDeployer {
+	context := &operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	return serviceDeployer{Context: context, instance: instance,
+		definition: ServiceDefinition{
+			Request: reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      instance.GetName(),
+					Namespace: instance.GetNamespace(),
+				},
+			},
+		},
+	}
 }

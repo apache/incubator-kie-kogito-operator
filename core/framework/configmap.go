@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
 
 package framework
 
-import (
-	utilsres "github.com/RHsyseng/operator-utils/pkg/resource"
-	"reflect"
-)
+import v1 "k8s.io/api/core/v1"
 
-// GetResource walks on KubernetesResource map and returns the object for the given name and type
-func GetResource(resourceType reflect.Type, name string, resources map[reflect.Type][]utilsres.KubernetesResource) utilsres.KubernetesResource {
-	for _, res := range resources[resourceType] {
-		if res.GetName() == name {
-			return res
-		}
+// GetFirstConfigMapBinaryKey gets the first Key in the given v1.ConfigMap. If no keys found, an empty string is returned instead.
+func GetFirstConfigMapBinaryKey(configMap *v1.ConfigMap) string {
+	keys := make([]string, 0, len(configMap.BinaryData))
+	for key := range configMap.BinaryData {
+		keys = append(keys, key)
 	}
-	return nil
+	if len(keys) > 0 {
+		return keys[0]
+	}
+	return ""
 }

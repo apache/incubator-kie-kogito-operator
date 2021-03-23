@@ -89,6 +89,9 @@ func NewServiceDeployer(context *operator.Context, definition ServiceDefinition,
 	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
 		panic("No Request provided for the Service Deployer")
 	}
+	if infraHandler == nil {
+		panic("InfraHandler can't be nil when creating a new ServiceDeployer")
+	}
 	return &serviceDeployer{
 		Context:      context,
 		definition:   definition,
