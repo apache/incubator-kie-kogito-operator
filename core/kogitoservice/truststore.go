@@ -26,13 +26,14 @@ import (
 
 const (
 	trustStoreMountPath          = operator.KogitoHomeDir + "/certs/custom-truststore"
-	trustStoreSecretKey          = "keyStorePassword"
+	trustStoreSecretPasswordKey  = "keyStorePassword"
+	trustStoreSecretFileKey      = "cacerts"
 	trustStoreEnvVarPassword     = "CUSTOM_TRUSTSTORE_PASSWORD"
 	trustStoreEnvVarCertFileName = "CUSTOM_TRUSTSTORE"
 	trustStoreVolumeName         = "custom-truststore"
 )
 
-// TrustStoreHandler takes care of mounting the custom TrustStore in a given Deployment based on api.KogitoService spec
+// TrustStoreHandler takes care of mounting the custom TrustStoreSecret in a given Deployment based on api.KogitoService spec
 type TrustStoreHandler interface {
 	MountTrustStore(deployment *appsv1.Deployment, service api.KogitoService) error
 }
@@ -48,82 +49,76 @@ type trustStoreHandler struct {
 	context *operator.Context
 }
 
-// MountTrustStore mounts the given custom TrustStore based on api.KogitoService
+// MountTrustStore mounts the given custom TrustStoreSecret based on api.KogitoService
 func (t *trustStoreHandler) MountTrustStore(deployment *appsv1.Deployment, service api.KogitoService) error {
-	if len(service.GetSpec().GetTrustStore().GetConfigMapName()) == 0 {
+	if len(service.GetSpec().GetTrustStoreSecret()) == 0 {
 		return nil
 	}
 
-	if err := t.mapTrustStorePassword(deployment, service); err != nil {
+	secret, err := t.fetchAndValidateTrustStoreSecret(service)
+	if err != nil {
 		return err
 	}
 
-	if err := t.mountTrustStoreFile(deployment, service); err != nil {
+	t.mapTrustStorePassword(deployment, secret)
+	if err := t.mountTrustStoreFile(deployment, secret); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (t *trustStoreHandler) mountTrustStoreFile(deployment *appsv1.Deployment, service api.KogitoService) error {
-	cm := &v1.ConfigMap{
+func (t *trustStoreHandler) fetchAndValidateTrustStoreSecret(service api.KogitoService) (*v1.Secret, error) {
+	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      service.GetSpec().GetTrustStore().GetConfigMapName(),
+			Name:      service.GetSpec().GetTrustStoreSecret(),
 			Namespace: service.GetNamespace(),
 		},
 	}
-	if exists, err := kubernetes.ResourceC(t.context.Client).Fetch(cm); err != nil {
-		return err
+	if exists, err := kubernetes.ResourceC(t.context.Client).Fetch(secret); err != nil {
+		return nil, err
 	} else if !exists {
-		return errorForTrustStoreMount("Failed to find ConfigMap named " + cm.Name + " in the namespace " + cm.Namespace)
+		return nil, errorForTrustStoreMount("Failed to find Secret named " + secret.Name + " in the namespace " + secret.Namespace)
 	}
-	if len(cm.BinaryData) != 1 {
-		return errorForTrustStoreMount("Failed to mount Truststore. ConfigMap " + cm.Name + " must have only one file.")
+
+	if _, ok := secret.Data[trustStoreSecretFileKey]; !ok {
+		return nil, errorForTrustStoreMount("Failed to mount Truststore. Secret " + secret.Name + " doesn't have the file with key " + trustStoreSecretFileKey)
 	}
-	trustStoreFileName := framework.GetFirstConfigMapBinaryKey(cm)
+
+	return secret, nil
+}
+
+func (t *trustStoreHandler) mountTrustStoreFile(deployment *appsv1.Deployment, secret *v1.Secret) error {
 	trustStoreVolume := v1.Volume{
 		Name: trustStoreVolumeName,
 		VolumeSource: v1.VolumeSource{
-			ConfigMap: &v1.ConfigMapVolumeSource{
-				LocalObjectReference: v1.LocalObjectReference{Name: cm.Name},
-				Items:                []v1.KeyToPath{{Key: trustStoreFileName, Path: trustStoreFileName}},
-				DefaultMode:          &framework.ModeForCertificates,
+			Secret: &v1.SecretVolumeSource{
+				SecretName:  secret.Name,
+				Items:       []v1.KeyToPath{{Key: trustStoreSecretFileKey, Path: trustStoreSecretFileKey}},
+				DefaultMode: &framework.ModeForCertificates,
 			},
 		},
 	}
 	trustStoreMount := v1.VolumeMount{
 		Name:      trustStoreVolumeName,
-		MountPath: trustStoreMountPath + "/" + trustStoreFileName,
-		SubPath:   trustStoreFileName,
+		MountPath: trustStoreMountPath + "/" + trustStoreSecretFileKey,
+		SubPath:   trustStoreSecretFileKey,
 	}
 
 	framework.AddVolumeToDeployment(deployment, trustStoreMount, trustStoreVolume)
 	deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
 		Name:  trustStoreEnvVarCertFileName,
-		Value: trustStoreFileName,
+		Value: trustStoreSecretFileKey,
 	})
 
 	return nil
 }
 
-func (t *trustStoreHandler) mapTrustStorePassword(deployment *appsv1.Deployment, service api.KogitoService) error {
-	if len(service.GetSpec().GetTrustStore().GetPasswordSecretName()) > 0 {
-		secret := &v1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: service.GetNamespace(),
-				Name:      service.GetSpec().GetTrustStore().GetPasswordSecretName(),
-			},
-		}
-		if exists, err := kubernetes.ResourceC(t.context.Client).Fetch(secret); err != nil {
-			return err
-		} else if !exists {
-			return errorForTrustStoreMount("Failed to find Secret named " + secret.Name + " in the namespace " + secret.Namespace)
-		}
-		if _, ok := secret.Data[trustStoreSecretKey]; !ok {
-			return errorForTrustStoreMount("Failed to find a key named " + trustStoreSecretKey + " in the Secret " + secret.Name + " for the container's Truststore")
-		}
-		deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env,
-			framework.CreateSecretEnvVar(trustStoreEnvVarPassword, secret.Name, trustStoreSecretKey))
+func (t *trustStoreHandler) mapTrustStorePassword(deployment *appsv1.Deployment, secret *v1.Secret) {
+	if _, ok := secret.Data[trustStoreSecretPasswordKey]; !ok {
+		return
 	}
-	return nil
+
+	deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env,
+		framework.CreateSecretEnvVar(trustStoreEnvVarPassword, secret.Name, trustStoreSecretPasswordKey))
 }

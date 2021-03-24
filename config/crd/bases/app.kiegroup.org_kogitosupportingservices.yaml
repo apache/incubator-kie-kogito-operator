@@ -492,22 +492,12 @@ spec:
                 - TrustyAI
                 - TrustyUI
                 type: string
-              trustStore:
-                description: Custom TrustStore that will be used by this service to
-                  make calls to TLS endpoints
-                properties:
-                  configMapName:
-                    description: ConfigMapName is the name of the ConfigMap that has
-                      the KeyStore file
-                    type: string
-                  passwordSecretName:
-                    description: PasswordSecretName is the Secret name for the password
-                      for the given KeyStore. It's expected that the secret has a
-                      key named `keyStorePassword` if there's more than one key.
-                    type: string
-                required:
-                - configMapName
-                type: object
+              trustStoreSecret:
+                description: 'Custom JKS TrustStore that will be used by this service
+                  to make calls to TLS endpoints. It''s expected that the secret has
+                  two keys: `keyStorePassword` containing the password for the KeyStore
+                  and `cacerts` containing the binary data of the given KeyStore.'
+                type: string
             required:
             - serviceType
             type: object

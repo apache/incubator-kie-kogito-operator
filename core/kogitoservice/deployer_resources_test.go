@@ -17,7 +17,6 @@ package kogitoservice
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
@@ -179,20 +178,13 @@ func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *
 }
 
 func Test_serviceDeployer_createRequiredResources_MountTrustStore(t *testing.T) {
-	trustStore := &corev1.ConfigMap{
+	trustStore := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "kogitoTrustStore", Namespace: t.Name()},
-		BinaryData: map[string][]byte{"cacerts": []byte("mycerthashs")},
-	}
-	trustStoreKey := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: "kogitoTrustStoreKey", Namespace: t.Name()},
-		Data:       map[string][]byte{trustStoreSecretKey: []byte("changeit")},
+		Data:       map[string][]byte{trustStoreSecretFileKey: []byte("mycerthashs"), trustStoreSecretPasswordKey: []byte("changeit")},
 	}
 	instance := test.CreateFakeKogitoRuntime(t.Name())
-	instance.Spec.TrustStore = v1beta1.TLSKeyStore{
-		ConfigMapName:      trustStore.Name,
-		PasswordSecretName: trustStoreKey.Name,
-	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(trustStore, trustStoreKey, instance).Build()
+	instance.Spec.TrustStoreSecret = trustStore.Name
+	cli := test.NewFakeClientBuilder().AddK8sObjects(trustStore, instance).Build()
 	deployer := newTestServiceDeployer(cli, instance)
 	_ = assertDeployerNoErrorAndCreateResources(t, deployer, cli, instance)
 
@@ -207,13 +199,13 @@ func Test_serviceDeployer_createRequiredResources_MountTrustStore(t *testing.T) 
 		}
 		// makes it easy to debug
 		success = assert.NotNil(t, &trustStoreVolume)
-		success = success && assert.NotNil(t, trustStoreVolume.ConfigMap)
-		success = success && assert.Len(t, trustStoreVolume.ConfigMap.Items, 1)
-		success = success && assert.Equal(t, "cacerts", trustStoreVolume.ConfigMap.Items[0].Key)
-		success = success && assert.Equal(t, "cacerts", trustStoreVolume.ConfigMap.Items[0].Path)
+		success = success && assert.NotNil(t, trustStoreVolume.Secret)
+		success = success && assert.Len(t, trustStoreVolume.Secret.Items, 1)
+		success = success && assert.Equal(t, "cacerts", trustStoreVolume.Secret.Items[0].Key)
+		success = success && assert.Equal(t, "cacerts", trustStoreVolume.Secret.Items[0].Path)
 
 		return success
-	}, "TrustStore Volume is incorrectly mounted")
+	}, "TrustStoreSecret Volume is incorrectly mounted")
 
 	assert.Condition(t, func() (success bool) {
 		var trustStoreEnvVar corev1.EnvVar
@@ -226,33 +218,14 @@ func Test_serviceDeployer_createRequiredResources_MountTrustStore(t *testing.T) 
 		success = assert.NotNil(t, trustStoreEnvVar)
 		success = success && assert.Equal(t, "cacerts", trustStoreEnvVar.Value)
 		return success
-	}, "TrustStore Volume is incorrectly mounted")
+	}, "TrustStoreSecret Volume is incorrectly mounted")
 
 }
 
 func Test_serviceDeployer_createRequiredResources_MountTrustStore_MissingCM(t *testing.T) {
 	instance := test.CreateFakeKogitoRuntime(t.Name())
-	instance.Spec.TrustStore = v1beta1.TLSKeyStore{
-		ConfigMapName: "missingCM",
-	}
+	instance.Spec.TrustStoreSecret = "missingSecret"
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
-	deployer := newTestServiceDeployer(cli, instance)
-	resources, err := deployer.createRequiredResources()
-	assert.Error(t, err)
-	assert.Empty(t, resources)
-	assert.Equal(t, api.TrustStoreMountFailureReason, reasonForError(err))
-}
-
-func Test_serviceDeployer_createRequiredResources_MountTrustStore_CMManyKeys(t *testing.T) {
-	trustStore := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: "kogitoTrustStore", Namespace: t.Name()},
-		BinaryData: map[string][]byte{"cacerts": []byte("mycerthashs"), "cacert2": []byte("mycerthashs")},
-	}
-	instance := test.CreateFakeKogitoRuntime(t.Name())
-	instance.Spec.TrustStore = v1beta1.TLSKeyStore{
-		ConfigMapName: trustStore.Name,
-	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(trustStore, instance).Build()
 	deployer := newTestServiceDeployer(cli, instance)
 	resources, err := deployer.createRequiredResources()
 	assert.Error(t, err)

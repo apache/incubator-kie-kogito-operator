@@ -112,8 +112,8 @@ type KogitoServiceSpecInterface interface {
 	GetConfig() map[string]string
 	GetProbes() KogitoProbeInterface
 	SetProbes(probes KogitoProbeInterface)
-	GetTrustStore() TLSKeyStoreInterface
-	SetTrustStore(trustStore TLSKeyStoreInterface)
+	GetTrustStoreSecret() string
+	SetTrustStoreSecret(trustStore string)
 }
 
 // KogitoServiceStatusInterface defines the basic interface for the Kogito Service status.

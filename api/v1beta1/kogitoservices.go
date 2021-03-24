@@ -240,10 +240,12 @@ type KogitoServiceSpec struct {
 	// +optional
 	Probes KogitoProbe `json:"probes,omitempty"`
 
-	// Custom TrustStore that will be used by this service to make calls to TLS endpoints
+	// Custom JKS TrustStore that will be used by this service to make calls to TLS endpoints.
+	// It's expected that the secret has two keys: `keyStorePassword` containing the password for the KeyStore
+	// and `cacerts` containing the binary data of the given KeyStore.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
 	// +optional
-	TrustStore TLSKeyStore `json:"trustStore,omitempty"`
+	TrustStoreSecret string `json:"trustStoreSecret,omitempty"`
 }
 
 // GetReplicas ...
@@ -390,14 +392,12 @@ func (k *KogitoServiceSpec) SetProbes(probes api.KogitoProbeInterface) {
 	}
 }
 
-// GetTrustStore ...
-func (k *KogitoServiceSpec) GetTrustStore() api.TLSKeyStoreInterface {
-	return &k.TrustStore
+// GetTrustStoreSecret ...
+func (k *KogitoServiceSpec) GetTrustStoreSecret() string {
+	return k.TrustStoreSecret
 }
 
-// SetTrustStore ...
-func (k *KogitoServiceSpec) SetTrustStore(trustStore api.TLSKeyStoreInterface) {
-	if newTruststore, ok := trustStore.(*TLSKeyStore); ok {
-		k.TrustStore = *newTruststore
-	}
+// SetTrustStoreSecret ...
+func (k *KogitoServiceSpec) SetTrustStoreSecret(trustStoreSecret string) {
+	k.TrustStoreSecret = trustStoreSecret
 }
