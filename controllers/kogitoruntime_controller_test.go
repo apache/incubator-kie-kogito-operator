@@ -25,7 +25,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
 
@@ -144,4 +147,60 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 	_, err := kubernetes.ResourceC(cli).Fetch(cm)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cm.OwnerReferences)
+}
+
+// see https://issues.redhat.com/browse/KOGITO-2535
+func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
+	replicas := int32(1)
+	instance := &v1beta1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		Spec: v1beta1.KogitoRuntimeSpec{
+			Runtime: api.SpringBootRuntimeType,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+				Replicas: &replicas,
+				Image:    "quay.io/custom/process-springboot-example-default-invalid:latest",
+			},
+		},
+	}
+	imageStream := &imagev1.ImageStream{
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		Spec: imagev1.ImageStreamSpec{
+			Tags: []imagev1.TagReference{
+				{
+					Name: "latest",
+					From: &corev1.ObjectReference{
+						Kind: "DockerImage",
+						Name: "quay.io/custom/process-springboot-example-default-invalid:latest",
+					},
+				},
+			},
+		},
+		Status: imagev1.ImageStreamStatus{
+			Tags: []imagev1.NamedTagEventList{
+				{
+					Tag: "latest",
+					Conditions: []imagev1.TagEventCondition{
+						{
+							Type:    imagev1.ImportSuccess,
+							Status:  corev1.ConditionFalse,
+							Reason:  "UnAuthorized",
+							Message: "you may not have access to the container image quay.io/custom/process-springboot-example-default-invalid:latest",
+						},
+					},
+				},
+			},
+		},
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, imageStream).OnOpenShift().Build()
+	r := &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	_, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
+	assert.Error(t, err)
+
+	_, err = kubernetes.ResourceC(cli).Fetch(instance)
+	assert.NoError(t, err)
+	assert.NotNil(t, instance.Status)
+	assert.Len(t, *instance.Status.Conditions, 3)
+	failedCondition := meta2.FindStatusCondition(*instance.Status.Conditions, string(api.FailedConditionType))
+	assert.Equal(t, v1.ConditionTrue, failedCondition.Status)
+	assert.Equal(t, "you may not have access to the container image quay.io/custom/process-springboot-example-default-invalid:latest", failedCondition.Message)
 }
