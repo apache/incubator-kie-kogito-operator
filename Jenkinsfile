@@ -31,11 +31,6 @@ pipeline {
                }
             }
         }
-        stage('Test Kogito Operator & CLI') {
-            steps {
-                sh 'make test'
-            }
-        }
         stage('Build Kogito Operator') {
             steps {
                 sh "make BUILDER=${CONTAINER_ENGINE}"
