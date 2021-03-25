@@ -2450,20 +2450,10 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - apps.openshift.io
-  resources:
-  - '*'
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - update
-  - watch
-- apiGroups:
   - build.openshift.io
   resources:
-  - '*'
+  - buildconfigs
+  - builds
   verbs:
   - create
   - delete
@@ -2474,7 +2464,28 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - '*'
+  - configmaps
+  - events
+  - pods
+  - secrets
+  - serviceaccounts
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - events
+  - pods
+  - secrets
+  - services
   verbs:
   - create
   - delete
@@ -2505,7 +2516,8 @@ rules:
 - apiGroups:
   - image.openshift.io
   resources:
-  - '*'
+  - imagestreams
+  - imagestreamtags
   verbs:
   - create
   - delete
@@ -2577,7 +2589,8 @@ rules:
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
-  - '*'
+  - rolebindings
+  - roles
   verbs:
   - create
   - delete
@@ -2588,7 +2601,7 @@ rules:
 - apiGroups:
   - route.openshift.io
   resources:
-  - '*'
+  - routes
   verbs:
   - create
   - delete

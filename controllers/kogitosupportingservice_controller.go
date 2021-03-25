@@ -50,15 +50,13 @@ type KogitoSupportingServiceReconciler struct {
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices/finalizers,verbs=get;update;patch
-// +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
 // +kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
-// +kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=image.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=*,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=route.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=apps.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=core,resources=*,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;delete;update
+// +kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;create;list;watch;delete;update
+// +kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
+// +kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;services,verbs=create;delete;get;list;patch;update;watch
 
 // Reconcile reads that state of the cluster for a KogitoSupportingService object and makes changes based on the state read
 // and what is in the KogitoSupportingService.Spec
