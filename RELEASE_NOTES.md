@@ -3,6 +3,7 @@
 - [KOGITO-3784](https://issues.redhat.com/browse/KOGITO-4173) - Update CustomResourceDefinition to apiextensions.k8s.io/v1
 - [KOGITO-4059](https://issues.redhat.com/browse/KOGITO-4059) - Refactor Kogito operator into internal and core component
 - [KOGITO-4199](https://issues.redhat.com/browse/KOGITO-4199) - Remove provisioning of Infinispan and Kafka instances
+- [KOGITO-4333](https://issues.redhat.com/browse/KOGITO-4333) - Hardening Kogito Operator permissions
 
 ## Bug Fixes
 - [KOGITO-4529](https://issues.redhat.com/browse/KOGITO-4529) - Throwing nil pointer dereference for Knative broker KogitoInfra
