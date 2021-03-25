@@ -2,13 +2,15 @@
 # Be aware that you can only have one, so add all your trusted certificates to this file.
 # You can use KeyStore explore (https://keystore-explorer.org/) to manage your TrustStore locally before creating the Secret.
 
-# 1. Run the following command from your terminal:
-# kubectl create secret kogito-truststore --from-file=cacerts
+# Run the following command from your terminal:
+# oc create secret generic kogito-truststore --from-file=cacerts=<path to your JKS> --from-literal=keyStorePassword=changeit
 # this will generate a Secret with only the file required by the operator to mount this truststore in your KogitoService
 
-# 2. It's a good practice to add a password to your TrustStore. The JVM default one is "changeit".
-# We need to add a key to the Secret to hold this value for us.
+# It's a good practice to add a password to your TrustStore. The JVM default one is "changeit".
+# That's why we added a key to the Secret to hold this value for us.
 # Please note that the key must be named `keyStorePassword`
+
+# Result:
 
 # apiVersion: v1
 # kind: Secret
@@ -18,7 +20,7 @@
   # keyStorePassword: Y2hhbmdlaXQK
   # cacerts: <hashed file>
 ---
-# 3. Supposed you already have Kogito Operator installed, just deploy your service:
+# Supposed you already have Kogito Operator installed, just deploy your service:
 # Attention! The Secret must exist before deploying the service, otherwise your deployment will fail.
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoRuntime
