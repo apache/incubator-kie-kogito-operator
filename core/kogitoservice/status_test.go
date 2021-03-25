@@ -126,7 +126,11 @@ func TestReconciliation_RecoveredAfterError(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	conditions := *instance.Status.Conditions
-	assert.Len(t, conditions, 2)
+	assert.Len(t, conditions, 3)
+
+	failedCondition := getSpecificCondition(conditions, api.FailedConditionType)
+	assert.NotNil(t, failedCondition)
+	assert.Equal(t, metav1.ConditionFalse, failedCondition.Status)
 
 	provisionedCondition := getSpecificCondition(conditions, api.ProvisioningConditionType)
 	assert.NotNil(t, provisionedCondition)

@@ -80,7 +80,7 @@ func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService,
 }
 
 func (s *statusHandler) setFailedConditions(instance api.KogitoService, reason api.KogitoServiceConditionReason, errCondition error) error {
-	s.setFailed(instance.GetStatus().GetConditions(), reason, errCondition)
+	s.setFailed(instance.GetStatus().GetConditions(), metav1.ConditionTrue, reason, errCondition.Error())
 	if isReconciliationError(errCondition) {
 		s.setProvisioning(instance.GetStatus().GetConditions(), metav1.ConditionTrue, api.ProvisioningInProgressReason)
 	} else {
@@ -100,7 +100,7 @@ func (s *statusHandler) setFailedConditions(instance api.KogitoService, reason a
 }
 
 func (s *statusHandler) handleConditionTransition(instance api.KogitoService) error {
-	s.removeFailedCondition(instance.GetStatus().GetConditions())
+	s.InvalidateFailedCondition(instance.GetStatus().GetConditions())
 	availableReplicas, err := s.fetchReadyReplicas(instance)
 	if err != nil {
 		return err
@@ -189,12 +189,12 @@ func (s *statusHandler) newProvisioningCondition(status metav1.ConditionStatus, 
 }
 
 // NewFailedCondition ...
-func (s *statusHandler) newFailedCondition(reason api.KogitoServiceConditionReason, err error) metav1.Condition {
+func (s *statusHandler) newFailedCondition(status metav1.ConditionStatus, reason api.KogitoServiceConditionReason, message string) metav1.Condition {
 	return metav1.Condition{
 		Type:    string(api.FailedConditionType),
-		Status:  metav1.ConditionTrue,
+		Status:  status,
 		Reason:  string(reason),
-		Message: err.Error(),
+		Message: message,
 	}
 }
 
@@ -211,15 +211,15 @@ func (s *statusHandler) setDeployed(conditions *[]metav1.Condition, status metav
 }
 
 // SetProvisioning Sets the condition type to Provisioning and status True if not yet set.
-func (s *statusHandler) setFailed(conditions *[]metav1.Condition, reason api.KogitoServiceConditionReason, err error) {
-	failedCondition := s.newFailedCondition(reason, err)
+func (s *statusHandler) setFailed(conditions *[]metav1.Condition, status metav1.ConditionStatus, reason api.KogitoServiceConditionReason, message string) {
+	failedCondition := s.newFailedCondition(status, reason, message)
 	meta.SetStatusCondition(conditions, failedCondition)
 }
 
-func (s *statusHandler) removeFailedCondition(conditions *[]metav1.Condition) {
+func (s *statusHandler) InvalidateFailedCondition(conditions *[]metav1.Condition) {
 	failedCondition := meta.FindStatusCondition(*conditions, string(api.FailedConditionType))
 	if failedCondition != nil {
-		meta.RemoveStatusCondition(conditions, string(api.FailedConditionType))
+		s.setFailed(conditions, metav1.ConditionFalse, api.KogitoServiceConditionReason(failedCondition.Reason), failedCondition.Message)
 	}
 }
 
