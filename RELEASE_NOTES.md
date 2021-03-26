@@ -7,5 +7,5 @@
 ## Bug Fixes
 - [KOGITO-4469](https://issues.redhat.com/browse/KOGITO-4469) - Conditions should reflect latest evaluated status
 - [KOGITO-4753](https://issues.redhat.com/browse/KOGITO-4753) - Cannot deploy Kogito operator together with RHPAM Kogito operator
-
+- [KOGITO-3105](https://issues.redhat.com/browse/KOGITO-3105) - Missing status for failures for KogitoRuntime CRs
 ## Known Issues

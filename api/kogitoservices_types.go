@@ -61,6 +61,8 @@ const (
 	FinishedProvisioningReason KogitoServiceConditionReason = "RequestedReplicasEqualToAvailableReplicas"
 	// TrustStoreMountFailureReason happens when the controller tries to mount a given TrustStore in the target service and fails
 	TrustStoreMountFailureReason KogitoServiceConditionReason = "TrustStoreMountFailure"
+	// ImageStreamNotReadyReason - Unable to deploy Kogito Infra
+	ImageStreamNotReadyReason KogitoServiceConditionReason = "ImageStreamNotReadyReason"
 )
 
 // KogitoService defines the interface for any Kogito service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
