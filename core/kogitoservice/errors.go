@@ -21,6 +21,7 @@ import (
 )
 
 const (
+	reconciliationIntervalAfterImageStreamError          = time.Minute
 	reconciliationIntervalAfterInfraError                = time.Minute
 	reconciliationIntervalAfterMessagingError            = time.Second * 30
 	reconciliationIntervalMonitoringEndpointNotAvailable = time.Second * 10
@@ -50,6 +51,14 @@ func errorForInfraNotReady(service api.KogitoService, infraName string, conditio
 		reason:                 api.KogitoInfraNotReadyReason,
 		innerError: fmt.Errorf("KogitoService '%s' is waiting for infra dependency; skipping deployment; KogitoInfra not ready: %s; Status: %s",
 			service.GetName(), infraName, conditionReason),
+	}
+}
+
+func errorForImageStreamNotReady(err error) reconciliationError {
+	return reconciliationError{
+		reconciliationInterval: reconciliationIntervalAfterImageStreamError,
+		reason:                 api.ImageStreamNotReadyReason,
+		innerError:             err,
 	}
 }
 

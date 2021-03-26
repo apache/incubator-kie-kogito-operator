@@ -61,6 +61,8 @@ const (
 	UnknownProvisioningReason KogitoServiceConditionReason = "UnrecoverableError"
 	// FinishedProvisioningReason ...
 	FinishedProvisioningReason KogitoServiceConditionReason = "RequestedReplicasEqualToAvailableReplicas"
+	// ImageStreamNotReadyReason - Unable to deploy Kogito Infra
+	ImageStreamNotReadyReason KogitoServiceConditionReason = "ImageStreamNotReadyReason"
 )
 
 // KogitoService defines the interface for any Kogito service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
