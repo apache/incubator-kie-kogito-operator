@@ -50,10 +50,10 @@ type KogitoBuildReconciler struct {
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitobuilds,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitobuilds/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitobuilds/finalizers,verbs=get;update;patch
-// +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
 // +kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
-// +kubebuilder:rbac:groups=build.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=image.openshift.io,resources=*,verbs=get;create;list;watch;create;delete;update
+// +kubebuilder:rbac:groups=build.openshift.io,resources=builds;buildconfigs,verbs=get;create;list;watch;delete;update
+// +kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;create;list;watch;delete;update
 
 // Reconcile reads that state of the cluster for a KogitoBuild object and makes changes based on the state read
 // and what is in the KogitoBuild.Spec

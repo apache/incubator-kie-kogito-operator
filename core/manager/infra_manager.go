@@ -47,6 +47,9 @@ type kogitoInfraManager struct {
 
 // NewKogitoInfraManager ...
 func NewKogitoInfraManager(context *operator.Context, infraHandler KogitoInfraHandler) KogitoInfraManager {
+	if infraHandler == nil {
+		panic("InfraHandler can't be nil when creating a new KogitoInfraManager")
+	}
 	return &kogitoInfraManager{
 		Context:      context,
 		infraHandler: infraHandler,
@@ -105,11 +108,7 @@ func (k *kogitoInfraManager) IsKogitoInfraReady(key types.NamespacedName) (bool,
 		return false, err
 	}
 	conditions := *infra.GetStatus().GetConditions()
-	successCondition := meta.FindStatusCondition(conditions, string(api.KogitoInfraSuccess))
-	if successCondition == nil {
-		return false, nil
-	}
-	return successCondition.Status == v1.ConditionTrue, nil
+	return meta.IsStatusConditionTrue(conditions, string(api.KogitoInfraConfigured)), nil
 }
 
 func (k *kogitoInfraManager) GetKogitoInfraFailureConditionReason(key types.NamespacedName) (string, error) {
@@ -118,8 +117,8 @@ func (k *kogitoInfraManager) GetKogitoInfraFailureConditionReason(key types.Name
 		return "", err
 	}
 	conditions := *infra.GetStatus().GetConditions()
-	failureCondition := meta.FindStatusCondition(conditions, string(api.KogitoInfraFailure))
-	if failureCondition != nil {
+	failureCondition := meta.FindStatusCondition(conditions, string(api.KogitoInfraConfigured))
+	if failureCondition != nil && failureCondition.Status == v1.ConditionFalse {
 		return failureCondition.Reason, nil
 	}
 	return "", nil

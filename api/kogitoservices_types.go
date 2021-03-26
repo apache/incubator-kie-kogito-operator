@@ -54,13 +54,13 @@ const (
 	// FailedDeployedReason ...
 	FailedDeployedReason KogitoServiceConditionReason = "NoPodAvailable"
 	// ProvisioningInProgressReason ...
-	ProvisioningInProgressReason KogitoServiceConditionReason = "RequestedReplicasEqualToAvailableReplicas"
+	ProvisioningInProgressReason KogitoServiceConditionReason = "RequestedReplicasNotEqualToAvailableReplicas"
 	// FailedProvisioningReason ...
-	FailedProvisioningReason KogitoServiceConditionReason = "RequestedReplicasNotEqualToAvailableReplicas"
-	// UnknownProvisioningReason ...
-	UnknownProvisioningReason KogitoServiceConditionReason = "UnrecoverableError"
+	FailedProvisioningReason KogitoServiceConditionReason = "UnrecoverableError"
 	// FinishedProvisioningReason ...
 	FinishedProvisioningReason KogitoServiceConditionReason = "RequestedReplicasEqualToAvailableReplicas"
+	// TrustStoreMountFailureReason happens when the controller tries to mount a given TrustStore in the target service and fails
+	TrustStoreMountFailureReason KogitoServiceConditionReason = "TrustStoreMountFailure"
 	// ImageStreamNotReadyReason - Unable to deploy Kogito Infra
 	ImageStreamNotReadyReason KogitoServiceConditionReason = "ImageStreamNotReadyReason"
 )
@@ -112,6 +112,8 @@ type KogitoServiceSpecInterface interface {
 	GetConfig() map[string]string
 	GetProbes() KogitoProbeInterface
 	SetProbes(probes KogitoProbeInterface)
+	GetTrustStoreSecret() string
+	SetTrustStoreSecret(trustStore string)
 }
 
 // KogitoServiceStatusInterface defines the basic interface for the Kogito Service status.

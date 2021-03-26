@@ -15,18 +15,17 @@
 package kogitoservice
 
 import (
+	"errors"
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
 	"time"
 )
 
 const (
-	reconciliationIntervalAfterImageStreamError          = time.Minute
-	reconciliationIntervalAfterInfraError                = time.Minute
-	reconciliationIntervalAfterMessagingError            = time.Second * 30
-	reconciliationIntervalMonitoringEndpointNotAvailable = time.Second * 10
-	reconciliationIntervalAfterDashboardsError           = time.Second * 30
-	reconciliationIntervalAfterFetchService              = time.Minute * 3
+	reconciliationAfterThreeMinutes = time.Minute * 3
+	reconciliationAfterThirty       = time.Second * 30
+	reconciliationAfterTen          = time.Second * 10
+	reconciliationAfterOneMinute    = time.Minute
 )
 
 type reconciliationError struct {
@@ -47,7 +46,7 @@ func (e reconciliationError) Error() string {
 
 func errorForInfraNotReady(service api.KogitoService, infraName string, conditionReason string) reconciliationError {
 	return reconciliationError{
-		reconciliationInterval: reconciliationIntervalAfterInfraError,
+		reconciliationInterval: reconciliationAfterOneMinute,
 		reason:                 api.KogitoInfraNotReadyReason,
 		innerError: fmt.Errorf("KogitoService '%s' is waiting for infra dependency; skipping deployment; KogitoInfra not ready: %s; Status: %s",
 			service.GetName(), infraName, conditionReason),
@@ -56,7 +55,7 @@ func errorForInfraNotReady(service api.KogitoService, infraName string, conditio
 
 func errorForImageStreamNotReady(err error) reconciliationError {
 	return reconciliationError{
-		reconciliationInterval: reconciliationIntervalAfterImageStreamError,
+		reconciliationInterval: reconciliationAfterOneMinute,
 		reason:                 api.ImageStreamNotReadyReason,
 		innerError:             err,
 	}
@@ -64,7 +63,7 @@ func errorForImageStreamNotReady(err error) reconciliationError {
 
 func errorForMessaging(err error) reconciliationError {
 	return reconciliationError{
-		reconciliationInterval: reconciliationIntervalAfterMessagingError,
+		reconciliationInterval: reconciliationAfterThirty,
 		reason:                 api.MessagingIntegrationFailureReason,
 		innerError:             err,
 	}
@@ -72,7 +71,7 @@ func errorForMessaging(err error) reconciliationError {
 
 func errorForMonitoring(err error) reconciliationError {
 	return reconciliationError{
-		reconciliationInterval: reconciliationIntervalMonitoringEndpointNotAvailable,
+		reconciliationInterval: reconciliationAfterTen,
 		reason:                 api.MonitoringIntegrationFailureReason,
 		innerError:             err,
 	}
@@ -80,7 +79,7 @@ func errorForMonitoring(err error) reconciliationError {
 
 func errorForDashboards(err error) reconciliationError {
 	return reconciliationError{
-		reconciliationInterval: reconciliationIntervalAfterDashboardsError,
+		reconciliationInterval: reconciliationAfterThirty,
 		reason:                 api.MonitoringIntegrationFailureReason,
 		innerError:             err,
 	}
@@ -89,8 +88,16 @@ func errorForDashboards(err error) reconciliationError {
 func errorForServiceNotReachable(statusCode int, requestURL string, method string) reconciliationError {
 	return reconciliationError{
 		reason:                 api.InternalServiceNotReachable,
-		reconciliationInterval: reconciliationIntervalAfterFetchService,
+		reconciliationInterval: reconciliationAfterThreeMinutes,
 		innerError:             fmt.Errorf("Received NOT expected status code %d while making a %s request to %s ", statusCode, method, requestURL),
+	}
+}
+
+func errorForTrustStoreMount(message string) reconciliationError {
+	return reconciliationError{
+		reason:                 api.TrustStoreMountFailureReason,
+		reconciliationInterval: reconciliationAfterThirty,
+		innerError:             errors.New(message),
 	}
 }
 

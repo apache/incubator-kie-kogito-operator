@@ -2,6 +2,8 @@ apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoBuild
 metadata:
   name: example-quarkus-flash
+spec:
+  type: Binary
 ---
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoRuntime

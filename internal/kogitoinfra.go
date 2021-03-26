@@ -23,15 +23,27 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type kogitoInfraHandler struct {
+// NewKogitoInfraHandler ...
+func NewKogitoInfraHandler(context *operator.Context) manager.KogitoInfraHandler {
+	return &kogitoInfraHandler{context}
+}
+
+// NewNoOpKogitoInfraHandler returns a new instance of manager.KogitoInfraHandler which won't try to interact with the api.KogitoInfraInterface object
+func NewNoOpKogitoInfraHandler(context *operator.Context) manager.KogitoInfraHandler {
+	return &kogitoInfraHandlerNoOp{context}
+}
+
+type kogitoInfraHandlerNoOp struct {
 	*operator.Context
 }
 
-// NewKogitoInfraHandler ...
-func NewKogitoInfraHandler(context *operator.Context) manager.KogitoInfraHandler {
-	return &kogitoInfraHandler{
-		context,
-	}
+func (k *kogitoInfraHandlerNoOp) FetchKogitoInfraInstance(key types.NamespacedName) (api.KogitoInfraInterface, error) {
+	k.Log.Debug("NoOp InfraHandler: Returning a blank KogitoInfra. Infra features are not enabled for this instance.", "KogitoInfra", key)
+	return &v1beta1.KogitoInfra{}, nil
+}
+
+type kogitoInfraHandler struct {
+	*operator.Context
 }
 
 // FetchKogitoInfraInstance loads a given infra instance by name and namespace.

@@ -1454,6 +1454,12 @@ spec:
                 description: Additional labels to be added to the Service managed
                   by the operator.
                 type: object
+              trustStoreSecret:
+                description: 'Custom JKS TrustStore that will be used by this service
+                  to make calls to TLS endpoints. It''s expected that the secret has
+                  two keys: `keyStorePassword` containing the password for the KeyStore
+                  and `cacerts` containing the binary data of the given KeyStore.'
+                type: string
             type: object
           status:
             description: KogitoRuntimeStatus defines the observed state of KogitoRuntime.
@@ -2108,6 +2114,12 @@ spec:
                 - TrustyAI
                 - TrustyUI
                 type: string
+              trustStoreSecret:
+                description: 'Custom JKS TrustStore that will be used by this service
+                  to make calls to TLS endpoints. It''s expected that the secret has
+                  two keys: `keyStorePassword` containing the password for the KeyStore
+                  and `cacerts` containing the binary data of the given KeyStore.'
+                type: string
             required:
             - serviceType
             type: object
@@ -2450,20 +2462,10 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - apps.openshift.io
-  resources:
-  - '*'
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - update
-  - watch
-- apiGroups:
   - build.openshift.io
   resources:
-  - '*'
+  - buildconfigs
+  - builds
   verbs:
   - create
   - delete
@@ -2474,7 +2476,28 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - '*'
+  - configmaps
+  - events
+  - pods
+  - secrets
+  - serviceaccounts
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - events
+  - pods
+  - secrets
+  - services
   verbs:
   - create
   - delete
@@ -2505,7 +2528,8 @@ rules:
 - apiGroups:
   - image.openshift.io
   resources:
-  - '*'
+  - imagestreams
+  - imagestreamtags
   verbs:
   - create
   - delete
@@ -2577,7 +2601,8 @@ rules:
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
-  - '*'
+  - rolebindings
+  - roles
   verbs:
   - create
   - delete
@@ -2588,7 +2613,7 @@ rules:
 - apiGroups:
   - route.openshift.io
   resources:
-  - '*'
+  - routes
   verbs:
   - create
   - delete
@@ -2729,6 +2754,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.annotations['olm.targetNamespaces']
+        - name: BUILDER_IMAGE
+          value: kogito-builder
+        - name: RUNTIME_IMAGE
+          value: kogito-runtime-jvm
+        - name: RUNTIME_NATIVE_IMAGE
+          value: kogito-runtime-native
+        - name: IMAGE_NAMESPACE
+          value: kiegroup
+        - name: IMAGE_REGISTRY
+          value: quay.io
         image: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
         name: manager
       serviceAccountName: kogito-operator-controller-manager

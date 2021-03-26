@@ -73,8 +73,8 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	sort.SliceStable(kogitoISList.Items, func(i, j int) bool {
 		return kogitoISList.Items[i].Name < kogitoISList.Items[j].Name
 	})
-	assert.Equal(t, infrastructure.KogitoBuilderImage, kogitoISList.Items[0].Name)
-	assert.Equal(t, infrastructure.KogitoRuntimeJVM, kogitoISList.Items[1].Name)
+	assert.Equal(t, kogitobuild.GetDefaultBuilderImage(), kogitoISList.Items[0].Name)
+	assert.Equal(t, kogitobuild.GetDefaultRuntimeJVMImage(), kogitoISList.Items[1].Name)
 	assert.Equal(t, infrastructure.GetKogitoImageVersion(), kogitoISList.Items[0].Spec.Tags[0].Name)
 	assert.Equal(t, infrastructure.GetKogitoImageVersion(), kogitoISList.Items[1].Spec.Tags[0].Name)
 

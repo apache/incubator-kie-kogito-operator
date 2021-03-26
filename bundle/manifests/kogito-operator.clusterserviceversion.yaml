@@ -244,20 +244,10 @@ spec:
           verbs:
           - update
         - apiGroups:
-          - apps.openshift.io
-          resources:
-          - '*'
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - update
-          - watch
-        - apiGroups:
           - build.openshift.io
           resources:
-          - '*'
+          - buildconfigs
+          - builds
           verbs:
           - create
           - delete
@@ -268,7 +258,28 @@ spec:
         - apiGroups:
           - ""
           resources:
-          - '*'
+          - configmaps
+          - events
+          - pods
+          - secrets
+          - serviceaccounts
+          - services
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          - events
+          - pods
+          - secrets
+          - services
           verbs:
           - create
           - delete
@@ -299,7 +310,8 @@ spec:
         - apiGroups:
           - image.openshift.io
           resources:
-          - '*'
+          - imagestreams
+          - imagestreamtags
           verbs:
           - create
           - delete
@@ -371,7 +383,8 @@ spec:
         - apiGroups:
           - rbac.authorization.k8s.io
           resources:
-          - '*'
+          - rolebindings
+          - roles
           verbs:
           - create
           - delete
@@ -382,7 +395,7 @@ spec:
         - apiGroups:
           - route.openshift.io
           resources:
-          - '*'
+          - routes
           verbs:
           - create
           - delete
@@ -449,6 +462,16 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: BUILDER_IMAGE
+                  value: kogito-builder
+                - name: RUNTIME_IMAGE
+                  value: kogito-runtime-jvm
+                - name: RUNTIME_NATIVE_IMAGE
+                  value: kogito-runtime-native
+                - name: IMAGE_NAMESPACE
+                  value: kiegroup
+                - name: IMAGE_REGISTRY
+                  value: quay.io
                 image: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
                 name: manager
                 resources: {}

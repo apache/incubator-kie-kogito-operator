@@ -717,6 +717,13 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoProbe"),
 						},
 					},
+					"trustStoreSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Custom JKS TrustStore that will be used by this service to make calls to TLS endpoints. It's expected that the secret has two keys: `keyStorePassword` containing the password for the KeyStore and `cacerts` containing the binary data of the given KeyStore.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"serviceType": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Defines the type for the supporting service, eg: DataIndex, JobsService Default value: JobsService",
