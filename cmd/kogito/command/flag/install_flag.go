@@ -31,9 +31,10 @@ type InstallFlags struct {
 	MonitoringFlags
 	ConfigFlags
 	ProbeFlags
-	Project  string
-	Replicas int32
-	Infra    []string
+	Project          string
+	Replicas         int32
+	Infra            []string
+	TrustStoreSecret string
 }
 
 // AddInstallFlags adds the common deploy flags to the given command
@@ -47,6 +48,7 @@ func AddInstallFlags(command *cobra.Command, flags *InstallFlags) {
 	command.Flags().StringVarP(&flags.Project, "project", "p", "", "The project name where the service will be deployed")
 	command.Flags().Int32Var(&flags.Replicas, "replicas", defaultDeployReplicas, "Number of pod replicas that should be deployed.")
 	command.Flags().StringArrayVar(&flags.Infra, "infra", nil, "Dependent KogitoInfra objects. Can be set more than once.")
+	command.Flags().StringVar(&flags.TrustStoreSecret, "truststore-secret", "", "Name of the Secret containing the custom JKS TrustStore")
 }
 
 // CheckInstallArgs checks the default deploy flags

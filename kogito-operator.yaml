@@ -1454,6 +1454,12 @@ spec:
                 description: Additional labels to be added to the Service managed
                   by the operator.
                 type: object
+              trustStoreSecret:
+                description: 'Custom JKS TrustStore that will be used by this service
+                  to make calls to TLS endpoints. It''s expected that the secret has
+                  two keys: `keyStorePassword` containing the password for the KeyStore
+                  and `cacerts` containing the binary data of the given KeyStore.'
+                type: string
             type: object
           status:
             description: KogitoRuntimeStatus defines the observed state of KogitoRuntime.
@@ -2107,6 +2113,12 @@ spec:
                 - TaskConsole
                 - TrustyAI
                 - TrustyUI
+                type: string
+              trustStoreSecret:
+                description: 'Custom JKS TrustStore that will be used by this service
+                  to make calls to TLS endpoints. It''s expected that the secret has
+                  two keys: `keyStorePassword` containing the password for the KeyStore
+                  and `cacerts` containing the binary data of the given KeyStore.'
                 type: string
             required:
             - serviceType

@@ -81,6 +81,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 				Monitoring:            converter.FromMonitoringFlagToMonitoring(&flags.MonitoringFlags),
 				Config:                converter.FromConfigFlagsToMap(&flags.ConfigFlags),
 				Probes:                converter.FromProbeFlagToKogitoProbe(&flags.ProbeFlags),
+				TrustStoreSecret:      flags.TrustStoreSecret,
 			},
 		},
 	}
