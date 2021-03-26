@@ -24,10 +24,8 @@ import (
 type KogitoInfraConditionType string
 
 const (
-	// KogitoInfraSuccess ...
-	KogitoInfraSuccess KogitoInfraConditionType = "Success"
-	// KogitoInfraFailure ...
-	KogitoInfraFailure KogitoInfraConditionType = "Failure"
+	// KogitoInfraConfigured ...
+	KogitoInfraConfigured KogitoInfraConditionType = "Configured"
 )
 
 // KogitoInfraConditionReason describes the reasons for reconciliation failure

@@ -53,7 +53,7 @@ func TestKogitoInfra_Status(t *testing.T) {
 		Status: KogitoInfraStatus{
 			Conditions: &[]metav1.Condition{
 				{
-					Type:    string(api.KogitoInfraSuccess),
+					Type:    string(api.KogitoInfraConfigured),
 					Status:  metav1.ConditionTrue,
 					Reason:  string(api.ReconciliationFailure),
 					Message: "Infra success",
@@ -115,7 +115,7 @@ func TestKogitoInfra_Status(t *testing.T) {
 	status.SetVolumes(volumes)
 
 	conditions := *status.GetConditions()
-	assert.Equal(t, api.KogitoInfraSuccess, conditions[0].Type)
+	assert.Equal(t, api.KogitoInfraConfigured, conditions[0].Type)
 	assert.Equal(t, corev1.ConditionTrue, conditions[0].Status)
 	assert.Equal(t, api.ReconciliationFailure, conditions[0].Reason)
 	assert.Equal(t, "Infra success", conditions[0].Message)
