@@ -94,6 +94,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
                 stringParam('GIT_AUTHOR', "${GIT_AUTHOR_NAME}", 'Set the Git author to checkout')
             }
 
+            booleanParam('CREATE_PR', false, 'Should we create a PR with the changes ?')
             stringParam('PROJECT_VERSION', '', 'Optional if not RELEASE. If RELEASE, cannot be empty.')
 
             // Build&Test information
