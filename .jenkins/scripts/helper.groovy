@@ -250,6 +250,10 @@ boolean isRelease() {
     return env.RELEASE && env.RELEASE.toBoolean()
 }
 
+boolean isCreatePr() {
+    return params.CREATE_PR
+}
+
 String getRepoName() {
     return env.REPO_NAME
 }
