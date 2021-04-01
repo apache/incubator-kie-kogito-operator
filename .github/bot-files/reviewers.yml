@@ -14,7 +14,7 @@ review:
       - sutaakar
       - radtriste
   - paths:
-      - Jenkinsfile
+      - Jenkinsfile*
       - .jenkins
       - .github
     reviewers:
