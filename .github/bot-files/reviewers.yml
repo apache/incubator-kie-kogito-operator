@@ -14,10 +14,12 @@ review:
       - sutaakar
       - radtriste
   - paths:
-      - Jenkinsfile
+      - Jenkinsfile*
+      - .jenkins
+      - .github
     reviewers:
       - radtriste
-      - Kaitou786
+      - msmagnanijr
 default:
   - ricardozanini
   - spolti
