@@ -15,9 +15,11 @@ review:
       - radtriste
   - paths:
       - Jenkinsfile
+      - .jenkins
+      - .github
     reviewers:
       - radtriste
-      - Kaitou786
+      - msmagnanijr
 default:
   - ricardozanini
   - spolti
