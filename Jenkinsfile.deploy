@@ -217,10 +217,10 @@ pipeline {
                         prLink = githubscm.createPR(prMsg, prBody, helper.getBuildBranch(), helper.getBotAuthorCredsID())
                         properties.add("${helper.getRepoName()}.pr.link", prLink)
 
-                        properties.add("${getRepoName()}.pr.source.uri", "https://github.com/${getBotAuthor()}/${getRepoName()}")
-                        properties.add("${getRepoName()}.pr.source.ref", getBotBranch())
-                        properties.add("${getRepoName()}.pr.target.uri", "https://github.com/${getGitAuthor()}/${getRepoName()}")
-                        properties.add("${getRepoName()}.pr.target.ref", getBuildBranch())
+                        properties.add("${helper.getRepoName()}.pr.source.uri", "https://github.com/${helper.getBotAuthor()}/${helper.getRepoName()}")
+                        properties.add("${helper.getRepoName()}.pr.source.ref", helper.getBotBranch())
+                        properties.add("${helper.getRepoName()}.pr.target.uri", "https://github.com/${helper.getGitAuthor()}/${helper.getRepoName()}")
+                        properties.add("${helper.getRepoName()}.pr.target.ref", helper.getBuildBranch())
                     } else {
                         println '[WARN] no changes to commit'
                     }
