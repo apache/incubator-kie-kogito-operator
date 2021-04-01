@@ -52,7 +52,7 @@ pipeline {
                         // Verify version is set and if on right release branch
                         assert helper.getProjectVersion()
 
-                        if(isRelease()){
+                        if(helper.isRelease()){
                             assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
                         }
                     }
