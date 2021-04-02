@@ -1,4 +1,5 @@
 # tests configuration
+test_main_dir=
 feature=
 tags=
 concurrent=1
@@ -87,6 +88,7 @@ run-tests:
 	&& if [ "${operator_namespaced}" = "true" ]; then opts+=("--operator_namespaced"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ../hack/run-tests.sh \
+		--test_main_dir ${test_main_dir} \
 		--feature ${feature} \
 		--tags "${tags}" \
 		--concurrent ${concurrent} \
@@ -144,4 +146,4 @@ run-performance-tests:
 
 .PHONY: build-examples-images
 build-examples-images:
-	make run-tests feature=scripts/examples cr_deployment_only=true
+	make run-tests test_main_dir=./examples feature=../features cr_deployment_only=true 

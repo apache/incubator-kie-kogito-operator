@@ -29,6 +29,10 @@ import (
 	| native  | enabled        |
 */
 
+const (
+	nativeProfile = "native"
+)
+
 // registerMavenSteps register all existing Maven steps
 func registerMavenSteps(ctx *godog.ScenarioContext, data *Data) {
 	ctx.Step(`^Local example service "([^"]*)" is built by Maven$`, data.localServiceBuiltByMaven)
@@ -42,26 +46,28 @@ func (data *Data) localServiceBuiltByMaven(serviceName string) error {
 
 // Build local service with configuration
 func (data *Data) localServiceBuiltByMavenWithConfiguration(serviceName string, table *godog.Table) error {
-	config := &mappers.MavenCommandConfig{}
+	mavenConfig := &mappers.MavenCommandConfig{}
 	if table != nil && len(table.Rows) > 0 {
-		err := mappers.MapMavenCommandConfigTable(table, config)
+		err := mappers.MapMavenCommandConfigTable(table, mavenConfig)
 		if err != nil {
 			return err
 		}
 	}
-	return data.localServiceBuiltByMavenWithProfileAndOptions(serviceName, config.Profiles, config.Options)
+	return data.localServiceBuiltByMavenWithProfileAndOptions(serviceName, mavenConfig)
 }
 
 // Build local service with profile and additional options
-func (data *Data) localServiceBuiltByMavenWithProfileAndOptions(serviceName string, profiles, options []string) error {
+func (data *Data) localServiceBuiltByMavenWithProfileAndOptions(serviceName string, mavenConfig *mappers.MavenCommandConfig) error {
 	serviceRepositoryPath := data.KogitoExamplesLocation + "/" + serviceName
 	mvnCmd := framework.CreateMavenCommand(serviceRepositoryPath).
 		SkipTests().
 		UpdateArtifacts().
-		Options(options...).
+		Options(mavenConfig.Options...).
+		Profiles(mavenConfig.Profiles...).
 		WithLoggerContext(data.Namespace)
-	if len(profiles) > 0 {
-		mvnCmd = mvnCmd.Profiles(profiles...)
+
+	if mavenConfig.Native {
+		mvnCmd = mvnCmd.Profiles(nativeProfile)
 	}
 	output, err := mvnCmd.Execute("clean", "package")
 	framework.GetLogger(data.Namespace).Debug(output)

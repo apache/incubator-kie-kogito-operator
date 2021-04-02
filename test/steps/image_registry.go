@@ -54,9 +54,9 @@ func (data *Data) localServiceBuiltByMavenAndDeployedToRuntimeRegistry(contextDi
 
 // Build local service and deploy it to registry if the registry doesn't contain such image already
 func (data *Data) localServiceBuiltByMavenWithProfileAndDeployedToRuntimeRegistryWithMavenConfiguration(contextDir string, table *godog.Table) error {
-	config := &mappers.MavenCommandConfig{}
+	mavenConfig := &mappers.MavenCommandConfig{}
 	if table != nil && len(table.Rows) > 0 {
-		err := mappers.MapMavenCommandConfigTable(table, config)
+		err := mappers.MapMavenCommandConfigTable(table, mavenConfig)
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ func (data *Data) localServiceBuiltByMavenWithProfileAndDeployedToRuntimeRegistr
 
 	projectLocation := data.KogitoExamplesLocation + "/" + contextDir
 
-	projectImageName := getProjectImageName(projectLocation, config.Profiles, config.Options)
+	projectImageName := getProjectImageName(projectLocation, mavenConfig)
 	runtimeApplicationImageTag, err := getRuntimeApplicationImageTag(projectImageName)
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (data *Data) localServiceBuiltByMavenWithProfileAndDeployedToRuntimeRegistr
 	if needToBuildImage(data.Namespace, runtimeApplicationImageTag) {
 		// Not found in registry, so we need to build and push the application
 		// Build the application
-		err = data.localServiceBuiltByMavenWithProfileAndOptions(contextDir, config.Profiles, config.Options)
+		err = data.localServiceBuiltByMavenWithProfileAndOptions(contextDir, mavenConfig)
 		if err != nil {
 			return err
 		}
@@ -170,22 +170,26 @@ func getRuntimeApplicationImageName(projectImageName string) string {
 }
 
 // Returns project image name in the form of "<project location base>(-<maven profile>)*(-<maven option>)*"
-func getProjectImageName(projectLocation string, mavenProfiles, mavenOptions []string) string {
+func getProjectImageName(projectLocation string, mavenConfig *mappers.MavenCommandConfig) string {
 	var projectImageNameParts []string
 
 	projectImageBaseName := filepath.Base(projectLocation)
 	projectImageNameParts = append(projectImageNameParts, projectImageBaseName)
 
-	if len(mavenProfiles) > 0 {
+	if len(mavenConfig.Profiles) > 0 {
 		// Sort profiles to generate consistent image name
-		sort.Strings(mavenProfiles)
-		projectImageNameParts = append(projectImageNameParts, mavenProfiles...)
+		sort.Strings(mavenConfig.Profiles)
+		projectImageNameParts = append(projectImageNameParts, mavenConfig.Profiles...)
 	}
 
-	if len(mavenOptions) > 0 {
+	if mavenConfig.Native {
+		projectImageNameParts = append(projectImageNameParts, nativeProfile)
+	}
+
+	if len(mavenConfig.Options) > 0 {
 		// Sanitize mavenOptions so they can be used in the image name
 		var sanitizedMavenOptions []string
-		for _, option := range mavenOptions {
+		for _, option := range mavenConfig.Options {
 			option = strings.ReplaceAll(option, "=", "-")
 			option = strings.ToLower(option)
 			sanitizedMavenOptions = append(sanitizedMavenOptions, option)

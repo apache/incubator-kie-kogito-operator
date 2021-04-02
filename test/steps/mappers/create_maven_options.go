@@ -26,14 +26,13 @@ const (
 	mavenProfileKey = "profile"
 	mavenOptionKey  = "option"
 	mavenNativeKey  = "native"
-
-	nativeProfile = "native"
 )
 
 // MavenCommandConfig contains configuration for Maven Command execution
 type MavenCommandConfig struct {
 	Profiles []string
 	Options  []string
+	Native   bool
 }
 
 // MapMavenCommandConfigTable maps Cucumber table with Maven options to a slice
@@ -54,9 +53,7 @@ func MapMavenCommandConfigTable(table *godog.Table, config *MavenCommandConfig) 
 		case mavenOptionKey:
 			config.Options = append(config.Options, GetSecondColumn(row))
 		case mavenNativeKey:
-			if MustParseEnabledDisabled(GetSecondColumn(row)) {
-				config.Profiles = append(config.Profiles, nativeProfile)
-			}
+			config.Native = MustParseEnabledDisabled(GetSecondColumn(row))
 		default:
 			return fmt.Errorf("Unrecognized configuration option: %s", firstColumn)
 		}
