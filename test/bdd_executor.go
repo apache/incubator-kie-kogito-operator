@@ -62,13 +62,17 @@ func init() {
 
 // ExecuteTests executes BDD tests
 func ExecuteTests() {
+	prepareForBDDTests()
+
+	executeGodogTestSuite()
+}
+
+func prepareForBDDTests() {
 	flag.Parse()
 	godogOpts.Paths = flag.Args()
 
 	configureTags()
 	configureTestOutput()
-
-	executeGodogTestSuite()
 }
 
 func executeGodogTestSuite() {
@@ -102,18 +106,9 @@ func executeGodogTestSuite() {
 	os.Exit(0)
 }
 
-type mavenBuildScenario struct {
-	name string
-	step *godog.Step
-}
-
 // ExecuteMavenBuild Retrieves Maven Build and launch them
 func ExecuteMavenBuild() {
-	flag.Parse()
-	godogOpts.Paths = flag.Args()
-
-	configureTags()
-	configureTestOutput()
+	prepareForBDDTests()
 
 	features, err := parseFeatures(godogOpts.Tags, godogOpts.Paths)
 	if err != nil {
@@ -124,7 +119,7 @@ func ExecuteMavenBuild() {
 	if err != nil {
 		panic(fmt.Errorf("Error creating new temporary folder: %v", err))
 	}
-	println("Created tmp folder = %s", tmpFolder)
+	framework.GetMainLogger().Info("Created tmp folder = %s", tmpFolder)
 
 	// Parse all build scenarios
 	mavenBuildScenarioMap, err := retrieveMavenBuildScenarios(features)
@@ -142,6 +137,11 @@ func ExecuteMavenBuild() {
 	godogOpts.Tags = ""
 
 	executeGodogTestSuite()
+}
+
+type mavenBuildScenario struct {
+	name string
+	step *godog.Step
 }
 
 func retrieveMavenBuildScenarios(features []*feature) (map[string][]*mavenBuildScenario, error) {
