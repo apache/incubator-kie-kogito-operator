@@ -53,20 +53,19 @@ func (kafkaMap *KafkaMap) DeepCopy() *KafkaMap {
 
 // KafkaClusterSpec defines the desired state of Kafka Cluster
 type KafkaClusterSpec struct {
-	Replicas   int32          `json:"replicas,omitempty"`
-	Listeners  KafkaListeners `json:"listeners,omitempty"`
-	Storage    KafkaStorage   `json:"storage,omitempty"`
-	Config     KafkaMap       `json:"config,omitempty"`
-	JvmOptions KafkaMap       `json:"jvmOptions,omitempty"`
+	Replicas   int32                  `json:"replicas,omitempty"`
+	Listeners  []GenericKafkaListener `json:"listeners,omitempty"`
+	Storage    KafkaStorage           `json:"storage,omitempty"`
+	Config     KafkaMap               `json:"config,omitempty"`
+	JvmOptions KafkaMap               `json:"jvmOptions,omitempty"`
 }
 
-// KafkaListeners Configures the broker authorization
-type KafkaListeners struct {
-	Plain KafkaListenerPlain `json:"plain,omitempty"`
-}
-
-// KafkaListenerPlain Listener type Plain
-type KafkaListenerPlain struct {
+// GenericKafkaListener ...
+type GenericKafkaListener struct {
+	Name         string `json:"name,omitempty"`
+	Port         int    `json:"port,omitempty"`
+	ListenerType string `json:"type,omitempty"`
+	TLS          bool   `json:"tls"`
 }
 
 // ZookeeperClusterSpec Representation of a Strimzi-managed ZooKeeper "cluster".

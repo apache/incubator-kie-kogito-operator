@@ -38,6 +38,20 @@ func Test_getKafkaInstanceWithName(t *testing.T) {
 		Spec: v1beta1.KafkaSpec{
 			Kafka: v1beta1.KafkaClusterSpec{
 				Replicas: 1,
+				Listeners: []v1beta1.GenericKafkaListener{
+					{
+						Name:         "plain",
+						Port:         9092,
+						TLS:          false,
+						ListenerType: "internal",
+					},
+					{
+						Name:         "tls",
+						Port:         9093,
+						TLS:          true,
+						ListenerType: "internal",
+					},
+				},
 			},
 		},
 	}

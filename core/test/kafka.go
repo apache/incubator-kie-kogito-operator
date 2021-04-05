@@ -34,8 +34,19 @@ func CreateFakeKafka(name, namespace string) *v1beta1.Kafka {
 			Kafka: v1beta1.KafkaClusterSpec{
 				Replicas: 1,
 				Storage:  v1beta1.KafkaStorage{StorageType: v1beta1.KafkaEphemeralStorage},
-				Listeners: v1beta1.KafkaListeners{
-					Plain: v1beta1.KafkaListenerPlain{},
+				Listeners: []v1beta1.GenericKafkaListener{
+					{
+						Name:         "plain",
+						Port:         9092,
+						TLS:          false,
+						ListenerType: "internal",
+					},
+					{
+						Name:         "tls",
+						Port:         9093,
+						TLS:          true,
+						ListenerType: "internal",
+					},
 				},
 				JvmOptions: map[string]interface{}{"gcLoggingEnabled": false},
 				Config: map[string]interface{}{
