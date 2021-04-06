@@ -30,6 +30,7 @@ import (
 */
 
 const (
+	// DefaultMavenBuiltExampleRegex is the regex for building maven example
 	DefaultMavenBuiltExampleRegex = "Local example service \"([^\"]*)\" is built by Maven"
 	nativeProfile                 = "native"
 )

@@ -31,6 +31,7 @@ import (
 	"github.com/cucumber/messages-go/v10"
 )
 
+// Feature represents a Gherkin feature
 type Feature struct {
 	Document  *messages.GherkinDocument
 	Scenarios []*godog.Scenario
