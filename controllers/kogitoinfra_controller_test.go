@@ -17,6 +17,7 @@ package controllers
 import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
@@ -25,7 +26,6 @@ import (
 
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	kafkabetav1 "github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -70,16 +70,16 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 		},
 	}
 
-	deployedKafkaInstance := &kafkabetav1.Kafka{
+	deployedKafkaInstance := &v1beta2.Kafka{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},
-		Status: kafkabetav1.KafkaStatus{
-			Conditions: []kafkabetav1.KafkaCondition{
-				{Type: kafkabetav1.KafkaConditionTypeReady},
+		Status: v1beta2.KafkaStatus{
+			Conditions: []v1beta2.KafkaCondition{
+				{Type: v1beta2.KafkaConditionTypeReady},
 			},
-			Listeners: []kafkabetav1.ListenerStatus{
+			Listeners: []v1beta2.ListenerStatus{
 				{
 					Type: "plain",
-					Addresses: []kafkabetav1.ListenerAddress{
+					Addresses: []v1beta2.ListenerAddress{
 						{
 							Host: "kogito-kafka",
 							Port: 9090,

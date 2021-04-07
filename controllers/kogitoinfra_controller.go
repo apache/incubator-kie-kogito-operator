@@ -81,7 +81,7 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	defer statusHandler.UpdateBaseStatus(instance, &resultErr)
 
 	reconcilerHandler := kogitoinfra.NewReconcilerHandler(context)
-	reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance, r.Scheme)
+	reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance)
 	if resultErr != nil {
 		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
 	}
