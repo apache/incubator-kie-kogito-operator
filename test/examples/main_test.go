@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package examples
 
 import (
 	"fmt"
@@ -35,11 +35,13 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	executor.ExecuteBDDTests(func(godogOpts *godog.Options) error {
-		return generateBuildExamplesFeatures(godogOpts)
+		return GenerateBuildExamplesFeatures(godogOpts)
 	})
 }
 
-func generateBuildExamplesFeatures(godogOpts *godog.Options) error {
+// GenerateBuildExamplesFeatures generate build examples features files
+// and update the godog options to point to them
+func GenerateBuildExamplesFeatures(godogOpts *godog.Options) error {
 	features, err := gherkin.ParseFeatures(godogOpts.Tags, godogOpts.Paths)
 	if err != nil {
 		return fmt.Errorf("Error parsing features: %v", err)
