@@ -10,4 +10,5 @@
 - [KOGITO-3105](https://issues.redhat.com/browse/KOGITO-3105) - Missing status for failures for KogitoRuntime CRs
 - [KOGITO-4826](https://issues.redhat.com/browse/KOGITO-4826) - Service ClusterIPs triggers reconciliation
 - [KOGITO-4729](https://issues.redhat.com/browse/KOGITO-4729) - Upgrade from Operator 1.3.0 to 1.4.0 fails with reference to Kafka Topics
+- [KOGITO-4894](https://issues.redhat.com/browse/KOGITO-4894) - Remove `image` default value in KogitoRuntime CR (problem in OCP console)
 ## Known Issues
