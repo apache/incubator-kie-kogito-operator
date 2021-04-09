@@ -10,6 +10,7 @@ target/
 
 # Log Files
 test/logs
+test/examples/logs
 
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 ### Emacs ###
