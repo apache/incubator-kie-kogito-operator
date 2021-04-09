@@ -11,4 +11,4 @@ ENV RUNTIME_TYPE springboot
 # 6. Deploy it on Kubernetes with the Kogito Operator, as a reference use process-quarkus-example-runtime.yaml (works for both runtimes)
 
 # the *.jar was left to make this file project agnostic, but ideally you would need only the application binary, such as process-springboot-example.jar
-COPY target/*.jar $KOGITO_HOME/bin
+COPY target/*.jar $KOGITO_HOME/bin/
