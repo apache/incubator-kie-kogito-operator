@@ -57,33 +57,36 @@ pipeline {
             }
         }
 
-        stage('Build examples images') {
+        stage('Build non native examples images') {
             steps {
-                script {
-                    try {
-                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images concurrent=3 operator_namespaced=true smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
-                    } catch (err) {
-                        unstable("Error building non-native examples' images. Check the junit results.")
-                    }
-
-                    if (!params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS) {
-                        try {
-                            // Optaplanner taking a lot of resources, we should not build in parallel
-                            // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                            // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                            sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
-                        } catch (err) {
-                            unstable("Error building native examples' images. Check the junit results.")
-                        }
-                    }
-                }
+                sh "make build-examples-images concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'test/**/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/**/logs/**/junit.xml', allowEmptyResults: true
+                }
+                unsuccesful {
+                    unstable("Error building non-native examples' images. Check the junit results.")
+                }
+            }
+        }
+
+        stage('Build native examples images') {
+            when {
+                expression { return !params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS }
+            }
+            steps {
+                // Optaplanner taking a lot of resources, we should not build in parallel
+                sh "make build-examples-images concurrent=1 ${getExamplesBuildParameters(true)}"
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'test/**/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/**/logs/**/junit.xml', allowEmptyResults: true
+                }
+                unsuccesful {
+                    unstable("Error building native examples' images. Check the junit results.")
                 }
             }
         }

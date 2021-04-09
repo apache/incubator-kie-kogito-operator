@@ -138,7 +138,8 @@ run-tests:
 
 .PHONY: build-examples-images
 build-examples-images:
-	make run-tests test_main_dir=./examples feature=../features cr_deployment_only=true
+# setting operator_namespaced=true so the operator won't be deployed for building of example images
+	make run-tests test_main_dir=./examples feature=../features cr_deployment_only=true operator_namespaced=true
 
 .PHONY: run-smoke-tests
 run-smoke-tests:
