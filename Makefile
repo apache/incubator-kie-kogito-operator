@@ -201,14 +201,22 @@ TEST_DIR=test
 run-tests:
 	@(cd $(TEST_DIR) && $(MAKE) $@)
 
+.PHONY: build-examples-images
+build-examples-images:
+	@(cd $(TEST_DIR) && $(MAKE) $@)
+
 .PHONY: run-smoke-tests
 run-smoke-tests:
+	@(cd $(TEST_DIR) && $(MAKE) $@)
+
+.PHONY: build-smoke-examples-images
+build-smoke-examples-images:
 	@(cd $(TEST_DIR) && $(MAKE) $@)
 
 .PHONY: run-performance-tests
 run-performance-tests:
 	@(cd $(TEST_DIR) && $(MAKE) $@)
 
-.PHONY: build-examples-images
-build-examples-images:
+.PHONY: build-performance-examples-images
+build-performance-examples-images:
 	@(cd $(TEST_DIR) && $(MAKE) $@)

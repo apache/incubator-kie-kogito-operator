@@ -63,7 +63,7 @@ pipeline {
                     try {
                         // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
                         // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images concurrent=3 operator_namespaced=true ${getExamplesBuildParameters(false)}"
+                        sh "make build-examples-images concurrent=3 operator_namespaced=true smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
                     } catch (err) {
                         unstable("Error building non-native examples' images. Check the junit results.")
                     }
