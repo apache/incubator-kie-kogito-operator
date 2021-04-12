@@ -11,5 +11,6 @@
 - [KOGITO-4826](https://issues.redhat.com/browse/KOGITO-4826) - Service ClusterIPs triggers reconciliation
 - [KOGITO-4729](https://issues.redhat.com/browse/KOGITO-4729) - Upgrade from Operator 1.3.0 to 1.4.0 fails with reference to Kafka Topics
 - [KOGITO-4905](https://issues.redhat.com/browse/KOGITO-4905) - COPY line in springboot.Dockerfile doesn't work
- 
+- [KOGITO-4894](https://issues.redhat.com/browse/KOGITO-4894) - Remove `image` default value in KogitoRuntime CR (problem in OCP console)
+
 ## Known Issues
