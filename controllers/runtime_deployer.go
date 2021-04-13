@@ -32,8 +32,8 @@ import (
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	monv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/kiegroup/kogito-operator/core/framework"
+	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
