@@ -12,5 +12,6 @@
 - [KOGITO-4729](https://issues.redhat.com/browse/KOGITO-4729) - Upgrade from Operator 1.3.0 to 1.4.0 fails with reference to Kafka Topics
 - [KOGITO-4905](https://issues.redhat.com/browse/KOGITO-4905) - COPY line in springboot.Dockerfile doesn't work
 - [KOGITO-4894](https://issues.redhat.com/browse/KOGITO-4894) - Remove `image` default value in KogitoRuntime CR (problem in OCP console)
+- [KOGITO-4781](https://issues.redhat.com/browse/KOGITO-4781) - Deployment constantly updates when deployed with custom probes
 
 ## Known Issues
