@@ -22,4 +22,6 @@ type KogitoProbeInterface interface {
 	SetLivenessProbe(livenessProbe corev1.Probe)
 	GetReadinessProbe() corev1.Probe
 	SetReadinessProbe(readinessProbe corev1.Probe)
+	GetStartupProbe() corev1.Probe
+	SetStartupProbe(startupProbe corev1.Probe)
 }
