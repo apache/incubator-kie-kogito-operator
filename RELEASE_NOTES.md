@@ -14,5 +14,6 @@
 - [KOGITO-4905](https://issues.redhat.com/browse/KOGITO-4905) - COPY line in springboot.Dockerfile doesn't work
 - [KOGITO-4894](https://issues.redhat.com/browse/KOGITO-4894) - Remove `image` default value in KogitoRuntime CR (problem in OCP console)
 - [KOGITO-4781](https://issues.redhat.com/browse/KOGITO-4781) - Deployment constantly updates when deployed with custom probes
+- [KOGITO-4154](https://issues.redhat.com/browse/KOGITO-4154) - CLI displays usage page whenever any command fails
 
 ## Known Issues
