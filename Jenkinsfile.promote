@@ -102,7 +102,7 @@ pipeline {
                         helper.checkoutRepo()
 
                         // Merge PR
-                        String prLink = properties.retrieve("${getRepoName()}.pr.link")
+                        String prLink = properties.retrieve("${helper.getRepoName()}.pr.link")
                         if (prLink) {
                             githubscm.mergePR(prLink, helper.getGitAuthorCredsID())
                             githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorCredsID())
