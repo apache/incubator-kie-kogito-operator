@@ -17,6 +17,7 @@ package project
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
@@ -31,15 +32,17 @@ type deleteProjectFlags struct {
 
 type deleteProjectCommand struct {
 	context.CommandContext
-	flags   deleteProjectFlags
-	command *cobra.Command
-	Parent  *cobra.Command
+	flags      deleteProjectFlags
+	command    *cobra.Command
+	Parent     *cobra.Command
+	errHandler errors.ErrorHandler
 }
 
 func initDeleteProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := deleteProjectCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
+		errHandler:     ctx.ErrorHandler,
 	}
 	cmd.RegisterHook()
 	cmd.InitHook()
@@ -78,12 +81,12 @@ func (i *deleteProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 	i.flags.name = args[0]
 	var err error
 	if i.flags.name, err = shared.EnsureProject(i.Client, i.flags.name); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 
 	log.Debugf("About to delete project %s", i.flags.name)
 	if err := kubernetes.ResourceC(i.Client).Delete(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: i.flags.name}}); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 
 	log.Infof("Successfully deleted Kogito Project %s", i.flags.name)

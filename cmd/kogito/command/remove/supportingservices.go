@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
@@ -40,6 +41,7 @@ type removeSupportingServiceCommand struct {
 	command           *cobra.Command
 	supportingService removableSupportingService
 	Parent            *cobra.Command
+	errHandler        errors.ErrorHandler
 }
 
 var removableSupportingServices = []removableSupportingService{
@@ -81,6 +83,7 @@ func initRemoveSupportingServiceCommands(ctx *context.CommandContext, parent *co
 			CommandContext:    *ctx,
 			supportingService: removable,
 			Parent:            parent,
+			errHandler:        ctx.ErrorHandler,
 		}
 		cmd.RegisterHook()
 		cmd.InitHook()
@@ -119,12 +122,12 @@ func (r *removeSupportingServiceCommand) Exec(cmd *cobra.Command, args []string)
 	log := context.GetDefaultLogger()
 	var err error
 	if r.flags.namespace, err = shared.EnsureProject(r.Client, r.flags.namespace); err != nil {
-		return err
+		return r.errHandler.HandleError(err)
 	}
 	supportingServiceList := &v1beta1.KogitoSupportingServiceList{}
 	err = kubernetes.ResourceC(r.Client).ListWithNamespace(r.flags.namespace, supportingServiceList)
 	if err != nil {
-		return err
+		return r.errHandler.HandleError(err)
 	}
 
 	var targetServiceItems []v1beta1.KogitoSupportingService
@@ -140,7 +143,7 @@ func (r *removeSupportingServiceCommand) Exec(cmd *cobra.Command, args []string)
 	}
 	for _, targetService := range targetServiceItems {
 		if err = kubernetes.ResourceC(r.Client).Delete(&targetService); err != nil {
-			return fmt.Errorf("error occurs while delete Service %s from namespace %s. Error %s", r.supportingService.cmdName, targetService.Name, err)
+			return r.errHandler.HandleError(fmt.Errorf("error occurs while delete Service %s from namespace %s. Error %s", r.supportingService.cmdName, targetService.Name, err))
 		}
 		log.Infof("Service %s named %s from namespace %s has been successfully removed", r.supportingService.cmdName, targetService.Name, targetService.Namespace)
 	}

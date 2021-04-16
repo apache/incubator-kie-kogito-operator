@@ -17,6 +17,7 @@ package project
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -25,15 +26,17 @@ import (
 
 type newProjectCommand struct {
 	context.CommandContext
-	flags   projectFlags
-	command *cobra.Command
-	Parent  *cobra.Command
+	flags      projectFlags
+	command    *cobra.Command
+	Parent     *cobra.Command
+	errHandler errors.ErrorHandler
 }
 
 func initNewProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := newProjectCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
+		errHandler:     ctx.ErrorHandler,
 	}
 	cmd.RegisterHook()
 	cmd.InitHook()
@@ -75,16 +78,16 @@ func (i *newProjectCommand) Exec(cmd *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	ns, err := kubernetes.NamespaceC(i.Client).Fetch(i.flags.project)
 	if err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	if ns == nil {
 		ns, err := kubernetes.NamespaceC(i.Client).Create(i.flags.project)
 		if err != nil {
-			return err
+			return i.errHandler.HandleError(err)
 		}
 
 		if err := shared.SetCurrentNamespaceToKubeConfig(ns.Name); err != nil {
-			return err
+			return i.errHandler.HandleError(err)
 		}
 
 		log.Infof(message.ProjectCreatedSuccessfully, ns.Name)

@@ -17,6 +17,7 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/service"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
@@ -38,6 +39,7 @@ type deployCommand struct {
 	resourceCheckService shared.ResourceCheckService
 	buildService         service.BuildService
 	runtimeService       service.RuntimeService
+	errHandler           errors.ErrorHandler
 }
 
 // initDeployCommand is the constructor for the deploy command
@@ -48,6 +50,7 @@ func initDeployCommand(ctx *context.CommandContext, parent *cobra.Command) conte
 		resourceCheckService: shared.NewResourceCheckService(),
 		buildService:         service.NewBuildService(ctx.Client),
 		runtimeService:       service.NewRuntimeService(),
+		errHandler:           ctx.ErrorHandler,
 	}
 
 	cmd.RegisterHook()
@@ -112,13 +115,13 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	name := args[0]
 	project, err := i.resourceCheckService.EnsureProject(i.Client, i.flags.RuntimeFlags.Project)
 	if err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	if err = i.installBuildService(i.Client, i.flags, name, project, args); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	if err = i.installRuntimeService(i.Client, i.flags, name, project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	return nil
 }

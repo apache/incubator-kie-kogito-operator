@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
@@ -34,6 +35,7 @@ func initDeleteKogitoInfraCommand(ctx *context.CommandContext, parent *cobra.Com
 		CommandContext:       *ctx,
 		Parent:               parent,
 		resourceCheckService: shared.NewResourceCheckService(),
+		errHandler:           ctx.ErrorHandler,
 	}
 	cmd.RegisterHook()
 	cmd.InitHook()
@@ -46,6 +48,7 @@ type deleteKogitoInfraServiceCommand struct {
 	flags                *deleteKogitoInfraFlags
 	Parent               *cobra.Command
 	resourceCheckService shared.ResourceCheckService
+	errHandler           errors.ErrorHandler
 }
 
 func (i *deleteKogitoInfraServiceCommand) RegisterHook() {
@@ -80,10 +83,10 @@ func (i *deleteKogitoInfraServiceCommand) Exec(cmd *cobra.Command, args []string
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	if i.flags.project, err = i.resourceCheckService.EnsureProject(i.Client, i.flags.project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	if err := i.resourceCheckService.CheckKogitoInfraExists(i.Client, i.flags.name, i.flags.project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	log.Debugf("About to delete infra service %s in namespace %s", i.flags.name, i.flags.project)
 	if err := kubernetes.ResourceC(i.Client).Delete(&v1beta1.KogitoInfra{
@@ -92,7 +95,7 @@ func (i *deleteKogitoInfraServiceCommand) Exec(cmd *cobra.Command, args []string
 			Namespace: i.flags.project,
 		},
 	}); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	log.Infof("Successfully deleted Kogito Infra Service %s in the Project %s", i.flags.name, i.flags.project)
 	return nil

@@ -17,6 +17,7 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/service"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
@@ -34,6 +35,7 @@ func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command
 		resourceCheckService: shared.NewResourceCheckService(),
 		buildService:         service.NewBuildService(ctx.Client),
 		runtimeService:       service.NewRuntimeService(),
+		errHandler:           ctx.ErrorHandler,
 	}
 	cmd.RegisterHook()
 	cmd.InitHook()
@@ -48,6 +50,7 @@ type deleteServiceCommand struct {
 	resourceCheckService shared.ResourceCheckService
 	buildService         service.BuildService
 	runtimeService       service.RuntimeService
+	errHandler           errors.ErrorHandler
 }
 
 func (i *deleteServiceCommand) RegisterHook() {
@@ -81,13 +84,13 @@ func (i *deleteServiceCommand) InitHook() {
 func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	i.flags.name = args[0]
 	if i.flags.project, err = i.resourceCheckService.EnsureProject(i.Client, i.flags.project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	if err = i.runtimeService.DeleteRuntimeService(i.Client, i.flags.name, i.flags.project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	if err = i.buildService.DeleteBuildService(i.flags.name, i.flags.project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	return nil
 }

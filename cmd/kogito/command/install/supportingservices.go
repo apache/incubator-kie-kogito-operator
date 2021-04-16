@@ -16,6 +16,7 @@ package install
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
@@ -47,6 +48,7 @@ type installSupportingServiceCommand struct {
 	flags             installSupportingServiceFlags
 	supportingService installableSupportingService
 	Parent            *cobra.Command
+	errHandler        errors.ErrorHandler
 }
 
 var installableSupportingServices = []installableSupportingService{
@@ -135,6 +137,7 @@ func initInstallSupportingServiceCommands(ctx *context.CommandContext, parent *c
 			CommandContext:    *ctx,
 			supportingService: installable,
 			Parent:            parent,
+			errHandler:        ctx.ErrorHandler,
 		}
 		cmd.RegisterHook()
 		cmd.InitHook()
@@ -175,11 +178,11 @@ func (i *installSupportingServiceCommand) InitHook() {
 func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string) error {
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	configMap, err := converter.CreateConfigMapFromFile(i.Client, i.supportingService.serviceName, i.flags.Project, &i.flags.ConfigFlags)
 	if err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 	supportingService := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
@@ -202,9 +205,12 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 		},
 	}
 
-	return shared.
+	if err = shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		CheckOperatorCRDs().
 		InstallSupportingService(supportingService).
-		GetError()
+		GetError(); err != nil {
+		return i.errHandler.HandleError(err)
+	}
+	return nil
 }

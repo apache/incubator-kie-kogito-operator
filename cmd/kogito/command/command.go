@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/completion"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/deploy"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/install"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/project"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/remove"
@@ -35,7 +36,7 @@ func DefaultBuildCommands() *cobra.Command {
 
 // BuildCommands creates a customized start command for the Kogito CLI
 func BuildCommands(kubeClient *client.Client, output io.Writer) *cobra.Command {
-	ctx := &context.CommandContext{Client: kubeClient}
+	ctx := &context.CommandContext{Client: kubeClient, ErrorHandler: errors.NewErrorHandler()}
 
 	rootCommand := context.NewRootCommand(ctx, output)
 	completion.BuildCommands(ctx, rootCommand.Command())

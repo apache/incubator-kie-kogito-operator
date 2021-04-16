@@ -16,6 +16,7 @@ package project
 
 import (
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
 
@@ -27,15 +28,17 @@ type displayProjectFlags struct {
 
 type displayProjectCommand struct {
 	context.CommandContext
-	flags   displayProjectFlags
-	command *cobra.Command
-	Parent  *cobra.Command
+	flags      displayProjectFlags
+	command    *cobra.Command
+	Parent     *cobra.Command
+	errHandler errors.ErrorHandler
 }
 
 func initDisplayProjectCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
 	cmd := displayProjectCommand{
 		CommandContext: *ctx,
 		Parent:         parent,
+		errHandler:     ctx.ErrorHandler,
 	}
 	cmd.RegisterHook()
 	cmd.InitHook()

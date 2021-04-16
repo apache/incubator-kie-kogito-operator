@@ -42,7 +42,7 @@ func SetupCliTestWithKubeClient(cmd string, factory context.CommandFactory, kube
 	testErr = new(bytes.Buffer)
 	testOut = new(bytes.Buffer)
 
-	ctx = &context.CommandContext{Client: kubeCli}
+	ctx = &context.CommandContext{Client: kubeCli, ErrorHandler: NewTestErrorHandler()}
 
 	kogitoRootCmd := context.NewRootCommand(ctx, testOut)
 	kogitoRootCmd.Command().SetArgs(strings.Split(cmd, " "))

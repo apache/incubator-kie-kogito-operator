@@ -15,6 +15,7 @@
 package context
 
 import (
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +28,8 @@ type CommandContext struct {
 	CommonPostRun func(cmd *cobra.Command, args []string)
 	// Client is the Kubernetes client used to call the Kubernetes API
 	Client *client.Client
+	// ErrorHandler ...
+	ErrorHandler errors.ErrorHandler
 }
 
 // KogitoCommand is the standard interface for any Kogito CLI command

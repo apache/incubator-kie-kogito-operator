@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/converter"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
 	"github.com/spf13/cobra"
@@ -38,6 +39,7 @@ type infraCommand struct {
 	flags                *infraFlags
 	Parent               *cobra.Command
 	resourceCheckService shared.ResourceCheckService
+	errHandler           errors.ErrorHandler
 }
 
 // initDeployCommand is the constructor for the deploy command
@@ -46,6 +48,7 @@ func initInfraCommand(ctx *context.CommandContext, parent *cobra.Command) contex
 		CommandContext:       *ctx,
 		Parent:               parent,
 		resourceCheckService: shared.NewResourceCheckService(),
+		errHandler:           ctx.ErrorHandler,
 	}
 
 	cmd.RegisterHook()
@@ -105,7 +108,7 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	log.Debugf("Installing Kogito Infra : %s", i.flags.Name)
 
 	if i.flags.Project, err = i.resourceCheckService.EnsureProject(i.Client, i.flags.Project); err != nil {
-		return err
+		return i.errHandler.HandleError(err)
 	}
 
 	kogitoInfra := v1beta1.KogitoInfra{
@@ -122,9 +125,12 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	log.Debugf("Trying to install Kogito Infra Service '%s'", kogitoInfra.Name)
 
 	// Create the Kogito infra application
-	return shared.
+	if err = shared.
 		ServicesInstallationBuilder(i.Client, i.flags.Project).
 		CheckOperatorCRDs().
 		InstallInfraResource(&kogitoInfra).
-		GetError()
+		GetError(); err != nil {
+		return i.errHandler.HandleError(err)
+	}
+	return nil
 }

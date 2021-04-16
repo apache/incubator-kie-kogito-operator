@@ -17,19 +17,21 @@ package completion
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	errors "github.com/kiegroup/kogito-operator/cmd/kogito/command/errors"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 type completionCommand struct {
 	context.CommandContext
-	command *cobra.Command
-	Parent  *cobra.Command
+	command    *cobra.Command
+	Parent     *cobra.Command
+	errHandler errors.ErrorHandler
 }
 
 // initCompletionCommand is the constructor for the completion command
 func initCompletionCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
-	cmd := &completionCommand{CommandContext: *ctx, Parent: parent}
+	cmd := &completionCommand{CommandContext: *ctx, Parent: parent, errHandler: ctx.ErrorHandler}
 	cmd.RegisterHook()
 	cmd.InitHook()
 	return cmd
@@ -107,7 +109,7 @@ func (i *completionCommand) Exec(cmd *cobra.Command, args []string) error {
 		err = cmd.Root().GenFishCompletion(os.Stdout, true)
 	}
 	if err != nil {
-		return fmt.Errorf("Error in creating %s completion file: %v", shell, err)
+		return i.errHandler.HandleError(fmt.Errorf("Error in creating %s completion file: %v", shell, err))
 	}
 
 	return nil
