@@ -42,7 +42,7 @@ func NewRootCommand(commandContext *CommandContext, output io.Writer) KogitoComm
 	rootCmd = &rootCommand{CommandContext: *ctx}
 	rootCmd.RegisterHook()
 	rootCmd.InitHook()
-
+	rootCmd.command.SilenceUsage = true
 	return rootCmd
 }
 
