@@ -255,6 +255,7 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
         }
 
         environmentVariables {
+            env('RELEASE', jobType == KogitoJobType.RELEASE)
             env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
 
             env('REPO_NAME', 'kogito-operator')
