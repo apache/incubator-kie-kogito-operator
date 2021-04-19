@@ -122,12 +122,13 @@ pipeline {
             steps {
                 script {
                     String prLink = ''
-                    String nextVersion = getNextVersion()
+                    String nextVersion = helper.getNextVersion()
+                    String snapshotBranch = helper.getSnapshotBranch()
                     dir('bot') {
                         // Prepare PR
                         helper.checkoutRepo()
                         githubscm.forkRepo(helper.getBotAuthorCredsID())
-                        githubscm.createBranch(helper.getBotBranch())
+                        githubscm.createBranch(snapshotBranch)
 
                         // Update version to next snapshot
                         sh "make bump-version new_version=${nextVersion}"
@@ -141,7 +142,7 @@ pipeline {
                                 git reset -- go.sum
                             '''
                         })
-                        githubscm.pushObject('origin', getSnapshotBranch(), helper.getBotAuthorCredsID())
+                        githubscm.pushObject('origin', snapshotBranch, helper.getBotAuthorCredsID())
                         prLink = githubscm.createPR(commitMsg, prBody, helper.getBuildBranch(), helper.getBotAuthorCredsID())
                     }
                     dir(helper.getRepoName()) {
@@ -161,13 +162,4 @@ pipeline {
             }
         }
     }
-}
-
-String getNextVersion() {
-    Integer[] versionSplit = util.parseVersion(helper.getProjectVersion())
-    return "${versionSplit[0]}.${versionSplit[1]}.0-snapshot"
-}
-
-String getSnapshotBranch() {
-    return "${getNextVersion()}-${env.BOT_BRANCH_HASH}"
 }

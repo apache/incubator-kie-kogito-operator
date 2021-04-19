@@ -286,6 +286,14 @@ String getProjectVersion() {
     return properties.retrieve('project.version') ?: params.PROJECT_VERSION
 }
 
+String getNextVersion() {
+    return util.getNextVersion(getProjectVersion(), 'micro', 'snapshot')
+}
+
+String getSnapshotBranch() {
+    return "${getNextVersion()}-${env.BOT_BRANCH_HASH}"
+}
+
 boolean shouldLaunchTests() {
     return !params.SKIP_TESTS
 }
