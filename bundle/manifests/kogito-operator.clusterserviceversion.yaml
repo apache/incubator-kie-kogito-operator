@@ -67,7 +67,7 @@ metadata:
     tectonic-visibility: ocs
   labels:
     operator-kogitocloud: "true"
-  name: kogito-operator.v1.5.0-snapshot
+  name: kogito-operator.v1.5.1-snapshot
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -472,7 +472,7 @@ spec:
                   value: kiegroup
                 - name: IMAGE_REGISTRY
                   value: quay.io
-                image: quay.io/kiegroup/kogito-operator:1.5.0-snapshot
+                image: quay.io/kiegroup/kogito-operator:1.5.1-snapshot
                 name: manager
                 resources: {}
               serviceAccountName: kogito-operator-controller-manager
@@ -542,4 +542,4 @@ spec:
   provider:
     name: Red Hat
   replaces: kogito-operator.v1.5.0
-  version: 1.5.0-snapshot
+  version: 1.5.1-snapshot
