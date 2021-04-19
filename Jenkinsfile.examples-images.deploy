@@ -82,8 +82,8 @@ pipeline {
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/examples/logs/**/junit.xml', allowEmptyResults: true
                 }
             }
         }
@@ -92,7 +92,7 @@ pipeline {
             steps {
                 script {
                     // Retrieve the list of images
-                    images = readFile(file: 'test/logs/built_project_image_names.log').split('\n')
+                    images = readFile(file: 'test/examples/logs/built_project_image_names.log').split('\n')
 
                     if (helper.getImageRegistry() == 'quay.io') {
                         // Set visible each repo
