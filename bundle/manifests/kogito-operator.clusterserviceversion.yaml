@@ -57,7 +57,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
-    containerImage: quay.io/kiegroup/kogito-operator:1.5.0
+    containerImage: quay.io/kiegroup/kogito-operator:1.5.0-snapshot
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito services.
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
@@ -67,7 +67,7 @@ metadata:
     tectonic-visibility: ocs
   labels:
     operator-kogitocloud: "true"
-  name: kogito-operator.v1.5.0
+  name: kogito-operator.v1.5.0-snapshot
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -472,7 +472,7 @@ spec:
                   value: kiegroup
                 - name: IMAGE_REGISTRY
                   value: quay.io
-                image: quay.io/kiegroup/kogito-operator:1.5.0
+                image: quay.io/kiegroup/kogito-operator:1.5.0-snapshot
                 name: manager
                 resources: {}
               serviceAccountName: kogito-operator-controller-manager
@@ -527,7 +527,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: kogito-operator
-    operated-by: kogito-operator.1.5.0
+    operated-by: kogito-operator.1.5.0-snapshot
   links:
   - name: Product Page
     url: https://kogito.kie.org/
@@ -541,5 +541,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: kogito-operator.v1.4.0
-  version: 1.5.0
+  replaces: kogito-operator.v1.5.0
+  version: 1.5.0-snapshot
