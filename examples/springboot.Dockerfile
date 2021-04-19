@@ -10,5 +10,5 @@ ENV RUNTIME_TYPE springboot
 # 5. Push it: docker push quay.io/<yournamespace>/process-springboot-example:latest
 # 6. Deploy it on Kubernetes with the Kogito Operator, as a reference use process-quarkus-example-runtime.yaml (works for both runtimes)
 
-# the *.jar was left to make this file project agnostic, but ideally you would need only the application binary, such as process-springboot-example.jar
-COPY target/*.jar $KOGITO_HOME/bin/
+# you must replace the *.jar with the application binary, such as process-springboot-example.jar
+COPY target/*.jar $KOGITO_HOME/bin
