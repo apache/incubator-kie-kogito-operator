@@ -25,7 +25,7 @@ version=$(getOperatorVersion)
 latest_released_version=$(getLatestOlmReleaseVersion)
 
 git clone https://github.com/operator-framework/community-operators.git "${tempfolder}"
-mkdir  "${tempfolder}/community-operators/kogito-operator/${version}/"
+mkdir -p "${tempfolder}/community-operators/kogito-operator/${version}/"
 ## copy the latest manifests
 cp -r bundle/manifests/ "${tempfolder}/community-operators/kogito-operator/${version}/"
 cp -r bundle/metadata/ "${tempfolder}/community-operators/kogito-operator/${version}/"
