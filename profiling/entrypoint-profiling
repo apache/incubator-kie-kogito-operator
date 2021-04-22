@@ -1,0 +1,11 @@
+#!/bin/sh -e
+
+exec ${OPERATOR} -test.run "^TestRunMain$" \
+       -test.coverprofile=/tmp/profile/cover.out \
+       # Uncomment to generate cpu profile
+       # -test.cpuprofile=/tmp/profile/cpu-$HOSTNAME-`date +%s%N`.pb.gz \
+       # Uncomment to generate memory profile
+       # -test.memprofile=/tmp/profile/mem-$HOSTNAME-`date +%s%N`.pb.gz \
+       # Uncomment to generate block profile
+       # -test.blockprofile=/tmp/profile/block-$HOSTNAME-`date +%s%N`.pb.gz \
+       $@

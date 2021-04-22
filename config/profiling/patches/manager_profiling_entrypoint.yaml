@@ -1,0 +1,13 @@
+# This patch setup the entrypoint-profiling for operator profiling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        command:
+        - /entrypoint-profiling

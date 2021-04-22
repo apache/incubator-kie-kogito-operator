@@ -8,9 +8,10 @@ namespace: kogito-operator-system
 # field above.
 namePrefix: kogito-operator-
 
-# Labels to add to all resources and selectors.
-#commonLabels:
-#  someName: someValue
-
-bases:
+resources:
 - ../full
+- bases/profiling_pvc.yaml
+
+patchesStrategicMerge:
+- patches/manager_profiling_entrypoint.yaml
+- patches/manager_profiling_volume_mount.yaml

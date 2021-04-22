@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: profiling-data-access
+  labels:
+    name: profiling-data-access
+spec:
+  containers:
+  - name: alpine
+    image: alpine:latest
+    command: ['sleep', 'infinity']
+    volumeMounts:
+    - name: profiling-data
+      mountPath: /data
+  volumes:
+  - name: profiling-data
+    persistentVolumeClaim:
+      claimName: kogito-operator-profiling-pvc # correspond to ../../profiling/bases/profiling_pvc.yaml name (with prefix hardcoded due to claimName not being updated by kustomize cli

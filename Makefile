@@ -4,6 +4,8 @@ VERSION ?= 2.0.0-snapshot
 BUNDLE_IMG ?= quay.io/kiegroup/kogito-operator-bundle:$(VERSION)
 # Default catalog image tag
 CATALOG_IMG ?= quay.io/kiegroup/kogito-operator-catalog:$(VERSION)
+# Default bundle image tag
+PROFILING_IMG ?= quay.io/kiegroup/kogito-operator-profiling:$(VERSION)
 # Options for 'bundle-build'
 CHANNELS=alpha,1.x
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -30,6 +32,8 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 all: generate manifests docker-build
+
+profiling: generate manifests profiling-build
 
 # Run tests
 ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
@@ -83,6 +87,16 @@ docker-build:
 docker-push:
 	$(BUILDER) push ${IMAGE}
 
+# Build the profiling docker image
+profiling-build:
+	cp image.yaml image.yaml.save && \
+	cp profiling/image.yaml image.yaml && \
+	cekit -v build $(BUILDER); \
+	mv image.yaml.save image.yaml
+	$(BUILDER) tag operator-runtime ${PROFILING_IMG}
+# Push the profiling docker image
+profiling-push:
+	$(BUILDER) push ${PROFILING_IMG}
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -108,7 +122,7 @@ ifeq (, $(shell which kustomize))
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	go get sigs.k8s.io/kustomize/kustomize/v4@v4.0.5 ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize
@@ -148,11 +162,17 @@ generate-installer: generate manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/default > kogito-operator.yaml
 
+generate-profiling-installer: generate manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(PROFILING_IMG)
+	$(KUSTOMIZE) build config/profiling > profiling/kogito-operator-profiling.yaml
+	$(KUSTOMIZE) build config/profiling-data-access > profiling/kogito-operator-profiling-data-access.yaml
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+
 # Generate CSV
 csv:
 	operator-sdk generate kustomize manifests
 
-vet: generate-installer bundle
+vet: generate-installer generate-profiling-installer bundle
 	go vet ./...
 
 
