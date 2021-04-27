@@ -59,14 +59,14 @@ type RuntimeDeployerHandler interface {
 }
 
 type runtimeDeployerHandler struct {
-	*operator.Context
+	operator.Context
 	instance                 api.KogitoRuntimeInterface
 	supportingServiceHandler manager.KogitoSupportingServiceHandler
 	runtimeHandler           manager.KogitoRuntimeHandler
 }
 
 // NewRuntimeDeployerHandler ...
-func NewRuntimeDeployerHandler(context *operator.Context, instance api.KogitoRuntimeInterface, supportingServiceHandler manager.KogitoSupportingServiceHandler, runtimeHandler manager.KogitoRuntimeHandler) RuntimeDeployerHandler {
+func NewRuntimeDeployerHandler(context operator.Context, instance api.KogitoRuntimeInterface, supportingServiceHandler manager.KogitoSupportingServiceHandler, runtimeHandler manager.KogitoRuntimeHandler) RuntimeDeployerHandler {
 	return &runtimeDeployerHandler{
 		Context:                  context,
 		instance:                 instance,

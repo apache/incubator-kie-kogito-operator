@@ -152,7 +152,7 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	// now we create the objects for Remote
 	result = test.AssertReconcileMustNotRequeue(t, &r, instanceRemote)
 
-	context := &operator.Context{
+	context := operator.Context{
 		Client: cli,
 		Log:    logger.GetLogger("kogitoBuild reconciler"),
 		Scheme: meta.GetRegisteredSchema(),

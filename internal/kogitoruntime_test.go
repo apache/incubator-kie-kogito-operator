@@ -35,7 +35,7 @@ func TestFetchKogitoRuntimeService_InstanceFound(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime).Build()
-	context := &operator.Context{
+	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
@@ -50,7 +50,7 @@ func TestFetchKogitoRuntimeService_InstanceNotFound(t *testing.T) {
 	ns := t.Name()
 	name := "kogito-runtime"
 	cli := test.NewFakeClientBuilder().Build()
-	context := &operator.Context{
+	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),

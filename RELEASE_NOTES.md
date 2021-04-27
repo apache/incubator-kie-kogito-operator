@@ -15,5 +15,5 @@
 - [KOGITO-4894](https://issues.redhat.com/browse/KOGITO-4894) - Remove `image` default value in KogitoRuntime CR (problem in OCP console)
 - [KOGITO-4781](https://issues.redhat.com/browse/KOGITO-4781) - Deployment constantly updates when deployed with custom probes
 - [KOGITO-4993](https://issues.redhat.com/browse/KOGITO-4993) - Operator crash when data-index is created
-
+- [KOGITO-5005](https://issues.redhat.com/browse/KOGITO-5005) - Operator print irrelevant metadata in logs
 ## Known Issues

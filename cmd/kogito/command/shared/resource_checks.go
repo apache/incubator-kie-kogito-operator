@@ -178,7 +178,7 @@ func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client,
 	coreLogger := logger.GetLogger("cli_kogito_infra")
 	coreLogger = coreLogger.WithValues("name", name, "namespace", namespace)
 
-	context := &operator.Context{
+	context := operator.Context{
 		Client: kubeCli,
 		Log:    coreLogger,
 		Scheme: meta.GetRegisteredSchema(),

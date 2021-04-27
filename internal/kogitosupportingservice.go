@@ -24,11 +24,11 @@ import (
 )
 
 type kogitoSupportingServiceHandler struct {
-	*operator.Context
+	operator.Context
 }
 
 // NewKogitoSupportingServiceHandler ...
-func NewKogitoSupportingServiceHandler(context *operator.Context) manager.KogitoSupportingServiceHandler {
+func NewKogitoSupportingServiceHandler(context operator.Context) manager.KogitoSupportingServiceHandler {
 	return &kogitoSupportingServiceHandler{
 		context,
 	}
