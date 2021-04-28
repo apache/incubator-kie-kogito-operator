@@ -80,13 +80,18 @@ func (data *Data) buildBinaryServiceWithConfiguration(runtimeType, serviceName s
 }
 
 func (data *Data) buildBinaryLocalExampleServiceFromTargetFolderWithConfiguration(runtimeType, serviceName string, table *godog.Table) error {
+	binaryFolder := fmt.Sprintf(`%s/%s/target`, data.KogitoExamplesLocation, serviceName)
+	return data.deployTargetFolderOnOpenshift(runtimeType, serviceName, binaryFolder, table)
+}
+
+func (data *Data) deployTargetFolderOnOpenshift(runtimeType, serviceName string, binaryFolder string, table *godog.Table) error {
 	buildHolder, err := getKogitoBuildConfiguredStub(data.Namespace, runtimeType, serviceName, table)
 	if err != nil {
 		return err
 	}
 
 	buildHolder.KogitoBuild.GetSpec().SetType(api.BinaryBuildType)
-	buildHolder.BuiltBinaryFolder = fmt.Sprintf(`%s/%s/target`, data.KogitoExamplesLocation, serviceName)
+	buildHolder.BuiltBinaryFolder = binaryFolder
 
 	err = framework.DeployKogitoBuild(data.Namespace, framework.GetDefaultInstallerType(), buildHolder)
 	if err != nil {

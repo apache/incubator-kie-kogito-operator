@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -156,36 +157,47 @@ func ExecuteHTTPRequestC(client *http.Client, namespace string, requestInfo HTTP
 }
 
 // ExecuteHTTPRequestWithStringResponse executes an HTTP request and returns a string response in case there is no error
-func ExecuteHTTPRequestWithStringResponse(namespace string, requestInfo HTTPRequestInfo) (string, error) {
+func ExecuteHTTPRequestWithStringResponse(namespace string, requestInfo HTTPRequestInfo) (string, string, error) {
 	httpResponse, err := ExecuteHTTPRequest(namespace, requestInfo)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if !checkHTTPResponseSuccessful(httpResponse) {
-		return "", nil
+		return "", "", nil
 	}
 	// Check response
 	defer httpResponse.Body.Close()
 	buf := new(bytes.Buffer)
 	if _, err = buf.ReadFrom(httpResponse.Body); err != nil {
-		return "", err
+		return "", "", err
 	}
 	resultBody := buf.String()
 
-	GetLogger(namespace).Debug("Retrieved", "resdultBody", resultBody)
-	return resultBody, nil
+	GetLogger(namespace).Debug("Retrieved", "resultBody", resultBody)
+	contentType := httpResponse.Header["Content-Type"][0]
+	return resultBody, contentType, nil
 }
 
 // ExecuteHTTPRequestWithUnmarshalledResponse executes an HTTP request and returns response unmarshalled into specific structure in case there is no error
 func ExecuteHTTPRequestWithUnmarshalledResponse(namespace string, requestInfo HTTPRequestInfo, response interface{}) error {
-	resultBody, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
+	resultBody, contentType, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
 	if err != nil {
 		return err
 	}
 
-	if err := json.NewDecoder(strings.NewReader(resultBody)).Decode(response); err != nil {
-		return err
+	if strings.Contains(contentType, "application/json") {
+		if err := json.NewDecoder(strings.NewReader(resultBody)).Decode(response); err != nil {
+			return err
+		}
+	} else if strings.Contains(contentType, "application/xml") {
+		// TODO
+		// if err := xml.NewDecoder(strings.NewReader(resultBody)).Decode(response); err != nil {
+		// 	return err
+		// }
+	} else {
+		return errors.New("Response content type not recognized. Neither xml nor json")
 	}
+
 	return nil
 }
 
@@ -308,7 +320,7 @@ func IsHTTPResponseArraySize(namespace string, requestInfo HTTPRequestInfo, arra
 
 // DoesHTTPResponseContain checks whether the response of an http request contains a certain string
 func DoesHTTPResponseContain(namespace string, requestInfo HTTPRequestInfo, responseContent string) (bool, error) {
-	resultBody, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
+	resultBody, _, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
 	if err != nil {
 		return false, err
 	}

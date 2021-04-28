@@ -38,11 +38,12 @@ var (
 
 // Data contains all data needed by Gherkin steps to run
 type Data struct {
-	Namespace              string
-	StartTime              time.Time
-	KogitoExamplesLocation string
-	ScenarioName           string
-	ScenarioContext        map[string]string
+	Namespace               string
+	StartTime               time.Time
+	KogitoExamplesLocation  string
+	KieAssetLibraryLocation string
+	ScenarioName            string
+	ScenarioContext         map[string]string
 }
 
 // RegisterAllSteps register all steps available to the test suite
@@ -71,10 +72,12 @@ func (data *Data) RegisterAllSteps(ctx *godog.ScenarioContext) {
 	registerOpenShiftSteps(ctx, data)
 	registerOperatorSteps(ctx, data)
 	registerPrometheusSteps(ctx, data)
+	registerDecisionSteps(ctx, data)
 	registerProcessSteps(ctx, data)
 	registerTaskSteps(ctx, data)
 	registerKogitoDeployFilesSteps(ctx, data)
 	registerKeycloakSteps(ctx, data)
+	registerKieAssetLibrarySteps(ctx, data)
 }
 
 // RegisterLogsKubernetesObjects allows to change which kubernetes objects logs should be saved
@@ -86,7 +89,8 @@ func (data *Data) RegisterLogsKubernetesObjects(objects ...runtime.Object) {
 func (data *Data) BeforeScenario(scenario *godog.Scenario) error {
 	data.StartTime = time.Now()
 	data.Namespace = getNamespaceName()
-	data.KogitoExamplesLocation = createTemporaryFolder()
+	data.KogitoExamplesLocation = createTemporaryFolder("kogito-examples")
+	data.KieAssetLibraryLocation = createTemporaryFolder("kie-asset-library")
 	data.ScenarioName = scenario.GetName()
 	data.ScenarioContext = map[string]string{}
 
@@ -123,8 +127,8 @@ func isNamespaceAlreadyCreated(namespace string) bool {
 	return exists
 }
 
-func createTemporaryFolder() string {
-	dir, err := framework.CreateTemporaryFolder("kogito-examples")
+func createTemporaryFolder(baseForGeneratedName string) string {
+	dir, err := framework.CreateTemporaryFolder(baseForGeneratedName)
 	if err != nil {
 		panic(fmt.Errorf("Error creating new temporary folder: %v", err))
 	}
@@ -193,8 +197,13 @@ func handleScenarioResult(data *Data, scenario *godog.Scenario, err error) {
 }
 
 func deleteTemporaryExamplesFolder(data *Data) {
-	err := framework.DeleteFolder(data.KogitoExamplesLocation)
-	if err != nil {
-		framework.GetMainLogger().Error(err, "Error while deleting temporary examples folder", "folderName", data.KogitoExamplesLocation)
+	temporaryFolders := []string{data.KogitoExamplesLocation, data.KieAssetLibraryLocation}
+
+	for i := 0; i < len(temporaryFolders); i++ {
+		err := framework.DeleteFolder(temporaryFolders[i])
+		if err != nil {
+			framework.GetMainLogger().Error(err, "Error while deleting temporary examples folder", "folderName", temporaryFolders[i])
+		}
 	}
+
 }

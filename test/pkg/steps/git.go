@@ -39,11 +39,11 @@ func (data *Data) cloneKogitoExamplesIntoLocalDirectory() error {
 	var err error
 	reference := config.GetExamplesRepositoryRef()
 	if len(reference) == 0 {
-		err = cloneExamples(data.KogitoExamplesLocation, cloneOptions)
+		err = cloneRepository(data.KogitoExamplesLocation, cloneOptions)
 	} else {
 		// Try cloning as branch reference
 		cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(reference)
-		err = cloneExamples(data.KogitoExamplesLocation, cloneOptions)
+		err = cloneRepository(data.KogitoExamplesLocation, cloneOptions)
 		// If branch clone was successful then return, otherwise try other cloning options
 		if err == nil {
 			return nil
@@ -51,12 +51,12 @@ func (data *Data) cloneKogitoExamplesIntoLocalDirectory() error {
 
 		// If branch cloning failed then try cloning as tag
 		cloneOptions.ReferenceName = plumbing.NewTagReferenceName(reference)
-		err = cloneExamples(data.KogitoExamplesLocation, cloneOptions)
+		err = cloneRepository(data.KogitoExamplesLocation, cloneOptions)
 	}
 	return err
 }
 
-func cloneExamples(examplesLocation string, cloneOptions *git.CloneOptions) error {
-	_, err := git.PlainClone(examplesLocation, false, cloneOptions)
+func cloneRepository(repositoryLocation string, cloneOptions *git.CloneOptions) error {
+	_, err := git.PlainClone(repositoryLocation, false, cloneOptions)
 	return err
 }

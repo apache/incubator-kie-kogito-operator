@@ -61,6 +61,11 @@ func (data *Data) localServiceBuiltByMavenWithConfiguration(serviceName string, 
 // Build local service with profile and additional options
 func (data *Data) localServiceBuiltByMavenWithProfileAndOptions(serviceName string, mavenConfig *mappers.MavenCommandConfig) error {
 	serviceRepositoryPath := data.KogitoExamplesLocation + "/" + serviceName
+	return data.localPathBuiltByMavenWithProfileAndOptions(serviceRepositoryPath, mavenConfig)
+}
+
+func (data *Data) localPathBuiltByMavenWithProfileAndOptions(serviceRepositoryPath string, mavenConfig *mappers.MavenCommandConfig) error {
+
 	mvnCmd := framework.CreateMavenCommand(serviceRepositoryPath).
 		SkipTests().
 		UpdateArtifacts().
@@ -71,7 +76,9 @@ func (data *Data) localServiceBuiltByMavenWithProfileAndOptions(serviceName stri
 	if mavenConfig.Native {
 		mvnCmd = mvnCmd.Profiles(nativeProfile)
 	}
-	output, err := mvnCmd.Execute("clean", "package")
-	framework.GetLogger(data.Namespace).Debug(output)
+	_, err := mvnCmd.Execute("clean", "package")
+	if err != nil {
+		framework.GetLogger(data.Namespace).Warn("mvn clean package failed for: " + serviceRepositoryPath)
+	}
 	return err
 }
