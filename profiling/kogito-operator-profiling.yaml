@@ -2946,6 +2946,18 @@ spec:
   selector:
     control-plane: controller-manager
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kogito-operator-profiling-pvc
+  namespace: kogito-operator-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -2964,16 +2976,6 @@ spec:
         control-plane: controller-manager
     spec:
       containers:
-      - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --logtostderr=true
-        - --v=10
-        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
       - args:
         - --metrics-addr=127.0.0.1:8080
         - --enable-leader-election
@@ -2999,21 +3001,19 @@ spec:
         volumeMounts:
         - mountPath: /tmp/profile
           name: profiling-data
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
       serviceAccountName: kogito-operator-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
       - name: profiling-data
         persistentVolumeClaim:
           claimName: kogito-operator-profiling-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kogito-operator-profiling-pvc
-  namespace: kogito-operator-system
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
