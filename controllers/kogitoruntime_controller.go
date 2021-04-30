@@ -64,7 +64,7 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 	log.Info("Reconciling for KogitoRuntime")
 
 	// create context
-	context := &operator.Context{
+	context := operator.Context{
 		Client: r.Client,
 		Log:    log,
 		Scheme: r.Scheme,

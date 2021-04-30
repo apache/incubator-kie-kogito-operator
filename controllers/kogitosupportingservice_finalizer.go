@@ -68,7 +68,7 @@ func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (
 	log.Info("Reconciling for KogitoSupportingService finalizer")
 
 	// create context
-	context := &operator.Context{
+	context := operator.Context{
 		Client: f.Client,
 		Log:    log,
 		Scheme: f.Scheme,

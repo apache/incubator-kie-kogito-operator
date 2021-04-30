@@ -24,17 +24,17 @@ import (
 )
 
 // NewKogitoInfraHandler ...
-func NewKogitoInfraHandler(context *operator.Context) manager.KogitoInfraHandler {
+func NewKogitoInfraHandler(context operator.Context) manager.KogitoInfraHandler {
 	return &kogitoInfraHandler{context}
 }
 
 // NewNoOpKogitoInfraHandler returns a new instance of manager.KogitoInfraHandler which won't try to interact with the api.KogitoInfraInterface object
-func NewNoOpKogitoInfraHandler(context *operator.Context) manager.KogitoInfraHandler {
+func NewNoOpKogitoInfraHandler(context operator.Context) manager.KogitoInfraHandler {
 	return &kogitoInfraHandlerNoOp{context}
 }
 
 type kogitoInfraHandlerNoOp struct {
-	*operator.Context
+	operator.Context
 }
 
 func (k *kogitoInfraHandlerNoOp) FetchKogitoInfraInstance(key types.NamespacedName) (api.KogitoInfraInterface, error) {
@@ -43,7 +43,7 @@ func (k *kogitoInfraHandlerNoOp) FetchKogitoInfraInstance(key types.NamespacedNa
 }
 
 type kogitoInfraHandler struct {
-	*operator.Context
+	operator.Context
 }
 
 // FetchKogitoInfraInstance loads a given infra instance by name and namespace.

@@ -60,7 +60,7 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	log.Info("Reconciling KogitoInfra")
 
 	// create context
-	context := &operator.Context{
+	context := operator.Context{
 		Client: r.Client,
 		Log:    log,
 		Scheme: r.Scheme,

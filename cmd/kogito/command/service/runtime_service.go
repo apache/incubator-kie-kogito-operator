@@ -104,7 +104,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 
 func printMgmtConsoleInfo(client *client.Client, project string) error {
 	log := context.GetDefaultLogger()
-	context := &operator.Context{
+	context := operator.Context{
 		Client: client,
 		Log:    logger.GetLogger("deploy_runtime"),
 		Scheme: meta.GetRegisteredSchema(),

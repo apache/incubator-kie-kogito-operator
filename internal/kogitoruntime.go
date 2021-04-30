@@ -24,11 +24,11 @@ import (
 )
 
 type kogitoRuntimeHandler struct {
-	*operator.Context
+	operator.Context
 }
 
 // NewKogitoRuntimeHandler ...
-func NewKogitoRuntimeHandler(context *operator.Context) manager.KogitoRuntimeHandler {
+func NewKogitoRuntimeHandler(context operator.Context) manager.KogitoRuntimeHandler {
 	return &kogitoRuntimeHandler{
 		context,
 	}
