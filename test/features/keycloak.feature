@@ -112,7 +112,7 @@ Feature: Kogito integration with Keycloak
           "resourceType": "dmn",
           "resourceId": "namespace:name"
 	},
-	"type":"LIME",
+	"type": "LIME",
 	"inputs": {},
 	"outputs": {}
       }
