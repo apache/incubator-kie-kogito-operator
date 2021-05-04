@@ -199,10 +199,10 @@ func handleScenarioResult(data *Data, scenario *godog.Scenario, err error) {
 func deleteTemporaryExamplesFolder(data *Data) {
 	temporaryFolders := []string{data.KogitoExamplesLocation, data.KieAssetLibraryLocation}
 
-	for i := 0; i < len(temporaryFolders); i++ {
-		err := framework.DeleteFolder(temporaryFolders[i])
+	for _, temporaryFolder := range temporaryFolders {
+		err := framework.DeleteFolder(temporaryFolder)
 		if err != nil {
-			framework.GetMainLogger().Error(err, "Error while deleting temporary examples folder", "folderName", temporaryFolders[i])
+			framework.GetMainLogger().Error(err, "Error while deleting temporary examples folder", "folderName", temporaryFolder)
 		}
 	}
 
