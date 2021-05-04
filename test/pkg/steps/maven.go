@@ -76,9 +76,13 @@ func (data *Data) localPathBuiltByMavenWithProfileAndOptions(serviceRepositoryPa
 	if mavenConfig.Native {
 		mvnCmd = mvnCmd.Profiles(nativeProfile)
 	}
-	_, err := mvnCmd.Execute("clean", "package")
+
+	output, err := mvnCmd.Execute("clean", "package")
+	framework.GetLogger(data.Namespace).Debug(output)
+
 	if err != nil {
-		framework.GetLogger(data.Namespace).Warn("mvn clean package failed for: " + serviceRepositoryPath)
+		framework.GetLogger(data.Namespace).Warn("'mvn clean package' failed for: " + serviceRepositoryPath)
 	}
+
 	return err
 }
