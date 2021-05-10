@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/version"
 
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -130,7 +131,7 @@ func NewImageOrDefault(fullImage string, defaultImageName string) string {
 		}
 
 		if len(image.Tag) == 0 {
-			image.Tag = infrastructure.GetKogitoImageVersion()
+			image.Tag = infrastructure.GetKogitoImageVersion(version.Version)
 		}
 
 		// Update image name with suffix if provided
