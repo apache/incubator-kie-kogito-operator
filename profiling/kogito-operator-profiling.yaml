@@ -2996,7 +2996,7 @@ spec:
           value: kiegroup
         - name: IMAGE_REGISTRY
           value: quay.io
-        image: quay.io/kiegroup/kogito-operator-profiling:2.0.0-snapshot
+        image: quay.io/kiegroup/kogito-operator-profiling:1.7.0-snapshot
         name: manager
         volumeMounts:
         - mountPath: /tmp/profile
