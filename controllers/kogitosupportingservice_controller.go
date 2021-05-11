@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/internal"
+	"github.com/kiegroup/kogito-operator/version"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -66,9 +67,10 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(req ctrl.Request) (result 
 
 	// create context
 	context := &operator.Context{
-		Client: r.Client,
-		Log:    log,
-		Scheme: r.Scheme,
+		Client:  r.Client,
+		Log:     log,
+		Scheme:  r.Scheme,
+		Version: version.Version,
 	}
 
 	// Fetch the KogitoSupportingService instance
