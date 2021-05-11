@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/internal"
+	"github.com/kiegroup/kogito-operator/version"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -69,9 +70,10 @@ func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (
 
 	// create context
 	context := operator.Context{
-		Client: f.Client,
-		Log:    log,
-		Scheme: f.Scheme,
+		Client:  f.Client,
+		Log:     log,
+		Scheme:  f.Scheme,
+		Version: version.Version,
 	}
 
 	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)

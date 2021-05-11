@@ -24,6 +24,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/kiegroup/kogito-operator/version"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
@@ -75,8 +76,8 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	})
 	assert.Equal(t, kogitobuild.GetDefaultBuilderImage(), kogitoISList.Items[0].Name)
 	assert.Equal(t, kogitobuild.GetDefaultRuntimeJVMImage(), kogitoISList.Items[1].Name)
-	assert.Equal(t, infrastructure.GetKogitoImageVersion(), kogitoISList.Items[0].Spec.Tags[0].Name)
-	assert.Equal(t, infrastructure.GetKogitoImageVersion(), kogitoISList.Items[1].Spec.Tags[0].Name)
+	assert.Equal(t, infrastructure.GetKogitoImageVersion(version.Version), kogitoISList.Items[0].Spec.Tags[0].Name)
+	assert.Equal(t, infrastructure.GetKogitoImageVersion(version.Version), kogitoISList.Items[1].Spec.Tags[0].Name)
 
 	// reconcile again, check for builds
 	result = test.AssertReconcileMustNotRequeue(t, &r, instance)
