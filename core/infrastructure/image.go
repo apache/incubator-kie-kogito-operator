@@ -190,7 +190,7 @@ func (i *imageHandler) ResolveImageStreamTriggerAnnotation(containerName string)
 	return
 }
 
-// GetKogitoImageVersion gets the Kogito Runtime latest micro version based on the Operator current version
+// GetKogitoImageVersion gets the Kogito Runtime latest micro version based on the given version
 // E.g. Operator version is 0.9.0, the latest image version is 0.9.x-latest
 // unit test friendly unexported function
 // in this case we are considering only micro updates, that's 0.9.0 -> 0.9, thus for 1.0.0 => 1.0
