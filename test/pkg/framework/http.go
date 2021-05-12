@@ -157,33 +157,27 @@ func ExecuteHTTPRequestC(client *http.Client, namespace string, requestInfo HTTP
 }
 
 // ExecuteHTTPRequestWithStringResponse executes an HTTP request and returns a string response in case there is no error
-func ExecuteHTTPRequestWithStringResponse(namespace string, requestInfo HTTPRequestInfo) (string, string, error) {
+func ExecuteHTTPRequestWithStringResponse(namespace string, requestInfo HTTPRequestInfo) (string, error) {
 	httpResponse, err := ExecuteHTTPRequest(namespace, requestInfo)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
-	if !checkHTTPResponseSuccessful(httpResponse) {
-		return "", "", nil
-	}
-	// Check response
-	defer httpResponse.Body.Close()
-	buf := new(bytes.Buffer)
-	if _, err = buf.ReadFrom(httpResponse.Body); err != nil {
-		return "", "", err
-	}
-	resultBody := buf.String()
 
+	resultBody := GetResultBodyFromResponse(httpResponse)
 	GetLogger(namespace).Debug("Retrieved", "resultBody", resultBody)
-	contentType := httpResponse.Header["Content-Type"][0]
-	return resultBody, contentType, nil
+
+	return resultBody, nil
 }
 
 // ExecuteHTTPRequestWithUnmarshalledResponse executes an HTTP request and returns response unmarshalled into specific structure in case there is no error
 func ExecuteHTTPRequestWithUnmarshalledResponse(namespace string, requestInfo HTTPRequestInfo, response interface{}) error {
-	resultBody, contentType, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
+	httpResponse, err := ExecuteHTTPRequest(namespace, requestInfo)
 	if err != nil {
 		return err
 	}
+
+	resultBody := GetResultBodyFromResponse(httpResponse)
+	contentType := GetContentTypeFromResponse(httpResponse)
 
 	if strings.Contains(contentType, "application/json") {
 		if err := json.NewDecoder(strings.NewReader(resultBody)).Decode(response); err != nil {
@@ -199,6 +193,27 @@ func ExecuteHTTPRequestWithUnmarshalledResponse(namespace string, requestInfo HT
 	}
 
 	return nil
+}
+
+func GetResultBodyFromResponse(httpResponse *http.Response) string {
+	if !checkHTTPResponseSuccessful(httpResponse) {
+		return ""
+	}
+	// Check response
+	defer httpResponse.Body.Close()
+	buf := new(bytes.Buffer)
+
+	if _, err := buf.ReadFrom(httpResponse.Body); err != nil {
+		return ""
+	}
+
+	resultBody := buf.String()
+	return resultBody
+}
+
+func GetContentTypeFromResponse(httpResponse *http.Response) string {
+	contentType := httpResponse.Header["Content-Type"][0]
+	return contentType
 }
 
 // IsHTTPRequestSuccessful makes and checks whether an http request is successful
@@ -320,7 +335,7 @@ func IsHTTPResponseArraySize(namespace string, requestInfo HTTPRequestInfo, arra
 
 // DoesHTTPResponseContain checks whether the response of an http request contains a certain string
 func DoesHTTPResponseContain(namespace string, requestInfo HTTPRequestInfo, responseContent string) (bool, error) {
-	resultBody, _, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
+	resultBody, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
 	if err != nil {
 		return false, err
 	}
