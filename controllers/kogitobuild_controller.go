@@ -58,13 +58,13 @@ type KogitoBuildReconciler struct {
 // Reconcile reads that state of the cluster for a KogitoBuild object and makes changes based on the state read
 // and what is in the KogitoBuild.Spec
 func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result, resultErr error) {
-	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
-	log.Info("Reconciling for KogitoBuild")
+	log1 := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
+	log1.Info("Reconciling for KogitoBuild")
 
 	// create context
 	context := operator.Context{
 		Client: r.Client,
-		Log:    log,
+		Log:    log1,
 		Scheme: r.Scheme,
 	}
 
@@ -74,7 +74,7 @@ func (r *KogitoBuildReconciler) Reconcile(req ctrl.Request) (result ctrl.Result,
 	if resultErr != nil {
 		return
 	} else if instance == nil {
-		log.Warn("Kogito Build not found")
+		log1.Warn("Kogito Build not found")
 		return
 	}
 
