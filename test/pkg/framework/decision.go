@@ -14,8 +14,9 @@
 
 package framework
 
-func GetDecisionInstances(namespace, routeURI, processName string) (foundDecisionInstances []map[string]interface{}, err error) {
-	requestInfo := NewGETHTTPRequestInfo(routeURI, processName)
+// GetDecisionInstances retrieves decision instances of decisionName
+func GetDecisionInstances(namespace, routeURI, decisionName string) (foundDecisionInstances []map[string]interface{}, err error) {
+	requestInfo := NewGETHTTPRequestInfo(routeURI, decisionName)
 	err = ExecuteHTTPRequestWithUnmarshalledResponse(namespace, requestInfo, &foundDecisionInstances)
 	return
 }

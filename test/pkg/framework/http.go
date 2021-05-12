@@ -163,7 +163,7 @@ func ExecuteHTTPRequestWithStringResponse(namespace string, requestInfo HTTPRequ
 		return "", err
 	}
 
-	resultBody := GetResultBodyFromResponse(httpResponse)
+	resultBody := getResultBodyFromResponse(httpResponse)
 	GetLogger(namespace).Debug("Retrieved", "resultBody", resultBody)
 
 	return resultBody, nil
@@ -176,8 +176,8 @@ func ExecuteHTTPRequestWithUnmarshalledResponse(namespace string, requestInfo HT
 		return err
 	}
 
-	resultBody := GetResultBodyFromResponse(httpResponse)
-	contentType := GetContentTypeFromResponse(httpResponse)
+	resultBody := getResultBodyFromResponse(httpResponse)
+	contentType := getContentTypeFromResponse(httpResponse)
 
 	if strings.Contains(contentType, "application/json") {
 		if err := json.NewDecoder(strings.NewReader(resultBody)).Decode(response); err != nil {
@@ -195,7 +195,7 @@ func ExecuteHTTPRequestWithUnmarshalledResponse(namespace string, requestInfo HT
 	return nil
 }
 
-func GetResultBodyFromResponse(httpResponse *http.Response) string {
+func getResultBodyFromResponse(httpResponse *http.Response) string {
 	if !checkHTTPResponseSuccessful(httpResponse) {
 		return ""
 	}
@@ -211,7 +211,7 @@ func GetResultBodyFromResponse(httpResponse *http.Response) string {
 	return resultBody
 }
 
-func GetContentTypeFromResponse(httpResponse *http.Response) string {
+func getContentTypeFromResponse(httpResponse *http.Response) string {
 	contentType := httpResponse.Header["Content-Type"][0]
 	return contentType
 }
