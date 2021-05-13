@@ -115,8 +115,9 @@ After you update the source with your new proposed feature or bug fix, open a [p
 - Your PR has the name of the JIRA in the title, for example, `[KOGITO-XXX] - Awesome feature that solves it all`.
 - The PR solves only the problem described in the JIRA.
 - You have written unit tests for the particular fix or feature.
-- You ran `make vet` and `make test` before submitting the PR and everything is working accordingly.
+- You ran `make before-pr` before submitting the PR and everything is working accordingly.
 - You tested the feature on an actual OpenShift cluster.
+- You've added a [RELEASE_NOTES.md](RELEASE_NOTES.md) entry regarding this change.
 
 After you send your PR, a maintainer will review your code and might ask you to make changes and to [squash your commits](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we can merge.
 
@@ -476,8 +477,9 @@ API server listening at: [::]:2345
 Running Kogito operator in remote debug on VSCode and GoLand is very similar to above procedure. Please follow these article to the setup remote debugger on [VSCode](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-using-vscode-130k) and [GoLand](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-in-goland-kl6)
 
 ## Guide for Kogito Developers
+If you are a new developer looking for information on how to start working on the operator, please take a look at [this guide](docs/GUIDE_FOR_KOGITO_DEVS.md#introduction).
 
-If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator. Please follow this [guide](docs/GUIDE_TO_KOGITO_DEVS.md) to test your changes.
+If you made changes in the core/runtimes part of the Kogito and want to test your changes against the operator, please follow [this guide](docs/GUIDE_FOR_RUNTIMES_DEVS.md#guide-for-coreruntimes-team-to-smoke-test-local-changes-on-openshiftk8s-cluster) to test your changes.
 
 ## Releasing Kogito Operator
 
