@@ -38,12 +38,13 @@ var (
 
 // Data contains all data needed by Gherkin steps to run
 type Data struct {
-	Namespace               string
-	StartTime               time.Time
-	KogitoExamplesLocation  string
-	KieAssetLibraryLocation string
-	ScenarioName            string
-	ScenarioContext         map[string]string
+	Namespace                    string
+	StartTime                    time.Time
+	KogitoExamplesLocation       string
+	KieAssetLibraryLocation      string
+	KieAssetReMarshallerLocation string
+	ScenarioName                 string
+	ScenarioContext              map[string]string
 }
 
 // RegisterAllSteps register all steps available to the test suite
@@ -91,6 +92,7 @@ func (data *Data) BeforeScenario(scenario *godog.Scenario) error {
 	data.Namespace = getNamespaceName()
 	data.KogitoExamplesLocation = createTemporaryFolder("kogito-examples")
 	data.KieAssetLibraryLocation = createTemporaryFolder("kie-asset-library")
+	data.KieAssetReMarshallerLocation = createTemporaryFolder("kie-asset-re-marshaller")
 	data.ScenarioName = scenario.GetName()
 	data.ScenarioContext = map[string]string{}
 
@@ -197,7 +199,7 @@ func handleScenarioResult(data *Data, scenario *godog.Scenario, err error) {
 }
 
 func deleteTemporaryExamplesFolder(data *Data) {
-	temporaryFolders := []string{data.KogitoExamplesLocation, data.KieAssetLibraryLocation}
+	temporaryFolders := []string{data.KogitoExamplesLocation, data.KieAssetLibraryLocation, data.KieAssetReMarshallerLocation}
 
 	for _, temporaryFolder := range temporaryFolders {
 		err := framework.DeleteFolder(temporaryFolder)

@@ -4,6 +4,7 @@ Feature: Deploy Kogito Build - after assets processed by VS code
   Background:
     Given Namespace is created
     And Kogito Operator is deployed
+    And Project kie-asset-re-marshaller is cloned
     And Project kie-asset-library is cloned
     And Project kie-asset-library is built by maven with configuration:
       | profile | dmn                                    |
