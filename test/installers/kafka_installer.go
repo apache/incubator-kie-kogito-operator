@@ -31,7 +31,7 @@ var (
 	}
 
 	kafkaOperatorSubscriptionName    = "strimzi-kafka-operator"
-	kafkaOperatorSubscriptionChannel = "stable"
+	kafkaOperatorSubscriptionChannel = "strimzi-0.22.x"
 	kafkaOperatorTimeoutInMin        = 10
 )
 
