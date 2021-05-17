@@ -11,5 +11,4 @@
 - [KOGITO-4826](https://issues.redhat.com/browse/KOGITO-4826) - Service ClusterIPs triggers reconciliation
 - [KOGITO-4453](https://issues.redhat.com/browse/KOGITO-4453) - Kogito operator overwrites user's configmap provided with propertiesConfigMap
 
->>>>>>> 870377b7... [KOGITO-4453] Fix getAppPropsFromConfigMap (#874)
 ## Known Issues
