@@ -5,9 +5,9 @@ BUNDLE_IMG ?= quay.io/kiegroup/kogito-operator-bundle:$(VERSION)
 # Default catalog image tag
 CATALOG_IMG ?= quay.io/kiegroup/kogito-operator-catalog:$(VERSION)
 # Options for 'bundle-build'
-CHANNELS=alpha,1.x
+CHANNELS=alpha,1.x,1.5.x
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
-DEFAULT_CHANNEL=1.x
+DEFAULT_CHANNEL=1.5.x
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
