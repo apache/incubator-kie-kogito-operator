@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/internal"
+	"github.com/kiegroup/kogito-operator/version"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -61,9 +62,10 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 
 	// create context
 	context := operator.Context{
-		Client: r.Client,
-		Log:    log,
-		Scheme: r.Scheme,
+		Client:  r.Client,
+		Log:     log,
+		Scheme:  r.Scheme,
+		Version: version.Version,
 	}
 
 	// Fetch the KogitoInfra instance
