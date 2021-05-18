@@ -60,7 +60,7 @@ func (data *Data) localServiceBuiltByMavenWithConfiguration(serviceName string, 
 
 // Build local service with profile and additional options
 func (data *Data) localServiceBuiltByMavenWithProfileAndOptions(serviceName string, mavenConfig *mappers.MavenCommandConfig) error {
-	serviceRepositoryPath := data.KogitoExamplesLocation + "/" + serviceName
+	serviceRepositoryPath := data.Location[KogitoExamples] + "/" + serviceName
 	return data.localPathBuiltByMavenWithProfileAndOptions(serviceRepositoryPath, mavenConfig)
 }
 

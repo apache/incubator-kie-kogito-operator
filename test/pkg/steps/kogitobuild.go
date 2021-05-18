@@ -80,7 +80,7 @@ func (data *Data) buildBinaryServiceWithConfiguration(runtimeType, serviceName s
 }
 
 func (data *Data) buildBinaryLocalExampleServiceFromTargetFolderWithConfiguration(runtimeType, serviceName string, table *godog.Table) error {
-	binaryFolder := fmt.Sprintf(`%s/%s/target`, data.KogitoExamplesLocation, serviceName)
+	binaryFolder := fmt.Sprintf(`%s/%s/target`, data.Location[KogitoExamples], serviceName)
 	return data.deployTargetFolderOnOpenshift(runtimeType, serviceName, binaryFolder, table)
 }
 

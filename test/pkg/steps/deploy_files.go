@@ -35,12 +35,12 @@ func registerKogitoDeployFilesSteps(ctx *godog.ScenarioContext, data *Data) {
 // Deploy steps
 
 func (data *Data) deployFileFromExampleService(runtimeType, file, serviceName string) error {
-	sourceFilePath := fmt.Sprintf(`%s/%s/%s/%s`, data.KogitoExamplesLocation, serviceName, sourceLocation, file)
+	sourceFilePath := fmt.Sprintf(`%s/%s/%s/%s`, data.Location[KogitoExamples], serviceName, sourceLocation, file)
 	return deploySourceFilesFromPath(data.Namespace, runtimeType, serviceName, sourceFilePath)
 }
 
 func (data *Data) deployFolderFromExampleService(runtimeType, serviceName string) error {
-	sourceFolderPath := fmt.Sprintf(`%s/%s/%s`, data.KogitoExamplesLocation, serviceName, sourceLocation)
+	sourceFolderPath := fmt.Sprintf(`%s/%s/%s`, data.Location[KogitoExamples], serviceName, sourceLocation)
 	return deploySourceFilesFromPath(data.Namespace, runtimeType, serviceName, sourceFolderPath)
 }
 

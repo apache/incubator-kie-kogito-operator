@@ -54,11 +54,11 @@ func (data *Data) projectKieAssetLibraryIsBuiltByMavenWithConfiguration(table *g
 		}
 	}
 
-	return data.localPathBuiltByMavenWithProfileAndOptions(data.KieAssetLibraryLocation, mavenConfig)
+	return data.localPathBuiltByMavenWithProfileAndOptions(data.Location[KieAssetLibrary], mavenConfig)
 }
 
 func (data *Data) projectKieAssetReMarshallerIsCloned() error {
-	framework.GetLogger(data.Namespace).Info("Cloning kie-asset-re-marshaller project", "URI", KieAssetReMarshallerGitRepositoryURI, "branch", KieAssetReMarshallerGitRepositoryBranch, "clonedLocation", data.KieAssetReMarshallerLocation)
+	framework.GetLogger(data.Namespace).Info("Cloning kie-asset-re-marshaller project", "URI", KieAssetReMarshallerGitRepositoryURI, "branch", KieAssetReMarshallerGitRepositoryBranch, "clonedLocation", data.Location[KieAssetReMarshaller])
 
 	cloneOptions := &git.CloneOptions{
 		URL:          KieAssetReMarshallerGitRepositoryURI,
@@ -67,26 +67,24 @@ func (data *Data) projectKieAssetReMarshallerIsCloned() error {
 
 	var err error
 	reference := KieAssetReMarshallerGitRepositoryBranch
-	if len(reference) == 0 {
-		err = cloneRepository(data.KieAssetReMarshallerLocation, cloneOptions)
-	} else {
-		// Try cloning as branch reference
-		cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(reference)
-		err = cloneRepository(data.KieAssetReMarshallerLocation, cloneOptions)
-		// If branch clone was successful then return, otherwise try other cloning options
-		if err == nil {
-			return nil
-		}
 
-		// If branch cloning failed then try cloning as tag
-		cloneOptions.ReferenceName = plumbing.NewTagReferenceName(reference)
-		err = cloneRepository(data.KieAssetReMarshallerLocation, cloneOptions)
+	// Try cloning as branch reference
+	cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(reference)
+	err = cloneRepository(data.Location[KieAssetReMarshaller], cloneOptions)
+	// If branch clone was successful then return, otherwise try other cloning options
+	if err == nil {
+		return nil
 	}
+
+	// If branch cloning failed then try cloning as tag
+	cloneOptions.ReferenceName = plumbing.NewTagReferenceName(reference)
+	err = cloneRepository(data.Location[KieAssetReMarshaller], cloneOptions)
+
 	return err
 }
 
 func (data *Data) projectKieAssetLibraryIsCloned() error {
-	framework.GetLogger(data.Namespace).Info("Cloning kie-asset-library project", "URI", KieAssetLibraryGitRepositoryURI, "branch", KieAssetLibraryGitRepositoryBranch, "clonedLocation", data.KieAssetLibraryLocation)
+	framework.GetLogger(data.Namespace).Info("Cloning kie-asset-library project", "URI", KieAssetLibraryGitRepositoryURI, "branch", KieAssetLibraryGitRepositoryBranch, "clonedLocation", data.Location[KieAssetLibrary])
 
 	cloneOptions := &git.CloneOptions{
 		URL:          KieAssetLibraryGitRepositoryURI,
@@ -95,33 +93,32 @@ func (data *Data) projectKieAssetLibraryIsCloned() error {
 
 	var err error
 	reference := KieAssetLibraryGitRepositoryBranch
-	if len(reference) == 0 {
-		err = cloneRepository(data.KieAssetLibraryLocation, cloneOptions)
-	} else {
-		// Try cloning as branch reference
-		cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(reference)
-		err = cloneRepository(data.KieAssetLibraryLocation, cloneOptions)
-		// If branch clone was successful then return, otherwise try other cloning options
-		if err == nil {
-			return nil
-		}
 
-		// If branch cloning failed then try cloning as tag
-		cloneOptions.ReferenceName = plumbing.NewTagReferenceName(reference)
-		err = cloneRepository(data.KieAssetLibraryLocation, cloneOptions)
+	// Try cloning as branch reference
+	cloneOptions.ReferenceName = plumbing.NewBranchReferenceName(reference)
+	err = cloneRepository(data.Location[KieAssetLibrary], cloneOptions)
+	// If branch clone was successful then return, otherwise try other cloning options
+	if err == nil {
+		return nil
 	}
+
+	// If branch cloning failed then try cloning as tag
+	cloneOptions.ReferenceName = plumbing.NewTagReferenceName(reference)
+	err = cloneRepository(data.Location[KieAssetLibrary], cloneOptions)
+
 	return err
 }
 
 func (data *Data) projectIsGeneratedByKieAssetLibrary(project string) error {
-	if _, err := os.Stat(data.KieAssetLibraryLocation + "/kie-assets-library-generate/target/" + project); !os.IsNotExist(err) {
+	if _, err := os.Stat(data.Location[KieAssetLibrary] + "/kie-assets-library-generate/target/" + project); !os.IsNotExist(err) {
 		return err
 	}
 	return nil
 }
 
 func (data *Data) projectInKieAssetLibraryIsBuiltByMaven(project string) error {
-	output, errCode := framework.CreateMavenCommand(data.KieAssetLibraryLocation+"/kie-assets-library-generate/target/"+project).
+	projectLocation := data.Location[KieAssetLibrary] + "/kie-assets-library-generate/target/" + project
+	output, errCode := framework.CreateMavenCommand(projectLocation).
 		SkipTests().
 		Execute("clean", "install")
 	framework.GetLogger(data.Namespace).Debug(output)
@@ -134,7 +131,7 @@ func (data *Data) projectInKieAssetLibraryIsBuiltByMaven(project string) error {
 func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 	installOutput, installErr := framework.CreateCommand("npm", "install").
 		WithRetry(framework.NumberOfRetries(1)).
-		InDirectory(data.KieAssetReMarshallerLocation).
+		InDirectory(data.Location[KieAssetReMarshaller]).
 		Execute()
 	framework.GetLogger(data.Namespace).Debug(installOutput)
 
@@ -142,9 +139,10 @@ func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 		return installErr
 	}
 
-	runOutput, runErr := framework.CreateCommand("npm", "run", "test:it", "KIE_PROJECT="+data.KieAssetLibraryLocation+"/kie-assets-library-generate/target/"+project).
+	kieProjectParameter := "KIE_PROJECT=" + data.Location[KieAssetLibrary] + "/kie-assets-library-generate/target/" + project
+	runOutput, runErr := framework.CreateCommand("npm", "run", "test:it", kieProjectParameter).
 		WithRetry(framework.NumberOfRetries(1)).
-		InDirectory(data.KieAssetReMarshallerLocation).
+		InDirectory(data.Location[KieAssetReMarshaller]).
 		Execute()
 	framework.GetLogger(data.Namespace).Debug(runOutput)
 
@@ -152,7 +150,7 @@ func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 }
 
 func (data *Data) deployKieAssetLibraryProjectOnOpenshift(runtimeType, project string, table *godog.Table) error {
-	binaryFolder := data.KieAssetLibraryLocation + "/kie-assets-library-generate/target/" + project
+	binaryFolder := data.Location[KieAssetLibrary] + "/kie-assets-library-generate/target/" + project
 
 	return data.deployTargetFolderOnOpenshift(runtimeType, project, binaryFolder, table)
 }

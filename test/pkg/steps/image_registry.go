@@ -62,7 +62,7 @@ func (data *Data) localServiceBuiltByMavenWithProfileAndDeployedToRuntimeRegistr
 		}
 	}
 
-	projectLocation := data.KogitoExamplesLocation + "/" + contextDir
+	projectLocation := data.Location[KogitoExamples] + "/" + contextDir
 
 	projectImageName := getProjectImageName(projectLocation, mavenConfig)
 	runtimeApplicationImageTag, err := getRuntimeApplicationImageTag(projectImageName)

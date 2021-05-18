@@ -45,7 +45,7 @@ func registerOpenShiftSteps(ctx *godog.ScenarioContext, data *Data) {
 
 // Build steps
 func (data *Data) startBuildFromExampleServicePath(buildName, localExamplePath string) error {
-	examplesRepositoryPath := data.KogitoExamplesLocation
+	examplesRepositoryPath := data.Location[KogitoExamples]
 	return framework.WaitForOnOpenshift(data.Namespace, fmt.Sprintf("Build '%s' to start", buildName), defaultTimeoutToStartBuildInMin,
 		func() (bool, error) {
 			_, err := framework.CreateCommand("oc", "start-build", buildName, "--from-dir="+examplesRepositoryPath+"/"+localExamplePath, "-n", data.Namespace).WithLoggerContext(data.Namespace).Execute()
@@ -54,7 +54,7 @@ func (data *Data) startBuildFromExampleServicePath(buildName, localExamplePath s
 }
 
 func (data *Data) startBuildFromExampleServiceFile(buildName, localExampleFilePath string) error {
-	examplesRepositoryPath := data.KogitoExamplesLocation
+	examplesRepositoryPath := data.Location[KogitoExamples]
 	return framework.WaitForOnOpenshift(data.Namespace, fmt.Sprintf("Build '%s' to start", buildName), defaultTimeoutToStartBuildInMin,
 		func() (bool, error) {
 			_, err := framework.CreateCommand("oc", "start-build", buildName, "--from-file="+examplesRepositoryPath+"/"+localExampleFilePath, "-n", data.Namespace).WithLoggerContext(data.Namespace).Execute()
