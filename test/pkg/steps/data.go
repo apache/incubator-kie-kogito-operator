@@ -36,23 +36,23 @@ var (
 	logsKubernetesObjects = []runtime.Object{&imgv1.ImageStreamList{}, &v1beta1.KogitoRuntimeList{}, &v1beta1.KogitoBuildList{}, &v1beta1.KogitoSupportingService{}, &v1beta1.KogitoInfraList{}, &olmapiv1alpha1.ClusterServiceVersionList{}}
 )
 
-type thirdPartyProject struct {
-	value string
-}
-
-var (
-	KogitoExamples       = thirdPartyProject{"kogito-examples"}
-	KieAssetLibrary      = thirdPartyProject{"kie-asset-library-poc"}
-	KieAssetReMarshaller = thirdPartyProject{"kie-assets-re-marshaller"}
-)
-
+// ThirdPartyProject is enum for projects we clone during tests
 type ThirdPartyProject string
+
+const (
+	// KogitoExamples represents https://github.com/kiegroup/kogito-examples project
+	KogitoExamples ThirdPartyProject = "kogito-examples"
+	// KieAssetLibrary represents https://github.com/jstastny-cz/kie-asset-library-poc project
+	KieAssetLibrary ThirdPartyProject = "kie-asset-library"
+	// KieAssetReMarshaller represents https://github.com/jomarko/kie-assets-re-marshaller project
+	KieAssetReMarshaller ThirdPartyProject = "kie-assets-re-marshaller"
+)
 
 // Data contains all data needed by Gherkin steps to run
 type Data struct {
 	Namespace       string
 	StartTime       time.Time
-	Location        map[thirdPartyProject]string
+	Location        map[ThirdPartyProject]string
 	ScenarioName    string
 	ScenarioContext map[string]string
 }
@@ -100,10 +100,10 @@ func (data *Data) RegisterLogsKubernetesObjects(objects ...runtime.Object) {
 func (data *Data) BeforeScenario(scenario *godog.Scenario) error {
 	data.StartTime = time.Now()
 	data.Namespace = getNamespaceName()
-	data.Location = make(map[thirdPartyProject]string, 3)
-	data.Location[KogitoExamples] = createTemporaryFolder(KogitoExamples.value)
-	data.Location[KieAssetLibrary] = createTemporaryFolder(KieAssetLibrary.value)
-	data.Location[KieAssetReMarshaller] = createTemporaryFolder(KieAssetReMarshaller.value)
+	data.Location = make(map[ThirdPartyProject]string, 3)
+	data.Location[KogitoExamples] = createTemporaryFolder(string(KogitoExamples))
+	data.Location[KieAssetLibrary] = createTemporaryFolder(string(KieAssetLibrary))
+	data.Location[KieAssetReMarshaller] = createTemporaryFolder(string(KieAssetReMarshaller))
 	data.ScenarioName = scenario.GetName()
 	data.ScenarioContext = map[string]string{}
 

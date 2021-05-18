@@ -123,6 +123,7 @@ func (data *Data) projectInKieAssetLibraryIsBuiltByMaven(project string) error {
 		Execute("clean", "install")
 	framework.GetLogger(data.Namespace).Debug(output)
 	if errCode != nil {
+		framework.GetLogger(data.Namespace).Warn(output)
 		framework.GetLogger(data.Namespace).Warn(project + " 'mvn clean install' failed due to: " + errCode.Error())
 	}
 	return errCode
@@ -136,6 +137,8 @@ func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 	framework.GetLogger(data.Namespace).Debug(installOutput)
 
 	if installErr != nil {
+		framework.GetLogger(data.Namespace).Warn(installOutput)
+		framework.GetLogger(data.Namespace).Warn(project + " 'mvn clean install' failed due to: " + installErr.Error())
 		return installErr
 	}
 
@@ -145,6 +148,11 @@ func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 		InDirectory(data.Location[KieAssetReMarshaller]).
 		Execute()
 	framework.GetLogger(data.Namespace).Debug(runOutput)
+
+	if runErr != nil {
+		framework.GetLogger(data.Namespace).Warn(runOutput)
+		framework.GetLogger(data.Namespace).Warn(project + " 'npm run test:it' failed due to: " + runErr.Error())
+	}
 
 	return runErr
 }
