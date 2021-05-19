@@ -168,6 +168,7 @@ func initializeTestSuite(ctx *godog.TestSuiteContext) {
 		}
 
 		stopOlmNamespaceMonitoring()
+		deleteKafkaCrds()
 	})
 }
 
@@ -315,5 +316,38 @@ func installKogitoOperatorCatalogSource() error {
 func deleteKogitoOperatorCatalogSource() {
 	if err := framework.DeleteKogitoOperatorCatalogSource(); err != nil {
 		framework.GetMainLogger().Error(err, "Error deleting Kogito operator CatalogSource")
+	}
+}
+
+func deleteKafkaCrds() {
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/040-Crd-kafka.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/041-Crd-kafkaconnect.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/042-Crd-kafkaconnects2i.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/043-Crd-kafkatopic.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/044-Crd-kafkauser.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/045-Crd-kafkamirrormaker.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/046-Crd-kafkabridge.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/047-Crd-kafkaconnector.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/048-Crd-kafkamirrormaker2.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
+	}
+	if _, err := framework.CreateCommand("oc", "delete", "-f", "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/release-0.22.x/install/cluster-operator/049-Crd-kafkarebalance.yaml").Execute(); err != nil {
+		framework.GetMainLogger().Error(err, "Error deleting Kafka CRD")
 	}
 }
