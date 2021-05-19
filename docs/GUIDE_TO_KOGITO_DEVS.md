@@ -67,8 +67,8 @@ $ vim jobs-service-Dockerfile
 ``` 
 
 ```Dockerfile
-FROM quay.io/kiegroup/kogito-jobs-service
-COPY jobs-service-8.0.0-SNAPSHOT-runner.jar ${KOGITO_HOME}/bin/kogito-jobs-service-runner.jar
+FROM quay.io/kiegroup/kogito-jobs-service-ephemeral
+COPY jobs-service-8.0.0-SNAPSHOT-runner.jar ${KOGITO_HOME}/bin/jobs-service-common-runner.jar
 ```
 **Note**: Usually, latest artifacts are with version  `8.0.0-SNAPSHOT`
 **Note**: You can check the location of the artifact in the image from the [kogito-images](https://github.com/kiegroup/kogito-images) repository.

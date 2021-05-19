@@ -5,9 +5,12 @@ metadata:
 spec:
   serviceType: JobsService
   # image to use
-  image: quay.io/kiegroup/kogito-jobs-service:latest
+  #image: quay.io/kiegroup/kogito-jobs-service-infinispan:latest
   # number of pods to be deployed
   replicas: 1
+  # infra reference
+  #infra:
+  #  - kogito-infinispan
   # environment variables to set in the runtime container. Example: JAVA_OPTIONS: "-Dquarkus.log.level=DEBUG"
   #env:
     # - name: JAVA_OPTIONS
