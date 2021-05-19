@@ -8,7 +8,6 @@ Feature: Deploy Kogito Build - after assets processed by VS code
     And Project kie-asset-library is cloned
     And Project kie-asset-library is built by maven with configuration:
       | option  | -Dactive.definitions=dmn-generated |
-      | option  | -Dactive.structures=quarkus        |
       | native  | disabled                           |
 
 
