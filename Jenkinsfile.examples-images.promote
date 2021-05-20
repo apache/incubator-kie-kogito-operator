@@ -90,7 +90,7 @@ pipeline {
                         }
 
                         if (helper.getImageRegistry(promoteImageParamsPrefix) == 'quay.io') {
-                            helper.makeQuayImagePublic(helper.getFullImageName(imageName), promoteImageParamsPrefix)
+                            helper.makeQuayImagePublic(helper.getFullImageName(imageName, promoteImageParamsPrefix), promoteImageParamsPrefix)
                         }
                     }
                 }
