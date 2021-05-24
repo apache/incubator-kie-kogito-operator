@@ -31,10 +31,10 @@ func Test_DeleteProjectCmd_WhenWeSuccessfullyDelete(t *testing.T) {
 	defer teardown()
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-project %s", ns)
-	test.SetupCliTest(cli,
+	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, fmt.Sprintf("Successfully deleted Kogito Project %s", ns))
 }
@@ -44,8 +44,8 @@ func Test_DeleteProjectCmd_WhenProjectDoesNotExist(t *testing.T) {
 	defer teardown()
 	ns := t.Name()
 	cli := fmt.Sprintf("delete-project %s", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
-	_, errLines, err := test.ExecuteCli()
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
+	_, errLines, err := ctx.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, errLines, fmt.Sprintf("Project %s not found", ns))
 }

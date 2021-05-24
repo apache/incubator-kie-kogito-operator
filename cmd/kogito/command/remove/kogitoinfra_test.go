@@ -28,12 +28,12 @@ import (
 func Test_DeleteKogitoInfraCmd_SuccessfullyDelete(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove kogito-infra kafka-infra --project %s", ns)
-	test.SetupCliTest(cli,
+	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&v1beta1.KogitoInfra{ObjectMeta: metav1.ObjectMeta{Name: "kafka-infra", Namespace: ns}})
 
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Successfully deleted Kogito Infra Service kafka-infra")
 }
@@ -41,10 +41,10 @@ func Test_DeleteKogitoInfraCmd_SuccessfullyDelete(t *testing.T) {
 func Test_DeleteKogitoInfraCmd_Failure_ServiceDoesNotExist(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove kogito-infra kafka-infra --project %s", ns)
-	test.SetupCliTest(cli,
+	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	_, errLines, err := test.ExecuteCli()
+	_, errLines, err := ctx.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, errLines, "kogito Infra resource with name kafka-infra not found")
 }

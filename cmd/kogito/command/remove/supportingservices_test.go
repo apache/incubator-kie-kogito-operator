@@ -30,9 +30,9 @@ import (
 func Test_removeRuntimeServiceCommand_NoServiceThere(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove data-index -p %s", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "There's no service data-index")
 }
@@ -40,9 +40,9 @@ func Test_removeRuntimeServiceCommand_NoServiceThere(t *testing.T) {
 func Test_removeRuntimeServiceCommand_NoServiceThereWithAlias(t *testing.T) {
 	ns := t.Name()
 	cli := fmt.Sprintf("remove management-console -p %s", ns)
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "There's no service mgmt-console")
 }
@@ -56,9 +56,9 @@ func Test_removeRuntimeServiceCommand_SingletonService(t *testing.T) {
 			ServiceType: api.JobsService,
 		},
 	}
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService)
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService)
 
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.NotContains(t, lines, "There's no service jobs-service")
 	assert.Contains(t, lines, kogitosupportingservice.DefaultJobsServiceName)
@@ -82,9 +82,9 @@ func Test_removeRuntimeServiceCommand_MoreThenOneService(t *testing.T) {
 		},
 	}
 
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService1, jobsService2)
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService1, jobsService2)
 
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, kogitosupportingservice.DefaultJobsServiceName)
 	assert.Contains(t, lines, "my-job-service")
@@ -108,9 +108,9 @@ func Test_removeRuntimeServiceCommand_DifferentService(t *testing.T) {
 		},
 	}
 
-	test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService1, jobsService2)
+	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands}, &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}, jobsService1, jobsService2)
 
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, kogitosupportingservice.DefaultJobsServiceName)
 	assert.NotContains(t, lines, "data-index")
