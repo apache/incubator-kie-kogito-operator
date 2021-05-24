@@ -470,8 +470,8 @@ Kogito operator integrates with various other technologies and operators. The te
 | Technology         | Tested version                                                |
 | ------------------ | ------------------------------------------------------------- |
 | Infinispan         | Infinispan operator 2.0.6 (deployed by OLM `2.0.x` channel)   |
-| Kafka              | Strimzi 0.21.1 (deployed by OLM `stable` channel)             |
+| Kafka              | Strimzi 0.23.0 (deployed by OLM `stable` channel)             |
 | Keycloak           | Keycloak operator 12.0.3 (deployed by OLM `alpha` channel)    |
-| Prometheus         | Prometheus operator 0.37.0 (deployed by OLM `beta` channel)   |
-| Grafana            | Grafana operator 3.9.0 (deployed by OLM `alpha` channel)      |
+| Prometheus         | Prometheus operator 0.47.0 (deployed by OLM `beta` channel)   |
+| Grafana            | Grafana operator 3.10.1 (deployed by OLM `alpha` channel)     |
 | MongoDB            | MongoDB Community Kubernetes Operator 0.2.2                   |
