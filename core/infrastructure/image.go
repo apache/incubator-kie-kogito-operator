@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/version"
 	imgv1 "github.com/openshift/api/image/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
@@ -140,7 +139,7 @@ func (i *imageHandler) ResolveImageNameTag() string {
 // resolves like "latest", 0.8.0, and so on
 func (i *imageHandler) resolveTag() string {
 	if len(i.image.Tag) == 0 {
-		return GetKogitoImageVersion()
+		return GetKogitoImageVersion(i.Context.Version)
 	}
 	return i.image.Tag
 }
@@ -156,16 +155,12 @@ func (i *imageHandler) ResolveImageStreamTriggerAnnotation(containerName string)
 	return
 }
 
-// GetKogitoImageVersion gets the Kogito Runtime latest micro version based on the Operator current version
+// GetKogitoImageVersion gets the Kogito Runtime latest micro version based on the given version
 // E.g. Operator version is 0.9.0, the latest image version is 0.9.x-latest
-func GetKogitoImageVersion() string {
-	return getKogitoImageVersion(version.Version)
-}
-
 // unit test friendly unexported function
 // in this case we are considering only micro updates, that's 0.9.0 -> 0.9, thus for 1.0.0 => 1.0
 // in the future this should be managed with carefully if we desire a behavior like 1.0.0 => 1, that's minor upgrades
-func getKogitoImageVersion(v string) string {
+func GetKogitoImageVersion(v string) string {
 	if len(v) == 0 {
 		return LatestTag
 	}

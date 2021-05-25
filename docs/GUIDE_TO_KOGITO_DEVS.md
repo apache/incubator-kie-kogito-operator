@@ -40,7 +40,7 @@ To generate the jar artifacts, you can just run the following command on each re
 mvn clean package -DskipTests #(For skipping tests) -DskipTestsIT #(For verification)
 ```
 
-This will deploy your jar's in the target directory. For example, for jobs-service the jar would present at `/path/to/kogito-apps/jobs-service/target/jobs-service-8.0.0-SNAPSHOT-runner.jar`
+This will deploy your jar's in the target directory. For example, for jobs-service the jar would present at `/path/to/kogito-apps/jobs-service/jobs-service-common/target/jobs-service-common-{VERSION}-runner.jar`
 
 So, you can just build the artifacts you modified or where you added new feature in and update them so they can be built with the Images
 
@@ -57,7 +57,7 @@ First, create a directory e.g: `~/images/`.
 Then, inside this directory, copy the artifacts you need to update:
 
 ```shell-script
-$ cp /path/to/kogito-apps/jobs-service/target/jobs-service-8.0.0-SNAPSHOT-runner.jar .
+$ cp /path/to/kogito-apps/jobs-service/jobs-service-common/target/jobs-service-common-{VERSION}-runner.jar .
 ```
 
 Also, inside this directory, you can have a `Dockerfile` which can be used to update the artifact.
@@ -67,8 +67,8 @@ $ vim jobs-service-Dockerfile
 ``` 
 
 ```Dockerfile
-FROM quay.io/kiegroup/kogito-jobs-service
-COPY jobs-service-8.0.0-SNAPSHOT-runner.jar ${KOGITO_HOME}/bin/kogito-jobs-service-runner.jar
+FROM quay.io/kiegroup/kogito-jobs-service-ephemeral
+COPY jobs-service-common-{VERSION}-runner.jar ${KOGITO_HOME}/bin/jobs-service-common-runner.jar
 ```
 **Note**: Usually, latest artifacts are with version  `8.0.0-SNAPSHOT`
 **Note**: You can check the location of the artifact in the image from the [kogito-images](https://github.com/kiegroup/kogito-images) repository.
