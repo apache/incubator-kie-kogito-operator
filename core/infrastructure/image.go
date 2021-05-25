@@ -82,7 +82,7 @@ func NewImageHandler(context operator.Context, image *api.Image, defaultImageNam
 func (i *imageHandler) CreateImageStreamIfNotExists() (*imgv1.ImageStream, error) {
 	if i.Client.IsOpenshift() {
 		imageStreamHandler := NewImageStreamHandler(i.Context)
-		imageStream, err := imageStreamHandler.CreateImageStreamIfNotExists(i.imageStreamName, i.namespace, i.resolveTag(), i.addFromReference, i.resolveRegistryImage(), i.insecureImageRegistry)
+		imageStream, err := imageStreamHandler.CreateImageStreamIfNotExists(types.NamespacedName{Name: i.imageStreamName, Namespace: i.namespace}, i.resolveTag(), i.addFromReference, i.resolveRegistryImage(), i.insecureImageRegistry)
 		if err != nil {
 			return nil, err
 		}

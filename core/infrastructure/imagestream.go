@@ -46,7 +46,7 @@ type ImageStreamHandler interface {
 	FetchImageStream(key types.NamespacedName) (*imgv1.ImageStream, error)
 	FetchTag(key types.NamespacedName, tag string) (*imgv1.ImageStreamTag, error)
 	MustFetchImageStream(key types.NamespacedName) (*imgv1.ImageStream, error)
-	CreateImageStreamIfNotExists(name, namespace, tag string, addFromReference bool, imageName string, insecureImageRegistry bool) (*imgv1.ImageStream, error)
+	CreateImageStreamIfNotExists(key types.NamespacedName, tag string, addFromReference bool, imageName string, insecureImageRegistry bool) (*imgv1.ImageStream, error)
 	ValidateTagStatus(key types.NamespacedName, tag string) error
 }
 
@@ -102,13 +102,13 @@ func (i *imageStreamHandler) MustFetchImageStream(key types.NamespacedName) (*im
 	}
 }
 
-func (i *imageStreamHandler) CreateImageStreamIfNotExists(name, namespace, tag string, addFromReference bool, imageName string, insecureImageRegistry bool) (*imgv1.ImageStream, error) {
-	imageStream, err := i.FetchImageStream(types.NamespacedName{Name: name, Namespace: namespace})
+func (i *imageStreamHandler) CreateImageStreamIfNotExists(key types.NamespacedName, tag string, addFromReference bool, imageName string, insecureImageRegistry bool) (*imgv1.ImageStream, error) {
+	imageStream, err := i.FetchImageStream(key)
 	if err != nil {
 		return nil, err
 	}
 	if imageStream == nil {
-		imageStream = i.createImageStream(name, namespace)
+		imageStream = i.createImageStream(key)
 	}
 
 	isTagExists := i.checkIfTagExists(imageStream, tag)
@@ -121,12 +121,12 @@ func (i *imageStreamHandler) CreateImageStreamIfNotExists(name, namespace, tag s
 }
 
 // createImageStream creates the ImageStream referencing the given namespace.
-func (i *imageStreamHandler) createImageStream(name, namespace string) *imgv1.ImageStream {
-	i.Log.Debug("Creating new Image stream.")
+func (i *imageStreamHandler) createImageStream(key types.NamespacedName) *imgv1.ImageStream {
+	i.Log.Debug("Creating new Image stream.", "imageStream name", key.Name)
 	return &imgv1.ImageStream{
 		ObjectMeta: v1.ObjectMeta{
-			Name:        name,
-			Namespace:   namespace,
+			Name:        key.Name,
+			Namespace:   key.Namespace,
 			Annotations: imageStreamAnnotations,
 		},
 		Spec: imgv1.ImageStreamSpec{
