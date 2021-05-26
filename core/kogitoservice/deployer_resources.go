@@ -343,5 +343,5 @@ func (s *serviceDeployer) newImageHandler() infrastructure.ImageHandler {
 		image = framework.ConvertImageTagToImage(s.instance.GetSpec().GetImage())
 	}
 
-	return infrastructure.NewImageHandler(s.Context, &image, s.definition.DefaultImageName, s.definition.DefaultImageName, s.instance.GetNamespace(), addDockerImageReference, s.instance.GetSpec().IsInsecureImageRegistry())
+	return infrastructure.NewImageHandler(s.Context, &image, s.definition.DefaultImageName, image.Name, s.instance.GetNamespace(), addDockerImageReference, s.instance.GetSpec().IsInsecureImageRegistry())
 }

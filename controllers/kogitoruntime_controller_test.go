@@ -112,7 +112,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 
 	// image stream
 	is := imagev1.ImageStream{
-		ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace},
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example-default", Namespace: instance.Namespace},
 	}
 	exists, err := kubernetes.ResourceC(cli).Fetch(&is)
 	assert.True(t, exists)
@@ -161,7 +161,7 @@ func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 		},
 	}
 	imageStream := &imagev1.ImageStream{
-		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example-default-invalid", Namespace: t.Name()},
 		Spec: imagev1.ImageStreamSpec{
 			Tags: []imagev1.TagReference{
 				{

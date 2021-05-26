@@ -82,7 +82,7 @@ func TestReconcileKogitoTrustyUI_CustomImage(t *testing.T) {
 
 	// image stream
 	is := imagev1.ImageStream{
-		ObjectMeta: v1.ObjectMeta{Name: DefaultTrustyUIImageName, Namespace: ns},
+		ObjectMeta: v1.ObjectMeta{Name: "awesome-trusty-ui", Namespace: ns},
 	}
 	exists, err := kubernetes.ResourceC(cli).Fetch(&is)
 	assert.True(t, exists)

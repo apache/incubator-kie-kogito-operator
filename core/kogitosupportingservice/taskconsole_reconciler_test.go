@@ -79,7 +79,7 @@ func TestReconcileKogitoSupportingServiceTaskConsole_CustomImage(t *testing.T) {
 	assert.True(t, requeueAfter == 0)
 	// image stream
 	is := imagev1.ImageStream{
-		ObjectMeta: v1.ObjectMeta{Name: DefaultTaskConsoleImageName, Namespace: ns},
+		ObjectMeta: v1.ObjectMeta{Name: "super-task-console", Namespace: ns},
 	}
 	exists, err := kubernetes.ResourceC(cli).Fetch(&is)
 	assert.True(t, exists)
