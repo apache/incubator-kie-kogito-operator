@@ -95,9 +95,9 @@ func (i *imageHandler) CreateImageStreamIfNotExists() (*imgv1.ImageStream, error
 // Can be empty if on OpenShift and the ImageStream is not ready.
 // In case of Openshift, image name is resolved using Image Stream tag to support kogito build.
 func (i *imageHandler) ResolveImage() (string, error) {
-	i.Log.Info("Going to resolve image...")
+	i.Log.Debug("Going to resolve image...")
 	if i.Client.IsOpenshift() {
-		i.Log.Info("Openshift environment found. Going to resolve image using ImageStream.")
+		i.Log.Debug("Openshift environment found. Going to resolve image using ImageStream.")
 		imageStreamHandler := NewImageStreamHandler(i.Context)
 		if err := imageStreamHandler.ValidateTagStatus(types.NamespacedName{Name: i.imageStreamName, Namespace: i.namespace}, i.resolveTag()); err != nil {
 			return "", err
