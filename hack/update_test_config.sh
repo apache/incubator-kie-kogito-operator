@@ -31,6 +31,7 @@ if [ $? -ne 0 ]; then
   if [ $? -ne 0 ]; then
     echo "no release"
     test_image_version="latest"
+    test_branch="nightly-${test_branch}"
   fi
 fi
 
