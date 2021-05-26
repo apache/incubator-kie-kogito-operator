@@ -7,5 +7,6 @@
 - [KOGITO-4898](https://issues.redhat.com/browse/KOGITO-4898) - Probe defaults should be based on YAML action values
 - [KOGITO-4453](https://issues.redhat.com/browse/KOGITO-4453) - Kogito operator overwrites user's configmap provided with propertiesConfigMap
 - [KOGITO-5104](https://issues.redhat.com/browse/KOGITO-5104) - Kogito operator creates wrong default image tags
+- [KOGITO-5083](https://issues.redhat.com/browse/KOGITO-5083) - Kogito Runtime Image Stream Fails to Update
 
 ## Known Issues
