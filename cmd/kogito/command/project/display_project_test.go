@@ -32,8 +32,8 @@ func TestDisplayProjectCmd_WhenTheresNoConfigAndNoNamespace(t *testing.T) {
 	teardown := test.OverrideKubeConfig()
 	defer teardown()
 
-	test.SetupCliTest(strings.Join([]string{"project"}, " "), context.CommandFactory{BuildCommands: BuildCommands})
-	o, _, err := test.ExecuteCli()
+	ctx := test.SetupCliTest(strings.Join([]string{"project"}, " "), context.CommandFactory{BuildCommands: BuildCommands})
+	o, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, o, "No project configured")
 }
@@ -44,8 +44,8 @@ func TestDisplayProjectCmd_WhenThereIsTheNamespace(t *testing.T) {
 	defer teardown()
 
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
-	test.SetupCliTest(strings.Join([]string{"project", ns}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
-	o, _, err := test.ExecuteCli()
+	ctx := test.SetupCliTest(strings.Join([]string{"project", ns}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
+	o, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, o)
 	assert.Contains(t, o, "default")
@@ -57,8 +57,8 @@ func TestDisplayProjectCmd_WithJsonOutputFormat(t *testing.T) {
 	defer teardown()
 
 	nsObj := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
-	test.SetupCliTest(strings.Join([]string{"project", "-o", "json"}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
-	o, _, err := test.ExecuteCli()
+	ctx := test.SetupCliTest(strings.Join([]string{"project", "-o", "json"}, " "), context.CommandFactory{BuildCommands: BuildCommands}, nsObj)
+	o, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, o)
 	assert.Contains(t, o, "\"level\":\"INFO\"")

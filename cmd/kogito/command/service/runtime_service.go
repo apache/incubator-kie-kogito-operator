@@ -54,9 +54,6 @@ func NewRuntimeService() RuntimeService {
 func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.RuntimeFlags) (err error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Installing Kogito Runtime : %s", flags.Name)
-	if err := i.resourceCheckService.CheckKogitoRuntimeNotExists(cli, flags.Name, flags.Project); err != nil {
-		return err
-	}
 	configMap, err := converter.CreateConfigMapFromFile(cli, flags.Name, flags.Project, &flags.ConfigFlags)
 	if err != nil {
 		return err

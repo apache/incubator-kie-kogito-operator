@@ -130,15 +130,9 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 }
 
 func (i buildService) validatePreRequisite(flags *flag.BuildFlags, log *zap.SugaredLogger) error {
-
 	if !i.client.IsOpenshift() {
 		log.Info("Kogito Build is only supported on Openshift.")
 		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8s")
-	}
-
-	// TODO: refactor all of this "services" to carry a context of shared objects
-	if err := i.resourceCheckService.CheckKogitoBuildNotExists(i.client, flags.Name, flags.Project); err != nil {
-		return err
 	}
 
 	if flags.Native {

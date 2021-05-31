@@ -32,17 +32,30 @@ var (
 	rootCommand *cobra.Command
 )
 
+// CLITestContext holds the text context for the CLI Unit Tests.
+// Use SetupCliTest or SetupCliTestWithKubeClient to get a reference for your test cases
+type CLITestContext interface {
+	ExecuteCli() (string, string, error)
+	ExecuteCliCmd(cmd string) (string, string, error)
+	GetClient() *client.Client
+}
+
+type cliTestContext struct {
+	*context.CommandContext
+	client *client.Client
+}
+
 // SetupCliTest creates the CLI default test environment. The mocked Kubernetes client does not support OpenShift.
-func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...runtime.Object) (ctx *context.CommandContext) {
+func SetupCliTest(cli string, factory context.CommandFactory, kubeObjects ...runtime.Object) CLITestContext {
 	return SetupCliTestWithKubeClient(cli, factory, test.NewFakeClientBuilder().AddK8sObjects(kubeObjects...).Build())
 }
 
 // SetupCliTestWithKubeClient Setup a CLI test environment with the given Kubernetes client
-func SetupCliTestWithKubeClient(cmd string, factory context.CommandFactory, kubeCli *client.Client) (ctx *context.CommandContext) {
+func SetupCliTestWithKubeClient(cmd string, factory context.CommandFactory, kubeCli *client.Client) CLITestContext {
 	testErr = new(bytes.Buffer)
 	testOut = new(bytes.Buffer)
 
-	ctx = &context.CommandContext{Client: kubeCli}
+	ctx := &context.CommandContext{Client: kubeCli}
 
 	kogitoRootCmd := context.NewRootCommand(ctx, testOut)
 	kogitoRootCmd.Command().SetArgs(strings.Split(cmd, " "))
@@ -53,23 +66,24 @@ func SetupCliTestWithKubeClient(cmd string, factory context.CommandFactory, kube
 
 	factory.BuildCommands(ctx, rootCommand)
 
-	return ctx
+	return &cliTestContext{CommandContext: ctx, client: kubeCli}
 }
 
 //ExecuteCli executes the CLI setup before executing the test
-func ExecuteCli() (string, string, error) {
-	if rootCommand == nil {
-		panic("RootCommand reference not found. Try calling SetupCliTest first ")
-	}
+func (c *cliTestContext) ExecuteCli() (string, string, error) {
 	err := rootCommand.Execute()
-
-	defer func() {
-		rootCommand = nil
-		testErr = nil
-		testOut = nil
-	}()
-
 	return testOut.String(), testErr.String(), err
+}
+
+//ExecuteCliCmd executes the given command in the actual context
+func (c *cliTestContext) ExecuteCliCmd(cmd string) (string, string, error) {
+	rootCommand.SetArgs(strings.Split(cmd, " "))
+	err := rootCommand.Execute()
+	return testOut.String(), testErr.String(), err
+}
+
+func (c *cliTestContext) GetClient() *client.Client {
+	return c.client
 }
 
 // OverrideKubeConfig overrides the default KUBECONFIG location to a temporary one

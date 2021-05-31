@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/core"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 )
@@ -31,6 +32,7 @@ type serviceInfoMessages struct {
 }
 
 type servicesInstallation struct {
+	manager   core.ResourceManager
 	namespace string
 	client    *kogitocli.Client
 	err       error
@@ -59,6 +61,7 @@ type ServicesInstallation interface {
 // ServicesInstallationBuilder creates the basic structure for services installation definition.
 func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) ServicesInstallation {
 	return &servicesInstallation{
+		manager:   core.NewResourceManager(client),
 		namespace: namespace,
 		client:    client,
 	}
@@ -162,7 +165,7 @@ func (s *servicesInstallation) GetError() error {
 func (s *servicesInstallation) installKogitoResource(resource kubernetes.ResourceObject, messages *serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
-		if err := kubernetes.ResourceC(s.client).Create(resource); err != nil {
+		if err := s.manager.CreateOrUpdate(resource); err != nil {
 			return fmt.Errorf(messages.errCreating, err)
 		}
 		log.Infof(messages.installed, s.namespace)

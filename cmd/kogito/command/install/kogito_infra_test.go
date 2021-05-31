@@ -36,7 +36,7 @@ func Test_InstallInfraServiceCmd_DefaultConfiguration(t *testing.T) {
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}},
 		&v1beta1.KogitoInfra{ObjectMeta: metav1.ObjectMeta{Name: "kogito-infra", Namespace: ns}})
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Infra Service successfully installed")
@@ -49,7 +49,7 @@ func Test_InstallInfraServiceCmd_DefaultConfiguration(t *testing.T) {
 		},
 	}
 
-	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoInfra)
+	exist, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, kogitoInfra)

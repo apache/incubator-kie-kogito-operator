@@ -37,7 +37,7 @@ func Test_InstallSupportingServiceCmd_DefaultConfiguration(t *testing.T) {
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
@@ -50,7 +50,7 @@ func Test_InstallSupportingServiceCmd_DefaultConfiguration(t *testing.T) {
 		},
 	}
 
-	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(dataIndex)
+	exist, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(dataIndex)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, dataIndex)
@@ -63,7 +63,7 @@ func Test_InstallSupportingServiceCmd_CustomConfiguration(t *testing.T) {
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Data Index Service successfully installed")
@@ -76,7 +76,7 @@ func Test_InstallSupportingServiceCmd_CustomConfiguration(t *testing.T) {
 		},
 	}
 
-	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(dataIndex)
+	exist, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(dataIndex)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.NotNil(t, dataIndex)

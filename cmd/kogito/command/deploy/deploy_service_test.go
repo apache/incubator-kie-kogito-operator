@@ -39,7 +39,7 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
 
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Image details are provided, skipping to install kogito build")
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
@@ -52,7 +52,7 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 		},
 	}
 
-	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoRuntime)
+	exist, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(kogitoRuntime)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, "quay.io/kiegroup/drools-quarkus-example:1.0", kogitoRuntime.Spec.Image)
@@ -69,7 +69,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Image details are provided, skipping to install kogito build")
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
@@ -82,7 +82,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 		},
 	}
 
-	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoRuntime)
+	exist, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(kogitoRuntime)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, "localhost:5000/kiegroup/process-business-rules-quarkus", kogitoRuntime.Spec.Image)
@@ -108,7 +108,7 @@ my.nice.property=socool
 	ctx := test.SetupCliTest(cli,
 		context.CommandFactory{BuildCommands: BuildCommands},
 		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}})
-	lines, _, err := test.ExecuteCli()
+	lines, _, err := ctx.ExecuteCli()
 	assert.NoError(t, err)
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
 
@@ -120,7 +120,7 @@ my.nice.property=socool
 		},
 	}
 
-	exist, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoRuntime)
+	exist, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(kogitoRuntime)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 	assert.Equal(t, api.QuarkusRuntimeType, kogitoRuntime.Spec.Runtime)
@@ -133,7 +133,7 @@ my.nice.property=socool
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: kogitoRuntime.Spec.PropertiesConfigMap},
 	}
-	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(cm)
+	exists, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(cm)
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Contains(t, cm.Data[kogitoservice.ConfigMapApplicationPropertyKey], "quarkus.log.level")
@@ -154,7 +154,7 @@ func Test_DeployCmd_SWFile(t *testing.T) {
 			AddBuildObjects(&v1.BuildConfig{ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus-builder", Namespace: ns}}).
 			Build())
 
-	lines, errLines, err := test.ExecuteCli()
+	lines, errLines, err := ctx.ExecuteCli()
 	assert.Error(t, err)
 	assert.Contains(t, lines, "Kogito Build Service successfully installed in the Project")
 	assert.Contains(t, lines, "File(s) found: testdata/greetings.sw.json")
@@ -165,7 +165,22 @@ func Test_DeployCmd_SWFile(t *testing.T) {
 	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus", Namespace: ns},
 	}
-	exists, err := kubernetes.ResourceC(ctx.Client).Fetch(kogitoBuild)
+	exists, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(kogitoBuild)
 	assert.NoError(t, err)
 	assert.True(t, exists)
+	assert.Equal(t, "1", kogitoBuild.ResourceVersion)
+	assert.Equal(t, "", kogitoBuild.Spec.MavenMirrorURL)
+
+	// let's build it again
+	lines, _, err = ctx.ExecuteCliCmd(cli + " --maven-mirror-url https://localhost/")
+	assert.Error(t, err)
+	assert.Contains(t, lines, "Kogito Build Service successfully installed in the Project")
+	assert.Contains(t, lines, "File(s) found: testdata/greetings.sw.json")
+	assert.Contains(t, lines, "Triggering the new build")
+
+	exists, err = kubernetes.ResourceC(ctx.GetClient()).Fetch(kogitoBuild)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, "2", kogitoBuild.ResourceVersion)
+	assert.Equal(t, "https://localhost/", kogitoBuild.Spec.MavenMirrorURL)
 }
