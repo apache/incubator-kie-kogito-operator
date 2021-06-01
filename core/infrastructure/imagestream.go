@@ -16,8 +16,10 @@ package infrastructure
 
 import (
 	"fmt"
+	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/client/openshift"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	imgv1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -48,6 +50,7 @@ type ImageStreamHandler interface {
 	MustFetchImageStream(key types.NamespacedName) (*imgv1.ImageStream, error)
 	CreateImageStreamIfNotExists(key types.NamespacedName, tag string, addFromReference bool, imageName string, insecureImageRegistry bool) (*imgv1.ImageStream, error)
 	ValidateTagStatus(key types.NamespacedName, tag string) error
+	RemoveSharedImageStreamOwnerShip(key types.NamespacedName, owner resource.KubernetesResource) error
 }
 
 type imageStreamHandler struct {
@@ -201,4 +204,22 @@ func (i *imageStreamHandler) findTagStatusCondition(is *imgv1.ImageStream, tag s
 		}
 	}
 	return nil
+}
+
+func (i *imageStreamHandler) RemoveSharedImageStreamOwnerShip(key types.NamespacedName, owner resource.KubernetesResource) (err error) {
+	i.Log.Info("Removing imageStream ownership", "imageStream", key.Name, "owner", owner.GetName())
+	is, err := i.MustFetchImageStream(key)
+	if err != nil {
+		return
+	}
+	ownerRefRemoved := framework.RemoveSharedOwnerReference(owner, is)
+	if ownerRefRemoved {
+		if err = kubernetes.ResourceC(i.Client).Update(is); err != nil {
+			return err
+		}
+		i.Log.Debug("Successfully imageStream ownership", "imageStream", is.GetName(), "owner", owner.GetName())
+		return
+	}
+	i.Log.Debug("Owner reference doesn't match. Skip to remove owner reference.", "imageStream", is.GetName(), "owner", owner.GetName())
+	return
 }

@@ -38,7 +38,7 @@ import (
 
 func Test_serviceDeployer_createRequiredResources_OnOCPImageStreamCreated(t *testing.T) {
 	jobsService := test.CreateFakeJobsService(t.Name())
-	is, tag := test.CreateImageStreams("kogito-jobs-service", jobsService.GetNamespace(), jobsService.GetName(), infrastructure.GetKogitoImageVersion(version.Version))
+	is, tag := test.CreateFakeImageStreams("kogito-jobs-service", jobsService.GetNamespace(), infrastructure.GetKogitoImageVersion(version.Version))
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(is).AddImageObjects(tag).Build()
 	deployer := newTestSupServiceDeployer(cli, jobsService, "kogito-jobs-service")
 	resources, err := deployer.createRequiredResources()
@@ -114,7 +114,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 	instance.GetSpec().AddInfra(kogitoKafka.GetName())
 	instance.GetSpec().AddInfra(kogitoInfinispan.GetName())
 	instance.GetSpec().AddInfra(kogitoKnative.GetName())
-	is, tag := test.CreateImageStreams("kogito-data-index-infinispan", instance.GetNamespace(), instance.GetName(), infrastructure.GetKogitoImageVersion(version.Version))
+	is, tag := test.CreateFakeImageStreams("kogito-data-index-infinispan", instance.GetNamespace(), infrastructure.GetKogitoImageVersion(version.Version))
 	cli := test.NewFakeClientBuilder().OnOpenShift().
 		AddK8sObjects(is, kogitoKafka, kogitoInfinispan, kogitoKnative).
 		AddImageObjects(tag).
@@ -145,7 +145,7 @@ func Test_serviceDeployer_createRequiredResources_CreateNewAppPropConfigMap(t *t
 
 func Test_serviceDeployer_createRequiredResources_CreateWithAppPropConfigMap(t *testing.T) {
 	instance := test.CreateFakeDataIndex(t.Name())
-	is, tag := test.CreateImageStreams("kogito-data-index-infinispan", instance.GetNamespace(), instance.GetName(), infrastructure.GetKogitoImageVersion(version.Version))
+	is, tag := test.CreateFakeImageStreams("kogito-data-index-infinispan", instance.GetNamespace(), infrastructure.GetKogitoImageVersion(version.Version))
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",

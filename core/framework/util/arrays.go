@@ -50,3 +50,14 @@ func ContainsAll(array1 []string, array2 []string) bool {
 
 	return true
 }
+
+// Remove remove string from the array
+func Remove(s string, array []string) (updatedArray []string) {
+	for i, item := range array {
+		if s == item {
+			updatedArray = append(array[:i], array[i+1:]...)
+			return
+		}
+	}
+	return
+}

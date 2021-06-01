@@ -175,10 +175,8 @@ func (s *serviceDeployer) onObjectsCreate(resources map[reflect.Type][]resource.
 // setOwner sets this service instance as the owner of each resource.
 func (s *serviceDeployer) setOwner(resources map[reflect.Type][]resource.KubernetesResource) error {
 	for _, resourceArr := range resources {
-		for _, res := range resourceArr {
-			if err := framework.SetOwner(s.instance, s.Scheme, res); err != nil {
-				return err
-			}
+		if err := framework.AddOwnerReference(s.instance, s.Scheme, resourceArr...); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -221,7 +219,7 @@ func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]r
 	if err != nil {
 		return
 	}
-	if err = s.addSharedImageStreamToResources(resources, s.definition.DefaultImageName, s.getNamespace()); err != nil {
+	if err = s.addSharedImageStreamToResources(resources); err != nil {
 		return
 	}
 
@@ -309,18 +307,20 @@ func (s *serviceDeployer) mountKogitoInfraVolumes(kogitoInfraVolumes []api.Kogit
 
 // AddSharedImageStreamToResources adds the shared ImageStream in the given resource map.
 // Normally used during reconciliation phase to bring a not yet owned ImageStream to the deployed list.
-func (s *serviceDeployer) addSharedImageStreamToResources(resources map[reflect.Type][]resource.KubernetesResource, name, ns string) error {
+func (s *serviceDeployer) addSharedImageStreamToResources(resources map[reflect.Type][]resource.KubernetesResource) error {
 	if s.Client.IsOpenshift() {
+		image := s.resolveImage()
 		// is the image already there?
 		for _, is := range resources[reflect.TypeOf(imgv1.ImageStream{})] {
-			if is.GetName() == name &&
-				is.GetNamespace() == ns {
+			if is.GetName() == image.Name &&
+				is.GetNamespace() == s.instance.GetNamespace() {
 				return nil
 			}
 		}
+
 		// fetch the shared image
 		imageStreamHandler := infrastructure.NewImageStreamHandler(s.Context)
-		sharedImageStream, err := imageStreamHandler.FetchImageStream(types.NamespacedName{Name: name, Namespace: ns})
+		sharedImageStream, err := imageStreamHandler.FetchImageStream(types.NamespacedName{Name: image.Name, Namespace: s.instance.GetNamespace()})
 		if err != nil {
 			return err
 		}
@@ -333,6 +333,11 @@ func (s *serviceDeployer) addSharedImageStreamToResources(resources map[reflect.
 
 func (s *serviceDeployer) newImageHandler() infrastructure.ImageHandler {
 	addDockerImageReference := len(s.instance.GetSpec().GetImage()) != 0 || !s.definition.CustomService
+	image := s.resolveImage()
+	return infrastructure.NewImageHandler(s.Context, image, s.definition.DefaultImageName, image.Name, s.instance.GetNamespace(), addDockerImageReference, s.instance.GetSpec().IsInsecureImageRegistry())
+}
+
+func (s *serviceDeployer) resolveImage() *api.Image {
 	var image api.Image
 	if len(s.instance.GetSpec().GetImage()) == 0 {
 		image = api.Image{
@@ -342,6 +347,5 @@ func (s *serviceDeployer) newImageHandler() infrastructure.ImageHandler {
 	} else {
 		image = framework.ConvertImageTagToImage(s.instance.GetSpec().GetImage())
 	}
-
-	return infrastructure.NewImageHandler(s.Context, &image, s.definition.DefaultImageName, image.Name, s.instance.GetNamespace(), addDockerImageReference, s.instance.GetSpec().IsInsecureImageRegistry())
+	return &image
 }
