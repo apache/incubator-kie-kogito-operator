@@ -22,6 +22,7 @@ Feature: Deploy Kogito Build - after assets processed by VS code
     Then Kogito Runtime "<project>" has 1 pods running within 5 minutes
     And Service "<project>" with decision name "call centre drd" is available within 2 minutes
     
+    @wip
     @rhpam
     @smoke
     @quarkus
