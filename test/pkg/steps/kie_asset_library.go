@@ -131,7 +131,6 @@ func (data *Data) projectInKieAssetLibraryIsBuiltByMaven(project string) error {
 
 func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 	installOutput, installErr := framework.CreateCommand("npm", "install").
-		WithRetry(framework.NumberOfRetries(1)).
 		InDirectory(data.Location[KieAssetReMarshaller]).
 		Execute()
 	framework.GetLogger(data.Namespace).Debug(installOutput)
@@ -144,7 +143,6 @@ func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 
 	kieProjectParameter := "KIE_PROJECT=" + data.Location[KieAssetLibrary] + "/kie-assets-library-generate/target/" + project
 	runOutput, runErr := framework.CreateCommand("npm", "run", "test:it", kieProjectParameter).
-		WithRetry(framework.NumberOfRetries(1)).
 		InDirectory(data.Location[KieAssetReMarshaller]).
 		Execute()
 	framework.GetLogger(data.Namespace).Debug(runOutput)
