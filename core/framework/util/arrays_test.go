@@ -101,7 +101,7 @@ func TestContainsAll(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	arr := []string{"1", "2", "3", "4", "5"}
-	updatedArr := Remove("1", arr)
-	assert.Equal(t, 4, len(updatedArr))
-	assert.Equal(t, []string{"2", "3", "4", "5"}, updatedArr)
+	removed := Remove("1", &arr)
+	assert.True(t, removed)
+	assert.Equal(t, []string{"2", "3", "4", "5"}, arr)
 }

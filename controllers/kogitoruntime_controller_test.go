@@ -27,6 +27,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
 
@@ -103,7 +105,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
@@ -190,9 +192,11 @@ func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, imageStream).OnOpenShift().Build()
-	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	r := &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	_, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
+	assert.Error(t, err)
 
-	_, err := kubernetes.ResourceC(cli).Fetch(instance)
+	_, err = kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, *instance.Status.Conditions, 3)

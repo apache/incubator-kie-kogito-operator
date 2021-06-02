@@ -83,6 +83,7 @@ func (f *FinalizeKogitoRuntime) Reconcile(request reconcile.Request) (result rec
 	}
 	if instance == nil {
 		log.Debug("KogitoRuntime instance not found. Going to return reconciliation request")
+		result.Requeue = false
 		return
 	}
 
@@ -94,10 +95,12 @@ func (f *FinalizeKogitoRuntime) Reconcile(request reconcile.Request) (result rec
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR
 		if err = infraFinalizer.AddFinalizer(instance); err != nil {
+			result.Requeue = true
 			return
 		}
 		if f.Client.IsOpenshift() {
 			if err = imageStreamFinalizer.AddFinalizer(instance); err != nil {
+				result.Requeue = true
 				return
 			}
 		}
@@ -107,12 +110,15 @@ func (f *FinalizeKogitoRuntime) Reconcile(request reconcile.Request) (result rec
 	// The object is being deleted
 	log.Info("KogitoRuntime has been deleted")
 	if err = infraFinalizer.HandleFinalization(instance); err != nil {
+		result.Requeue = true
 		return
 	}
 	if f.Client.IsOpenshift() {
 		if err = imageStreamFinalizer.HandleFinalization(instance); err != nil {
+			result.Requeue = true
 			return
 		}
 	}
+	result.Requeue = false
 	return
 }

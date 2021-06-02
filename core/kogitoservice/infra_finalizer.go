@@ -75,11 +75,14 @@ func (f *infraFinalizerHandler) HandleFinalization(instance api.KogitoService) e
 
 	// Update finalizer to allow delete CR
 	f.Log.Debug("Removing infra finalizer from KogitoService")
-	updatedFinalizers := util.Remove(infraFinalizer, instance.GetFinalizers())
-	instance.SetFinalizers(updatedFinalizers)
-	if err := kubernetes.ResourceC(f.Client).Update(instance); err != nil {
-		f.Log.Error(err, "Error occurs while removing infra finalizer from KogitoService")
-		return err
+	finalizers := instance.GetFinalizers()
+	removed := util.Remove(infraFinalizer, &finalizers)
+	instance.SetFinalizers(finalizers)
+	if removed {
+		if err := kubernetes.ResourceC(f.Client).Update(instance); err != nil {
+			f.Log.Error(err, "Error occurs while removing infra finalizer from KogitoService")
+			return err
+		}
 	}
 	f.Log.Debug("Successfully removed infra finalizer from KogitoService")
 	return nil

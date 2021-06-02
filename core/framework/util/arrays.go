@@ -52,12 +52,18 @@ func ContainsAll(array1 []string, array2 []string) bool {
 }
 
 // Remove remove string from the array
-func Remove(s string, array []string) (updatedArray []string) {
-	for i, item := range array {
+func Remove(s string, array *[]string) bool {
+	if array == nil {
+		return false
+	}
+
+	items := *array
+	for i, item := range items {
 		if s == item {
-			updatedArray = append(array[:i], array[i+1:]...)
-			return
+			updatedArray := append(items[:i], items[i+1:]...)
+			*array = updatedArray
+			return true
 		}
 	}
-	return
+	return false
 }

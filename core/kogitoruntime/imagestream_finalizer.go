@@ -73,11 +73,14 @@ func (f *imageStreamFinalizerHandler) HandleFinalization(instance api.KogitoServ
 
 	// Update finalizer to allow delete CR
 	f.Log.Debug("Removing imageStream finalizer from KogitoRuntime")
-	updatedFinalizers := util.Remove(imageStreamFinalizer, instance.GetFinalizers())
-	instance.SetFinalizers(updatedFinalizers)
-	if err := kubernetes.ResourceC(f.Client).Update(instance); err != nil {
-		f.Log.Error(err, "Error occurs while removing imageStream finalizer from KogitoRuntime")
-		return err
+	finalizers := instance.GetFinalizers()
+	removed := util.Remove(imageStreamFinalizer, &finalizers)
+	instance.SetFinalizers(finalizers)
+	if removed {
+		if err := kubernetes.ResourceC(f.Client).Update(instance); err != nil {
+			f.Log.Error(err, "Error occurs while removing imageStream finalizer from KogitoRuntime")
+			return err
+		}
 	}
 	f.Log.Debug("Successfully removed imageStream finalizer from KogitoRuntime")
 	return nil
