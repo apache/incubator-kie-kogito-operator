@@ -37,7 +37,7 @@ func CreateNamespace(namespace string) error {
 	if err != nil {
 		return fmt.Errorf("Cannot create namespace %s: %v", namespace, err)
 	}
-	onNamespacePostCreated(namespace)
+	OnNamespacePostCreated(namespace)
 	return nil
 }
 
@@ -51,7 +51,7 @@ func CreateNamespaceIfNotExists(namespace string) (exists bool, err error) {
 		}
 		return false, fmt.Errorf("Cannot create namespace %s: %v", namespace, err)
 	}
-	onNamespacePostCreated(namespace)
+	OnNamespacePostCreated(namespace)
 	return false, nil
 }
 
@@ -63,7 +63,7 @@ func DeleteNamespace(namespace string) error {
 	if err != nil {
 		return fmt.Errorf("Cannot delete namespace %s: %v", namespace, err)
 	}
-	onNamespacePostDeleted(namespace)
+	OnNamespacePostDeleted(namespace)
 	return nil
 }
 
