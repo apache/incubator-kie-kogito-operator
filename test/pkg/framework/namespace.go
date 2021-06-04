@@ -103,13 +103,15 @@ func ClearNamespaceHistory() {
 	os.Remove(namespaceLogFile)
 }
 
-func onNamespacePostCreated(namespace string) {
+// OnNamespacePostCreated hook when a namespace has been created
+func OnNamespacePostCreated(namespace string) {
 	if err := addNamespaceToHistory(namespace); err != nil {
 		GetLogger(namespace).Warn("Error updating namespace history", "error", err)
 	}
 }
 
-func onNamespacePostDeleted(namespace string) {
+// OnNamespacePostDeleted hook when a namespace has been deleted
+func OnNamespacePostDeleted(namespace string) {
 	if err := removeNamespaceFromHistory(namespace); err != nil {
 		GetLogger(namespace).Warn("Error removing namespace of history", "error", err)
 	}
