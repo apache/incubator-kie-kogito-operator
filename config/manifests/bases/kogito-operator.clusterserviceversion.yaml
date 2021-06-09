@@ -48,7 +48,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
-    containerImage: quay.io/kiegroup/kogito-operator:1.7.0
+    containerImage: quay.io/kiegroup/kogito-operator:1.7.1-snapshot
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito services.
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
@@ -58,7 +58,7 @@ metadata:
     tectonic-visibility: ocs
   labels:
     operator-kogitocloud: "true"
-  name: kogito-operator.v1.7.0
+  name: kogito-operator.v1.7.1-snapshot
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -254,7 +254,7 @@ spec:
               containers:
               - args:
                 - --secure-listen-address=0.0.0.0:8443
-                - --upstream=http://127.0.0.1:8080/
+                - --upstream=http://1.7.1-snapshot.0.1:8080/
                 - --logtostderr=true
                 - --v=10
                 image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
@@ -264,7 +264,7 @@ spec:
                   name: https
                 resources: {}
               - args:
-                - --metrics-addr=127.0.0.1:8080
+                - --metrics-addr=1.7.1-snapshot.0.1:8080
                 - --enable-leader-election
                 command:
                 - /manager
@@ -273,7 +273,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/kiegroup/kogito-operator:1.7.0
+                image: quay.io/kiegroup/kogito-operator:1.7.1-snapshot
                 name: manager
                 resources: {}
               terminationGracePeriodSeconds: 10
@@ -327,7 +327,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: kogito-operator
-    operated-by: kogito-operator.1.7.0
+    operated-by: kogito-operator.1.7.1-snapshot
   links:
   - name: Product Page
     url: https://kogito.kie.org/
@@ -342,4 +342,4 @@ spec:
   provider:
     name: Red Hat
   replaces: kogito-operator.v1.6.0
-  version: 1.7.0
+  version: 1.7.1-snapshot
