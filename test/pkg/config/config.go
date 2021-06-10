@@ -478,7 +478,7 @@ func GetExamplesRepositoryRef() string {
 	return env.examplesRepositoryRef
 }
 
-// GetExamplesRepositoryRef return the branch for the examples repository
+// IsExamplesRepositoryIgnoreSSL return whether SSL should be ignored on Git checkout
 func IsExamplesRepositoryIgnoreSSL() bool {
 	return env.examplesRepositoryIgnoreSSL
 }
