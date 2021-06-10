@@ -1,7 +1,7 @@
 # Infinispan operator should be pre-installed in namespace
 # And have installed an Infinispan server named "kogito-infinispan" in the same namespace of the Kogito resources
-# Follow these instructions to setup the Infinispan server:
-# https://infinispan.org/infinispan-operator/master/operator.html#creating_minimal_clusters-start
+# Instructions to do both can be found here:
+# https://github.com/Kevin-Mok/kogito-operator/blob/KOGITO-5215/docs/SETTING_UP_INFRA.md#infinispan
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoInfra
 metadata:
