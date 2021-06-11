@@ -1,4 +1,3 @@
-@rhpam
 Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
 
   Background:
@@ -25,12 +24,14 @@ Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
       """
 
     # Running just SpringBoot for smoke tests as quarkus is executed for directory deployment below
+    @rhpam
     @smoke
     @springboot
     Examples:
       | runtime    |
       | springboot |
 
+    @rhpam
     @quarkus
     Examples:
       | runtime    |
@@ -50,17 +51,28 @@ Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
       }
       """
 
+  @rhpam
   @smoke
   Scenario: Deploy source files in folder with CLI
     Given Clone Kogito examples into local directory
     
-    When Deploy quarkus folder from example service "process-timer-quarkus"
-    And Build "process-timer-quarkus-builder" is complete after 10 minutes
-    And Build "process-timer-quarkus" is complete after 5 minutes
+    When Deploy quarkus folder from example service "dmn-tracing-quarkus"
+    And Build "dmn-tracing-quarkus-builder" is complete after 10 minutes
+    And Build "dmn-tracing-quarkus" is complete after 5 minutes
 
-    Then HTTP POST request on service "process-timer-quarkus" is successful within 2 minutes with path "timers" and body:
+    Then HTTP POST request on service "dmn-tracing-quarkus" is successful within 2 minutes with path "LoanEligibility" and body:
       """json
       {
-          "delay" : "PT30S"
+        "Bribe": 0,
+        "Client": {
+          "age": 0,
+          "existing payments": 0,
+          "salary": 0
+        },
+        "Loan": {
+          "duration": 0,
+          "installment": 0
+        },
+        "SupremeDirector": "yes"
       }
       """
