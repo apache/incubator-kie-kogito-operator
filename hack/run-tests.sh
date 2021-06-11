@@ -17,7 +17,7 @@
 SCRIPT_NAME=`basename $0`
 SCRIPT_DIR=`dirname $0`
 
-MASTER_RAW_URL=https://raw.githubusercontent.com/kiegroup/kogito-operator/master/deploy
+MASTER_RAW_URL=https://raw.githubusercontent.com/kiegroup/kogito-operator/main/deploy
 
 function usage(){
   printf "Run BDD tests."

@@ -4,7 +4,7 @@ helper = null
 
 pipeline {
     agent {
-        label 'kogito-operator-slave && !master'
+        label 'kogito-operator-replica && !main'
     }
 
     options {

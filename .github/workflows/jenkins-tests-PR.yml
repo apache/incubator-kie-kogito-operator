@@ -23,5 +23,5 @@ jobs:
         java-version: 11
       
     - name: Test DSL
-    # TODO to change back to kiegroup/master
+    # TODO to change back to kiegroup/main
       run: cd .jenkins/dsl && ./test.sh
