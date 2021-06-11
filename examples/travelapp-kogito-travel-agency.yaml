@@ -35,7 +35,7 @@ spec:
   gitSource:
     uri: "https://github.com/kiegroup/kogito-examples/"
     contextDir: extended/kogito-travel-agency/travels
-    reference: master
+    reference: main
   # set your maven nexus repository
   #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
 ---

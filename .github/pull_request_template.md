@@ -2,7 +2,7 @@ Many thanks for submitting your Pull Request :heart:!
 
 Please make sure your PR meets the following requirements:
 
-- [ ] You have read the [contributors' guide](https://github.com/kiegroup/kogito-operator/blob/master/README.md#contributing-to-the-kogito-operator)
+- [ ] You have read the [contributors' guide](https://github.com/kiegroup/kogito-operator/blob/main/README.md#contributing-to-the-kogito-operator)
 - [ ] Pull Request title is properly formatted: `[KOGITO-XYZ] Subject`
 - [ ] Pull Request contains a link to the JIRA issue
 - [ ] Pull Request contains a description of the issue

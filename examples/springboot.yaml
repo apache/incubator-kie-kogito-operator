@@ -8,7 +8,7 @@ spec:
   gitSource:
     uri: https://github.com/kiegroup/kogito-examples
     contextDir: process-springboot-example
-    reference: master
+    reference: main
   disableIncremental: false
   env:
     - name: CI
