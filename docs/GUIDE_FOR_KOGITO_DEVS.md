@@ -246,8 +246,8 @@ deployment and the only available method if you are using minikube.
 ### Building/Pushing Image
 The first step to deploying this way is building the image 
 with Docker. The instructions to do this can be found in the 
-`examples/` folder of the operator in the [quarkus-jvm.Dockerfile](https://github.com/kiegroup/kogito-operator/blob/master/examples/quarkus-jvm.Dockerfile) 
-and [springboot.Dockerfile](https://github.com/kiegroup/kogito-operator/blob/master/examples/springboot.Dockerfile) 
+`examples/` folder of the operator in the [quarkus-jvm.Dockerfile](https://github.com/kiegroup/kogito-operator/blob/main/examples/quarkus-jvm.Dockerfile) 
+and [springboot.Dockerfile](https://github.com/kiegroup/kogito-operator/blob/main/examples/springboot.Dockerfile) 
 depending on the runtime of the application you're trying to 
 build. You will need to setup a [Quay](https://quay.io) 
 account (or any other image registry) and login to it on Docker using `docker login 
@@ -271,7 +271,7 @@ In the simplest case, no `KogitoInfra` or `KogitoSupportingService`
 are required. For example, [process-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/stable/process-quarkus-example) 
 without persistence/events enabled. The YAML for this case 
 can be found in 
-[`examples/process-quarkus-example-runtime.yaml`](https://github.com/kiegroup/kogito-operator/blob/master/examples/process-quarkus-example-runtime.yaml) 
+[`examples/process-quarkus-example-runtime.yaml`](https://github.com/kiegroup/kogito-operator/blob/main/examples/process-quarkus-example-runtime.yaml) 
 in the operator:
 ```yaml
 apiVersion: app.kiegroup.org/v1beta1
@@ -288,7 +288,7 @@ An example of deploying with a `KogitoInfra` would deploying
 the [process-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/stable/process-quarkus-example) 
 with persistence enabled. The YAML for this case 
 can be found in 
-[`examples/process-quarkus-example-persistence-nobuild.yaml`](https://github.com/kiegroup/kogito-operator/blob/master/examples/process-quarkus-example-persistence-nobuild.yaml) 
+[`examples/process-quarkus-example-persistence-nobuild.yaml`](https://github.com/kiegroup/kogito-operator/blob/main/examples/process-quarkus-example-persistence-nobuild.yaml) 
 in the operator:
 ```yaml
 # Infinispan operator should be pre-installed in namespace
@@ -466,7 +466,7 @@ about tasks on the [Kogito Zulip community chat](https://kie.zulipchat.com/#narr
 Once you have completed a Jira ticket and are ready to 
 submit it, make sure to run `make before-pr` to ensure your 
 code is ready to submit. You should also add an entry to the 
-[release notes](https://github.com/kiegroup/kogito-operator/blob/master/RELEASE_NOTES.md) 
+[release notes](https://github.com/kiegroup/kogito-operator/blob/main/RELEASE_NOTES.md) 
 with your Jira description. Be sure to consult the [README](https://github.com/kiegroup/kogito-operator#kogito-operator-collaboration-and-pull-requests) 
-and [PR checklist](https://github.com/kiegroup/kogito-operator/blob/master/.github/pull_request_template.md) 
+and [PR checklist](https://github.com/kiegroup/kogito-operator/blob/main/.github/pull_request_template.md) 
 for other PR requirements.
