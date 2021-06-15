@@ -191,9 +191,11 @@ func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 			},
 		},
 	}
+	err := framework.AddOwnerReference(instance, meta.GetRegisteredSchema(), imageStream)
+	assert.NoError(t, err)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, imageStream).OnOpenShift().Build()
 	r := &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
-	_, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
+	_, err = r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
 	assert.Error(t, err)
 
 	_, err = kubernetes.ResourceC(cli).Fetch(instance)
