@@ -130,6 +130,19 @@ func (data *Data) projectInKieAssetLibraryIsBuiltByMaven(project string) error {
 }
 
 func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
+	npmRegistry := os.Getenv("NPM_REGISTRY_URL")
+
+	setRegistryOutput, setRegistryErr := framework.CreateCommand("npm", "config", "set", "registry", npmRegistry).
+		InDirectory(data.Location[KieAssetReMarshaller]).
+		Execute()
+	framework.GetLogger(data.Namespace).Debug(setRegistryOutput)
+
+	if setRegistryErr != nil {
+		framework.GetLogger(data.Namespace).Warn(setRegistryOutput)
+		framework.GetLogger(data.Namespace).Warn(project + " 'npm config set registry " + npmRegistry + "' failed due to: " + setRegistryErr.Error())
+		return setRegistryErr
+	}
+
 	installOutput, installErr := framework.CreateCommand("npm", "install").
 		InDirectory(data.Location[KieAssetReMarshaller]).
 		Execute()
@@ -137,7 +150,7 @@ func (data *Data) projectAssetsAreRemarshalledByVsCode(project string) error {
 
 	if installErr != nil {
 		framework.GetLogger(data.Namespace).Warn(installOutput)
-		framework.GetLogger(data.Namespace).Warn(project + " 'mvn clean install' failed due to: " + installErr.Error())
+		framework.GetLogger(data.Namespace).Warn(project + " 'npm install' failed due to: " + installErr.Error())
 		return installErr
 	}
 
