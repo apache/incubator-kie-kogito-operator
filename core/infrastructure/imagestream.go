@@ -229,7 +229,7 @@ func (i *imageStreamHandler) RemoveSharedImageStreamOwnerShip(key types.Namespac
 		if err = kubernetes.ResourceC(i.Client).Update(is); err != nil {
 			return err
 		}
-		i.Log.Debug("Successfully imageStream ownership", "imageStream", is.GetName(), "owner", owner.GetName())
+		i.Log.Debug("Successfully removed imageStream ownership", "imageStream", is.GetName(), "owner", owner.GetName())
 		return
 	}
 	i.Log.Debug("Owner reference doesn't match. Skip to remove owner reference.", "imageStream", is.GetName(), "owner", owner.GetName())
