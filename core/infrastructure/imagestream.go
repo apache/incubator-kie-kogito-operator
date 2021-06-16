@@ -24,7 +24,9 @@ import (
 	imgv1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 )
 
 const (
@@ -50,6 +52,7 @@ type ImageStreamHandler interface {
 	CreateImageStreamIfNotExists(key types.NamespacedName, tag string, addFromReference bool, imageName string, insecureImageRegistry bool) (*imgv1.ImageStream, error)
 	ResolveImage(key types.NamespacedName, tag string) (string, error)
 	RemoveSharedImageStreamOwnerShip(key types.NamespacedName, owner resource.KubernetesResource) error
+	FetchImageStreamForOwner(owner resource.KubernetesResource) ([]resource.KubernetesResource, error)
 }
 
 type imageStreamHandler struct {
@@ -76,6 +79,16 @@ func (i *imageStreamHandler) FetchImageStream(key types.NamespacedName) (*imgv1.
 		i.Log.Debug("Successfully fetch deployed image stream")
 		return imageStream, nil
 	}
+}
+
+func (i *imageStreamHandler) FetchImageStreamForOwner(owner resource.KubernetesResource) ([]resource.KubernetesResource, error) {
+	i.Log.Debug("fetching image stream for given owner.")
+	objectTypes := []runtime.Object{&imgv1.ImageStreamList{}}
+	resources, err := kubernetes.ResourceC(i.Client).ListAll(objectTypes, owner.GetNamespace(), owner)
+	if err != nil {
+		return nil, err
+	}
+	return resources[reflect.TypeOf(imgv1.ImageStream{})], nil
 }
 
 // MustFetchImageStream gets the deployed ImageStream shared among Kogito Custom Resources. If not found then return error.
@@ -220,8 +233,8 @@ func (i *imageStreamHandler) fetchTag(key types.NamespacedName, tag string) (*im
 
 func (i *imageStreamHandler) RemoveSharedImageStreamOwnerShip(key types.NamespacedName, owner resource.KubernetesResource) (err error) {
 	i.Log.Info("Removing imageStream ownership", "imageStream", key.Name, "owner", owner.GetName())
-	is, err := i.MustFetchImageStream(key)
-	if err != nil {
+	is, err := i.FetchImageStream(key)
+	if err != nil || is == nil {
 		return
 	}
 	ownerRefRemoved := framework.RemoveSharedOwnerReference(owner, is)

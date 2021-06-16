@@ -114,7 +114,7 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		result.RequeueAfter = requeueAfter
 		result.Requeue = true
 	}
-	log.Info("Finish reconciliation", "requeue", result.Requeue, "requeueAfter", result.RequeueAfter)
+	log.Debug("Finish reconciliation", "requeue", result.Requeue, "requeueAfter", result.RequeueAfter)
 	return
 }
 

@@ -250,7 +250,7 @@ func (s *serviceDeployer) checkInfraDependencies() error {
 }
 
 func (s *serviceDeployer) configureMessaging() error {
-	s.Log.Info("Going to configuring messaging")
+	s.Log.Debug("Going to configuring messaging")
 	kafkaMessagingDeployer := NewKafkaMessagingDeployer(s.Context, s.definition, s.infraHandler)
 	if err := kafkaMessagingDeployer.CreateRequiredResources(s.instance); err != nil {
 		return errorForMessaging(err)
@@ -264,7 +264,7 @@ func (s *serviceDeployer) configureMessaging() error {
 }
 
 func (s *serviceDeployer) configureMonitoring() error {
-	s.Log.Info("Going to configuring monitoring")
+	s.Log.Debug("Going to configuring monitoring")
 	prometheusManager := NewPrometheusManager(s.Context)
 	if err := prometheusManager.ConfigurePrometheus(s.instance); err != nil {
 		s.Log.Error(err, "Could not deploy prometheus monitoring")

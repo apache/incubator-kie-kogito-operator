@@ -90,8 +90,17 @@ func (i *imageStreamReconciler) createRequiredResources() (map[reflect.Type][]re
 
 func (i *imageStreamReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	// fetch the shared image
 	imageStreamHandler := NewImageStreamHandler(i.Context)
+	// fetch owned image stream
+	ownedImageStream, err := imageStreamHandler.FetchImageStreamForOwner(i.owner)
+	if err != nil {
+		return nil, err
+	}
+	if ownedImageStream != nil {
+		resources[reflect.TypeOf(imgv1.ImageStream{})] = append(resources[reflect.TypeOf(imgv1.ImageStream{})], ownedImageStream...)
+	}
+
+	// fetch the shared image
 	sharedImageStream, err := imageStreamHandler.FetchImageStream(i.key)
 	if err != nil {
 		return nil, err
