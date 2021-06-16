@@ -17,6 +17,7 @@ package controllers
 import (
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	kogitoruntime "github.com/kiegroup/kogito-operator/core/kogitoruntime"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -82,20 +83,42 @@ func (f *FinalizeKogitoRuntime) Reconcile(request reconcile.Request) (result rec
 	}
 	if instance == nil {
 		log.Debug("KogitoRuntime instance not found. Going to return reconciliation request")
+		result.Requeue = false
 		return
 	}
 
 	infraHandler := internal.NewKogitoInfraHandler(context)
-	finalizerHandler := kogitoservice.NewFinalizerHandler(context, infraHandler)
+	infraFinalizer := kogitoservice.NewFinalizerHandler(context, infraHandler)
+	imageStreamFinalizer := kogitoruntime.NewImageStreamFinalizerHandler(context)
+
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR
-		err = finalizerHandler.AddFinalizer(instance)
+		if err = infraFinalizer.AddFinalizer(instance); err != nil {
+			result.Requeue = true
+			return
+		}
+		if f.Client.IsOpenshift() {
+			if err = imageStreamFinalizer.AddFinalizer(instance); err != nil {
+				result.Requeue = true
+				return
+			}
+		}
 		return
 	}
 
 	// The object is being deleted
 	log.Info("KogitoRuntime has been deleted")
-	err = finalizerHandler.HandleFinalization(instance)
+	if err = infraFinalizer.HandleFinalization(instance); err != nil {
+		result.Requeue = true
+		return
+	}
+	if f.Client.IsOpenshift() {
+		if err = imageStreamFinalizer.HandleFinalization(instance); err != nil {
+			result.Requeue = true
+			return
+		}
+	}
+	result.Requeue = false
 	return
 }

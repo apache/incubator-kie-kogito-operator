@@ -27,6 +27,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
 )
 
@@ -103,7 +105,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
 
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
 
 	_, err := kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
@@ -112,7 +114,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 
 	// image stream
 	is := imagev1.ImageStream{
-		ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace},
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example-default", Namespace: instance.Namespace},
 	}
 	exists, err := kubernetes.ResourceC(cli).Fetch(&is)
 	assert.True(t, exists)
@@ -161,7 +163,7 @@ func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 		},
 	}
 	imageStream := &imagev1.ImageStream{
-		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example-default-invalid", Namespace: t.Name()},
 		Spec: imagev1.ImageStreamSpec{
 			Tags: []imagev1.TagReference{
 				{
@@ -189,10 +191,14 @@ func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 			},
 		},
 	}
+	err := framework.AddOwnerReference(instance, meta.GetRegisteredSchema(), imageStream)
+	assert.NoError(t, err)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, imageStream).OnOpenShift().Build()
-	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	r := &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	_, err = r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
+	assert.Error(t, err)
 
-	_, err := kubernetes.ResourceC(cli).Fetch(instance)
+	_, err = kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, *instance.Status.Conditions, 3)

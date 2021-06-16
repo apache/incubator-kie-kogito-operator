@@ -35,7 +35,7 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
 
 	r := &KogitoSupportingServiceReconciler{
 		Client: cli,

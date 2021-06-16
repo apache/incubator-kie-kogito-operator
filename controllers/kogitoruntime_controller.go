@@ -110,10 +110,11 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		return
 	}
 	if requeueAfter > 0 {
-		log.Info("Waiting for all resources to be created, scheduling for 30 seconds from now")
+		log.Info("Waiting for all resources to be created, re-scheduling.", "requeueAfter", requeueAfter)
 		result.RequeueAfter = requeueAfter
 		result.Requeue = true
 	}
+	log.Debug("Finish reconciliation", "requeue", result.Requeue, "requeueAfter", result.RequeueAfter)
 	return
 }
 
