@@ -16,7 +16,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/imdario/mergo v0.3.10
 	github.com/infinispan/infinispan-operator v0.0.0-20210106103300-03aa6d76d1b2
-	github.com/integr8ly/grafana-operator/v3 v3.4.0
+	github.com/integr8ly/grafana-operator/v3 v3.10.0
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/machinebox/graphql v0.2.2
 	github.com/matryer/is v1.4.0 // indirect

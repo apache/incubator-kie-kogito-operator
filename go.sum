@@ -848,6 +848,7 @@ github.com/google/go-github v17.0.0+incompatible/go.mod h1:zLgOLi98H3fifZn+44m+u
 github.com/google/go-github/v27 v27.0.6/go.mod h1:/0Gr8pJ55COkmv+S/yPKCczSkUPIM/LnFyubufRNIS0=
 github.com/google/go-github/v28 v28.1.1/go.mod h1:bsqJWQX05omyWVmc00nEUql9mhQyv38lDZ8kPZcQVoM=
 github.com/google/go-github/v29 v29.0.3/go.mod h1:CHKiKKPHJ0REzfwc14QMklvtHwCveD0PxlMjLlzAM5E=
+github.com/google/go-jsonnet v0.16.0/go.mod h1:sOcuej3UW1vpPTZOr8L7RQimqai1a57bt5j22LzGZCw=
 github.com/google/go-licenses v0.0.0-20191112164736-212ea350c932/go.mod h1:16wa6pRqNDUIhOtwF0GcROVqMeXHZJ7H6eGDFUh5Pfk=
 github.com/google/go-licenses v0.0.0-20200227160636-0fa8c766a591/go.mod h1:JWeTIGPLQ9gF618ZOdlUitd1gRR/l99WOkHOlmR/UVA=
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
@@ -1062,6 +1063,8 @@ github.com/influxdata/tdigest v0.0.0-20191024211133-5d87a7585faa/go.mod h1:Z0kXn
 github.com/influxdata/usage-client v0.0.0-20160829180054-6d3895376368/go.mod h1:Wbbw6tYNvwa5dlB6304Sd+82Z3f7PmVZHVKU637d4po=
 github.com/integr8ly/grafana-operator/v3 v3.4.0 h1:h+qRqPWMTUl3s0Zgzm+LEEAYOLKQ4iibL8bhr7kWL6M=
 github.com/integr8ly/grafana-operator/v3 v3.4.0/go.mod h1:nie1yDLaWkgUjW+EBTLUjDzj1xsGOG444ZpcR1i1MrA=
+github.com/integr8ly/grafana-operator/v3 v3.10.0 h1:9R1D+PAD7pfbBp5GqgsmOw2iEIuL7gOvljTIvxMrCTc=
+github.com/integr8ly/grafana-operator/v3 v3.10.0/go.mod h1:5D8+MTrFKiwxz4kz2Oc36MxQu4EOHnJKaStSFAOukz0=
 github.com/jackc/fake v0.0.0-20150926172116-812a484cc733/go.mod h1:WrMFNQdiFJ80sQsxDoMokWK1W5TQtxBFNpzWTD84ibQ=
 github.com/jackc/pgx v3.2.0+incompatible/go.mod h1:0ZGrqGqkRlliWnWB4zKnWtjbSWbGkVEFm4TeybAXq+I=
 github.com/jarcoal/httpmock v1.0.5/go.mod h1:ATjnClrvW/3tijVmpL/va5Z3aAyGvqU3gCT8nX0Txik=
