@@ -2,7 +2,7 @@ module github.com/kiegroup/kogito-operator
 
 require (
 	cloud.google.com/go v0.72.0 // indirect
-	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
+	github.com/RHsyseng/operator-utils v0.0.0-20200506183821-e3b4a2ba9c30
 	github.com/cucumber/gherkin-go/v11 v11.0.0
 	github.com/cucumber/godog v0.11.0
 	github.com/cucumber/messages-go/v10 v10.0.3
@@ -15,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/imdario/mergo v0.3.10
-	github.com/infinispan/infinispan-operator v0.0.0-20210106103300-03aa6d76d1b2
+	github.com/infinispan/infinispan-operator v0.0.0-20210621093106-4662500f4ae1
 	github.com/integr8ly/grafana-operator/v3 v3.10.0
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
 	github.com/machinebox/graphql v0.2.2
@@ -24,7 +24,7 @@ require (
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
-	github.com/openshift/client-go v0.0.0-20200116152001-92a2713fa240
+	github.com/openshift/client-go v3.9.0+incompatible
 	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20200321030439-57b580e57e88
 	github.com/operator-framework/operator-marketplace v0.0.0-20190919183128-4ef67b2f50e9
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.46.0
@@ -35,7 +35,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/zap v1.15.0
-	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
 	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5 // indirect
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
@@ -52,7 +51,7 @@ require (
 	knative.dev/eventing v0.18.0
 	knative.dev/pkg v0.0.0-20200922164940-4bf40ad82aab
 	sigs.k8s.io/controller-runtime v0.6.3
-	software.sslmate.com/src/go-pkcs12 v0.0.0-20201103104416-57fc603b7f52
+	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78
 )
 
 replace (

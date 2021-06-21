@@ -109,7 +109,7 @@ func GetInfinispanStub(namespace, name, secretName string) *infinispan.Infinispa
 			},
 			Security: infinispan.InfinispanSecurity{
 				EndpointSecretName: secretName,
-				EndpointEncryption: infinispan.EndpointEncryption{
+				EndpointEncryption: &infinispan.EndpointEncryption{
 					Type: "None",
 				},
 			},

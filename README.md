@@ -469,7 +469,7 @@ Kogito operator integrates with various other technologies and operators. The te
 
 | Technology         | Tested version                                                |
 | ------------------ | ------------------------------------------------------------- |
-| Infinispan         | Infinispan operator 2.0.6 (deployed by OLM `2.0.x` channel)   |
+| Infinispan         | Infinispan operator 2.1.4 (deployed by OLM `2.1.x` channel)   |
 | Kafka              | Strimzi 0.23.0 (deployed by OLM `stable` channel)             |
 | Keycloak           | Keycloak operator 12.0.3 (deployed by OLM `alpha` channel)    |
 | Prometheus         | Prometheus operator 0.47.0 (deployed by OLM `beta` channel)   |
