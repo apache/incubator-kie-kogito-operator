@@ -62,9 +62,10 @@ type KogitoRuntimeStatus struct {
 }
 
 // +kubebuilder:object:root=true
-
-// KogitoRuntime is a custom Kogito service.
 // +k8s:openapi-gen=true
+// +genclient
+// +groupName=app.kiegroup.org
+// +groupGoName=Kogito
 // +kubebuilder:resource:path=kogitoruntimes,scope=Namespaced
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
@@ -75,6 +76,8 @@ type KogitoRuntimeStatus struct {
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Route,route.openshift.io/v1,\"A Openshift Route\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMap,v1,\"A Kubernetes ConfigMap\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Service,v1,\"A Kubernetes Service\""
+
+// KogitoRuntime is a custom Kogito service.
 type KogitoRuntime struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

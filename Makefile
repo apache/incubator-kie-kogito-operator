@@ -133,10 +133,15 @@ endif
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
 bundle: manifests kustomize
+	# the api package can't be a module for the operator-sdk generate... command to work
+	sed -i '/github.com\/kiegroup\/kogito-operator\/api v/d' ./go.mod
+	mv api/go.mod api/go.mod.bkp
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
+	mv api/go.mod.bkp api/go.mod
+	go mod tidy
 
 # Build the bundle image.
 .PHONY: bundle-build

@@ -27,7 +27,7 @@ type KogitoInfraSpec struct {
 
 	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Resource Resource `json:"resource"`
+	Resource InfraResource `json:"resource"`
 
 	// +optional
 	// +mapType=atomic
@@ -135,8 +135,8 @@ func (k *KogitoInfraStatus) SetVolumes(infraVolumes []api.KogitoInfraVolumeInter
 	k.Volumes = volumes
 }
 
-// Resource provide reference infra resource
-type Resource struct {
+// InfraResource provide reference infra resource
+type InfraResource struct {
 
 	// APIVersion describes the API Version of referred Kubernetes resource for example, infinispan.org/v1
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
@@ -160,42 +160,42 @@ type Resource struct {
 }
 
 // GetAPIVersion ...
-func (r *Resource) GetAPIVersion() string {
+func (r *InfraResource) GetAPIVersion() string {
 	return r.APIVersion
 }
 
 // SetAPIVersion ...
-func (r *Resource) SetAPIVersion(apiVersion string) {
+func (r *InfraResource) SetAPIVersion(apiVersion string) {
 	r.APIVersion = apiVersion
 }
 
 // GetKind ...
-func (r *Resource) GetKind() string {
+func (r *InfraResource) GetKind() string {
 	return r.Kind
 }
 
 // SetKind ...
-func (r *Resource) SetKind(kind string) {
+func (r *InfraResource) SetKind(kind string) {
 	r.Kind = kind
 }
 
 // GetNamespace ...
-func (r *Resource) GetNamespace() string {
+func (r *InfraResource) GetNamespace() string {
 	return r.Namespace
 }
 
 // SetNamespace ...
-func (r *Resource) SetNamespace(namespace string) {
+func (r *InfraResource) SetNamespace(namespace string) {
 	r.Namespace = namespace
 }
 
 // GetName ...
-func (r *Resource) GetName() string {
+func (r *InfraResource) GetName() string {
 	return r.Name
 }
 
 // SetName ...
-func (r *Resource) SetName(name string) {
+func (r *InfraResource) SetName(name string) {
 	r.Name = name
 }
 
@@ -284,12 +284,10 @@ func (k KogitoInfraVolume) GetNamedVolume() api.ConfigVolumeInterface {
 }
 
 // +kubebuilder:object:root=true
-
-// KogitoInfra is the resource to bind a Custom Resource (CR) not managed by Kogito Operator to a given deployed Kogito service.
-// It holds the reference of a CR managed by another operator such as Strimzi. For example: one can create a Kafka CR via Strimzi
-// and link this resource using KogitoInfra to a given Kogito service (custom or supporting, such as Data Index).
-// Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/) for more information.
 // +k8s:openapi-gen=true
+// +genclient
+// +groupName=app.kiegroup.org
+// +groupGoName=Kogito
 // +kubebuilder:resource:path=kogitoinfras,scope=Namespaced
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Resource Name",type="string",JSONPath=".spec.resource.name",description="Third Party Infrastructure Resource"
@@ -302,6 +300,11 @@ func (k KogitoInfraVolume) GetNamedVolume() api.ConfigVolumeInterface {
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispan,infinispan.org/v1,\"A Infinispan instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloak,keycloak.org/v1alpha1,\"A Keycloak Instance\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Secret,v1,\"A Kubernetes Secret\""
+
+// KogitoInfra is the resource to bind a Custom Resource (CR) not managed by Kogito Operator to a given deployed Kogito service.
+// It holds the reference of a CR managed by another operator such as Strimzi. For example: one can create a Kafka CR via Strimzi
+// and link this resource using KogitoInfra to a given Kogito service (custom or supporting, such as Data Index).
+// Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/) for more information.
 type KogitoInfra struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

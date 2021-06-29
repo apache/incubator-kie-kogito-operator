@@ -25,7 +25,7 @@ import (
 func TestKogitoInfra_Spec(t *testing.T) {
 	instance := &KogitoInfra{
 		Spec: KogitoInfraSpec{
-			Resource: Resource{
+			Resource: InfraResource{
 				APIVersion: "infinispan.org/v1",
 				Kind:       "Infinispan",
 				Name:       "test-infinispan",
