@@ -11,5 +11,15 @@ artifacts:
     path: "../../../../go.sum"
     target: "go.sum"
     dest: /workspace/
+
+  - name: gomodapi
+    path: "../../../../api/go.mod"
+    target: "go.mod"
+    dest: /workspace/api/
+
+  - name: gosumapi
+    path: "../../../../api/go.sum"
+    target: "go.sum"
+    dest: /workspace/api/
 execute:
   - script: install.sh
