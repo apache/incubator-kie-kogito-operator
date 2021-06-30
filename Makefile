@@ -78,6 +78,7 @@ lint:
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 	./hack/openapi.sh
+	./hack/client-gen.sh
 
 # Build the docker image
 docker-build:
@@ -133,15 +134,13 @@ endif
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
 bundle: manifests kustomize
-	# the api package can't be a module for the operator-sdk generate... command to work
-	sed -i '/github.com\/kiegroup\/kogito-operator\/api v/d' ./go.mod
-	mv api/go.mod api/go.mod.bkp
+	# the api package can't be a module for the `operator-sdk generate` command to work
+	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
-	mv api/go.mod.bkp api/go.mod
-	go mod tidy
+	./hack/kogito-module-api.sh --enable
 
 # Build the bundle image.
 .PHONY: bundle-build

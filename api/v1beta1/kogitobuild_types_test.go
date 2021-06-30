@@ -108,8 +108,8 @@ func TestKogitoBuildStatus(t *testing.T) {
 
 	conditions := *status.GetConditions()
 	assert.Equal(t, 2, len(conditions))
-	assert.Equal(t, api.KogitoBuildSuccessful, conditions[0].Type)
-	assert.Equal(t, api.KogitoBuildFailure, conditions[1].Type)
+	assert.Equal(t, string(api.KogitoBuildSuccessful), conditions[0].Type)
+	assert.Equal(t, string(api.KogitoBuildFailure), conditions[1].Type)
 	assert.Equal(t, 2, len(status.GetBuilds().GetNew()))
 	assert.Equal(t, "new1", status.GetBuilds().GetNew()[0])
 	assert.Equal(t, "new2", status.GetBuilds().GetNew()[1])
