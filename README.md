@@ -6,15 +6,18 @@ The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito
 
 For information about the Kogito Operator architecture and instructions for using the operator and CLI to deploy Kogito services and infrastructures, see the official [Kogito Documentation](https://docs.jboss.org/kogito/release/latest/html_single/#chap-kogito-deploying-on-openshift) page.
 
-# Table of Contents
+Table of Contents
+=================
 
+* [Kogito Operator](#kogito-operator)
+* [Trying the Kogito Operator](#trying-the-kogito-operator)
+* [Using Kogito Custom Resources as a dependency](#using-kogito-custom-resources-as-a-dependency)
 * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
-  * [Trying the Kogito Operator](#trying-the-kogito-operator)
-  * [Prerequisites](#prerequisites)
   * [Kogito Operator environment](#kogito-operator-environment)
     * [Kogito Operator unit tests](#kogito-operator-unit-tests)
     * [Kogito Operator collaboration and pull requests](#kogito-operator-collaboration-and-pull-requests)
   * [Kogito Operator development](#kogito-operator-development)
+    * [Prerequisites](#prerequisites)
     * [Requirements](#requirements)
     * [Building the Kogito Operator](#building-the-kogito-operator)
     * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
@@ -28,8 +31,8 @@ For information about the Kogito Operator architecture and instructions for usin
     * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator-using-intellij-idea)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
   * [Releasing Kogito Operator](#releasing-kogito-operator)
-* [Kogito Operator tested integrations](#kogito-operator-tested-integrations)
-  
+  * [Kogito Operator tested integrations](#kogito-operator-tested-integrations)
+
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Trying the Kogito Operator
