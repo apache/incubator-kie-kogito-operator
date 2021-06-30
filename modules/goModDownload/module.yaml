@@ -12,14 +12,10 @@ artifacts:
     target: "go.sum"
     dest: /workspace/
 
-  - name: gomodapi
-    path: "../../../../api/go.mod"
-    target: "go.mod"
-    dest: /workspace/api/
+    # this is a local module, adding in here since the main go.mod refers to it
+  - name: api-module
+    path: "../../../../api"
+    dest: /workspace/api
 
-  - name: gosumapi
-    path: "../../../../api/go.sum"
-    target: "go.sum"
-    dest: /workspace/api/
 execute:
   - script: install.sh
