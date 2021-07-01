@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 flag=$1
 
 print_usage() {
@@ -26,24 +25,25 @@ print_usage() {
 
 disable() {
   sed -i '/github.com\/kiegroup\/kogito-operator\/api v/d' ./go.mod
-	mv ./api/go.mod api/go.mod.bkp 2>/dev/null; true
+  mv ./api/go.mod api/go.mod.bkp 2>/dev/null
+  true
 }
 
 enable() {
   disable
   mv ./api/go.mod.bkp api/go.mod
-	go mod tidy
+  go mod tidy
 }
 
 case $flag in
-  "--disable")
-    disable
-    ;;
-  "--enable")
-    enable
-    ;;
-  *)
-    echo "ERROR: Wrong flag!"
-    print_usage
-    ;;
+"--disable")
+  disable
+  ;;
+"--enable")
+  enable
+  ;;
+*)
+  echo "ERROR: Wrong flag!"
+  print_usage
+  ;;
 esac

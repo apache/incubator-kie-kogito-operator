@@ -1,6 +1,6 @@
 # Kogito Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator)
 
 The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
 
@@ -62,8 +62,7 @@ the Kogito Operator, [please see our official documentation](https://docs.jboss.
 # Using Kogito Custom Resources as a dependency
 
 It's possible to use the Kubernetes Custom Resources managed by Kogito Operator
-in your Golang project. For this to  work, you just have to import our `api` and
-`client` module in your `go.mod` file:
+in your Golang project. For this to  work, you just have to import our `client` module in your `go.mod` file:
 
 ```shell script
 # client depends on the `api` module
