@@ -25,7 +25,7 @@ import (
 func TestKogitoInfra_Spec(t *testing.T) {
 	instance := &KogitoInfra{
 		Spec: KogitoInfraSpec{
-			Resource: Resource{
+			Resource: InfraResource{
 				APIVersion: "infinispan.org/v1",
 				Kind:       "Infinispan",
 				Name:       "test-infinispan",
@@ -115,9 +115,9 @@ func TestKogitoInfra_Status(t *testing.T) {
 	status.SetVolumes(volumes)
 
 	conditions := *status.GetConditions()
-	assert.Equal(t, api.KogitoInfraConfigured, conditions[0].Type)
-	assert.Equal(t, corev1.ConditionTrue, conditions[0].Status)
-	assert.Equal(t, api.ReconciliationFailure, conditions[0].Reason)
+	assert.Equal(t, string(api.KogitoInfraConfigured), conditions[0].Type)
+	assert.Equal(t, metav1.ConditionTrue, conditions[0].Status)
+	assert.Equal(t, string(api.ReconciliationFailure), conditions[0].Reason)
 	assert.Equal(t, "Infra success", conditions[0].Message)
 	assert.Equal(t, 2, len(status.GetRuntimeProperties()))
 	assert.Equal(t, 2, len(status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()))

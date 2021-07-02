@@ -19,9 +19,9 @@ import (
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 )
 
-// FromInfraResourceFlagsToResource converts given InfraResourceFlags into Resource
-func FromInfraResourceFlagsToResource(flags *flag.InfraResourceFlags) v1beta1.Resource {
-	return v1beta1.Resource{
+// FromInfraResourceFlagsToResource converts given InfraResourceFlags into InfraResource
+func FromInfraResourceFlagsToResource(flags *flag.InfraResourceFlags) v1beta1.InfraResource {
+	return v1beta1.InfraResource{
 		Kind:       flags.Kind,
 		APIVersion: flags.APIVersion,
 		Namespace:  flags.ResourceNamespace,
