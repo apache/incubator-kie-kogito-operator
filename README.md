@@ -40,12 +40,11 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 You can quickly install the operator in your local cluster by executing the following command:
 
 ```shell script
-NAMESPACE=mynamespace
 VERSION=<current_operator_version>
-kubectl apply -n "${NAMESPACE}" -f "https://github.com/kiegroup/kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
+kubectl apply -f "https://github.com/kiegroup/kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
 ```
 
-Replace the values above to match your context. The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-operator/releases).
+Replace the version above to match your context (example v1.8.0). The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-operator/releases).
 
 Alternatively, if you cloned this repo just do:
 
@@ -53,8 +52,8 @@ Alternatively, if you cloned this repo just do:
 $ ./hack/install.sh
 ```
 
-The script will download the latest version and install the resources for you in the current namespace.
-You can set the `VERSION` and `NAMESPACE` variables before running the script to control which version to install in the given namespace.
+The script will download the latest version and install the resources for you in the `kogito-operator-system` namespace.
+You can set the `VERSION` variable before running the script to control which version to install.
 
 For further information on how to install in other environments and configure
 the Kogito Operator, [please see our official documentation](https://docs.jboss.org/kogito/release/latest/html_single/#chap-kogito-deploying-on-openshift).
