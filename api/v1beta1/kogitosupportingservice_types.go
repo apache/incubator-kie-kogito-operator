@@ -56,8 +56,9 @@ type KogitoSupportingServiceStatus struct {
 }
 
 // +kubebuilder:object:root=true
-
-// KogitoSupportingService deploys the Supporting service in the given namespace.
+// +genclient
+// +groupName=app.kiegroup.org
+// +groupGoName=Kogito
 // +k8s:openapi-gen=true
 // +kubebuilder:resource:path=kogitosupportingservices,scope=Namespaced
 // +kubebuilder:subresource:status
@@ -70,6 +71,8 @@ type KogitoSupportingServiceStatus struct {
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Service,v1,\"A Kubernetes Service\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStream,image.openshift.io/v1,\"A Openshift ImageStream\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="Route,route.openshift.io/v1,\"A Openshift Route\""
+
+// KogitoSupportingService deploys the Supporting service in the given namespace.
 type KogitoSupportingService struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -34,7 +34,7 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: v1beta1.Resource{
+			Resource: v1beta1.InfraResource{
 				APIVersion: infrastructure.InfinispanAPIVersion,
 				Kind:       infrastructure.InfinispanKind,
 				Name:       "kogito-infinispan",
@@ -61,7 +61,7 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: v1beta1.Resource{
+			Resource: v1beta1.InfraResource{
 				APIVersion: infrastructure.KafkaAPIVersion,
 				Kind:       infrastructure.KafkaKind,
 				Name:       "kogito-kafka",

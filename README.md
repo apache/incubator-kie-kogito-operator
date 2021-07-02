@@ -1,20 +1,23 @@
 # Kogito Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator) [![CircleCI](https://circleci.com/gh/kiegroup/kogito-operator.svg?style=svg)](https://circleci.com/gh/kiegroup/kogito-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator)
 
 The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
 
 For information about the Kogito Operator architecture and instructions for using the operator and CLI to deploy Kogito services and infrastructures, see the official [Kogito Documentation](https://docs.jboss.org/kogito/release/latest/html_single/#chap-kogito-deploying-on-openshift) page.
 
-# Table of Contents
+Table of Contents
+=================
 
+* [Kogito Operator](#kogito-operator)
+* [Trying the Kogito Operator](#trying-the-kogito-operator)
+* [Using Kogito Custom Resources as a dependency](#using-kogito-custom-resources-as-a-dependency)
 * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
-  * [Trying the Kogito Operator](#trying-the-kogito-operator)
-  * [Prerequisites](#prerequisites)
   * [Kogito Operator environment](#kogito-operator-environment)
     * [Kogito Operator unit tests](#kogito-operator-unit-tests)
     * [Kogito Operator collaboration and pull requests](#kogito-operator-collaboration-and-pull-requests)
   * [Kogito Operator development](#kogito-operator-development)
+    * [Prerequisites](#prerequisites)
     * [Requirements](#requirements)
     * [Building the Kogito Operator](#building-the-kogito-operator)
     * [Deploying to OpenShift 4.x for development purposes](#deploying-to-openshift-4x-for-development-purposes)
@@ -28,17 +31,11 @@ For information about the Kogito Operator architecture and instructions for usin
     * [Remote Debug Kogito Operator using Intellij IDEA](#remote-debug-kogito-operator-using-intellij-idea)
   * [Guide for Kogito Developers](#guide-for-kogito-developers)
   * [Releasing Kogito Operator](#releasing-kogito-operator)
-* [Kogito Operator tested integrations](#kogito-operator-tested-integrations)
-  
+  * [Kogito Operator tested integrations](#kogito-operator-tested-integrations)
+
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
-# Contributing to the Kogito Operator
-
-Thank you for your interest in contributing to this project!
-
-Any kind of contribution is welcome: code, design ideas, bug reporting, or documentation (including this page).
-
-## Trying the Kogito Operator
+# Trying the Kogito Operator
 
 You can quickly install the operator in your local cluster by executing the following command:
 
@@ -59,13 +56,33 @@ $ ./hack/install.sh
 The script will download the latest version and install the resources for you in the current namespace.
 You can set the `VERSION` and `NAMESPACE` variables before running the script to control which version to install in the given namespace.
 
-## Prerequisites
+For further information on how to install in other environments and configure
+the Kogito Operator, [please see our official documentation](https://docs.jboss.org/kogito/release/latest/html_single/#chap-kogito-deploying-on-openshift).
 
-For code contributions, review the following prerequisites:
+# Using Kogito Custom Resources as a dependency
 
-- Become familiar with the Go language. For an introduction to Go, see the official [Go Documentation](https://golang.org/doc/). For an intermediate or advanced Go resource, see [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book.
-- Become familiar with the [Operator SDK](https://github.com/operator-framework/operator-sdk). For more information, see the [Operator SDK Documentation](https://sdk.operatorframework.io/docs/) and use the [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/go/memcached-operator) as an example.
-- Ensure that you have all [Kogito Operator requirements](#requirements) set on your local machine. **You must use the listed versions.**
+It's possible to use the Kubernetes Custom Resources managed by Kogito Operator
+in your Golang project. For this to  work, you just have to import our `client` module in your `go.mod` file:
+
+```shell script
+# client depends on the `api` module
+go get github.com/kiegroup/kogito-operator/client {VERSION}
+```
+
+Replace `{VERSION}` with the [latest release](https://github.com/kiegroup/kogito-operator/releases).
+
+The `client` module will provide your project with the Kubernetes client 
+for Kogito custom resources such as `KogitoRuntime` and `KogitoBuild`.
+
+Avoid importing the whole project unless extremely necessary. The Kogito Operator
+has many dependencies since it can connect to different managed resources
+from third-party vendors such as Strimzi and Infinispan.
+
+# Contributing to the Kogito Operator
+
+Thank you for your interest in contributing to this project!
+
+Any kind of contribution is welcome: code, design ideas, bug reporting, or documentation (including this page).
 
 ## Kogito Operator environment
 
@@ -108,6 +125,14 @@ If you have any questions, contact a Kogito Operator maintainer in the [issues p
 ## Kogito Operator development
 
 Before you begin fixing issues or adding new features to the Kogito Operator, review the previous instructions for contributing to the Kogito Operator repository.
+
+### Prerequisites
+
+For code contributions, review the following prerequisites:
+
+- Become familiar with the Go language. For an introduction to Go, see the official [Go Documentation](https://golang.org/doc/). For an intermediate or advanced Go resource, see [The Go Programming Language](https://www.amazon.com/gp/product/0134190440/) book.
+- Become familiar with the [Operator SDK](https://github.com/operator-framework/operator-sdk). For more information, see the [Operator SDK Documentation](https://sdk.operatorframework.io/docs/) and use the [Memcached Operator](https://github.com/operator-framework/operator-sdk-samples/tree/master/go/memcached-operator) as an example.
+- Ensure that you have all [Kogito Operator requirements](#requirements) set on your local machine. **You must use the listed versions.**
 
 ### Requirements
 

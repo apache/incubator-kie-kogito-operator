@@ -8,10 +8,6 @@ artifacts:
       target: "main.go"
       dest: /workspace/
 
-    - name: api
-      path: "../../../../api"
-      dest: /workspace/api
-
     - name: controllers
       path: "../../../../controllers"
       dest: /workspace/controllers

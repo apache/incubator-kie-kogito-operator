@@ -453,9 +453,10 @@ func (b *Builds) SetCancelled(cancelled []string) {
 }
 
 // +kubebuilder:object:root=true
-
-// KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
 // +k8s:openapi-gen=true
+// +genclient
+// +groupName=app.kiegroup.org
+// +groupGoName=Kogito
 // +kubebuilder:resource:path=kogitobuilds,scope=Namespaced
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type",description="Type of this build instance"
@@ -467,6 +468,8 @@ func (b *Builds) SetCancelled(cancelled []string) {
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStream,image.openshift.io/v1,\" A Openshift Image Stream\""
 // +operator-sdk:gen-csv:customresourcedefinitions.resources="BuildConfig,build.openshift.io/v1,\" A Openshift Build Config\""
 // +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Build"
+
+// KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
 type KogitoBuild struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

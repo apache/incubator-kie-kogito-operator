@@ -31,4 +31,12 @@ var (
 
 	// AddToScheme adds the types in this group-version to the given scheme.
 	AddToScheme = SchemeBuilder.AddToScheme
+
+	// SchemeGroupVersion is a alias for the generated clientset
+	SchemeGroupVersion = GroupVersion
 )
+
+// Resource takes an unqualified resource and returns a Group qualified GroupResource. Required for clientset
+func Resource(resource string) schema.GroupResource {
+	return SchemeGroupVersion.WithResource(resource).GroupResource()
+}
