@@ -274,7 +274,7 @@ func showScenarios(features []*gherkin.Feature, showSteps bool) {
 }
 
 func monitorOlmNamespace() {
-	monitorNamespace(config.GetOlmNamespace())
+	monitorNamespace(framework.GetClusterOperatorNamespace())
 }
 
 func monitorNamespace(namespace string) {
@@ -287,7 +287,7 @@ func monitorNamespace(namespace string) {
 }
 
 func stopOlmNamespaceMonitoring() {
-	stopNamespaceMonitoring(config.GetOlmNamespace())
+	stopNamespaceMonitoring(framework.GetClusterOperatorNamespace())
 }
 
 func stopNamespaceMonitoring(namespace string) {
