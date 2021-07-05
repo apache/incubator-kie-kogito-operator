@@ -28,9 +28,10 @@ type binaryManager struct {
 
 func (m *binaryManager) GetRequestedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	decoratorHandler := NewDecoratorHandler(m.Context)
-	buildConfig := newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForBinaryRuntimeBuilder())
-	imageStream, err := newOutputImageStreamForRuntime(m.Context, &buildConfig, m.build)
+	decoratorHandler := NewDecoratorHandler(m.BuildContext)
+	buildConfigHandler := NewBuildConfigHandler(m.BuildContext)
+	buildConfig := buildConfigHandler.newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForBinaryRuntimeBuilder(), decoratorHandler.decoratorForCustomLabels())
+	imageStream, err := newOutputImageStreamForRuntime(m.BuildContext, &buildConfig, m.build)
 	if err != nil {
 		return resources, err
 	}

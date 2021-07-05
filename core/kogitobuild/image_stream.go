@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
 	"os"
 	"strings"
@@ -104,11 +103,11 @@ type ImageStreamHandler interface {
 }
 
 type imageStreamHandler struct {
-	*operator.Context
+	*BuildContext
 }
 
 // NewImageSteamHandler ...
-func NewImageSteamHandler(context *operator.Context) ImageStreamHandler {
+func NewImageSteamHandler(context *BuildContext) ImageStreamHandler {
 	return &imageStreamHandler{
 		context,
 	}
@@ -372,7 +371,7 @@ func newOutputImageStreamForBuilder(bc *buildv1.BuildConfig) imgv1.ImageStream {
 
 // newOutputImageStreamForRuntime creates a new image stream for the Runtime
 // if one image stream is found in the namespace managed by other resources such as KogitoRuntime or other KogitoBuild, we add ourselves in the owner references
-func newOutputImageStreamForRuntime(context *operator.Context, bc *buildv1.BuildConfig, build api.KogitoBuildInterface) (*imgv1.ImageStream, error) {
+func newOutputImageStreamForRuntime(context *BuildContext, bc *buildv1.BuildConfig, build api.KogitoBuildInterface) (*imgv1.ImageStream, error) {
 	isName, tag := getOutputImageStreamNameTag(bc)
 	imageHandler := newImageHandlerForBuiltServices(context, isName, tag, build.GetNamespace())
 	imageStream, err := imageHandler.CreateImageStreamIfNotExists()
@@ -383,10 +382,10 @@ func newOutputImageStreamForRuntime(context *operator.Context, bc *buildv1.Build
 }
 
 // NewImageHandlerForBuiltServices creates a new handler for Kogito Services being built
-func newImageHandlerForBuiltServices(context *operator.Context, isName, tag, namespace string) infrastructure.ImageHandler {
+func newImageHandlerForBuiltServices(context *BuildContext, isName, tag, namespace string) infrastructure.ImageHandler {
 	image := &api.Image{
 		Name: isName,
 		Tag:  tag,
 	}
-	return infrastructure.NewImageHandler(context, image, image.Name, image.Name, namespace, false, false)
+	return infrastructure.NewImageHandler(context.Context, image, image.Name, image.Name, namespace, false, false)
 }
