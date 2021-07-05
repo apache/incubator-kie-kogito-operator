@@ -8,5 +8,6 @@ Please make sure your PR meets the following requirements:
 - [ ] Pull Request contains a description of the issue
 - [ ] Pull Request does not include fixes for issues other than the main ticket
 - [ ] Your feature/bug fix has a unit test that verifies it
+- [ ] You've ran `make before-pr` and everything is working accordingly
 - [ ] You've tested the new feature/bug fix in an actual OpenShift cluster
-- [ ] You've added a [RELEASE_NOTES.md](RELEASE_NOTES.md) entry regarding this change
+- [ ] You've added a [RELEASE_NOTES.md](https://github.com/kiegroup/kogito-operator/blob/master/RELEASE_NOTES.md) entry regarding this change
