@@ -4,7 +4,7 @@ helper = null
 
 pipeline {
     agent {
-        label 'kogito-operator-slave && !master'
+        label 'crc' // TODO move label to job generation ?
     }
 
     // Needed for local build
@@ -31,6 +31,16 @@ pipeline {
         OP_TEST_CONTAINER_OPT = '-t'
         OP_TEST_DEBUG = 1
         OP_TEST_CONTAINER_TOOL = 'docker'
+
+        CRC_ENABLED = true // TODO should be moved to job generation
+
+        GOLANG_VERSION = '1.14.15'
+        GOLANG_DIR = "/tmp/golang-bin/${GOLANG_VERSION}"
+        GOROOT = "${GOLANG_DIR}/go"
+        GOPATH = "${GOLANG_DIR}/gopath"
+        GOENV = "${GOLANG_DIR}/goenv"
+        GOCACHE = "${GOLANG_DIR}/gocache"
+        PATH = "${HOME}/.local/bin:${GOROOT}/bin:${GOPATH}/bin:${PATH}"
     }
 
     stages {
@@ -59,6 +69,28 @@ pipeline {
 
                     // Verify we have the connectivity to Openshift
                     openshift.loginOpenshift()
+
+                    // sh '''
+                    //     sudo yum install -y python3-devel
+                    //     sudo pip3 install -U pip setuptools
+                    //     pip3 install -U cekit behave lxml docker docker-squash odcs[client] elementPath pyyaml ruamel.yaml python-dateutil
+                    //     cekit --help
+                    //     pip3 install -U ansible
+                    //     ansible --version
+                    // '''
+                    sh '''
+                        source /home/hudson/cekit/bin/activate
+                        cekit --help
+                    '''
+
+                    // Install golang
+                    dir("${GOLANG_DIR}") {
+                        sh """
+                            wget --no-verbose https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz
+                            tar -xzf go${GOLANG_VERSION}.linux-amd64.tar.gz
+                            go version
+                        """
+                    }
                 }
             }
             post {
@@ -73,66 +105,68 @@ pipeline {
             }
         }
 
-        stage('Prepare for PR') {
-            when {
-                expression { return helper.isRelease() || helper.isCreatePr() }
-            }
-            steps {
-                script {
-                    githubscm.forkRepo(helper.getBotAuthorCredsID())
-                    githubscm.createBranch(helper.getBotBranch())
-                }
-            }
-        }
+        // stage('Prepare for PR') {
+        //     when {
+        //         expression { return helper.isRelease() || helper.isCreatePr() }
+        //     }
+        //     steps {
+        //         script {
+        //             githubscm.forkRepo(helper.getBotAuthorCredsID())
+        //             githubscm.createBranch(helper.getBotBranch())
+        //         }
+        //     }
+        // }
 
-        stage('Update version') {
-            when {
-                expression { return helper.getProjectVersion() }
-            }
-            steps {
-                script {
-                    sh "make bump-version new_version=${helper.getProjectVersion()}"
+        // stage('Update version') {
+        //     when {
+        //         expression { return helper.getProjectVersion() }
+        //     }
+        //     steps {
+        //         script {
+        //             sh "make bump-version new_version=${helper.getProjectVersion()}"
 
-                    githubscm.commitChanges("Update project version to ${helper.getProjectVersion()}", {
-                        sh '''
-                            git add .
-                            git reset -- go.mod
-                            git reset -- go.sum
-                        '''
-                    })
-                }
-            }
-        }
+        //             githubscm.commitChanges("Update project version to ${helper.getProjectVersion()}", {
+        //                 sh '''
+        //                     git add .
+        //                     git reset -- go.mod
+        //                     git reset -- go.sum
+        //                 '''
+        //             })
+        //         }
+        //     }
+        // }
 
-        stage('Test Kogito Operator & CLI') {
-            when {
-                expression {
-                    return helper.shouldLaunchTests()
-                }
-            }
-            steps {
-                sh 'make test'
-            }
-        }
+        // stage('Test Kogito Operator & CLI') {
+        //     when {
+        //         expression {
+        //             return helper.shouldLaunchTests()
+        //         }
+        //     }
+        //     steps {
+        //         sh 'make test'
+        //     }
+        // }
 
         stage('Build Kogito Operator') {
             steps {
-                sh "make BUILDER=${env.CONTAINER_ENGINE}"
+                sh """
+                    make BUILDER=${env.CONTAINER_ENGINE}
+                """
             }
         }
 
-        stage('Build Kogito CLI') {
-            steps {
-                sh 'make build-cli'
-            }
-            post {
-                success {
-                    script {
-                        archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
-                    }
-                }
-            }
-        }
+        // stage('Build Kogito CLI') {
+        //     steps {
+        //         sh 'make build-cli'
+        //     }
+        //     post {
+        //         success {
+        //             script {
+        //                 archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
+        //             }
+        //         }
+        //     }
+        // }
         stage('Run OLM tests') {
             when {
                 expression {
@@ -191,17 +225,18 @@ pipeline {
         stage('Push to registry') {
             steps {
                 script {
-                    helper.loginRegistry()
+                    echo "$STAGE_NAME"
+                    // helper.loginRegistry()
 
-                    container.tagImage(helper.buildTempOpenshiftImageFullName(), helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
-                    container.pushImage(helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
+                    // container.tagImage(helper.buildTempOpenshiftImageFullName(), helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
+                    // container.pushImage(helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
 
-                    // Store image deployment information
-                    properties.add(helper.getImageRegistryProperty(), helper.getImageRegistry())
-                    properties.add(helper.getImageNamespaceProperty(), helper.getImageNamespace())
-                    properties.add(helper.getImageNamePrefixProperty(), helper.getImageNamePrefix())
-                    properties.add(helper.getImageNameSuffixProperty(), helper.getImageNameSuffix())
-                    properties.add(helper.getImageTagProperty(), helper.getImageTag())
+                    // // Store image deployment information
+                    // properties.add(helper.getImageRegistryProperty(), helper.getImageRegistry())
+                    // properties.add(helper.getImageNamespaceProperty(), helper.getImageNamespace())
+                    // properties.add(helper.getImageNamePrefixProperty(), helper.getImageNamePrefix())
+                    // properties.add(helper.getImageNameSuffixProperty(), helper.getImageNameSuffix())
+                    // properties.add(helper.getImageTagProperty(), helper.getImageTag())
                 }
             }
         }
@@ -240,6 +275,7 @@ pipeline {
         cleanup {
             script {
                 util.cleanNode(containerEngine)
+                sh "sudo rm -rf ${GOLANG_DIR}"
             }
         }
     }
