@@ -76,6 +76,8 @@ pipeline {
 
                             archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
                             junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                        }
+                        cleanup {
                             sh 'cd test && go run scripts/prune_namespaces.go'
                         }
                     }
