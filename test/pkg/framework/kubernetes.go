@@ -137,7 +137,7 @@ func GetActiveReplicaSetByDeployment(namespace string, dName string) (*apps.Repl
 	// Find ReplicaSet owned by Deployment with active Pods
 	for _, replicaSet := range replicaSets.Items {
 		for _, ownerReference := range replicaSet.OwnerReferences {
-			if ownerReference.Kind == "Deployment" && ownerReference.Name == dName && replicaSet.Spec.Size() > 0 {
+			if ownerReference.Kind == "Deployment" && ownerReference.Name == dName && replicaSet.Status.AvailableReplicas > 0 {
 				return &replicaSet, nil
 			}
 		}
