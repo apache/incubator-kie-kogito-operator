@@ -30,7 +30,7 @@ pipeline {
         // Environment required by OLM tests when run from process
         OP_TEST_CONTAINER_OPT = '-t'
         OP_TEST_DEBUG = 1
-        OP_TEST_CONTAINER_TOOL = 'podman'
+        OP_TEST_CONTAINER_TOOL = 'docker'
 
         CRC_ENABLED = true // TODO should be moved to job generation
 
@@ -178,20 +178,21 @@ pipeline {
             }
         }
 
-        stage('Run OLM tests') {
-            when {
-                expression {
-                    return helper.shouldLaunchTests()
-                }
-            }
-            steps {
-                sh '''
-                    source /home/hudson/cekit/bin/activate
-                    make olm-tests
-                '''
-            }
-        }
-        
+        // No docker on CRC node ... need it ?
+        // stage('Run OLM tests') {
+        //     when {
+        //         expression {
+        //             return helper.shouldLaunchTests()
+        //         }
+        //     }
+        //     steps {
+        //         sh '''
+        //             source /home/hudson/cekit/bin/activate
+        //             make olm-tests
+        //         '''
+        //     }
+        // }
+
         stage('Push Operator Image to Openshift Registry') {
             steps {
                 script {

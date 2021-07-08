@@ -27,4 +27,5 @@ SCRIPT_URL="https://raw.githubusercontent.com/operator-framework/operator-test-p
 
 cd "${tempfolder}"
 
-bash <(curl -sL "${SCRIPT_URL}") all  community-operators/kogito-operator/"${version}"
+bash <(curl -sL "${SCRIPT_URL}") all community-operators/kogito-operator/"${version}"
+#bash <(curl -sL "${SCRIPT_URL}") docker all community-operators/kogito-operator/"${version}"
