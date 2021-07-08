@@ -30,7 +30,7 @@ pipeline {
         // Environment required by OLM tests when run from process
         OP_TEST_CONTAINER_OPT = '-t'
         OP_TEST_DEBUG = 1
-        OP_TEST_CONTAINER_TOOL = 'docker'
+        OP_TEST_CONTAINER_TOOL = 'podman'
 
         CRC_ENABLED = true // TODO should be moved to job generation
 
@@ -96,6 +96,8 @@ pipeline {
                     sh '''
                         source /home/hudson/cekit/bin/activate
                         cekit --help
+                        pip3 install -U ansible
+                        ansible --version
                     '''
 
                     // Install golang
@@ -165,6 +167,7 @@ pipeline {
         stage('Build Kogito Operator') {
             steps {
                 sh """
+                    source /home/hudson/cekit/bin/activate
                     make BUILDER=${env.CONTAINER_ENGINE}
                 """
             }
@@ -189,7 +192,10 @@ pipeline {
                 }
             }
             steps {
-                sh 'make olm-tests'
+                sh '''
+                    source /home/hudson/cekit/bin/activate
+                    make olm-tests
+                '''
             }
         }
         stage('Push Operator Image to Openshift Registry') {
