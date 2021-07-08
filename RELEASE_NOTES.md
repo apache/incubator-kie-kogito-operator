@@ -11,5 +11,6 @@
 - [KOGITO-5104](https://issues.redhat.com/browse/KOGITO-5104) - Kogito operator creates wrong default image tags
 - [KOGITO-5083](https://issues.redhat.com/browse/KOGITO-5083) - Kogito Runtime Image Stream Fails to Update
 - [KOGITO-5256](https://issues.redhat.com/browse/KOGITO-5256) - Kogito Operator is creating incorrect Knative Triggers
+- [KOGITO-5478](https://issues.redhat.com/browse/KOGITO-5478) - Management console does not work on OpenShift
 
 ## Known Issues
