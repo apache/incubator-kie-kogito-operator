@@ -85,14 +85,6 @@ pipeline {
                         openshift.loginOpenshift()
                     }
 
-                    // sh '''
-                    //     sudo yum install -y python3-devel
-                    //     sudo pip3 install -U pip setuptools
-                    //     pip3 install -U cekit behave lxml docker docker-squash odcs[client] elementPath pyyaml ruamel.yaml python-dateutil
-                    //     cekit --help
-                    //     pip3 install -U ansible
-                    //     ansible --version
-                    // '''
                     sh '''
                         source /home/hudson/cekit/bin/activate
                         cekit --help
@@ -122,47 +114,47 @@ pipeline {
             }
         }
 
-        // stage('Prepare for PR') {
-        //     when {
-        //         expression { return helper.isRelease() || helper.isCreatePr() }
-        //     }
-        //     steps {
-        //         script {
-        //             githubscm.forkRepo(helper.getBotAuthorCredsID())
-        //             githubscm.createBranch(helper.getBotBranch())
-        //         }
-        //     }
-        // }
+        stage('Prepare for PR') {
+            when {
+                expression { return helper.isRelease() || helper.isCreatePr() }
+            }
+            steps {
+                script {
+                    githubscm.forkRepo(helper.getBotAuthorCredsID())
+                    githubscm.createBranch(helper.getBotBranch())
+                }
+            }
+        }
 
-        // stage('Update version') {
-        //     when {
-        //         expression { return helper.getProjectVersion() }
-        //     }
-        //     steps {
-        //         script {
-        //             sh "make bump-version new_version=${helper.getProjectVersion()}"
+        stage('Update version') {
+            when {
+                expression { return helper.getProjectVersion() }
+            }
+            steps {
+                script {
+                    sh "make bump-version new_version=${helper.getProjectVersion()}"
 
-        //             githubscm.commitChanges("Update project version to ${helper.getProjectVersion()}", {
-        //                 sh '''
-        //                     git add .
-        //                     git reset -- go.mod
-        //                     git reset -- go.sum
-        //                 '''
-        //             })
-        //         }
-        //     }
-        // }
+                    githubscm.commitChanges("Update project version to ${helper.getProjectVersion()}", {
+                        sh '''
+                            git add .
+                            git reset -- go.mod
+                            git reset -- go.sum
+                        '''
+                    })
+                }
+            }
+        }
 
-        // stage('Test Kogito Operator & CLI') {
-        //     when {
-        //         expression {
-        //             return helper.shouldLaunchTests()
-        //         }
-        //     }
-        //     steps {
-        //         sh 'make test'
-        //     }
-        // }
+        stage('Test Kogito Operator & CLI') {
+            when {
+                expression {
+                    return helper.shouldLaunchTests()
+                }
+            }
+            steps {
+                sh 'make test'
+            }
+        }
 
         stage('Build Kogito Operator') {
             steps {
@@ -173,18 +165,19 @@ pipeline {
             }
         }
 
-        // stage('Build Kogito CLI') {
-        //     steps {
-        //         sh 'make build-cli'
-        //     }
-        //     post {
-        //         success {
-        //             script {
-        //                 archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build Kogito CLI') {
+            steps {
+                sh 'make build-cli'
+            }
+            post {
+                success {
+                    script {
+                        archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
+                    }
+                }
+            }
+        }
+
         stage('Run OLM tests') {
             when {
                 expression {
@@ -198,6 +191,7 @@ pipeline {
                 '''
             }
         }
+        
         stage('Push Operator Image to Openshift Registry') {
             steps {
                 script {
