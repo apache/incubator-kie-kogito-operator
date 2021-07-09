@@ -10,6 +10,7 @@ pipeline {
     // Needed for local build
     tools {
         jdk 'kie-jdk11'
+        maven 'kie-maven-3.6.3'
     }
 
     options {
@@ -41,6 +42,7 @@ pipeline {
         GOENV = "${GOLANG_DIR}/goenv"
         GOCACHE = "${GOLANG_DIR}/gocache"
         PATH = "${HOME}/.local/bin:${GOROOT}/bin:${GOPATH}/bin:${PATH}"
+        CRC_API = 'https://api.crc.testing:6443/'
     }
 
     stages {
@@ -140,16 +142,16 @@ pipeline {
             }
         }
 
-        stage('Test Kogito Operator & CLI') {
-            when {
-                expression {
-                    return helper.shouldLaunchTests()
-                }
-            }
-            steps {
-                sh 'make test'
-            }
-        }
+        // stage('Test Kogito Operator & CLI') {
+        //     when {
+        //         expression {
+        //             return helper.shouldLaunchTests()
+        //         }
+        //     }
+        //     steps {
+        //         sh 'make test'
+        //     }
+        // }
 
         stage('Build Kogito Operator') {
             steps {
@@ -206,10 +208,11 @@ pipeline {
                     return helper.shouldLaunchTests()
                 }
             }
-            options {
-                // Lock on OCP API as we want only one run at a time
-                lock("BDD tests on OCP API ${getLockOpenshiftApi()}")
-            }
+            // TODO temp disable
+            // options {
+            //     // Lock on OCP API as we want only one run at a time
+            //     lock("BDD tests on OCP API ${getLockOpenshiftApi()}")
+            // }
             steps {
                 script {
                     // Catch and set unstable so the temp image is still pushed and we get the deployment properties,
@@ -298,8 +301,12 @@ String getOperatorVersion() {
 
 // Special method to get the Openshift API in the lock because env is not accessible yet
 void getLockOpenshiftApi() {
-    withCredentials([string(credentialsId: 'OPENSHIFT_API', variable: 'OPENSHIFT_API')]) {
-        return env.OPENSHIFT_API
+    if (env.CRC_ENABLED) {
+        return env.CRC_API
+    } else {
+        withCredentials([string(credentialsId: 'OPENSHIFT_API', variable: 'OPENSHIFT_API')]) {
+            return env.OPENSHIFT_API
+        }
     }
 }
 
