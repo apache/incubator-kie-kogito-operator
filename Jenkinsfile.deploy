@@ -71,14 +71,12 @@ pipeline {
                     if (CRC_ENABLED) {
                         timeout(time: 30, unit: 'MINUTES') {
                             waitUntil {
-                                echo 'Trying to connect to CRC...'
-                                try {
-                                    openshift.loginOpenshift()
-                                    return true
-                                } catch (err) {
-                                    echo 'Failed trying to connect to CRC'
-                                    return false
-                                }
+                                // TODO to remove ls
+                                sh 'ls -al ~'
+                                sh 'ls -al ${HOME}'
+                                boolean crcStarted = fileExists(file: '~/.crc_started')
+                                echo "Checking availability of CRC... ${crcStarted ? 'OK' : 'KO'}"
+                                return crcStarted
                             }
                         }
                     } else {
