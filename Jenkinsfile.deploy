@@ -71,10 +71,7 @@ pipeline {
                     if (CRC_ENABLED) {
                         timeout(time: 30, unit: 'MINUTES') {
                             waitUntil {
-                                // TODO to remove ls
-                                sh 'ls -al ~'
-                                sh 'ls -al ${HOME}'
-                                boolean crcStarted = fileExists(file: '~/.crc_started')
+                                boolean crcStarted = fileExists(file: "${HOME}/.crc_started")
                                 echo "Checking availability of CRC... ${crcStarted ? 'OK' : 'KO'}"
                                 return crcStarted
                             }
