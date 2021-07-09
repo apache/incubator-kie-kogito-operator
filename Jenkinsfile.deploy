@@ -24,8 +24,6 @@ pipeline {
     environment {
         // Static env is defined into .jenkins/dsl/jobs.groovy file
 
-        JAVA_HOME = "${GRAALVM_HOME}"
-
         BOT_BRANCH_HASH = "${util.generateHash(10)}"
 
         // Environment required by OLM tests when run from process
@@ -41,8 +39,17 @@ pipeline {
         GOPATH = "${GOLANG_DIR}/gopath"
         GOENV = "${GOLANG_DIR}/goenv"
         GOCACHE = "${GOLANG_DIR}/gocache"
-        PATH = "${HOME}/.local/bin:${GOROOT}/bin:${GOPATH}/bin:${PATH}"
+
         CRC_API = 'https://api.crc.testing:6443/'
+
+        MVN_VERSION = '3.6.3'
+        MVN_DIR = "/tmp/maven-bin/${MVN_VERSION}"
+
+        GRAALVM_VERSION = '21.1.0'
+        GRAALVM_DIR = "/tmp/graalvm-bin/${MVN_VERSION}"
+        JAVA_HOME = "${GRAALVM_DIR}/graalvm-ce-java11-${GRAALVM_VERSION}"
+
+        PATH = "${HOME}/.local/bin:${GOROOT}/bin:${GOPATH}/bin:${MVN_DIR}/apache-maven-${MVN_VERSION}/bin:${JAVA_HOME}/bin:${PATH}"
     }
 
     stages {
@@ -81,6 +88,23 @@ pipeline {
                     } else {
                         openshift.loginOpenshift()
                     }
+
+                    // TODO temp solution
+                    dir("${GRAALVM_DIR}") {
+                        sh """
+                            wget --no-verbose https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-${GRAALVM_VERSION}/graalvm-ce-java11-linux-amd64-${GRAALVM_VERSION}.tar.gz
+                            tar xzvf graalvm-ce-java11-linux-amd64-${GRAALVM_VERSION}.tar.gz
+                            java -version
+                        """
+                    }
+                    dir("${MVN_DIR}") {
+                        sh """
+                            wget --no-verbose https://miroir.univ-lorraine.fr/apache/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.tar.gz
+                            tar xzvf apache-maven-${MVN_VERSION}-bin.tar.gz
+                            mvn --version
+                        """
+                    }
+                    // END Temp solution
 
                     sh '''
                         source /home/hudson/cekit/bin/activate
