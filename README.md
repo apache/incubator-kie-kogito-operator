@@ -411,6 +411,7 @@ All options from BDD tests do also apply here.
 | @kafka             | Tests using the kafka operator                                                     |
 | @keycloak          | Tests using the keycloak operator                                                  |
 | @knative           | Tests using the Knative functionality                                              |
+| @postgresql        | Tests using the PostgreSQL functionality                                           |
 
 ### Running the Kogito Operator locally
 
@@ -501,3 +502,4 @@ Kogito operator integrates with various other technologies and operators. The te
 | Prometheus         | Prometheus operator 0.47.0 (deployed by OLM `beta` channel)   |
 | Grafana            | Grafana operator 3.10.1 (deployed by OLM `alpha` channel)     |
 | MongoDB            | MongoDB Community Kubernetes Operator 0.2.2                   |
+| PostgreSQL         | PostgreSQL 12.7 (deployed directly using image)               |
