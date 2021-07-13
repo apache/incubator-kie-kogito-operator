@@ -5,5 +5,6 @@
 - [RHPAM-3681](https://issues.redhat.com/browse/RHPAM-3681) - Missing metering labels for Kogito pods
 
 ## Bug Fixes
+- [KOGITO-5478](https://issues.redhat.com/browse/KOGITO-5478) - Management console does not work on OpenShift
 
 ## Known Issues
