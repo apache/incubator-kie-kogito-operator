@@ -127,7 +127,7 @@ func (r *removeSupportingServiceCommand) Exec(cmd *cobra.Command, args []string)
 		return err
 	}
 
-	var targetServiceItems []*v1beta1.KogitoSupportingService
+	var targetServiceItems []v1beta1.KogitoSupportingService
 	for _, supportingService := range supportingServiceList.Items {
 		if supportingService.Spec.ServiceType == r.supportingService.serviceType {
 			targetServiceItems = append(targetServiceItems, supportingService)
@@ -139,7 +139,7 @@ func (r *removeSupportingServiceCommand) Exec(cmd *cobra.Command, args []string)
 		return nil
 	}
 	for _, targetService := range targetServiceItems {
-		if err = kubernetes.ResourceC(r.Client).Delete(targetService); err != nil {
+		if err = kubernetes.ResourceC(r.Client).Delete(&targetService); err != nil {
 			return fmt.Errorf("error occurs while delete Service %s from namespace %s. Error %s", r.supportingService.cmdName, targetService.Name, err)
 		}
 		log.Infof("Service %s named %s from namespace %s has been successfully removed", r.supportingService.cmdName, targetService.Name, targetService.Namespace)

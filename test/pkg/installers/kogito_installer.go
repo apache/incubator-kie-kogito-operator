@@ -155,7 +155,7 @@ func getKogitoCrsInNamespace(namespace string) ([]kubernetes.ResourceObject, err
 		return nil, err
 	}
 	for i := range kogitoSupportingServices.Items {
-		crs = append(crs, kogitoSupportingServices.Items[i])
+		crs = append(crs, &kogitoSupportingServices.Items[i])
 	}
 
 	kogitoInfras := &v1beta1.KogitoInfraList{}
