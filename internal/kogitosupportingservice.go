@@ -50,9 +50,11 @@ func (k kogitoSupportingServiceHandler) FetchKogitoSupportingService(key types.N
 }
 
 func (k kogitoSupportingServiceHandler) FetchKogitoSupportingServiceList(namespace string) (api.KogitoSupportingServiceListInterface, error) {
+	k.Log.Debug("going to fetch all deployed kogito supporting service")
 	supportingServiceList := &v1beta1.KogitoSupportingServiceList{}
 	if err := kubernetes.ResourceC(k.Client).ListWithNamespace(namespace, supportingServiceList); err != nil {
 		return nil, err
 	}
+	k.Log.Debug("Deployed kogito supporting service", "count", len(supportingServiceList.Items))
 	return supportingServiceList, nil
 }

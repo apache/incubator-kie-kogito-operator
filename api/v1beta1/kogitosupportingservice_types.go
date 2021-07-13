@@ -111,7 +111,8 @@ type KogitoSupportingServiceList struct {
 func (k *KogitoSupportingServiceList) GetItems() []api.KogitoSupportingServiceInterface {
 	models := make([]api.KogitoSupportingServiceInterface, len(k.Items))
 	for i, v := range k.Items {
-		models[i] = &v
+		item := v
+		models[i] = &item
 	}
 	return models
 }
