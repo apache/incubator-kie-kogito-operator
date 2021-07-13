@@ -675,13 +675,9 @@ func (in *KogitoSupportingServiceList) DeepCopyInto(out *KogitoSupportingService
 	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
-		*out = make([]*KogitoSupportingService, len(*in))
+		*out = make([]KogitoSupportingService, len(*in))
 		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(KogitoSupportingService)
-				(*in).DeepCopyInto(*out)
-			}
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 }

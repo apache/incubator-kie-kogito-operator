@@ -104,14 +104,15 @@ func (k *KogitoSupportingService) GetSupportingServiceStatus() api.KogitoSupport
 type KogitoSupportingServiceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []*KogitoSupportingService `json:"items"`
+	Items           []KogitoSupportingService `json:"items"`
 }
 
 // GetItems ...
 func (k *KogitoSupportingServiceList) GetItems() []api.KogitoSupportingServiceInterface {
 	models := make([]api.KogitoSupportingServiceInterface, len(k.Items))
 	for i, v := range k.Items {
-		models[i] = v
+		item := v
+		models[i] = &item
 	}
 	return models
 }

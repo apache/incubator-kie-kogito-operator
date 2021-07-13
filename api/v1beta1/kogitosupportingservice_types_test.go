@@ -23,7 +23,7 @@ import (
 
 func TestGetItems(t *testing.T) {
 	kogitoSupportingServiceList := &KogitoSupportingServiceList{
-		Items: []*KogitoSupportingService{
+		Items: []KogitoSupportingService{
 			{
 				ObjectMeta: v1.ObjectMeta{
 					Name: "data-index",
