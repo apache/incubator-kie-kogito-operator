@@ -125,7 +125,7 @@ String getOperatorVersion() {
 
 // Special method to get the Openshift API in the lock because env is not accessible yet
 void getLockOpenshiftApi() {
-    withCredentials([string(credentialsId: 'OPENSHIFT_API', variable: 'OPENSHIFT_API')]) {
+    withCredentials([string(credentialsId: 'OPENSHIFT_API_EXTERNAL', variable: 'OPENSHIFT_API')]) {
         return env.OPENSHIFT_API
     }
 }
