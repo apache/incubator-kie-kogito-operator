@@ -1,5 +1,7 @@
 # Kogito Operator
 
+test update
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator)
 
 The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
@@ -9,7 +11,6 @@ For information about the Kogito Operator architecture and instructions for usin
 Table of Contents
 =================
 
-* [Kogito Operator](#kogito-operator)
 * [Trying the Kogito Operator](#trying-the-kogito-operator)
 * [Using Kogito Custom Resources as a dependency](#using-kogito-custom-resources-as-a-dependency)
 * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
