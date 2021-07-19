@@ -119,7 +119,8 @@ type KogitoRuntimeList struct {
 func (k *KogitoRuntimeList) GetItems() []api.KogitoRuntimeInterface {
 	models := make([]api.KogitoRuntimeInterface, len(k.Items))
 	for i, v := range k.Items {
-		models[i] = &v
+		item := v
+		models[i] = &item
 	}
 	return models
 }

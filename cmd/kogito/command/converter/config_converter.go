@@ -20,7 +20,6 @@ import (
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +29,8 @@ const (
 	configMapSuffix     = "custom-properties"
 	createdByAnnonKey   = "createdBy"
 	createdByAnnonValue = "Kogito CLI"
+	// ConfigMapApplicationPropertyKey ...
+	ConfigMapApplicationPropertyKey = "application.properties"
 )
 
 // FromConfigFlagsToMap converts a config flag in the format of key=value pairs to map
@@ -44,7 +45,10 @@ func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *fl
 		return "", nil
 	}
 	cm := &v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("%s-%s", name, configMapSuffix), Namespace: project},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", name, configMapSuffix),
+			Namespace: project,
+		},
 	}
 	fileContent, err := ioutil.ReadFile(flags.ConfigFile)
 	if err != nil {
@@ -55,7 +59,7 @@ func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *fl
 		return "", err
 	}
 	cm.Data = map[string]string{
-		kogitoservice.ConfigMapApplicationPropertyKey: string(fileContent),
+		ConfigMapApplicationPropertyKey: string(fileContent),
 	}
 	if cm.Annotations == nil {
 		cm.Annotations = map[string]string{}

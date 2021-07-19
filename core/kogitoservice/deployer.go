@@ -17,7 +17,6 @@ package kogitoservice
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/internal"
@@ -64,6 +63,8 @@ type ServiceDefinition struct {
 	CustomService bool
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
 	extraManagedObjectLists []runtime.Object
+
+	OnConfigMapReconcile func() (reconcileInterval time.Duration, err error)
 }
 
 const (
@@ -122,14 +123,6 @@ func (s *serviceDeployer) Deploy() (time.Duration, error) {
 	statusHandler := NewStatusHandler(s.Context)
 	defer statusHandler.HandleStatusUpdate(s.instance, &err)
 
-	// we need to take ownership of the custom configmap provided
-	if len(s.instance.GetSpec().GetPropertiesConfigMap()) > 0 {
-		reconcileAfter, err := s.takeCustomConfigMapOwnership()
-		if err != nil || reconcileAfter > 0 {
-			return reconcileAfter, err
-		}
-	}
-
 	// we need to take ownership of the provided KogitoInfra instances
 	if len(s.instance.GetSpec().GetInfra()) > 0 {
 		err = s.takeKogitoInfraOwnership()
@@ -155,6 +148,13 @@ func (s *serviceDeployer) Deploy() (time.Duration, error) {
 		return s.getReconcileResultFor(err)
 	} else if len(imageName) == 0 {
 		return s.getReconcileResultFor(fmt.Errorf("image not found"))
+	}
+
+	configMapReconciler := NewConfigMapReconciler(s.Context, s, s.infraHandler)
+	if reconcileInterval, err := configMapReconciler.Reconcile(); err != nil {
+		return s.getReconcileResultFor(err)
+	} else if reconcileInterval > 0 {
+		return reconcileInterval, nil
 	}
 
 	// create our resources
@@ -208,16 +208,6 @@ func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, res
 	for _, newResource := range addedResources {
 		s.recorder.Eventf(s.Client, s.instance, v1.EventTypeNormal, eventReason, "%s %s: %s", eventReason, resourceType.Name(), newResource.GetName())
 	}
-}
-
-func (s *serviceDeployer) takeCustomConfigMapOwnership() (requeueAfter time.Duration, err error) {
-	configMapHandler := infrastructure.NewConfigMapHandler(s.Context, s.recorder)
-	if updated, err := configMapHandler.TakeConfigMapOwnership(types.NamespacedName{Name: s.instance.GetSpec().GetPropertiesConfigMap(), Namespace: s.getNamespace()}, s.instance); err != nil {
-		return 0, err
-	} else if !updated {
-		return 0, nil
-	}
-	return time.Second * 15, nil
 }
 
 func (s *serviceDeployer) takeKogitoInfraOwnership() error {

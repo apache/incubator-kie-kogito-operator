@@ -18,7 +18,6 @@ import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/connector"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	controller1 "sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
@@ -59,10 +58,10 @@ func (d *dataIndexSupportingServiceResource) Reconcile() (reconcileAfter time.Du
 		return
 	}
 	definition := kogitoservice.ServiceDefinition{
-		DefaultImageName:   DefaultDataIndexImageName,
-		OnDeploymentCreate: d.dataIndexOnDeploymentCreate,
-		KafkaTopics:        dataIndexKafkaTopics,
-		Request:            controller1.Request{NamespacedName: types.NamespacedName{Name: d.instance.GetName(), Namespace: d.instance.GetNamespace()}},
+		DefaultImageName:     DefaultDataIndexImageName,
+		KafkaTopics:          dataIndexKafkaTopics,
+		Request:              controller1.Request{NamespacedName: types.NamespacedName{Name: d.instance.GetName(), Namespace: d.instance.GetNamespace()}},
+		OnConfigMapReconcile: d.OnConfigMapReconcile,
 	}
 	return kogitoservice.NewServiceDeployer(d.Context, definition, d.instance, d.infraHandler).Deploy()
 }
@@ -75,15 +74,7 @@ var dataIndexKafkaTopics = []string{
 	"kogito-variables-events",
 }
 
-func (d *dataIndexSupportingServiceResource) dataIndexOnDeploymentCreate(deployment *appsv1.Deployment) error {
-	if len(deployment.Spec.Template.Spec.Containers) > 0 {
-		protoBufHandler := connector.NewProtoBufHandler(d.Context, d.supportingServiceHandler)
-		if err := protoBufHandler.MountProtoBufConfigMapsOnDeployment(deployment); err != nil {
-			return err
-		}
-	} else {
-		d.Log.Warn("No container definition found for", "Service", d.instance.GetName())
-		d.Log.Warn("Skipping applying custom Data Index deployment configuration")
-	}
-	return nil
+func (d *dataIndexSupportingServiceResource) OnConfigMapReconcile() (reconcileInterval time.Duration, err error) {
+	protoBufConfigMapReconciler := connector.NewProtoBufConfigMapReconciler(d.Context, d.instance, d.runtimeHandler)
+	return protoBufConfigMapReconciler.Reconcile()
 }

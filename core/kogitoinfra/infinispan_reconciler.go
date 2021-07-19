@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
@@ -242,6 +243,13 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 	if err != nil || tlsSecret == nil {
 		return err
 	}
+
+	fileMode, err := strconv.Atoi(framework.ModeForCertificates)
+	if err != nil {
+		return err
+	}
+	fileModeInt32 := int32(fileMode)
+
 	var volumes []api.KogitoInfraVolumeInterface
 	volume := v1beta1.KogitoInfraVolume{
 		Mount: corev1.VolumeMount{
@@ -259,10 +267,10 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 						{
 							Key:  truststoreSecretKey,
 							Path: truststoreSecretKey,
-							Mode: &framework.ModeForCertificates,
+							Mode: &fileModeInt32,
 						},
 					},
-					DefaultMode: &framework.ModeForCertificates,
+					DefaultMode: &fileModeInt32,
 				},
 			},
 		},

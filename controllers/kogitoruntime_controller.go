@@ -88,19 +88,12 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 	}
 
 	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
-	protoBufHandler := connector.NewProtoBufHandler(context, supportingServiceHandler)
-	if err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance); err != nil {
-		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
-		return
-	}
-
 	deploymentHandler := NewRuntimeDeployerHandler(context, instance, supportingServiceHandler, runtimeHandler)
 	definition := kogitoservice.ServiceDefinition{
 		Request:            req,
 		DefaultImageTag:    infrastructure.LatestTag,
 		SingleReplica:      false,
 		OnDeploymentCreate: deploymentHandler.OnDeploymentCreate,
-		OnObjectsCreate:    deploymentHandler.OnObjectsCreate,
 		OnGetComparators:   deploymentHandler.OnGetComparators,
 		CustomService:      true,
 	}
@@ -113,7 +106,15 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		log.Info("Waiting for all resources to be created, re-scheduling.", "requeueAfter", requeueAfter)
 		result.RequeueAfter = requeueAfter
 		result.Requeue = true
+		return
 	}
+
+	protoBufHandler := connector.NewProtoBufHandler(context, supportingServiceHandler)
+	if err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance); err != nil {
+		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
+		return
+	}
+
 	log.Debug("Finish reconciliation", "requeue", result.Requeue, "requeueAfter", result.RequeueAfter)
 	return
 }

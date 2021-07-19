@@ -19,9 +19,9 @@ import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/kiegroup/kogito-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	test3 "github.com/kiegroup/kogito-operator/core/test"
 	v1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
@@ -93,7 +93,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 }
 
-func Test_DeployCmd_WithCustomConfig(t *testing.T) {
+func Test_InstallSupportingServiceCmd__WithCustomConfigFile(t *testing.T) {
 	tempFile, err := ioutil.TempFile("", "application.properties")
 	assert.NoError(t, err)
 	properties := `
@@ -136,7 +136,7 @@ my.nice.property=socool
 	exists, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(cm)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.Contains(t, cm.Data[kogitoservice.ConfigMapApplicationPropertyKey], "quarkus.log.level")
+	assert.Contains(t, cm.Data[converter.ConfigMapApplicationPropertyKey], "quarkus.log.level")
 }
 
 func Test_DeployCmd_SWFile(t *testing.T) {
