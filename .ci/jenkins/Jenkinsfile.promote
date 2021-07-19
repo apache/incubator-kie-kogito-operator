@@ -44,9 +44,9 @@ pipeline {
 
                     if (helper.isRelease()) {
                         // Verify version is set and if on right release branch
-                        assert helper.getProjectVersion()
+                        assert helper.getKogitoVersion()
 
-                        assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
+                        assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getKogitoVersion())
                     }
 
                     helper.installGitHubReleaseCLI()

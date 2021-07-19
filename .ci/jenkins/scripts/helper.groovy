@@ -76,11 +76,11 @@ void createRelease() {
         githubscm.removeRemoteTag('origin', getGitTag(), getGitAuthorCredsID())
     }
 
-    sh "make build-cli release=true version=${getProjectVersion()}"
-    def releaseName = "Kogito Operator and CLI Version ${getProjectVersion()}"
+    sh "make build-cli release=true version=${getKogitoVersion()}"
+    def releaseName = "Kogito Operator and CLI Version ${getKogitoVersion()}"
     def description = 'Kogito Operator is a Kubernetes based operator for Kogito Runtimes\' deployment from the source. Additionally, to facilitate interactions with the operator, we also offer a CLI (Command Line Interface) to deploy Kogito applications.'
     def releasePath = 'build/_output/release/'
-    def cliBaseName = "kogito-cli-${getProjectVersion()}"
+    def cliBaseName = "kogito-cli-${getKogitoVersion()}"
     def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
     def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
     def windowsFileName = "${cliBaseName}-windows-amd64.zip"
@@ -265,6 +265,10 @@ boolean isCreatePr() {
     return params.CREATE_PR
 }
 
+boolean isPrMergeAutomatically() {
+    return params.MERGE_PR_AUTOMATICALLY
+}
+
 String getRepoName() {
     return env.REPO_NAME
 }
@@ -282,7 +286,7 @@ String getGitAuthorCredsID() {
 }
 
 String getBotBranch() {
-    return "${getProjectVersion()}-${env.BOT_BRANCH_HASH}"
+    return "${getKogitoVersion()}-${env.BOT_BRANCH_HASH}"
 }
 
 String getBotAuthor() {
@@ -293,12 +297,12 @@ String getBotAuthorCredsID() {
     return env.BOT_CREDENTIALS_ID
 }
 
-String getProjectVersion() {
-    return properties.retrieve('project.version') ?: params.PROJECT_VERSION
+String getKogitoVersion() {
+    return properties.retrieve('kogito.version') ?: params.KOGITO_VERSION
 }
 
 String getNextVersion() {
-    return util.getNextVersion(getProjectVersion(), 'micro', 'snapshot')
+    return util.getNextVersion(getKogitoVersion(), 'micro', 'snapshot')
 }
 
 String getSnapshotBranch() {
@@ -318,7 +322,7 @@ String getDeployPropertiesFileUrl() {
 }
 
 String getGitTag() {
-    return params.GIT_TAG != '' ? params.GIT_TAG : "v${getProjectVersion()}"
+    return params.GIT_TAG != '' ? params.GIT_TAG : "v${getKogitoVersion()}"
 }
 
 boolean isDeployLatestTag() {

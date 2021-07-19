@@ -123,7 +123,8 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
             }
 
             booleanParam('CREATE_PR', false, 'Should we create a PR with the changes ?')
-            stringParam('PROJECT_VERSION', '', 'Optional if not RELEASE. If RELEASE, cannot be empty.')
+            booleanParam('MERGE_PR_AUTOMATICALLY', false, 'Should the created PR merged automatically ?')
+            stringParam('KOGITO_VERSION', '', 'Optional if not RELEASE. If RELEASE, cannot be empty.')
 
             // Build&Test information
             booleanParam('SKIP_TESTS', false, 'Skip tests')
@@ -222,7 +223,7 @@ void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
             booleanParam('DEPLOY_WITH_LATEST_TAG', false, 'Set to true if you want the deployed images to also be with the `latest` tag')
 
             // Release information which can override  `deployment.properties`
-            stringParam('PROJECT_VERSION', '', 'Override `deployment.properties`. Optional if not RELEASE. If RELEASE, cannot be empty.')
+            stringParam('KOGITO_VERSION', '', 'Override `deployment.properties`. Optional if not RELEASE. If RELEASE, cannot be empty.')
             stringParam('GIT_TAG', '', 'Git tag to set, if different from v{KOGITO_VERSION}')
 
             booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
@@ -350,7 +351,7 @@ void setupExamplesImagesPromoteJob(String jobFolder, KogitoJobType jobType) {
             booleanParam('DEPLOY_WITH_LATEST_TAG', false, 'Set to true if you want the deployed images to also be with the `latest` tag')
 
             // Release information which can override  `deployment.properties`
-            stringParam('PROJECT_VERSION', '', 'Override `deployment.properties`. If env.RELEASE, cannot be empty.')
+            stringParam('KOGITO_VERSION', '', 'Override `deployment.properties`. If env.RELEASE, cannot be empty.')
 
             booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
