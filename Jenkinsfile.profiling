@@ -111,6 +111,9 @@ pipeline {
         }
     }
     post {
+        unsuccessful {
+            sendNotification()
+        }
         cleanup {
             script {
                 util.cleanNode(containerEngine)
@@ -131,8 +134,8 @@ void getLockOpenshiftApi() {
 }
 
 void sendNotification() {
-    emailext body: "Kogito Operator daily Profiling #${BUILD_NUMBER} was: ${currentBuild.currentResult}\nPlease look here: ${BUILD_URL}",
-             subject: "[${params.BUILD_BRANCH_NAME}][d] Operator Profiling",
+    emailext body: "Daily Profiling #${BUILD_NUMBER} was: ${currentBuild.currentResult}\nPlease look here: ${BUILD_URL}",
+             subject: "[${helper.getBuildBranch()}] Kogito Operator",
              to: env.KOGITO_CI_EMAIL_TO
 }
 
