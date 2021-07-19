@@ -225,6 +225,8 @@ func (installer *YamlClusterWideServiceInstaller) Install(namespace string) erro
 		return err
 	}
 
+	framework.OnNamespacePostCreated(installer.InstallationNamespace)
+
 	return installer.WaitForClusterYamlServiceRunning()
 }
 
@@ -234,7 +236,11 @@ func (installer *YamlClusterWideServiceInstaller) getAllCrsInNamespace(namespace
 
 func (installer *YamlClusterWideServiceInstaller) uninstallFromCluster() error {
 	stopNamespaceMonitoring(installer.InstallationNamespace)
-	return installer.UninstallClusterYaml()
+	if err := installer.UninstallClusterYaml(); err != nil {
+		return err
+	}
+	framework.OnNamespacePostDeleted(installer.InstallationNamespace)
+	return nil
 }
 
 func (installer *YamlClusterWideServiceInstaller) getServiceName() string {
@@ -257,7 +263,7 @@ var _ NamespacedServiceInstaller = &OlmNamespacedServiceInstaller{}
 type OlmNamespacedServiceInstaller struct {
 	SubscriptionName             string
 	Channel                      string
-	Catalog                      framework.OperatorCatalog
+	Catalog                      func() framework.OperatorCatalog
 	InstallationTimeoutInMinutes int
 	// Return all CRs of this service which exists in this namespace
 	GetAllNamespacedOlmCrsInNamespace func(string) ([]kubernetes.ResourceObject, error)
@@ -272,11 +278,11 @@ func (installer *OlmNamespacedServiceInstaller) Install(namespace string) error 
 		installedNamespacedServices.Store(namespace, append(sis.([]NamespacedServiceInstaller), installer))
 	}
 
-	if err := framework.InstallOperator(namespace, installer.SubscriptionName, installer.Channel, installer.Catalog); err != nil {
+	if err := framework.InstallOperator(namespace, installer.SubscriptionName, installer.Channel, installer.Catalog()); err != nil {
 		return err
 	}
 
-	return framework.WaitForOperatorRunning(namespace, installer.SubscriptionName, installer.Catalog, installer.InstallationTimeoutInMinutes)
+	return framework.WaitForOperatorRunning(namespace, installer.SubscriptionName, installer.Catalog(), installer.InstallationTimeoutInMinutes)
 }
 
 func (installer *OlmNamespacedServiceInstaller) getAllCrsInNamespace(namespace string) ([]kubernetes.ResourceObject, error) {
@@ -284,7 +290,7 @@ func (installer *OlmNamespacedServiceInstaller) getAllCrsInNamespace(namespace s
 }
 
 func (installer *OlmNamespacedServiceInstaller) uninstallFromNamespace(namespace string) error {
-	subscription, err := framework.GetSubscription(namespace, installer.SubscriptionName, installer.Catalog)
+	subscription, err := framework.GetSubscription(namespace, installer.SubscriptionName, installer.Catalog())
 	if err != nil {
 		return err
 	}
@@ -312,7 +318,7 @@ var _ ClusterWideServiceInstaller = &OlmClusterWideServiceInstaller{}
 type OlmClusterWideServiceInstaller struct {
 	SubscriptionName             string
 	Channel                      string
-	Catalog                      framework.OperatorCatalog
+	Catalog                      func() framework.OperatorCatalog
 	InstallationTimeoutInMinutes int
 	// Return all CRs of this service which exists in this namespace
 	GetAllClusterWideOlmCrsInNamespace func(string) ([]kubernetes.ResourceObject, error)
@@ -325,14 +331,14 @@ func (installer *OlmClusterWideServiceInstaller) Install(namespace string) error
 	// Store cluster wide service installer to use for uninstalling purposes
 	if _, loaded := installedClusterWideServices.LoadOrStore(installer, true); loaded {
 		// Should be running already, wait until it is up
-		return framework.WaitForClusterWideOperatorRunning(installer.SubscriptionName, installer.Catalog, installer.InstallationTimeoutInMinutes)
+		return framework.WaitForClusterWideOperatorRunning(installer.SubscriptionName, installer.Catalog(), installer.InstallationTimeoutInMinutes)
 	}
 
-	if err := framework.InstallClusterWideOperator(installer.SubscriptionName, installer.Channel, installer.Catalog); err != nil {
+	if err := framework.InstallClusterWideOperator(installer.SubscriptionName, installer.Channel, installer.Catalog()); err != nil {
 		return err
 	}
 
-	return framework.WaitForClusterWideOperatorRunning(installer.SubscriptionName, installer.Catalog, installer.InstallationTimeoutInMinutes)
+	return framework.WaitForClusterWideOperatorRunning(installer.SubscriptionName, installer.Catalog(), installer.InstallationTimeoutInMinutes)
 }
 
 func (installer *OlmClusterWideServiceInstaller) getAllCrsInNamespace(namespace string) ([]kubernetes.ResourceObject, error) {
@@ -340,7 +346,7 @@ func (installer *OlmClusterWideServiceInstaller) getAllCrsInNamespace(namespace 
 }
 
 func (installer *OlmClusterWideServiceInstaller) uninstallFromCluster() error {
-	subscription, err := framework.GetClusterWideSubscription(installer.SubscriptionName, installer.Catalog)
+	subscription, err := framework.GetClusterWideSubscription(installer.SubscriptionName, installer.Catalog())
 	if err != nil {
 		return err
 	}
