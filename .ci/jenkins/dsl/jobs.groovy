@@ -3,6 +3,8 @@ import org.kie.jenkins.jobdsl.KogitoConstants
 import org.kie.jenkins.jobdsl.Utils
 import org.kie.jenkins.jobdsl.KogitoJobType
 
+JENKINSFILE_PATH = '.ci/jenkins'
+
 boolean isMainBranch() {
     return "${GIT_BRANCH}" == "${GIT_MAIN_BRANCH}"
 }
@@ -79,7 +81,7 @@ void setupPrJob(String jobFolder) {
 }
 
 void setupProfilingJob(String jobFolder) {
-    def jobParams = getJobParams('kogito-operator-profiling', jobFolder, 'Jenkinsfile.profiling', 'Kogito Cloud Operator Profiling')
+    def jobParams = getJobParams('kogito-operator-profiling', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
     jobParams.triggers = [ cron : '@midnight' ]
     KogitoJobTemplate.createPipelineJob(this, jobParams).with {
         parameters {
@@ -104,7 +106,7 @@ void setupProfilingJob(String jobFolder) {
 }
 
 void setupDeployJob(String jobFolder, KogitoJobType jobType) {
-    def jobParams = getJobParams('kogito-operator-deploy', jobFolder, 'Jenkinsfile.deploy', 'Kogito Cloud Operator Deploy')
+    def jobParams = getJobParams('kogito-operator-deploy', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
     if (jobType == KogitoJobType.PR) {
         jobParams.git.branch = '${GIT_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
@@ -192,7 +194,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
 }
 
 void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
-    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-operator-promote', jobFolder, 'Jenkinsfile.promote', 'Kogito Cloud Operator Promote')).with {
+    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-operator-promote', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.promote", 'Kogito Cloud Operator Promote')).with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
@@ -248,7 +250,7 @@ void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
 }
 
 void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
-    def jobParams = getJobParams('kogito-examples-images-deploy', jobFolder, 'Jenkinsfile.examples-images.deploy', 'Kogito Examples Images Deploy')
+    def jobParams = getJobParams('kogito-examples-images-deploy', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.examples-images.deploy", 'Kogito Examples Images Deploy')
     if (jobType == KogitoJobType.PR) {
         jobParams.git.branch = '${GIT_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
@@ -316,7 +318,7 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
 }
 
 void setupExamplesImagesPromoteJob(String jobFolder, KogitoJobType jobType) {
-    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-examples-images-promote', jobFolder, 'Jenkinsfile.examples-images.promote', 'Kogito Examples Images Promote')).with {
+    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-examples-images-promote', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.examples-images.promote", 'Kogito Examples Images Promote')).with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
