@@ -76,6 +76,13 @@ func (c *userProvidedConfigConfigMapReconciler) reconcileUserProvidedConfigMap()
 			updateRequire = true
 		}
 
+		if !framework.IsOwner(propertiesConfigMap, c.instance) {
+			if err := framework.AddOwnerReference(c.instance, c.Scheme, propertiesConfigMap); err != nil {
+				return err
+			}
+			updateRequire = true
+		}
+
 		if updateRequire {
 			if err := kubernetes.ResourceC(c.Client).Update(propertiesConfigMap); err != nil {
 				return err
