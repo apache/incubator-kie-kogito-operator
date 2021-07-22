@@ -66,6 +66,7 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.
 
 	// check if data-index service not exists then return
 	if dataIndexService == nil {
+		p.Log.Debug("Data-index service not exists, returning")
 		return
 	}
 
@@ -77,8 +78,10 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.
 
 	// If protobuf configmap not exists then create new configmap
 	if protoBufConfigMap == nil {
-		protoBufConfigMap = p.protoBufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
-
+		protoBufConfigMap, err = p.protoBufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
+		if err != nil {
+			return err
+		}
 		// set data-index service as owner of that configmap
 		if err = framework.SetOwner(dataIndexService, p.Scheme, protoBufConfigMap); err != nil {
 			return err

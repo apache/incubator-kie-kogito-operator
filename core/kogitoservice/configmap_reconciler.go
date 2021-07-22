@@ -17,12 +17,11 @@ package kogitoservice
 import (
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"time"
 )
 
 // ConfigMapReconciler ...
 type ConfigMapReconciler interface {
-	Reconcile() (time.Duration, error)
+	Reconcile() error
 }
 
 type configMapReconciler struct {
@@ -40,30 +39,21 @@ func NewConfigMapReconciler(context operator.Context, serviceDeployer *serviceDe
 	}
 }
 
-func (c *configMapReconciler) Reconcile() (reconcileInterval time.Duration, err error) {
+func (c *configMapReconciler) Reconcile() (err error) {
 	if c.serviceDeployer.definition.OnConfigMapReconcile != nil {
-		reconcileInterval, err = c.serviceDeployer.definition.OnConfigMapReconcile()
-		if err != nil {
+		if err = c.serviceDeployer.definition.OnConfigMapReconcile(); err != nil {
 			return
-		} else if reconcileInterval > 0 {
-			return reconcileInterval, nil
 		}
 	}
 
 	userProvidedConfigConfigMapReconciler := NewUserProvidedConfigConfigMapReconciler(c.Context, c.serviceDeployer.instance)
-	reconcileInterval, err = userProvidedConfigConfigMapReconciler.Reconcile()
-	if err != nil {
+	if err = userProvidedConfigConfigMapReconciler.Reconcile(); err != nil {
 		return
-	} else if reconcileInterval > 0 {
-		return reconcileInterval, nil
 	}
 
 	customConfigMapReconciler := NewAppConfigMapReconciler(c.Context, c.serviceDeployer.instance, c.infraHandler)
-	reconcileInterval, err = customConfigMapReconciler.Reconcile()
-	if err != nil {
+	if err = customConfigMapReconciler.Reconcile(); err != nil {
 		return
-	} else if reconcileInterval > 0 {
-		return reconcileInterval, nil
 	}
 
 	return

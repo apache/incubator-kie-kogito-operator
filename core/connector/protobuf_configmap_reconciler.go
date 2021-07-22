@@ -19,17 +19,15 @@ import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
-	"time"
 )
 
 // ProtoBufConfigMapReconciler ...
 type ProtoBufConfigMapReconciler interface {
-	Reconcile() (time.Duration, error)
+	Reconcile() error
 }
 
 type protoBufConfigMapReconciler struct {
@@ -37,7 +35,7 @@ type protoBufConfigMapReconciler struct {
 	instance                 api.KogitoSupportingServiceInterface
 	configMapHandler         infrastructure.ConfigMapHandler
 	protobufConfigMapHandler ProtoBufConfigMapHandler
-	deltaProcessor           kogitoservice.DeltaProcessor
+	deltaProcessor           infrastructure.DeltaProcessor
 	runtimeHandler           manager.KogitoRuntimeHandler
 }
 
@@ -48,12 +46,12 @@ func NewProtoBufConfigMapReconciler(context operator.Context, instance api.Kogit
 		instance:                 instance,
 		configMapHandler:         infrastructure.NewConfigMapHandler(context),
 		protobufConfigMapHandler: NewProtoBufConfigMapHandler(context),
-		deltaProcessor:           kogitoservice.NewDeltaProcessor(context),
+		deltaProcessor:           infrastructure.NewDeltaProcessor(context),
 		runtimeHandler:           runtimeHandler,
 	}
 }
 
-func (p *protoBufConfigMapReconciler) Reconcile() (reconcileInterval time.Duration, err error) {
+func (p *protoBufConfigMapReconciler) Reconcile() (err error) {
 	// Create Required resource
 	requestedResources, err := p.createRequiredResources()
 	if err != nil {
@@ -78,7 +76,10 @@ func (p *protoBufConfigMapReconciler) createRequiredResources() (map[reflect.Typ
 		return nil, err
 	}
 	for _, runtimeInstance := range runtimeInstances.GetItems() {
-		protoBufConfigMap := p.protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
+		protoBufConfigMap, err := p.protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
+		if err != nil {
+			return nil, err
+		}
 		if err := framework.SetOwner(p.instance, p.Scheme, protoBufConfigMap); err != nil {
 			return nil, err
 		}
@@ -104,7 +105,7 @@ func (p *protoBufConfigMapReconciler) getDeployedResources() (map[reflect.Type][
 	return resources, nil
 }
 
-func (p *protoBufConfigMapReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (reconcileInterval time.Duration, err error) {
+func (p *protoBufConfigMapReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
 	comparator := p.configMapHandler.GetComparator()
 	_, err = p.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return

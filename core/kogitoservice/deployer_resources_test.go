@@ -117,7 +117,14 @@ func Test_serviceDeployer_createRequiredResources_MountTrustStore_MissingCM(t *t
 	resources, err := deployer.createRequiredResources(imageName)
 	assert.Error(t, err)
 	assert.Empty(t, resources)
-	assert.Equal(t, api.TrustStoreMountFailureReason, reasonForError(err))
+	context := operator.Context{
+		Client:  cli,
+		Log:     test.TestLogger,
+		Scheme:  meta.GetRegisteredSchema(),
+		Version: version.Version,
+	}
+	errorHandler := infrastructure.NewReconciliationErrorHandler(context)
+	assert.Equal(t, infrastructure.TrustStoreMountFailureReason, errorHandler.GetReasonForError(err))
 }
 
 func assertDeployerNoErrorAndCreateResources(t *testing.T, deployer serviceDeployer, cli *client.Client, instance api.KogitoService) map[reflect.Type][]resource.KubernetesResource {

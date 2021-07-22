@@ -50,6 +50,7 @@ type ConfigMapHandler interface {
 	FetchConfigMapsForLabel(namespace string, labels map[string]string) (*corev1.ConfigMapList, error)
 	MountConfigMapOnDeployment(deployment *appsv1.Deployment, configMap *corev1.ConfigMap) error
 	GetComparator() compare.MapComparator
+	RemoveConfigMapOwnership(key types.NamespacedName, owner resource.KubernetesResource) (err error)
 }
 
 type configMapHandler struct {
@@ -202,4 +203,18 @@ func mountAsLiteral(deployment *appsv1.Deployment, configMap *corev1.ConfigMap) 
 		},
 	}
 	deployment.Spec.Template.Spec.Containers[0].EnvFrom = append(deployment.Spec.Template.Spec.Containers[0].EnvFrom, envFromSource)
+}
+
+func (c *configMapHandler) RemoveConfigMapOwnership(key types.NamespacedName, owner resource.KubernetesResource) (err error) {
+	c.Log.Info("Removing Configmap ownership", "configmap", key.Name, "owner", owner.GetName())
+	configMap, err := c.FetchConfigMap(key)
+	if err != nil || configMap == nil {
+		return
+	}
+	framework.RemoveOwnerReference(owner, configMap)
+	if err = kubernetes.ResourceC(c.Client).Update(configMap); err != nil {
+		return err
+	}
+	c.Log.Debug("Successfully removed Configmap ownership", "configmap", configMap.GetName(), "owner", owner.GetName())
+	return
 }

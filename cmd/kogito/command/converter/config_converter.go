@@ -29,8 +29,8 @@ const (
 	configMapSuffix     = "custom-properties"
 	createdByAnnonKey   = "createdBy"
 	createdByAnnonValue = "Kogito CLI"
-	// ConfigMapApplicationPropertyKey ...
-	ConfigMapApplicationPropertyKey = "application.properties"
+	// ConfigMapAppPropsFileName ...
+	ConfigMapAppPropsFileName = "application.properties"
 )
 
 // FromConfigFlagsToMap converts a config flag in the format of key=value pairs to map
@@ -59,7 +59,7 @@ func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *fl
 		return "", err
 	}
 	cm.Data = map[string]string{
-		ConfigMapApplicationPropertyKey: string(fileContent),
+		ConfigMapAppPropsFileName: string(fileContent),
 	}
 	if cm.Annotations == nil {
 		cm.Annotations = map[string]string{}

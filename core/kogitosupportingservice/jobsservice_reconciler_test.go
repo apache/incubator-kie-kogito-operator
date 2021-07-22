@@ -44,13 +44,11 @@ func TestReconcileKogitoJobsService_Reconcile(t *testing.T) {
 	}
 	// first reconciliation
 
-	requeueAfter, err := r.Reconcile()
+	err := r.Reconcile()
 	assert.NoError(t, err)
-	assert.True(t, requeueAfter == 0)
 	// second time
-	requeueAfter, err = r.Reconcile()
+	err = r.Reconcile()
 	assert.NoError(t, err)
-	assert.True(t, requeueAfter == 0)
 
 	_, err = kubernetes.ResourceC(cli).Fetch(jobsService)
 	assert.NoError(t, err)

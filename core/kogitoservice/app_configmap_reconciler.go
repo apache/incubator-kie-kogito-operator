@@ -25,19 +25,18 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
-	"time"
 )
 
 // AppConfigMapReconciler ...
 type AppConfigMapReconciler interface {
-	Reconcile() (time.Duration, error)
+	Reconcile() error
 }
 
 type appConfigMapReconciler struct {
 	operator.Context
 	instance            api.KogitoService
 	configMapHandler    infrastructure.ConfigMapHandler
-	deltaProcessor      DeltaProcessor
+	deltaProcessor      infrastructure.DeltaProcessor
 	infraManager        manager.KogitoInfraManager
 	appConfigMapHandler AppConfigMapHandler
 }
@@ -48,13 +47,13 @@ func NewAppConfigMapReconciler(context operator.Context, instance api.KogitoServ
 		Context:             context,
 		instance:            instance,
 		configMapHandler:    infrastructure.NewConfigMapHandler(context),
-		deltaProcessor:      NewDeltaProcessor(context),
+		deltaProcessor:      infrastructure.NewDeltaProcessor(context),
 		infraManager:        manager.NewKogitoInfraManager(context, infraHandler),
 		appConfigMapHandler: NewAppConfigMapHandler(context),
 	}
 }
 
-func (c *appConfigMapReconciler) Reconcile() (reconcileInterval time.Duration, err error) {
+func (c *appConfigMapReconciler) Reconcile() (err error) {
 
 	// Create Required resource
 	requestedResources, err := c.createRequiredResources()
@@ -111,7 +110,7 @@ func (c *appConfigMapReconciler) getDeployedResources() (map[reflect.Type][]reso
 	return resources, nil
 }
 
-func (c *appConfigMapReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (reconcileInterval time.Duration, err error) {
+func (c *appConfigMapReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
 	comparator := c.configMapHandler.GetComparator()
 	_, err = c.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return

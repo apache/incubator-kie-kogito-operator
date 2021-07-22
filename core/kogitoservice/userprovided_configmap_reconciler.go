@@ -23,7 +23,6 @@ import (
 	"github.com/kiegroup/kogito-operator/core/operator"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 const (
@@ -32,7 +31,7 @@ const (
 
 // UserProvidedConfigMapReconciler ...
 type UserProvidedConfigMapReconciler interface {
-	Reconcile() (time.Duration, error)
+	Reconcile() error
 }
 
 type userProvidedConfigConfigMapReconciler struct {
@@ -48,7 +47,7 @@ func NewUserProvidedConfigConfigMapReconciler(context operator.Context, instance
 	}
 }
 
-func (c *userProvidedConfigConfigMapReconciler) Reconcile() (reconcileInterval time.Duration, err error) {
+func (c *userProvidedConfigConfigMapReconciler) Reconcile() (err error) {
 	if err = c.reconcileUserProvidedConfigMap(); err != nil {
 		return
 	}
@@ -117,8 +116,9 @@ func appendVolumeMountAnnotations(configMap *corev1.ConfigMap) bool {
 		updateRequire = true
 	}
 
-	if annotations[infrastructure.FileModeKey] != framework.ModeForPropertyFiles {
-		annotations[infrastructure.FileModeKey] = framework.ModeForPropertyFiles
+	fileMode := fmt.Sprint(framework.ModeForPropertyFiles)
+	if annotations[infrastructure.FileModeKey] != fileMode {
+		annotations[infrastructure.FileModeKey] = fileMode
 		updateRequire = true
 	}
 	configMap.Annotations = annotations

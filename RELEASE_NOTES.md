@@ -1,11 +1,8 @@
 <!-- Keep them in alphabetical order -->
 ## Enhancements
-- [KOGITO-5127](https://issues.redhat.com/browse/KOGITO-5127) - Guide for new Kogito operator developers
-- [KOGITO-5446](https://issues.redhat.com/browse/KOGITO-5446) - Isolate Kogito Operator APIs into a new Go module and generate Kubernetes clients 
-- [RHPAM-3681](https://issues.redhat.com/browse/RHPAM-3681) - Missing metering labels for Kogito pods
 
 ## Bug Fixes
 - [KOGITO-5478](https://issues.redhat.com/browse/KOGITO-5478) - Management console does not work on OpenShift
 - [KOGITO-5512](https://issues.redhat.com/browse/KOGITO-5512) - controller-gen doesn't generate CRD's
-
+- [KOGITO-4470](https://issues.redhat.com/browse/KOGITO-4470) - ConfigMap required ownerReference as controller
 ## Known Issues

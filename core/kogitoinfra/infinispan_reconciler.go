@@ -17,15 +17,13 @@ package kogitoinfra
 import (
 	"context"
 	"fmt"
-	"sort"
-	"strconv"
-
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"software.sslmate.com/src/go-pkcs12"
+	"sort"
 
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -243,13 +241,6 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 	if err != nil || tlsSecret == nil {
 		return err
 	}
-
-	fileMode, err := strconv.Atoi(framework.ModeForCertificates)
-	if err != nil {
-		return err
-	}
-	fileModeInt32 := int32(fileMode)
-
 	var volumes []api.KogitoInfraVolumeInterface
 	volume := v1beta1.KogitoInfraVolume{
 		Mount: corev1.VolumeMount{
@@ -267,10 +258,10 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 						{
 							Key:  truststoreSecretKey,
 							Path: truststoreSecretKey,
-							Mode: &fileModeInt32,
+							Mode: &framework.ModeForCertificates,
 						},
 					},
-					DefaultMode: &fileModeInt32,
+					DefaultMode: &framework.ModeForCertificates,
 				},
 			},
 		},

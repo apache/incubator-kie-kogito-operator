@@ -33,38 +33,6 @@ const (
 	FailedConditionType KogitoServiceConditionType = "Failed"
 )
 
-// KogitoServiceConditionReason is the type of reason
-type KogitoServiceConditionReason string
-
-const (
-	// CreateResourceFailedReason - Unable to create the requested resources
-	CreateResourceFailedReason KogitoServiceConditionReason = "CreateResourceFailed"
-	// KogitoInfraNotReadyReason - Unable to deploy Kogito Infra
-	KogitoInfraNotReadyReason KogitoServiceConditionReason = "KogitoInfraNotReadyReason"
-	// ServiceReconciliationFailure - Unable to determine the error
-	ServiceReconciliationFailure KogitoServiceConditionReason = "ReconciliationFailure"
-	// MessagingIntegrationFailureReason ...
-	MessagingIntegrationFailureReason KogitoServiceConditionReason = "MessagingProvisionFailure"
-	// MonitoringIntegrationFailureReason ...
-	MonitoringIntegrationFailureReason KogitoServiceConditionReason = "MonitoringIntegrationFailure"
-	// InternalServiceNotReachable ...
-	InternalServiceNotReachable KogitoServiceConditionReason = "InternalServiceNotReachable"
-	// SuccessfulDeployedReason ...
-	SuccessfulDeployedReason KogitoServiceConditionReason = "AtLeastOnePodAvailable"
-	// FailedDeployedReason ...
-	FailedDeployedReason KogitoServiceConditionReason = "NoPodAvailable"
-	// ProvisioningInProgressReason ...
-	ProvisioningInProgressReason KogitoServiceConditionReason = "RequestedReplicasNotEqualToAvailableReplicas"
-	// FailedProvisioningReason ...
-	FailedProvisioningReason KogitoServiceConditionReason = "UnrecoverableError"
-	// FinishedProvisioningReason ...
-	FinishedProvisioningReason KogitoServiceConditionReason = "RequestedReplicasEqualToAvailableReplicas"
-	// TrustStoreMountFailureReason happens when the controller tries to mount a given TrustStore in the target service and fails
-	TrustStoreMountFailureReason KogitoServiceConditionReason = "TrustStoreMountFailure"
-	// ImageStreamNotReadyReason - Unable to deploy Kogito Infra
-	ImageStreamNotReadyReason KogitoServiceConditionReason = "ImageStreamNotReadyReason"
-)
-
 // KogitoService defines the interface for any Kogito service that the operator can handle, e.g. Data Index, Jobs Service, Runtimes, etc.
 type KogitoService interface {
 	metav1.Object

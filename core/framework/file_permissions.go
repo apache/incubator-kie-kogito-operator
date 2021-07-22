@@ -20,9 +20,9 @@ Variables because most Kubernetes resources access this attribute by reference
 
 var (
 	// ModeForCertificates unix file mode for certificates.
-	ModeForCertificates = "0640"
+	ModeForCertificates = int32(0640)
 	// ModeForPropertyFiles unix file mode for application property files.
-	ModeForPropertyFiles = "0644"
+	ModeForPropertyFiles = int32(0644)
 	// ModeForProtoBufConfigMapVolume mode for Proto Buf config map volume
-	ModeForProtoBufConfigMapVolume = "0644"
+	ModeForProtoBufConfigMapVolume = int32(0644)
 )

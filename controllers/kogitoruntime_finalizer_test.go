@@ -40,7 +40,7 @@ func TestReconcileKogitoRuntimeFinalizer_AddFinalizer_Kubernetes(t *testing.T) {
 	}}
 	_, err := kubernetes.ResourceC(cli).Fetch(updatedInstance)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(updatedInstance.GetFinalizers()))
+	assert.Equal(t, 2, len(updatedInstance.GetFinalizers()))
 }
 
 func TestReconcileKogitoRuntimeFinalizer_AddFinalizer_Openshift(t *testing.T) {
@@ -57,7 +57,7 @@ func TestReconcileKogitoRuntimeFinalizer_AddFinalizer_Openshift(t *testing.T) {
 	}}
 	_, err := kubernetes.ResourceC(cli).Fetch(updatedInstance)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(updatedInstance.GetFinalizers()))
+	assert.Equal(t, 3, len(updatedInstance.GetFinalizers()))
 }
 
 func TestReconcileKogitoRuntimeFinalizer_RemoveFinalizer_kubernetes(t *testing.T) {

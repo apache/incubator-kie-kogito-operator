@@ -44,7 +44,7 @@ func TestUserProvidedConfigMapReconcile(t *testing.T) {
 		Scheme: meta.GetRegisteredSchema(),
 	}
 	userProvidedConfigMapReconciler := NewUserProvidedConfigConfigMapReconciler(context, instance)
-	_, err := userProvidedConfigMapReconciler.Reconcile()
+	err := userProvidedConfigMapReconciler.Reconcile()
 	assert.NoError(t, err)
 
 	expectedConfigMap := &corev1.ConfigMap{ObjectMeta: v1.ObjectMeta{Name: "custom_config", Namespace: ns}}
@@ -65,6 +65,6 @@ func TestUserProvidedConfigMapReconcile_configMapNotExists(t *testing.T) {
 		Scheme: meta.GetRegisteredSchema(),
 	}
 	userProvidedConfigMapReconciler := NewUserProvidedConfigConfigMapReconciler(context, instance)
-	_, err := userProvidedConfigMapReconciler.Reconcile()
+	err := userProvidedConfigMapReconciler.Reconcile()
 	assert.Error(t, err)
 }

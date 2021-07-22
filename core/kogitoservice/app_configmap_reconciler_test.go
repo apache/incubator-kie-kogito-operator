@@ -41,9 +41,8 @@ func TestReconcile(t *testing.T) {
 	}
 	infraHandler := internal.NewKogitoInfraHandler(context)
 	appConfigMapReconciler := NewAppConfigMapReconciler(context, instance, infraHandler)
-	duration, err := appConfigMapReconciler.Reconcile()
+	err := appConfigMapReconciler.Reconcile()
 	assert.NoError(t, err)
-	assert.True(t, duration == 0)
 
 	appConfigMapHandler := NewAppConfigMapHandler(context)
 	configMap := &corev1.ConfigMap{ObjectMeta: v1.ObjectMeta{Name: appConfigMapHandler.GetAppConfigMapName(instance), Namespace: instance.Namespace}}

@@ -86,16 +86,32 @@ func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (
 		return
 	}
 	infraHandler := internal.NewKogitoInfraHandler(context)
-	finalizerHandler := kogitoservice.NewFinalizerHandler(context, infraHandler)
+	infraFinalizer := kogitoservice.NewInfraFinalizerHandler(context, infraHandler)
+	configMapFinalizer := kogitoservice.NewConfigMapFinalizerHandler(context)
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR
-		err = finalizerHandler.AddFinalizer(instance)
+		if err = infraFinalizer.AddFinalizer(instance); err != nil {
+			result.Requeue = true
+			return
+		}
+		if err = configMapFinalizer.AddFinalizer(instance); err != nil {
+			result.Requeue = true
+			return
+		}
 		return
 	}
 
 	// The object is being deleted
 	log.Info("KogitoSupportingService has been deleted")
-	err = finalizerHandler.HandleFinalization(instance)
+	if err = infraFinalizer.HandleFinalization(instance); err != nil {
+		result.Requeue = true
+		return
+	}
+	if err = configMapFinalizer.HandleFinalization(instance); err != nil {
+		result.Requeue = true
+		return
+	}
+	result.Requeue = false
 	return
 }

@@ -20,7 +20,6 @@ import (
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"k8s.io/apimachinery/pkg/types"
 	controller1 "sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 const (
@@ -47,7 +46,7 @@ func initDataIndexSupportingServiceResource(context supportingServiceContext) Re
 }
 
 // Reconcile reconcile Data Index
-func (d *dataIndexSupportingServiceResource) Reconcile() (reconcileAfter time.Duration, err error) {
+func (d *dataIndexSupportingServiceResource) Reconcile() (err error) {
 	d.Log.Info("Reconciling for KogitoDataIndex")
 
 	urlHandler := connector.NewURLHandler(d.Context, d.runtimeHandler, d.supportingServiceHandler)
@@ -74,7 +73,7 @@ var dataIndexKafkaTopics = []string{
 	"kogito-variables-events",
 }
 
-func (d *dataIndexSupportingServiceResource) OnConfigMapReconcile() (reconcileInterval time.Duration, err error) {
+func (d *dataIndexSupportingServiceResource) OnConfigMapReconcile() error {
 	protoBufConfigMapReconciler := connector.NewProtoBufConfigMapReconciler(d.Context, d.instance, d.runtimeHandler)
 	return protoBufConfigMapReconciler.Reconcile()
 }

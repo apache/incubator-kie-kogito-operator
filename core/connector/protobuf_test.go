@@ -15,6 +15,7 @@
 package connector
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
@@ -80,7 +81,7 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 			Annotations: map[string]string{
 				infrastructure.FromFileKey:  "true",
 				infrastructure.MountPathKey: path.Join(DefaultProtobufMountPath, runtimeService.GetName()),
-				infrastructure.FileModeKey:  framework.ModeForProtoBufConfigMapVolume,
+				infrastructure.FileModeKey:  fmt.Sprint(framework.ModeForProtoBufConfigMapVolume),
 			},
 		},
 		Data: map[string]string{fileName1: "This is a protobuf file"},

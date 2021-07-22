@@ -93,7 +93,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.Equal(t, 0, len(kogitoRuntime.Spec.Env))
 }
 
-func Test_InstallSupportingServiceCmd__WithCustomConfigFile(t *testing.T) {
+func Test_DeployCmd_WithCustomConfig(t *testing.T) {
 	tempFile, err := ioutil.TempFile("", "application.properties")
 	assert.NoError(t, err)
 	properties := `
@@ -136,7 +136,7 @@ my.nice.property=socool
 	exists, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(cm)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.Contains(t, cm.Data[converter.ConfigMapApplicationPropertyKey], "quarkus.log.level")
+	assert.Contains(t, cm.Data[converter.ConfigMapAppPropsFileName], "quarkus.log.level=DEBUG")
 }
 
 func Test_DeployCmd_SWFile(t *testing.T) {

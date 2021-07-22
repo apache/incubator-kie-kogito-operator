@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package infrastructure
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"

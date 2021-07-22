@@ -69,7 +69,7 @@ func (s *serviceDeployer) createRequiredResources(image string) (resources map[r
 		return resources, err
 	}
 
-	if err = s.mountOwnedConfigMapOnDeployment(deployment); err != nil {
+	if err = s.mountConfigMapOnDeployment(deployment); err != nil {
 		return resources, err
 	}
 
@@ -217,17 +217,14 @@ func (s *serviceDeployer) resolveImage() *api.Image {
 	return &image
 }
 
-func (s *serviceDeployer) mountOwnedConfigMapOnDeployment(deployment *appsv1.Deployment) error {
+func (s *serviceDeployer) mountConfigMapOnDeployment(deployment *appsv1.Deployment) error {
 	configMapHandler := infrastructure.NewConfigMapHandler(s.Context)
-	selectorLabels := map[string]string{
-		framework.LabelAppKey: s.instance.GetName(),
-	}
-	configMapList, err := configMapHandler.FetchConfigMapsForLabel(s.instance.GetNamespace(), selectorLabels)
+	configMapList, err := configMapHandler.FetchConfigMapForOwner(s.instance)
 	if err != nil {
 		return err
 	}
-	for _, configMap := range configMapList.Items {
-		if err := configMapHandler.MountConfigMapOnDeployment(deployment, &configMap); err != nil {
+	for _, configMap := range configMapList {
+		if err := configMapHandler.MountConfigMapOnDeployment(deployment, configMap); err != nil {
 			return err
 		}
 	}
