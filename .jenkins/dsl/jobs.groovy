@@ -96,7 +96,7 @@ void setupProfilingJob(String jobFolder) {
             env('MAX_REGISTRY_RETRIES', 3)
             env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
             env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
-            
+
             env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
             env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_ARTIFACTS_REPOSITORY}")
         }
@@ -146,7 +146,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
 
             stringParam('EXAMPLES_URI', '', 'Git uri to the kogito-examples repository to use for tests.')
             stringParam('EXAMPLES_REF', '', 'Git reference (branch/tag) to the kogito-examples repository to use for tests.')
-            
+
             stringParam('EXAMPLES_IMAGES_CACHE_MODE', 'never', 'Set the examples images\' cache mode for the BDD tests. Default it will always build the image.')
             booleanParam('EXAMPLES_IMAGES_USE_OPENSHIFT_REGISTRY', false, 'Set to true if examples images for tests are in internal Openshift registry.In this case, EXAMPLES_IMAGES_REGISTRY and EXAMPLES_IMAGES_NAMESPACE parameters will be ignored')
             stringParam('EXAMPLES_IMAGES_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Examples images registry')
@@ -154,6 +154,8 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
             stringParam('EXAMPLES_IMAGES_NAME_PREFIX', '', 'Examples images name prefix')
             stringParam('EXAMPLES_IMAGES_NAME_SUFFIX', '', 'Examples images name suffix')
             stringParam('EXAMPLES_IMAGES_TAG', '', 'Examples images tag')
+
+            booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
 
         environmentVariables {
@@ -215,7 +217,9 @@ void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
 
             // Release information which can override  `deployment.properties`
             stringParam('PROJECT_VERSION', '', 'Override `deployment.properties`. Optional if not RELEASE. If RELEASE, cannot be empty.')
-            stringParam('GIT_TAG', '', 'Git tag to set, if different from v{PROJECT_VERSION}')
+            stringParam('GIT_TAG', '', 'Git tag to set, if different from v{KOGITO_VERSION}')
+
+            booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
 
         environmentVariables {
@@ -278,6 +282,8 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
             stringParam('KOGITO_IMAGES_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Test images namespace')
             stringParam('KOGITO_IMAGES_NAME_SUFFIX', '', 'Test images name suffix')
             stringParam('KOGITO_IMAGES_TAG', '', 'Test images tag')
+
+            booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
 
         environmentVariables {
@@ -336,6 +342,8 @@ void setupExamplesImagesPromoteJob(String jobFolder, KogitoJobType jobType) {
 
             // Release information which can override  `deployment.properties`
             stringParam('PROJECT_VERSION', '', 'Override `deployment.properties`. If env.RELEASE, cannot be empty.')
+
+            booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
 
         environmentVariables {
