@@ -326,13 +326,13 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
     testParamsMap['operator_image'] = getTempOpenshiftImageName(true)
     testParamsMap['operator_tag'] = getTempTag()
 
-    // String mavenRepository = env.MAVEN_ARTIFACT_REPOSITORY ?: (isRelease() ? env.DEFAULT_STAGING_REPOSITORY : '')
-    // if (mavenRepository) {
-    //     // No mirror if we set directly the Maven repository
-    //     // Tests will be slower but we need to test against specific artifacts
-    //     testParamsMap['custom_maven_repo'] = mavenRepository
-    //     testParamsMap['maven_ignore_self_signed_certificate'] = true
-    // }
+    String mavenRepository = env.MAVEN_ARTIFACT_REPOSITORY ?: (isRelease() ? env.DEFAULT_STAGING_REPOSITORY : '')
+    if (mavenRepository) {
+        // No mirror if we set directly the Maven repository
+        // Tests will be slower but we need to test against specific artifacts
+        testParamsMap['custom_maven_repo'] = mavenRepository
+        testParamsMap['maven_ignore_self_signed_certificate'] = true
+    }
     // if (env.MAVEN_MIRROR_REPOSITORY) {
     //     testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
     //     testParamsMap['maven_ignore_self_signed_certificate'] = true
