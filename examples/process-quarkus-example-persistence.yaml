@@ -2,7 +2,7 @@
 # Strimzi operator should be pre-installed in namespace
 # And have installed a Kafka cluster named "kogito-kafka" in the same namespace of the Kogito resources
 # Follow these instructions to setup the Kafka cluster:
-# https://strimzi.io/docs/operators/master/quickstart.html
+# https://strimzi.io/docs/operators/latest/quickstart.html
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoInfra
 metadata:

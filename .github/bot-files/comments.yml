@@ -2,7 +2,7 @@
 # for now you'll need to difine every comment here, in the future comments will be optional.
 # please see the example for the file below
 
-prFirstTimeContributor: Welcome to the Kogito Community!. Please make sure you've read the [contributors' guide](https://github.com/kiegroup/kogito-operator/blob/master/README.md#contributing-to-the-kogito-operator)
+prFirstTimeContributor: Welcome to the Kogito Community!. Please make sure you've read the [contributors' guide](https://github.com/kiegroup/kogito-operator/blob/main/README.md#contributing-to-the-kogito-operator)
 
 prCiTrigger: /jenkins test
 

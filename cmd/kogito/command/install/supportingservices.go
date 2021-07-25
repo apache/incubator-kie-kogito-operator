@@ -113,7 +113,7 @@ For more information on Task Console see: https://github.com/kiegroup/kogito-run
 
 The --infra parameter MUST be specified. It needs to point to Kafka KogitoInfra object and to Infinispan KogitoInfra object.
 
-See https://github.com/kiegroup/kogito-apps/tree/master/trusty/README.md for more information about the trusty service.`,
+See https://github.com/kiegroup/kogito-apps/tree/main/trusty/README.md for more information about the trusty service.`,
 	},
 	{
 		cmdName:     "trusty-ui",
@@ -122,7 +122,7 @@ See https://github.com/kiegroup/kogito-apps/tree/master/trusty/README.md for mor
 		serviceType: api.TrustyUI,
 		description: `'install trusty-ui' deploys the Trusty UI to enable the audit UI for Kogito Services deployed within the same project.
 
-Please note that Trusty UI relies on Trusty (https://github.com/kiegroup/kogito-apps/tree/master/trusty) to retrieve the information to be displayed.
+Please note that Trusty UI relies on Trusty (https://github.com/kiegroup/kogito-apps/tree/main/trusty) to retrieve the information to be displayed.
 You won't be able to use the Trusty UI if Trusty is not deployed in the same project either using Kogito CLI or the Kogito Operator. 
 In addition to that, it is mandatory to set the environment variable KOGITO_TRUSTY_ENDPOINT in the trusty-ui service. The value of that variable should be the endpoint of the trusty service.`,
 	},
