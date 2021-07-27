@@ -82,8 +82,8 @@ type ResourceInterface interface {
 type KogitoInfraStatusInterface interface {
 	GetConditions() *[]metav1.Condition
 	SetConditions(conditions *[]metav1.Condition)
-	GetRuntimeProperties() RuntimePropertiesMap
-	AddRuntimeProperties(runtimeType RuntimeType, runtimeProperties RuntimePropertiesInterface)
+	GetRuntimeProperties(runtimeType RuntimeType) RuntimePropertiesInterface
+	AddRuntimeProperties(runtimeType RuntimeType, appProps map[string]string, env []v1.EnvVar)
 	GetVolumes() []KogitoInfraVolumeInterface
 	SetVolumes(infraVolumes []KogitoInfraVolumeInterface)
 }

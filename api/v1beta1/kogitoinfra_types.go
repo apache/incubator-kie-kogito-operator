@@ -97,21 +97,23 @@ func (k *KogitoInfraStatus) SetConditions(conditions *[]metav1.Condition) {
 }
 
 // GetRuntimeProperties ...
-func (k *KogitoInfraStatus) GetRuntimeProperties() api.RuntimePropertiesMap {
-	runtimeProperties := make(api.RuntimePropertiesMap, len(k.RuntimeProperties))
-	for key, value := range k.RuntimeProperties {
-		runtimeProperties[key] = api.RuntimePropertiesInterface(value)
+func (k *KogitoInfraStatus) GetRuntimeProperties(runtimeType api.RuntimeType) api.RuntimePropertiesInterface {
+	if k.RuntimeProperties == nil {
+		return nil
 	}
-	return runtimeProperties
+	return k.RuntimeProperties[runtimeType]
 }
 
 // AddRuntimeProperties ...
-func (k *KogitoInfraStatus) AddRuntimeProperties(runtimeType api.RuntimeType, runtimeProperties api.RuntimePropertiesInterface) {
+func (k *KogitoInfraStatus) AddRuntimeProperties(runtimeType api.RuntimeType, appProps map[string]string, env []v1.EnvVar) {
 	rp := k.RuntimeProperties
 	if rp == nil {
 		rp = make(map[api.RuntimeType]RuntimeProperties)
 	}
-	rp[runtimeType] = runtimeProperties.(RuntimeProperties)
+	rp[runtimeType] = RuntimeProperties{
+		AppProps: appProps,
+		Env:      env,
+	}
 	k.RuntimeProperties = rp
 }
 

@@ -93,35 +93,40 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 // see https://issues.redhat.com/browse/KOGITO-2535
 func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	replicas := int32(1)
+	ns := t.Name()
 	instance := &v1beta1.KogitoRuntime{
-		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: ns, UID: test.GenerateUID()},
 		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
-				Image:    "quay.io/custom/process-springboot-example-default:latest",
+				Image:    "quay.io/kiegroup/process-springboot-example-default:latest",
 			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).OnOpenShift().Build()
+	is, tag := test.CreateFakeImageStreams("process-springboot-example-default", ns, "latest")
+	err := framework.AddOwnerReference(instance, meta.GetRegisteredSchema(), is)
+	assert.NoError(t, err)
 
-	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, is).AddImageObjects(tag).OnOpenShift().Build()
 
-	_, err := kubernetes.ResourceC(cli).Fetch(instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+
+	_, err = kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, *instance.Status.Conditions, 2)
 
 	// image stream
-	is := imagev1.ImageStream{
+	is = &imagev1.ImageStream{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example-default", Namespace: instance.Namespace},
 	}
-	exists, err := kubernetes.ResourceC(cli).Fetch(&is)
+	exists, err := kubernetes.ResourceC(cli).Fetch(is)
 	assert.True(t, exists)
 	assert.NoError(t, err)
 	assert.Len(t, is.Spec.Tags, 1)
 	assert.Equal(t, "latest", is.Spec.Tags[0].Name)
-	assert.Equal(t, "quay.io/custom/process-springboot-example-default:latest", is.Spec.Tags[0].From.Name)
+	assert.Equal(t, "quay.io/kiegroup/process-springboot-example-default:latest", is.Spec.Tags[0].From.Name)
 }
 
 func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
