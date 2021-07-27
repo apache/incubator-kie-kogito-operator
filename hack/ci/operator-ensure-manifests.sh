@@ -23,15 +23,15 @@ echo "Temporary folder is ${tempfolder}"
 
 version=$(getOperatorVersion)
 
-git clone https://github.com/operator-framework/community-operators.git "${tempfolder}"
-mkdir  "${tempfolder}/community-operators/kogito-operator/${version}/"
+git clone https://github.com/k8s-operatorhub/community-operators.git "${tempfolder}"
+mkdir  "${tempfolder}/operators/kogito-operator/${version}/"
 ## copy the latest manifests
-cp -r bundle/manifests/ "${tempfolder}/community-operators/kogito-operator/${version}/"
-cp -r bundle/metadata/ "${tempfolder}/community-operators/kogito-operator/${version}/"
-cp -r bundle/tests/ "${tempfolder}/community-operators/kogito-operator/${version}/"
-cp bundle.Dockerfile "${tempfolder}/community-operators/kogito-operator/${version}/Dockerfile"
+cp -r bundle/manifests/ "${tempfolder}/operators/kogito-operator/${version}/"
+cp -r bundle/metadata/ "${tempfolder}/operators/kogito-operator/${version}/"
+cp -r bundle/tests/ "${tempfolder}/operators/kogito-operator/${version}/"
+cp bundle.Dockerfile "${tempfolder}/operators/kogito-operator/${version}/Dockerfile"
 
 #Edit dockerfile with correct relative path
-sed -i "s|bundle/manifests|manifests|g" "${tempfolder}/community-operators/kogito-operator/${version}/Dockerfile"
-sed -i "s|bundle/metadata|metadata|g" "${tempfolder}/community-operators/kogito-operator/${version}/Dockerfile"
-sed -i "s|bundle/tests|tests|g" "${tempfolder}/community-operators/kogito-operator/${version}/Dockerfile"
+sed -i "s|bundle/manifests|manifests|g" "${tempfolder}/operators/kogito-operator/${version}/Dockerfile"
+sed -i "s|bundle/metadata|metadata|g" "${tempfolder}/operators/kogito-operator/${version}/Dockerfile"
+sed -i "s|bundle/tests|tests|g" "${tempfolder}/operators/kogito-operator/${version}/Dockerfile"
