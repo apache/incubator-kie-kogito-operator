@@ -206,7 +206,7 @@ func mountAsLiteral(deployment *appsv1.Deployment, configMap *corev1.ConfigMap) 
 }
 
 func (c *configMapHandler) RemoveConfigMapOwnership(key types.NamespacedName, owner resource.KubernetesResource) (err error) {
-	c.Log.Info("Removing Configmap ownership", "configmap", key.Name, "owner", owner.GetName())
+	c.Log.Debug("Removing Configmap ownership", "configmap", key.Name, "owner", owner.GetName())
 	configMap, err := c.FetchConfigMap(key)
 	if err != nil || configMap == nil {
 		return

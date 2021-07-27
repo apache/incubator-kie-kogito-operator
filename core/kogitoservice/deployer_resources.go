@@ -191,8 +191,6 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 }
 
 func (s *serviceDeployer) mountKogitoInfraVolumes(kogitoInfraVolumes []api.KogitoInfraVolumeInterface, deployment *appsv1.Deployment) {
-	//appPropsVolumeHandler := NewAppPropsVolumeHandler()
-	//framework.AddVolumeToDeployment(deployment, appPropsVolumeHandler.CreateAppPropVolumeMount(), appPropsVolumeHandler.CreateAppPropVolume(s.instance))
 	for _, infraVolume := range kogitoInfraVolumes {
 		framework.AddVolumeToDeployment(deployment, infraVolume.GetMount(), infraVolume.GetNamedVolume().ToKubeVolume())
 	}

@@ -110,7 +110,7 @@ func (k kogitoSupportingServiceManager) FetchKogitoSupportingServiceDeployment(n
 }
 
 func (k kogitoSupportingServiceManager) FetchKogitoSupportingServiceForServiceType(namespace string, serviceType api.ServiceType) (api.KogitoSupportingServiceInterface, error) {
-	k.Log.Info("Fetching kogito Supporting Service", "serviceType", serviceType)
+	k.Log.Debug("Fetching kogito Supporting Service", "serviceType", serviceType)
 	supportingServiceList, err := k.supportingServiceHandler.FetchKogitoSupportingServiceList(namespace)
 	if err != nil {
 		return nil, err

@@ -42,7 +42,7 @@ func (d *deltaProcessor) ProcessDelta(comparator compare.MapComparator, requeste
 	deltas := comparator.Compare(deployedResources, requestedResources)
 	for resourceType, delta := range deltas {
 		if !delta.HasChanges() {
-			d.Log.Info("No delta found", "resourceType", resourceType)
+			d.Log.Debug("No delta found", "resourceType", resourceType)
 			continue
 		}
 		d.Log.Info("Will", "create", len(delta.Added), "update", len(delta.Updated), "delete", len(delta.Removed), "resourceType", resourceType)

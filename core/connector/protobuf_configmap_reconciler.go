@@ -98,7 +98,8 @@ func (p *protoBufConfigMapReconciler) getDeployedResources() (map[reflect.Type][
 	if len(configMapList.Items) > 0 {
 		kubernetesResources := make([]resource.KubernetesResource, len(configMapList.Items))
 		for i, configMap := range configMapList.Items {
-			kubernetesResources[i] = &configMap
+			item := configMap
+			kubernetesResources[i] = &item
 		}
 		resources[reflect.TypeOf(v1.ConfigMap{})] = kubernetesResources
 	}
