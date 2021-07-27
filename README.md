@@ -9,7 +9,6 @@ For information about the Kogito Operator architecture and instructions for usin
 Table of Contents
 =================
 
-* [Kogito Operator](#kogito-operator)
 * [Trying the Kogito Operator](#trying-the-kogito-operator)
 * [Using Kogito Custom Resources as a dependency](#using-kogito-custom-resources-as-a-dependency)
 * [Contributing to the Kogito Operator](#contributing-to-the-kogito-operator)
@@ -102,7 +101,7 @@ For adding the `golangci-lint` with VScode, install the [Go Plugin](https://mark
 
 For information about Operator SDK testing, see [Unit testing with the Operator SDK](https://sdk.operatorframework.io/docs/golang/legacy/unit-testing/).
 
-In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitobuild_controller_test.go`](../master/controllers/kogitobuild_controller_test.go) test file.
+In general, the unit tests that are provided with the Kogito Operator are based on that Operator SDK testing resource. You might encounter minor issues as you create specific OpenShift APIs such as `BuildConfig` and `DeploymentConfig` that are not listed there. For an example test case with sample API calls, see the [`kogitobuild_controller_test.go`](../main/controllers/kogitobuild_controller_test.go) test file.
 
 ### Kogito Operator collaboration and pull requests
 
@@ -497,9 +496,10 @@ Kogito operator integrates with various other technologies and operators. The te
 | Technology         | Tested version                                                |
 | ------------------ | ------------------------------------------------------------- |
 | Infinispan         | Infinispan operator 2.1.4 (deployed by OLM `2.1.x` channel)   |
-| Kafka              | Strimzi 0.23.0 (deployed by OLM `stable` channel)             |
-| Keycloak           | Keycloak operator 12.0.3 (deployed by OLM `alpha` channel)    |
+| Kafka              | Strimzi 0.24.0 (deployed by OLM `stable` channel)             |
+| Keycloak           | Keycloak operator 14.0.0 (deployed by OLM `alpha` channel)    |
 | Prometheus         | Prometheus operator 0.47.0 (deployed by OLM `beta` channel)   |
-| Grafana            | Grafana operator 3.10.1 (deployed by OLM `alpha` channel)     |
+| Grafana            | Grafana operator 3.10.3 (deployed by OLM `alpha` channel)     |
+| Knative Eventing   | Knative Eventing 0.20.0                                       |
 | MongoDB            | MongoDB Community Kubernetes Operator 0.2.2                   |
 | PostgreSQL         | PostgreSQL 12.7 (deployed directly using image)               |

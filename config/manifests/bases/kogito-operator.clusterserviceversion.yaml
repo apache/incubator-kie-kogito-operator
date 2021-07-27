@@ -332,7 +332,7 @@ spec:
   - name: Product Page
     url: https://kogito.kie.org/
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-operator/blob/master/README.md
+    url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
   - name: Source
     url: https://github.com/kiegroup/kogito-operator/
   maintainers:
