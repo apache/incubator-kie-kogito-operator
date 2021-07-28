@@ -79,15 +79,9 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	assert.True(t, exists)
 	assert.True(t, framework.GetEnvVarFromContainer("NAMESPACE", &deployment.Spec.Template.Spec.Containers[0]) == instance.Namespace)
 	assert.Equal(t, "kogito-service-viewer", deployment.Spec.Template.Spec.ServiceAccountName)
-	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 2) // #1 for property, #2 for tls
+	assert.Len(t, deployment.Spec.Template.Spec.Volumes, 1) // #1 for property, #2 for tls
 	// command to register protobuf does not exist anymore
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Lifecycle)
-
-	configMap := &corev1.ConfigMap{ObjectMeta: v1.ObjectMeta{Name: getProtoBufConfigMapName(instance.Name), Namespace: instance.Namespace}}
-	exists, err = kubernetes.ResourceC(cli).Fetch(configMap)
-	assert.NoError(t, err)
-	assert.True(t, exists)
-	assert.Equal(t, getProtoBufConfigMapName(instance.Name), configMap.Name)
 }
 
 // see https://issues.redhat.com/browse/KOGITO-2535
@@ -140,13 +134,11 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm).Build()
-	// we take the ownership of the custom cm
-	test.AssertReconcileMustRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
-	// we requeue..
 	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+
 	_, err := kubernetes.ResourceC(cli).Fetch(cm)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, cm.OwnerReferences)
+	assert.Equal(t, instance.GetName(), cm.Labels[framework.LabelAppKey])
 }
 
 // see https://issues.redhat.com/browse/KOGITO-2535
