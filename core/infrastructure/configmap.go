@@ -113,19 +113,19 @@ func (c *configMapHandler) FetchConfigMapForOwner(owner resource.KubernetesResou
 }
 
 func (c *configMapHandler) MountConfigMapOnDeployment(deployment *appsv1.Deployment, configMap *corev1.ConfigMap) error {
-	if isMountAsFile(configMap) {
+	if isConfigMapCreatedUsingFile(configMap) {
 		if err := mountAsFile(deployment, configMap); err != nil {
 			return err
 		}
 	}
 
-	if isMountAsLiteral(configMap) {
+	if isConfigMapCreatedUsingLiteral(configMap) {
 		mountAsLiteral(deployment, configMap)
 	}
 	return nil
 }
 
-func isMountAsFile(configMap *corev1.ConfigMap) bool {
+func isConfigMapCreatedUsingFile(configMap *corev1.ConfigMap) bool {
 	return configMap.Annotations[FromFileKey] == "true"
 }
 
@@ -185,7 +185,7 @@ func appendVolumeMountIntoDeployment(deployment *appsv1.Deployment, cm *corev1.C
 	}
 }
 
-func isMountAsLiteral(configMap *corev1.ConfigMap) bool {
+func isConfigMapCreatedUsingLiteral(configMap *corev1.ConfigMap) bool {
 	return configMap.Annotations[FromLiteralKey] == "true"
 }
 
