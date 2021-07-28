@@ -6,5 +6,6 @@
 
 ## Bug Fixes
 - [KOGITO-5478](https://issues.redhat.com/browse/KOGITO-5478) - Management console does not work on OpenShift
+- [KOGITO-5573](https://issues.redhat.com/browse/KOGITO-5573) - Kogito Operator Data-Index Unable to connect to Infinispan Instance
 
 ## Known Issues
