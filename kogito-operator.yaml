@@ -2994,7 +2994,7 @@ spec:
           value: kiegroup
         - name: IMAGE_REGISTRY
           value: quay.io
-        image: quay.io/kiegroup/kogito-operator:1.9.0-snapshot
+        image: quay.io/kiegroup/kogito-operator:1.9.0
         name: manager
       serviceAccountName: kogito-operator-controller-manager
       terminationGracePeriodSeconds: 10
