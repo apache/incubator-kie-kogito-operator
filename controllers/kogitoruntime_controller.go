@@ -17,11 +17,11 @@ package controllers
 import (
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/connector"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/shared"
 	"github.com/kiegroup/kogito-operator/internal"
 	"github.com/kiegroup/kogito-operator/version"
 	imagev1 "github.com/openshift/api/image/v1"
@@ -103,7 +103,7 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 		return infrastructure.NewReconciliationErrorHandler(context).GetReconcileResultFor(err)
 	}
 
-	protoBufHandler := connector.NewProtoBufHandler(context, supportingServiceHandler)
+	protoBufHandler := shared.NewProtoBufHandler(context, supportingServiceHandler)
 	err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance)
 	if err != nil {
 		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")

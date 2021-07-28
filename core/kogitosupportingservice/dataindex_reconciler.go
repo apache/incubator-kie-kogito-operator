@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/connector"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
+	"github.com/kiegroup/kogito-operator/core/shared"
 	"k8s.io/apimachinery/pkg/types"
 	controller1 "sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -74,6 +75,6 @@ var dataIndexKafkaTopics = []string{
 }
 
 func (d *dataIndexSupportingServiceResource) OnConfigMapReconcile() error {
-	protoBufConfigMapReconciler := connector.NewProtoBufConfigMapReconciler(d.Context, d.instance, d.runtimeHandler)
+	protoBufConfigMapReconciler := shared.NewProtoBufConfigMapReconciler(d.Context, d.instance, d.runtimeHandler)
 	return protoBufConfigMapReconciler.Reconcile()
 }
