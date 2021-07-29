@@ -62,36 +62,34 @@ func TestKogitoInfra_Status(t *testing.T) {
 		},
 	}
 	status := instance1.GetStatus()
-	quarkusRuntimeProperties := RuntimeProperties{
-		AppProps: map[string]string{
-			"key1": "value1",
-			"key2": "value2",
+	quarkusAppProps := map[string]string{
+		"key1": "value1",
+		"key2": "value2",
+	}
+
+	quarkusEnv := []corev1.EnvVar{
+		{
+			Name: "name1",
 		},
-		Env: []corev1.EnvVar{
-			{
-				Name: "name1",
-			},
-			{
-				Name: "name2",
-			},
+		{
+			Name: "name2",
 		},
 	}
-	springbootRuntimeProperties := RuntimeProperties{
-		AppProps: map[string]string{
-			"key3": "value3",
-			"key4": "value4",
+	status.AddRuntimeProperties(api.QuarkusRuntimeType, quarkusAppProps, quarkusEnv)
+
+	springAppProps := map[string]string{
+		"key3": "value3",
+		"key4": "value4",
+	}
+	springEnv := []corev1.EnvVar{
+		{
+			Name: "name3",
 		},
-		Env: []corev1.EnvVar{
-			{
-				Name: "name3",
-			},
-			{
-				Name: "name4",
-			},
+		{
+			Name: "name4",
 		},
 	}
-	status.AddRuntimeProperties(api.QuarkusRuntimeType, quarkusRuntimeProperties)
-	status.AddRuntimeProperties(api.SpringBootRuntimeType, springbootRuntimeProperties)
+	status.AddRuntimeProperties(api.SpringBootRuntimeType, springAppProps, springEnv)
 
 	var volumes []api.KogitoInfraVolumeInterface
 	volume1 := KogitoInfraVolume{
@@ -119,19 +117,18 @@ func TestKogitoInfra_Status(t *testing.T) {
 	assert.Equal(t, metav1.ConditionTrue, conditions[0].Status)
 	assert.Equal(t, string(api.ReconciliationFailure), conditions[0].Reason)
 	assert.Equal(t, "Infra success", conditions[0].Message)
-	assert.Equal(t, 2, len(status.GetRuntimeProperties()))
-	assert.Equal(t, 2, len(status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()))
-	assert.Equal(t, "value1", status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()["key1"])
-	assert.Equal(t, "value2", status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetAppProps()["key2"])
-	assert.Equal(t, 2, len(status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetEnv()))
-	assert.Equal(t, "name1", status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetEnv()[0].Name)
-	assert.Equal(t, "name2", status.GetRuntimeProperties()[api.QuarkusRuntimeType].GetEnv()[1].Name)
-	assert.Equal(t, 2, len(status.GetRuntimeProperties()[api.SpringBootRuntimeType].GetAppProps()))
-	assert.Equal(t, "value3", status.GetRuntimeProperties()[api.SpringBootRuntimeType].GetAppProps()["key3"])
-	assert.Equal(t, "value4", status.GetRuntimeProperties()[api.SpringBootRuntimeType].GetAppProps()["key4"])
-	assert.Equal(t, 2, len(status.GetRuntimeProperties()[api.SpringBootRuntimeType].GetEnv()))
-	assert.Equal(t, "name3", status.GetRuntimeProperties()[api.SpringBootRuntimeType].GetEnv()[0].Name)
-	assert.Equal(t, "name4", status.GetRuntimeProperties()[api.SpringBootRuntimeType].GetEnv()[1].Name)
+	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.QuarkusRuntimeType).GetAppProps()))
+	assert.Equal(t, "value1", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetAppProps()["key1"])
+	assert.Equal(t, "value2", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetAppProps()["key2"])
+	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.QuarkusRuntimeType).GetEnv()))
+	assert.Equal(t, "name1", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetEnv()[0].Name)
+	assert.Equal(t, "name2", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetEnv()[1].Name)
+	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.SpringBootRuntimeType).GetAppProps()))
+	assert.Equal(t, "value3", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetAppProps()["key3"])
+	assert.Equal(t, "value4", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetAppProps()["key4"])
+	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()))
+	assert.Equal(t, "name3", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()[0].Name)
+	assert.Equal(t, "name4", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()[1].Name)
 	assert.Equal(t, 2, len(status.GetVolumes()))
 	assert.Equal(t, "volumeMount1", status.GetVolumes()[0].GetMount().Name)
 	assert.Equal(t, "configVolume1", status.GetVolumes()[0].GetNamedVolume().GetName())
