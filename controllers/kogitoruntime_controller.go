@@ -17,11 +17,11 @@ package controllers
 import (
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/connector"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/shared"
 	"github.com/kiegroup/kogito-operator/internal"
 	"github.com/kiegroup/kogito-operator/version"
 	imagev1 "github.com/openshift/api/image/v1"
@@ -88,32 +88,28 @@ func (r *KogitoRuntimeReconciler) Reconcile(req ctrl.Request) (result ctrl.Resul
 	}
 
 	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
-	protoBufHandler := connector.NewProtoBufHandler(context, supportingServiceHandler)
-	if err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance); err != nil {
-		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
-		return
-	}
-
 	deploymentHandler := NewRuntimeDeployerHandler(context, instance, supportingServiceHandler, runtimeHandler)
 	definition := kogitoservice.ServiceDefinition{
 		Request:            req,
 		DefaultImageTag:    infrastructure.LatestTag,
 		SingleReplica:      false,
 		OnDeploymentCreate: deploymentHandler.OnDeploymentCreate,
-		OnObjectsCreate:    deploymentHandler.OnObjectsCreate,
 		OnGetComparators:   deploymentHandler.OnGetComparators,
 		CustomService:      true,
 	}
 	infraHandler := internal.NewKogitoInfraHandler(context)
-	requeueAfter, err := kogitoservice.NewServiceDeployer(context, definition, instance, infraHandler).Deploy()
+	err = kogitoservice.NewServiceDeployer(context, definition, instance, infraHandler).Deploy()
 	if err != nil {
-		return
+		return infrastructure.NewReconciliationErrorHandler(context).GetReconcileResultFor(err)
 	}
-	if requeueAfter > 0 {
-		log.Info("Waiting for all resources to be created, re-scheduling.", "requeueAfter", requeueAfter)
-		result.RequeueAfter = requeueAfter
-		result.Requeue = true
+
+	protoBufHandler := shared.NewProtoBufHandler(context, supportingServiceHandler)
+	err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance)
+	if err != nil {
+		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
+		return infrastructure.NewReconciliationErrorHandler(context).GetReconcileResultFor(err)
 	}
+
 	log.Debug("Finish reconciliation", "requeue", result.Requeue, "requeueAfter", result.RequeueAfter)
 	return
 }

@@ -17,6 +17,7 @@ package controllers
 import (
 	appv1beta1 "github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
@@ -93,15 +94,9 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(req ctrl.Request) (result 
 	infraHandler := internal.NewKogitoInfraHandler(context)
 	reconcileHandler := kogitosupportingservice.NewReconcilerHandler(context, infraHandler, supportingServiceHandler, runtimeHandler)
 	reconciler := reconcileHandler.GetSupportingServiceReconciler(instance)
-	requeueAfter, resultErr := reconciler.Reconcile()
+	resultErr = reconciler.Reconcile()
 	if resultErr != nil {
-		return
-	}
-
-	if requeueAfter > 0 {
-		log.Info("Waiting for all resources to be created, scheduling for 30 seconds from now")
-		result.RequeueAfter = requeueAfter
-		result.Requeue = true
+		return infrastructure.NewReconciliationErrorHandler(context).GetReconcileResultFor(resultErr)
 	}
 	return
 }

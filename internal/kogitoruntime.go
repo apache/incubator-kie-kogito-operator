@@ -54,10 +54,6 @@ func (k *kogitoRuntimeHandler) FetchAllKogitoRuntimeInstances(namespace string) 
 	if err := kubernetes.ResourceC(k.Client).ListWithNamespace(namespace, kogitoRuntimeServices); err != nil {
 		return nil, err
 	}
-	if len(kogitoRuntimeServices.Items) == 0 {
-		k.Log.Debug("No instance found for KogitoRuntime service")
-		return nil, nil
-	}
 	k.Log.Debug("Found KogitoRuntime services", "count", len(kogitoRuntimeServices.Items))
 	return kogitoRuntimeServices, nil
 }

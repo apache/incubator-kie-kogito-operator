@@ -36,8 +36,8 @@ type infraFinalizerHandler struct {
 	infraHandler manager.KogitoInfraHandler
 }
 
-// NewFinalizerHandler ...
-func NewFinalizerHandler(context operator.Context, infraHandler manager.KogitoInfraHandler) InfraFinalizerHandler {
+// NewInfraFinalizerHandler ...
+func NewInfraFinalizerHandler(context operator.Context, infraHandler manager.KogitoInfraHandler) InfraFinalizerHandler {
 	return &infraFinalizerHandler{
 		Context:      context,
 		infraHandler: infraHandler,

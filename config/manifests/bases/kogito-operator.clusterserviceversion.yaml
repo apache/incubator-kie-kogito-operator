@@ -332,7 +332,7 @@ spec:
   - name: Product Page
     url: https://kogito.kie.org/
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-operator/blob/master/README.md
+    url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
   - name: Source
     url: https://github.com/kiegroup/kogito-operator/
   maintainers:
@@ -341,5 +341,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: kogito-operator.v1.8.0
+  replaces: kogito-operator.v1.9.0
   version: 2.0.0-snapshot

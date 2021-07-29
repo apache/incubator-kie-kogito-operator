@@ -17,14 +17,13 @@ package kogitoinfra
 import (
 	"context"
 	"fmt"
-	"sort"
-
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"software.sslmate.com/src/go-pkcs12"
+	"sort"
 
 	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -230,7 +229,7 @@ func (i *infinispanInfraReconciler) updateInfinispanRuntimePropsInStatus(infinis
 }
 
 func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanInstance *infinispan.Infinispan) error {
-	if infinispanInstance.Status.Security == nil || infinispanInstance.Status.Security.EndpointEncryption == nil || len(infinispanInstance.Status.Security.EndpointEncryption.CertSecretName) == 0 {
+	if infinispanInstance.Spec.Security.EndpointEncryption == nil || len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) == 0 {
 		return nil
 	}
 	tlsSecret, err := i.ensureEncryptionTrustStoreSecret(infinispanInstance)
@@ -268,7 +267,7 @@ func (i *infinispanInfraReconciler) updateInfinispanVolumesInStatus(infinispanIn
 }
 
 func (i *infinispanInfraReconciler) ensureEncryptionTrustStoreSecret(infinispanInstance *infinispan.Infinispan) (*corev1.Secret, error) {
-	if infinispanInstance.Status.Security == nil || infinispanInstance.Status.Security.EndpointEncryption == nil || len(infinispanInstance.Status.Security.EndpointEncryption.CertSecretName) == 0 {
+	if infinispanInstance.Spec.Security.EndpointEncryption == nil || len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) == 0 {
 		return nil, nil
 	}
 	kogitoInfraEncryptionSecret := &corev1.Secret{
@@ -279,7 +278,7 @@ func (i *infinispanInfraReconciler) ensureEncryptionTrustStoreSecret(infinispanI
 	} else if !exists {
 		infinispanSecret := &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      infinispanInstance.Status.Security.EndpointEncryption.CertSecretName,
+				Name:      infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName,
 				Namespace: infinispanInstance.Namespace}}
 		if ispnSecretExists, err := kubernetes.ResourceC(i.Client).Fetch(infinispanSecret); err != nil || !ispnSecretExists {
 			return nil, err

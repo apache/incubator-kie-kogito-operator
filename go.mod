@@ -11,7 +11,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/google/uuid v1.1.2
-	github.com/imdario/mergo v0.3.10
+	github.com/imdario/mergo v0.3.10 // indirect
 	github.com/infinispan/infinispan-operator v0.0.0-20210621093106-4662500f4ae1
 	github.com/integr8ly/grafana-operator/v3 v3.10.0
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
