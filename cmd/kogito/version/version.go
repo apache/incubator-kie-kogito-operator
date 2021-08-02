@@ -16,5 +16,5 @@ package version
 
 var (
 	// Version of Kogito CLI
-	Version = "1.9.1"
+	Version = "1.9.2-snapshot"
 )
