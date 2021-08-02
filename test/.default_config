@@ -5,4 +5,4 @@ tests.services-image-name-suffix=nightly
 tests.runtime-application-image-name-prefix=examples
 tests.runtime-application-image-name-suffix=nightly
 tests.runtime-application-image-version=1.9
-tests.examples-ref=1.9.x
+tests.examples-ref=nightly-1.9.x
