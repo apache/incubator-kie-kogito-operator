@@ -8,6 +8,7 @@ require (
 	github.com/cucumber/messages-go/v10 v10.0.3
 	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.2.0
+	github.com/go-openapi/swag v0.19.12
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/google/uuid v1.1.2
