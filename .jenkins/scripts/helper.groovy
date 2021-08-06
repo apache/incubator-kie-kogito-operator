@@ -333,10 +333,10 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
         testParamsMap['custom_maven_repo'] = mavenRepository
         testParamsMap['maven_ignore_self_signed_certificate'] = true
     }
-    if (env.MAVEN_MIRROR_REPOSITORY) {
-        testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
-        testParamsMap['maven_ignore_self_signed_certificate'] = true
-    }
+    // if (env.MAVEN_MIRROR_REPOSITORY) {
+    //     testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
+    //     testParamsMap['maven_ignore_self_signed_certificate'] = true
+    // }
 
     if (params.EXAMPLES_REF) {
         testParamsMap['examples_ref'] = params.EXAMPLES_REF

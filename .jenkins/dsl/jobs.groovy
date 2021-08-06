@@ -94,8 +94,8 @@ void setupProfilingJob(String jobFolder) {
             env('CONTAINER_ENGINE', 'docker')
             env('CONTAINER_TLS_OPTIONS', '')
             env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
+            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API_EXTERNAL')
+            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS_EXTERNAL')
 
             env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
             env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_ARTIFACTS_REPOSITORY}")
@@ -167,8 +167,8 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
             env('CONTAINER_ENGINE', 'docker')
             env('CONTAINER_TLS_OPTIONS', '')
             env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
+            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API_EXTERNAL')
+            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS_EXTERNAL')
             env('PROPERTIES_FILE_NAME', 'deployment.properties')
 
             if (jobType == KogitoJobType.PR) {
@@ -230,8 +230,8 @@ void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
             env('CONTAINER_ENGINE', 'podman')
             env('CONTAINER_TLS_OPTIONS', '--tls-verify=false')
             env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
+            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API_EXTERNAL')
+            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS_EXTERNAL')
             env('PROPERTIES_FILE_NAME', 'deployment.properties')
 
             env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
@@ -294,8 +294,8 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
             env('CONTAINER_ENGINE', 'docker')
             env('CONTAINER_TLS_OPTIONS', '')
             env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
+            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API_EXTERNAL')
+            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS_EXTERNAL')
             env('PROPERTIES_FILE_NAME', 'deployment.properties')
 
             if (jobType == KogitoJobType.PR) {
@@ -354,8 +354,8 @@ void setupExamplesImagesPromoteJob(String jobFolder, KogitoJobType jobType) {
             env('CONTAINER_ENGINE', 'podman')
             env('CONTAINER_TLS_OPTIONS', '--tls-verify=false')
             env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
+            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API_EXTERNAL')
+            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS_EXTERNAL')
             env('PROPERTIES_FILE_NAME', 'deployment.properties')
 
             env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
