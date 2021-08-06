@@ -247,22 +247,21 @@ Feature: Deploy Kogito Runtime
       | profile | events   |
       | native  | <native> |
 
-    # When Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
-    #   | config | infra | kafka      |
-    # And Kogito Runtime "<example-service>" has 1 pods running within 10 minutes
-    # And Start "orders" process on service "<example-service>" within 3 minutes with body:
-    #   """json
-    #   {
-    #     "approver" : "john",
-    #     "order" : {
-    #       "orderNumber" : "12345",
-    #       "shipped" : false
-    #     }
-    #   }
-    #   """
+    When Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
+      | config | infra | kafka      |
+    And Kogito Runtime "<example-service>" has 1 pods running within 10 minutes
+    And Start "orders" process on service "<example-service>" within 3 minutes with body:
+      """json
+      {
+        "approver" : "john",
+        "order" : {
+          "orderNumber" : "12345",
+          "shipped" : false
+        }
+      }
+      """
 
-    ## TODO read directly from Kafka
-    #Then GraphQL request on Data Index service returns ProcessInstances processName "orders" within 2 minutes
+    Then Kafka instance "kogito-kafka" should contain at least 1 message on topic "kogito-processinstances-events" within 2 minutes
 
     @springboot
     Examples:
