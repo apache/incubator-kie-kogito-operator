@@ -140,6 +140,7 @@ func (k *kafkaHandler) ResolveKafkaServerURI(kafka *v1beta2.Kafka) (string, erro
 	return "", fmt.Errorf("not able resolve URI for given kafka instance %s", kafka.Name)
 }
 
+// ResolveKafkaServerURI returns the uri of the kafka instance
 func ResolveKafkaServerURI(kafka *v1beta2.Kafka) string {
 	if len(kafka.Status.Listeners) > 0 {
 		for _, listenerStatus := range kafka.Status.Listeners {

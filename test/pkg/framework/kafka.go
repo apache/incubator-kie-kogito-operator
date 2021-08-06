@@ -77,6 +77,7 @@ func ScaleKafkaInstanceDown(namespace, kafkaInstanceName string) error {
 	return nil
 }
 
+// WaitForMessagesOnTopic waits for at least a certain number of messages are present on the given topic
 func WaitForMessagesOnTopic(namespace, kafkaInstanceName, topic string, numberOfMsg int, timeoutInMin int) error {
 	return WaitForOnOpenshift(namespace, fmt.Sprintf("%d message available on topic %s withing %d minutes", numberOfMsg, topic, timeoutInMin), timeoutInMin,
 		func() (bool, error) {
@@ -89,19 +90,19 @@ func WaitForMessagesOnTopic(namespace, kafkaInstanceName, topic string, numberOf
 		})
 }
 
+// GetMessagesOnTopic gets all messages for a topic
 func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, error) {
-	GetLogger(namespace).Info("GetMessagesOnTopic")
 	kafkaInstance, err := GetKafkaInstance(namespace, kafkaInstanceName)
 	if err != nil {
 		return nil, err
 	}
-	GetLogger(namespace).Info("Got kafka instance", "instance", kafkaInstance.Name)
+	GetLogger(namespace).Debug("Got kafka instance", "instance", kafkaInstance.Name)
 	bootstrapServer := infrastructure.ResolveKafkaServerURI(kafkaInstance)
 	if len(bootstrapServer) <= 0 {
 		GetLogger(namespace).Debug("Not able resolve URI for given kafka instance")
 		return nil, fmt.Errorf("not able resolve URI for given kafka instance %s", kafkaInstance.Name)
 	}
-	GetLogger(namespace).Info("Got bootstrapServer", "server", bootstrapServer)
+	GetLogger(namespace).Debug("Got bootstrapServer", "server", bootstrapServer)
 
 	args := []string{"run", "-ti", "kafka-consumer", "--restart=Never"}
 	args = append(args, fmt.Sprintf("--image=%s", "quay.io/strimzi/kafka:0.24.0-kafka-2.8.0")) // TODO set as var for testing
@@ -123,7 +124,7 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 	if err != nil {
 		return nil, err
 	}
-	GetLogger(namespace).Info("Got output", "output", output)
+	GetLogger(namespace).Debug("Got output", "output", output)
 	lines := strings.Split(output, "\r\n")
 
 	var messages []string
@@ -134,7 +135,6 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 			messages = append(messages, line)
 		}
 	}
-	GetLogger(namespace).Info(fmt.Sprintf("Got %d messages", len(messages)))
 
 	_, err = CreateCommand("kubectl", "delete", "pod", "kafka-consumer").WithLoggerContext(namespace).Execute()
 	if err != nil {
@@ -144,6 +144,7 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 	return messages, nil
 }
 
+// GetKafkaInstance retrieves the Kafka instance
 func GetKafkaInstance(namespace, kafkaInstanceName string) (*v1beta2.Kafka, error) {
 	key := types.NamespacedName{
 		Namespace: namespace,

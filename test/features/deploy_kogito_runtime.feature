@@ -261,7 +261,8 @@ Feature: Deploy Kogito Runtime
       }
       """
 
-    Then Kafka instance "kogito-kafka" should contain at least 1 message on topic "kogito-processinstances-events" within 2 minutes
+    # 2 messages in output => orders and orderItems
+    Then Kafka instance "kogito-kafka" should contain at least 2 messages on topic "kogito-processinstances-events" within 2 minutes
 
     @springboot
     Examples:
@@ -269,7 +270,6 @@ Feature: Deploy Kogito Runtime
       | springboot | process-springboot-example | disabled |
 
     @quarkus
-    @test
     Examples:
       | runtime    | example-service         | native   |
       | quarkus    | process-quarkus-example | disabled |
