@@ -31,6 +31,8 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+print-%  : ; @echo $($*)
+
 all: generate manifests docker-build
 
 profiling: generate manifests profiling-build
