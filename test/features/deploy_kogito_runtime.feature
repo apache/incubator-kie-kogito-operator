@@ -265,11 +265,13 @@ Feature: Deploy Kogito Runtime
     Then Kafka instance "kogito-kafka" should contain at least 2 messages on topic "kogito-processinstances-events" within 2 minutes
 
     @springboot
+    @rhpam
     Examples:
       | runtime    | example-service            | native   |
       | springboot | process-springboot-example | disabled |
 
     @quarkus
+    @rhpam
     Examples:
       | runtime    | example-service         | native   |
       | quarkus    | process-quarkus-example | disabled |
