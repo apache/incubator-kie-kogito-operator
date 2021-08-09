@@ -132,7 +132,7 @@ func (i *infinispanTrustStoreReconciler) processDelta(requestedResources map[ref
 }
 
 func isInfinispanEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {
-	return !(infinispanInstance.Spec.Security.EndpointEncryption == nil || len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) == 0)
+	return !(*infinispanInstance.Spec.Security.EndpointAuthentication || infinispanInstance.Spec.Security.EndpointEncryption == nil || len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) == 0)
 }
 
 func (i *infinispanTrustStoreReconciler) updateSecretReferenceInStatus(secretReference *v1beta1.SecretReference) {
