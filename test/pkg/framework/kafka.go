@@ -78,6 +78,7 @@ func ScaleKafkaInstanceDown(namespace, kafkaInstanceName string) error {
 	return nil
 }
 
+// GetKafkaPods return the Kafka pods (suffixed with `-kafka`)
 func GetKafkaPods(namespace, kafkaInstanceName string) (*v1.PodList, error) {
 	return GetPodsWithLabels(namespace, map[string]string{"strimzi.io/name": kafkaInstanceName + "-kafka"})
 }
