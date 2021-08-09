@@ -23,6 +23,7 @@ import (
 	infrastructure "github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
 
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -64,7 +65,7 @@ func DeployKafkaTopic(namespace, kafkaTopicName, kafkaInstanceName string) error
 // ScaleKafkaInstanceDown scales a Kafka instance down by killing its pod temporarily
 func ScaleKafkaInstanceDown(namespace, kafkaInstanceName string) error {
 	GetLogger(namespace).Info("Scaling Kafka Instance down", "instance name", kafkaInstanceName)
-	pods, err := GetPodsWithLabels(namespace, map[string]string{"strimzi.io/name": kafkaInstanceName + "-kafka"})
+	pods, err := GetKafkaPods(namespace, kafkaInstanceName)
 	if err != nil {
 		return err
 	} else if len(pods.Items) != 1 {
@@ -77,15 +78,22 @@ func ScaleKafkaInstanceDown(namespace, kafkaInstanceName string) error {
 	return nil
 }
 
+func GetKafkaPods(namespace, kafkaInstanceName string) (*v1.PodList, error) {
+	return GetPodsWithLabels(namespace, map[string]string{"strimzi.io/name": kafkaInstanceName + "-kafka"})
+}
+
 // WaitForMessagesOnTopic waits for at least a certain number of messages are present on the given topic
 func WaitForMessagesOnTopic(namespace, kafkaInstanceName, topic string, numberOfMsg int, timeoutInMin int) error {
-	return WaitForOnOpenshift(namespace, fmt.Sprintf("%d message available on topic %s withing %d minutes", numberOfMsg, topic, timeoutInMin), timeoutInMin,
+	return WaitForOnOpenshift(namespace, fmt.Sprintf("%d message(s) available on topic %s withing %d minutes", numberOfMsg, topic, timeoutInMin), timeoutInMin,
 		func() (bool, error) {
 			messages, err := GetMessagesOnTopic(namespace, kafkaInstanceName, topic)
 			if err != nil {
 				return false, err
 			}
 			GetLogger(namespace).Info(fmt.Sprintf("Got %d messages", len(messages)))
+			for _, msg := range messages {
+				GetLogger(namespace).Debug(fmt.Sprintf("Got message: %s", msg))
+			}
 			return len(messages) >= numberOfMsg, nil
 		})
 }
@@ -104,8 +112,14 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 	}
 	GetLogger(namespace).Debug("Got bootstrapServer", "server", bootstrapServer)
 
-	args := []string{"run", "-ti", "kafka-consumer", "--restart=Never"}
-	args = append(args, fmt.Sprintf("--image=%s", "quay.io/strimzi/kafka:0.24.0-kafka-2.8.0")) // TODO set as var for testing
+	var kafkaPods *v1.PodList
+	kafkaPods, err = GetKafkaPods(namespace, kafkaInstanceName)
+	if err != nil {
+		return nil, fmt.Errorf("Error while retrieving Kafka pods: %v", err)
+	} else if len(kafkaPods.Items) <= 0 {
+		return nil, fmt.Errorf("No pods found for Kafka instance")
+	}
+	args := []string{"exec", kafkaPods.Items[0].Name}
 	args = append(args, "-n", namespace)
 	args = append(args, "--")
 	args = append(args, "bin/kafka-console-consumer.sh")
@@ -114,18 +128,13 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 	args = append(args, "--from-beginning")
 	args = append(args, "--timeout-ms", "10000")
 
-	_, err = CreateCommand("kubectl", args...).WithLoggerContext(namespace).Execute()
-	if err != nil {
-		return nil, err
-	}
-
 	var output string
-	output, err = CreateCommand("kubectl", "logs", "kafka-consumer", "-n", namespace).WithLoggerContext(namespace).Execute()
+	output, err = CreateCommand("kubectl", args...).WithLoggerContext(namespace).Execute()
 	if err != nil {
 		return nil, err
 	}
 	GetLogger(namespace).Debug("Got output", "output", output)
-	lines := strings.Split(output, "\r\n")
+	lines := strings.Split(output, "\n")
 
 	var messages []string
 	var result map[string]interface{}
@@ -134,11 +143,6 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 		if err == nil {
 			messages = append(messages, line)
 		}
-	}
-
-	_, err = CreateCommand("kubectl", "delete", "pod", "kafka-consumer").WithLoggerContext(namespace).Execute()
-	if err != nil {
-		return nil, err
 	}
 
 	return messages, nil
