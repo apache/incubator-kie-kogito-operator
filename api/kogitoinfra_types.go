@@ -64,6 +64,9 @@ type KogitoInfraInterface interface {
 type KogitoInfraSpecInterface interface {
 	GetResource() ResourceInterface
 	GetInfraProperties() map[string]string
+	GetEnvs() []v1.EnvVar
+	GetConfigMapReferences() []ConfigMapReferenceInterface
+	GetSecretReferences() []SecretReferenceInterface
 }
 
 // ResourceInterface ...
@@ -82,37 +85,17 @@ type ResourceInterface interface {
 type KogitoInfraStatusInterface interface {
 	GetConditions() *[]metav1.Condition
 	SetConditions(conditions *[]metav1.Condition)
-	GetRuntimeProperties(runtimeType RuntimeType) RuntimePropertiesInterface
-	AddRuntimeProperties(runtimeType RuntimeType, appProps map[string]string, env []v1.EnvVar)
-	GetVolumes() []KogitoInfraVolumeInterface
-	SetVolumes(infraVolumes []KogitoInfraVolumeInterface)
+	GetEnvs() []v1.EnvVar
+	SetEnvs(envs []v1.EnvVar)
+	GetConfigMapReferences() []ConfigMapReferenceInterface
+	SetConfigMapReferences(configMapReferences []ConfigMapReferenceInterface)
+	GetSecretReferences() []SecretReferenceInterface
+	SetSecretReferences(configMapReferences []SecretReferenceInterface)
 }
 
 // RuntimePropertiesMap defines the map that KogitoInfraStatus
 // will use to link the runtime to their variables.
 type RuntimePropertiesMap map[RuntimeType]RuntimePropertiesInterface
-
-// ConfigVolumeSourceInterface ...
-type ConfigVolumeSourceInterface interface {
-	GetSecret() *v1.SecretVolumeSource
-	SetSecret(secret *v1.SecretVolumeSource)
-	GetConfigMap() *v1.ConfigMapVolumeSource
-	SetConfigMap(configMap *v1.ConfigMapVolumeSource)
-}
-
-// ConfigVolumeInterface ...
-type ConfigVolumeInterface interface {
-	ConfigVolumeSourceInterface
-	GetName() string
-	SetName(name string)
-	ToKubeVolume() v1.Volume
-}
-
-// KogitoInfraVolumeInterface ...
-type KogitoInfraVolumeInterface interface {
-	GetMount() v1.VolumeMount
-	GetNamedVolume() ConfigVolumeInterface
-}
 
 // RuntimePropertiesInterface ...
 type RuntimePropertiesInterface interface {

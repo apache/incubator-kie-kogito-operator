@@ -133,8 +133,10 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
 			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
-				Replicas:            &replicas,
-				PropertiesConfigMap: "mysuper-cm",
+				Replicas: &replicas,
+				PropertiesConfigMap: v1beta1.ConfigMapReference{
+					Name: "mysuper-cm",
+				},
 			},
 		},
 	}

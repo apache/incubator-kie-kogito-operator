@@ -213,12 +213,11 @@ type KogitoServiceSpec struct {
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="ConfigMap Properties"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// Custom ConfigMap with application.properties file to be mounted for the Kogito service.
 	// The ConfigMap must be created in the same namespace.
 	// Use this property if you need custom properties to be mounted before the application deployment.
 	// If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
-	PropertiesConfigMap string `json:"propertiesConfigMap,omitempty"`
+	PropertiesConfigMap ConfigMapReference `json:"propertiesConfigMap,omitempty"`
 
 	// Infra provides list of dependent KogitoInfra objects.
 	// +optional
@@ -353,7 +352,9 @@ func (k *KogitoServiceSpec) AddServiceLabel(name, value string) {
 func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureImageRegistry }
 
 // GetPropertiesConfigMap ...
-func (k *KogitoServiceSpec) GetPropertiesConfigMap() string { return k.PropertiesConfigMap }
+func (k *KogitoServiceSpec) GetPropertiesConfigMap() api.ConfigMapReferenceInterface {
+	return &k.PropertiesConfigMap
+}
 
 // GetInfra ...
 func (k *KogitoServiceSpec) GetInfra() []string { return k.Infra }

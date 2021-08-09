@@ -177,7 +177,7 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err
 	}
-	configMap, err := converter.CreateConfigMapFromFile(i.Client, i.supportingService.serviceName, i.flags.Project, &i.flags.ConfigFlags)
+	configMapReference, err := converter.CreateConfigMapFromFile(i.Client, i.supportingService.serviceName, i.flags.Project, &i.flags.ConfigFlags)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 				Resources:             converter.FromPodResourceFlagsToResourceRequirement(&i.flags.PodResourceFlags),
 				InsecureImageRegistry: i.flags.ImageFlags.InsecureImageRegistry,
 				Infra:                 i.flags.Infra,
-				PropertiesConfigMap:   configMap,
+				PropertiesConfigMap:   *configMapReference,
 				Config:                converter.FromConfigFlagsToMap(&i.flags.ConfigFlags),
 				Probes:                converter.FromProbeFlagToKogitoProbe(&i.flags.ProbeFlags),
 			},

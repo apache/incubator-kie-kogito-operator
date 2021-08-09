@@ -97,7 +97,8 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.
 		return
 	}
 
-	if err = p.configMapHandler.MountConfigMapOnDeployment(dataIndexDeployment, protoBufConfigMap); err != nil {
+	configMapReference := p.protoBufConfigMapHandler.CreateProtoBufConfigMapReference(runtimeInstance)
+	if err = p.configMapHandler.MountConfigMapOnDeployment(dataIndexDeployment, configMapReference); err != nil {
 		return
 	}
 	updateProtoBufPropInToDeploymentEnv(dataIndexDeployment)

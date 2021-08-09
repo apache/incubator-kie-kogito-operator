@@ -17,7 +17,6 @@ package test
 import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -35,19 +34,6 @@ func CreateFakeKogitoKafka(namespace string) api.KogitoInfraInterface {
 			},
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]v1beta1.RuntimeProperties{
-				api.QuarkusRuntimeType: {
-					AppProps: map[string]string{
-						"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.test.svc:9092",
-					},
-					Env: []corev1.EnvVar{
-						{
-							Name:  "ENABLE_EVENTS",
-							Value: "true",
-						},
-					},
-				},
-			},
 			Conditions: &[]v1.Condition{
 				{
 					Type:   string(api.KogitoInfraConfigured),
@@ -72,43 +58,6 @@ func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
 			},
 		},
 		Status: v1beta1.KogitoInfraStatus{
-			RuntimeProperties: map[api.RuntimeType]v1beta1.RuntimeProperties{
-				api.QuarkusRuntimeType: {
-					AppProps: map[string]string{
-						"quarkus.infinispan-client.server-list": "infinispanInstance:11222",
-					},
-					Env: []corev1.EnvVar{
-						{
-							Name:  "ENABLE_PERSISTENCE",
-							Value: "true",
-						},
-					},
-				},
-			},
-			Volumes: []v1beta1.KogitoInfraVolume{
-				{
-					Mount: corev1.VolumeMount{
-						Name:      "tls-configuration",
-						ReadOnly:  true,
-						MountPath: "/home/kogito/certs",
-						SubPath:   "truststore.p12",
-					},
-					NamedVolume: v1beta1.ConfigVolume{
-						Name: "tls-configuration",
-						ConfigVolumeSource: v1beta1.ConfigVolumeSource{
-							Secret: &corev1.SecretVolumeSource{
-								SecretName: "infinispan-secret",
-								Items: []corev1.KeyToPath{
-									{
-										Key:  "tls.crt",
-										Path: "tls.crt",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 			Conditions: &[]v1.Condition{
 				{
 					Type:   string(api.KogitoInfraConfigured),

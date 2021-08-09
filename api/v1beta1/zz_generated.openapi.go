@@ -284,7 +284,6 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.Refe
 					"resource": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak.",
-							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.InfraResource"),
 						},
 					},
@@ -309,12 +308,47 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.Refe
 							},
 						},
 					},
+					"configMapReference": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of configmap that should be added to the services bound to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/kiegroup/kogito-operator/api.ConfigMapReference"),
+									},
+								},
+							},
+						},
+					},
+					"secretReference": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of secret that should be mount to the services bound to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/kiegroup/kogito-operator/api.SecretReference"),
+									},
+								},
+							},
+						},
+					},
 				},
-				Required: []string{"resource"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.InfraResource"},
+			"github.com/kiegroup/kogito-operator/api.ConfigMapReference", "github.com/kiegroup/kogito-operator/api.SecretReference", "github.com/kiegroup/kogito-operator/api/v1beta1.InfraResource"},
 	}
 }
 
@@ -344,35 +378,37 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 							},
 						},
 					},
-					"runtimeProperties": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties"),
-									},
-								},
-							},
-						},
-					},
-					"volumes": {
+					"configMapReference": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
 								"x-kubernetes-list-type": "atomic",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "List of volumes that should be added to the services bound to this infra instance",
+							Description: "List of configmap that should be added to the services bound to this infra instance",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume"),
+										Ref: ref("github.com/kiegroup/kogito-operator/api.ConfigMapReference"),
+									},
+								},
+							},
+						},
+					},
+					"secretReference": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of secret that should be munted to the services bound to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/kiegroup/kogito-operator/api.SecretReference"),
 									},
 								},
 							},
@@ -383,7 +419,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/kiegroup/kogito-operator/api.ConfigMapReference", "github.com/kiegroup/kogito-operator/api.SecretReference", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 

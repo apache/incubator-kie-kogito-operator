@@ -72,7 +72,7 @@ type KogitoServiceSpecInterface interface {
 	AddServiceLabel(name, value string)
 	GetRuntime() RuntimeType
 	IsInsecureImageRegistry() bool
-	GetPropertiesConfigMap() string
+	GetPropertiesConfigMap() ConfigMapReferenceInterface
 	GetInfra() []string
 	AddInfra(name string)
 	GetMonitoring() MonitoringInterface

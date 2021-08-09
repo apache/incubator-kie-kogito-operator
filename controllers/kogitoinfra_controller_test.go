@@ -100,8 +100,4 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	kafkaQuarkusAppProps := kogitoInfra.Status.RuntimeProperties[api.QuarkusRuntimeType].AppProps
-	assert.Contains(t, "kogito-kafka:9090", kafkaQuarkusAppProps["kafka.bootstrap.servers"])
-	kafkaSpringBootAppProps := kogitoInfra.Status.RuntimeProperties[api.SpringBootRuntimeType].AppProps
-	assert.Contains(t, "kogito-kafka:9090", kafkaSpringBootAppProps["kafka.bootstrap.servers"])
 }

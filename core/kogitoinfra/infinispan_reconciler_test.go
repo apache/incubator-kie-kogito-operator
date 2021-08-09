@@ -118,13 +118,10 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 		},
 	}
 
-	requeue, err := r.Reconcile()
+	err = r.Reconcile()
 	assert.NoError(t, err)
-	assert.False(t, requeue)
 
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-
-	assert.Equal(t, 1, len(kogitoInfra.Status.Volumes))
 }

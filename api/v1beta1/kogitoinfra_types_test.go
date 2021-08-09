@@ -91,27 +91,6 @@ func TestKogitoInfra_Status(t *testing.T) {
 	}
 	status.AddRuntimeProperties(api.SpringBootRuntimeType, springAppProps, springEnv)
 
-	var volumes []api.KogitoInfraVolumeInterface
-	volume1 := KogitoInfraVolume{
-		Mount: corev1.VolumeMount{
-			Name: "volumeMount1",
-		},
-		NamedVolume: ConfigVolume{
-			Name: "configVolume1",
-		},
-	}
-
-	volume2 := KogitoInfraVolume{
-		Mount: corev1.VolumeMount{
-			Name: "volumeMount2",
-		},
-		NamedVolume: ConfigVolume{
-			Name: "configVolume2",
-		},
-	}
-	volumes = append(volumes, volume1, volume2)
-	status.SetVolumes(volumes)
-
 	conditions := *status.GetConditions()
 	assert.Equal(t, string(api.KogitoInfraConfigured), conditions[0].Type)
 	assert.Equal(t, metav1.ConditionTrue, conditions[0].Status)
@@ -129,9 +108,4 @@ func TestKogitoInfra_Status(t *testing.T) {
 	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()))
 	assert.Equal(t, "name3", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()[0].Name)
 	assert.Equal(t, "name4", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()[1].Name)
-	assert.Equal(t, 2, len(status.GetVolumes()))
-	assert.Equal(t, "volumeMount1", status.GetVolumes()[0].GetMount().Name)
-	assert.Equal(t, "configVolume1", status.GetVolumes()[0].GetNamedVolume().GetName())
-	assert.Equal(t, "volumeMount2", status.GetVolumes()[1].GetMount().Name)
-	assert.Equal(t, "configVolume2", status.GetVolumes()[1].GetNamedVolume().GetName())
 }

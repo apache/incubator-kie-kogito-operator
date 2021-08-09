@@ -14,20 +14,7 @@
 
 package kogitoinfra
 
-import (
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/meta"
-	"testing"
-
-	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
-	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
+/*
 func TestRetrieveMongoDBCredentialsFromInstance(t *testing.T) {
 	passwordToFind := "passwordToFind"
 	authDB := infrastructure.DefaultMongoDBAuthDatabase
@@ -126,22 +113,22 @@ func TestRetrieveMongoDBCredentialsFromInstance(t *testing.T) {
 		})
 	}
 }
-
-func createUser(username, authDB, database, secretKey string) *mongodb.MongoDBUser {
-	user := &mongodb.MongoDBUser{
-		Name: username,
-		DB:   authDB,
-		PasswordSecretRef: mongodb.SecretKeyReference{
-			Name: "mongodb-developer-secret",
-		},
-	}
-	user.Roles = append(user.Roles, mongodb.Role{DB: "defaultDB"})
-	if len(database) > 0 {
-		user.Roles = append(user.Roles, mongodb.Role{DB: database})
-	}
-
-	if len(secretKey) > 0 {
-		user.PasswordSecretRef.Key = secretKey
-	}
-	return user
-}
+*/
+//func createUser(username, authDB, database, secretKey string) *mongodb.MongoDBUser {
+//	user := &mongodb.MongoDBUser{
+//		Name: username,
+//		DB:   authDB,
+//		PasswordSecretRef: mongodb.SecretKeyReference{
+//			Name: "mongodb-developer-secret",
+//		},
+//	}
+//	user.Roles = append(user.Roles, mongodb.Role{DB: "defaultDB"})
+//	if len(database) > 0 {
+//		user.Roles = append(user.Roles, mongodb.Role{DB: database})
+//	}
+//
+//	if len(secretKey) > 0 {
+//		user.PasswordSecretRef.Key = secretKey
+//	}
+//	return user
+//}

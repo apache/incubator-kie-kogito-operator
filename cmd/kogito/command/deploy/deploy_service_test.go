@@ -131,7 +131,7 @@ my.nice.property=socool
 	assert.NotEmpty(t, kogitoRuntime.Spec.PropertiesConfigMap)
 
 	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: kogitoRuntime.Spec.PropertiesConfigMap},
+		ObjectMeta: metav1.ObjectMeta{Namespace: t.Name(), Name: kogitoRuntime.Spec.PropertiesConfigMap.Name},
 	}
 	exists, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(cm)
 	assert.NoError(t, err)

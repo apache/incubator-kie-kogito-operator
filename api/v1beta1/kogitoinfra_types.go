@@ -16,7 +16,7 @@ package v1beta1
 
 import (
 	"github.com/kiegroup/kogito-operator/api"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,8 +26,9 @@ type KogitoInfraSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
+	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Resource InfraResource `json:"resource"`
+	Resource InfraResource `json:"resource,omitempty"`
 
 	// +optional
 	// +mapType=atomic
@@ -35,6 +36,24 @@ type KogitoInfraSpec struct {
 	// For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	InfraProperties map[string]string `json:"infraProperties,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	Envs []corev1.EnvVar `json:"envs,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of configmap that should be added to the services bound to this infra instance
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	ConfigMapReferences []ConfigMapReference `json:"configMapReferences,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of secret that should be mount to the services bound to this infra instance
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	SecretReferences []SecretReference `json:"secretReferences,omitempty"`
 }
 
 // GetResource ...
@@ -47,22 +66,29 @@ func (k *KogitoInfraSpec) GetInfraProperties() map[string]string {
 	return k.InfraProperties
 }
 
-// RuntimeProperties defines the variables that will be
-// extracted from the linked resource and added to the
-// deployed Kogito service.
-type RuntimeProperties struct {
-	AppProps map[string]string `json:"appProps,omitempty"`
-	Env      []v1.EnvVar       `json:"env,omitempty"`
+// GetEnvs ...
+func (k *KogitoInfraSpec) GetEnvs() []corev1.EnvVar {
+	return k.Envs
 }
 
-// GetAppProps ...
-func (r RuntimeProperties) GetAppProps() map[string]string {
-	return r.AppProps
+// GetConfigMapReferences ...
+func (k *KogitoInfraSpec) GetConfigMapReferences() []api.ConfigMapReferenceInterface {
+	newConfigMapReferences := make([]api.ConfigMapReferenceInterface, len(k.ConfigMapReferences))
+	for i, v := range k.ConfigMapReferences {
+		item := v
+		newConfigMapReferences[i] = &item
+	}
+	return newConfigMapReferences
 }
 
-// GetEnv ...
-func (r RuntimeProperties) GetEnv() []v1.EnvVar {
-	return r.Env
+// GetSecretReferences ...
+func (k *KogitoInfraSpec) GetSecretReferences() []api.SecretReferenceInterface {
+	newSecretReferences := make([]api.SecretReferenceInterface, len(k.SecretReferences))
+	for i, v := range k.SecretReferences {
+		item := v
+		newSecretReferences[i] = &item
+	}
+	return newSecretReferences
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra.
@@ -75,15 +101,22 @@ type KogitoInfraStatus struct {
 	Conditions *[]metav1.Condition `json:"conditions"`
 
 	// +optional
-	// Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.
+	// +listType=atomic
+	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	RuntimeProperties map[api.RuntimeType]RuntimeProperties `json:"runtimeProperties,omitempty"`
+	Envs []corev1.EnvVar `json:"envs,omitempty"`
 
 	// +optional
 	// +listType=atomic
-	// List of volumes that should be added to the services bound to this infra instance
+	// List of configmap that should be added to the services bound to this infra instance
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Volumes []KogitoInfraVolume `json:"volumes,omitempty"`
+	ConfigMapReferences []ConfigMapReference `json:"configMapReferences,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of secret that should be munted to the services bound to this infra instance
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	SecretReferences []SecretReference `json:"secretReferences,omitempty"`
 }
 
 // GetConditions ...
@@ -96,45 +129,56 @@ func (k *KogitoInfraStatus) SetConditions(conditions *[]metav1.Condition) {
 	k.Conditions = conditions
 }
 
-// GetRuntimeProperties ...
-func (k *KogitoInfraStatus) GetRuntimeProperties(runtimeType api.RuntimeType) api.RuntimePropertiesInterface {
-	if k.RuntimeProperties == nil {
-		return nil
-	}
-	return k.RuntimeProperties[runtimeType]
+// GetEnvs ...
+func (k *KogitoInfraStatus) GetEnvs() []corev1.EnvVar {
+	return k.Envs
 }
 
-// AddRuntimeProperties ...
-func (k *KogitoInfraStatus) AddRuntimeProperties(runtimeType api.RuntimeType, appProps map[string]string, env []v1.EnvVar) {
-	rp := k.RuntimeProperties
-	if rp == nil {
-		rp = make(map[api.RuntimeType]RuntimeProperties)
-	}
-	rp[runtimeType] = RuntimeProperties{
-		AppProps: appProps,
-		Env:      env,
-	}
-	k.RuntimeProperties = rp
+// SetEnvs ...
+func (k *KogitoInfraStatus) SetEnvs(envs []corev1.EnvVar) {
+	k.Envs = envs
 }
 
-// GetVolumes ...
-func (k *KogitoInfraStatus) GetVolumes() []api.KogitoInfraVolumeInterface {
-	volumes := make([]api.KogitoInfraVolumeInterface, len(k.Volumes))
-	for i, v := range k.Volumes {
-		volumes[i] = api.KogitoInfraVolumeInterface(v)
+// GetConfigMapReferences ...
+func (k *KogitoInfraStatus) GetConfigMapReferences() []api.ConfigMapReferenceInterface {
+	newConfigMapReferences := make([]api.ConfigMapReferenceInterface, len(k.ConfigMapReferences))
+	for i, v := range k.ConfigMapReferences {
+		item := v
+		newConfigMapReferences[i] = &item
 	}
-	return volumes
+	return newConfigMapReferences
 }
 
-// SetVolumes ...
-func (k *KogitoInfraStatus) SetVolumes(infraVolumes []api.KogitoInfraVolumeInterface) {
-	var volumes []KogitoInfraVolume
-	for _, volume := range infraVolumes {
-		if newVolume, ok := volume.(KogitoInfraVolume); ok {
-			volumes = append(volumes, newVolume)
+// SetConfigMapReferences ...
+func (k *KogitoInfraStatus) SetConfigMapReferences(configMapReferences []api.ConfigMapReferenceInterface) {
+	var newProduces []ConfigMapReference
+	for _, produce := range configMapReferences {
+		if newProduce, ok := produce.(*ConfigMapReference); ok {
+			newProduces = append(newProduces, *newProduce)
 		}
 	}
-	k.Volumes = volumes
+	k.ConfigMapReferences = newProduces
+}
+
+// GetSecretReferences ...
+func (k *KogitoInfraStatus) GetSecretReferences() []api.SecretReferenceInterface {
+	newSecretReferences := make([]api.SecretReferenceInterface, len(k.SecretReferences))
+	for i, v := range k.SecretReferences {
+		item := v
+		newSecretReferences[i] = &item
+	}
+	return newSecretReferences
+}
+
+// SetSecretReferences ...
+func (k *KogitoInfraStatus) SetSecretReferences(secretReferences []api.SecretReferenceInterface) {
+	var newSecretReferences []SecretReference
+	for _, produce := range secretReferences {
+		if newProduce, ok := produce.(*SecretReference); ok {
+			newSecretReferences = append(newSecretReferences, *newProduce)
+		}
+	}
+	k.SecretReferences = newSecretReferences
 }
 
 // InfraResource provide reference infra resource
@@ -150,6 +194,7 @@ type InfraResource struct {
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Kind"
 	Kind string `json:"kind"`
 
+	// +optional
 	// Namespace where referred resource exists.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Namespace"
@@ -199,90 +244,6 @@ func (r *InfraResource) GetName() string {
 // SetName ...
 func (r *InfraResource) SetName(name string) {
 	r.Name = name
-}
-
-/*
-BEGIN VOLUME
-This was created to not add excessive attributes to our CRD files. As the feature grows, we can keep adding sources.
-*/
-
-// ConfigVolumeSource is the Kubernetes Core `VolumeSource` type for ConfigMap and Secret only
-type ConfigVolumeSource struct {
-	// Secret represents a secret that should populate this volume.
-	// More info: https://kubernetes.io/docs/concepts/storage/volumes#secret
-	// +optional
-	Secret *v1.SecretVolumeSource `json:"secret,omitempty" protobuf:"bytes,6,opt,name=secret"`
-	// ConfigMap represents a configMap that should populate this volume
-	// +optional
-	ConfigMap *v1.ConfigMapVolumeSource `json:"configMap,omitempty" protobuf:"bytes,19,opt,name=configMap"`
-}
-
-// GetSecret ...
-func (c *ConfigVolumeSource) GetSecret() *v1.SecretVolumeSource {
-	return c.Secret
-}
-
-// SetSecret ...
-func (c *ConfigVolumeSource) SetSecret(secret *v1.SecretVolumeSource) {
-	c.Secret = secret
-}
-
-// GetConfigMap ...
-func (c *ConfigVolumeSource) GetConfigMap() *v1.ConfigMapVolumeSource {
-	return c.ConfigMap
-}
-
-// SetConfigMap ...
-func (c *ConfigVolumeSource) SetConfigMap(configMap *v1.ConfigMapVolumeSource) {
-	c.ConfigMap = configMap
-}
-
-// ConfigVolume is the Kubernetes Core `Volume` type that holds only configuration volume sources.
-type ConfigVolume struct {
-	// ConfigVolumeSource represents the location and type of the mounted volume.
-	ConfigVolumeSource `json:",inline" protobuf:"bytes,2,opt,name=volumeSource"`
-	// Volume's name.
-	// Must be a DNS_LABEL and unique within the pod.
-	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
-}
-
-// GetName ...
-func (c *ConfigVolume) GetName() string {
-	return c.Name
-}
-
-// SetName ...
-func (c *ConfigVolume) SetName(name string) {
-	c.Name = name
-}
-
-// ToKubeVolume converts the current ConfigVolume instance to Kubernetes Core Volume type.
-func (c *ConfigVolume) ToKubeVolume() v1.Volume {
-	volume := v1.Volume{Name: c.Name}
-	volume.Secret = c.Secret
-	volume.ConfigMap = c.ConfigMap
-	return volume
-}
-
-/* END VOLUME */
-
-// KogitoInfraVolume describes the data structure for volumes that should be mounted in the given service provided by this infra instance
-type KogitoInfraVolume struct {
-	// Mount is the Kubernetes VolumeMount referenced by this instance
-	Mount v1.VolumeMount `json:"mount"`
-	// NamedVolume describes the pod Volume reference
-	NamedVolume ConfigVolume `json:"volume"`
-}
-
-// GetMount ...
-func (k KogitoInfraVolume) GetMount() v1.VolumeMount {
-	return k.Mount
-}
-
-// GetNamedVolume ...
-func (k KogitoInfraVolume) GetNamedVolume() api.ConfigVolumeInterface {
-	return &k.NamedVolume
 }
 
 // +kubebuilder:object:root=true

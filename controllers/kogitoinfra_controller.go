@@ -82,14 +82,46 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	statusHandler := kogitoinfra.NewStatusHandler(context)
 	defer statusHandler.UpdateBaseStatus(instance, &resultErr)
 
+	instance.GetStatus().SetConfigMapReferences(nil)
+	instance.GetStatus().SetSecretReferences(nil)
+
 	reconcilerHandler := kogitoinfra.NewReconcilerHandler(context)
-	reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance)
-	if resultErr != nil {
+	resource := instance.GetSpec().GetResource()
+	if len(resource.GetKind()) > 0 {
+		reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance)
+		if resultErr != nil {
+			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+		}
+
+		resultErr = reconciler.Reconcile()
+		if resultErr != nil {
+			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+		}
+	}
+
+	if len(instance.GetSpec().GetInfraProperties()) > 0 {
+		appConfigMapReconciler := reconcilerHandler.GetAppConfigMapReconciler(instance)
+		if resultErr = appConfigMapReconciler.Reconcile(); resultErr != nil {
+			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+		}
+	}
+
+	// Set envs in status
+	if len(instance.GetSpec().GetEnvs()) > 0 {
+		instance.GetStatus().SetEnvs(instance.GetSpec().GetEnvs())
+	}
+
+	configMapReferenceReconciler := reconcilerHandler.GetConfigMapReferenceReconciler(instance)
+	if resultErr = configMapReferenceReconciler.Reconcile(); resultErr != nil {
 		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
 	}
 
-	requeue, resultErr := reconciler.Reconcile()
-	return reconcilerHandler.GetReconcileResultFor(resultErr, requeue)
+	secretReferenceReconciler := reconcilerHandler.GetSecretReferenceReconciler(instance)
+	if resultErr = secretReferenceReconciler.Reconcile(); resultErr != nil {
+		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+	}
+
+	return reconcile.Result{}, nil
 }
 
 // SetupWithManager registers the controller with manager
@@ -106,5 +138,7 @@ func (r *KogitoInfraReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	b = kogitoinfra.AppendKafkaWatchedObjects(b)
 	b = kogitoinfra.AppendKeycloakWatchedObjects(b)
 	b = kogitoinfra.AppendMongoDBWatchedObjects(b)
+	b = kogitoinfra.AppendConfigMapWatchedObjects(b)
+	b = kogitoinfra.AppendSecretWatchedObjects(b)
 	return b.Complete(r)
 }
