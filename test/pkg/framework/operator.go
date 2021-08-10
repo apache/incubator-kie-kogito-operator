@@ -48,8 +48,10 @@ const (
 	// kogitoCatalogSourceName name of the CatalogSource containing Kogito bundle for BDD tests
 	kogitoCatalogSourceName = "bdd-tests-kogito-catalog"
 
-	openShiftCatalogNamespace  = "openshift-marketplace"
-	kubernetesCatalogNamespace = "olm"
+	// OpenShiftCatalogNamespace is the namespace for clusterwide installations on Openshift
+	OpenShiftCatalogNamespace = "openshift-marketplace"
+	// KubernetesCatalogNamespace is the namespace for clusterwide installations on Kubernetes
+	KubernetesCatalogNamespace = "olm"
 
 	defaultOpenShiftClusterOperatorNamespace  = "openshift-operators"
 	defaultKubernetesClusterOperatorNamespace = "operators"
@@ -494,27 +496,23 @@ func GetClusterOperatorNamespace() string {
 // GetCommunityCatalog returns OperatorCatalog with community operators
 func GetCommunityCatalog() OperatorCatalog {
 	if IsOpenshift() {
-		return OperatorCatalog{
-			source:    "community-operators",
-			namespace: openShiftCatalogNamespace,
-		}
+		return GetOperatorCatalog(OpenShiftCatalogNamespace, "community-operators")
 	}
-	return OperatorCatalog{
-		source:    "operatorhubio-catalog",
-		namespace: kubernetesCatalogNamespace,
-	}
+	return GetOperatorCatalog(KubernetesCatalogNamespace, "operatorhubio-catalog")
 }
 
 // GetCustomKogitoOperatorCatalog returns OperatorCatalog containing custom Kogito operator informations
 func GetCustomKogitoOperatorCatalog() OperatorCatalog {
 	if IsOpenshift() {
-		return OperatorCatalog{
-			source:    kogitoCatalogSourceName,
-			namespace: openShiftCatalogNamespace,
-		}
+		return GetOperatorCatalog(OpenShiftCatalogNamespace, kogitoCatalogSourceName)
 	}
+	return GetOperatorCatalog(KubernetesCatalogNamespace, kogitoCatalogSourceName)
+}
+
+// GetOperatorCatalog creates the operator catalog based given on source and namespace
+func GetOperatorCatalog(namespace, source string) OperatorCatalog {
 	return OperatorCatalog{
-		source:    kogitoCatalogSourceName,
-		namespace: kubernetesCatalogNamespace,
+		source:    source,
+		namespace: namespace,
 	}
 }
