@@ -171,7 +171,7 @@ func RemoveKogitoOperatorDeployment(namespace string) error {
 }
 
 // InstallOperator installs an operator via subscrition
-func InstallOperator(namespace, subscriptionName, channel string, catalog OperatorCatalog) error {
+func InstallOperator(namespace, subscriptionName, channel, startingCSV string, catalog OperatorCatalog) error {
 	GetLogger(namespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.source, "channel", channel)
 	if _, err := CreateOperatorGroupIfNotExists(namespace, namespace); err != nil {
 		return err
@@ -181,7 +181,7 @@ func InstallOperator(namespace, subscriptionName, channel string, catalog Operat
 		return err
 	}
 
-	if _, err := CreateNamespacedSubscriptionIfNotExist(namespace, subscriptionName, subscriptionName, catalog, channel); err != nil {
+	if _, err := CreateNamespacedSubscriptionIfNotExist(namespace, subscriptionName, subscriptionName, catalog, startingCSV, channel); err != nil {
 		return err
 	}
 
@@ -189,10 +189,10 @@ func InstallOperator(namespace, subscriptionName, channel string, catalog Operat
 }
 
 // InstallClusterWideOperator installs an operator for all namespaces via subscrition
-func InstallClusterWideOperator(subscriptionName, channel string, catalog OperatorCatalog) error {
+func InstallClusterWideOperator(subscriptionName, channel, startingCSV string, catalog OperatorCatalog) error {
 	clusterOperatorNamespace := GetClusterOperatorNamespace()
 	GetLogger(clusterOperatorNamespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.source, "channel", channel, "namespace", clusterOperatorNamespace)
-	if _, err := CreateNamespacedSubscriptionIfNotExist(clusterOperatorNamespace, subscriptionName, subscriptionName, catalog, channel); err != nil {
+	if _, err := CreateNamespacedSubscriptionIfNotExist(clusterOperatorNamespace, subscriptionName, subscriptionName, catalog, channel, startingCSV); err != nil {
 		return err
 	}
 
@@ -306,7 +306,7 @@ func isOperatorGroupReady(namespace, operatorGroupName string) (bool, error) {
 }
 
 // CreateNamespacedSubscriptionIfNotExist create a namespaced subscription if not exists
-func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName string, operatorName string, catalog OperatorCatalog, channel string) (*olmapiv1alpha1.Subscription, error) {
+func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName string, operatorName string, catalog OperatorCatalog, channel, startingCSV string) (*olmapiv1alpha1.Subscription, error) {
 	subscription := &olmapiv1alpha1.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      subscriptionName,
@@ -318,6 +318,7 @@ func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName s
 			CatalogSource:          catalog.source,
 			CatalogSourceNamespace: catalog.namespace,
 			Channel:                channel,
+			StartingCSV:            startingCSV,
 		},
 	}
 
