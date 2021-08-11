@@ -47,6 +47,18 @@ func (k *KogitoInfraSpec) GetInfraProperties() map[string]string {
 	return k.InfraProperties
 }
 
+// AddInfraProperties ...
+func (k *KogitoInfraSpec) AddInfraProperties(infraProperties map[string]string) {
+	ip := k.InfraProperties
+	if ip == nil {
+		ip = make(map[string]string)
+	}
+	for key, value := range infraProperties {
+		ip[key] = value
+	}
+	k.InfraProperties = ip
+}
+
 // RuntimeProperties defines the variables that will be
 // extracted from the linked resource and added to the
 // deployed Kogito service.

@@ -64,6 +64,7 @@ type KogitoInfraInterface interface {
 type KogitoInfraSpecInterface interface {
 	GetResource() ResourceInterface
 	GetInfraProperties() map[string]string
+	AddInfraProperties(infraProperties map[string]string)
 }
 
 // ResourceInterface ...
