@@ -181,7 +181,7 @@ func InstallOperator(namespace, subscriptionName, channel, startingCSV string, c
 		return err
 	}
 
-	if _, err := CreateNamespacedSubscriptionIfNotExist(namespace, subscriptionName, subscriptionName, catalog, startingCSV, channel); err != nil {
+	if _, err := CreateNamespacedSubscriptionIfNotExist(namespace, subscriptionName, subscriptionName, catalog, channel, startingCSV); err != nil {
 		return err
 	}
 
