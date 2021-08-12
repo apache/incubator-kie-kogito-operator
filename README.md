@@ -397,6 +397,7 @@ All options from BDD tests do also apply here.
 |                    |                                                                                    |
 | @binary            | Tests using Kogito applications built locally and uploaded to OCP as a binary file |
 | @native            | Tests using native build                                                           |
+| @nonnativelts      | Tests using native build that cannot be tested with Quarkus LTS version            |
 | @persistence       | Tests verifying persistence capabilities                                           |
 | @events            | Tests verifying eventing capabilities                                              |
 | @discovery         | Tests checking service discovery functionality                                     |

@@ -191,6 +191,9 @@ pipeline {
         }
 
         stage('Push to registry') {
+            when {
+                expression { return !params.SKIP_DEPLOY }
+            }
             steps {
                 script {
                     helper.loginRegistry()
