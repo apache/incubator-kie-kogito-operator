@@ -78,8 +78,8 @@ func (p *protoBufConfigMapReconciler) Reconcile() error {
 			return err
 		}
 
-		configMapReference := p.protobufConfigMapHandler.CreateProtoBufConfigMapReference(runtimeInstance)
-		p.serviceDefinition.ConfigMapReferences = append(p.serviceDefinition.ConfigMapReferences, configMapReference)
+		volumeReference := p.protobufConfigMapHandler.CreateProtoBufConfigMapReference(runtimeInstance)
+		p.serviceDefinition.ConfigMapVolumeReferences = append(p.serviceDefinition.ConfigMapVolumeReferences, volumeReference)
 	}
 	return nil
 }

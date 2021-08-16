@@ -27,16 +27,16 @@ type ConfigMapReferenceReconciler interface {
 	Reconcile() error
 }
 
-type configMapReferenceReconciler struct {
+type propertiesConfigMapReconciler struct {
 	operator.Context
 	instance          api.KogitoService
 	serviceDefinition *ServiceDefinition
 	configMapHandler  infrastructure.ConfigMapHandler
 }
 
-func newConfigMapReferenceReconciler(context operator.Context, instance api.KogitoService, serviceDefinition *ServiceDefinition) ConfigMapReferenceReconciler {
+func newPropertiesConfigMapReconciler(context operator.Context, instance api.KogitoService, serviceDefinition *ServiceDefinition) ConfigMapReferenceReconciler {
 	context.Log = context.Log.WithValues("resource", "ConfigMapReference")
-	return &configMapReferenceReconciler{
+	return &propertiesConfigMapReconciler{
 		Context:           context,
 		instance:          instance,
 		serviceDefinition: serviceDefinition,
@@ -45,26 +45,27 @@ func newConfigMapReferenceReconciler(context operator.Context, instance api.Kogi
 }
 
 // Reconcile reconcile Kogito infra object
-func (i *configMapReferenceReconciler) Reconcile() error {
-	configMapReference := i.instance.GetSpec().GetPropertiesConfigMap()
-	if len(configMapReference.GetName()) > 0 {
-		i.Log.Debug("Custom Configmap instance reference is provided")
-		namespace := i.instance.GetNamespace()
-		configMapInstance, resultErr := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: configMapReference.GetName(), Namespace: namespace})
-		if resultErr != nil {
-			return resultErr
-		}
-		if configMapInstance == nil {
-			return fmt.Errorf("configmap(%s) not found in namespace %s", configMapReference.GetName(), namespace)
-		}
-	} else {
-		return fmt.Errorf("configmap resource name not provided")
+func (i *propertiesConfigMapReconciler) Reconcile() error {
+	cmName := i.instance.GetSpec().GetPropertiesConfigMap()
+	if len(cmName) == 0 {
+		return nil
 	}
-
-	i.updateConfigMapReferenceInStatus(configMapReference)
+	i.Log.Debug("Custom Configmap instance reference is provided")
+	namespace := i.instance.GetNamespace()
+	configMapInstance, resultErr := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: cmName, Namespace: namespace})
+	if resultErr != nil {
+		return resultErr
+	}
+	if configMapInstance == nil {
+		return fmt.Errorf("configmap(%s) not found in namespace %s", cmName, namespace)
+	}
+	i.updateConfigMapReferenceInStatus(cmName)
 	return nil
 }
 
-func (i *configMapReferenceReconciler) updateConfigMapReferenceInStatus(configMapReference api.ConfigMapReferenceInterface) {
-	i.serviceDefinition.ConfigMapReferences = append(i.serviceDefinition.ConfigMapReferences, configMapReference)
+func (i *propertiesConfigMapReconciler) updateConfigMapReferenceInStatus(cmName string) {
+	volumeReference := &VolumeReference{
+		Name: cmName,
+	}
+	i.serviceDefinition.ConfigMapVolumeReferences = append(i.serviceDefinition.ConfigMapVolumeReferences, volumeReference)
 }

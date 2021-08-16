@@ -35,10 +35,11 @@ func Test_createKafkaTopics(t *testing.T) {
 
 	infraKafka := test.CreateFakeKogitoKafka(t.Name())
 	kafka := test.CreateFakeKafka("my-kafka", t.Name())
+	kafkaConfig := test.CreateFakeKogitoKafkaConfig(t.Name())
 	infraKafka.GetSpec().GetResource().SetName(kafka.GetName())
 	service := test.CreateFakeDataIndex(t.Name())
 	service.GetSpec().AddInfra(infraKafka.GetName())
-	client := test.NewFakeClientBuilder().AddK8sObjects(infraKafka, service, kafka).Build()
+	client := test.NewFakeClientBuilder().AddK8sObjects(infraKafka, service, kafka, kafkaConfig).Build()
 	context := operator.Context{
 		Client: client,
 		Log:    test.TestLogger,

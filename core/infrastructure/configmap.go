@@ -36,7 +36,8 @@ const (
 type ConfigMapHandler interface {
 	FetchConfigMap(key types.NamespacedName) (*corev1.ConfigMap, error)
 	FetchConfigMapsForLabel(namespace string, labels map[string]string) (*corev1.ConfigMapList, error)
-	MountConfigMapOnDeployment(deployment *appsv1.Deployment, configMapReference api.ConfigMapReferenceInterface) error
+	MountAsVolume(deployment *appsv1.Deployment, volumeReference api.VolumeReferenceInterface) error
+	MountAsEnvFrom(deployment *appsv1.Deployment, cmName string)
 	GetComparator() compare.MapComparator
 }
 
@@ -84,38 +85,17 @@ func (c *configMapHandler) FetchConfigMapsForLabel(namespace string, labels map[
 	return cms, nil
 }
 
-func (c *configMapHandler) MountConfigMapOnDeployment(deployment *appsv1.Deployment, configMapReference api.ConfigMapReferenceInterface) error {
-	mountType := configMapReference.GetMountType()
-	if len(mountType) == 0 {
-		mountType = api.EnvVar
-	}
-	if isConfigMapCreatedUsingFile(mountType) {
-		if err := c.mountAsFile(deployment, configMapReference); err != nil {
-			return err
-		}
-	}
-
-	if isConfigMapCreatedUsingLiteral(mountType) {
-		c.mountAsLiteral(deployment, configMapReference)
-	}
-	return nil
-}
-
-func isConfigMapCreatedUsingFile(mountType api.MountType) bool {
-	return mountType == api.Volume
-}
-
-func (c *configMapHandler) mountAsFile(deployment *appsv1.Deployment, configMapReference api.ConfigMapReferenceInterface) error {
-	if err := c.appendVolumeIntoDeployment(deployment, configMapReference); err != nil {
+func (c *configMapHandler) MountAsVolume(deployment *appsv1.Deployment, volumeReference api.VolumeReferenceInterface) error {
+	if err := c.appendVolumeIntoDeployment(deployment, volumeReference); err != nil {
 		return err
 	}
-	if err := c.appendVolumeMountIntoDeployment(deployment, configMapReference); err != nil {
+	if err := c.appendVolumeMountIntoDeployment(deployment, volumeReference); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *configMapHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, configMapReference api.ConfigMapReferenceInterface) error {
+func (c *configMapHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, configMapReference api.VolumeReferenceInterface) error {
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
 		if volume.Name == configMapReference.GetName() {
 			return nil
@@ -139,7 +119,7 @@ func (c *configMapHandler) appendVolumeIntoDeployment(deployment *appsv1.Deploym
 	return nil
 }
 
-func (c *configMapHandler) appendVolumeMountIntoDeployment(deployment *appsv1.Deployment, configMapReference api.ConfigMapReferenceInterface) error {
+func (c *configMapHandler) appendVolumeMountIntoDeployment(deployment *appsv1.Deployment, configMapReference api.VolumeReferenceInterface) error {
 	cm, err := c.FetchConfigMap(types.NamespacedName{Name: configMapReference.GetName(), Namespace: deployment.Namespace})
 	if err != nil {
 		return err
@@ -175,20 +155,16 @@ func (c *configMapHandler) isVolumeMountExists(deployment *appsv1.Deployment, mo
 	return false
 }
 
-func isConfigMapCreatedUsingLiteral(mountType api.MountType) bool {
-	return mountType == api.EnvVar
-}
-
-func (c *configMapHandler) mountAsLiteral(deployment *appsv1.Deployment, configMapReference api.ConfigMapReferenceInterface) {
+func (c *configMapHandler) MountAsEnvFrom(deployment *appsv1.Deployment, cmName string) {
 	for _, envFrom := range deployment.Spec.Template.Spec.Containers[0].EnvFrom {
-		if envFrom.ConfigMapRef != nil && envFrom.ConfigMapRef.LocalObjectReference.Name == configMapReference.GetName() {
+		if envFrom.ConfigMapRef != nil && envFrom.ConfigMapRef.LocalObjectReference.Name == cmName {
 			return
 		}
 	}
 	envFromSource := corev1.EnvFromSource{
 		ConfigMapRef: &corev1.ConfigMapEnvSource{
 			LocalObjectReference: corev1.LocalObjectReference{
-				Name: configMapReference.GetName(),
+				Name: cmName,
 			},
 		},
 	}

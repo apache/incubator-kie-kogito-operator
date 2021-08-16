@@ -51,20 +51,23 @@ spec:
           spec:
             description: KogitoInfraSpec defines the desired state of KogitoInfra.
             properties:
-              configMapReferences:
+              configMapEnvFromReferences:
+                description: List of secret that should be mounted to the services as envs
+                items:
+                  type: string
+                type: array
+                x-kubernetes-list-type: atomic
+              configMapVolumeReferences:
                 description: List of configmap that should be added to the services bound to this infra instance
                 items:
-                  description: ConfigMapReference ...
+                  description: VolumeReference ...
                   properties:
                     fileMode:
-                      description: 'Optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.'
+                      description: Permission on the file mounted as volume on deployment. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644.
                       format: int32
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should be mounted.  Must not contain ':'.
-                      type: string
-                    mountType:
-                      description: Type of ConfigMap
                       type: string
                     name:
                       description: This must match the Name of a ConfigMap.
@@ -184,29 +187,32 @@ spec:
                 - kind
                 - name
                 type: object
-              secretReferences:
-                description: List of secret that should be mount to the services bound to this infra instance
+              secretEnvFromReferences:
+                description: List of secret that should be mounted to the services as envs
                 items:
-                  description: SecretReference ...
+                  type: string
+                type: array
+                x-kubernetes-list-type: atomic
+              secretVolumeReferences:
+                description: List of secret that should be munted to the services bound to this infra instance
+                items:
+                  description: VolumeReference ...
                   properties:
                     fileMode:
-                      description: 'Optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.'
+                      description: Permission on the file mounted as volume on deployment. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644.
                       format: int32
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should be mounted.  Must not contain ':'.
                       type: string
-                    mountType:
-                      description: Type of Secret
-                      type: string
-                    'name protobuf:':
-                      description: This must match the Name of a Secret.
+                    name:
+                      description: This must match the Name of a ConfigMap.
                       type: string
                     optional:
                       description: Specify whether the Secret or its keys must be defined
                       type: boolean
                   required:
-                  - 'name protobuf:'
+                  - name
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic
@@ -259,20 +265,23 @@ spec:
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic
-              configMapReferences:
+              configMapEnvFromReferences:
+                description: List of secret that should be mounted to the services as envs
+                items:
+                  type: string
+                type: array
+                x-kubernetes-list-type: atomic
+              configMapVolumeReferences:
                 description: List of configmap that should be added to the services bound to this infra instance
                 items:
-                  description: ConfigMapReference ...
+                  description: VolumeReference ...
                   properties:
                     fileMode:
-                      description: 'Optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.'
+                      description: Permission on the file mounted as volume on deployment. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644.
                       format: int32
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should be mounted.  Must not contain ':'.
-                      type: string
-                    mountType:
-                      description: Type of ConfigMap
                       type: string
                     name:
                       description: This must match the Name of a ConfigMap.
@@ -285,7 +294,7 @@ spec:
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic
-              envs:
+              env:
                 description: Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
                 items:
                   description: EnvVar represents an environment variable present in a Container.
@@ -366,29 +375,32 @@ spec:
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic
-              secretReferences:
+              secretEnvFromReferences:
+                description: List of secret that should be mounted to the services as envs
+                items:
+                  type: string
+                type: array
+                x-kubernetes-list-type: atomic
+              secretVolumeReferences:
                 description: List of secret that should be munted to the services bound to this infra instance
                 items:
-                  description: SecretReference ...
+                  description: VolumeReference ...
                   properties:
                     fileMode:
-                      description: 'Optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.'
+                      description: Permission on the file mounted as volume on deployment. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644.
                       format: int32
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should be mounted.  Must not contain ':'.
                       type: string
-                    mountType:
-                      description: Type of Secret
-                      type: string
-                    'name protobuf:':
-                      description: This must match the Name of a Secret.
+                    name:
+                      description: This must match the Name of a ConfigMap.
                       type: string
                     optional:
                       description: Specify whether the Secret or its keys must be defined
                       type: boolean
                   required:
-                  - 'name protobuf:'
+                  - name
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic

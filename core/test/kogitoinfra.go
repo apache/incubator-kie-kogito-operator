@@ -17,6 +17,7 @@ package test
 import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,7 +29,7 @@ func CreateFakeKogitoKafka(namespace string) api.KogitoInfraInterface {
 			Namespace: namespace,
 		},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: v1beta1.InfraResource{
+			Resource: &v1beta1.InfraResource{
 				Kind:       "Kafka",
 				APIVersion: "kafka.strimzi.io/v1beta2",
 			},
@@ -44,6 +45,20 @@ func CreateFakeKogitoKafka(namespace string) api.KogitoInfraInterface {
 	}
 }
 
+// CreateFakeKogitoKafkaConfig ...
+func CreateFakeKogitoKafkaConfig(namespace string) *v12.ConfigMap {
+	return &v12.ConfigMap{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "kogito-kafka-quarkus-config",
+			Namespace: namespace,
+		},
+		Data: map[string]string{
+			"ENABLE_EVENTS":           "true",
+			"kafka.bootstrap.servers": "kogito-kafka-kafka-bootstrap.kie.svc:9092",
+		},
+	}
+}
+
 // CreateFakeKogitoInfinispan create fake kogito infra instance for Infinispan
 func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
 	return &v1beta1.KogitoInfra{
@@ -52,7 +67,7 @@ func CreateFakeKogitoInfinispan(namespace string) api.KogitoInfraInterface {
 			Namespace: namespace,
 		},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: v1beta1.InfraResource{
+			Resource: &v1beta1.InfraResource{
 				Kind:       "Infinispan",
 				APIVersion: "infinispan.org/v1",
 			},
@@ -76,7 +91,7 @@ func CreateFakeKogitoKnative(namespace string) api.KogitoInfraInterface {
 			Namespace: namespace,
 		},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: v1beta1.InfraResource{
+			Resource: &v1beta1.InfraResource{
 				Kind:       "Broker",
 				APIVersion: "eventing.knative.dev/v1",
 			},

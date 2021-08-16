@@ -31,7 +31,8 @@ type SecretHandler interface {
 	FetchSecret(key types.NamespacedName) (*corev1.Secret, error)
 	MustFetchSecret(key types.NamespacedName) (*corev1.Secret, error)
 	GetComparator() compare.MapComparator
-	MountSecretOnDeployment(deployment *appsv1.Deployment, secretReference api.SecretReferenceInterface) error
+	MountAsVolume(deployment *appsv1.Deployment, volumeReference api.VolumeReferenceInterface) error
+	MountAsEnvFrom(deployment *appsv1.Deployment, cmName string)
 }
 
 type secretHandler struct {
@@ -70,38 +71,17 @@ func (c *secretHandler) MustFetchSecret(key types.NamespacedName) (*corev1.Secre
 	}
 }
 
-func (c *secretHandler) MountSecretOnDeployment(deployment *appsv1.Deployment, secretReference api.SecretReferenceInterface) error {
-	mountType := secretReference.GetMountType()
-	if len(mountType) == 0 {
-		mountType = api.EnvVar
-	}
-	if isSecretCreatedUsingFile(mountType) {
-		if err := c.mountAsFile(deployment, secretReference); err != nil {
-			return err
-		}
-	}
-
-	if isSecretCreatedUsingLiteral(mountType) {
-		c.mountAsLiteral(deployment, secretReference)
-	}
-	return nil
-}
-
-func isSecretCreatedUsingFile(mountType api.MountType) bool {
-	return mountType == api.Volume
-}
-
-func (c *secretHandler) mountAsFile(deployment *appsv1.Deployment, secretReference api.SecretReferenceInterface) error {
-	if err := c.appendVolumeIntoDeployment(deployment, secretReference); err != nil {
+func (c *secretHandler) MountAsVolume(deployment *appsv1.Deployment, volumeReference api.VolumeReferenceInterface) error {
+	if err := c.appendVolumeIntoDeployment(deployment, volumeReference); err != nil {
 		return err
 	}
-	if err := c.appendVolumeMountIntoDeployment(deployment, secretReference); err != nil {
+	if err := c.appendVolumeMountIntoDeployment(deployment, volumeReference); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *secretHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, secretReference api.SecretReferenceInterface) error {
+func (c *secretHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, secretReference api.VolumeReferenceInterface) error {
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
 		if volume.Name == secretReference.GetName() {
 			return nil
@@ -123,7 +103,7 @@ func (c *secretHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment
 	return nil
 }
 
-func (c *secretHandler) appendVolumeMountIntoDeployment(deployment *appsv1.Deployment, secretReference api.SecretReferenceInterface) error {
+func (c *secretHandler) appendVolumeMountIntoDeployment(deployment *appsv1.Deployment, secretReference api.VolumeReferenceInterface) error {
 	cm, err := c.FetchSecret(types.NamespacedName{Name: secretReference.GetName(), Namespace: deployment.Namespace})
 	if err != nil {
 		return err
@@ -134,6 +114,7 @@ func (c *secretHandler) appendVolumeMountIntoDeployment(deployment *appsv1.Deplo
 			mountPath = DefaultFileMountPath
 		}
 		mountPath = path.Join(mountPath, fileName)
+
 		if c.isVolumeMountExists(deployment, mountPath) {
 			continue
 		}
@@ -158,20 +139,16 @@ func (c *secretHandler) isVolumeMountExists(deployment *appsv1.Deployment, mount
 	return false
 }
 
-func isSecretCreatedUsingLiteral(mountType api.MountType) bool {
-	return mountType == api.EnvVar
-}
-
-func (c *secretHandler) mountAsLiteral(deployment *appsv1.Deployment, secretReference api.SecretReferenceInterface) {
+func (c *secretHandler) MountAsEnvFrom(deployment *appsv1.Deployment, cmName string) {
 	for _, envFrom := range deployment.Spec.Template.Spec.Containers[0].EnvFrom {
-		if envFrom.SecretRef != nil && envFrom.SecretRef.LocalObjectReference.Name == secretReference.GetName() {
+		if envFrom.SecretRef != nil && envFrom.SecretRef.LocalObjectReference.Name == cmName {
 			return
 		}
 	}
 	envFromSource := corev1.EnvFromSource{
 		SecretRef: &corev1.SecretEnvSource{
 			LocalObjectReference: corev1.LocalObjectReference{
-				Name: secretReference.GetName(),
+				Name: cmName,
 			},
 		},
 	}

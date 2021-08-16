@@ -17,7 +17,6 @@ package kogitoservice
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -31,12 +30,12 @@ const (
 	appPropConfigMapSuffix = "-properties"
 )
 
-// InfraPropertiesReconciler ...
-type InfraPropertiesReconciler interface {
+// ConfigReconciler ...
+type ConfigReconciler interface {
 	Reconcile() error
 }
 
-type infraPropertiesReconciler struct {
+type configReconciler struct {
 	operator.Context
 	instance          api.KogitoService
 	serviceDefinition *ServiceDefinition
@@ -44,10 +43,9 @@ type infraPropertiesReconciler struct {
 	deltaProcessor    infrastructure.DeltaProcessor
 }
 
-// initInfraPropertiesReconciler ...
-func newInfraPropertiesReconciler(context operator.Context, instance api.KogitoService, serviceDefinition *ServiceDefinition) InfraPropertiesReconciler {
+func newConfigReconciler(context operator.Context, instance api.KogitoService, serviceDefinition *ServiceDefinition) ConfigReconciler {
 	context.Log = context.Log.WithValues("resource", "InfraProperties")
-	return &infraPropertiesReconciler{
+	return &configReconciler{
 		Context:           context,
 		instance:          instance,
 		serviceDefinition: serviceDefinition,
@@ -56,7 +54,7 @@ func newInfraPropertiesReconciler(context operator.Context, instance api.KogitoS
 	}
 }
 
-func (i *infraPropertiesReconciler) Reconcile() error {
+func (i *configReconciler) Reconcile() error {
 
 	// Create Required resource
 	requestedResources, err := i.createRequiredResources()
@@ -75,17 +73,12 @@ func (i *infraPropertiesReconciler) Reconcile() error {
 		return err
 	}
 
-	configMapReference := &v1beta1.ConfigMapReference{
-		Name:      i.getInfraPropertiesConfigMapName(),
-		MountType: api.EnvVar,
-	}
-	i.updateConfigMapReferenceInStatus(configMapReference)
+	i.updateConfigMapReferenceInStatus()
 	return nil
 }
 
-func (i *infraPropertiesReconciler) createRequiredResources() (map[reflect.Type][]resource.KubernetesResource, error) {
+func (i *configReconciler) createRequiredResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
-
 	configMap := i.createInfraPropertiesConfigMap(i.instance.GetSpec().GetConfig())
 	if err := framework.SetOwner(i.instance, i.Scheme, configMap); err != nil {
 		return nil, err
@@ -94,7 +87,7 @@ func (i *infraPropertiesReconciler) createRequiredResources() (map[reflect.Type]
 	return resources, nil
 }
 
-func (i *infraPropertiesReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
+func (i *configReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
 	configMap, err := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: i.getInfraPropertiesConfigMapName(), Namespace: i.instance.GetNamespace()})
 	if err != nil {
@@ -106,13 +99,13 @@ func (i *infraPropertiesReconciler) getDeployedResources() (map[reflect.Type][]r
 	return resources, nil
 }
 
-func (i *infraPropertiesReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
+func (i *configReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
 	comparator := i.configMapHandler.GetComparator()
 	_, err = i.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return
 }
 
-func (i *infraPropertiesReconciler) createInfraPropertiesConfigMap(appProps map[string]string) *v1.ConfigMap {
+func (i *configReconciler) createInfraPropertiesConfigMap(appProps map[string]string) *v1.ConfigMap {
 	var data map[string]string = nil
 	if len(appProps) > 0 {
 		data = appProps
@@ -131,10 +124,10 @@ func (i *infraPropertiesReconciler) createInfraPropertiesConfigMap(appProps map[
 	return configMap
 }
 
-func (i *infraPropertiesReconciler) getInfraPropertiesConfigMapName() string {
+func (i *configReconciler) getInfraPropertiesConfigMapName() string {
 	return i.instance.GetName() + appPropConfigMapSuffix
 }
 
-func (i *infraPropertiesReconciler) updateConfigMapReferenceInStatus(configMapReference *v1beta1.ConfigMapReference) {
-	i.serviceDefinition.ConfigMapReferences = append(i.serviceDefinition.ConfigMapReferences, configMapReference)
+func (i *configReconciler) updateConfigMapReferenceInStatus() {
+	i.serviceDefinition.ConfigMapEnvFromReferences = append(i.serviceDefinition.ConfigMapEnvFromReferences, i.getInfraPropertiesConfigMapName())
 }

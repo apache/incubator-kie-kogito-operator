@@ -16,8 +16,6 @@ package converter
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/util"
 	"github.com/kiegroup/kogito-operator/core/client"
@@ -42,9 +40,9 @@ func FromConfigFlagsToMap(flag *flag.ConfigFlags) map[string]string {
 
 // CreateConfigMapFromFile creates the custom ConfigMap based in the configuration file given in the flags parameter.
 // Does nothing if the config file path is empty
-func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *flag.ConfigFlags) (*v1beta1.ConfigMapReference, error) {
+func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *flag.ConfigFlags) (cmName string, err error) {
 	if len(flags.ConfigFile) == 0 {
-		return nil, nil
+		return "", nil
 	}
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -54,11 +52,11 @@ func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *fl
 	}
 	fileContent, err := ioutil.ReadFile(flags.ConfigFile)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	exists, err := kubernetes.ResourceC(cli).Fetch(cm)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	cm.Data = map[string]string{
 		ConfigMapAppPropsFileName: string(fileContent),
@@ -69,16 +67,13 @@ func CreateConfigMapFromFile(cli *client.Client, name, project string, flags *fl
 	cm.Annotations[createdByAnnonKey] = createdByAnnonValue
 	if exists {
 		if err := kubernetes.ResourceC(cli).Update(cm); err != nil {
-			return nil, err
+			return "", err
 		}
 	} else {
 		if err := kubernetes.ResourceC(cli).Create(cm); err != nil {
-			return nil, err
+			return "", err
 		}
 	}
 
-	return &v1beta1.ConfigMapReference{
-		Name:      cm.Name,
-		MountType: api.Volume,
-	}, nil
+	return cm.Name, nil
 }

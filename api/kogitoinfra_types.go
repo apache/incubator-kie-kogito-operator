@@ -63,10 +63,13 @@ type KogitoInfraInterface interface {
 // KogitoInfraSpecInterface ...
 type KogitoInfraSpecInterface interface {
 	GetResource() ResourceInterface
+	IsResourceEmpty() bool
 	GetInfraProperties() map[string]string
 	GetEnvs() []v1.EnvVar
-	GetConfigMapReferences() []ConfigMapReferenceInterface
-	GetSecretReferences() []SecretReferenceInterface
+	GetConfigMapEnvFromReferences() []string
+	GetConfigMapVolumeReferences() []VolumeReferenceInterface
+	GetSecretEnvFromReferences() []string
+	GetSecretVolumeReferences() []VolumeReferenceInterface
 }
 
 // ResourceInterface ...
@@ -87,10 +90,19 @@ type KogitoInfraStatusInterface interface {
 	SetConditions(conditions *[]metav1.Condition)
 	GetEnvs() []v1.EnvVar
 	SetEnvs(envs []v1.EnvVar)
-	GetConfigMapReferences() []ConfigMapReferenceInterface
-	SetConfigMapReferences(configMapReferences []ConfigMapReferenceInterface)
-	GetSecretReferences() []SecretReferenceInterface
-	SetSecretReferences(configMapReferences []SecretReferenceInterface)
+	AddEnvs(envs []v1.EnvVar)
+	GetConfigMapEnvFromReferences() []string
+	SetConfigMapEnvFromReferences(configMapEnvFromReferences []string)
+	AddConfigMapEnvFromReferences(cmName string)
+	GetConfigMapVolumeReferences() []VolumeReferenceInterface
+	SetConfigMapVolumeReferences(volumeReferences []VolumeReferenceInterface)
+	AddConfigMapVolumeReference(name string, mountPath string, fileMode *int32, optional *bool)
+	GetSecretEnvFromReferences() []string
+	SetSecretEnvFromReferences(secretEnvFromReferences []string)
+	AddSecretEnvFromReferences(cmName string)
+	GetSecretVolumeReferences() []VolumeReferenceInterface
+	SetSecretVolumeReferences(volumeReferences []VolumeReferenceInterface)
+	AddSecretVolumeReference(name string, mountPath string, fileMode *int32, optional *bool)
 }
 
 // RuntimePropertiesMap defines the map that KogitoInfraStatus

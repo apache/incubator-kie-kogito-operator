@@ -199,8 +199,12 @@ func (s *serviceDeployer) resolveImage() *api.Image {
 
 func (s *serviceDeployer) mountConfigMapReferencesOnDeployment(deployment *appsv1.Deployment) error {
 	configMapHandler := infrastructure.NewConfigMapHandler(s.Context)
-	for _, configMapReference := range s.definition.ConfigMapReferences {
-		if err := configMapHandler.MountConfigMapOnDeployment(deployment, configMapReference); err != nil {
+	for _, configMapEnvFromReference := range s.definition.ConfigMapEnvFromReferences {
+		configMapHandler.MountAsEnvFrom(deployment, configMapEnvFromReference)
+	}
+
+	for _, configMapVolumeReference := range s.definition.ConfigMapVolumeReferences {
+		if err := configMapHandler.MountAsVolume(deployment, configMapVolumeReference); err != nil {
 			return err
 		}
 	}
@@ -209,8 +213,12 @@ func (s *serviceDeployer) mountConfigMapReferencesOnDeployment(deployment *appsv
 
 func (s *serviceDeployer) mountSecretReferencesOnDeployment(deployment *appsv1.Deployment) error {
 	secretHandler := infrastructure.NewSecretHandler(s.Context)
-	for _, secretReference := range s.definition.SecretReferences {
-		if err := secretHandler.MountSecretOnDeployment(deployment, secretReference); err != nil {
+	for _, secretEnvFromReference := range s.definition.SecretEnvFromReferences {
+		secretHandler.MountAsEnvFrom(deployment, secretEnvFromReference)
+	}
+
+	for _, secretVolumeReference := range s.definition.SecretVolumeReferences {
+		if err := secretHandler.MountAsVolume(deployment, secretVolumeReference); err != nil {
 			return err
 		}
 	}

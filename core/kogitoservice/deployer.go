@@ -62,11 +62,11 @@ type ServiceDefinition struct {
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
 	extraManagedObjectLists []runtime.Object
 
-	ConfigMapReferences []api.ConfigMapReferenceInterface
-
-	SecretReferences []api.SecretReferenceInterface
-
-	Envs []v1.EnvVar
+	ConfigMapEnvFromReferences []string
+	ConfigMapVolumeReferences  []api.VolumeReferenceInterface
+	SecretEnvFromReferences    []string
+	SecretVolumeReferences     []api.VolumeReferenceInterface
+	Envs                       []v1.EnvVar
 }
 
 const (
@@ -125,12 +125,12 @@ func (s *serviceDeployer) Deploy() error {
 	statusHandler := NewStatusHandler(s.Context)
 	defer statusHandler.HandleStatusUpdate(s.instance, &err)
 
-	infraPropertiesReconciler := newInfraPropertiesReconciler(s.Context, s.instance, &s.definition)
+	infraPropertiesReconciler := newConfigReconciler(s.Context, s.instance, &s.definition)
 	if err = infraPropertiesReconciler.Reconcile(); err != nil {
 		return err
 	}
 
-	configMapReferenceReconciler := newConfigMapReferenceReconciler(s.Context, s.instance, &s.definition)
+	configMapReferenceReconciler := newPropertiesConfigMapReconciler(s.Context, s.instance, &s.definition)
 	if err = configMapReferenceReconciler.Reconcile(); err != nil {
 		return err
 	}

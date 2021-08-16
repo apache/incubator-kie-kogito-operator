@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
@@ -47,7 +46,7 @@ type ProtoBufConfigMapHandler interface {
 	GetProtoBufConfigMapName(runtimeInstance api.KogitoRuntimeInterface) string
 	CreateProtoBufConfigMap(runtimeInstance api.KogitoRuntimeInterface) (*corev1.ConfigMap, error)
 	FetchProtoBufConfigMap(runtimeInstance api.KogitoRuntimeInterface) (*corev1.ConfigMap, error)
-	CreateProtoBufConfigMapReference(runtimeInstance api.KogitoRuntimeInterface) *v1beta1.ConfigMapReference
+	CreateProtoBufConfigMapReference(runtimeInstance api.KogitoRuntimeInterface) api.VolumeReferenceInterface
 }
 
 type protobufConfigMapHandler struct {
@@ -101,10 +100,9 @@ func (p *protobufConfigMapHandler) CreateProtoBufConfigMap(runtimeInstance api.K
 	return configMap, nil
 }
 
-func (p *protobufConfigMapHandler) CreateProtoBufConfigMapReference(runtimeInstance api.KogitoRuntimeInterface) *v1beta1.ConfigMapReference {
-	return &v1beta1.ConfigMapReference{
+func (p *protobufConfigMapHandler) CreateProtoBufConfigMapReference(runtimeInstance api.KogitoRuntimeInterface) api.VolumeReferenceInterface {
+	return &kogitoservice.VolumeReference{
 		Name:      p.GetProtoBufConfigMapName(runtimeInstance),
-		MountType: api.Volume,
 		MountPath: path.Join(DefaultProtobufMountPath, runtimeInstance.GetName()),
 		FileMode:  &framework.ModeForProtoBufConfigMapVolume,
 	}

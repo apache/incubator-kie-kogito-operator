@@ -16,8 +16,6 @@ package kogitoinfra
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	v1 "k8s.io/api/core/v1"
@@ -65,11 +63,7 @@ func (i *infraPropertiesReconciler) Reconcile() error {
 		return err
 	}
 
-	configMapReference := &v1beta1.ConfigMapReference{
-		Name:      i.getInfraPropertiesConfigMapName(),
-		MountType: api.EnvVar,
-	}
-	i.updateConfigMapReferenceInStatus(configMapReference)
+	i.instance.GetStatus().AddConfigMapEnvFromReferences(i.getInfraPropertiesConfigMapName())
 	return nil
 }
 
@@ -123,10 +117,4 @@ func (i *infraPropertiesReconciler) createInfraPropertiesConfigMap(appProps map[
 
 func (i *infraPropertiesReconciler) getInfraPropertiesConfigMapName() string {
 	return i.instance.GetName() + infraPropConfigMapSuffix
-}
-
-func (i *infraPropertiesReconciler) updateConfigMapReferenceInStatus(configMapReference *v1beta1.ConfigMapReference) {
-	instance := i.instance
-	configMapReferences := append(instance.GetStatus().GetConfigMapReferences(), configMapReference)
-	instance.GetStatus().SetConfigMapReferences(configMapReferences)
 }

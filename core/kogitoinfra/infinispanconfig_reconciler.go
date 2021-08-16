@@ -19,7 +19,6 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	v12 "k8s.io/api/core/v1"
@@ -34,7 +33,7 @@ const (
 )
 
 type infinispanConfigReconciler struct {
-	infraContext       infraContext
+	infraContext
 	infinispanInstance *v1.Infinispan
 	runtime            api.RuntimeType
 	configMapHandler   infrastructure.ConfigMapHandler
@@ -68,11 +67,7 @@ func (i *infinispanConfigReconciler) Reconcile() (err error) {
 		return err
 	}
 
-	configMapReference := &v1beta1.ConfigMapReference{
-		Name:      i.getInfinispanConfigMapName(),
-		MountType: api.EnvVar,
-	}
-	i.updateConfigMapReferenceInStatus(configMapReference)
+	i.instance.GetStatus().AddConfigMapEnvFromReferences(i.getInfinispanConfigMapName())
 	return nil
 }
 
@@ -83,7 +78,7 @@ func (i *infinispanConfigReconciler) createRequiredResources() (map[reflect.Type
 		return nil, err
 	}
 	configMap := i.createInfinispanConfigMap(appProps)
-	if err := framework.SetOwner(i.infraContext.instance, i.infraContext.Scheme, configMap); err != nil {
+	if err := framework.SetOwner(i.instance, i.Scheme, configMap); err != nil {
 		return resources, err
 	}
 	resources[reflect.TypeOf(v12.ConfigMap{})] = []resource.KubernetesResource{configMap}
@@ -93,7 +88,7 @@ func (i *infinispanConfigReconciler) createRequiredResources() (map[reflect.Type
 func (i *infinispanConfigReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
 	// fetch owned image stream
-	deployedConfigMap, err := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: i.getInfinispanConfigMapName(), Namespace: i.infraContext.instance.GetNamespace()})
+	deployedConfigMap, err := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: i.getInfinispanConfigMapName(), Namespace: i.instance.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +100,7 @@ func (i *infinispanConfigReconciler) getDeployedResources() (map[reflect.Type][]
 
 func (i *infinispanConfigReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
 	comparator := i.configMapHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.infraContext.Context)
+	deltaProcessor := infrastructure.NewDeltaProcessor(i.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }
@@ -113,7 +108,7 @@ func (i *infinispanConfigReconciler) processDelta(requestedResources map[reflect
 func (i *infinispanConfigReconciler) getInfinispanAppProps() (map[string]string, error) {
 	appProps := map[string]string{}
 
-	infinispanHandler := infrastructure.NewInfinispanHandler(i.infraContext.Context)
+	infinispanHandler := infrastructure.NewInfinispanHandler(i.Context)
 	infinispanURI, resultErr := infinispanHandler.FetchInfinispanInstanceURI(types.NamespacedName{Name: i.infinispanInstance.Name, Namespace: i.infinispanInstance.Namespace})
 	if resultErr != nil {
 		return nil, resultErr
@@ -141,9 +136,9 @@ func (i *infinispanConfigReconciler) createInfinispanConfigMap(appProps map[stri
 	configMap := &v12.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      i.getInfinispanConfigMapName(),
-			Namespace: i.infraContext.instance.GetNamespace(),
+			Namespace: i.instance.GetNamespace(),
 			Labels: map[string]string{
-				framework.LabelAppKey: i.infraContext.instance.GetName(),
+				framework.LabelAppKey: i.instance.GetName(),
 			},
 		},
 		Data: data,
@@ -153,10 +148,4 @@ func (i *infinispanConfigReconciler) createInfinispanConfigMap(appProps map[stri
 
 func (i *infinispanConfigReconciler) getInfinispanConfigMapName() string {
 	return fmt.Sprintf(infinispanConfigMapName, i.runtime)
-}
-
-func (i *infinispanConfigReconciler) updateConfigMapReferenceInStatus(configMapReference *v1beta1.ConfigMapReference) {
-	instance := i.infraContext.instance
-	configMapReferences := append(instance.GetStatus().GetConfigMapReferences(), configMapReference)
-	instance.GetStatus().SetConfigMapReferences(configMapReferences)
 }

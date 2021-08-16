@@ -111,5 +111,8 @@ func (k *kafkaMessagingDeployer) getKafkaInstanceNamespaceName(instance api.Kogi
 
 // IsKafkaResource checks if provided KogitoInfra instance is for kafka resource
 func IsKafkaResource(instance api.KogitoInfraInterface) bool {
-	return infrastructure.IsKafkaResource(instance.GetSpec().GetResource().GetAPIVersion(), instance.GetSpec().GetResource().GetKind())
+	if !instance.GetSpec().IsResourceEmpty() {
+		return infrastructure.IsKafkaResource(instance.GetSpec().GetResource().GetAPIVersion(), instance.GetSpec().GetResource().GetKind())
+	}
+	return false
 }

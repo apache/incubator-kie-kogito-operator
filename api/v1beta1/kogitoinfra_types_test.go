@@ -17,7 +17,6 @@ package v1beta1
 import (
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
@@ -25,7 +24,7 @@ import (
 func TestKogitoInfra_Spec(t *testing.T) {
 	instance := &KogitoInfra{
 		Spec: KogitoInfraSpec{
-			Resource: InfraResource{
+			Resource: &InfraResource{
 				APIVersion: "infinispan.org/v1",
 				Kind:       "Infinispan",
 				Name:       "test-infinispan",
@@ -59,53 +58,19 @@ func TestKogitoInfra_Status(t *testing.T) {
 					Message: "Infra success",
 				},
 			},
+			ConfigMapVolumeReferences: []VolumeReference{
+				{
+					Name: "configMap1",
+				},
+				{
+					Name: "configMap2",
+				},
+			},
 		},
-	}
-	status := instance1.GetStatus()
-	quarkusAppProps := map[string]string{
-		"key1": "value1",
-		"key2": "value2",
 	}
 
-	quarkusEnv := []corev1.EnvVar{
-		{
-			Name: "name1",
-		},
-		{
-			Name: "name2",
-		},
-	}
-	status.AddRuntimeProperties(api.QuarkusRuntimeType, quarkusAppProps, quarkusEnv)
-
-	springAppProps := map[string]string{
-		"key3": "value3",
-		"key4": "value4",
-	}
-	springEnv := []corev1.EnvVar{
-		{
-			Name: "name3",
-		},
-		{
-			Name: "name4",
-		},
-	}
-	status.AddRuntimeProperties(api.SpringBootRuntimeType, springAppProps, springEnv)
-
-	conditions := *status.GetConditions()
-	assert.Equal(t, string(api.KogitoInfraConfigured), conditions[0].Type)
-	assert.Equal(t, metav1.ConditionTrue, conditions[0].Status)
-	assert.Equal(t, string(api.ReconciliationFailure), conditions[0].Reason)
-	assert.Equal(t, "Infra success", conditions[0].Message)
-	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.QuarkusRuntimeType).GetAppProps()))
-	assert.Equal(t, "value1", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetAppProps()["key1"])
-	assert.Equal(t, "value2", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetAppProps()["key2"])
-	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.QuarkusRuntimeType).GetEnv()))
-	assert.Equal(t, "name1", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetEnv()[0].Name)
-	assert.Equal(t, "name2", status.GetRuntimeProperties(api.QuarkusRuntimeType).GetEnv()[1].Name)
-	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.SpringBootRuntimeType).GetAppProps()))
-	assert.Equal(t, "value3", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetAppProps()["key3"])
-	assert.Equal(t, "value4", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetAppProps()["key4"])
-	assert.Equal(t, 2, len(status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()))
-	assert.Equal(t, "name3", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()[0].Name)
-	assert.Equal(t, "name4", status.GetRuntimeProperties(api.SpringBootRuntimeType).GetEnv()[1].Name)
+	configMapReferences := instance1.GetStatus().GetConfigMapVolumeReferences()
+	assert.Equal(t, 2, len(configMapReferences))
+	assert.Equal(t, "configMap1", configMapReferences[0].GetName())
+	assert.Equal(t, "configMap2", configMapReferences[1].GetName())
 }

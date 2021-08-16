@@ -41,27 +41,64 @@ func AppendSecretWatchedObjects(b *builder.Builder) *builder.Builder {
 }
 
 // Reconcile reconcile Kogito infra object
-func (i *secretReferenceReconciler) Reconcile() error {
-	for _, secretReference := range i.instance.GetSpec().GetSecretReferences() {
-		if len(secretReference.GetName()) > 0 {
-			i.Log.Debug("Custom Secret instance reference is provided")
-			namespace := i.instance.GetNamespace()
-			secretInstance, resultErr := i.secretHandler.FetchSecret(types.NamespacedName{Name: secretReference.GetName(), Namespace: namespace})
-			if resultErr != nil {
-				return resultErr
-			}
-			if secretInstance == nil {
-				return errorForResourceNotFound("Secret", secretReference.GetName(), namespace)
-			}
-		} else {
-			return errorForResourceConfigError(i.instance, "No Secret resource name given")
+func (s *secretReferenceReconciler) Reconcile() error {
+
+	// reconcileSecretEnvFromReferences
+	if err := s.reconcileSecretEnvFromReferences(); err != nil {
+		return err
+	}
+
+	// reconcileSecretVolumeReferences
+	if err := s.reconcileSecretVolumeReferences(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *secretReferenceReconciler) reconcileSecretEnvFromReferences() error {
+	for _, cmName := range s.instance.GetSpec().GetSecretEnvFromReferences() {
+		namespace := s.instance.GetNamespace()
+		secretInstance, resultErr := s.secretHandler.FetchSecret(types.NamespacedName{Name: cmName, Namespace: namespace})
+		if resultErr != nil {
+			return resultErr
 		}
-		i.updateSecretReferenceInStatus(secretReference)
+		if secretInstance == nil {
+			return errorForResourceNotFound("Secret", cmName, namespace)
+		}
+
+		s.updateSecretEnvFromReferenceInStatus(cmName)
 	}
 	return nil
 }
 
-func (i *secretReferenceReconciler) updateSecretReferenceInStatus(secretReference api.SecretReferenceInterface) {
-	secretReferences := append(i.instance.GetStatus().GetSecretReferences(), secretReference)
-	i.instance.GetStatus().SetSecretReferences(secretReferences)
+func (s *secretReferenceReconciler) reconcileSecretVolumeReferences() error {
+	for _, volumeReference := range s.instance.GetSpec().GetSecretVolumeReferences() {
+		if len(volumeReference.GetName()) > 0 {
+			s.Log.Debug("Custom Secret instance reference is provided")
+			namespace := s.instance.GetNamespace()
+			secretInstance, resultErr := s.secretHandler.FetchSecret(types.NamespacedName{Name: volumeReference.GetName(), Namespace: namespace})
+			if resultErr != nil {
+				return resultErr
+			}
+			if secretInstance == nil {
+				return errorForResourceNotFound("Secret", volumeReference.GetName(), namespace)
+			}
+		} else {
+			return errorForResourceConfigError(s.instance, "No Secret resource name given")
+		}
+
+		s.updateSecretVolumeReferenceInStatus(volumeReference)
+	}
+	return nil
+}
+
+func (s *secretReferenceReconciler) updateSecretEnvFromReferenceInStatus(cmName string) {
+	secretReferences := append(s.instance.GetStatus().GetSecretEnvFromReferences(), cmName)
+	s.instance.GetStatus().SetSecretEnvFromReferences(secretReferences)
+}
+
+func (s *secretReferenceReconciler) updateSecretVolumeReferenceInStatus(volumeReference api.VolumeReferenceInterface) {
+	secretVolumeReferences := append(s.instance.GetStatus().GetSecretVolumeReferences(), volumeReference)
+	s.instance.GetStatus().SetSecretVolumeReferences(secretVolumeReferences)
 }

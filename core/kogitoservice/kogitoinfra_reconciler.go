@@ -15,6 +15,7 @@
 package kogitoservice
 
 import (
+	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
@@ -55,7 +56,7 @@ func (k *kogitoInfraReconciler) Reconcile() error {
 		}
 		if infra == nil {
 			k.Log.Info("Infra not found", "Infra", infraName)
-			return nil
+			return fmt.Errorf("KogitoInfra with name %s not found in namespace %s", infraName, k.instance.GetNamespace())
 		}
 
 		if err := k.checkInfraDependencies(infra); err != nil {
@@ -66,10 +67,10 @@ func (k *kogitoInfraReconciler) Reconcile() error {
 			return err
 		}
 
-		k.serviceDefinition.ConfigMapReferences = append(k.serviceDefinition.ConfigMapReferences, infra.GetStatus().GetConfigMapReferences()...)
-
-		k.serviceDefinition.SecretReferences = append(k.serviceDefinition.SecretReferences, infra.GetStatus().GetSecretReferences()...)
-
+		k.serviceDefinition.ConfigMapEnvFromReferences = append(k.serviceDefinition.ConfigMapEnvFromReferences, infra.GetStatus().GetConfigMapEnvFromReferences()...)
+		k.serviceDefinition.ConfigMapVolumeReferences = append(k.serviceDefinition.ConfigMapVolumeReferences, infra.GetStatus().GetConfigMapVolumeReferences()...)
+		k.serviceDefinition.SecretEnvFromReferences = append(k.serviceDefinition.SecretEnvFromReferences, infra.GetStatus().GetSecretEnvFromReferences()...)
+		k.serviceDefinition.SecretVolumeReferences = append(k.serviceDefinition.SecretVolumeReferences, infra.GetStatus().GetSecretVolumeReferences()...)
 		k.serviceDefinition.Envs = append(k.serviceDefinition.Envs, infra.GetStatus().GetEnvs()...)
 	}
 	return nil

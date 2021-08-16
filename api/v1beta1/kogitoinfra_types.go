@@ -28,7 +28,7 @@ type KogitoInfraSpec struct {
 	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Resource InfraResource `json:"resource,omitempty"`
+	Resource *InfraResource `json:"resource,omitempty"`
 
 	// +optional
 	// +mapType=atomic
@@ -45,20 +45,36 @@ type KogitoInfraSpec struct {
 
 	// +optional
 	// +listType=atomic
-	// List of configmap that should be added to the services bound to this infra instance
+	// List of secret that should be mounted to the services as envs
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	ConfigMapReferences []ConfigMapReference `json:"configMapReferences,omitempty"`
+	ConfigMapEnvFromReferences []string `json:"configMapEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
-	// List of secret that should be mount to the services bound to this infra instance
+	// List of configmap that should be added to the services bound to this infra instance
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	SecretReferences []SecretReference `json:"secretReferences,omitempty"`
+	ConfigMapVolumeReferences []VolumeReference `json:"configMapVolumeReferences,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of secret that should be mounted to the services as envs
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	SecretEnvFromReferences []string `json:"secretEnvFromReferences,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of secret that should be munted to the services bound to this infra instance
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	SecretVolumeReferences []VolumeReference `json:"secretVolumeReferences,omitempty"`
 }
 
 // GetResource ...
 func (k *KogitoInfraSpec) GetResource() api.ResourceInterface {
-	return &k.Resource
+	return k.Resource
+}
+
+func (k *KogitoInfraSpec) IsResourceEmpty() bool {
+	return k.Resource == nil
 }
 
 // GetInfraProperties ...
@@ -71,24 +87,34 @@ func (k *KogitoInfraSpec) GetEnvs() []corev1.EnvVar {
 	return k.Envs
 }
 
-// GetConfigMapReferences ...
-func (k *KogitoInfraSpec) GetConfigMapReferences() []api.ConfigMapReferenceInterface {
-	newConfigMapReferences := make([]api.ConfigMapReferenceInterface, len(k.ConfigMapReferences))
-	for i, v := range k.ConfigMapReferences {
-		item := v
-		newConfigMapReferences[i] = &item
-	}
-	return newConfigMapReferences
+// GetConfigMapEnvFromReferences ...
+func (k *KogitoInfraSpec) GetConfigMapEnvFromReferences() []string {
+	return k.ConfigMapEnvFromReferences
 }
 
-// GetSecretReferences ...
-func (k *KogitoInfraSpec) GetSecretReferences() []api.SecretReferenceInterface {
-	newSecretReferences := make([]api.SecretReferenceInterface, len(k.SecretReferences))
-	for i, v := range k.SecretReferences {
+// GetConfigMapVolumeReferences ...
+func (k *KogitoInfraSpec) GetConfigMapVolumeReferences() []api.VolumeReferenceInterface {
+	newConfigMapVolumeReferences := make([]api.VolumeReferenceInterface, len(k.ConfigMapVolumeReferences))
+	for i, v := range k.ConfigMapVolumeReferences {
 		item := v
-		newSecretReferences[i] = &item
+		newConfigMapVolumeReferences[i] = &item
 	}
-	return newSecretReferences
+	return newConfigMapVolumeReferences
+}
+
+// GetSecretEnvFromReferences ...
+func (k *KogitoInfraSpec) GetSecretEnvFromReferences() []string {
+	return k.SecretEnvFromReferences
+}
+
+// GetSecretVolumeReferences ...
+func (k *KogitoInfraSpec) GetSecretVolumeReferences() []api.VolumeReferenceInterface {
+	newSecretVolumeReferences := make([]api.VolumeReferenceInterface, len(k.SecretVolumeReferences))
+	for i, v := range k.SecretVolumeReferences {
+		item := v
+		newSecretVolumeReferences[i] = &item
+	}
+	return newSecretVolumeReferences
 }
 
 // KogitoInfraStatus defines the observed state of KogitoInfra.
@@ -104,19 +130,31 @@ type KogitoInfraStatus struct {
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	Envs []corev1.EnvVar `json:"envs,omitempty"`
+	Envs []corev1.EnvVar `json:"env,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of secret that should be mounted to the services as envs
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	ConfigMapEnvFromReferences []string `json:"configMapEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of configmap that should be added to the services bound to this infra instance
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	ConfigMapReferences []ConfigMapReference `json:"configMapReferences,omitempty"`
+	ConfigMapVolumeReferences []VolumeReference `json:"configMapVolumeReferences,omitempty"`
+
+	// +optional
+	// +listType=atomic
+	// List of secret that should be mounted to the services as envs
+	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	SecretEnvFromReferences []string `json:"secretEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of secret that should be munted to the services bound to this infra instance
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	SecretReferences []SecretReference `json:"secretReferences,omitempty"`
+	SecretVolumeReferences []VolumeReference `json:"secretVolumeReferences,omitempty"`
 }
 
 // GetConditions ...
@@ -139,46 +177,103 @@ func (k *KogitoInfraStatus) SetEnvs(envs []corev1.EnvVar) {
 	k.Envs = envs
 }
 
-// GetConfigMapReferences ...
-func (k *KogitoInfraStatus) GetConfigMapReferences() []api.ConfigMapReferenceInterface {
-	newConfigMapReferences := make([]api.ConfigMapReferenceInterface, len(k.ConfigMapReferences))
-	for i, v := range k.ConfigMapReferences {
-		item := v
-		newConfigMapReferences[i] = &item
-	}
-	return newConfigMapReferences
+// AddEnvs ...
+func (k *KogitoInfraStatus) AddEnvs(envs []corev1.EnvVar) {
+	k.Envs = append(k.Envs, envs...)
 }
 
-// SetConfigMapReferences ...
-func (k *KogitoInfraStatus) SetConfigMapReferences(configMapReferences []api.ConfigMapReferenceInterface) {
-	var newProduces []ConfigMapReference
-	for _, produce := range configMapReferences {
-		if newProduce, ok := produce.(*ConfigMapReference); ok {
-			newProduces = append(newProduces, *newProduce)
+// GetConfigMapEnvFromReferences ...
+func (k *KogitoInfraStatus) GetConfigMapEnvFromReferences() []string {
+	return k.ConfigMapEnvFromReferences
+}
+
+// SetConfigMapEnvFromReferences ...
+func (k *KogitoInfraStatus) SetConfigMapEnvFromReferences(configMapEnvFromReferences []string) {
+	k.ConfigMapEnvFromReferences = configMapEnvFromReferences
+}
+
+// AddConfigMapEnvFromReferences ...
+func (k *KogitoInfraStatus) AddConfigMapEnvFromReferences(cmName string) {
+	k.ConfigMapEnvFromReferences = append(k.ConfigMapEnvFromReferences, cmName)
+}
+
+// GetConfigMapVolumeReferences ...
+func (k *KogitoInfraStatus) GetConfigMapVolumeReferences() []api.VolumeReferenceInterface {
+	newConfigMapVolumeReferences := make([]api.VolumeReferenceInterface, len(k.ConfigMapVolumeReferences))
+	for i, v := range k.ConfigMapVolumeReferences {
+		item := v
+		newConfigMapVolumeReferences[i] = &item
+	}
+	return newConfigMapVolumeReferences
+}
+
+// SetConfigMapVolumeReferences ...
+func (k *KogitoInfraStatus) SetConfigMapVolumeReferences(configMapVolumeReferences []api.VolumeReferenceInterface) {
+	var newConfigMapVolumeReferences []VolumeReference
+	for _, produce := range configMapVolumeReferences {
+		if newProduce, ok := produce.(*VolumeReference); ok {
+			newConfigMapVolumeReferences = append(newConfigMapVolumeReferences, *newProduce)
 		}
 	}
-	k.ConfigMapReferences = newProduces
+	k.ConfigMapVolumeReferences = newConfigMapVolumeReferences
 }
 
-// GetSecretReferences ...
-func (k *KogitoInfraStatus) GetSecretReferences() []api.SecretReferenceInterface {
-	newSecretReferences := make([]api.SecretReferenceInterface, len(k.SecretReferences))
-	for i, v := range k.SecretReferences {
-		item := v
-		newSecretReferences[i] = &item
+// AddConfigMapVolumeReference ...
+func (k *KogitoInfraStatus) AddConfigMapVolumeReference(name string, mountPath string, fileMode *int32, optional *bool) {
+	volumeReference := VolumeReference{
+		Name:      name,
+		MountPath: mountPath,
+		FileMode:  fileMode,
+		Optional:  optional,
 	}
-	return newSecretReferences
+	k.ConfigMapVolumeReferences = append(k.ConfigMapVolumeReferences, volumeReference)
 }
 
-// SetSecretReferences ...
-func (k *KogitoInfraStatus) SetSecretReferences(secretReferences []api.SecretReferenceInterface) {
-	var newSecretReferences []SecretReference
-	for _, produce := range secretReferences {
-		if newProduce, ok := produce.(*SecretReference); ok {
-			newSecretReferences = append(newSecretReferences, *newProduce)
+// GetSecretEnvFromReferences ...
+func (k *KogitoInfraStatus) GetSecretEnvFromReferences() []string {
+	return k.SecretEnvFromReferences
+}
+
+// SetSecretEnvFromReferences ...
+func (k *KogitoInfraStatus) SetSecretEnvFromReferences(secretEnvFromReferences []string) {
+	k.SecretEnvFromReferences = secretEnvFromReferences
+}
+
+// AddSecretEnvFromReferences ...
+func (k *KogitoInfraStatus) AddSecretEnvFromReferences(cmName string) {
+	k.SecretEnvFromReferences = append(k.SecretEnvFromReferences, cmName)
+}
+
+// GetSecretVolumeReferences ...
+func (k *KogitoInfraStatus) GetSecretVolumeReferences() []api.VolumeReferenceInterface {
+	newSecretVolumeReferences := make([]api.VolumeReferenceInterface, len(k.SecretVolumeReferences))
+	for i, v := range k.SecretVolumeReferences {
+		item := v
+		newSecretVolumeReferences[i] = &item
+	}
+	return newSecretVolumeReferences
+}
+
+// SetSecretVolumeReferences ...
+func (k *KogitoInfraStatus) SetSecretVolumeReferences(secretVolumeReferences []api.VolumeReferenceInterface) {
+	var newSecretVolumeReferences []VolumeReference
+	for _, produce := range secretVolumeReferences {
+		if newProduce, ok := produce.(*VolumeReference); ok {
+			newSecretVolumeReferences = append(newSecretVolumeReferences, *newProduce)
 		}
 	}
-	k.SecretReferences = newSecretReferences
+	k.SecretVolumeReferences = newSecretVolumeReferences
+}
+
+// AddSecretVolumeReference ...
+func (k *KogitoInfraStatus) AddSecretVolumeReference(name string, mountPath string, fileMode *int32, optional *bool) {
+	volumeReference := VolumeReference{
+		Name:      name,
+		MountPath: mountPath,
+		FileMode:  fileMode,
+		Optional:  optional,
+	}
+	k.SecretVolumeReferences = append(k.SecretVolumeReferences, volumeReference)
 }
 
 // InfraResource provide reference infra resource

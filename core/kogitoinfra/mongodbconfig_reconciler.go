@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
@@ -68,11 +67,7 @@ func (i *mongoDBConfigReconciler) Reconcile() (err error) {
 		return err
 	}
 
-	configMapReference := &v1beta1.ConfigMapReference{
-		Name:      i.getMongoDBConfigMapName(),
-		MountType: api.EnvVar,
-	}
-	i.updateConfigMapReferenceInStatus(configMapReference)
+	i.instance.GetStatus().AddConfigMapEnvFromReferences(i.getMongoDBConfigMapName())
 	return nil
 }
 
@@ -150,10 +145,4 @@ func (i *mongoDBConfigReconciler) createMongoDBConfigMap(appProps map[string]str
 
 func (i *mongoDBConfigReconciler) getMongoDBConfigMapName() string {
 	return fmt.Sprintf(mongoDBConfigMapName, i.runtime)
-}
-
-func (i *mongoDBConfigReconciler) updateConfigMapReferenceInStatus(configMapReference *v1beta1.ConfigMapReference) {
-	instance := i.infraContext.instance
-	configMapReferences := append(instance.GetStatus().GetConfigMapReferences(), configMapReference)
-	instance.GetStatus().SetConfigMapReferences(configMapReferences)
 }

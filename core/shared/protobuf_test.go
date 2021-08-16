@@ -70,7 +70,7 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	cm1 := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: t.Name(),
-			Name:      "my-domain-protobufs1",
+			Name:      "my-domain-protobufs1-protobuf-files",
 			Labels: map[string]string{
 				ConfigMapProtoBufEnabledLabelKey: "true",
 				framework.LabelAppKey:            "my-domain-protobufs1",
@@ -81,7 +81,7 @@ func TestMountProtoBufConfigMapOnDataIndex(t *testing.T) {
 	cm2 := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: t.Name(),
-			Name:      "my-domain-protobufs2",
+			Name:      "my-domain-protobufs2-protobuf-files",
 			Labels: map[string]string{
 				ConfigMapProtoBufEnabledLabelKey: "true",
 				framework.LabelAppKey:            "my-domain-protobufs2",

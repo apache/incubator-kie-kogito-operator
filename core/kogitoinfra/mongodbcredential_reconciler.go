@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
@@ -67,11 +66,7 @@ func (i *mongoDBCredentialReconciler) Reconcile() (err error) {
 		return err
 	}
 
-	secretReference := &v1beta1.SecretReference{
-		Name:      i.getCredentialSecretName(),
-		MountType: api.EnvVar,
-	}
-	i.updateSecretReferenceInStatus(secretReference)
+	i.instance.GetStatus().AddSecretEnvFromReferences(i.getCredentialSecretName())
 	return nil
 }
 
@@ -191,10 +186,4 @@ func (i *mongoDBCredentialReconciler) findMongoDBUserByUsernameAndAuthDatabase(m
 
 func (i *mongoDBCredentialReconciler) getCredentialSecretName() string {
 	return fmt.Sprintf(mongoDBSecretName, i.runtime)
-}
-
-func (i *mongoDBCredentialReconciler) updateSecretReferenceInStatus(secretReference *v1beta1.SecretReference) {
-	instance := i.infraContext.instance
-	secretReferences := append(instance.GetStatus().GetSecretReferences(), secretReference)
-	instance.GetStatus().SetSecretReferences(secretReferences)
 }

@@ -42,27 +42,63 @@ func AppendConfigMapWatchedObjects(b *builder.Builder) *builder.Builder {
 
 // Reconcile reconcile Kogito infra object
 func (i *configMapReferenceReconciler) Reconcile() error {
-	for _, configMapReference := range i.instance.GetSpec().GetConfigMapReferences() {
-		if len(configMapReference.GetName()) > 0 {
+
+	// reconcileConfigMapEnvFromReferences
+	if err := i.reconcileConfigMapEnvFromReferences(); err != nil {
+		return err
+	}
+
+	// reconcileConfigMapVolumeReferences
+	if err := i.reconcileConfigMapVolumeReferences(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (i *configMapReferenceReconciler) reconcileConfigMapEnvFromReferences() error {
+	for _, cmName := range i.instance.GetSpec().GetConfigMapEnvFromReferences() {
+		namespace := i.instance.GetNamespace()
+		configMapInstance, resultErr := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: cmName, Namespace: namespace})
+		if resultErr != nil {
+			return resultErr
+		}
+		if configMapInstance == nil {
+			return errorForResourceNotFound("Configmap", cmName, namespace)
+		}
+
+		i.updateConfigMapEnvFromReferenceInStatus(cmName)
+	}
+	return nil
+}
+
+func (i *configMapReferenceReconciler) reconcileConfigMapVolumeReferences() error {
+	for _, volumeReference := range i.instance.GetSpec().GetConfigMapVolumeReferences() {
+		if len(volumeReference.GetName()) > 0 {
 			i.Log.Debug("Custom Configmap instance reference is provided")
 			namespace := i.instance.GetNamespace()
-			configMapInstance, resultErr := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: configMapReference.GetName(), Namespace: namespace})
+			configMapInstance, resultErr := i.configMapHandler.FetchConfigMap(types.NamespacedName{Name: volumeReference.GetName(), Namespace: namespace})
 			if resultErr != nil {
 				return resultErr
 			}
 			if configMapInstance == nil {
-				return errorForResourceNotFound("Configmap", configMapReference.GetName(), namespace)
+				return errorForResourceNotFound("Configmap", volumeReference.GetName(), namespace)
 			}
 		} else {
 			return errorForResourceConfigError(i.instance, "No Configmap resource name given")
 		}
 
-		i.updateConfigMapReferenceInStatus(configMapReference)
+		i.updateConfigMapVolumeReferenceInStatus(volumeReference)
 	}
 	return nil
 }
 
-func (i *configMapReferenceReconciler) updateConfigMapReferenceInStatus(configMapReference api.ConfigMapReferenceInterface) {
-	configMapReferences := append(i.instance.GetStatus().GetConfigMapReferences(), configMapReference)
-	i.instance.GetStatus().SetConfigMapReferences(configMapReferences)
+func (i *configMapReferenceReconciler) updateConfigMapEnvFromReferenceInStatus(cmName string) {
+	configMapReferences := append(i.instance.GetStatus().GetConfigMapEnvFromReferences(), cmName)
+	i.instance.GetStatus().SetConfigMapEnvFromReferences(configMapReferences)
+}
+
+func (i *configMapReferenceReconciler) updateConfigMapVolumeReferenceInStatus(volumeReference api.VolumeReferenceInterface) {
+	configMapVolumeReferences := append(i.instance.GetStatus().GetConfigMapVolumeReferences(), volumeReference)
+	i.instance.GetStatus().SetConfigMapVolumeReferences(configMapVolumeReferences)
 }

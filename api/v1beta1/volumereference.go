@@ -14,26 +14,18 @@
 
 package v1beta1
 
-import "github.com/kiegroup/kogito-operator/api"
-
-// SecretReference ...
-type SecretReference struct {
-	// This must match the Name of a Secret.
-	Name string `json:"name protobuf:"bytes,1,opt,name=name"`
-	// Type of Secret
-	// +optional
-	MountType api.MountType `json:"mountType,omitempty" protobuf:"bytes,2,opt,name=mountPath"`
+// VolumeReference ...
+type VolumeReference struct {
+	// This must match the Name of a ConfigMap.
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Path within the container at which the volume should be mounted.  Must
 	// not contain ':'.
 	// +optional
 	MountPath string `json:"mountPath,omitempty" protobuf:"bytes,3,opt,name=mountPath"`
-	// Optional: mode bits used to set permissions on created files by default.
+	// Permission on the file mounted as volume on deployment.
 	// Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.
 	// YAML accepts both octal and decimal values, JSON requires decimal values
 	// for mode bits. Defaults to 0644.
-	// Directories within the path are not affected by this setting.
-	// This might be in conflict with other options that affect the file
-	// mode, like fsGroup, and the result can be other mode bits set.
 	// +optional
 	FileMode *int32 `json:"fileMode,omitempty" protobuf:"bytes,4,opt,name=fileMode"`
 	// Specify whether the Secret or its keys must be defined
@@ -42,51 +34,41 @@ type SecretReference struct {
 }
 
 // GetName ...
-func (s *SecretReference) GetName() string {
-	return s.Name
+func (c *VolumeReference) GetName() string {
+	return c.Name
 }
 
 // SetName ...
-func (s *SecretReference) SetName(name string) {
-	s.Name = name
-}
-
-// GetMountType ...
-func (s *SecretReference) GetMountType() api.MountType {
-	return s.MountType
-}
-
-// SetMountType ...
-func (s *SecretReference) SetMountType(mountType api.MountType) {
-	s.MountType = mountType
+func (c *VolumeReference) SetName(name string) {
+	c.Name = name
 }
 
 // GetMountPath ...
-func (s *SecretReference) GetMountPath() string {
-	return s.MountPath
+func (c *VolumeReference) GetMountPath() string {
+	return c.MountPath
 }
 
 // SetMountPath ...
-func (s *SecretReference) SetMountPath(mountPath string) {
-	s.MountPath = mountPath
+func (c *VolumeReference) SetMountPath(mountPath string) {
+	c.MountPath = mountPath
 }
 
 // IsOptional ...
-func (s *SecretReference) IsOptional() *bool {
-	return s.Optional
+func (c *VolumeReference) IsOptional() *bool {
+	return c.Optional
 }
 
 // SetOptional ....
-func (s *SecretReference) SetOptional(optional *bool) {
-	s.Optional = optional
+func (c *VolumeReference) SetOptional(optional *bool) {
+	c.Optional = optional
 }
 
 // GetFileMode ...
-func (s *SecretReference) GetFileMode() *int32 {
-	return s.FileMode
+func (c *VolumeReference) GetFileMode() *int32 {
+	return c.FileMode
 }
 
 // SetFileMode ...
-func (s *SecretReference) SetFileMode(fileMode *int32) {
-	s.FileMode = fileMode
+func (c *VolumeReference) SetFileMode(fileMode *int32) {
+	c.FileMode = fileMode
 }

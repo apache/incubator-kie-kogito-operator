@@ -70,25 +70,28 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 
 	// Fetch the KogitoInfra instance
 	infraHandler := internal.NewKogitoInfraHandler(context)
-	instance, resultErr := infraHandler.FetchKogitoInfraInstance(req.NamespacedName)
-	if resultErr != nil {
-		return reconcile.Result{}, resultErr
+	instance, err := infraHandler.FetchKogitoInfraInstance(req.NamespacedName)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 	if instance == nil {
 		log.Debug("KogitoInfra instance not found")
 		return reconcile.Result{}, nil
 	}
-
+	var resultErr error
 	statusHandler := kogitoinfra.NewStatusHandler(context)
 	defer statusHandler.UpdateBaseStatus(instance, &resultErr)
 
-	instance.GetStatus().SetConfigMapReferences(nil)
-	instance.GetStatus().SetSecretReferences(nil)
+	instance.GetStatus().SetEnvs(nil)
+	instance.GetStatus().SetConfigMapEnvFromReferences(nil)
+	instance.GetStatus().SetConfigMapVolumeReferences(nil)
+	instance.GetStatus().SetSecretEnvFromReferences(nil)
+	instance.GetStatus().SetSecretVolumeReferences(nil)
 
 	reconcilerHandler := kogitoinfra.NewReconcilerHandler(context)
-	resource := instance.GetSpec().GetResource()
-	if len(resource.GetKind()) > 0 {
-		reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance)
+	if !instance.GetSpec().IsResourceEmpty() {
+		var reconciler kogitoinfra.Reconciler
+		reconciler, resultErr = reconcilerHandler.GetInfraReconciler(instance)
 		if resultErr != nil {
 			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
 		}
@@ -100,7 +103,7 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	}
 
 	if len(instance.GetSpec().GetInfraProperties()) > 0 {
-		appConfigMapReconciler := reconcilerHandler.GetAppConfigMapReconciler(instance)
+		appConfigMapReconciler := reconcilerHandler.GetInfraPropertiesReconciler(instance)
 		if resultErr = appConfigMapReconciler.Reconcile(); resultErr != nil {
 			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
 		}
@@ -108,7 +111,7 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 
 	// Set envs in status
 	if len(instance.GetSpec().GetEnvs()) > 0 {
-		instance.GetStatus().SetEnvs(instance.GetSpec().GetEnvs())
+		instance.GetStatus().AddEnvs(instance.GetSpec().GetEnvs())
 	}
 
 	configMapReferenceReconciler := reconcilerHandler.GetConfigMapReferenceReconciler(instance)

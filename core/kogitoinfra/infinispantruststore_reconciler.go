@@ -17,8 +17,6 @@ package kogitoinfra
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	v1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -37,7 +35,7 @@ const (
 )
 
 type infinispanTrustStoreReconciler struct {
-	infraContext       infraContext
+	infraContext
 	infinispanInstance *v1.Infinispan
 	secretHandler      infrastructure.SecretHandler
 }
@@ -72,13 +70,7 @@ func (i *infinispanTrustStoreReconciler) Reconcile() (err error) {
 		return err
 	}
 
-	secretReference := &v1beta1.SecretReference{
-		Name:      truststoreSecretName,
-		MountType: api.Volume,
-		MountPath: truststoreMountPath,
-		FileMode:  &framework.ModeForCertificates,
-	}
-	i.updateSecretReferenceInStatus(secretReference)
+	i.instance.GetStatus().AddSecretVolumeReference(truststoreSecretName, truststoreMountPath, &framework.ModeForCertificates, nil)
 	return nil
 }
 
@@ -97,14 +89,14 @@ func (i *infinispanTrustStoreReconciler) createRequiredResources() (map[reflect.
 	kogitoInfraEncryptionSecret := &v12.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      truststoreSecretName,
-			Namespace: i.infraContext.instance.GetNamespace(),
+			Namespace: i.instance.GetNamespace(),
 		},
 		Type: v12.SecretTypeOpaque,
 		Data: map[string][]byte{
 			truststoreSecretKey: trustStore,
 		},
 	}
-	if err := framework.SetOwner(i.infraContext.instance, i.infraContext.Scheme, kogitoInfraEncryptionSecret); err != nil {
+	if err := framework.SetOwner(i.instance, i.Scheme, kogitoInfraEncryptionSecret); err != nil {
 		return resources, err
 	}
 	resources[reflect.TypeOf(v12.Secret{})] = []resource.KubernetesResource{kogitoInfraEncryptionSecret}
@@ -114,7 +106,7 @@ func (i *infinispanTrustStoreReconciler) createRequiredResources() (map[reflect.
 func (i *infinispanTrustStoreReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
 	// fetch owned image stream
-	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: truststoreSecretName, Namespace: i.infraContext.instance.GetNamespace()})
+	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: truststoreSecretName, Namespace: i.instance.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}
@@ -126,17 +118,11 @@ func (i *infinispanTrustStoreReconciler) getDeployedResources() (map[reflect.Typ
 
 func (i *infinispanTrustStoreReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
 	comparator := i.secretHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.infraContext.Context)
+	deltaProcessor := infrastructure.NewDeltaProcessor(i.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }
 
 func isInfinispanEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {
 	return !(*infinispanInstance.Spec.Security.EndpointAuthentication || infinispanInstance.Spec.Security.EndpointEncryption == nil || len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) == 0)
-}
-
-func (i *infinispanTrustStoreReconciler) updateSecretReferenceInStatus(secretReference *v1beta1.SecretReference) {
-	instance := i.infraContext.instance
-	secretReferences := append(instance.GetStatus().GetSecretReferences(), secretReference)
-	instance.GetStatus().SetSecretReferences(secretReferences)
 }

@@ -58,7 +58,6 @@ func (f *FinalizeKogitoSupportingService) SetupWithManager(mgr manager.Manager) 
 	}
 	b := ctrl.NewControllerManagedBy(mgr).For(&v1beta1.KogitoSupportingService{}, builder.WithPredicates(pred))
 	// Create a new controller
-
 	return b.Complete(f)
 }
 

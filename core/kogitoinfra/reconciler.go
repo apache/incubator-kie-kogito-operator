@@ -41,7 +41,7 @@ type ReconcilerHandler interface {
 	GetInfraReconciler(instance api.KogitoInfraInterface) (Reconciler, error)
 	GetConfigMapReferenceReconciler(instance api.KogitoInfraInterface) Reconciler
 	GetSecretReferenceReconciler(instance api.KogitoInfraInterface) Reconciler
-	GetAppConfigMapReconciler(instance api.KogitoInfraInterface) Reconciler
+	GetInfraPropertiesReconciler(instance api.KogitoInfraInterface) Reconciler
 	GetReconcileResultFor(err error, requeue bool) (reconcile.Result, error)
 }
 
@@ -90,7 +90,7 @@ func (k *reconcilerHandler) GetSecretReferenceReconciler(instance api.KogitoInfr
 }
 
 // GetAppConfigMapReconciler identify and return request kogito infra reconciliation logic on bases of information provided in kogitoInfra value
-func (k *reconcilerHandler) GetAppConfigMapReconciler(instance api.KogitoInfraInterface) Reconciler {
+func (k *reconcilerHandler) GetInfraPropertiesReconciler(instance api.KogitoInfraInterface) Reconciler {
 	k.Log.Debug("going to fetch related kogito infra resource")
 	context := infraContext{
 		Context:  k.Context,

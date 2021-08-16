@@ -19,7 +19,6 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	v1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	v12 "k8s.io/api/core/v1"
@@ -33,7 +32,7 @@ const (
 )
 
 type infinispanCredentialReconciler struct {
-	infraContext       infraContext
+	infraContext
 	infinispanInstance *v1.Infinispan
 	runtime            api.RuntimeType
 	secretHandler      infrastructure.SecretHandler
@@ -71,23 +70,19 @@ func (i *infinispanCredentialReconciler) Reconcile() (err error) {
 		return err
 	}
 
-	secretReference := &v1beta1.SecretReference{
-		Name:      i.getCredentialSecretName(),
-		MountType: api.EnvVar,
-	}
-	i.updateSecretReferenceInStatus(secretReference)
+	i.instance.GetStatus().AddSecretEnvFromReferences(i.getCredentialSecretName())
 	return nil
 }
 
 func (i *infinispanCredentialReconciler) createRequiredResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	infinispanHandler := infrastructure.NewInfinispanHandler(i.infraContext.Context)
+	infinispanHandler := infrastructure.NewInfinispanHandler(i.Context)
 	credentials, err := infinispanHandler.GetInfinispanCredential(i.infinispanInstance)
 	if err != nil {
 		return nil, err
 	}
 	secret := i.createInfinispanSecret(credentials)
-	if err := framework.SetOwner(i.infraContext.instance, i.infraContext.Scheme, secret); err != nil {
+	if err := framework.SetOwner(i.instance, i.Scheme, secret); err != nil {
 		return resources, err
 	}
 	resources[reflect.TypeOf(v12.Secret{})] = []resource.KubernetesResource{secret}
@@ -97,7 +92,7 @@ func (i *infinispanCredentialReconciler) createRequiredResources() (map[reflect.
 func (i *infinispanCredentialReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
 	// fetch owned image stream
-	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: i.getCredentialSecretName(), Namespace: i.infraContext.instance.GetNamespace()})
+	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: i.getCredentialSecretName(), Namespace: i.instance.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +104,7 @@ func (i *infinispanCredentialReconciler) getDeployedResources() (map[reflect.Typ
 
 func (i *infinispanCredentialReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
 	comparator := i.secretHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.infraContext.Context)
+	deltaProcessor := infrastructure.NewDeltaProcessor(i.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }
@@ -118,7 +113,7 @@ func (i *infinispanCredentialReconciler) createInfinispanSecret(credentials *inf
 	secret := &v12.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      i.getCredentialSecretName(),
-			Namespace: i.infraContext.instance.GetNamespace(),
+			Namespace: i.instance.GetNamespace(),
 		},
 		Type: v12.SecretTypeOpaque,
 	}
@@ -133,10 +128,4 @@ func (i *infinispanCredentialReconciler) createInfinispanSecret(credentials *inf
 
 func (i *infinispanCredentialReconciler) getCredentialSecretName() string {
 	return fmt.Sprintf(credentialSecretName, i.runtime)
-}
-
-func (i *infinispanCredentialReconciler) updateSecretReferenceInStatus(secretReference *v1beta1.SecretReference) {
-	instance := i.infraContext.instance
-	secretReferences := append(instance.GetStatus().GetSecretReferences(), secretReference)
-	instance.GetStatus().SetSecretReferences(secretReferences)
 }

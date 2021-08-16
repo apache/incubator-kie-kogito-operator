@@ -420,26 +420,7 @@ spec:
                 type: object
               propertiesConfigMap:
                 description: Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
-                properties:
-                  fileMode:
-                    description: 'Optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.'
-                    format: int32
-                    type: integer
-                  mountPath:
-                    description: Path within the container at which the volume should be mounted.  Must not contain ':'.
-                    type: string
-                  mountType:
-                    description: Type of ConfigMap
-                    type: string
-                  name:
-                    description: This must match the Name of a ConfigMap.
-                    type: string
-                  optional:
-                    description: Specify whether the Secret or its keys must be defined
-                    type: boolean
-                required:
-                - name
-                type: object
+                type: string
               replicas:
                 description: 'Number of replicas that the service will have deployed in the cluster. Default value: 1.'
                 format: int32

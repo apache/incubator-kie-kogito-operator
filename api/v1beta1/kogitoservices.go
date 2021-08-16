@@ -217,7 +217,7 @@ type KogitoServiceSpec struct {
 	// The ConfigMap must be created in the same namespace.
 	// Use this property if you need custom properties to be mounted before the application deployment.
 	// If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
-	PropertiesConfigMap ConfigMapReference `json:"propertiesConfigMap,omitempty"`
+	PropertiesConfigMap string `json:"propertiesConfigMap,omitempty"`
 
 	// Infra provides list of dependent KogitoInfra objects.
 	// +optional
@@ -352,8 +352,8 @@ func (k *KogitoServiceSpec) AddServiceLabel(name, value string) {
 func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureImageRegistry }
 
 // GetPropertiesConfigMap ...
-func (k *KogitoServiceSpec) GetPropertiesConfigMap() api.ConfigMapReferenceInterface {
-	return &k.PropertiesConfigMap
+func (k *KogitoServiceSpec) GetPropertiesConfigMap() string {
+	return k.PropertiesConfigMap
 }
 
 // GetInfra ...

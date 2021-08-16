@@ -14,12 +14,10 @@
 
 package api
 
-// SecretReferenceInterface ...
-type SecretReferenceInterface interface {
+// VolumeReferenceInterface ...
+type VolumeReferenceInterface interface {
 	GetName() string
 	SetName(name string)
-	GetMountType() MountType
-	SetMountType(mountType MountType)
 	GetMountPath() string
 	SetMountPath(mountPath string)
 	IsOptional() *bool
