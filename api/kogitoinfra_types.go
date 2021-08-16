@@ -65,6 +65,7 @@ type KogitoInfraSpecInterface interface {
 	GetResource() ResourceInterface
 	IsResourceEmpty() bool
 	GetInfraProperties() map[string]string
+	AddInfraProperties(infraProperties map[string]string)
 	GetEnvs() []v1.EnvVar
 	GetConfigMapEnvFromReferences() []string
 	GetConfigMapVolumeReferences() []VolumeReferenceInterface

@@ -73,6 +73,7 @@ func (k *KogitoInfraSpec) GetResource() api.ResourceInterface {
 	return k.Resource
 }
 
+// IsResourceEmpty ...
 func (k *KogitoInfraSpec) IsResourceEmpty() bool {
 	return k.Resource == nil
 }
@@ -85,6 +86,18 @@ func (k *KogitoInfraSpec) GetInfraProperties() map[string]string {
 // GetEnvs ...
 func (k *KogitoInfraSpec) GetEnvs() []corev1.EnvVar {
 	return k.Envs
+}
+
+// AddInfraProperties ...
+func (k *KogitoInfraSpec) AddInfraProperties(infraProperties map[string]string) {
+	ip := k.InfraProperties
+	if ip == nil {
+		ip = make(map[string]string)
+	}
+	for key, value := range infraProperties {
+		ip[key] = value
+	}
+	k.InfraProperties = ip
 }
 
 // GetConfigMapEnvFromReferences ...
