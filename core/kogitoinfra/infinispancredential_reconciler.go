@@ -49,7 +49,7 @@ func newInfinispanCredentialReconciler(context infraContext, infinispanInstance 
 
 func (i *infinispanCredentialReconciler) Reconcile() (err error) {
 
-	if len(i.infinispanInstance.GetSecretName()) == 0 {
+	if !isInfinispanSecretEncryptionEnabled(i.infinispanInstance) {
 		return nil
 	}
 
@@ -128,4 +128,8 @@ func (i *infinispanCredentialReconciler) createInfinispanSecret(credentials *inf
 
 func (i *infinispanCredentialReconciler) getCredentialSecretName() string {
 	return fmt.Sprintf(credentialSecretName, i.runtime)
+}
+
+func isInfinispanSecretEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {
+	return *infinispanInstance.Spec.Security.EndpointAuthentication && len(infinispanInstance.Spec.Security.EndpointSecretName) > 0
 }

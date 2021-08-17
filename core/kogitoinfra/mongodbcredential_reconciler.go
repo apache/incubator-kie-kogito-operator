@@ -172,7 +172,6 @@ func (i *mongoDBCredentialReconciler) createCustomKogitoMongoDBSecret(credential
 
 func (i *mongoDBCredentialReconciler) findMongoDBUserByUsernameAndAuthDatabase(mongoDBInstance *mongodb.MongoDB, username, authDB string) *mongodb.MongoDBUser {
 	i.Log.Debug("Looking info", "user", username, "password", authDB)
-
 	for _, user := range mongoDBInstance.Spec.Users {
 		if user.DB == authDB {
 			if user.Name == username {
@@ -180,7 +179,6 @@ func (i *mongoDBCredentialReconciler) findMongoDBUserByUsernameAndAuthDatabase(m
 			}
 		}
 	}
-
 	return nil
 }
 

@@ -179,3 +179,44 @@ func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 	assert.Equal(t, v1.ConditionTrue, failedCondition.Status)
 	assert.Equal(t, "you may not have access to the container image quay.io/custom/process-springboot-example-default-invalid:latest", failedCondition.Message)
 }
+
+func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
+	replicas := int32(1)
+	cm := &corev1.ConfigMap{
+		ObjectMeta: v1.ObjectMeta{
+			Namespace: t.Name(),
+			Name:      "mysuper-cm",
+		},
+		Data: map[string]string{
+			"application.properties": "key1=value1",
+		},
+	}
+	instance := &v1beta1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		Spec: v1beta1.KogitoRuntimeSpec{
+			Runtime: api.SpringBootRuntimeType,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+				Replicas:            &replicas,
+				PropertiesConfigMap: "mysuper-cm",
+			},
+		},
+	}
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm).Build()
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+
+	_, err := kubernetes.ResourceC(cli).Fetch(cm)
+	assert.NoError(t, err)
+	deployment := &appsv1.Deployment{ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
+	exists, err := kubernetes.ResourceC(cli).Fetch(deployment)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+
+	configMapMounted := false
+	container := &deployment.Spec.Template.Spec.Containers[0]
+	for _, volumeMount := range container.VolumeMounts {
+		if volumeMount.Name == "mysuper-cm" {
+			configMapMounted = true
+		}
+	}
+	assert.True(t, configMapMounted)
+}

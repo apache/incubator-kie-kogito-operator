@@ -45,6 +45,9 @@ func initInfraPropertiesReconciler(infraContext infraContext) Reconciler {
 }
 
 func (i *infraPropertiesReconciler) Reconcile() error {
+	if len(i.instance.GetSpec().GetInfraProperties()) == 0 {
+		return nil
+	}
 
 	// Create Required resource
 	requestedResources, err := i.createRequiredResources()

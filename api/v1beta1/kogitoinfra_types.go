@@ -147,13 +147,13 @@ type KogitoInfraStatus struct {
 
 	// +optional
 	// +listType=atomic
-	// List of secret that should be mounted to the services as envs
+	// List of Configmap that should be mounted to the services as envs
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	ConfigMapEnvFromReferences []string `json:"configMapEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
-	// List of configmap that should be added to the services bound to this infra instance
+	// List of configmap that should be added as volume mount to this infra instance
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	ConfigMapVolumeReferences []VolumeReference `json:"configMapVolumeReferences,omitempty"`
 
@@ -165,7 +165,7 @@ type KogitoInfraStatus struct {
 
 	// +optional
 	// +listType=atomic
-	// List of secret that should be munted to the services bound to this infra instance
+	// List of secret that should be added as volume mount to this infra instance
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	SecretVolumeReferences []VolumeReference `json:"secretVolumeReferences,omitempty"`
 }

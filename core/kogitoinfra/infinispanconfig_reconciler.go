@@ -115,12 +115,11 @@ func (i *infinispanConfigReconciler) getInfinispanAppProps() (map[string]string,
 	}
 
 	appProps[infinispanEnablePersistenceEnvKey] = "true"
-
 	appProps[propertiesInfinispan[i.runtime][appPropInfinispanUseAuth]] = "true"
 	if len(infinispanURI) > 0 {
 		appProps[propertiesInfinispan[i.runtime][appPropInfinispanServerList]] = infinispanURI
 	}
-	if isInfinispanEncryptionEnabled(i.infinispanInstance) {
+	if isInfinispanCertEncryptionEnabled(i.infinispanInstance) {
 		appProps[propertiesInfinispan[i.runtime][appPropInfinispanTrustStoreType]] = pkcs12CertType
 		appProps[propertiesInfinispan[i.runtime][appPropInfinispanTrustStore]] = truststoreMountPath
 		appProps[propertiesInfinispan[i.runtime][appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword

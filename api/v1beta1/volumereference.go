@@ -14,7 +14,7 @@
 
 package v1beta1
 
-// VolumeReference ...
+// VolumeReference represents the source of a volume to mount.
 type VolumeReference struct {
 	// This must match the Name of a ConfigMap.
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`

@@ -536,7 +536,8 @@ spec:
                 description: List of configmap that should be added to the services
                   bound to this infra instance
                 items:
-                  description: VolumeReference ...
+                  description: VolumeReference represents the source of a volume to
+                    mount.
                   properties:
                     fileMode:
                       description: Permission on the file mounted as volume on deployment.
@@ -709,7 +710,8 @@ spec:
                 description: List of secret that should be munted to the services
                   bound to this infra instance
                 items:
-                  description: VolumeReference ...
+                  description: VolumeReference represents the source of a volume to
+                    mount.
                   properties:
                     fileMode:
                       description: Permission on the file mounted as volume on deployment.
@@ -811,17 +813,18 @@ spec:
                 type: array
                 x-kubernetes-list-type: atomic
               configMapEnvFromReferences:
-                description: List of secret that should be mounted to the services
+                description: List of Configmap that should be mounted to the services
                   as envs
                 items:
                   type: string
                 type: array
                 x-kubernetes-list-type: atomic
               configMapVolumeReferences:
-                description: List of configmap that should be added to the services
-                  bound to this infra instance
+                description: List of configmap that should be added as volume mount
+                  to this infra instance
                 items:
-                  description: VolumeReference ...
+                  description: VolumeReference represents the source of a volume to
+                    mount.
                   properties:
                     fileMode:
                       description: Permission on the file mounted as volume on deployment.
@@ -960,10 +963,11 @@ spec:
                 type: array
                 x-kubernetes-list-type: atomic
               secretVolumeReferences:
-                description: List of secret that should be munted to the services
-                  bound to this infra instance
+                description: List of secret that should be added as volume mount to
+                  this infra instance
                 items:
-                  description: VolumeReference ...
+                  description: VolumeReference represents the source of a volume to
+                    mount.
                   properties:
                     fileMode:
                       description: Permission on the file mounted as volume on deployment.

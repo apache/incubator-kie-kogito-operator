@@ -66,8 +66,7 @@ func (i *configMapReferenceReconciler) reconcileConfigMapEnvFromReferences() err
 		if configMapInstance == nil {
 			return errorForResourceNotFound("Configmap", cmName, namespace)
 		}
-
-		i.updateConfigMapEnvFromReferenceInStatus(cmName)
+		i.instance.GetStatus().AddConfigMapEnvFromReferences(cmName)
 	}
 	return nil
 }
@@ -91,11 +90,6 @@ func (i *configMapReferenceReconciler) reconcileConfigMapVolumeReferences() erro
 		i.updateConfigMapVolumeReferenceInStatus(volumeReference)
 	}
 	return nil
-}
-
-func (i *configMapReferenceReconciler) updateConfigMapEnvFromReferenceInStatus(cmName string) {
-	configMapReferences := append(i.instance.GetStatus().GetConfigMapEnvFromReferences(), cmName)
-	i.instance.GetStatus().SetConfigMapEnvFromReferences(configMapReferences)
 }
 
 func (i *configMapReferenceReconciler) updateConfigMapVolumeReferenceInStatus(volumeReference api.VolumeReferenceInterface) {

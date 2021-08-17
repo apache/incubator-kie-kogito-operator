@@ -131,7 +131,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReconciled(t *testing.T) {
 
 func Test_serviceDeployer_DataIndex(t *testing.T) {
 	requiredTopic := "dataindex-required-topic"
-	kafka := test.CreateFakeKafka("my-kafka", t.Name())
+	kafka := test.CreateFakeKafka(t.Name())
 	kafkaConfig := test.CreateFakeKogitoKafkaConfig(t.Name())
 	infraKafka := test.CreateFakeKogitoKafka(t.Name())
 	infraKafka.GetSpec().GetResource().SetName(kafka.Name)

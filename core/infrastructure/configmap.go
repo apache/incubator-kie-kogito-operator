@@ -86,19 +86,17 @@ func (c *configMapHandler) FetchConfigMapsForLabel(namespace string, labels map[
 }
 
 func (c *configMapHandler) MountAsVolume(deployment *appsv1.Deployment, volumeReference api.VolumeReferenceInterface) error {
-	if err := c.appendVolumeIntoDeployment(deployment, volumeReference); err != nil {
-		return err
-	}
+	c.appendVolumeIntoDeployment(deployment, volumeReference)
 	if err := c.appendVolumeMountIntoDeployment(deployment, volumeReference); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *configMapHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, configMapReference api.VolumeReferenceInterface) error {
+func (c *configMapHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, configMapReference api.VolumeReferenceInterface) {
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
 		if volume.Name == configMapReference.GetName() {
-			return nil
+			return
 		}
 	}
 
@@ -116,7 +114,6 @@ func (c *configMapHandler) appendVolumeIntoDeployment(deployment *appsv1.Deploym
 				},
 			},
 		})
-	return nil
 }
 
 func (c *configMapHandler) appendVolumeMountIntoDeployment(deployment *appsv1.Deployment, configMapReference api.VolumeReferenceInterface) error {

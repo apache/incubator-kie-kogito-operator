@@ -102,11 +102,9 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		}
 	}
 
-	if len(instance.GetSpec().GetInfraProperties()) > 0 {
-		appConfigMapReconciler := reconcilerHandler.GetInfraPropertiesReconciler(instance)
-		if resultErr = appConfigMapReconciler.Reconcile(); resultErr != nil {
-			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
-		}
+	appConfigMapReconciler := reconcilerHandler.GetInfraPropertiesReconciler(instance)
+	if resultErr = appConfigMapReconciler.Reconcile(); resultErr != nil {
+		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
 	}
 
 	// Set envs in status

@@ -72,19 +72,17 @@ func (c *secretHandler) MustFetchSecret(key types.NamespacedName) (*corev1.Secre
 }
 
 func (c *secretHandler) MountAsVolume(deployment *appsv1.Deployment, volumeReference api.VolumeReferenceInterface) error {
-	if err := c.appendVolumeIntoDeployment(deployment, volumeReference); err != nil {
-		return err
-	}
+	c.appendVolumeIntoDeployment(deployment, volumeReference)
 	if err := c.appendVolumeMountIntoDeployment(deployment, volumeReference); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *secretHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, secretReference api.VolumeReferenceInterface) error {
+func (c *secretHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment, secretReference api.VolumeReferenceInterface) {
 	for _, volume := range deployment.Spec.Template.Spec.Volumes {
 		if volume.Name == secretReference.GetName() {
-			return nil
+			return
 		}
 	}
 
@@ -100,7 +98,6 @@ func (c *secretHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment
 				},
 			},
 		})
-	return nil
 }
 
 func (c *secretHandler) appendVolumeMountIntoDeployment(deployment *appsv1.Deployment, secretReference api.VolumeReferenceInterface) error {

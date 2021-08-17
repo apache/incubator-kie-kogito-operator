@@ -50,7 +50,7 @@ func newInfinispanTrustStoreReconciler(context infraContext, infinispanInstance 
 
 func (i *infinispanTrustStoreReconciler) Reconcile() (err error) {
 
-	if !isInfinispanEncryptionEnabled(i.infinispanInstance) {
+	if !isInfinispanCertEncryptionEnabled(i.infinispanInstance) {
 		return nil
 	}
 	// Create Required resource
@@ -70,7 +70,7 @@ func (i *infinispanTrustStoreReconciler) Reconcile() (err error) {
 		return err
 	}
 
-	i.instance.GetStatus().AddSecretVolumeReference(truststoreSecretName, truststoreMountPath, &framework.ModeForCertificates, nil)
+	i.instance.GetStatus().AddSecretVolumeReference(truststoreSecretName, certMountPath, &framework.ModeForCertificates, nil)
 	return nil
 }
 
@@ -105,7 +105,7 @@ func (i *infinispanTrustStoreReconciler) createRequiredResources() (map[reflect.
 
 func (i *infinispanTrustStoreReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
 	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	// fetch owned image stream
+	// fetch truststore secret
 	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: truststoreSecretName, Namespace: i.instance.GetNamespace()})
 	if err != nil {
 		return nil, err
@@ -123,6 +123,6 @@ func (i *infinispanTrustStoreReconciler) processDelta(requestedResources map[ref
 	return err
 }
 
-func isInfinispanEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {
-	return !(*infinispanInstance.Spec.Security.EndpointAuthentication || infinispanInstance.Spec.Security.EndpointEncryption == nil || len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) == 0)
+func isInfinispanCertEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {
+	return *infinispanInstance.Spec.Security.EndpointAuthentication && infinispanInstance.Spec.Security.EndpointEncryption != nil && len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) > 0
 }
