@@ -34,6 +34,8 @@ func registerHyperfoilSteps(ctx *godog.ScenarioContext, data *Data) {
 	ctx.Step(`^Hyperfoil Operator is deployed$`, data.hyperfoilOperatorIsDeployed)
 	ctx.Step(`^Hyperfoil instance "([^"]*)" is deployed within (\d+) (?:minute|minutes)$`, data.hyperfoilInstanceIsDeployedWithinMinutes)
 
+	ctx.Step(`^Hyperfoil Node scraper is deployed$`, data.hyperfoilNodeScraperIsDeployed)
+
 	ctx.Step(`^Create benchmark on Hyperfoil instance "([^"]*)" within (\d+) (?:minute|minutes) with content:$`, data.createBenchmarkOnHyperfoilInstanceWithinMinutesWithBody)
 	ctx.Step(`^Start benchmark "([^"]*)" on Hyperfoil instance "([^"]*)" within (\d+) (?:minute|minutes)$`, data.startBenchmarkOnHyperfoilInstanceWithinMinutes)
 	ctx.Step(`^Benchmark run on Hyperfoil instance "([^"]*)" finished within (\d+) (?:minute|minutes)$`, data.benchmarkRunOnHyperfoilInstanceFinishedWithinMinutes)
@@ -42,6 +44,10 @@ func registerHyperfoilSteps(ctx *godog.ScenarioContext, data *Data) {
 
 func (data *Data) hyperfoilOperatorIsDeployed() error {
 	return installers.GetHyperfoilInstaller().Install(data.Namespace)
+}
+
+func (data *Data) hyperfoilNodeScraperIsDeployed() error {
+	return installers.GetHyperfoilNodeScraperInstaller().Install(data.Namespace)
 }
 
 func (data *Data) hyperfoilInstanceIsDeployedWithinMinutes(name string, timeOutInMin int) error {
@@ -134,6 +140,10 @@ func getHyperfoilDefaultResource(name, namespace string) *hyperfoilv1alpha2.Hype
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+		},
+		Spec: hyperfoilv1alpha2.HyperfoilSpec{
+			PreHooks:  []string{"node-scraper-start"},
+			PostHooks: []string{"node-scraper-stop"},
 		},
 	}
 }

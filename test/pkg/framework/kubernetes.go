@@ -566,3 +566,17 @@ func GetClusterRoleBinding(name string) (*rbac.ClusterRoleBinding, error) {
 	}
 	return clusterRoleBinding, nil
 }
+
+// CreateServiceAccount creates ServiceAccount
+func CreateServiceAccount(namespace, name string) error {
+	GetLogger(namespace).Info("Create ServiceAccount", "name", name)
+
+	secret := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+
+	return kubernetes.ResourceC(kubeClient).Create(secret)
+}
