@@ -69,17 +69,6 @@ pipeline {
                     } catch (err) {
                         unstable("Error building non-native examples' images. Check the junit results.")
                     }
-
-                    if (!params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS) {
-                        try {
-                            // Optaplanner taking a lot of resources, we should not build in parallel
-                            // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                            // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                            sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
-                        } catch (err) {
-                            unstable("Error building native examples' images. Check the junit results.")
-                        }
-                    }
                 }
             }
             post {
@@ -89,6 +78,34 @@ pipeline {
                 }
             }
         }
+
+        stage('Build native examples images') {
+            when {
+                expression { return !params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS }
+            }
+            steps {
+                script {
+                    try {
+                        // Optaplanner taking a lot of resources, we should not build in parallel
+                        // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
+                        sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
+                    } catch (err) {
+                        unstable("Error building native examples' images. Check the junit results.")
+                    } finally {
+                        // moving to another folder to avoid conflicts with junit
+                        sh 'cp -r test/examples test/examples-native'
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
+                    junit testResults: 'test/examples-native/logs/**/junit.xml', allowEmptyResults: true
+                }
+            }
+        }
+
 
         stage('Handle built images') {
             steps {
