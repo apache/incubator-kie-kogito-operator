@@ -32,7 +32,7 @@ const (
 		curl -s node-scraper:8080/start -H 'content-type: application/json' --data-binary @$CWD/.node-scraper-config.json > $RUN_DIR/node-scraper.job`
 	nodeScraperStop = `#!/bin/bash
 		curl -s node-scraper:8080/stop/$(cat $RUN_DIR/node-scraper.job) > $RUN_DIR/cpu.json
-		jq -c -s '{ hyperfoil: .[0], cpu: { "$schema": "urn:node-scraper", data: .[1] }}' $RUN_DIR/all.json $RUN_DIR/cpu.json > $RUN_DIR/result.json`
+		jq -c -s '{ hyperfoil: .[0], cpu: { "$schema": "urn:node-scraper", data: .[1] }}' $RUN_DIR/all.json $RUN_DIR/cpu.json > $RUN_DIR/all.json`
 )
 
 var (
