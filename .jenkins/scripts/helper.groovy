@@ -345,6 +345,10 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
         testParamsMap['examples_uri'] = params.EXAMPLES_URI
     }
 
+    if (params.NATIVE_BUILDER_IMAGE) {
+        testParamsMap['native_builder_image'] = params.NATIVE_BUILDER_IMAGE
+    }
+
     testParamsMap['container_engine'] = containerEngine
 
     return testParamsMap
