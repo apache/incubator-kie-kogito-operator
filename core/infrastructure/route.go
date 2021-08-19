@@ -15,6 +15,8 @@
 package infrastructure
 
 import (
+	"strings"
+
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/client/openshift"
@@ -23,6 +25,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 // RouteHandler ...
@@ -70,6 +74,12 @@ func (r *routeHandler) CreateRoute(instance api.KogitoService, service *corev1.S
 	}
 	host := instance.GetSpec().GetHost()
 
+	if err := ValidateHostName(host); len(err) > 0 {
+		// host invalid
+		r.Log.Warn("Unable to use custom hostname", "error", err.ToAggregate().Error())
+		host = ""
+
+	}
 	route = &routev1.Route{
 		ObjectMeta: service.ObjectMeta,
 		Spec: routev1.RouteSpec{
@@ -86,4 +96,30 @@ func (r *routeHandler) CreateRoute(instance api.KogitoService, service *corev1.S
 
 	route.ResourceVersion = ""
 	return route
+}
+
+// ValidateHostName validates the hostname provided by the user
+// see: https://github.com/openshift/router/blob/release-4.6/pkg/router/controller/unique_host.go#L231
+func ValidateHostName(Host string) field.ErrorList {
+	result := field.ErrorList{}
+	specPath := field.NewPath("spec")
+	hostPath := specPath.Child("host")
+
+	if len(Host) < 1 {
+		return result
+	}
+
+	if len(validation.IsDNS1123Subdomain(Host)) != 0 {
+		result = append(result, field.Invalid(hostPath, Host, "host must conform to DNS 952 subdomain conventions"))
+	}
+
+	segments := strings.Split(Host, ".")
+	for _, s := range segments {
+		errs := validation.IsDNS1123Label(s)
+		for _, e := range errs {
+			result = append(result, field.Invalid(hostPath, s, e))
+		}
+	}
+
+	return result
 }
