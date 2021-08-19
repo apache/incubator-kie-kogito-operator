@@ -15,8 +15,9 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/manager"
 	"reflect"
+
+	"github.com/kiegroup/kogito-operator/core/manager"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -77,7 +78,7 @@ func (s *serviceDeployer) createRequiredResources(image string) (resources map[r
 	resources[reflect.TypeOf(corev1.Service{})] = []resource.KubernetesResource{service}
 	if s.Client.IsOpenshift() {
 		routeHandler := infrastructure.NewRouteHandler(s.Context)
-		resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{routeHandler.CreateRoute(service)}
+		resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{routeHandler.CreateRoute(s.instance, service)}
 	}
 
 	if err := s.onObjectsCreate(resources); err != nil {
