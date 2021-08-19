@@ -15,15 +15,14 @@
 package kogitoinfra
 
 import (
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	v1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	"software.sslmate.com/src/go-pkcs12"
 )
 
@@ -53,37 +52,32 @@ func (i *infinispanTrustStoreReconciler) Reconcile() (err error) {
 	if !isInfinispanCertEncryptionEnabled(i.infinispanInstance) {
 		return nil
 	}
-	// Create Required resource
-	requestedResources, err := i.createRequiredResources()
-	if err != nil {
-		return
-	}
-
 	// Get Deployed resource
-	deployedResources, err := i.getDeployedResources()
+	secretExists, err := i.isTrustStoreSecretExists()
 	if err != nil {
-		return
-	}
-
-	// Process Delta
-	if err = i.processDelta(requestedResources, deployedResources); err != nil {
 		return err
+	}
+	if !secretExists {
+		// Create Required resource
+		err = i.createTrustStoreSecret()
+		if err != nil {
+			return err
+		}
 	}
 
 	i.instance.GetStatus().AddSecretVolumeReference(truststoreSecretName, certMountPath, &framework.ModeForCertificates, nil)
 	return nil
 }
 
-func (i *infinispanTrustStoreReconciler) createRequiredResources() (map[reflect.Type][]resource.KubernetesResource, error) {
-	resources := make(map[reflect.Type][]resource.KubernetesResource)
+func (i *infinispanTrustStoreReconciler) createTrustStoreSecret() error {
 
 	ispnSecret, err := i.secretHandler.MustFetchSecret(types.NamespacedName{Name: i.infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName, Namespace: i.infinispanInstance.GetNamespace()})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	trustStore, err := framework.CreatePKCS12TrustStoreFromSecret(ispnSecret, pkcs12.DefaultPassword, infinispanTLSSecretKey)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	kogitoInfraEncryptionSecret := &v12.Secret{
@@ -97,30 +91,24 @@ func (i *infinispanTrustStoreReconciler) createRequiredResources() (map[reflect.
 		},
 	}
 	if err := framework.SetOwner(i.instance, i.Scheme, kogitoInfraEncryptionSecret); err != nil {
-		return resources, err
+		return err
 	}
-	resources[reflect.TypeOf(v12.Secret{})] = []resource.KubernetesResource{kogitoInfraEncryptionSecret}
-	return resources, nil
+	if err = kubernetes.ResourceC(i.Client).Create(kogitoInfraEncryptionSecret); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (i *infinispanTrustStoreReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
-	resources := make(map[reflect.Type][]resource.KubernetesResource)
+func (i *infinispanTrustStoreReconciler) isTrustStoreSecretExists() (bool, error) {
 	// fetch truststore secret
 	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: truststoreSecretName, Namespace: i.instance.GetNamespace()})
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	if deployedSecret != nil {
-		resources[reflect.TypeOf(v12.Secret{})] = []resource.KubernetesResource{deployedSecret}
+	if deployedSecret == nil {
+		return false, nil
 	}
-	return resources, nil
-}
-
-func (i *infinispanTrustStoreReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
-	comparator := i.secretHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.Context)
-	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
-	return err
+	return true, nil
 }
 
 func isInfinispanCertEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {

@@ -23,7 +23,6 @@ import (
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -51,10 +50,6 @@ func (s *serviceDeployer) createRequiredResources(image string) (resources map[r
 	}
 
 	if err = s.mountSecretReferencesOnDeployment(deployment); err != nil {
-		return resources, err
-	}
-
-	if err = NewTrustStoreHandler(s.Context).MountTrustStore(deployment, s.instance); err != nil {
 		return resources, err
 	}
 
@@ -164,13 +159,6 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 			WithCustomComparator(framework.CreateRouteComparator()).
 			Build())
 
-	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
-			WithType(reflect.TypeOf(imgv1.ImageStream{})).
-			UseDefaultComparator().
-			WithCustomComparator(framework.CreateSharedImageStreamComparator()).
-			Build())
-
 	if s.definition.OnGetComparators != nil {
 		s.definition.OnGetComparators(resourceComparator)
 	}
@@ -226,6 +214,6 @@ func (s *serviceDeployer) mountSecretReferencesOnDeployment(deployment *appsv1.D
 }
 
 func (s *serviceDeployer) mountEnvsOnDeployment(deployment *appsv1.Deployment) {
-	deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, framework.CreateEnvVar(infrastructure.RuntimeTypeKey, string(s.instance.GetSpec().GetRuntime())))
-	deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, s.definition.Envs...)
+	deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env, framework.CreateEnvVar(infrastructure.RuntimeTypeKey, string(s.instance.GetSpec().GetRuntime())))
+	deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env, s.definition.Envs...)
 }

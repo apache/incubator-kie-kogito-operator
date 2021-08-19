@@ -17,6 +17,7 @@ package kogitoservice
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -71,7 +72,7 @@ func (k *kogitoInfraReconciler) Reconcile() error {
 		k.serviceDefinition.ConfigMapVolumeReferences = append(k.serviceDefinition.ConfigMapVolumeReferences, infra.GetStatus().GetConfigMapVolumeReferences()...)
 		k.serviceDefinition.SecretEnvFromReferences = append(k.serviceDefinition.SecretEnvFromReferences, infra.GetStatus().GetSecretEnvFromReferences()...)
 		k.serviceDefinition.SecretVolumeReferences = append(k.serviceDefinition.SecretVolumeReferences, infra.GetStatus().GetSecretVolumeReferences()...)
-		k.serviceDefinition.Envs = append(k.serviceDefinition.Envs, infra.GetStatus().GetEnvs()...)
+		k.serviceDefinition.Envs = framework.EnvOverride(k.serviceDefinition.Envs, infra.GetStatus().GetEnvs()...)
 	}
 	return nil
 }

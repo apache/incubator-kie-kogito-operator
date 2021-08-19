@@ -125,6 +125,8 @@ func (s *serviceDeployer) Deploy() error {
 	statusHandler := NewStatusHandler(s.Context)
 	defer statusHandler.HandleStatusUpdate(s.instance, &err)
 
+	s.definition.Envs = s.instance.GetSpec().GetEnvs()
+
 	infraPropertiesReconciler := newConfigReconciler(s.Context, s.instance, &s.definition)
 	if err = infraPropertiesReconciler.Reconcile(); err != nil {
 		return err
@@ -135,7 +137,10 @@ func (s *serviceDeployer) Deploy() error {
 		return err
 	}
 
-	s.definition.Envs = s.instance.GetSpec().GetEnvs()
+	trustStoreReconciler := newTrustStoreReconciler(s.Context, s.instance, &s.definition)
+	if err = trustStoreReconciler.Reconcile(); err != nil {
+		return err
+	}
 
 	kogitoInfraReconciler := newKogitoInfraReconciler(s.Context, s.instance, &s.definition, s.infraHandler)
 	if err = kogitoInfraReconciler.Reconcile(); err != nil {
