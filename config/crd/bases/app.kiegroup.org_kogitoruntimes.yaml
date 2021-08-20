@@ -171,6 +171,9 @@ spec:
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic
+              host:
+                description: Custom hostname to be used for OpenShift Routes
+                type: string
               image:
                 description: 'Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
                   On OpenShift an ImageStream will be created in the current namespace

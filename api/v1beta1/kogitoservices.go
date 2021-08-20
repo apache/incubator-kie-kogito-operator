@@ -247,7 +247,7 @@ type KogitoServiceSpec struct {
 	// +optional
 	TrustStoreSecret string `json:"trustStoreSecret,omitempty"`
 
-	// Custom hostname to be used for external Routes
+	// Custom hostname to be used for OpenShift Routes
 	// +optional
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
 	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Host"
