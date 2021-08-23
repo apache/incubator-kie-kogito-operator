@@ -295,7 +295,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.Refe
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type. For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail",
+							Description: "Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type.\n\nFor example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Allows: true,
@@ -396,7 +396,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 				Properties: map[string]spec.Schema{
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of replicas that the service will have deployed in the cluster. Default value: 1.",
+							Description: "Number of replicas that the service will have deployed in the cluster.\n\nDefault value: 1.",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -422,14 +422,14 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
+							Description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\".\n\nOn OpenShift an ImageStream will be created in the current namespace pointing to the given image.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"insecureImageRegistry": {
 						SchemaProps: spec.SchemaProps{
-							Description: "A flag indicating that image streams created by Kogito Operator should be configured to allow pulling from insecure registries. Usable just on OpenShift. Defaults to 'false'.",
+							Description: "A flag indicating that image streams created by Kogito Operator should be configured to allow pulling from insecure registries. Usable just on OpenShift.\n\nDefaults to 'false'.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -475,7 +475,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 					},
 					"propertiesConfigMap": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service. The ConfigMap must be created in the same namespace. Use this property if you need custom properties to be mounted before the application deployment. If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
+							Description: "Custom ConfigMap with application.properties file to be mounted for the Kogito service.\n\nThe ConfigMap must be created in the same namespace.\n\nUse this property if you need custom properties to be mounted before the application deployment.\n\nIf left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -527,7 +527,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoSupportingServiceSpec(ref
 					},
 					"trustStoreSecret": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Custom JKS TrustStore that will be used by this service to make calls to TLS endpoints. It's expected that the secret has two keys: `keyStorePassword` containing the password for the KeyStore and `cacerts` containing the binary data of the given KeyStore.",
+							Description: "Custom JKS TrustStore that will be used by this service to make calls to TLS endpoints.\n\nIt's expected that the secret has two keys: `keyStorePassword` containing the password for the KeyStore and `cacerts` containing the binary data of the given KeyStore.",
 							Type:        []string{"string"},
 							Format:      "",
 						},

@@ -19,17 +19,17 @@ import corev1 "k8s.io/api/core/v1"
 // KogitoProbe configure liveness, readiness and startup probes for containers
 type KogitoProbe struct {
 	// LivenessProbe describes how the Kogito container liveness probe should work
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
+	// +
 	// +optional
 	LivenessProbe corev1.Probe `json:"livenessProbe,omitempty"`
 
 	// ReadinessProbe describes how the Kogito container readiness probe should work
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
+	// +
 	// +optional
 	ReadinessProbe corev1.Probe `json:"readinessProbe,omitempty"`
 
 	// StartupProbe describes how the Kogito container startup probe should work
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
+	// +
 	// +optional
 	StartupProbe corev1.Probe `json:"startupProbe,omitempty"`
 }
