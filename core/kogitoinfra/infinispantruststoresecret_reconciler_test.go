@@ -26,13 +26,10 @@ import (
 	"testing"
 )
 
-func TestInfinispanConfigReconciler(t *testing.T) {
+func TestInfinispanTrustStoreSecretReconciler(t *testing.T) {
 	ns := t.Name()
 	kogitoInfinispanInstance := test.CreateFakeKogitoInfinispan(ns)
-	infinispanInstance := test.CreateFakeInfinispan(ns)
-	infinispanService := test.CreateFakeInfinispanService(ns)
-
-	cli := test.NewFakeClientBuilder().AddK8sObjects(infinispanInstance, infinispanService).Build()
+	cli := test.NewFakeClientBuilder().Build()
 	infraContext := infraContext{
 		Context: operator.Context{
 			Client: cli,
@@ -41,22 +38,21 @@ func TestInfinispanConfigReconciler(t *testing.T) {
 		},
 		instance: kogitoInfinispanInstance,
 	}
-
-	infinispanConfigReconciler := newInfinispanConfigReconciler(infraContext, infinispanInstance, api.QuarkusRuntimeType)
-	err := infinispanConfigReconciler.Reconcile()
+	infinispanTrustStoreSecretReconciler := newInfinispanTrustStoreSecretReconciler(infraContext, api.QuarkusRuntimeType)
+	err := infinispanTrustStoreSecretReconciler.Reconcile()
 	assert.NoError(t, err)
-
-	assert.Equal(t, 1, len(kogitoInfinispanInstance.GetStatus().GetConfigMapEnvFromReferences()))
-	configMap := &v1.ConfigMap{
+	assert.Equal(t, 1, len(kogitoInfinispanInstance.GetStatus().GetSecretEnvFromReferences()))
+	secretName := kogitoInfinispanInstance.GetStatus().GetSecretEnvFromReferences()[0]
+	trustStoreSecret := &v1.Secret{
 		ObjectMeta: v12.ObjectMeta{
-			Name:      kogitoInfinispanInstance.GetStatus().GetConfigMapEnvFromReferences()[0],
+			Name:      secretName,
 			Namespace: ns,
 		},
 	}
-	exist, err := kubernetes.ResourceC(cli).Fetch(configMap)
+	exist, err := kubernetes.ResourceC(cli).Fetch(trustStoreSecret)
 	assert.True(t, exist)
 	assert.NoError(t, err)
-	assert.Equal(t, "true", configMap.Data["ENABLE_PERSISTENCE"])
-	assert.Equal(t, "true", configMap.Data["quarkus.infinispan-client.use-auth"])
-	assert.True(t, len(configMap.Data["quarkus.infinispan-client.server-list"]) > 0)
+	assert.NotNil(t, trustStoreSecret.Data["quarkus.infinispan-client.trust-store-type"])
+	assert.NotNil(t, trustStoreSecret.StringData["quarkus.infinispan-client.trust-store-password"])
+	assert.NotNil(t, trustStoreSecret.Data["quarkus.infinispan-client.trust-store"])
 }

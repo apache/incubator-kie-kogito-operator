@@ -19,6 +19,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -85,14 +86,17 @@ func (c *secretHandler) appendVolumeIntoDeployment(deployment *appsv1.Deployment
 			return
 		}
 	}
-
+	defaultMode := secretReference.GetFileMode()
+	if defaultMode == nil {
+		defaultMode = &framework.ModeForPropertyFiles
+	}
 	// append volume if its not exists
 	deployment.Spec.Template.Spec.Volumes =
 		append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
 			Name: secretReference.GetName(),
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
-					DefaultMode: secretReference.GetFileMode(),
+					DefaultMode: defaultMode,
 					SecretName:  secretReference.GetName(),
 					Optional:    secretReference.IsOptional(),
 				},

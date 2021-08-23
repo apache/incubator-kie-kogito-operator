@@ -99,14 +99,17 @@ func (c *configMapHandler) appendVolumeIntoDeployment(deployment *appsv1.Deploym
 			return
 		}
 	}
-
+	defaultMode := configMapReference.GetFileMode()
+	if defaultMode == nil {
+		defaultMode = &framework.ModeForPropertyFiles
+	}
 	// append volume if its not exists
 	deployment.Spec.Template.Spec.Volumes =
 		append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
 			Name: configMapReference.GetName(),
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
-					DefaultMode: configMapReference.GetFileMode(),
+					DefaultMode: defaultMode,
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: configMapReference.GetName(),
 					},

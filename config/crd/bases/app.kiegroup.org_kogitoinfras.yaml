@@ -87,7 +87,7 @@ spec:
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should
-                        be mounted.  Must not contain ':'.
+                        be mounted.  Must not contain ':'. Default mount path is /home/kogito/config
                       type: string
                     name:
                       description: This must match the Name of a ConfigMap.
@@ -261,7 +261,7 @@ spec:
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should
-                        be mounted.  Must not contain ':'.
+                        be mounted.  Must not contain ':'. Default mount path is /home/kogito/config
                       type: string
                     name:
                       description: This must match the Name of a ConfigMap.
@@ -374,7 +374,7 @@ spec:
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should
-                        be mounted.  Must not contain ':'.
+                        be mounted.  Must not contain ':'. Default mount path is /home/kogito/config
                       type: string
                     name:
                       description: This must match the Name of a ConfigMap.
@@ -517,7 +517,7 @@ spec:
                       type: integer
                     mountPath:
                       description: Path within the container at which the volume should
-                        be mounted.  Must not contain ':'.
+                        be mounted.  Must not contain ':'. Default mount path is /home/kogito/config
                       type: string
                     name:
                       description: This must match the Name of a ConfigMap.

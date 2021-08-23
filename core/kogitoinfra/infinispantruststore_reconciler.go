@@ -16,6 +16,7 @@ package kogitoinfra
 
 import (
 	v1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
+	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
@@ -27,10 +28,11 @@ import (
 )
 
 const (
-	truststoreSecretName = "kogito-infinispan-truststore"
-	certMountPath        = operator.KogitoHomeDir + "/certs/infinispan"
-	truststoreSecretKey  = "truststore.p12"
-	truststoreMountPath  = certMountPath + "/" + truststoreSecretKey
+	truststoreSecretName   = "kogito-infinispan-truststore"
+	certMountPath          = operator.KogitoHomeDir + "/certs/infinispan"
+	truststoreSecretKey    = "truststore.p12"
+	infinispanTLSSecretKey = "tls.crt"
+	truststoreMountPath    = certMountPath + "/" + truststoreSecretKey
 )
 
 type infinispanTrustStoreReconciler struct {
@@ -47,11 +49,25 @@ func newInfinispanTrustStoreReconciler(context infraContext, infinispanInstance 
 	}
 }
 
-func (i *infinispanTrustStoreReconciler) Reconcile() (err error) {
+func (i *infinispanTrustStoreReconciler) Reconcile() error {
 
-	if !isInfinispanCertEncryptionEnabled(i.infinispanInstance) {
+	if !i.isInfinispanCertEncryptionEnabled(i.infinispanInstance) {
 		return nil
 	}
+	if err := i.addTrustStoreVolumeSource(); err != nil {
+		return err
+	}
+	if err := i.addTrustStoreSecret(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (i *infinispanTrustStoreReconciler) isInfinispanCertEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {
+	return *infinispanInstance.Spec.Security.EndpointAuthentication && infinispanInstance.Spec.Security.EndpointEncryption != nil && len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) > 0
+}
+
+func (i *infinispanTrustStoreReconciler) addTrustStoreVolumeSource() error {
 	// Get Deployed resource
 	secretExists, err := i.isTrustStoreSecretExists()
 	if err != nil {
@@ -67,6 +83,18 @@ func (i *infinispanTrustStoreReconciler) Reconcile() (err error) {
 
 	i.instance.GetStatus().AddSecretVolumeReference(truststoreSecretName, certMountPath, &framework.ModeForCertificates, nil)
 	return nil
+}
+
+func (i *infinispanTrustStoreReconciler) isTrustStoreSecretExists() (bool, error) {
+	// fetch truststore secret
+	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: truststoreSecretName, Namespace: i.instance.GetNamespace()})
+	if err != nil {
+		return false, err
+	}
+	if deployedSecret == nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (i *infinispanTrustStoreReconciler) createTrustStoreSecret() error {
@@ -99,18 +127,12 @@ func (i *infinispanTrustStoreReconciler) createTrustStoreSecret() error {
 	return nil
 }
 
-func (i *infinispanTrustStoreReconciler) isTrustStoreSecretExists() (bool, error) {
-	// fetch truststore secret
-	deployedSecret, err := i.secretHandler.FetchSecret(types.NamespacedName{Name: truststoreSecretName, Namespace: i.instance.GetNamespace()})
-	if err != nil {
-		return false, err
+func (i *infinispanTrustStoreReconciler) addTrustStoreSecret() error {
+	if err := newInfinispanTrustStoreSecretReconciler(i.infraContext, api.QuarkusRuntimeType).Reconcile(); err != nil {
+		return err
 	}
-	if deployedSecret == nil {
-		return false, nil
+	if err := newInfinispanTrustStoreSecretReconciler(i.infraContext, api.SpringBootRuntimeType).Reconcile(); err != nil {
+		return err
 	}
-	return true, nil
-}
-
-func isInfinispanCertEncryptionEnabled(infinispanInstance *v1.Infinispan) bool {
-	return *infinispanInstance.Spec.Security.EndpointAuthentication && infinispanInstance.Spec.Security.EndpointEncryption != nil && len(infinispanInstance.Spec.Security.EndpointEncryption.CertSecretName) > 0
+	return nil
 }

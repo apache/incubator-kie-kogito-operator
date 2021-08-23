@@ -42,12 +42,6 @@ const (
 	envVarInfinispanUser
 	// envVarInfinispanPassword environment variable for setting infinispan password
 	envVarInfinispanPassword
-	pkcs12CertType = "PKCS12"
-
-	infinispanTLSSecretKey = "tls.crt"
-	//infinispanCertMountName           = "infinispan-cert"
-	//infinispanEnvKeyCredSecret        = "INFINISPAN_CREDENTIAL_SECRET"
-	infinispanEnablePersistenceEnvKey = "ENABLE_PERSISTENCE"
 )
 
 var (

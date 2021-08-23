@@ -25,11 +25,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
-	"software.sslmate.com/src/go-pkcs12"
 )
 
 const (
-	infinispanConfigMapName = "kogito-infinispan-%s-config"
+	infinispanConfigMapName           = "kogito-infinispan-%s-config"
+	infinispanEnablePersistenceEnvKey = "ENABLE_PERSISTENCE"
 )
 
 type infinispanConfigReconciler struct {
@@ -118,11 +118,6 @@ func (i *infinispanConfigReconciler) getInfinispanAppProps() (map[string]string,
 	appProps[propertiesInfinispan[i.runtime][appPropInfinispanUseAuth]] = "true"
 	if len(infinispanURI) > 0 {
 		appProps[propertiesInfinispan[i.runtime][appPropInfinispanServerList]] = infinispanURI
-	}
-	if isInfinispanCertEncryptionEnabled(i.infinispanInstance) {
-		appProps[propertiesInfinispan[i.runtime][appPropInfinispanTrustStoreType]] = pkcs12CertType
-		appProps[propertiesInfinispan[i.runtime][appPropInfinispanTrustStore]] = truststoreMountPath
-		appProps[propertiesInfinispan[i.runtime][appPropInfinispanTrustStorePassword]] = pkcs12.DefaultPassword
 	}
 	return appProps, nil
 }

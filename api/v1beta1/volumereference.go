@@ -19,7 +19,7 @@ type VolumeReference struct {
 	// This must match the Name of a ConfigMap.
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Path within the container at which the volume should be mounted.  Must
-	// not contain ':'.
+	// not contain ':'. Default mount path is /home/kogito/config
 	// +optional
 	MountPath string `json:"mountPath,omitempty" protobuf:"bytes,3,opt,name=mountPath"`
 	// Permission on the file mounted as volume on deployment.

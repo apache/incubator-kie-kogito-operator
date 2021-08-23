@@ -81,6 +81,6 @@ func Test_Reconcile_Infinispan(t *testing.T) {
 	err = infinispanInfraReconciler.Reconcile()
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(kogitoInfinispanInstance.GetStatus().GetConfigMapEnvFromReferences()))
-	assert.Equal(t, 2, len(kogitoInfinispanInstance.GetStatus().GetSecretEnvFromReferences()))
+	assert.Equal(t, 4, len(kogitoInfinispanInstance.GetStatus().GetSecretEnvFromReferences()))
 	assert.Equal(t, 1, len(kogitoInfinispanInstance.GetStatus().GetSecretVolumeReferences()))
 }
