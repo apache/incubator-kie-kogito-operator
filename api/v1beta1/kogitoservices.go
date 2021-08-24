@@ -26,23 +26,23 @@ import (
 type KogitoServiceStatus struct {
 	// +listType=atomic
 	// History of conditions for the resource
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	Conditions *[]metav1.Condition `json:"conditions"`
 	// General conditions for the Kogito Service deployment.
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Deployment Conditions"
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Deployment Conditions"
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	DeploymentConditions []appsv1.DeploymentCondition `json:"deploymentConditions,omitempty"`
 	// Image is the resolved image for this service.
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Image string `json:"image,omitempty"`
 	// URI is where the service is exposed.
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:org.w3:link"
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:org.w3:link"
 	ExternalURI string `json:"externalURI,omitempty"`
 	// Describes the CloudEvents that this instance can consume or produce
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	CloudEvents KogitoCloudEventsStatus `json:"cloudEvents,omitempty"`
 }
 
@@ -94,11 +94,11 @@ func (k *KogitoServiceStatus) SetCloudEvents(cloudEvents api.KogitoCloudEventsSt
 type KogitoCloudEventsStatus struct {
 	// +optional
 	// +listType=atomic
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Consumes []KogitoCloudEventInfo `json:"consumes,omitempty"`
 	// +optional
 	// +listType=atomic
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Produces []KogitoCloudEventInfo `json:"produces,omitempty"`
 }
 
@@ -144,9 +144,9 @@ func (k *KogitoCloudEventsStatus) SetProduces(produces []api.KogitoCloudEventInf
 
 // KogitoCloudEventInfo describes the CloudEvent information based on the specification
 type KogitoCloudEventInfo struct {
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Type string `json:"type"`
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Source string `json:"source,omitempty"`
 }
 
@@ -162,61 +162,67 @@ func (k KogitoCloudEventInfo) GetSource() string {
 
 // KogitoServiceSpec is the basic structure for the Kogito Service specification.
 type KogitoServiceSpec struct {
+
 	// Number of replicas that the service will have deployed in the cluster.
+	//
 	// Default value: 1.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Replicas"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:podCount"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Replicas"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podCount"
 	// +kubebuilder:validation:Minimum=0
 	Replicas *int32 `json:"replicas,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	Env []corev1.EnvVar `json:"env,omitempty"`
 
 	// +optional
 	// Image definition for the service. Example: "quay.io/kiegroup/kogito-service:latest".
+	//
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	Image string `json:"image,omitempty"`
 
 	// +optional
 	// A flag indicating that image streams created by Kogito Operator should be configured to allow pulling from insecure registries.
 	// Usable just on OpenShift.
+	//
 	// Defaults to 'false'.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Insecure Image Registry"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Insecure Image Registry"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	InsecureImageRegistry bool `json:"insecureImageRegistry,omitempty"`
 
 	// Defined compute resource requirements for the deployed service.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// Additional labels to be added to the Deployment and Pods managed by the operator.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Additional Deployment Labels"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Additional Deployment Labels"
 	DeploymentLabels map[string]string `json:"deploymentLabels,omitempty"`
 
 	// Additional labels to be added to the Service managed by the operator.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Additional Service Labels"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Additional Service Labels"
 	ServiceLabels map[string]string `json:"serviceLabels,omitempty"`
 
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="ConfigMap Properties"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="ConfigMap Properties"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:io.kubernetes:ConfigMap"
 	// Custom ConfigMap with application.properties file to be mounted for the Kogito service.
+	//
 	// The ConfigMap must be created in the same namespace.
+	//
 	// Use this property if you need custom properties to be mounted before the application deployment.
+	//
 	// If left empty, one will be created for you. Later it can be updated to add any custom properties to apply to the service.
 	PropertiesConfigMap string `json:"propertiesConfigMap,omitempty"`
 
@@ -229,22 +235,23 @@ type KogitoServiceSpec struct {
 	Monitoring Monitoring `json:"monitoring,omitempty"`
 
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Configs"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:text"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Configs"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// Application properties that will be set to the service. For example 'MY_VAR: my_value'.
 	Config map[string]string `json:"config,omitempty"`
 
 	// Configure liveness, readiness and startup probes for containers
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
 	// +optional
 	Probes KogitoProbe `json:"probes,omitempty"`
 
 	// Custom JKS TrustStore that will be used by this service to make calls to TLS endpoints.
+	//
 	// It's expected that the secret has two keys: `keyStorePassword` containing the password for the KeyStore
 	// and `cacerts` containing the binary data of the given KeyStore.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=false
 	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:io.kubernetes:Secret"
 	TrustStoreSecret string `json:"trustStoreSecret,omitempty"`
 }
 

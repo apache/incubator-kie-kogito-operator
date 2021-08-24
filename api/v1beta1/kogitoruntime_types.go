@@ -24,16 +24,16 @@ type KogitoRuntimeSpec struct {
 	KogitoServiceSpec `json:",inline"`
 
 	// Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Istio"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enable Istio"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	EnableIstio bool `json:"enableIstio,omitempty"`
 
 	// The name of the runtime used, either Quarkus or SpringBoot.
+	//
 	// Default value: quarkus
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="runtime"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Runtime"
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime api.RuntimeType `json:"runtime,omitempty"`
 }
@@ -71,11 +71,11 @@ type KogitoRuntimeStatus struct {
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Image of this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito service"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployment,apps/v1,\"A Kubernetes Deployment\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Route,route.openshift.io/v1,\"A Openshift Route\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="ConfigMap,v1,\"A Kubernetes ConfigMap\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Service,v1,\"A Kubernetes Service\""
+// +operator-sdk:csv:customresourcedefinitions:displayName="Kogito Runtime"
+// +operator-sdk:csv:customresourcedefinitions:resources={{Deployment,apps/v1,"A Kubernetes Deployment"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Route,route.openshift.io/v1,"A Openshift Route"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{ConfigMap,v1,"A Kubernetes ConfigMap"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Service,v1,"A Kubernetes Service"}}
 
 // KogitoRuntime is a custom Kogito service.
 type KogitoRuntime struct {

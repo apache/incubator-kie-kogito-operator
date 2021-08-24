@@ -25,29 +25,33 @@ import (
 type KogitoBuildSpec struct {
 
 	// Sets the type of build that this instance will handle:
+	//
 	// Binary - takes an uploaded binary file already compiled and creates a Kogito service image from it.
+	//
 	// RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito service image.
+	//
 	// LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="DisableIncremental Builds"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Build Type"
 	// +kubebuilder:validation:Enum=Binary;RemoteSource;LocalSource
 	Type api.KogitoBuildType `json:"type"`
 
 	// DisableIncremental indicates that source to image builds should NOT be incremental. Defaults to false.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="DisableIncremental Builds"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Disable Incremental Builds"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	// +optional
 	DisableIncremental bool `json:"disableIncremental,omitempty"`
 
 	// Environment variables used during build time.
 	// +listType=atomic
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Env Variables"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Build Env Variables"
 	// +optional
 	Env []corev1.EnvVar `json:"env,omitempty"`
 
 	// Information about the git repository where the Kogito Service source code resides.
+	//
 	// Ignored for binary builds.
 	// +optional
 	GitSource GitSource `json:"gitSource,omitempty"`
@@ -55,9 +59,8 @@ type KogitoBuildSpec struct {
 	// Which runtime Kogito service base image to use when building the Kogito service.
 	// If "BuildImage" is set, this value is ignored by the operator.
 	// Default value: quarkus.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Runtime"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Runtime"
 	// +optional
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime api.RuntimeType `json:"runtime,omitempty"`
@@ -68,70 +71,84 @@ type KogitoBuildSpec struct {
 	WebHooks []WebHookSecret `json:"webHooks,omitempty"`
 
 	// Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus (Source to Image build only).
+	//
 	// For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Native Build"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Native Build"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	Native bool `json:"native,omitempty"`
 
 	// Resources Requirements for builder pods.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:resourceRequirements"
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// Maven Mirror URL to be used during source-to-image builds (Local and Remote) to considerably increase build speed.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Maven Mirror URL"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Maven Mirror URL"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	MavenMirrorURL string `json:"mavenMirrorURL,omitempty"`
 
 	// Image used to build the Kogito Service from source (Local and Remote).
-	// The operator will use the one provided by the Kogito Team based on the "Runtime" field.
+	//
+	// If not defined the operator will use image provided by the Kogito Team based on the "Runtime" field.
+	//
 	// Example: "quay.io/kiegroup/kogito-jvm-builder:latest".
+	//
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Build Image"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Build Image"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	BuildImage string `json:"buildImage,omitempty"`
 
 	// Image used as the base image for the final Kogito service. This image only has the required packages to run the application.
+	//
 	// For example: quarkus based services will have only JVM installed, native services only the packages required by the OS.
-	// The operator will use the one provided by the Kogito Team based on the "Runtime" field.
+	//
+	// If not defined the operator will use image provided by the Kogito Team based on the "Runtime" field.
+	//
 	// Example: "quay.io/kiegroup/kogito-jvm-builder:latest".
+	//
 	// On OpenShift an ImageStream will be created in the current namespace pointing to the given image.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Base Image"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Base Image"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:text"
 	// +optional
 	RuntimeImage string `json:"runtimeImage,omitempty"`
 
 	// Set this field targeting the desired KogitoRuntime when this KogitoBuild instance has a different name than the KogitoRuntime.
+	//
 	// By default this KogitoBuild instance will generate a final image named after its own name (.metadata.name).
+	//
 	// On OpenShift, an ImageStream will be created causing a redeployment on any KogitoRuntime with the same name.
 	// On Kubernetes, the final image will be pushed to the KogitoRuntime deployment.
+	//
 	// If you have multiple KogitoBuild instances (let's say BinaryBuildType and Remote Source), you might need that both target the same KogitoRuntime.
 	// Both KogitoBuilds will update the same ImageStream or generate a final image to the same KogitoRuntime deployment.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Base Image"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Target kogito Runtime"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +optional
 	TargetKogitoRuntime string `json:"targetKogitoRuntime,omitempty"`
 
 	// Artifact contains override information for building the Maven artifact (used for Local Source builds).
+	//
 	// You might want to override this information when building from decisions, rules or process files.
 	// In this scenario the Kogito Images will generate a new Java project for you underneath.
 	// This information will be used to generate this project.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Final Artifact"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Final Artifact"
 	Artifact Artifact `json:"artifact,omitempty"`
 
 	// If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Enable Maven Download Output"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Enable Maven Download Output"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
 	EnableMavenDownloadOutput bool `json:"enableMavenDownloadOutput,omitempty"`
 }
 
@@ -312,15 +329,15 @@ func (k *KogitoBuildSpec) SetEnableMavenDownloadOutput(enableMavenDownloadOutput
 type KogitoBuildStatus struct {
 	// +listType=atomic
 	// History of conditions for the resource
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	Conditions *[]metav1.Condition `json:"conditions"`
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Latest Build"
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Latest Build"
 	LatestBuild string `json:"latestBuild,omitempty"`
 	// History of builds
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.displayName="Builds"
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Builds"
 	Builds Builds `json:"builds"`
 }
 
@@ -465,9 +482,9 @@ func (b *Builds) SetCancelled(cancelled []string) {
 // +kubebuilder:printcolumn:name="Maven URL",type="string",JSONPath=".spec.mavenMirrorURL",description="URL for the proxy Maven repository"
 // +kubebuilder:printcolumn:name="Kogito Runtime",type="string",JSONPath=".spec.targetKogitoRuntime",description="Target KogitoRuntime for this build"
 // +kubebuilder:printcolumn:name="Git Repository",type="string",JSONPath=".spec.gitSource.uri",description="Git repository URL (RemoteSource builds only)"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStream,image.openshift.io/v1,\" A Openshift Image Stream\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="BuildConfig,build.openshift.io/v1,\" A Openshift Build Config\""
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Build"
+// +operator-sdk:csv:customresourcedefinitions:resources={{ImageStream,image.openshift.io/v1," A Openshift Image Stream"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{BuildConfig,build.openshift.io/v1," A Openshift Build Config"}}
+// +operator-sdk:csv:customresourcedefinitions:displayName="Kogito Build"
 
 // KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
 type KogitoBuild struct {
