@@ -17,7 +17,7 @@
 set -e
 
 script_dir_path=`dirname "${BASH_SOURCE[0]}"`
-source ${script_dir_path}/env.sh
+source ${script_dir_path}/../env.sh
 
 tempfolder=$(mktemp -d)
 echo "Temporary folder is ${tempfolder}"
