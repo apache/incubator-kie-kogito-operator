@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-script_dir_path=`dirname "${BASH_SOURCE[0]}"`
-
 set -o pipefail
 set -o errtrace
 
@@ -50,7 +48,7 @@ set_up() {
 
 gen_client() {
   go run k8s.io/code-generator/cmd/client-gen \
-    --go-header-file=${script_dir_path}/boilerplate.go.txt \
+    --go-header-file=../hack/boilerplate.go.txt \
     --input=/"${kogito_api_version}" \
     --input-base=github.com/kiegroup/kogito-operator/api \
     --input-dirs=github.com/kiegroup/kogito-operator/api/${kogito_api_version} \
@@ -63,7 +61,7 @@ gen_client() {
 
 gen_listers() {
   go run k8s.io/code-generator/cmd/lister-gen \
-    --go-header-file=${script_dir_path}/boilerplate.go.txt \
+    --go-header-file=../hack/boilerplate.go.txt \
     --input-dirs=github.com/kiegroup/kogito-operator/api/${kogito_api_version} \
     --output-base=. \
     --output-package=github.com/kiegroup/kogito-operator/client/listers
@@ -72,7 +70,7 @@ gen_listers() {
 
 gen_informers() {
   go run k8s.io/code-generator/cmd/informer-gen \
-    --go-header-file=${script_dir_path}/boilerplate.go.txt \
+    --go-header-file=../hack/boilerplate.go.txt \
     --versioned-clientset-package=github.com/kiegroup/kogito-operator/client/clientset/versioned \
     --internal-clientset-package=github.com/kiegroup/kogito-operator/client/clientset/versioned \
     --listers-package=github.com/kiegroup/kogito-operator/client/listers \

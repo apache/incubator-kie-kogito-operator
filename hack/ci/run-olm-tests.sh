@@ -22,7 +22,7 @@
 script_dir_path=`dirname "${BASH_SOURCE[0]}"`
 
 set -e
-source ${script_dir_path}/ci/operator-ensure-manifests.sh
+source ${script_dir_path}/../ci/operator-ensure-manifests.sh
 
 # SCRIPT_URL URL to the script used by OLM to test the operator
 SCRIPT_URL="https://raw.githubusercontent.com/redhat-openshift-ecosystem/operator-test-playbooks/master/upstream/test/test.sh"
