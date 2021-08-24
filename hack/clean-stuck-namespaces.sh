@@ -25,7 +25,7 @@ while read project
 do 
 	echo "Stuck project ${project}"
 
-    for resource in $(getAllDependentCrds)
+    for resource in $(getAllDependentCrds all)
     do
       oc get $resource -n "${project}" | grep -v "NAME" | awk -F " " '{print $1}' > ${DIR}/$resource-instances
       while read instance

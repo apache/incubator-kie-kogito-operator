@@ -16,7 +16,8 @@
 CSV_DIR="config/manifests/bases"
 TEST_CONFIG_FILE="test/.default_config"
 
-DEPENDENT_CRDS_KEYS=(grafana hyperfoil infinispan kafka keycloak knative kogito mongodb prometheus)
+DEPENDENT_CRDS_KEYS=(grafana hyperfoil infinispan kafka keycloak knative kogito mongodb)
+DEPENDENT_SENSITIVE_CRDS_KEYS=(prometheus)
 
 getOperatorVersion() {
   local version=$(grep -m 1 'Version =' version/version.go) && version=$(echo ${version#*=} | tr -d '"' | tr -d ' ')
@@ -42,6 +43,17 @@ getAllDependentCrds() {
       echo "$crd"
     done
   done
+
+  if [ "$1" = "all" ]
+  then
+    for crdKey in ${DEPENDENT_SENSITIVE_CRDS_KEYS[*]}
+    do
+      for crd in $(getDependentCrds ${crdKey})
+      do
+        echo "$crd"
+      done
+    done
+  fi
 }
 
 getDependentCrds() {
