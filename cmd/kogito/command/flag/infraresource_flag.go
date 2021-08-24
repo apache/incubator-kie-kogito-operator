@@ -39,12 +39,12 @@ func AddInfraResourceFlags(command *cobra.Command, flags *InfraResourceFlags) {
 
 // CheckInfraResourceArgs validates the InfraResourceFlags flags
 func CheckInfraResourceArgs(flags *InfraResourceFlags) error {
-	if len(flags.Kind) > 0 {
+	if len(flags.ResourceName) > 0 {
 		if len(flags.APIVersion) == 0 {
-			return fmt.Errorf("apiVersion can't be empty")
+			return fmt.Errorf("ApiVersion can't be empty")
 		}
-		if len(flags.ResourceName) == 0 {
-			return fmt.Errorf("resource-name can't be empty")
+		if len(flags.Kind) == 0 {
+			return fmt.Errorf("Kind can't be empty ")
 		}
 	}
 	return nil
