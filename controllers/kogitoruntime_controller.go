@@ -15,6 +15,8 @@
 package controllers
 
 import (
+	"reflect"
+
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
@@ -29,7 +31,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -55,6 +56,7 @@ type KogitoRuntimeReconciler struct {
 // +kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;create;list;watch;delete;update
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings;roles,verbs=get;create;list;watch;delete;update
 // +kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
+// +kubebuilder:rbac:groups=route.openshift.io,resources=routes/custom-host,verbs=get;create;list;watch;delete;update
 // +kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;serviceaccounts;services,verbs=create;delete;get;list;patch;update;watch
 
 // Reconcile reads that state of the cluster for a KogitoRuntime object and makes changes based on the state read

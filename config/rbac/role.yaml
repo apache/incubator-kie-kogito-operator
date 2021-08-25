@@ -297,6 +297,17 @@ rules:
   - update
   - watch
 - apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
   - sources.knative.dev
   resources:
   - sinkbindings
