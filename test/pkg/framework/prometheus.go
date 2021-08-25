@@ -47,7 +47,7 @@ func DeployPrometheusInstance(namespace, labelName, labelValue string) error {
 			},
 		},
 	}
-	if err := kubernetes.ResourceC(kubeClient).Create(prometheusCR); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(prometheusCR); err != nil {
 		return fmt.Errorf("Error while creating Prometheus CR: %v ", err)
 	}
 

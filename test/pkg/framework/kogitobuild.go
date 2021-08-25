@@ -47,10 +47,10 @@ func DeployKogitoBuild(namespace string, installerType InstallerType, buildHolde
 }
 
 func crDeployKogitoBuild(buildHolder *bddtypes.KogitoBuildHolder) error {
-	if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(buildHolder.KogitoBuild); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(buildHolder.GetNamespace())).CreateIfNotExists(buildHolder.KogitoBuild); err != nil {
 		return fmt.Errorf("Error creating example build %s: %v", buildHolder.KogitoBuild.GetName(), err)
 	}
-	if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(buildHolder.KogitoService); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(buildHolder.GetNamespace())).CreateIfNotExists(buildHolder.KogitoService); err != nil {
 		return fmt.Errorf("Error creating example service %s: %v", buildHolder.KogitoService.GetName(), err)
 	}
 	return nil
@@ -100,7 +100,7 @@ func GetKogitoBuildStub(namespace, runtimeType, name string) *v1beta1.KogitoBuil
 // GetKogitoBuild returns the KogitoBuild type
 func GetKogitoBuild(namespace, buildName string) (*v1beta1.KogitoBuild, error) {
 	build := &v1beta1.KogitoBuild{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: buildName, Namespace: namespace}, build); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: buildName, Namespace: namespace}, build); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for KogitoBuild %s: %v ", buildName, err)
 	} else if errors.IsNotFound(err) || !exists {
 		return nil, nil

@@ -33,7 +33,7 @@ const (
 // CreateNamespace creates a new namespace
 func CreateNamespace(namespace string) error {
 	GetLogger(namespace).Info("Creating namespace", "namespace", namespace)
-	_, err := kubernetes.NamespaceC(kubeClient).Create(namespace)
+	_, err := kubernetes.NamespaceC(GetKubeClient(namespace)).Create(namespace)
 	if err != nil {
 		return fmt.Errorf("Cannot create namespace %s: %v", namespace, err)
 	}
@@ -44,7 +44,7 @@ func CreateNamespace(namespace string) error {
 // CreateNamespaceIfNotExists creates a new namespace if not exists, returns true if namespaces already existed
 func CreateNamespaceIfNotExists(namespace string) (exists bool, err error) {
 	GetLogger(namespace).Info("Creating namespace", "namespace", namespace)
-	_, err = kubernetes.NamespaceC(kubeClient).Create(namespace)
+	_, err = kubernetes.NamespaceC(GetKubeClient(namespace)).Create(namespace)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
 			return true, nil
@@ -59,7 +59,7 @@ func CreateNamespaceIfNotExists(namespace string) (exists bool, err error) {
 func DeleteNamespace(namespace string) error {
 	ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace}}
 	GetLogger(namespace).Info("Deleting namespace", "namespace", namespace)
-	err := kubernetes.ResourceC(kubeClient).Delete(ns)
+	err := kubernetes.ResourceC(GetKubeClient(namespace)).Delete(ns)
 	if err != nil {
 		return fmt.Errorf("Cannot delete namespace %s: %v", namespace, err)
 	}
@@ -69,7 +69,7 @@ func DeleteNamespace(namespace string) error {
 
 // IsNamespace checks whether a namespace exists
 func IsNamespace(namespace string) (bool, error) {
-	ns, err := kubernetes.NamespaceC(kubeClient).Fetch(namespace)
+	ns, err := kubernetes.NamespaceC(GetKubeClient(namespace)).Fetch(namespace)
 	if err != nil {
 		return false, fmt.Errorf("Cannot checking namespace %s: %v", namespace, err)
 	}

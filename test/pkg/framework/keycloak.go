@@ -44,7 +44,7 @@ func DeployKeycloakInstance(namespace string) error {
 		},
 	}
 
-	if err := kubernetes.ResourceC(kubeClient).Create(keycloak); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(keycloak); err != nil {
 		return fmt.Errorf("Error while creating Keycloak: %v ", err)
 	}
 
@@ -69,7 +69,7 @@ func DeployKeycloakRealm(namespace, realmName string) error {
 		},
 	}
 
-	return kubernetes.ResourceC(kubeClient).Create(realm)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Create(realm)
 }
 
 // DeployKeycloakClient deploys a client configuration of Keycloak
@@ -98,7 +98,7 @@ func DeployKeycloakClient(namespace, clientName string) error {
 		},
 	}
 
-	return kubernetes.ResourceC(kubeClient).Create(client)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Create(client)
 }
 
 // DeployKeycloakUser deploys a realm configuration of Keycloak
@@ -127,7 +127,7 @@ func DeployKeycloakUser(namespace, userName, password string) error {
 		},
 	}
 
-	return kubernetes.ResourceC(kubeClient).Create(user)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Create(user)
 }
 
 // GetAccessTokenFromKeycloak gets the access token for a user

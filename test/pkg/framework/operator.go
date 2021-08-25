@@ -101,7 +101,7 @@ func KogitoOperatorExists(namespace string) (bool, error) {
 			Namespace: namespace,
 		},
 	}
-	if exists, err := kubernetes.ResourceC(kubeClient).Fetch(operatorDeployment); err != nil {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).Fetch(operatorDeployment); err != nil {
 		return false, fmt.Errorf("Error while trying to look for Deploment %s: %v ", kogitoOperatorDeploymentName, err)
 	} else if !exists {
 		return false, nil
@@ -136,7 +136,7 @@ func WaitForKogitoOperatorRunning(namespace string) error {
 					if !CheckPodHasImagePullSecretWithPrefix(&pod, kogitoOperatorPullImageSecretPrefix) {
 						// Delete pod as it has been misconfigured (missing pull secret)
 						GetLogger(namespace).Info("Kogito Operator pod does not have the image pull secret needed. Deleting it to renew it.")
-						err := kubernetes.ResourceC(kubeClient).Delete(&pod)
+						err := kubernetes.ResourceC(GetKubeClient(namespace)).Delete(&pod)
 						if err != nil {
 							GetLogger(namespace).Error(err, "Error while trying to delete Kogito Operator pod")
 							return false, nil
@@ -158,10 +158,10 @@ func RemoveKogitoOperatorDeployment(namespace string) error {
 			Namespace: namespace,
 		},
 	}
-	if exists, err := kubernetes.ResourceC(kubeClient).Fetch(operatorDeployment); err != nil {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).Fetch(operatorDeployment); err != nil {
 		return fmt.Errorf("Error while trying to look for Deploment %s: %v ", kogitoOperatorDeploymentName, err)
 	} else if exists {
-		if err := kubernetes.ResourceC(kubeClient).Delete(operatorDeployment); err != nil {
+		if err := kubernetes.ResourceC(GetKubeClient(namespace)).Delete(operatorDeployment); err != nil {
 			return fmt.Errorf("Error while trying to remove Deploment %s: %v ", kogitoOperatorDeploymentName, err)
 		}
 	} else {
@@ -230,7 +230,7 @@ func IsOperatorRunning(namespace, operatorPackageName string, catalog OperatorCa
 func OperatorExistsUsingSubscription(namespace, operatorPackageName, operatorSource string) (bool, error) {
 	GetLogger(namespace).Debug("Checking Operator", "Subscription", operatorPackageName, "Namespace", namespace)
 
-	subscription, err := framework.GetSubscription(kubeClient, namespace, operatorPackageName, operatorSource)
+	subscription, err := framework.GetSubscription(GetKubeClient(namespace), namespace, operatorPackageName, operatorSource)
 	if err != nil {
 		return false, err
 	} else if subscription == nil {
@@ -247,7 +247,7 @@ func OperatorExistsUsingSubscription(namespace, operatorPackageName, operatorSou
 	GetLogger(namespace).Debug("Found current CSV in", "Subscription", subscriptionCsv)
 
 	operatorDeployments := &v1.DeploymentList{}
-	if err := kubernetes.ResourceC(kubeClient).ListWithNamespaceAndLabel(namespace, operatorDeployments, map[string]string{"olm.owner.kind": "ClusterServiceVersion", "olm.owner": subscriptionCsv}); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).ListWithNamespaceAndLabel(namespace, operatorDeployments, map[string]string{"olm.owner.kind": "ClusterServiceVersion", "olm.owner": subscriptionCsv}); err != nil {
 		return false, fmt.Errorf("Error while trying to fetch DC with label olm.owner: '%s' Operator installation: %s ", subscriptionCsv, err)
 	}
 
@@ -270,7 +270,7 @@ func CreateOperatorGroupIfNotExists(namespace, operatorGroupName string) (*olmap
 			TargetNamespaces: []string{namespace},
 		},
 	}
-	if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(operatorGroup); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).CreateIfNotExists(operatorGroup); err != nil {
 		return nil, fmt.Errorf("Error creating OperatorGroup %s: %v", operatorGroupName, err)
 	}
 	return operatorGroup, nil
@@ -291,7 +291,7 @@ func isOperatorGroupReady(namespace, operatorGroupName string) (bool, error) {
 			Namespace: namespace,
 		},
 	}
-	if exists, err := kubernetes.ResourceC(kubeClient).Fetch(operatorGroup); err != nil {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).Fetch(operatorGroup); err != nil {
 		return false, fmt.Errorf("Error while trying to look for OperatorGroup %s: %v ", operatorGroupName, err)
 	} else if !exists {
 		return false, nil
@@ -322,7 +322,7 @@ func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName s
 		},
 	}
 
-	if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(subscription); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).CreateIfNotExists(subscription); err != nil {
 		return nil, fmt.Errorf("Error creating Subscription %s: %v", subscriptionName, err)
 	}
 
@@ -334,7 +334,7 @@ func GetClusterWideTestSubscriptions() (*olmapiv1alpha1.SubscriptionList, error)
 	clusterOperatorNamespace := GetClusterOperatorNamespace()
 
 	subscriptions := &olmapiv1alpha1.SubscriptionList{}
-	if err := kubernetes.ResourceC(kubeClient).ListWithNamespaceAndLabel(clusterOperatorNamespace, subscriptions, map[string]string{clusterWideSubscriptionLabel: ""}); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(clusterOperatorNamespace)).ListWithNamespaceAndLabel(clusterOperatorNamespace, subscriptions, map[string]string{clusterWideSubscriptionLabel: ""}); err != nil {
 		return nil, fmt.Errorf("Error retrieving SubscriptionList in namespace %s: %v", clusterOperatorNamespace, err)
 	}
 
@@ -343,7 +343,7 @@ func GetClusterWideTestSubscriptions() (*olmapiv1alpha1.SubscriptionList, error)
 
 // GetSubscription returns subscription
 func GetSubscription(namespace, operatorPackageName string, catalog OperatorCatalog) (*olmapiv1alpha1.Subscription, error) {
-	subscription, err := framework.GetSubscription(kubeClient, namespace, operatorPackageName, catalog.source)
+	subscription, err := framework.GetSubscription(GetKubeClient(namespace), namespace, operatorPackageName, catalog.source)
 	if err != nil {
 		return nil, err
 	} else if subscription == nil {
@@ -364,18 +364,18 @@ func DeleteSubscription(subscription *olmapiv1alpha1.Subscription) error {
 	suscriptionNamespace := subscription.Namespace
 
 	// Delete Subscription
-	if err := kubernetes.ResourceC(kubeClient).Delete(subscription); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(suscriptionNamespace)).Delete(subscription); err != nil {
 		return err
 	}
 
 	// Delete related CSV
 	csv := &olmapiv1alpha1.ClusterServiceVersion{}
-	exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Namespace: suscriptionNamespace, Name: installedCsv}, csv)
+	exists, err := kubernetes.ResourceC(GetKubeClient(suscriptionNamespace)).FetchWithKey(types.NamespacedName{Namespace: suscriptionNamespace, Name: installedCsv}, csv)
 	if err != nil {
 		return err
 	}
 	if exists {
-		if err := kubernetes.ResourceC(kubeClient).Delete(csv); err != nil {
+		if err := kubernetes.ResourceC(GetKubeClient(suscriptionNamespace)).Delete(csv); err != nil {
 			return err
 		}
 	}
@@ -398,7 +398,7 @@ func WaitForMongoDBOperatorRunning(namespace string) error {
 
 func isMongoDBOperatorRunning(namespace string) (bool, error) {
 	context := operator.Context{
-		Client: kubeClient,
+		Client: GetKubeClient(namespace),
 		Log:    logger.GetLogger(namespace),
 		Scheme: meta.GetRegisteredSchema(),
 	}
@@ -431,7 +431,7 @@ func CreateKogitoOperatorCatalogSource() (*olmapiv1alpha1.CatalogSource, error) 
 		},
 	}
 
-	if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(cs); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(GetCustomKogitoOperatorCatalog().namespace)).CreateIfNotExists(cs); err != nil {
 		return nil, fmt.Errorf("Error creating CatalogSource %s: %v", kogitoCatalogSourceName, err)
 	}
 
@@ -453,7 +453,7 @@ func isKogitoOperatorCatalogSourceReady() (bool, error) {
 			Namespace: GetCustomKogitoOperatorCatalog().namespace,
 		},
 	}
-	if exists, err := kubernetes.ResourceC(kubeClient).Fetch(cs); err != nil {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(GetCustomKogitoOperatorCatalog().namespace)).Fetch(cs); err != nil {
 		return false, fmt.Errorf("Error while trying to look for CatalogSource %s: %v ", kogitoCatalogSourceName, err)
 	} else if !exists {
 		return false, nil
@@ -476,7 +476,7 @@ func DeleteKogitoOperatorCatalogSource() error {
 		},
 	}
 
-	if err := kubernetes.ResourceC(kubeClient).Delete(cs); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(GetCustomKogitoOperatorCatalog().namespace)).Delete(cs); err != nil {
 		return fmt.Errorf("Error deleting CatalogSource %s: %v", kogitoCatalogSourceName, err)
 	}
 
@@ -516,4 +516,16 @@ func GetOperatorCatalog(namespace, source string) OperatorCatalog {
 		source:    source,
 		namespace: namespace,
 	}
+}
+
+func InitOperatorClusterWideKubeClients() error {
+	if err := InitKubeClient(GetClusterOperatorNamespace()); err != nil {
+		return err
+	}
+
+	if err := InitKubeClient(GetCustomKogitoOperatorCatalog().namespace); err != nil {
+		return err
+	}
+
+	return nil
 }

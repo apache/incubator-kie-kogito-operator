@@ -279,7 +279,7 @@ func storeContainerLogWithFollow(namespace, podName, containerName string) {
 
 // Log is returned once container is terminated
 func getContainerLogWithFollow(namespace, podName, containerName string) (string, error) {
-	return kubernetes.PodC(kubeClient).GetLogsWithFollow(namespace, podName, containerName)
+	return kubernetes.PodC(GetKubeClient(namespace)).GetLogsWithFollow(namespace, podName, containerName)
 }
 
 func isContainerLoggingFinished(namespace, podName, containerName string) bool {
@@ -342,7 +342,7 @@ func storeContainerLog(namespace string, podName, containerName string) {
 
 // GetContainerLog exported for Zookeeper workaround, can be unexported once https://github.com/strimzi/strimzi-kafka-operator/issues/3092 is fixed
 func GetContainerLog(namespace, podName, containerName string) (string, error) {
-	return kubernetes.PodC(kubeClient).GetLogs(namespace, podName, containerName)
+	return kubernetes.PodC(GetKubeClient(namespace)).GetLogs(namespace, podName, containerName)
 }
 
 func getMonitoredNamespace(namespace string) *monitoredNamespace {
@@ -402,7 +402,7 @@ var eventKeys = []string{
 
 // BumpEvents will bump all events into events.log file
 func BumpEvents(namespace string) error {
-	eventList, err := kubernetes.EventC(kubeClient).GetEvents(namespace)
+	eventList, err := kubernetes.EventC(GetKubeClient(namespace)).GetEvents(namespace)
 	if err != nil {
 		return fmt.Errorf("Error retrieving events from namespace %s: %v", namespace, err)
 	}
@@ -456,7 +456,7 @@ func LogKubernetesObjects(namespace string, runtimeObjects ...runtime.Object) er
 		objectName := reflect.TypeOf(runtimeObject).Elem().Name()
 
 		// Fetch list
-		err := kubernetes.ResourceC(kubeClient).ListWithNamespace(namespace, runtimeObject)
+		err := kubernetes.ResourceC(GetKubeClient(namespace)).ListWithNamespace(namespace, runtimeObject)
 		if err != nil {
 			GetLogger(namespace).Warn("Error logging Kubernetes objects", "namespace", namespace, "error message", err.Error())
 			continue

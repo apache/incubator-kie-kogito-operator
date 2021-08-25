@@ -160,6 +160,12 @@ func initializeTestSuite(ctx *godog.TestSuiteContext) {
 		}
 
 		monitorOlmNamespace()
+		if err := framework.InitDefaultKubeClient(); err != nil {
+			panic(err)
+		}
+		if err := framework.InitOperatorClusterWideKubeClients(); err != nil {
+			panic(err)
+		}
 
 		if config.IsOperatorInstalledByOlm() {
 			if err := installKogitoOperatorCatalogSource(); err != nil {

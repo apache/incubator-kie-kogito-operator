@@ -44,7 +44,7 @@ func InstallKogitoInfraComponent(namespace string, installerType InstallerType, 
 }
 
 func crInstallKogitoInfraComponent(infra api.KogitoInfraInterface) error {
-	if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(infra); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(infra.GetNamespace())).CreateIfNotExists(infra); err != nil {
 		return fmt.Errorf("Error creating KogitoInfra: %v", err)
 	}
 	return nil
@@ -126,7 +126,7 @@ func WaitForKogitoInfraResource(namespace, name string, timeoutInMin int, getKog
 // GetKogitoInfraResource retrieves the KogitoInfra resource
 func GetKogitoInfraResource(namespace, name string) (api.KogitoInfraInterface, error) {
 	infraResource := &v1beta1.KogitoInfra{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, infraResource); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, infraResource); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for KogitoInfra %s: %v ", name, err)
 	} else if !exists {
 		return nil, nil

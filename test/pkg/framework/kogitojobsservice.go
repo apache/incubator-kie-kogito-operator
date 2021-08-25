@@ -47,13 +47,13 @@ func SetKogitoJobsServiceReplicas(namespace string, nbPods int32) error {
 		return fmt.Errorf("No Kogito jobs service found in namespace %s", namespace)
 	}
 	kogitoJobsService.Spec.Replicas = &nbPods
-	return kubernetes.ResourceC(kubeClient).Update(kogitoJobsService)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Update(kogitoJobsService)
 }
 
 // GetKogitoJobsService retrieves the running jobs service
 func GetKogitoJobsService(namespace string) (*v1beta1.KogitoSupportingService, error) {
 	service := &v1beta1.KogitoSupportingService{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: getJobsServiceName(), Namespace: namespace}, service); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: getJobsServiceName(), Namespace: namespace}, service); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for Kogito jobs service: %v ", err)
 	} else if !exists {
 		return nil, nil

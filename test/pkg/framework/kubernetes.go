@@ -24,6 +24,7 @@ import (
 
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/kiegroup/kogito-operator/test/pkg/config"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -36,25 +37,39 @@ import (
 )
 
 var (
-	kubeClient *client.Client
-	mux        = &sync.Mutex{}
+	namespacedKubeClientsMap sync.Map
+	mux                      = &sync.Mutex{}
+	defaultKubeClientName    = "default"
 )
 
 // podErrorReasons contains all the reasons to state a pod in error.
 var podErrorReasons = []string{"InvalidImageName"}
 
-// InitKubeClient initializes the Kubernetes Client
-func InitKubeClient(scheme *runtime.Scheme) error {
+func GetKubeClient(namespace string) *client.Client {
+	kubeClient, _ := monitoredNamespaces.Load(namespace)
+	return kubeClient.(*client.Client)
+}
+
+// CreateKubeClient creates the Kubernetes Client for a specific namespace
+func InitKubeClient(namespace string) error {
 	mux.Lock()
 	defer mux.Unlock()
-	if kubeClient == nil {
-		newClient, err := client.NewClientBuilder(scheme).UseControllerDynamicMapper().WithDiscoveryClient().WithBuildClient().WithKubernetesExtensionClient().Build()
-		if err != nil {
-			return fmt.Errorf("Error initializing kube client: %v", err)
-		}
-		kubeClient = newClient
+	kubeClient, err := client.NewClientBuilder(meta.GetRegisteredSchema()).UseControllerDynamicMapper().WithDiscoveryClient().WithBuildClient().WithKubernetesExtensionClient().Build()
+	if err != nil {
+		return fmt.Errorf("Error initializing kube client for namespace %s: %v", namespace, err)
 	}
+	namespacedKubeClientsMap.Store(namespace, kubeClient)
 	return nil
+}
+
+// InitDefaultKubeClient inits the Kube client for the default namespace.
+func InitDefaultKubeClient() error {
+	return InitKubeClient(defaultKubeClientName)
+}
+
+// GetDefaultKubeClient returns the default Kube client. To be used only if no namespace is available.
+func GetDefaultKubeClient() *client.Client {
+	return GetKubeClient(defaultKubeClientName)
 }
 
 // WaitForPodsWithLabel waits for pods with specific label to be available and running
@@ -86,7 +101,7 @@ func WaitForPodsInNamespace(namespace string, numberOfPods, timeoutInMin int) er
 // GetPods retrieves all pods in namespace
 func GetPods(namespace string) (*corev1.PodList, error) {
 	pods := &corev1.PodList{}
-	if err := kubernetes.ResourceC(kubeClient).ListWithNamespace(namespace, pods); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).ListWithNamespace(namespace, pods); err != nil {
 		return nil, err
 	}
 	return pods, nil
@@ -109,7 +124,7 @@ func GetPodsByDeployment(namespace string, dName string) (pods []corev1.Pod, err
 
 	// Fetch all pods in namespace
 	podList := &corev1.PodList{}
-	if err := kubernetes.ResourceC(kubeClient).ListWithNamespace(namespace, podList); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).ListWithNamespace(namespace, podList); err != nil {
 		return nil, err
 	}
 
@@ -128,7 +143,7 @@ func GetPodsByDeployment(namespace string, dName string) (pods []corev1.Pod, err
 // GetActiveReplicaSetByDeployment retrieves active ReplicaSet belonging to a Deployment
 func GetActiveReplicaSetByDeployment(namespace string, dName string) (*apps.ReplicaSet, error) {
 	replicaSets := &apps.ReplicaSetList{}
-	if err := kubernetes.ResourceC(kubeClient).ListWithNamespace(namespace, replicaSets); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).ListWithNamespace(namespace, replicaSets); err != nil {
 		return nil, err
 	}
 
@@ -147,7 +162,7 @@ func GetActiveReplicaSetByDeployment(namespace string, dName string) (*apps.Repl
 // GetPodsWithLabels retrieves pods based on label name and value
 func GetPodsWithLabels(namespace string, labels map[string]string) (*corev1.PodList, error) {
 	pods := &corev1.PodList{}
-	if err := kubernetes.ResourceC(kubeClient).ListWithNamespaceAndLabel(namespace, pods, labels); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).ListWithNamespaceAndLabel(namespace, pods, labels); err != nil {
 		return nil, err
 	}
 	return pods, nil
@@ -196,7 +211,7 @@ func WaitForDeploymentRunning(namespace, dName string, podNb int, timeoutInMin i
 // GetDeployment retrieves deployment with specified name in namespace
 func GetDeployment(namespace, deploymentName string) (*apps.Deployment, error) {
 	deployment := &apps.Deployment{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: deploymentName, Namespace: namespace}, deployment); err != nil {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: deploymentName, Namespace: namespace}, deployment); err != nil {
 		return nil, err
 	} else if !exists {
 		return nil, nil
@@ -230,7 +245,7 @@ func LoadResource(namespace, uri string, resourceRef kubernetes.ResourceObject, 
 		return fmt.Errorf("Unable to read from URI %s: %v", uri, err)
 	}
 
-	if err = kubernetes.ResourceC(kubeClient).CreateFromYamlContent(data, namespace, resourceRef, beforeCreate); err != nil {
+	if err = kubernetes.ResourceC(GetKubeClient(namespace)).CreateFromYamlContent(data, namespace, resourceRef, beforeCreate); err != nil {
 		return fmt.Errorf("Error while creating resources from file '%s': %v ", uri, err)
 	}
 	return nil
@@ -297,7 +312,7 @@ func checkAllPodsContainingTextInLog(namespace string, pods []corev1.Pod, contai
 }
 
 func isPodContainingTextInLog(namespace string, pod *corev1.Pod, containerName, text string) (bool, error) {
-	log, err := kubernetes.PodC(kubeClient).GetLogs(namespace, pod.GetName(), containerName)
+	log, err := kubernetes.PodC(GetKubeClient(namespace)).GetLogs(namespace, pod.GetName(), containerName)
 	return strings.Contains(log, text), err
 }
 
@@ -308,32 +323,32 @@ func IsCrdAvailable(crdName string) (bool, error) {
 			Name: crdName,
 		},
 	}
-	return kubernetes.ResourceC(kubeClient).Fetch(crdEntity)
+	return kubernetes.ResourceC(GetDefaultKubeClient()).Fetch(crdEntity)
 }
 
 // CreateObject creates object
 func CreateObject(o kubernetes.ResourceObject) error {
-	return kubernetes.ResourceC(kubeClient).Create(o)
+	return kubernetes.ResourceC(GetKubeClient(o.GetNamespace())).Create(o)
 }
 
 // GetObjectsInNamespace returns list of objects in specific namespace based on type
 func GetObjectsInNamespace(namespace string, list runtime.Object) error {
-	return kubernetes.ResourceC(kubeClient).ListWithNamespace(namespace, list)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).ListWithNamespace(namespace, list)
 }
 
 // GetObjectWithKey returns object matching provided key
 func GetObjectWithKey(key types.NamespacedName, o kubernetes.ResourceObject) (exists bool, err error) {
-	return kubernetes.ResourceC(kubeClient).FetchWithKey(key, o)
+	return kubernetes.ResourceC(GetKubeClient(key.Namespace)).FetchWithKey(key, o)
 }
 
 // UpdateObject updates object
 func UpdateObject(o kubernetes.ResourceObject) error {
-	return kubernetes.ResourceC(kubeClient).Update(o)
+	return kubernetes.ResourceC(GetKubeClient(o.GetNamespace())).Update(o)
 }
 
 // DeleteObject deletes object
 func DeleteObject(o kubernetes.ResourceObject) error {
-	return kubernetes.ResourceC(kubeClient).Delete(o)
+	return kubernetes.ResourceC(GetKubeClient(o.GetNamespace())).Delete(o)
 }
 
 // CreateSecret creates a new secret
@@ -349,7 +364,7 @@ func CreateSecret(namespace, name string, secretContent map[string]string) error
 		StringData: secretContent,
 	}
 
-	return kubernetes.ResourceC(kubeClient).Create(secret)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Create(secret)
 }
 
 // CheckPodHasImagePullSecretWithPrefix checks that a pod has an image pull secret starting with the given prefix
@@ -453,7 +468,7 @@ func checkPodContainerHasEnvVariableWithValue(pod *corev1.Pod, containerName, en
 // GetIngressURI returns the ingress URI
 func GetIngressURI(namespace, serviceName string) (string, error) {
 	ingress := &k8sv1beta1.Ingress{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: serviceName, Namespace: namespace}, ingress); err != nil {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: serviceName, Namespace: namespace}, ingress); err != nil {
 		return "", err
 	} else if !exists {
 		return "", fmt.Errorf("Ingress %s does not exist in namespace %s", serviceName, namespace)
@@ -508,7 +523,7 @@ func ExposeServiceOnKubernetes(namespace, serviceName string) error {
 			},
 		},
 	}
-	return kubernetes.ResourceC(kubeClient).Create(&ingress)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Create(&ingress)
 }
 
 // WaitForOnKubernetes is a specific method
@@ -523,13 +538,13 @@ func GetKubernetesDurationFromTimeInMin(timeoutInMin int) time.Duration {
 
 // IsOpenshift returns whether the cluster is running on Openshift
 func IsOpenshift() bool {
-	return kubeClient.IsOpenshift()
+	return GetDefaultKubeClient().IsOpenshift()
 }
 
 // GetService return Service based on namespace and name
 func GetService(namespace, name string) (*corev1.Service, error) {
 	service := &corev1.Service{}
-	if exits, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, service); err != nil {
+	if exits, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, service); err != nil {
 		return nil, err
 	} else if !exits {
 		return nil, fmt.Errorf("Service with name %s doesn't exist in given namespace %s", name, namespace)
@@ -544,7 +559,7 @@ func GetClusterRole(name string) (*rbac.ClusterRole, error) {
 			Name: name,
 		},
 	}
-	if exits, err := kubernetes.ResourceC(kubeClient).Fetch(clusterRole); err != nil {
+	if exits, err := kubernetes.ResourceC(GetDefaultKubeClient()).Fetch(clusterRole); err != nil {
 		return nil, err
 	} else if !exits {
 		return nil, fmt.Errorf("ClusterRole with name %s doesn't exist", name)
@@ -559,7 +574,7 @@ func GetClusterRoleBinding(name string) (*rbac.ClusterRoleBinding, error) {
 			Name: name,
 		},
 	}
-	if exits, err := kubernetes.ResourceC(kubeClient).Fetch(clusterRoleBinding); err != nil {
+	if exits, err := kubernetes.ResourceC(GetDefaultKubeClient()).Fetch(clusterRoleBinding); err != nil {
 		return nil, err
 	} else if !exits {
 		return nil, fmt.Errorf("ClusterRoleBinding with name %s doesn't exist", name)

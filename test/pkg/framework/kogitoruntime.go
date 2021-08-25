@@ -45,7 +45,7 @@ func SetKogitoRuntimeReplicas(namespace, name string, nbPods int) error {
 	}
 	replicas := int32(nbPods)
 	kogitoRuntime.Spec.KogitoServiceSpec.Replicas = &replicas
-	return kubernetes.ResourceC(kubeClient).Update(kogitoRuntime)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Update(kogitoRuntime)
 }
 
 // GetKogitoRuntimeStub Get basic KogitoRuntime stub with all needed fields initialized
@@ -84,7 +84,7 @@ func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta
 
 func getKogitoRuntime(namespace, name string) (*v1beta1.KogitoRuntime, error) {
 	kogitoRuntime := &v1beta1.KogitoRuntime{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kogitoRuntime); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kogitoRuntime); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for KogitoRuntime %s: %v ", name, err)
 	} else if errors.IsNotFound(err) || !exists {
 		return nil, nil

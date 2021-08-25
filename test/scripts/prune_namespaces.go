@@ -15,19 +15,18 @@
 package main
 
 import (
-	"github.com/kiegroup/kogito-operator/meta"
+	"fmt"
+
 	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 )
 
 func main() {
-	// Create kube client
-	if err := framework.InitKubeClient(meta.GetRegisteredSchema()); err != nil {
-		panic(err)
-	}
-
 	namespaces := framework.GetNamespacesInHistory()
 	for _, namespace := range namespaces {
 		if len(namespace) > 0 {
+			if err := framework.InitKubeClient(namespace); err != nil {
+				framework.GetMainLogger().Error(err, fmt.Sprintf("Error in creating kube client for namespace %s", namespace))
+			}
 			err := framework.DeleteNamespace(namespace)
 			if err != nil {
 				framework.GetMainLogger().Error(err, "Error in deleting namespace")

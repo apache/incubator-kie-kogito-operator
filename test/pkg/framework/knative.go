@@ -16,6 +16,7 @@ package framework
 
 import (
 	"fmt"
+
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 
 	corev1 "k8s.io/api/core/v1"
@@ -38,7 +39,7 @@ func DeployBroker(namespace, name string) error {
 		},
 	}
 
-	if err := kubernetes.ResourceC(kubeClient).Create(broker); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(broker); err != nil {
 		return fmt.Errorf("Error while creating Broker: %v ", err)
 	}
 
@@ -69,7 +70,7 @@ func WaitForBrokerResource(namespace, name string, timeoutInMin int) error {
 // retrieves the Broker resource
 func getBrokerResource(namespace, name string) (*eventingv1.Broker, error) {
 	broker := &eventingv1.Broker{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, broker); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, broker); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for Broker %s: %v ", name, err)
 	} else if !exists {
 		return nil, nil
@@ -103,7 +104,7 @@ func CreateTrigger(namespace, name, brokerName, serviceName string) error {
 		},
 	}
 
-	if err := kubernetes.ResourceC(kubeClient).Create(trigger); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(trigger); err != nil {
 		return fmt.Errorf("Error while creating Trigger: %v ", err)
 	}
 
@@ -134,7 +135,7 @@ func WaitForTrigger(namespace, name string, timeoutInMin int) error {
 // retrieves the Trigger resource
 func getTriggerResource(namespace, name string) (*eventingv1.Trigger, error) {
 	trigger := &eventingv1.Trigger{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, trigger); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, trigger); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for Trigger %s: %v ", name, err)
 	} else if !exists {
 		return nil, nil

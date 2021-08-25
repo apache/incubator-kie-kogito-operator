@@ -57,7 +57,7 @@ func DeployGrafanaInstance(namespace, labelName, labelValue string) error {
 			},
 		},
 	}
-	if err := kubernetes.ResourceC(kubeClient).Create(grafanaCR); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(grafanaCR); err != nil {
 		return fmt.Errorf("Error while creating Grafana CR: %v ", err)
 	}
 

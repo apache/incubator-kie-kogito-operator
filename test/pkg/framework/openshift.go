@@ -49,7 +49,7 @@ func WaitForBuildComplete(namespace, buildName string, timeoutInMin int) error {
 					Namespace: namespace,
 				},
 			}
-			builds, err := openshift.BuildConfigC(kubeClient).GetBuildsStatus(&bc, fmt.Sprintf("%s=%s", openshift.BuildConfigLabelSelector, buildName))
+			builds, err := openshift.BuildConfigC(GetKubeClient(namespace)).GetBuildsStatus(&bc, fmt.Sprintf("%s=%s", openshift.BuildConfigLabelSelector, buildName))
 
 			if err != nil {
 				return false, fmt.Errorf("Error while fetching buildconfig %s: %v", buildName, err)
@@ -109,7 +109,7 @@ func checkWebhooksInBuildConfig(namespace string, actual []buildv1.BuildTriggerP
 
 func getBuildConfig(namespace, buildConfigName string) (*buildv1.BuildConfig, error) {
 	bc := &buildv1.BuildConfig{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: buildConfigName, Namespace: namespace}, bc); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: buildConfigName, Namespace: namespace}, bc); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for BuildConfig %s: %v ", buildConfigName, err)
 	} else if errors.IsNotFound(err) || !exists {
 		return nil, nil
@@ -135,7 +135,7 @@ func WaitForDeploymentConfigRunning(namespace, dcName string, podNb int, timeout
 // GetDeploymentConfig retrieves a deployment config
 func GetDeploymentConfig(namespace, dcName string) (*ocapps.DeploymentConfig, error) {
 	dc := &ocapps.DeploymentConfig{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: dcName, Namespace: namespace}, dc); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: dcName, Namespace: namespace}, dc); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for DeploymentConfig %s: %v ", dcName, err)
 	} else if errors.IsNotFound(err) || !exists {
 		return nil, nil
@@ -160,7 +160,7 @@ func WaitForRoute(namespace, routeName string, timeoutInMin int) error {
 func GetRoute(namespace, routeName string) (*routev1.Route, error) {
 	route := &routev1.Route{}
 	if exists, err :=
-		kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: routeName, Namespace: namespace}, route); err != nil {
+		kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: routeName, Namespace: namespace}, route); err != nil {
 		return nil, err
 	} else if !exists {
 		return nil, nil
@@ -184,7 +184,7 @@ func createHTTPRoute(namespace, serviceName string) error {
 			},
 		},
 	}
-	if err := kubernetes.ResourceC(kubeClient).Create(route); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(route); err != nil {
 		return err
 	}
 	return nil
@@ -240,7 +240,7 @@ func CreateInsecureImageStream(namespace, imageStreamName, imageTagName, imageTa
 			},
 		},
 	}
-	if err := kubernetes.ResourceC(kubeClient).Create(imageStream); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(imageStream); err != nil {
 		return err
 	}
 	return nil

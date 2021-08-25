@@ -35,7 +35,7 @@ import (
 func DeployInfinispanInstance(namespace string, infinispan *infinispan.Infinispan) error {
 	GetLogger(namespace).Info("Creating Infinispan instance", "name", infinispan.Name)
 
-	if err := kubernetes.ResourceC(kubeClient).Create(infinispan); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(infinispan); err != nil {
 		return fmt.Errorf("Error while creating Infinispan: %v ", err)
 	}
 
@@ -92,7 +92,7 @@ func SetInfinispanReplicas(namespace, name string, nbPods int) error {
 	}
 	replicas := int32(nbPods)
 	infinispan.Spec.Replicas = replicas
-	return kubernetes.ResourceC(kubeClient).Update(infinispan)
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Update(infinispan)
 }
 
 // GetInfinispanStub returns the preconfigured Infinispan stub with set namespace, name and secretName
@@ -128,7 +128,7 @@ func convertInfinispanCredentialsToYaml(credentialsMap map[string]string) (strin
 
 func getInfinispan(namespace, name string) (*infinispan.Infinispan, error) {
 	infinispan := &infinispan.Infinispan{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, infinispan); err != nil && !errors.IsNotFound(err) {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, infinispan); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for Infinispan %s: %v ", name, err)
 	} else if errors.IsNotFound(err) || !exists {
 		return nil, nil
@@ -139,7 +139,7 @@ func getInfinispan(namespace, name string) (*infinispan.Infinispan, error) {
 // IsInfinispanAvailable checks if Infinispan CRD is available in the cluster
 func IsInfinispanAvailable(namespace string) bool {
 	context := operator.Context{
-		Client: kubeClient,
+		Client: GetKubeClient(namespace),
 		Log:    logger.GetLogger(namespace),
 		Scheme: meta.GetRegisteredSchema(),
 	}

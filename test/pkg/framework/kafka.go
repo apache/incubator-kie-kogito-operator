@@ -32,7 +32,7 @@ import (
 func DeployKafkaInstance(namespace string, kafka *v1beta2.Kafka) error {
 	GetLogger(namespace).Info("Creating Kafka instance %s.", "name", kafka.Name)
 
-	if err := kubernetes.ResourceC(kubeClient).Create(kafka); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(kafka); err != nil {
 		return fmt.Errorf("Error while creating Kafka: %v ", err)
 	}
 
@@ -55,7 +55,7 @@ func DeployKafkaTopic(namespace, kafkaTopicName, kafkaInstanceName string) error
 		},
 	}
 
-	if err := kubernetes.ResourceC(kubeClient).Create(kafkaTopic); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(kafkaTopic); err != nil {
 		return fmt.Errorf("Error while creating Kafka Topic: %v ", err)
 	}
 
@@ -156,7 +156,7 @@ func GetKafkaInstance(namespace, kafkaInstanceName string) (*v1beta2.Kafka, erro
 		Name:      kafkaInstanceName,
 	}
 	kafkaInstance := &v1beta2.Kafka{}
-	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(key, kafkaInstance); err != nil {
+	if exists, err := kubernetes.ResourceC(GetKubeClient(namespace)).FetchWithKey(key, kafkaInstance); err != nil {
 		GetLogger(namespace).Error(err, "Error occurs while fetching kogito kafka instance")
 		return nil, err
 	} else if !exists {

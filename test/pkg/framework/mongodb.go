@@ -40,7 +40,7 @@ const (
 func DeployMongoDBInstance(namespace string, instance *mongodb.MongoDB) error {
 	GetLogger(namespace).Info("Creating MongoDB instance")
 
-	if err := kubernetes.ResourceC(kubeClient).Create(instance); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(namespace)).Create(instance); err != nil {
 		return fmt.Errorf("Error while creating MongoDB: %v ", err)
 	}
 
@@ -50,7 +50,7 @@ func DeployMongoDBInstance(namespace string, instance *mongodb.MongoDB) error {
 // CreateMongoDBSecret creates a new secret for MongoDB instance
 func CreateMongoDBSecret(namespace, name, password string) error {
 	GetLogger(namespace).Info("Create MongoDB Secret", "secret", name)
-	return kubernetes.ResourceC(kubeClient).Create(GetMongoDBSecret(namespace, name, password))
+	return kubernetes.ResourceC(GetKubeClient(namespace)).Create(GetMongoDBSecret(namespace, name, password))
 }
 
 // GetMongoDBSecret returns a MongoDB secret structure
@@ -177,7 +177,7 @@ func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserC
 // IsMongoDBAvailable checks if MongoDB CRD is available in the cluster
 func IsMongoDBAvailable(namespace string) bool {
 	context := operator.Context{
-		Client: kubeClient,
+		Client: GetKubeClient(namespace),
 		Log:    logger.GetLogger(namespace),
 		Scheme: meta.GetRegisteredSchema(),
 	}

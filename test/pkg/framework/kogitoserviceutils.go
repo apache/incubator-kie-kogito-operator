@@ -148,7 +148,7 @@ func isRuntimeImageInformationSet() bool {
 }
 
 func crInstall(serviceHolder *bddtypes.KogitoServiceHolder) error {
-	if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(serviceHolder.KogitoService); err != nil {
+	if err := kubernetes.ResourceC(GetKubeClient(serviceHolder.GetNamespace())).CreateIfNotExists(serviceHolder.KogitoService); err != nil {
 		return fmt.Errorf("Error creating service: %v", err)
 	}
 	return nil
@@ -183,7 +183,7 @@ func patchKogitoProbes(serviceHolder *bddtypes.KogitoServiceHolder) error {
 
 		// Fetch deployed service
 		var exists bool
-		if exists, err = kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Namespace: serviceHolder.GetNamespace(), Name: serviceHolder.GetName()}, patched); err != nil {
+		if exists, err = kubernetes.ResourceC(GetKubeClient(serviceHolder.GetNamespace())).FetchWithKey(types.NamespacedName{Namespace: serviceHolder.GetNamespace(), Name: serviceHolder.GetName()}, patched); err != nil {
 			return fmt.Errorf("Error fetching service %s in namespace %s: %v", serviceHolder.GetName(), serviceHolder.GetNamespace(), err)
 		} else if !exists {
 			return fmt.Errorf("Service %s in namespace %s doesn't exist", serviceHolder.GetName(), serviceHolder.GetNamespace())
@@ -193,7 +193,7 @@ func patchKogitoProbes(serviceHolder *bddtypes.KogitoServiceHolder) error {
 		patched.GetSpec().SetProbes(serviceHolder.GetSpec().GetProbes())
 
 		// Update deployed service
-		if err = kubernetes.ResourceC(kubeClient).Update(patched); err == nil {
+		if err = kubernetes.ResourceC(GetKubeClient(serviceHolder.GetNamespace())).Update(patched); err == nil {
 			return nil
 		}
 	}

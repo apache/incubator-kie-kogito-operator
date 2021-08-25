@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/kiegroup/kogito-operator/test/pkg/executor"
 	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 	"github.com/kiegroup/kogito-operator/test/pkg/gherkin"
@@ -30,10 +29,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	// Create kube client
-	if err := framework.InitKubeClient(meta.GetRegisteredSchema()); err != nil {
-		panic(err)
-	}
 	executor.ExecuteBDDTests(func(godogOpts *godog.Options) error {
 		return GenerateBuildExamplesFeatures(godogOpts)
 	})
