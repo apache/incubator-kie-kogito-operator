@@ -7,13 +7,13 @@ baseImageParamsPrefix = 'BASE_IMAGE'
 promoteImageParamsPrefix = 'PROMOTE_IMAGE'
 
 void initPipeline() {
-    properties = load '.jenkins/scripts/properties.groovy'
+    properties = load '.ci/jenkins/scripts/properties.groovy'
 
-    openshift = load '.jenkins/scripts/openshift.groovy'
+    openshift = load '.ci/jenkins/scripts/openshift.groovy'
     openshift.openshiftApiKey = env.OPENSHIFT_API_KEY
     openshift.openshiftApiCredsKey = env.OPENSHIFT_CREDS_KEY
 
-    container = load '.jenkins/scripts/container.groovy'
+    container = load '.ci/jenkins/scripts/container.groovy'
     container.containerEngine = env.CONTAINER_ENGINE
     container.containerTlsOptions = env.CONTAINER_TLS_OPTIONS
     container.containerOpenshift = openshift
