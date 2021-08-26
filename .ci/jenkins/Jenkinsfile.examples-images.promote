@@ -68,7 +68,7 @@ pipeline {
                         if (helper.isDeployLatestTag()) {
                             container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
                         }
-                        String reducedTag = getPromoteReducedTag()
+                        String reducedTag = helper.getReducedTag(promoteImageParamsPrefix)
                         if (reducedTag) {
                             container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
                         }
@@ -86,7 +86,7 @@ pipeline {
                         if (helper.isDeployLatestTag()) {
                             container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
                         }
-                        String reducedTag = getPromoteReducedTag()
+                        String reducedTag = helper.getReducedTag(promoteImageParamsPrefix)
                         if (reducedTag) {
                             container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
                         }
@@ -123,15 +123,4 @@ void sendNotification() {
 
 List getImages() {
     return helper.getImageNames(baseImageParamsPrefix)
-}
-
-String getPromoteReducedTag() {
-    String tag = helper.getImageTag(promoteImageParamsPrefix)
-    try {
-        String[] versionSplit = tag.split('\\.')
-        return "${versionSplit[0]}.${versionSplit[1]}"
-    } catch (error) {
-        echo "${tag} cannot be reduced to the format X.Y"
-    }
-    return ''
 }

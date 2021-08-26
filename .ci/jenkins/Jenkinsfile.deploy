@@ -201,6 +201,19 @@ pipeline {
                     container.tagImage(helper.buildTempOpenshiftImageFullName(), helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
                     container.pushImage(helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
 
+                    if (helper.isDeployLatestTag()) {
+                        String finalFullImage = helper.getImageFullTag(env.OPERATOR_IMAGE_NAME, defaultImageParamsPrefix, 'latest')
+                        container.tagImage(helper.buildTempOpenshiftImageFullName(), finalFullImage)
+                        container.pushImage(finalFullImage)
+                    }
+
+                    String reducedTag = helper.getReducedTag()
+                    if (reducedTag) {
+                        String finalFullImage = helper.getImageFullTag(env.OPERATOR_IMAGE_NAME, defaultImageParamsPrefix, reducedTag)
+                        container.tagImage(helper.buildTempOpenshiftImageFullName(), finalFullImage)
+                        container.pushImage(finalFullImage)
+                    }
+
                     // Store image deployment information
                     properties.add(helper.getImageRegistryProperty(), helper.getImageRegistry())
                     properties.add(helper.getImageNamespaceProperty(), helper.getImageNamespace())
