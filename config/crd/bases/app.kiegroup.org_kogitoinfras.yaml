@@ -40,13 +40,13 @@ spec:
     name: v1beta1
     schema:
       openAPIV3Schema:
-        description: 'KogitoInfra is the resource to bind a Custom Resource (CR) not
-          managed by Kogito Operator to a given deployed Kogito service. It holds
+        description: "KogitoInfra is the resource to bind a Custom Resource (CR) not
+          managed by Kogito Operator to a given deployed Kogito service. \n It holds
           the reference of a CR managed by another operator such as Strimzi. For example:
           one can create a Kafka CR via Strimzi and link this resource using KogitoInfra
-          to a given Kogito service (custom or supporting, such as Data Index). Please
-          refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/)
-          for more information.'
+          to a given Kogito service (custom or supporting, such as Data Index). \n
+          Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/)
+          for more information."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -209,10 +209,10 @@ spec:
               infraProperties:
                 additionalProperties:
                   type: string
-                description: Optional properties which would be needed to setup correct
-                  runtime/service configuration, based on the resource type. For example,
-                  MongoDB will require `username` and `database` as properties for
-                  a correct setup, else it will fail
+                description: "Optional properties which would be needed to setup correct
+                  runtime/service configuration, based on the resource type. \n For
+                  example, MongoDB will require `username` and `database` as properties
+                  for a correct setup, else it will fail"
                 type: object
                 x-kubernetes-map-type: atomic
               resource:

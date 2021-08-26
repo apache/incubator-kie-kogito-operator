@@ -961,6 +961,24 @@ setup() {
     [[ "${output}" != *"--tests.disable-maven-native-build-container"* ]]
 }
 
+@test "invoke run-tests with native_builder_image" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --native_builder_image image --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.native-builder-image=image" ]]
+}
+
+@test "invoke run-tests with native_builder_image missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --native_builder_image --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.native-builder-image"* ]]
+}
+
+@test "invoke run-tests with native_builder_image empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --native_builder_image "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.native-builder-image"* ]]
+}
+
 # examples repository
 
 @test "invoke run-tests with examples_uri" {
@@ -1017,6 +1035,26 @@ setup() {
     run ${BATS_TEST_DIRNAME}/run-tests.sh --infinispan_installation_source "" --dry_run
     [ "$status" -eq 0 ]
     [[ "${output}" != *"--tests.infinispan-installation-source"* ]]
+}
+
+# Hyperfoil
+
+@test "invoke run-tests with hyperfoil_output_directory" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_output_directory /some/folder --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.hyperfoil-output-directory=/some/folder" ]]
+}
+
+@test "invoke run-tests with hyperfoil_output_directory missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_output_directory --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.hyperfoil-output-directory"* ]]
+}
+
+@test "invoke run-tests with hyperfoil_output_directory empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_output_directory "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.hyperfoil-output-directory"* ]]
 }
 
 # dev options

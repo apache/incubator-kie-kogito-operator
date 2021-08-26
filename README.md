@@ -397,6 +397,7 @@ All options from BDD tests do also apply here.
 |                    |                                                                                    |
 | @binary            | Tests using Kogito applications built locally and uploaded to OCP as a binary file |
 | @native            | Tests using native build                                                           |
+| @nonnativelts      | Tests using native build that cannot be tested with Quarkus LTS version            |
 | @persistence       | Tests verifying persistence capabilities                                           |
 | @events            | Tests verifying eventing capabilities                                              |
 | @discovery         | Tests checking service discovery functionality                                     |
@@ -495,9 +496,9 @@ Kogito operator integrates with various other technologies and operators. The te
 
 | Technology         | Tested version                                                |
 | ------------------ | ------------------------------------------------------------- |
-| Infinispan         | Infinispan operator 2.1.4 (deployed by OLM `2.1.x` channel)   |
-| Kafka              | Strimzi 0.24.0 (deployed by OLM `stable` channel)             |
-| Keycloak           | Keycloak operator 14.0.0 (deployed by OLM `alpha` channel)    |
+| Infinispan         | Infinispan operator 2.1.5 (deployed by OLM `2.1.x` channel)   |
+| Kafka              | Strimzi 0.25.0 (deployed by OLM `stable` channel)             |
+| Keycloak           | Keycloak operator 15.0.2 (deployed by OLM `alpha` channel)    |
 | Prometheus         | Prometheus operator 0.47.0 (deployed by OLM `beta` channel)   |
 | Grafana            | Grafana operator 3.10.3 (deployed by OLM `alpha` channel)     |
 | Knative Eventing   | Knative Eventing 0.20.0                                       |

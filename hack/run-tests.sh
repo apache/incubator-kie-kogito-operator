@@ -15,7 +15,7 @@
 
 # runs all BDD tests for the operator
 SCRIPT_NAME=`basename $0`
-SCRIPT_DIR=`dirname $0`
+SCRIPT_DIR=`dirname "${BASH_SOURCE[0]}"`
 
 function usage(){
   printf "Run BDD tests."
@@ -108,6 +108,9 @@ function usage(){
 
   # Infinispan
   printf "\n--infinispan_installation_source {TAG}\n\tDefines installation source for the Infinispan operator. Options are 'olm' and 'yaml'. Default is olm."
+
+  # Hyperfoil
+  printf "\n--hyperfoil_output_directory {PATH}\n\tDefines output directory to store Hyperfoil run statistics. Default is test folder."
 
   # dev options
   printf "\n--show_scenarios\n\tDisplay scenarios which will be executed."
@@ -413,6 +416,10 @@ case $1 in
     addParam "--tests.disable-maven-native-build-container"
     shift
   ;;
+  --native_builder_image)
+    shift
+    if addParamKeyValueIfAccepted "--tests.native-builder-image" ${1}; then shift; fi
+  ;;
 
   # examples repository
   --examples_uri)
@@ -432,6 +439,12 @@ case $1 in
   --infinispan_installation_source)
     shift
     if addParamKeyValueIfAccepted "--tests.infinispan-installation-source" ${1}; then shift; fi
+  ;;
+
+  # Hyperfoil
+  --hyperfoil_output_directory)
+    shift
+    if addParamKeyValueIfAccepted "--tests.hyperfoil-output-directory" ${1}; then shift; fi
   ;;
 
   # dev options
@@ -502,5 +515,10 @@ fi
 
 echo "-------- Delete stucked namespaces"
 ${SCRIPT_DIR}/clean-stuck-namespaces.sh
+
+if [ "${KEEP_NAMESPACE}" = "false" ]; then
+  echo "-------- Delete dependencies CRDs"
+  ${SCRIPT_DIR}/clean-crds.sh
+fi
 
 exit ${exit_code}

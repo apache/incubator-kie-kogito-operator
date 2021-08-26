@@ -27,44 +27,45 @@ type KogitoInfraSpec struct {
 
 	// Resource for the service. Example: Infinispan/Kafka/Keycloak.
 	// +optional
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	Resource *InfraResource `json:"resource,omitempty"`
 
 	// +optional
 	// +mapType=atomic
 	// Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type.
+	//
 	// For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	InfraProperties map[string]string `json:"infraProperties,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	Envs []corev1.EnvVar `json:"envs,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of secret that should be mounted to the services as envs
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	ConfigMapEnvFromReferences []string `json:"configMapEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of configmap that should be added to the services bound to this infra instance
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	ConfigMapVolumeReferences []VolumeReference `json:"configMapVolumeReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of secret that should be mounted to the services as envs
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	SecretEnvFromReferences []string `json:"secretEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of secret that should be munted to the services bound to this infra instance
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	SecretVolumeReferences []VolumeReference `json:"secretVolumeReferences,omitempty"`
 }
 
@@ -135,38 +136,38 @@ func (k *KogitoInfraSpec) GetSecretVolumeReferences() []api.VolumeReferenceInter
 type KogitoInfraStatus struct {
 	// +listType=atomic
 	// History of conditions for the resource
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.statusDescriptors.x-descriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	Conditions *[]metav1.Condition `json:"conditions"`
 
 	// +optional
 	// +listType=atomic
 	// Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Envs []corev1.EnvVar `json:"env,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of Configmap that should be mounted to the services as envs
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	ConfigMapEnvFromReferences []string `json:"configMapEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of configmap that should be added as volume mount to this infra instance
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	ConfigMapVolumeReferences []VolumeReference `json:"configMapVolumeReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of secret that should be mounted to the services as envs
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	SecretEnvFromReferences []string `json:"secretEnvFromReferences,omitempty"`
 
 	// +optional
 	// +listType=atomic
 	// List of secret that should be added as volume mount to this infra instance
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	SecretVolumeReferences []VolumeReference `json:"secretVolumeReferences,omitempty"`
 }
 
@@ -293,24 +294,24 @@ func (k *KogitoInfraStatus) AddSecretVolumeReference(name string, mountPath stri
 type InfraResource struct {
 
 	// APIVersion describes the API Version of referred Kubernetes resource for example, infinispan.org/v1
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="APIVersion"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="APIVersion"
 	APIVersion string `json:"apiVersion"`
 
 	// Kind describes the kind of referred Kubernetes resource for example, Infinispan
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Kind"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Kind"
 	Kind string `json:"kind"`
 
 	// +optional
 	// Namespace where referred resource exists.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Namespace"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Namespace"
 	Namespace string `json:"namespace,omitempty"`
 
 	// Name of referred resource.
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Name"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Name"
 	Name string `json:"name"`
 }
 
@@ -366,15 +367,17 @@ func (r *InfraResource) SetName(name string) {
 // +kubebuilder:printcolumn:name="API Version",type="string",JSONPath=".spec.resource.apiVersion",description="Kubernetes CR API Version"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.condition.status",description="General Status of this resource bind"
 // +kubebuilder:printcolumn:name="Reason",type="string",JSONPath=".status.condition.reason",description="Status reason"
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Infra"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Kafka,kafka.strimzi.io/v1beta2,\"A Kafka instance\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Infinispan,infinispan.org/v1,\"A Infinispan instance\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Keycloak,keycloak.org/v1alpha1,\"A Keycloak Instance\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Secret,v1,\"A Kubernetes Secret\""
+// +operator-sdk:csv:customresourcedefinitions:displayName="Kogito Infra"
+// +operator-sdk:csv:customresourcedefinitions:resources={{Kafka,kafka.strimzi.io/v1beta2,"A Kafka instance"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Infinispan,infinispan.org/v1,"A Infinispan instance"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Keycloak,keycloak.org/v1alpha1,"A Keycloak Instance"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Secret,v1,"A Kubernetes Secret"}}
 
 // KogitoInfra is the resource to bind a Custom Resource (CR) not managed by Kogito Operator to a given deployed Kogito service.
+//
 // It holds the reference of a CR managed by another operator such as Strimzi. For example: one can create a Kafka CR via Strimzi
 // and link this resource using KogitoInfra to a given Kogito service (custom or supporting, such as Data Index).
+//
 // Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/) for more information.
 type KogitoInfra struct {
 	metav1.TypeMeta   `json:",inline"`

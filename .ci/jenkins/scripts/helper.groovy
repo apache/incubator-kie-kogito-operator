@@ -7,13 +7,13 @@ baseImageParamsPrefix = 'BASE_IMAGE'
 promoteImageParamsPrefix = 'PROMOTE_IMAGE'
 
 void initPipeline() {
-    properties = load '.jenkins/scripts/properties.groovy'
+    properties = load '.ci/jenkins/scripts/properties.groovy'
 
-    openshift = load '.jenkins/scripts/openshift.groovy'
+    openshift = load '.ci/jenkins/scripts/openshift.groovy'
     openshift.openshiftApiKey = env.OPENSHIFT_API_KEY
     openshift.openshiftApiCredsKey = env.OPENSHIFT_CREDS_KEY
 
-    container = load '.jenkins/scripts/container.groovy'
+    container = load '.ci/jenkins/scripts/container.groovy'
     container.containerEngine = env.CONTAINER_ENGINE
     container.containerTlsOptions = env.CONTAINER_TLS_OPTIONS
     container.containerOpenshift = openshift
@@ -333,16 +333,22 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
         testParamsMap['custom_maven_repo'] = mavenRepository
         testParamsMap['maven_ignore_self_signed_certificate'] = true
     }
-    if (env.MAVEN_MIRROR_REPOSITORY) {
-        testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
-        testParamsMap['maven_ignore_self_signed_certificate'] = true
-    }
+    // Disabled as we now use IBMCloud
+    // Follow-up issue to make it more dynamic: https://issues.redhat.com/browse/KOGITO-5739
+    // if (env.MAVEN_MIRROR_REPOSITORY) {
+    //     testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
+    //     testParamsMap['maven_ignore_self_signed_certificate'] = true
+    // }
 
     if (params.EXAMPLES_REF) {
         testParamsMap['examples_ref'] = params.EXAMPLES_REF
     }
     if (params.EXAMPLES_URI) {
         testParamsMap['examples_uri'] = params.EXAMPLES_URI
+    }
+
+    if (params.NATIVE_BUILDER_IMAGE) {
+        testParamsMap['native_builder_image'] = params.NATIVE_BUILDER_IMAGE
     }
 
     testParamsMap['container_engine'] = containerEngine

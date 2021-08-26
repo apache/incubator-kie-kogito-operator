@@ -83,6 +83,7 @@ type TestConfig struct {
 	buildS2iImageTag                   string
 	buildRuntimeImageTag               string
 	disableMavenNativeBuildInContainer bool
+	nativeBuilderImage                 string
 
 	// examples repository
 	examplesRepositoryURI       string
@@ -91,6 +92,9 @@ type TestConfig struct {
 
 	// Infinispan
 	infinispanInstallationSource string
+
+	// Hyperfoil
+	hyperfoilOutputDirectory string
 
 	// dev options
 	showScenarios bool
@@ -191,6 +195,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.StringVar(&env.buildS2iImageTag, prefix+"build-s2i-image-tag", "", "Set the S2I build image full tag")
 	set.StringVar(&env.buildRuntimeImageTag, prefix+"build-runtime-image-tag", "", "Set the Runtime build image full tag")
 	set.BoolVar(&env.disableMavenNativeBuildInContainer, prefix+"disable-maven-native-build-container", false, "By default, Maven native builds are done in container (via container engine). Possibility to disable it.")
+	set.StringVar(&env.nativeBuilderImage, prefix+"native-builder-image", "", "Force the native builder image.")
 
 	// examples repository
 	set.StringVar(&env.examplesRepositoryURI, prefix+"examples-uri", defaultKogitoExamplesURI, "Set the URI for the kogito-examples repository")
@@ -199,6 +204,9 @@ func BindFlags(set *flag.FlagSet) {
 
 	// Infinispan
 	set.StringVar(&env.infinispanInstallationSource, prefix+"infinispan-installation-source", installationSourceOlm, "Infinispan operator installation source")
+
+	// Hyperfoil
+	set.StringVar(&env.hyperfoilOutputDirectory, prefix+"hyperfoil-output-directory", "..", "Defines output directory to store Hyperfoil run statistics. Default is Kogito operator base folder.")
 
 	// dev options
 	set.BoolVar(&env.showScenarios, prefix+"show-scenarios", false, "Show all scenarios which will be executed.")
@@ -466,6 +474,11 @@ func IsDisableMavenNativeBuildInContainer() bool {
 	return env.disableMavenNativeBuildInContainer
 }
 
+// GetNativeBuilderImage return the native builder image for Maven native builds
+func GetNativeBuilderImage() string {
+	return env.nativeBuilderImage
+}
+
 // examples repository
 
 // GetExamplesRepositoryURI return the uri for the examples repository
@@ -493,6 +506,13 @@ func IsInfinispanInstalledByOlm() bool {
 // IsInfinispanInstalledByYaml return true if Infinispan operator is installed using YAML files
 func IsInfinispanInstalledByYaml() bool {
 	return env.infinispanInstallationSource == installationSourceYaml
+}
+
+// Hyperfoil
+
+// GetHyperfoilOutputDirectory returns directory to store Hyperfoil run results
+func GetHyperfoilOutputDirectory() string {
+	return env.hyperfoilOutputDirectory
 }
 
 // dev options

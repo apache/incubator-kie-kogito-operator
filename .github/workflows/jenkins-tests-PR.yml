@@ -6,8 +6,7 @@ name: Jenkins Tests
 on:
   pull_request:
     paths: 
-    - '.jenkins/**'
-    - 'Jenkinsfile*'
+    - '.ci/jenkins/**'
 
 jobs:
   dsl-tests:
@@ -23,5 +22,4 @@ jobs:
         java-version: 11
       
     - name: Test DSL
-    # TODO to change back to kiegroup/main
-      run: cd .jenkins/dsl && ./test.sh
+      run: cd .ci/jenkins/dsl && ./test.sh

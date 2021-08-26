@@ -59,12 +59,15 @@ build_image_version=
 build_s2i_image_tag=
 build_runtime_image_tag=
 disable_maven_native_build_container=false
+native_builder_image=
 # examples repository
 examples_uri=
 examples_ref=
 examples_ignore_ssl=
 # Infinispan
 infinispan_installation_source=
+# Hyperfoil
+hyperfoil_output_directory=
 # dev options
 show_scenarios=false
 show_steps=false
@@ -131,6 +134,7 @@ run-tests:
 		--build_image_version ${build_image_version} \
 		--build_s2i_image_tag ${build_s2i_image_tag} \
 		--build_runtime_image_tag ${build_runtime_image_tag} \
+		--native_builder_image ${native_builder_image} \
 		--examples_uri ${examples_uri} \
 		--examples_ref ${examples_ref} \
 		--namespace_name ${namespace_name} \

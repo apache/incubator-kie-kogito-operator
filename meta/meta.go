@@ -42,6 +42,8 @@ import (
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	olmv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
 	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+
+	hyperfoilv1alpha2 "github.com/Hyperfoil/hyperfoil-operator/pkg/apis/hyperfoil/v1alpha2"
 )
 
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
@@ -94,5 +96,6 @@ func getRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		monv1.SchemeBuilder.AddToScheme,
 		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme,
 		grafana.AddToScheme,
-		olmv1.AddToScheme)
+		olmv1.AddToScheme,
+		hyperfoilv1alpha2.SchemeBuilder.AddToScheme)
 }

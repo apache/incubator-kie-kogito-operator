@@ -56,7 +56,7 @@ spec:
             description: KogitoBuildSpec defines the desired state of KogitoBuild.
             properties:
               artifact:
-                description: Artifact contains override information for building the Maven artifact (used for Local Source builds). You might want to override this information when building from decisions, rules or process files. In this scenario the Kogito Images will generate a new Java project for you underneath. This information will be used to generate this project.
+                description: "Artifact contains override information for building the Maven artifact (used for Local Source builds). \n You might want to override this information when building from decisions, rules or process files. In this scenario the Kogito Images will generate a new Java project for you underneath. This information will be used to generate this project."
                 properties:
                   artifactId:
                     description: Indicates the unique base name of the primary artifact being generated.
@@ -69,7 +69,7 @@ spec:
                     type: string
                 type: object
               buildImage:
-                description: 'Image used to build the Kogito Service from source (Local and Remote). The operator will use the one provided by the Kogito Team based on the "Runtime" field. Example: "quay.io/kiegroup/kogito-jvm-builder:latest". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.'
+                description: "Image used to build the Kogito Service from source (Local and Remote). \n If not defined the operator will use image provided by the Kogito Team based on the \"Runtime\" field. \n Example: \"quay.io/kiegroup/kogito-jvm-builder:latest\". \n On OpenShift an ImageStream will be created in the current namespace pointing to the given image."
                 type: string
               disableIncremental:
                 description: DisableIncremental indicates that source to image builds should NOT be incremental. Defaults to false.
@@ -159,7 +159,7 @@ spec:
                 type: array
                 x-kubernetes-list-type: atomic
               gitSource:
-                description: Information about the git repository where the Kogito Service source code resides. Ignored for binary builds.
+                description: "Information about the git repository where the Kogito Service source code resides. \n Ignored for binary builds."
                 properties:
                   contextDir:
                     description: Context/subdirectory where the code is located, relative to the repo root.
@@ -177,7 +177,7 @@ spec:
                 description: Maven Mirror URL to be used during source-to-image builds (Local and Remote) to considerably increase build speed.
                 type: string
               native:
-                description: Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus (Source to Image build only). For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/.
+                description: "Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus (Source to Image build only). \n For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/."
                 type: boolean
               resources:
                 description: Resources Requirements for builder pods.
@@ -208,13 +208,13 @@ spec:
                 - springboot
                 type: string
               runtimeImage:
-                description: 'Image used as the base image for the final Kogito service. This image only has the required packages to run the application. For example: quarkus based services will have only JVM installed, native services only the packages required by the OS. The operator will use the one provided by the Kogito Team based on the "Runtime" field. Example: "quay.io/kiegroup/kogito-jvm-builder:latest". On OpenShift an ImageStream will be created in the current namespace pointing to the given image.'
+                description: "Image used as the base image for the final Kogito service. This image only has the required packages to run the application. \n For example: quarkus based services will have only JVM installed, native services only the packages required by the OS. \n If not defined the operator will use image provided by the Kogito Team based on the \"Runtime\" field. \n Example: \"quay.io/kiegroup/kogito-jvm-builder:latest\". \n On OpenShift an ImageStream will be created in the current namespace pointing to the given image."
                 type: string
               targetKogitoRuntime:
-                description: Set this field targeting the desired KogitoRuntime when this KogitoBuild instance has a different name than the KogitoRuntime. By default this KogitoBuild instance will generate a final image named after its own name (.metadata.name). On OpenShift, an ImageStream will be created causing a redeployment on any KogitoRuntime with the same name. On Kubernetes, the final image will be pushed to the KogitoRuntime deployment. If you have multiple KogitoBuild instances (let's say BinaryBuildType and Remote Source), you might need that both target the same KogitoRuntime. Both KogitoBuilds will update the same ImageStream or generate a final image to the same KogitoRuntime deployment.
+                description: "Set this field targeting the desired KogitoRuntime when this KogitoBuild instance has a different name than the KogitoRuntime. \n By default this KogitoBuild instance will generate a final image named after its own name (.metadata.name). \n On OpenShift, an ImageStream will be created causing a redeployment on any KogitoRuntime with the same name. On Kubernetes, the final image will be pushed to the KogitoRuntime deployment. \n If you have multiple KogitoBuild instances (let's say BinaryBuildType and Remote Source), you might need that both target the same KogitoRuntime. Both KogitoBuilds will update the same ImageStream or generate a final image to the same KogitoRuntime deployment."
                 type: string
               type:
-                description: 'Sets the type of build that this instance will handle: Binary - takes an uploaded binary file already compiled and creates a Kogito service image from it. RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito service image. LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image.'
+                description: "Sets the type of build that this instance will handle: \n Binary - takes an uploaded binary file already compiled and creates a Kogito service image from it. \n RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito service image. \n LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image."
                 enum:
                 - Binary
                 - RemoteSource

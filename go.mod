@@ -2,6 +2,7 @@ module github.com/kiegroup/kogito-operator
 
 require (
 	cloud.google.com/go v0.72.0 // indirect
+	github.com/Hyperfoil/hyperfoil-operator v0.0.0-20210330122001-d2d2a72eb4ab
 	github.com/RHsyseng/operator-utils v0.0.0-20200506183821-e3b4a2ba9c30
 	github.com/cucumber/gherkin-go/v11 v11.0.0
 	github.com/cucumber/godog v0.11.0
@@ -92,5 +93,8 @@ replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+inc
 
 // Required by Helm
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+
+// Need to use old version of Hyperfoil due to compatibility problems with controller-runtime, used for performance BDD tests
+replace github.com/Hyperfoil/hyperfoil-operator => github.com/Hyperfoil/hyperfoil-operator v0.0.0-20210330122001-d2d2a72eb4ab
 
 go 1.14

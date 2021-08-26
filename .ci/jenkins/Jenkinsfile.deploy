@@ -17,11 +17,11 @@ pipeline {
     }
 
     // parameters {
-    // For parameters, check into .jenkins/dsl/jobs.groovy file
+    // For parameters, check into ./dsl/jobs.groovy file
     // }
 
     environment {
-        // Static env is defined into .jenkins/dsl/jobs.groovy file
+        // Static env is defined into ./dsl/jobs.groovy file
 
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
 
@@ -39,7 +39,7 @@ pipeline {
         stage('Setup pipeline') {
             steps {
                 script {
-                    helper = load '.jenkins/scripts/helper.groovy'
+                    helper = load '.ci/jenkins/scripts/helper.groovy'
                     helper.initPipeline()
                 }
             }
@@ -173,7 +173,7 @@ pipeline {
                     // in case we decide to continue in the release
                     try {
                         // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        sh "make run-tests timeout=360 load_factor=1 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
+                        sh "make run-tests timeout=360 load_factor=2 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
                     } catch (err) {
                         unstable('Tests are failing')
                     }
@@ -191,6 +191,9 @@ pipeline {
         }
 
         stage('Push to registry') {
+            when {
+                expression { return !params.SKIP_DEPLOY }
+            }
             steps {
                 script {
                     helper.loginRegistry()

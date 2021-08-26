@@ -3,6 +3,8 @@ import org.kie.jenkins.jobdsl.KogitoConstants
 import org.kie.jenkins.jobdsl.Utils
 import org.kie.jenkins.jobdsl.KogitoJobType
 
+JENKINSFILE_PATH = '.ci/jenkins'
+
 boolean isMainBranch() {
     return "${GIT_BRANCH}" == "${GIT_MAIN_BRANCH}"
 }
@@ -79,7 +81,7 @@ void setupPrJob(String jobFolder) {
 }
 
 void setupProfilingJob(String jobFolder) {
-    def jobParams = getJobParams('kogito-operator-profiling', jobFolder, 'Jenkinsfile.profiling', 'Kogito Cloud Operator Profiling')
+    def jobParams = getJobParams('kogito-operator-profiling', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
     jobParams.triggers = [ cron : '@midnight' ]
     KogitoJobTemplate.createPipelineJob(this, jobParams).with {
         parameters {
@@ -104,7 +106,7 @@ void setupProfilingJob(String jobFolder) {
 }
 
 void setupDeployJob(String jobFolder, KogitoJobType jobType) {
-    def jobParams = getJobParams('kogito-operator-deploy', jobFolder, 'Jenkinsfile.deploy', 'Kogito Cloud Operator Deploy')
+    def jobParams = getJobParams('kogito-operator-deploy', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
     if (jobType == KogitoJobType.PR) {
         jobParams.git.branch = '${GIT_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
@@ -129,6 +131,8 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
             booleanParam('SKIP_NATIVE_TESTS', false, 'Skip native tests')
             stringParam('BDD_TEST_TAGS', '', 'Execute only a subset of BDD tests')
 
+            stringParam('NATIVE_BUILDER_IMAGE', '', 'Force the native builder image')
+
             // Deploy information
             booleanParam('IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Set to true if image should be deployed in Openshift registry.In this case, IMAGE_REGISTRY_CREDENTIALS, IMAGE_REGISTRY and IMAGE_NAMESPACE parameters will be ignored')
             stringParam('IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Image registry credentials to use to deploy images. Will be ignored if no IMAGE_REGISTRY is given')
@@ -136,6 +140,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
             stringParam('IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Image namespace to use to deploy images')
             stringParam('IMAGE_NAME_SUFFIX', '', 'Image name suffix to use to deploy images. In case you need to change the final image name, you can add a suffix to it.')
             stringParam('IMAGE_TAG', '', 'Image tag to use to deploy images')
+            booleanParam('SKIP_DEPLOY', false, 'In case you don\'t want to deploy the final image.')
 
             // Test config if needed specifics. Else test default config will apply.
             booleanParam('KOGITO_IMAGES_USE_OPENSHIFT_REGISTRY', false, 'Set to true if kogito images for tests are in internal Openshift registry.In this case, KOGITO_IMAGES_REGISTRY and KOGITO_IMAGES_NAMESPACE parameters will be ignored')
@@ -189,7 +194,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
 }
 
 void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
-    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-operator-promote', jobFolder, 'Jenkinsfile.promote', 'Kogito Cloud Operator Promote')).with {
+    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-operator-promote', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.promote", 'Kogito Cloud Operator Promote')).with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
@@ -245,7 +250,7 @@ void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
 }
 
 void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
-    def jobParams = getJobParams('kogito-examples-images-deploy', jobFolder, 'Jenkinsfile.examples-images.deploy', 'Kogito Examples Images Deploy')
+    def jobParams = getJobParams('kogito-examples-images-deploy', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.examples-images.deploy", 'Kogito Examples Images Deploy')
     if (jobType == KogitoJobType.PR) {
         jobParams.git.branch = '${GIT_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
@@ -266,6 +271,8 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
             booleanParam('SMOKE_TESTS_ONLY', false, 'If only smoke tests should be run. Default is full testing.')
             booleanParam('SKIP_NATIVE_TESTS', false, 'Skip native tests')
             stringParam('BDD_TEST_TAGS', '', 'Execute only a subset of BDD tests')
+
+            stringParam('NATIVE_BUILDER_IMAGE', '', 'Force the native builder image')
 
             // Deploy information
             booleanParam('IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Set to true if image should be deployed in Openshift registry.In this case, IMAGE_REGISTRY_CREDENTIALS, IMAGE_REGISTRY and IMAGE_NAMESPACE parameters will be ignored')
@@ -311,7 +318,7 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
 }
 
 void setupExamplesImagesPromoteJob(String jobFolder, KogitoJobType jobType) {
-    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-examples-images-promote', jobFolder, 'Jenkinsfile.examples-images.promote', 'Kogito Examples Images Promote')).with {
+    KogitoJobTemplate.createPipelineJob(this, getJobParams('kogito-examples-images-promote', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.examples-images.promote", 'Kogito Examples Images Promote')).with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 

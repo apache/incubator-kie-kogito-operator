@@ -26,9 +26,8 @@ type KogitoSupportingServiceSpec struct {
 
 	// Defines the type for the supporting service, eg: DataIndex, JobsService
 	// Default value: JobsService
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors=true
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.displayName="Resource Type"
-	// +operator-sdk:gen-csv:customresourcedefinitions.specDescriptors.x-descriptors="urn:alm:descriptor:com.tectonic.ui:label"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Service Type"
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=DataIndex;Explainability;JobsService;MgmtConsole;TaskConsole;TrustyAI;TrustyUI
 	ServiceType api.ServiceType `json:"serviceType"`
@@ -66,11 +65,11 @@ type KogitoSupportingServiceStatus struct {
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".status.image",description="Base image for this service"
 // +kubebuilder:printcolumn:name="Endpoint",type="string",JSONPath=".status.externalURI",description="External URI to access this service"
 // +kubebuilder:printcolumn:name="Service Type",type="string",JSONPath=".spec.serviceType",description="Supporting Service Type"
-// +operator-sdk:gen-csv:customresourcedefinitions.displayName="Kogito Supporting Service"
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Deployment,apps/v1,\"A Kubernetes Deployment\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Service,v1,\"A Kubernetes Service\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="ImageStream,image.openshift.io/v1,\"A Openshift ImageStream\""
-// +operator-sdk:gen-csv:customresourcedefinitions.resources="Route,route.openshift.io/v1,\"A Openshift Route\""
+// +operator-sdk:csv:customresourcedefinitions:displayName="Kogito Supporting Service"
+// +operator-sdk:csv:customresourcedefinitions:resources={{Deployment,apps/v1,"A Kubernetes Deployment"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Service,v1,"A Kubernetes Service"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{ImageStream,image.openshift.io/v1,"A Openshift ImageStream"}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Route,route.openshift.io/v1,"A Openshift Route"}}
 
 // KogitoSupportingService deploys the Supporting service in the given namespace.
 type KogitoSupportingService struct {
