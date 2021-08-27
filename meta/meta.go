@@ -15,35 +15,28 @@
 package meta
 
 import (
-	infinispanv1 "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
-	grafana "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
-	keycloakv1alpha1 "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	grafana "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
+	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
-	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
+	keycloakv1alpha1 "github.com/kiegroup/kogito-operator/core/infrastructure/keycloak/v1alpha1"
+	mongodb "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
-	operatormkt "github.com/operator-framework/operator-marketplace/pkg/apis/operators/v1"
 	coreappsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
-	sourcesv1alpha1 "knative.dev/eventing/pkg/apis/sources/v1alpha1"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
+	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-
-	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
-	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
-	olmv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
-	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-
-	hyperfoilv1alpha2 "github.com/Hyperfoil/hyperfoil-operator/pkg/apis/hyperfoil/v1alpha2"
 )
 
 // GetRegisteredSchema gets all schema and types registered for use with CLI, unit tests, custom clients and so on
@@ -58,19 +51,16 @@ func GetRegisteredSchema() *runtime.Scheme {
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
 	metav1.AddToGroupVersion(s, v1beta1.GroupVersion)
 	// https://issues.jboss.org/browse/KOGITO-617
-	metav1.AddToGroupVersion(s, apiextensionsv1beta1.SchemeGroupVersion)
-	metav1.AddToGroupVersion(s, operatormkt.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, apiextensionsv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, appsv1.GroupVersion)
-	metav1.AddToGroupVersion(s, olmapiv1.SchemeGroupVersion)
-	metav1.AddToGroupVersion(s, olmapiv1alpha1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, monv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, routev1.GroupVersion)
-	metav1.AddToGroupVersion(s, infinispanv1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, infinispan.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, mongodb.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, v1beta2.SchemeGroupVersion)
-	metav1.AddToGroupVersion(s, grafana.SchemeGroupVersion)
-	metav1.AddToGroupVersion(s, olmv1.SchemeGroupVersion)
-
+	metav1.AddToGroupVersion(s, grafana.GroupVersion)
+	metav1.AddToGroupVersion(s, eventingv1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, sourcesv1.SchemeGroupVersion)
 	return s
 }
 
@@ -87,15 +77,12 @@ func getRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		coreappsv1.AddToScheme,
 		routev1.Install,
 		imgv1.Install,
-		apiextensionsv1beta1.AddToScheme,
+		apiextensionsv1.AddToScheme,
 		v1beta2.SchemeBuilder.AddToScheme,
 		mongodb.SchemeBuilder.AddToScheme,
-		infinispanv1.AddToScheme,
+		infinispan.AddToScheme,
 		keycloakv1alpha1.SchemeBuilder.AddToScheme,
-		operatormkt.SchemeBuilder.AddToScheme, olmapiv1.AddToScheme, olmapiv1alpha1.AddToScheme,
 		monv1.SchemeBuilder.AddToScheme,
-		eventingv1.AddToScheme, sourcesv1alpha1.AddToScheme,
-		grafana.AddToScheme,
-		olmv1.AddToScheme,
-		hyperfoilv1alpha2.SchemeBuilder.AddToScheme)
+		eventingv1.AddToScheme, sourcesv1.AddToScheme,
+		grafana.AddToScheme)
 }

@@ -16,6 +16,7 @@ package framework
 
 import (
 	"fmt"
+	client2 "sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync"
 	"time"
@@ -222,7 +223,7 @@ func GetDeploymentWaiting(namespace, deploymentName string, timeoutInMin int) (d
 }
 
 // LoadResource loads the resource from provided URI and creates it in the cluster
-func LoadResource(namespace, uri string, resourceRef kubernetes.ResourceObject, beforeCreate func(object interface{})) error {
+func LoadResource(namespace, uri string, resourceRef client2.Object, beforeCreate func(object interface{})) error {
 	GetLogger(namespace).Debug("loadResource", "uri", uri)
 
 	data, err := ReadFromURI(uri)
@@ -312,27 +313,27 @@ func IsCrdAvailable(crdName string) (bool, error) {
 }
 
 // CreateObject creates object
-func CreateObject(o kubernetes.ResourceObject) error {
+func CreateObject(o client2.Object) error {
 	return kubernetes.ResourceC(kubeClient).Create(o)
 }
 
 // GetObjectsInNamespace returns list of objects in specific namespace based on type
-func GetObjectsInNamespace(namespace string, list runtime.Object) error {
+func GetObjectsInNamespace(namespace string, list client2.ObjectList) error {
 	return kubernetes.ResourceC(kubeClient).ListWithNamespace(namespace, list)
 }
 
 // GetObjectWithKey returns object matching provided key
-func GetObjectWithKey(key types.NamespacedName, o kubernetes.ResourceObject) (exists bool, err error) {
+func GetObjectWithKey(key types.NamespacedName, o client2.Object) (exists bool, err error) {
 	return kubernetes.ResourceC(kubeClient).FetchWithKey(key, o)
 }
 
 // UpdateObject updates object
-func UpdateObject(o kubernetes.ResourceObject) error {
+func UpdateObject(o client2.Object) error {
 	return kubernetes.ResourceC(kubeClient).Update(o)
 }
 
 // DeleteObject deletes object
-func DeleteObject(o kubernetes.ResourceObject) error {
+func DeleteObject(o client2.Object) error {
 	return kubernetes.ResourceC(kubeClient).Delete(o)
 }
 

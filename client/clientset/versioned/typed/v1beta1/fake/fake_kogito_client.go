@@ -21,29 +21,29 @@ import (
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeAppV1beta1 struct {
+type FakeV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeAppV1beta1) KogitoBuilds(namespace string) v1beta1.KogitoBuildInterface {
+func (c *FakeV1beta1) KogitoBuilds(namespace string) v1beta1.KogitoBuildInterface {
 	return &FakeKogitoBuilds{c, namespace}
 }
 
-func (c *FakeAppV1beta1) KogitoInfras(namespace string) v1beta1.KogitoInfraInterface {
+func (c *FakeV1beta1) KogitoInfras(namespace string) v1beta1.KogitoInfraInterface {
 	return &FakeKogitoInfras{c, namespace}
 }
 
-func (c *FakeAppV1beta1) KogitoRuntimes(namespace string) v1beta1.KogitoRuntimeInterface {
+func (c *FakeV1beta1) KogitoRuntimes(namespace string) v1beta1.KogitoRuntimeInterface {
 	return &FakeKogitoRuntimes{c, namespace}
 }
 
-func (c *FakeAppV1beta1) KogitoSupportingServices(namespace string) v1beta1.KogitoSupportingServiceInterface {
+func (c *FakeV1beta1) KogitoSupportingServices(namespace string) v1beta1.KogitoSupportingServiceInterface {
 	return &FakeKogitoSupportingServices{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeAppV1beta1) RESTClient() rest.Interface {
+func (c *FakeV1beta1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

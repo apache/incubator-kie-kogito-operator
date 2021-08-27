@@ -54,7 +54,7 @@ type kogitoInfras struct {
 }
 
 // newKogitoInfras returns a KogitoInfras
-func newKogitoInfras(c *AppV1beta1Client, namespace string) *kogitoInfras {
+func newKogitoInfras(c *V1beta1Client, namespace string) *kogitoInfras {
 	return &kogitoInfras{
 		client: c.RESTClient(),
 		ns:     namespace,

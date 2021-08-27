@@ -16,6 +16,7 @@ package steps
 
 import (
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync"
 	"time"
@@ -23,14 +24,13 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-operator/test/pkg/config"
 	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var (
 	// Map of created namespaces
 	namespacesCreated sync.Map
 
-	logsKubernetesObjects = []runtime.Object{}
+	logsKubernetesObjects []client.ObjectList
 )
 
 // Data contains all data needed by Gherkin steps to run
@@ -77,7 +77,7 @@ func (data *Data) RegisterAllSteps(ctx *godog.ScenarioContext) {
 }
 
 // RegisterLogsKubernetesObjects allows to change which kubernetes objects logs should be saved
-func (data *Data) RegisterLogsKubernetesObjects(objects ...runtime.Object) {
+func (data *Data) RegisterLogsKubernetesObjects(objects ...client.ObjectList) {
 	logsKubernetesObjects = append(logsKubernetesObjects, objects...)
 }
 

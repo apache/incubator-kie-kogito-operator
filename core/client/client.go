@@ -21,14 +21,13 @@ import (
 	"strings"
 
 	"github.com/kiegroup/kogito-operator/core/logger"
-	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 
 	appsv1 "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
@@ -88,11 +87,6 @@ func NewForController(manager controllerruntime.Manager) *Client {
 // IsOpenshift detects if the application is running on OpenShift or not
 func (c *Client) IsOpenshift() bool {
 	return c.HasServerGroup(OpenShiftGroupName)
-}
-
-// IsOLMAvaialable detects if the cluster has OLM installed or not
-func (c *Client) IsOLMAvaialable() bool {
-	return c.HasServerGroup(olmapiv1.SchemeGroupVersion.Group)
 }
 
 // HasServerGroup detects if the given api group is supported by the server
@@ -190,7 +184,7 @@ func newControllerCliOptions(scheme *runtime.Scheme) controllercli.Options {
 	for _, gvk := range gvks {
 		// namespaced resources
 		if (gvk.GroupVersion() == corev1.SchemeGroupVersion && gvk.Kind == "Namespace") ||
-			(gvk.GroupVersion() == apiextensionsv1beta1.SchemeGroupVersion && gvk.Kind == "CustomResourceDefinition") ||
+			(gvk.GroupVersion() == apiextensionsv1.SchemeGroupVersion && gvk.Kind == "CustomResourceDefinition") ||
 			(gvk.GroupVersion() == rbac.SchemeGroupVersion && gvk.Kind == "ClusterRole") ||
 			(gvk.GroupVersion() == rbac.SchemeGroupVersion && gvk.Kind == "ClusterRoleBinding") {
 			mapper.Add(gvk, &restScope{name: apimeta.RESTScopeNameRoot})

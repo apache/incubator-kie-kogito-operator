@@ -24,10 +24,10 @@ import (
 
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 
-	grafanav1 "github.com/integr8ly/grafana-operator/v3/pkg/apis/integreatly/v1alpha1"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
+	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -82,7 +82,7 @@ func (d *grafanaDashboardManager) ConfigureGrafanaDashboards(kogitoService api.K
 
 // isPrometheusAvailable checks if Prometheus CRD is available in the cluster
 func (d *grafanaDashboardManager) isGrafanaAvailable() bool {
-	return d.Client.HasServerGroup(grafanav1.SchemeGroupVersion.Group)
+	return d.Client.HasServerGroup(grafanav1.GroupVersion.Group)
 }
 
 func (d *grafanaDashboardManager) fetchGrafanaDashboards(instance api.KogitoService) ([]GrafanaDashboard, error) {
@@ -175,7 +175,7 @@ func (d *grafanaDashboardManager) deployGrafanaDashboards(dashboards []GrafanaDa
 				},
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
-				Json: dashboard.RawJSONDashboard,
+				JSON: dashboard.RawJSONDashboard,
 			},
 		}
 		if err := kubernetes.ResourceC(d.Client).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, d.Scheme); err != nil {

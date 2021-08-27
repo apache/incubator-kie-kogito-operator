@@ -19,6 +19,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	client2 "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"strings"
 
@@ -31,14 +32,14 @@ type ResourceInterface interface {
 	ResourceReader
 	ResourceWriter
 	// CreateIfNotExists will fetch for the object resource in the Kubernetes cluster, if not exists, will create it.
-	CreateIfNotExists(resource ResourceObject) (err error)
+	CreateIfNotExists(resource client2.Object) (err error)
 	// CreateIfNotExistsForOwner sets the controller owner to the given resource and creates if it not exists.
 	// If the given resource exists, won't update the object with the given owner.
-	CreateIfNotExistsForOwner(resource ResourceObject, owner metav1.Object, scheme *runtime.Scheme) (err error)
+	CreateIfNotExistsForOwner(resource client2.Object, owner metav1.Object, scheme *runtime.Scheme) (err error)
 	// CreateForOwner sets the controller owner to the given resource and creates the resource.
-	CreateForOwner(resource ResourceObject, owner metav1.Object, scheme *runtime.Scheme) error
+	CreateForOwner(resource client2.Object, owner metav1.Object, scheme *runtime.Scheme) error
 	// CreateFromYamlContent creates Kubernetes resources from a yaml string content
-	CreateFromYamlContent(yamlContent, namespace string, resourceRef ResourceObject, beforeCreate func(object interface{})) error
+	CreateFromYamlContent(yamlContent, namespace string, resourceRef client2.Object, beforeCreate func(object interface{})) error
 }
 
 type resource struct {
@@ -53,7 +54,7 @@ func newResource(c *client.Client) *resource {
 	}
 }
 
-func (r *resource) CreateIfNotExists(resource ResourceObject) error {
+func (r *resource) CreateIfNotExists(resource client2.Object) error {
 	log.Info("Create resource if not exists", "kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 
 	if exists, err := r.ResourceReader.Fetch(resource); err == nil && !exists {
@@ -69,7 +70,7 @@ func (r *resource) CreateIfNotExists(resource ResourceObject) error {
 	return nil
 }
 
-func (r *resource) CreateIfNotExistsForOwner(resource ResourceObject, owner metav1.Object, scheme *runtime.Scheme) error {
+func (r *resource) CreateIfNotExistsForOwner(resource client2.Object, owner metav1.Object, scheme *runtime.Scheme) error {
 	err := controllerutil.SetControllerReference(owner, resource, scheme)
 	if err != nil {
 		return err
@@ -77,7 +78,7 @@ func (r *resource) CreateIfNotExistsForOwner(resource ResourceObject, owner meta
 	return r.CreateIfNotExists(resource)
 }
 
-func (r *resource) CreateForOwner(resource ResourceObject, owner metav1.Object, scheme *runtime.Scheme) error {
+func (r *resource) CreateForOwner(resource client2.Object, owner metav1.Object, scheme *runtime.Scheme) error {
 	err := controllerutil.SetControllerReference(owner, resource, scheme)
 	if err != nil {
 		return err
@@ -88,7 +89,7 @@ func (r *resource) CreateForOwner(resource ResourceObject, owner metav1.Object, 
 	return nil
 }
 
-func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, resourceRef ResourceObject, beforeCreate func(object interface{})) error {
+func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, resourceRef client2.Object, beforeCreate func(object interface{})) error {
 	docs := strings.Split(yamlFileContent, "---")
 	for _, doc := range docs {
 		if err := yaml.NewYAMLOrJSONDecoder(strings.NewReader(doc), len([]byte(doc))).Decode(resourceRef); err != nil {

@@ -19,10 +19,10 @@ import (
 	"io/ioutil"
 	"testing"
 
-	ispn "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	ispn "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"

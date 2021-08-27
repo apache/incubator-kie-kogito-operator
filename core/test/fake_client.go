@@ -91,7 +91,7 @@ func (f *fakeClientStruct) OnOpenShift() FakeClientBuilder {
 // Build ...
 func (f *fakeClientStruct) Build() *client.Client {
 	// Create a fake client to mock API calls.
-	cli := fake.NewFakeClientWithScheme(meta.GetRegisteredSchema(), f.objects...)
+	cli := fake.NewClientBuilder().WithScheme(meta.GetRegisteredSchema()).WithRuntimeObjects(f.objects...).Build()
 	// OpenShift Image Client Fake with image tag defined and image built
 	imgCli := imgfake.NewSimpleClientset(f.imageObjs...).ImageV1()
 	// OpenShift Build Client Fake with build for s2i defined, since we'll trigger a build during the reconcile phase

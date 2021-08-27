@@ -2,69 +2,26 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: |-
-      [
-        {
-          "apiVersion": "app.kiegroup.org/v1beta1",
-          "kind": "KogitoBuild",
-          "metadata": {
-            "name": "kogitobuild-sample"
-          },
-          "spec": {
-            "foo": "bar"
-          }
-        },
-        {
-          "apiVersion": "app.kiegroup.org/v1beta1",
-          "kind": "KogitoInfra",
-          "metadata": {
-            "name": "kogitoinfra-sample"
-          },
-          "spec": {
-            "foo": "bar"
-          }
-        },
-        {
-          "apiVersion": "app.kiegroup.org/v1beta1",
-          "kind": "KogitoRuntime",
-          "metadata": {
-            "name": "kogitoruntime-sample"
-          },
-          "spec": {
-            "foo": "bar"
-          }
-        },
-        {
-          "apiVersion": "app.kiegroup.org/v1beta1",
-          "kind": "KogitoSupportingService",
-          "metadata": {
-            "name": "kogitosupportingservice-sample"
-          },
-          "spec": {
-            "foo": "bar"
-          }
-        }
-      ]
+    alm-examples: '[]'
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
     containerImage: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito services.
-    operators.operatorframework.io/builder: operator-sdk-v1.2.0
-    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     repository: https://github.com/kiegroup/kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
   labels:
     operator-kogitocloud: "true"
-  name: kogito-operator.v2.0.0-snapshot
+  name: kogito-operator.v0.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
+    - description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift
+        cluster.
       displayName: Kogito Build
       kind: KogitoBuild
       name: kogitobuilds.app.kiegroup.org
@@ -76,20 +33,30 @@ spec:
         name: A Openshift Image Stream
         version: image.openshift.io/v1
       specDescriptors:
-      - description: "Artifact contains override information for building the Maven artifact (used for Local Source builds). \n You might want to override this information when building from decisions, rules or process files. In this scenario the Kogito Images will generate a new Java project for you underneath. This information will be used to generate this project."
+      - description: "Artifact contains override information for building the Maven
+          artifact (used for Local Source builds). \n You might want to override this
+          information when building from decisions, rules or process files. In this
+          scenario the Kogito Images will generate a new Java project for you underneath.
+          This information will be used to generate this project."
         displayName: Final Artifact
         path: artifact
-      - description: "Image used to build the Kogito Service from source (Local and Remote). \n If not defined the operator will use image provided by the Kogito Team based on the \"Runtime\" field. \n Example: \"quay.io/kiegroup/kogito-jvm-builder:latest\". \n On OpenShift an ImageStream will be created in the current namespace pointing to the given image."
+      - description: "Image used to build the Kogito Service from source (Local and
+          Remote). \n If not defined the operator will use image provided by the Kogito
+          Team based on the \"Runtime\" field. \n Example: \"quay.io/kiegroup/kogito-jvm-builder:latest\".
+          \n On OpenShift an ImageStream will be created in the current namespace
+          pointing to the given image."
         displayName: Build Image
         path: buildImage
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: DisableIncremental indicates that source to image builds should NOT be incremental. Defaults to false.
+      - description: DisableIncremental indicates that source to image builds should
+          NOT be incremental. Defaults to false.
         displayName: Disable Incremental Builds
         path: disableIncremental
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: If set to true will print the logs for downloading/uploading of maven dependencies. Defaults to false.
+      - description: If set to true will print the logs for downloading/uploading
+          of maven dependencies. Defaults to false.
         displayName: Enable Maven Download Output
         path: enableMavenDownloadOutput
         x-descriptors:
@@ -97,12 +64,25 @@ spec:
       - description: Environment variables used during build time.
         displayName: Build Env Variables
         path: env
-      - description: Maven Mirror URL to be used during source-to-image builds (Local and Remote) to considerably increase build speed.
+      - description: Context/subdirectory where the code is located, relative to the
+          repo root.
+        displayName: Git Context
+        path: gitSource.contextDir
+      - description: Branch to use in the Git repository.
+        displayName: Git Reference
+        path: gitSource.reference
+      - description: Git URI for the s2i source.
+        displayName: Git URI
+        path: gitSource.uri
+      - description: Maven Mirror URL to be used during source-to-image builds (Local
+          and Remote) to considerably increase build speed.
         displayName: Maven Mirror URL
         path: mavenMirrorURL
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: "Native indicates if the Kogito Service built should be compiled to run on native mode when Runtime is Quarkus (Source to Image build only). \n For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/."
+      - description: "Native indicates if the Kogito Service built should be compiled
+          to run on native mode when Runtime is Quarkus (Source to Image build only).
+          \n For more information, see https://www.graalvm.org/docs/reference-manual/aot-compilation/."
         displayName: Native Build
         path: native
         x-descriptors:
@@ -112,18 +92,40 @@ spec:
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
-      - description: 'Which runtime Kogito service base image to use when building the Kogito service. If "BuildImage" is set, this value is ignored by the operator. Default value: quarkus.'
+      - description: 'Which runtime Kogito service base image to use when building
+          the Kogito service. If "BuildImage" is set, this value is ignored by the
+          operator. Default value: quarkus.'
         displayName: Runtime
         path: runtime
-      - description: "Image used as the base image for the final Kogito service. This image only has the required packages to run the application. \n For example: quarkus based services will have only JVM installed, native services only the packages required by the OS. \n If not defined the operator will use image provided by the Kogito Team based on the \"Runtime\" field. \n Example: \"quay.io/kiegroup/kogito-jvm-builder:latest\". \n On OpenShift an ImageStream will be created in the current namespace pointing to the given image."
+      - description: "Image used as the base image for the final Kogito service. This
+          image only has the required packages to run the application. \n For example:
+          quarkus based services will have only JVM installed, native services only
+          the packages required by the OS. \n If not defined the operator will use
+          image provided by the Kogito Team based on the \"Runtime\" field. \n Example:
+          \"quay.io/kiegroup/kogito-jvm-builder:latest\". \n On OpenShift an ImageStream
+          will be created in the current namespace pointing to the given image."
         displayName: Base Image
         path: runtimeImage
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
-      - description: "Set this field targeting the desired KogitoRuntime when this KogitoBuild instance has a different name than the KogitoRuntime. \n By default this KogitoBuild instance will generate a final image named after its own name (.metadata.name). \n On OpenShift, an ImageStream will be created causing a redeployment on any KogitoRuntime with the same name. On Kubernetes, the final image will be pushed to the KogitoRuntime deployment. \n If you have multiple KogitoBuild instances (let's say BinaryBuildType and Remote Source), you might need that both target the same KogitoRuntime. Both KogitoBuilds will update the same ImageStream or generate a final image to the same KogitoRuntime deployment."
+      - description: "Set this field targeting the desired KogitoRuntime when this
+          KogitoBuild instance has a different name than the KogitoRuntime. \n By
+          default this KogitoBuild instance will generate a final image named after
+          its own name (.metadata.name). \n On OpenShift, an ImageStream will be created
+          causing a redeployment on any KogitoRuntime with the same name. On Kubernetes,
+          the final image will be pushed to the KogitoRuntime deployment. \n If you
+          have multiple KogitoBuild instances (let's say BinaryBuildType and Remote
+          Source), you might need that both target the same KogitoRuntime. Both KogitoBuilds
+          will update the same ImageStream or generate a final image to the same KogitoRuntime
+          deployment."
         displayName: Target kogito Runtime
         path: targetKogitoRuntime
-      - description: "Sets the type of build that this instance will handle: \n Binary - takes an uploaded binary file already compiled and creates a Kogito service image from it. \n RemoteSource - pulls the source code from a Git repository, builds the binary and then the final Kogito service image. \n LocalSource - takes an uploaded resource file such as DRL (rules), DMN (decision) or BPMN (process), builds the binary and the final Kogito service image."
+      - description: "Sets the type of build that this instance will handle: \n Binary
+          - takes an uploaded binary file already compiled and creates a Kogito service
+          image from it. \n RemoteSource - pulls the source code from a Git repository,
+          builds the binary and then the final Kogito service image. \n LocalSource
+          - takes an uploaded resource file such as DRL (rules), DMN (decision) or
+          BPMN (process), builds the binary and the final Kogito service image."
         displayName: Build Type
         path: type
       statusDescriptors:
@@ -138,7 +140,13 @@ spec:
       - displayName: Latest Build
         path: latestBuild
       version: v1beta1
-    - description: "KogitoInfra is the resource to bind a Custom Resource (CR) not managed by Kogito Operator to a given deployed Kogito service. \n It holds the reference of a CR managed by another operator such as Strimzi. For example: one can create a Kafka CR via Strimzi and link this resource using KogitoInfra to a given Kogito service (custom or supporting, such as Data Index). \n Please refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/) for more information."
+    - description: "KogitoInfra is the resource to bind a Custom Resource (CR) not
+        managed by Kogito Operator to a given deployed Kogito service. \n It holds
+        the reference of a CR managed by another operator such as Strimzi. For example:
+        one can create a Kafka CR via Strimzi and link this resource using KogitoInfra
+        to a given Kogito service (custom or supporting, such as Data Index). \n Please
+        refer to the Kogito Operator documentation (https://docs.jboss.org/kogito/release/latest/html_single/)
+        for more information."
       displayName: Kogito Infra
       kind: KogitoInfra
       name: kogitoinfras.app.kiegroup.org
@@ -156,16 +164,21 @@ spec:
         name: A Kubernetes Secret
         version: v1
       specDescriptors:
-      - description: "Optional properties which would be needed to setup correct runtime/service configuration, based on the resource type. \n For example, MongoDB will require `username` and `database` as properties for a correct setup, else it will fail"
+      - description: "Optional properties which would be needed to setup correct runtime/service
+          configuration, based on the resource type. \n For example, MongoDB will
+          require `username` and `database` as properties for a correct setup, else
+          it will fail"
         displayName: Infra Properties
         path: infraProperties
       - description: 'Resource for the service. Example: Infinispan/Kafka/Keycloak.'
         displayName: Resource
         path: resource
-      - description: APIVersion describes the API Version of referred Kubernetes resource for example, infinispan.org/v1
+      - description: APIVersion describes the API Version of referred Kubernetes resource
+          for example, infinispan.org/v1
         displayName: APIVersion
         path: resource.apiVersion
-      - description: Kind describes the kind of referred Kubernetes resource for example, Infinispan
+      - description: Kind describes the kind of referred Kubernetes resource for example,
+          Infinispan
         displayName: Kind
         path: resource.kind
       - description: Name of referred resource.
@@ -199,16 +212,113 @@ spec:
         name: A Openshift Route
         version: route.openshift.io/v1
       specDescriptors:
-      - description: Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Additional labels to be added to the Deployment and Pods managed
+          by the operator.
+        displayName: Additional Deployment Labels
+        path: deploymentLabels
+      - description: Annotates the pods managed by the operator with the required
+          metadata for Istio to setup its sidecars, enabling the mesh. Defaults to
+          false.
         displayName: Enable Istio
         path: enableIstio
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
-      - description: "The name of the runtime used, either Quarkus or SpringBoot. \n Default value: quarkus"
+      - description: Environment variables to be added to the runtime container. Keys
+          must be a C_IDENTIFIER.
+        displayName: Env
+        path: env
+      - description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\".
+          \n On OpenShift an ImageStream will be created in the current namespace
+          pointing to the given image."
+        displayName: Image
+        path: image
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: "A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. \n Defaults to 'false'."
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: "Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. \n The ConfigMap must be created in the same namespace.
+          \n Use this property if you need custom properties to be mounted before
+          the application deployment. \n If left empty, one will be created for you.
+          Later it can be updated to add any custom properties to apply to the service."
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:ConfigMap
+      - description: "Number of replicas that the service will have deployed in the
+          cluster. \n Default value: 1."
+        displayName: Replicas
+        path: replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+      - description: Defined compute resource requirements for the deployed service.
+        displayName: Resources
+        path: resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      - description: "The name of the runtime used, either Quarkus or SpringBoot.
+          \n Default value: quarkus"
         displayName: Runtime
         path: runtime
+      - description: Additional labels to be added to the Service managed by the operator.
+        displayName: Additional Service Labels
+        path: serviceLabels
+      - description: "Custom JKS TrustStore that will be used by this service to make
+          calls to TLS endpoints. \n It's expected that the secret has two keys: `keyStorePassword`
+          containing the password for the KeyStore and `cacerts` containing the binary
+          data of the given KeyStore."
+        displayName: Trust Store Secret
+        path: trustStoreSecret
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+      statusDescriptors:
+      - description: Describes the CloudEvents that this instance can consume or produce
+        displayName: Cloud Events
+        path: cloudEvents
+      - displayName: Consumes
+        path: cloudEvents.consumes
+      - displayName: Source
+        path: cloudEvents.consumes[0].source
+      - displayName: Type
+        path: cloudEvents.consumes[0].type
+      - displayName: Produces
+        path: cloudEvents.produces
+      - displayName: Source
+        path: cloudEvents.produces[0].source
+      - displayName: Type
+        path: cloudEvents.produces[0].type
+      - description: History of conditions for the resource
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      - description: General conditions for the Kogito Service deployment.
+        displayName: Deployment Conditions
+        path: deploymentConditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      - description: URI is where the service is exposed.
+        displayName: External URI
+        path: externalURI
+        x-descriptors:
+        - urn:alm:descriptor:org.w3:link
+      - description: Image is the resolved image for this service.
+        displayName: Image
+        path: image
       version: v1beta1
-    - description: KogitoSupportingService deploys the Supporting service in the given namespace.
+    - description: KogitoSupportingService deploys the Supporting service in the given
+        namespace.
       displayName: Kogito Supporting Service
       kind: KogitoSupportingService
       name: kogitosupportingservices.app.kiegroup.org
@@ -226,9 +336,103 @@ spec:
         name: A Openshift Route
         version: route.openshift.io/v1
       specDescriptors:
-      - description: 'Defines the type for the supporting service, eg: DataIndex, JobsService Default value: JobsService'
+      - description: 'Application properties that will be set to the service. For
+          example ''MY_VAR: my_value''.'
+        displayName: Configs
+        path: config
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Additional labels to be added to the Deployment and Pods managed
+          by the operator.
+        displayName: Additional Deployment Labels
+        path: deploymentLabels
+      - description: Environment variables to be added to the runtime container. Keys
+          must be a C_IDENTIFIER.
+        displayName: Env
+        path: env
+      - description: "Image definition for the service. Example: \"quay.io/kiegroup/kogito-service:latest\".
+          \n On OpenShift an ImageStream will be created in the current namespace
+          pointing to the given image."
+        displayName: Image
+        path: image
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: "A flag indicating that image streams created by Kogito Operator
+          should be configured to allow pulling from insecure registries. Usable just
+          on OpenShift. \n Defaults to 'false'."
+        displayName: Insecure Image Registry
+        path: insecureImageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: "Custom ConfigMap with application.properties file to be mounted
+          for the Kogito service. \n The ConfigMap must be created in the same namespace.
+          \n Use this property if you need custom properties to be mounted before
+          the application deployment. \n If left empty, one will be created for you.
+          Later it can be updated to add any custom properties to apply to the service."
+        displayName: ConfigMap Properties
+        path: propertiesConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:ConfigMap
+      - description: "Number of replicas that the service will have deployed in the
+          cluster. \n Default value: 1."
+        displayName: Replicas
+        path: replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+      - description: Defined compute resource requirements for the deployed service.
+        displayName: Resources
+        path: resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      - description: Additional labels to be added to the Service managed by the operator.
+        displayName: Additional Service Labels
+        path: serviceLabels
+      - description: 'Defines the type for the supporting service, eg: DataIndex,
+          JobsService Default value: JobsService'
         displayName: Service Type
         path: serviceType
+      - description: "Custom JKS TrustStore that will be used by this service to make
+          calls to TLS endpoints. \n It's expected that the secret has two keys: `keyStorePassword`
+          containing the password for the KeyStore and `cacerts` containing the binary
+          data of the given KeyStore."
+        displayName: Trust Store Secret
+        path: trustStoreSecret
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+      statusDescriptors:
+      - description: Describes the CloudEvents that this instance can consume or produce
+        displayName: Cloud Events
+        path: cloudEvents
+      - displayName: Consumes
+        path: cloudEvents.consumes
+      - displayName: Source
+        path: cloudEvents.consumes[0].source
+      - displayName: Type
+        path: cloudEvents.consumes[0].type
+      - displayName: Produces
+        path: cloudEvents.produces
+      - displayName: Source
+        path: cloudEvents.produces[0].source
+      - displayName: Type
+        path: cloudEvents.produces[0].type
+      - description: History of conditions for the resource
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      - description: General conditions for the Kogito Service deployment.
+        displayName: Deployment Conditions
+        path: deploymentConditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
+      - description: URI is where the service is exposed.
+        displayName: External URI
+        path: externalURI
+        x-descriptors:
+        - urn:alm:descriptor:org.w3:link
+      - description: Image is the resolved image for this service.
+        displayName: Image
+        path: image
       version: v1beta1
   description: |-
     Kogito Operator is designed to deploy Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
@@ -248,212 +452,8 @@ spec:
     mediatype: image/svg+xml
   install:
     spec:
-      clusterPermissions:
-      - rules:
-        - apiGroups:
-          - ""
-          - app.kiegroup.org
-          - apps.openshift.io
-          - image.openshift.io
-          - build.openshift.io
-          - rbac.authorization.k8s.io
-          - route.openshift.io
-          resources:
-          - '*'
-          verbs:
-          - '*'
-        - apiGroups:
-          - ""
-          resources:
-          - namespaces
-          verbs:
-          - get
-        - apiGroups:
-          - apps
-          resources:
-          - statefulsets
-          - deployments
-          - replicasets
-          verbs:
-          - '*'
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - servicemonitors
-          verbs:
-          - get
-          - create
-          - list
-          - delete
-        - apiGroups:
-          - infinispan.org
-          resources:
-          - infinispans
-          verbs:
-          - get
-          - create
-          - list
-          - delete
-          - watch
-        - apiGroups:
-          - kafka.strimzi.io
-          resources:
-          - kafkas
-          - kafkatopics
-          verbs:
-          - get
-          - create
-          - list
-          - delete
-          - watch
-        - apiGroups:
-          - keycloak.org
-          resources:
-          - keycloaks
-          verbs:
-          - get
-          - create
-          - list
-          - delete
-          - watch
-        - apiGroups:
-          - apps
-          resourceNames:
-          - kogito-operator
-          resources:
-          - deployments/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - app.kiegroup.org
-          resources:
-          - '*'
-          verbs:
-          - '*'
-        - apiGroups:
-          - eventing.knative.dev
-          resources:
-          - brokers
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - eventing.knative.dev
-          resources:
-          - triggers
-          verbs:
-          - get
-          - list
-          - watch
-          - create
-          - delete
-          - update
-        - apiGroups:
-          - sources.knative.dev
-          resources:
-          - sinkbindings
-          verbs:
-          - get
-          - list
-          - watch
-          - create
-          - delete
-          - update
-        - apiGroups:
-          - integreatly.org
-          resources:
-          - grafanadashboards
-          verbs:
-          - get
-          - create
-          - list
-          - delete
-          - watch
-          - update
-        - apiGroups:
-          - authentication.k8s.io
-          resources:
-          - tokenreviews
-          verbs:
-          - create
-        - apiGroups:
-          - authorization.k8s.io
-          resources:
-          - subjectaccessreviews
-          verbs:
-          - create
-        serviceAccountName: default
-      deployments:
-      - name: kogito-operator-controller-manager
-        spec:
-          replicas: 1
-          selector:
-            matchLabels:
-              control-plane: controller-manager
-          strategy: {}
-          template:
-            metadata:
-              labels:
-                control-plane: controller-manager
-            spec:
-              containers:
-              - args:
-                - --secure-listen-address=0.0.0.0:8443
-                - --upstream=http://127.0.0.1:8080/
-                - --logtostderr=true
-                - --v=10
-                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
-                name: kube-rbac-proxy
-                ports:
-                - containerPort: 8443
-                  name: https
-                resources: {}
-              - args:
-                - --metrics-addr=127.0.0.1:8080
-                - --enable-leader-election
-                command:
-                - /manager
-                env:
-                - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
-                name: manager
-                resources: {}
-              terminationGracePeriodSeconds: 10
-      permissions:
-      - rules:
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          verbs:
-          - get
-          - list
-          - watch
-          - create
-          - update
-          - patch
-          - delete
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps/status
-          verbs:
-          - get
-          - update
-          - patch
-        - apiGroups:
-          - ""
-          resources:
-          - events
-          verbs:
-          - create
-          - patch
-        serviceAccountName: default
-    strategy: deployment
+      deployments: null
+    strategy: ""
   installModes:
   - supported: true
     type: OwnNamespace
@@ -488,4 +488,4 @@ spec:
   provider:
     name: Red Hat
   replaces: kogito-operator.v1.9.0
-  version: 2.0.0-snapshot
+  version: 0.0.0

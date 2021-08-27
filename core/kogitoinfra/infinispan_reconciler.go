@@ -25,9 +25,9 @@ import (
 	"software.sslmate.com/src/go-pkcs12"
 	"sort"
 
-	infinispan "github.com/infinispan/infinispan-operator/pkg/apis/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
+	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

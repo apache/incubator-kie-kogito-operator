@@ -15,6 +15,7 @@
 package test
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,7 +25,7 @@ import (
 
 // AssertReconcile asserts if the reconcile.Reconciler call finished without errors
 func AssertReconcile(t *testing.T, r reconcile.Reconciler, instance metav1.Object) (result reconcile.Result) {
-	result, err := r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
+	result, err := r.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	return

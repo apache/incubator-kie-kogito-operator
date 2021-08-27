@@ -30,6 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -48,7 +49,7 @@ type ServiceDefinition struct {
 	// E.g. if you need an additional Kubernetes resource, just create your own map that the API will append to its managed resources.
 	// The "objectLists" array is the List object reference of the types created.
 	// For example: if a ConfigMap is created, then ConfigMapList empty reference should be added to this list
-	OnObjectsCreate func(kogitoService api.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []runtime.Object, err error)
+	OnObjectsCreate func(kogitoService api.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []client.ObjectList, err error)
 	// OnGetComparators is called during the deployment phase to compare the deployed resources against the created ones
 	// Use this hook to add your comparators to override a specific comparator or to add your own if you have created extra objects via OnObjectsCreate
 	// Use framework.NewComparatorBuilder() to build your own
@@ -61,7 +62,7 @@ type ServiceDefinition struct {
 	// A custom service means that could be built by a third party, not being provided by the Kogito Team Services catalog (such as Data Index, Management Console and etc.).
 	CustomService bool
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
-	extraManagedObjectLists []runtime.Object
+	extraManagedObjectLists []client.ObjectList
 
 	OnConfigMapReconcile func() error
 }

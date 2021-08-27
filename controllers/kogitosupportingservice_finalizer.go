@@ -15,6 +15,7 @@
 package controllers
 
 import (
+	"context"
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
@@ -31,18 +32,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-//// newFinalizerReconciler returns a new reconcile.Reconciler
-//func newFinalizerReconciler(mgr manager.Manager) reconcile.Reconciler {
-//	return &FinalizeKogitoSupportingService{Client: kogitocli.NewForController(mgr.GetConfig()), Scheme: mgr.GetScheme()}
-//}
-
 // FinalizeKogitoSupportingService reconciles a KogitoSupportingService object
 type FinalizeKogitoSupportingService struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	Client *kogitocli.Client
 	Scheme *runtime.Scheme
-	Log    logger.Logger
 }
 
 // SetupWithManager adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -53,7 +48,7 @@ func (f *FinalizeKogitoSupportingService) SetupWithManager(mgr manager.Manager) 
 			return false
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			return !e.MetaNew.GetDeletionTimestamp().IsZero()
+			return !e.ObjectNew.GetDeletionTimestamp().IsZero()
 		},
 	}
 	b := ctrl.NewControllerManagedBy(mgr).For(&v1beta1.KogitoSupportingService{}, builder.WithPredicates(pred))
@@ -64,19 +59,19 @@ func (f *FinalizeKogitoSupportingService) SetupWithManager(mgr manager.Manager) 
 
 // Reconcile reads that state of the cluster for a KogitoSupportingService object and makes changes based on the state read
 // and what is in the KogitoSupportingService.Spec
-func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (result reconcile.Result, err error) {
-	log := f.Log.WithValues("name", request.Name, "namespace", request.Namespace)
+func (f *FinalizeKogitoSupportingService) Reconcile(ctx context.Context, request reconcile.Request) (result reconcile.Result, err error) {
+	log := logger.FromContext(ctx)
 	log.Info("Reconciling for KogitoSupportingService finalizer")
 
-	// create context
-	context := operator.Context{
+	// create kogitoContext
+	kogitoContext := operator.Context{
 		Client:  f.Client,
 		Log:     log,
 		Scheme:  f.Scheme,
 		Version: version.Version,
 	}
 
-	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
+	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(kogitoContext)
 	instance, err := supportingServiceHandler.FetchKogitoSupportingService(request.NamespacedName)
 	if err != nil {
 		return
@@ -85,9 +80,9 @@ func (f *FinalizeKogitoSupportingService) Reconcile(request reconcile.Request) (
 		log.Debug("KogitoSupportingService instance not found. Going to return reconciliation request", "name", request.Name, "namespace", request.Namespace)
 		return
 	}
-	infraHandler := internal.NewKogitoInfraHandler(context)
-	infraFinalizer := kogitoservice.NewInfraFinalizerHandler(context, infraHandler)
-	configMapFinalizer := kogitoservice.NewConfigMapFinalizerHandler(context)
+	infraHandler := internal.NewKogitoInfraHandler(kogitoContext)
+	infraFinalizer := kogitoservice.NewInfraFinalizerHandler(kogitoContext, infraHandler)
+	configMapFinalizer := kogitoservice.NewConfigMapFinalizerHandler(kogitoContext)
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR

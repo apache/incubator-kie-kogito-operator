@@ -59,13 +59,13 @@ func NewFilteredKogitoBuildInformer(client versioned.Interface, namespace string
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AppV1beta1().KogitoBuilds(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().KogitoBuilds(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AppV1beta1().KogitoBuilds(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().KogitoBuilds(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&apiv1beta1.KogitoBuild{},

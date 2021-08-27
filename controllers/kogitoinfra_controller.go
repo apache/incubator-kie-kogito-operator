@@ -15,6 +15,7 @@
 package controllers
 
 import (
+	"context"
 	"github.com/kiegroup/kogito-operator/core/kogitoinfra"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -36,32 +37,31 @@ import (
 // KogitoInfraReconciler reconciles a KogitoInfra object
 type KogitoInfraReconciler struct {
 	*client.Client
-	Log    logger.Logger
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras/finalizers,verbs=get;update;patch
-// +kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=infinispan.org,resources=infinispans,verbs=get;create;list;delete;watch
-// +kubebuilder:rbac:groups=kafka.strimzi.io,resources=kafkas;kafkatopics,verbs=get;create;list;delete;watch
-// +kubebuilder:rbac:groups=keycloak.org,resources=keycloaks,verbs=get;create;list;delete;watch
-// +kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
-// +kubebuilder:rbac:groups=eventing.knative.dev,resources=brokers,verbs=get;list;watch
-// +kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
-// +kubebuilder:rbac:groups=mongodb.com,resources=mongodb,verbs=get;create;list;watch;delete
+//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoinfras/finalizers,verbs=get;update;patch
+//+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;create;delete;update
+//+kubebuilder:rbac:groups=infinispan.org,resources=infinispans,verbs=get;create;list;delete;watch
+//+kubebuilder:rbac:groups=kafka.strimzi.io,resources=kafkas;kafkatopics,verbs=get;create;list;delete;watch
+//+kubebuilder:rbac:groups=keycloak.org,resources=keycloaks,verbs=get;create;list;delete;watch
+//+kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
+//+kubebuilder:rbac:groups=eventing.knative.dev,resources=brokers,verbs=get;list;watch
+//+kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;delete;update
+//+kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
+//+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
+//+kubebuilder:rbac:groups=mongodb.com,resources=mongodb,verbs=get;create;list;watch;delete
 
 // Reconcile reads that state of the cluster for a KogitoInfra object and makes changes based on the state read
 // and what is in the KogitoInfra.Spec
-func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("name", req.Name, "namespace", req.Namespace)
+func (r *KogitoInfraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := logger.FromContext(ctx)
 	log.Info("Reconciling KogitoInfra")
 
-	// create context
-	context := operator.Context{
+	// create kogitoContext
+	kogitoContext := operator.Context{
 		Client:  r.Client,
 		Log:     log,
 		Scheme:  r.Scheme,
@@ -69,7 +69,7 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 	}
 
 	// Fetch the KogitoInfra instance
-	infraHandler := internal.NewKogitoInfraHandler(context)
+	infraHandler := internal.NewKogitoInfraHandler(kogitoContext)
 	instance, resultErr := infraHandler.FetchKogitoInfraInstance(req.NamespacedName)
 	if resultErr != nil {
 		return reconcile.Result{}, resultErr
@@ -79,10 +79,10 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return reconcile.Result{}, nil
 	}
 
-	statusHandler := kogitoinfra.NewStatusHandler(context)
+	statusHandler := kogitoinfra.NewStatusHandler(kogitoContext)
 	defer statusHandler.UpdateBaseStatus(instance, &resultErr)
 
-	reconcilerHandler := kogitoinfra.NewReconcilerHandler(context)
+	reconcilerHandler := kogitoinfra.NewReconcilerHandler(kogitoContext)
 	reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance)
 	if resultErr != nil {
 		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
@@ -94,11 +94,10 @@ func (r *KogitoInfraReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 
 // SetupWithManager registers the controller with manager
 func (r *KogitoInfraReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	r.Log.Debug("Adding watched objects for KogitoInfra controller")
 	pred := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			// do not call reconciler if only owner reference is added or deleted
-			return reflect.DeepEqual(e.MetaNew.GetOwnerReferences(), e.MetaOld.GetOwnerReferences())
+			return reflect.DeepEqual(e.ObjectNew.GetOwnerReferences(), e.ObjectOld.GetOwnerReferences())
 		},
 	}
 	b := ctrl.NewControllerManagedBy(mgr).For(&v1beta1.KogitoInfra{}, builder.WithPredicates(pred))

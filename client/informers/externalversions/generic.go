@@ -49,15 +49,15 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=app.kiegroup.org, Version=v1beta1
+	// Group=core, Version=v1beta1
 	case v1beta1.SchemeGroupVersion.WithResource("kogitobuilds"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.App().V1beta1().KogitoBuilds().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().KogitoBuilds().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("kogitoinfras"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.App().V1beta1().KogitoInfras().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().KogitoInfras().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("kogitoruntimes"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.App().V1beta1().KogitoRuntimes().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().KogitoRuntimes().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("kogitosupportingservices"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.App().V1beta1().KogitoSupportingServices().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().KogitoSupportingServices().Informer()}, nil
 
 	}
 

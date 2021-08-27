@@ -1,20 +1,46 @@
 domain: kiegroup.org
-layout: go.kubebuilder.io/v2
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
 projectName: kogito-operator
 repo: github.com/kiegroup/kogito-operator
 resources:
-- group: app
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: app
   kind: KogitoRuntime
+  path: github.com/kiegroup/kogito-operator/api/v1beta1
   version: v1beta1
-- group: app
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: app
   kind: KogitoSupportingService
+  path: github.com/kiegroup/kogito-operator/api/v1beta1
   version: v1beta1
-- group: app
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: app
   kind: KogitoBuild
+  path: github.com/kiegroup/kogito-operator/api/v1beta1
   version: v1beta1
-- group: app
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: app
   kind: KogitoInfra
+  path: github.com/kiegroup/kogito-operator/api/v1beta1
   version: v1beta1
-version: 3-alpha
-plugins:
-  go.sdk.operatorframework.io/v2-alpha: {}
+version: "3"

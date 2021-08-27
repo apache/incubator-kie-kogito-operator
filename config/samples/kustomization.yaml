@@ -4,4 +4,4 @@ resources:
 - app_v1beta1_kogitosupportingservice.yaml
 - app_v1beta1_kogitobuild.yaml
 - app_v1beta1_kogitoinfra.yaml
-# +kubebuilder:scaffold:manifestskustomizesamples
+#+kubebuilder:scaffold:manifestskustomizesamples

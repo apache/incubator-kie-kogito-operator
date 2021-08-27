@@ -16,22 +16,20 @@ package framework
 
 import (
 	"fmt"
-
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators"
 
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/test/pkg/config"
 
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
-	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 )
 
 const (
@@ -59,7 +57,7 @@ const (
 
 // OperatorCatalog OLM operator catalog
 type OperatorCatalog struct {
-	source    string
+	Source    string
 	namespace string
 }
 
@@ -172,7 +170,7 @@ func RemoveKogitoOperatorDeployment(namespace string) error {
 
 // InstallOperator installs an operator via subscrition
 func InstallOperator(namespace, subscriptionName, channel, startingCSV string, catalog OperatorCatalog) error {
-	GetLogger(namespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.source, "channel", channel)
+	GetLogger(namespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.Source, "channel", channel)
 	if _, err := CreateOperatorGroupIfNotExists(namespace, namespace); err != nil {
 		return err
 	}
@@ -191,7 +189,7 @@ func InstallOperator(namespace, subscriptionName, channel, startingCSV string, c
 // InstallClusterWideOperator installs an operator for all namespaces via subscrition
 func InstallClusterWideOperator(subscriptionName, channel, startingCSV string, catalog OperatorCatalog) error {
 	clusterOperatorNamespace := GetClusterOperatorNamespace()
-	GetLogger(clusterOperatorNamespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.source, "channel", channel, "namespace", clusterOperatorNamespace)
+	GetLogger(clusterOperatorNamespace).Info("Subscribing to operator", "subscriptionName", subscriptionName, "catalogSource", catalog.Source, "channel", channel, "namespace", clusterOperatorNamespace)
 	if _, err := CreateNamespacedSubscriptionIfNotExist(clusterOperatorNamespace, subscriptionName, subscriptionName, catalog, channel, startingCSV); err != nil {
 		return err
 	}
@@ -215,7 +213,7 @@ func WaitForClusterWideOperatorRunning(operatorPackageName string, catalog Opera
 
 // IsOperatorRunning checks whether an operator is running
 func IsOperatorRunning(namespace, operatorPackageName string, catalog OperatorCatalog) (bool, error) {
-	exists, err := OperatorExistsUsingSubscription(namespace, operatorPackageName, catalog.source)
+	exists, err := OperatorExistsUsingSubscription(namespace, operatorPackageName, catalog.Source)
 	if err != nil {
 		if exists {
 			return false, nil
@@ -230,7 +228,7 @@ func IsOperatorRunning(namespace, operatorPackageName string, catalog OperatorCa
 func OperatorExistsUsingSubscription(namespace, operatorPackageName, operatorSource string) (bool, error) {
 	GetLogger(namespace).Debug("Checking Operator", "Subscription", operatorPackageName, "Namespace", namespace)
 
-	subscription, err := framework.GetSubscription(kubeClient, namespace, operatorPackageName, operatorSource)
+	subscription, err := GetSubscription(namespace, operatorPackageName, operatorSource)
 	if err != nil {
 		return false, err
 	} else if subscription == nil {
@@ -306,16 +304,16 @@ func isOperatorGroupReady(namespace, operatorGroupName string) (bool, error) {
 }
 
 // CreateNamespacedSubscriptionIfNotExist create a namespaced subscription if not exists
-func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName string, operatorName string, catalog OperatorCatalog, channel, startingCSV string) (*olmapiv1alpha1.Subscription, error) {
-	subscription := &olmapiv1alpha1.Subscription{
+func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName string, operatorName string, catalog OperatorCatalog, channel, startingCSV string) (*operators.Subscription, error) {
+	subscription := &operators.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      subscriptionName,
 			Namespace: namespace,
 			Labels:    map[string]string{clusterWideSubscriptionLabel: ""},
 		},
-		Spec: &olmapiv1alpha1.SubscriptionSpec{
+		Spec: &operators.SubscriptionSpec{
 			Package:                operatorName,
-			CatalogSource:          catalog.source,
+			CatalogSource:          catalog.Source,
 			CatalogSourceNamespace: catalog.namespace,
 			Channel:                channel,
 			StartingCSV:            startingCSV,
@@ -330,10 +328,10 @@ func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName s
 }
 
 // GetClusterWideTestSubscriptions returns cluster wide subscriptions created by BDD tests
-func GetClusterWideTestSubscriptions() (*olmapiv1alpha1.SubscriptionList, error) {
+func GetClusterWideTestSubscriptions() (*operators.SubscriptionList, error) {
 	clusterOperatorNamespace := GetClusterOperatorNamespace()
 
-	subscriptions := &olmapiv1alpha1.SubscriptionList{}
+	subscriptions := &operators.SubscriptionList{}
 	if err := kubernetes.ResourceC(kubeClient).ListWithNamespaceAndLabel(clusterOperatorNamespace, subscriptions, map[string]string{clusterWideSubscriptionLabel: ""}); err != nil {
 		return nil, fmt.Errorf("Error retrieving SubscriptionList in namespace %s: %v", clusterOperatorNamespace, err)
 	}
@@ -342,24 +340,32 @@ func GetClusterWideTestSubscriptions() (*olmapiv1alpha1.SubscriptionList, error)
 }
 
 // GetSubscription returns subscription
-func GetSubscription(namespace, operatorPackageName string, catalog OperatorCatalog) (*olmapiv1alpha1.Subscription, error) {
-	subscription, err := framework.GetSubscription(kubeClient, namespace, operatorPackageName, catalog.source)
-	if err != nil {
+func GetSubscription(namespace, operatorPackageName, operatorSource string) (*operators.Subscription, error) {
+	log := logger.GetLogger("subscription")
+	log.Debug("Trying to fetch Subscription", "namespace", namespace, "Package name", operatorPackageName, "CatalogSource", namespace, operatorPackageName, operatorSource)
+
+	subs := &operators.SubscriptionList{}
+	if err := kubernetes.ResourceC(kubeClient).ListWithNamespace(namespace, subs); err != nil {
 		return nil, err
-	} else if subscription == nil {
-		return nil, fmt.Errorf("Subscription with name %s and operator source %s not found in namespace %s", operatorPackageName, catalog.source, namespace)
 	}
 
-	return subscription, nil
+	for _, sub := range subs.Items {
+		if sub.Spec.Package == operatorPackageName &&
+			sub.Spec.CatalogSource == operatorSource {
+			return &sub, nil
+		}
+	}
+
+	return nil, fmt.Errorf(" Subscription with name %s and operator Source %s not found in namespace %s", operatorPackageName, operatorSource, namespace)
 }
 
 // GetClusterWideSubscription returns cluster wide subscription
-func GetClusterWideSubscription(operatorPackageName string, catalog OperatorCatalog) (*olmapiv1alpha1.Subscription, error) {
-	return GetSubscription(GetClusterOperatorNamespace(), operatorPackageName, catalog)
+func GetClusterWideSubscription(operatorPackageName string, catalog OperatorCatalog) (*operators.Subscription, error) {
+	return GetSubscription(GetClusterOperatorNamespace(), operatorPackageName, catalog.Source)
 }
 
 // DeleteSubscription deletes Subscription and related objects
-func DeleteSubscription(subscription *olmapiv1alpha1.Subscription) error {
+func DeleteSubscription(subscription *operators.Subscription) error {
 	installedCsv := subscription.Status.InstalledCSV
 	suscriptionNamespace := subscription.Namespace
 
@@ -369,7 +375,7 @@ func DeleteSubscription(subscription *olmapiv1alpha1.Subscription) error {
 	}
 
 	// Delete related CSV
-	csv := &olmapiv1alpha1.ClusterServiceVersion{}
+	csv := &operators.ClusterServiceVersion{}
 	exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Namespace: suscriptionNamespace, Name: installedCsv}, csv)
 	if err != nil {
 		return err
@@ -414,18 +420,18 @@ func isMongoDBOperatorRunning(namespace string) (bool, error) {
 	return exists, nil
 }
 
-// CreateKogitoOperatorCatalogSource create a Kogito operator catalog source
-func CreateKogitoOperatorCatalogSource() (*olmapiv1alpha1.CatalogSource, error) {
+// CreateKogitoOperatorCatalogSource create a Kogito operator catalog Source
+func CreateKogitoOperatorCatalogSource() (*operators.CatalogSource, error) {
 	catalogNamespace := GetCustomKogitoOperatorCatalog().namespace
 	GetLogger(catalogNamespace).Info("Installing custom Kogito operator CatalogSource", "name", kogitoCatalogSourceName, "namespace", catalogNamespace)
 
-	cs := &olmapiv1alpha1.CatalogSource{
+	cs := &operators.CatalogSource{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetCustomKogitoOperatorCatalog().source,
+			Name:      GetCustomKogitoOperatorCatalog().Source,
 			Namespace: GetCustomKogitoOperatorCatalog().namespace,
 		},
-		Spec: olmapiv1alpha1.CatalogSourceSpec{
-			SourceType:  olmapiv1alpha1.SourceTypeGrpc,
+		Spec: operators.CatalogSourceSpec{
+			SourceType:  operators.SourceTypeGrpc,
 			Image:       config.GetOperatorCatalogImage(),
 			Description: "Catalog containing custom Kogito bundle used for BDD tests",
 		},
@@ -447,9 +453,9 @@ func WaitForKogitoOperatorCatalogSourceReady() error {
 }
 
 func isKogitoOperatorCatalogSourceReady() (bool, error) {
-	cs := &olmapiv1alpha1.CatalogSource{
+	cs := &operators.CatalogSource{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetCustomKogitoOperatorCatalog().source,
+			Name:      GetCustomKogitoOperatorCatalog().Source,
 			Namespace: GetCustomKogitoOperatorCatalog().namespace,
 		},
 	}
@@ -465,13 +471,13 @@ func isKogitoOperatorCatalogSourceReady() (bool, error) {
 	return true, nil
 }
 
-// DeleteKogitoOperatorCatalogSource delete a Kogito operator catalog source
+// DeleteKogitoOperatorCatalogSource delete a Kogito operator catalog Source
 func DeleteKogitoOperatorCatalogSource() error {
 	GetLogger(GetCustomKogitoOperatorCatalog().namespace).Info("Deleting custom Kogito operator CatalogSource", "name", kogitoCatalogSourceName, "namespace", GetCustomKogitoOperatorCatalog().namespace)
 
-	cs := &olmapiv1alpha1.CatalogSource{
+	cs := &operators.CatalogSource{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetCustomKogitoOperatorCatalog().source,
+			Name:      GetCustomKogitoOperatorCatalog().Source,
 			Namespace: GetCustomKogitoOperatorCatalog().namespace,
 		},
 	}
@@ -510,10 +516,10 @@ func GetCustomKogitoOperatorCatalog() OperatorCatalog {
 	return GetOperatorCatalog(KubernetesCatalogNamespace, kogitoCatalogSourceName)
 }
 
-// GetOperatorCatalog creates the operator catalog based given on source and namespace
+// GetOperatorCatalog creates the operator catalog based given on Source and namespace
 func GetOperatorCatalog(namespace, source string) OperatorCatalog {
 	return OperatorCatalog{
-		source:    source,
+		Source:    source,
 		namespace: namespace,
 	}
 }

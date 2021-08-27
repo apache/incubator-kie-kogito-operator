@@ -17,13 +17,14 @@ package framework
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-openapi/swag"
 	"regexp"
 
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	framework1 "github.com/kiegroup/kogito-operator/core/framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	keycloak "github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
+	keycloak "github.com/kiegroup/kogito-operator/core/infrastructure/keycloak/v1alpha1"
 )
 
 const (
@@ -93,7 +94,7 @@ func DeployKeycloakClient(namespace, clientName string) error {
 				PublicClient:              true,
 				RedirectUris:              []string{"*"},
 				Protocol:                  "openid-connect",
-				FullScopeAllowed:          true,
+				FullScopeAllowed:          swag.Bool(true),
 			},
 		},
 	}

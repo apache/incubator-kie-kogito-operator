@@ -54,7 +54,7 @@ type kogitoRuntimes struct {
 }
 
 // newKogitoRuntimes returns a KogitoRuntimes
-func newKogitoRuntimes(c *AppV1beta1Client, namespace string) *kogitoRuntimes {
+func newKogitoRuntimes(c *V1beta1Client, namespace string) *kogitoRuntimes {
 	return &kogitoRuntimes{
 		client: c.RESTClient(),
 		ns:     namespace,

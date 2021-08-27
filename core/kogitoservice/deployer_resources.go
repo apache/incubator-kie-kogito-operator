@@ -17,6 +17,7 @@ package kogitoservice
 import (
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -28,7 +29,6 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // createRequiredResources creates the required resources given the KogitoService instance
@@ -133,11 +133,11 @@ func (s *serviceDeployer) setOwner(resources map[reflect.Type][]resource.Kuberne
 
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance
 func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	var objectTypes []runtime.Object
+	var objectTypes []client.ObjectList
 	if s.Client.IsOpenshift() {
-		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &routev1.RouteList{}}
+		objectTypes = []client.ObjectList{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &routev1.RouteList{}}
 	} else {
-		objectTypes = []runtime.Object{&appsv1.DeploymentList{}, &corev1.ServiceList{}}
+		objectTypes = []client.ObjectList{&appsv1.DeploymentList{}, &corev1.ServiceList{}}
 	}
 
 	if len(s.definition.extraManagedObjectLists) > 0 {

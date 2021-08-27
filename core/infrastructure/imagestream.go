@@ -24,9 +24,9 @@ import (
 	imgv1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -83,7 +83,7 @@ func (i *imageStreamHandler) FetchImageStream(key types.NamespacedName) (*imgv1.
 
 func (i *imageStreamHandler) FetchImageStreamForOwner(owner resource.KubernetesResource) ([]resource.KubernetesResource, error) {
 	i.Log.Debug("fetching image stream for given owner.")
-	objectTypes := []runtime.Object{&imgv1.ImageStreamList{}}
+	objectTypes := []client.ObjectList{&imgv1.ImageStreamList{}}
 	resources, err := kubernetes.ResourceC(i.Client).ListAll(objectTypes, owner.GetNamespace(), owner)
 	if err != nil {
 		return nil, err

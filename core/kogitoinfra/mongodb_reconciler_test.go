@@ -22,7 +22,7 @@ import (
 	"github.com/kiegroup/kogito-operator/meta"
 	"testing"
 
-	mongodb "github.com/mongodb/mongodb-kubernetes-operator/pkg/apis/mongodb/v1"
+	mongodb "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

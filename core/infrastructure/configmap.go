@@ -22,10 +22,10 @@ import (
 	"github.com/kiegroup/kogito-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"path"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 )
 
@@ -99,7 +99,7 @@ func (c *configMapHandler) FetchConfigMapsForLabel(namespace string, labels map[
 
 func (c *configMapHandler) FetchConfigMapForOwner(owner resource.KubernetesResource) ([]*corev1.ConfigMap, error) {
 	c.Log.Debug("fetching config map for given owner.")
-	objectTypes := []runtime.Object{&corev1.ConfigMapList{}}
+	objectTypes := []client.ObjectList{&corev1.ConfigMapList{}}
 	resources, err := kubernetes.ResourceC(c.Client).ListAll(objectTypes, owner.GetNamespace(), owner)
 	if err != nil {
 		return nil, err

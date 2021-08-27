@@ -24,9 +24,9 @@ import (
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const errorPrefix = "error while creating build resources: "
@@ -144,7 +144,7 @@ func (d *deltaProcessor) getBuildManager() buildManager {
 }
 
 func (m *manager) GetDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
-	objectTypes := []runtime.Object{&buildv1.BuildConfigList{}, &imgv1.ImageStreamList{}}
+	objectTypes := []client.ObjectList{&buildv1.BuildConfigList{}, &imgv1.ImageStreamList{}}
 	resources, err := kubernetes.ResourceC(m.Client).ListAll(objectTypes, m.build.GetNamespace(), m.build)
 	if err != nil {
 		return nil, err
