@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package framework
+package api
 
-import (
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
-)
-
-// AddVolumeToDeployment adds the Volume and VolumeMount to the given first container of v1.Deployment.
-func AddVolumeToDeployment(deployment *appsv1.Deployment, mount v1.VolumeMount, volume v1.Volume) {
-	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, volume)
-	deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, mount)
+// VolumeReferenceInterface ...
+type VolumeReferenceInterface interface {
+	GetName() string
+	SetName(name string)
+	GetMountPath() string
+	SetMountPath(mountPath string)
+	IsOptional() *bool
+	SetOptional(optional *bool)
+	GetFileMode() *int32
+	SetFileMode(fileMode *int32)
 }

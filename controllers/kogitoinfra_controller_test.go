@@ -34,7 +34,7 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-infinispan", Namespace: t.Name()},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: v1beta1.InfraResource{
+			Resource: &v1beta1.InfraResource{
 				APIVersion: infrastructure.InfinispanAPIVersion,
 				Kind:       infrastructure.InfinispanKind,
 				Name:       "kogito-infinispan",
@@ -61,7 +61,7 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	kogitoInfra := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{Name: "kogito-kafka", Namespace: t.Name()},
 		Spec: v1beta1.KogitoInfraSpec{
-			Resource: v1beta1.InfraResource{
+			Resource: &v1beta1.InfraResource{
 				APIVersion: infrastructure.KafkaAPIVersion,
 				Kind:       infrastructure.KafkaKind,
 				Name:       "kogito-kafka",
@@ -100,8 +100,4 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	kafkaQuarkusAppProps := kogitoInfra.Status.RuntimeProperties[api.QuarkusRuntimeType].AppProps
-	assert.Contains(t, "kogito-kafka:9090", kafkaQuarkusAppProps["kafka.bootstrap.servers"])
-	kafkaSpringBootAppProps := kogitoInfra.Status.RuntimeProperties[api.SpringBootRuntimeType].AppProps
-	assert.Contains(t, "kogito-kafka:9090", kafkaSpringBootAppProps["kafka.bootstrap.servers"])
 }

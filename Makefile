@@ -80,8 +80,10 @@ lint:
 
 # Generate code
 generate: controller-gen
+	./hack/kogito-module-api.sh --disable
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 	./hack/openapi.sh
+	./hack/kogito-module-api.sh --enable
 	./hack/client-gen.sh
 
 # Build the docker image
@@ -178,7 +180,9 @@ generate-profiling-installer: generate manifests kustomize
 
 # Generate CSV
 csv:
+	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests
+	./hack/kogito-module-api.sh --enable
 
 vet: generate-installer generate-profiling-installer bundle
 	go vet ./...

@@ -360,7 +360,9 @@ func (k *KogitoServiceSpec) AddServiceLabel(name, value string) {
 func (k *KogitoServiceSpec) IsInsecureImageRegistry() bool { return k.InsecureImageRegistry }
 
 // GetPropertiesConfigMap ...
-func (k *KogitoServiceSpec) GetPropertiesConfigMap() string { return k.PropertiesConfigMap }
+func (k *KogitoServiceSpec) GetPropertiesConfigMap() string {
+	return k.PropertiesConfigMap
+}
 
 // GetInfra ...
 func (k *KogitoServiceSpec) GetInfra() []string { return k.Infra }

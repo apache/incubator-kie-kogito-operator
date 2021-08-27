@@ -20,11 +20,14 @@ import (
 )
 
 // FromInfraResourceFlagsToResource converts given InfraResourceFlags into InfraResource
-func FromInfraResourceFlagsToResource(flags *flag.InfraResourceFlags) v1beta1.InfraResource {
-	return v1beta1.InfraResource{
-		Kind:       flags.Kind,
-		APIVersion: flags.APIVersion,
-		Namespace:  flags.ResourceNamespace,
-		Name:       flags.ResourceName,
+func FromInfraResourceFlagsToResource(flags *flag.InfraResourceFlags) *v1beta1.InfraResource {
+	if len(flags.ResourceName) > 0 {
+		return &v1beta1.InfraResource{
+			Kind:       flags.Kind,
+			APIVersion: flags.APIVersion,
+			Namespace:  flags.ResourceNamespace,
+			Name:       flags.ResourceName,
+		}
 	}
+	return nil
 }
