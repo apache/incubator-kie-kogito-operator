@@ -164,6 +164,17 @@ spec:
         name: A Kubernetes Secret
         version: v1
       specDescriptors:
+      - description: List of secret that should be mounted to the services as envs
+        displayName: Config Map Env From References
+        path: configMapEnvFromReferences
+      - description: List of configmap that should be added to the services bound
+          to this infra instance
+        displayName: Config Map Volume References
+        path: configMapVolumeReferences
+      - description: Environment variables to be added to the runtime container. Keys
+          must be a C_IDENTIFIER.
+        displayName: Envs
+        path: envs
       - description: "Optional properties which would be needed to setup correct runtime/service
           configuration, based on the resource type. \n For example, MongoDB will
           require `username` and `database` as properties for a correct setup, else
@@ -187,12 +198,37 @@ spec:
       - description: Namespace where referred resource exists.
         displayName: Namespace
         path: resource.namespace
+      - description: List of secret that should be mounted to the services as envs
+        displayName: Secret Env From References
+        path: secretEnvFromReferences
+      - description: List of secret that should be munted to the services bound to
+          this infra instance
+        displayName: Secret Volume References
+        path: secretVolumeReferences
       statusDescriptors:
       - description: History of conditions for the resource
         displayName: Conditions
         path: conditions
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes.conditions
+      - description: List of Configmap that should be mounted to the services as envs
+        displayName: Config Map Env From References
+        path: configMapEnvFromReferences
+      - description: List of configmap that should be added as volume mount to this
+          infra instance
+        displayName: Config Map Volume References
+        path: configMapVolumeReferences
+      - description: Environment variables to be added to the runtime container. Keys
+          must be a C_IDENTIFIER.
+        displayName: Envs
+        path: env
+      - description: List of secret that should be mounted to the services as envs
+        displayName: Secret Env From References
+        path: secretEnvFromReferences
+      - description: List of secret that should be added as volume mount to this infra
+          instance
+        displayName: Secret Volume References
+        path: secretVolumeReferences
       version: v1beta1
     - description: KogitoRuntime is a custom Kogito service.
       displayName: Kogito Runtime

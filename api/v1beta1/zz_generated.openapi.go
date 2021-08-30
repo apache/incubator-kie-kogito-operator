@@ -284,7 +284,6 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.Refe
 					"resource": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resource for the service. Example: Infinispan/Kafka/Keycloak.",
-							Default:     map[string]interface{}{},
 							Ref:         ref("github.com/kiegroup/kogito-operator/api/v1beta1.InfraResource"),
 						},
 					},
@@ -309,12 +308,108 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraSpec(ref common.Refe
 							},
 						},
 					},
+					"envs": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/api/core/v1.EnvVar"),
+									},
+								},
+							},
+						},
+					},
+					"configMapEnvFromReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of secret that should be mounted to the services as envs",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"configMapVolumeReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of configmap that should be added to the services bound to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.VolumeReference"),
+									},
+								},
+							},
+						},
+					},
+					"secretEnvFromReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of secret that should be mounted to the services as envs",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"secretVolumeReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of secret that should be munted to the services bound to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.VolumeReference"),
+									},
+								},
+							},
+						},
+					},
 				},
-				Required: []string{"resource"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.InfraResource"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.InfraResource", "github.com/kiegroup/kogito-operator/api/v1beta1.VolumeReference", "k8s.io/api/core/v1.EnvVar"},
 	}
 }
 
@@ -344,35 +439,98 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 							},
 						},
 					},
-					"runtimeProperties": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Runtime variables extracted from the linked resource that will be added to the deployed Kogito service.",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties"),
-									},
-								},
-							},
-						},
-					},
-					"volumes": {
+					"env": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
 								"x-kubernetes-list-type": "atomic",
 							},
 						},
 						SchemaProps: spec.SchemaProps{
-							Description: "List of volumes that should be added to the services bound to this infra instance",
+							Description: "Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume"),
+										Ref:     ref("k8s.io/api/core/v1.EnvVar"),
+									},
+								},
+							},
+						},
+					},
+					"configMapEnvFromReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of Configmap that should be mounted to the services as envs",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"configMapVolumeReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of configmap that should be added as volume mount to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.VolumeReference"),
+									},
+								},
+							},
+						},
+					},
+					"secretEnvFromReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of secret that should be mounted to the services as envs",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"secretVolumeReferences": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "List of secret that should be added as volume mount to this infra instance",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/kiegroup/kogito-operator/api/v1beta1.VolumeReference"),
 									},
 								},
 							},
@@ -383,7 +541,7 @@ func schema_kiegroup_kogito_operator_api_v1beta1_KogitoInfraStatus(ref common.Re
 			},
 		},
 		Dependencies: []string{
-			"github.com/kiegroup/kogito-operator/api/v1beta1.KogitoInfraVolume", "github.com/kiegroup/kogito-operator/api/v1beta1.RuntimeProperties", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/kiegroup/kogito-operator/api/v1beta1.VolumeReference", "k8s.io/api/core/v1.EnvVar", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 

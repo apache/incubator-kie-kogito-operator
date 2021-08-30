@@ -16,12 +16,12 @@ package infrastructure
 
 import (
 	"fmt"
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	imgv1 "github.com/openshift/api/image/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 )
 
@@ -50,7 +50,7 @@ type ImageHandler interface {
 	ResolveImageNameTag() string
 	ResolveImageStreamTriggerAnnotation(containerName string) (key, value string)
 	CreateImageStreamIfNotExists() (*imgv1.ImageStream, error)
-	ReconcileImageStream(owner resource.KubernetesResource) error
+	ReconcileImageStream(owner client.Object) error
 }
 
 // imageHandler defines the base structure for images in either OpenShift or Kubernetes clusters
@@ -93,7 +93,7 @@ func (i *imageHandler) CreateImageStreamIfNotExists() (*imgv1.ImageStream, error
 	return nil, nil
 }
 
-func (i *imageHandler) ReconcileImageStream(owner resource.KubernetesResource) error {
+func (i *imageHandler) ReconcileImageStream(owner client.Object) error {
 	if i.Client.IsOpenshift() {
 		imageStreamReconciler := NewImageStreamReconciler(i.Context, types.NamespacedName{Name: i.imageStreamName, Namespace: i.namespace}, i.resolveTag(), i.addFromReference, i.resolveRegistryImage(), i.insecureImageRegistry, owner)
 		return imageStreamReconciler.Reconcile()

@@ -53,7 +53,6 @@ func (f *FinalizeKogitoSupportingService) SetupWithManager(mgr manager.Manager) 
 	}
 	b := ctrl.NewControllerManagedBy(mgr).For(&v1beta1.KogitoSupportingService{}, builder.WithPredicates(pred))
 	// Create a new controller
-
 	return b.Complete(f)
 }
 
@@ -82,15 +81,10 @@ func (f *FinalizeKogitoSupportingService) Reconcile(ctx context.Context, request
 	}
 	infraHandler := internal.NewKogitoInfraHandler(kogitoContext)
 	infraFinalizer := kogitoservice.NewInfraFinalizerHandler(kogitoContext, infraHandler)
-	configMapFinalizer := kogitoservice.NewConfigMapFinalizerHandler(kogitoContext)
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR
 		if err = infraFinalizer.AddFinalizer(instance); err != nil {
-			result.Requeue = true
-			return
-		}
-		if err = configMapFinalizer.AddFinalizer(instance); err != nil {
 			result.Requeue = true
 			return
 		}
@@ -100,10 +94,6 @@ func (f *FinalizeKogitoSupportingService) Reconcile(ctx context.Context, request
 	// The object is being deleted
 	log.Info("KogitoSupportingService has been deleted")
 	if err = infraFinalizer.HandleFinalization(instance); err != nil {
-		result.Requeue = true
-		return
-	}
-	if err = configMapFinalizer.HandleFinalization(instance); err != nil {
 		result.Requeue = true
 		return
 	}

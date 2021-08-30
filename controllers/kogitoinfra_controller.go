@@ -70,26 +70,59 @@ func (r *KogitoInfraReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// Fetch the KogitoInfra instance
 	infraHandler := internal.NewKogitoInfraHandler(kogitoContext)
-	instance, resultErr := infraHandler.FetchKogitoInfraInstance(req.NamespacedName)
-	if resultErr != nil {
-		return reconcile.Result{}, resultErr
+	instance, err := infraHandler.FetchKogitoInfraInstance(req.NamespacedName)
+	if err != nil {
+		return reconcile.Result{}, err
 	}
 	if instance == nil {
 		log.Debug("KogitoInfra instance not found")
 		return reconcile.Result{}, nil
 	}
-
+	var resultErr error
 	statusHandler := kogitoinfra.NewStatusHandler(kogitoContext)
 	defer statusHandler.UpdateBaseStatus(instance, &resultErr)
 
+	instance.GetStatus().SetEnvs(nil)
+	instance.GetStatus().SetConfigMapEnvFromReferences(nil)
+	instance.GetStatus().SetConfigMapVolumeReferences(nil)
+	instance.GetStatus().SetSecretEnvFromReferences(nil)
+	instance.GetStatus().SetSecretVolumeReferences(nil)
+
 	reconcilerHandler := kogitoinfra.NewReconcilerHandler(kogitoContext)
-	reconciler, resultErr := reconcilerHandler.GetInfraReconciler(instance)
-	if resultErr != nil {
+	if !instance.GetSpec().IsResourceEmpty() {
+		var reconciler kogitoinfra.Reconciler
+		reconciler, resultErr = reconcilerHandler.GetInfraReconciler(instance)
+		if resultErr != nil {
+			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+		}
+
+		resultErr = reconciler.Reconcile()
+		if resultErr != nil {
+			return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+		}
+	}
+
+	appConfigMapReconciler := reconcilerHandler.GetInfraPropertiesReconciler(instance)
+	if resultErr = appConfigMapReconciler.Reconcile(); resultErr != nil {
 		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
 	}
 
-	requeue, resultErr := reconciler.Reconcile()
-	return reconcilerHandler.GetReconcileResultFor(resultErr, requeue)
+	// Set envs in status
+	if len(instance.GetSpec().GetEnvs()) > 0 {
+		instance.GetStatus().AddEnvs(instance.GetSpec().GetEnvs())
+	}
+
+	configMapReferenceReconciler := reconcilerHandler.GetConfigMapReferenceReconciler(instance)
+	if resultErr = configMapReferenceReconciler.Reconcile(); resultErr != nil {
+		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+	}
+
+	secretReferenceReconciler := reconcilerHandler.GetSecretReferenceReconciler(instance)
+	if resultErr = secretReferenceReconciler.Reconcile(); resultErr != nil {
+		return reconcilerHandler.GetReconcileResultFor(resultErr, false)
+	}
+
+	return reconcile.Result{}, nil
 }
 
 // SetupWithManager registers the controller with manager
@@ -105,5 +138,7 @@ func (r *KogitoInfraReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	b = kogitoinfra.AppendKafkaWatchedObjects(b)
 	b = kogitoinfra.AppendKeycloakWatchedObjects(b)
 	b = kogitoinfra.AppendMongoDBWatchedObjects(b)
+	b = kogitoinfra.AppendConfigMapWatchedObjects(b)
+	b = kogitoinfra.AppendSecretWatchedObjects(b)
 	return b.Complete(r)
 }

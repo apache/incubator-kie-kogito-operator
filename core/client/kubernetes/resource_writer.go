@@ -16,7 +16,6 @@ package kubernetes
 
 import (
 	"context"
-	resource2 "github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	"github.com/kiegroup/kogito-operator/core/client"
 	runtime "sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,11 +33,11 @@ type ResourceWriter interface {
 	// UpdateStatus update the given object status
 	UpdateStatus(resource runtime.Object) error
 	// CreateResources create provided objects
-	CreateResources(resources []resource2.KubernetesResource) (bool, error)
+	CreateResources(resources []runtime.Object) (bool, error)
 	// UpdateResources update provided objects
-	UpdateResources(existing []resource2.KubernetesResource, resources []resource2.KubernetesResource) (bool, error)
+	UpdateResources(existing []runtime.Object, resources []runtime.Object) (bool, error)
 	// DeleteResources delete provided objects
-	DeleteResources(resources []resource2.KubernetesResource) (bool, error)
+	DeleteResources(resources []runtime.Object) (bool, error)
 }
 
 // ResourceWriterC provide ResourceWrite reference
@@ -88,17 +87,17 @@ func (r *resourceWriter) UpdateStatus(resource runtime.Object) error {
 	return nil
 }
 
-func (r *resourceWriter) CreateResources(resources []resource2.KubernetesResource) (bool, error) {
+func (r *resourceWriter) CreateResources(resources []runtime.Object) (bool, error) {
 	writer := write.New(r.client.ControlCli)
 	return writer.AddResources(resources)
 }
 
-func (r *resourceWriter) UpdateResources(existing []resource2.KubernetesResource, resources []resource2.KubernetesResource) (bool, error) {
+func (r *resourceWriter) UpdateResources(existing []runtime.Object, resources []runtime.Object) (bool, error) {
 	writer := write.New(r.client.ControlCli)
 	return writer.UpdateResources(existing, resources)
 }
 
-func (r *resourceWriter) DeleteResources(resources []resource2.KubernetesResource) (bool, error) {
+func (r *resourceWriter) DeleteResources(resources []runtime.Object) (bool, error) {
 	writer := write.New(r.client.ControlCli)
 	return writer.RemoveResources(resources)
 }

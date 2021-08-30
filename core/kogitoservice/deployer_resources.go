@@ -15,25 +15,22 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/manager"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
 // createRequiredResources creates the required resources given the KogitoService instance
-func (s *serviceDeployer) createRequiredResources(image string) (resources map[reflect.Type][]resource.KubernetesResource, err error) {
-	resources = make(map[reflect.Type][]resource.KubernetesResource)
+func (s *serviceDeployer) createRequiredResources(image string) (resources map[reflect.Type][]client.Object, err error) {
+	resources = make(map[reflect.Type][]client.Object)
 
 	// TODO: refactor this entire file
 
@@ -45,39 +42,24 @@ func (s *serviceDeployer) createRequiredResources(image string) (resources map[r
 		return resources, err
 	}
 
+	s.mountEnvsOnDeployment(deployment)
+
+	if err = s.mountConfigMapReferencesOnDeployment(deployment); err != nil {
+		return resources, err
+	}
+
+	if err = s.mountSecretReferencesOnDeployment(deployment); err != nil {
+		return resources, err
+	}
+
+	resources[reflect.TypeOf(appsv1.Deployment{})] = []client.Object{deployment}
+
 	serviceHandler := infrastructure.NewServiceHandler(s.Context)
 	service := serviceHandler.CreateService(s.instance, deployment)
-
-	var infraVolumes []api.KogitoInfraVolumeInterface
-
-	if len(s.instance.GetSpec().GetInfra()) > 0 {
-		s.Log.Debug("Infra references are provided")
-		var infraEnvProp []corev1.EnvVar
-		infraManager := manager.NewKogitoInfraManager(s.Context, s.infraHandler)
-		_, infraEnvProp, infraVolumes, err = infraManager.FetchKogitoInfraProperties(s.instance.GetSpec().GetRuntime(), s.instance.GetNamespace(), s.instance.GetSpec().GetInfra()...)
-		if err != nil {
-			return resources, err
-		}
-		deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, infraEnvProp...)
-	}
-
-	deployment.Spec.Template.Spec.Containers[0].Env = append(deployment.Spec.Template.Spec.Containers[0].Env, framework.CreateEnvVar(infrastructure.RuntimeTypeKey, string(s.instance.GetSpec().GetRuntime())))
-
-	s.mountKogitoInfraVolumes(infraVolumes, deployment)
-
-	if err = NewTrustStoreHandler(s.Context).MountTrustStore(deployment, s.instance); err != nil {
-		return resources, err
-	}
-
-	if err = s.mountConfigMapOnDeployment(deployment); err != nil {
-		return resources, err
-	}
-
-	resources[reflect.TypeOf(appsv1.Deployment{})] = []resource.KubernetesResource{deployment}
-	resources[reflect.TypeOf(corev1.Service{})] = []resource.KubernetesResource{service}
+	resources[reflect.TypeOf(corev1.Service{})] = []client.Object{service}
 	if s.Client.IsOpenshift() {
 		routeHandler := infrastructure.NewRouteHandler(s.Context)
-		resources[reflect.TypeOf(routev1.Route{})] = []resource.KubernetesResource{routeHandler.CreateRoute(service)}
+		resources[reflect.TypeOf(routev1.Route{})] = []client.Object{routeHandler.CreateRoute(service)}
 	}
 
 	if err := s.onObjectsCreate(resources); err != nil {
@@ -104,9 +86,9 @@ func (s *serviceDeployer) onDeploymentCreate(deployment *appsv1.Deployment) erro
 }
 
 // onObjectsCreate calls the OnObjectsCreate hook for clients to add their custom objects/logic to the service
-func (s *serviceDeployer) onObjectsCreate(resources map[reflect.Type][]resource.KubernetesResource) error {
+func (s *serviceDeployer) onObjectsCreate(resources map[reflect.Type][]client.Object) error {
 	if s.definition.OnObjectsCreate != nil {
-		var additionalRes map[reflect.Type][]resource.KubernetesResource
+		var additionalRes map[reflect.Type][]client.Object
 		var err error
 		additionalRes, s.definition.extraManagedObjectLists, err = s.definition.OnObjectsCreate(s.instance)
 		if err != nil {
@@ -120,7 +102,7 @@ func (s *serviceDeployer) onObjectsCreate(resources map[reflect.Type][]resource.
 }
 
 // setOwner sets this service instance as the owner of each resource.
-func (s *serviceDeployer) setOwner(resources map[reflect.Type][]resource.KubernetesResource) error {
+func (s *serviceDeployer) setOwner(resources map[reflect.Type][]client.Object) error {
 	for _, resourceArr := range resources {
 		for _, res := range resourceArr {
 			if err := framework.SetOwner(s.instance, s.Scheme, res); err != nil {
@@ -132,7 +114,7 @@ func (s *serviceDeployer) setOwner(resources map[reflect.Type][]resource.Kuberne
 }
 
 // getDeployedResources gets the deployed resources in the cluster owned by the given instance
-func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]resource.KubernetesResource, err error) {
+func (s *serviceDeployer) getDeployedResources() (resources map[reflect.Type][]client.Object, err error) {
 	var objectTypes []client.ObjectList
 	if s.Client.IsOpenshift() {
 		objectTypes = []client.ObjectList{&appsv1.DeploymentList{}, &corev1.ServiceList{}, &routev1.RouteList{}}
@@ -176,24 +158,11 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 			WithCustomComparator(framework.CreateRouteComparator()).
 			Build())
 
-	resourceComparator.SetComparator(
-		framework.NewComparatorBuilder().
-			WithType(reflect.TypeOf(imgv1.ImageStream{})).
-			UseDefaultComparator().
-			WithCustomComparator(framework.CreateSharedImageStreamComparator()).
-			Build())
-
 	if s.definition.OnGetComparators != nil {
 		s.definition.OnGetComparators(resourceComparator)
 	}
 
 	return compare.MapComparator{Comparator: resourceComparator}
-}
-
-func (s *serviceDeployer) mountKogitoInfraVolumes(kogitoInfraVolumes []api.KogitoInfraVolumeInterface, deployment *appsv1.Deployment) {
-	for _, infraVolume := range kogitoInfraVolumes {
-		framework.AddVolumeToDeployment(deployment, infraVolume.GetMount(), infraVolume.GetNamedVolume().ToKubeVolume())
-	}
 }
 
 func (s *serviceDeployer) newImageHandler() infrastructure.ImageHandler {
@@ -215,16 +184,35 @@ func (s *serviceDeployer) resolveImage() *api.Image {
 	return &image
 }
 
-func (s *serviceDeployer) mountConfigMapOnDeployment(deployment *appsv1.Deployment) error {
+func (s *serviceDeployer) mountConfigMapReferencesOnDeployment(deployment *appsv1.Deployment) error {
 	configMapHandler := infrastructure.NewConfigMapHandler(s.Context)
-	configMapList, err := configMapHandler.FetchConfigMapForOwner(s.instance)
-	if err != nil {
-		return err
+	for _, configMapEnvFromReference := range s.definition.ConfigMapEnvFromReferences {
+		configMapHandler.MountAsEnvFrom(deployment, configMapEnvFromReference)
 	}
-	for _, configMap := range configMapList {
-		if err := configMapHandler.MountConfigMapOnDeployment(deployment, configMap); err != nil {
+
+	for _, configMapVolumeReference := range s.definition.ConfigMapVolumeReferences {
+		if err := configMapHandler.MountAsVolume(deployment, configMapVolumeReference); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (s *serviceDeployer) mountSecretReferencesOnDeployment(deployment *appsv1.Deployment) error {
+	secretHandler := infrastructure.NewSecretHandler(s.Context)
+	for _, secretEnvFromReference := range s.definition.SecretEnvFromReferences {
+		secretHandler.MountAsEnvFrom(deployment, secretEnvFromReference)
+	}
+
+	for _, secretVolumeReference := range s.definition.SecretVolumeReferences {
+		if err := secretHandler.MountAsVolume(deployment, secretVolumeReference); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *serviceDeployer) mountEnvsOnDeployment(deployment *appsv1.Deployment) {
+	deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env, framework.CreateEnvVar(infrastructure.RuntimeTypeKey, string(s.instance.GetSpec().GetRuntime())))
+	deployment.Spec.Template.Spec.Containers[0].Env = framework.EnvOverride(deployment.Spec.Template.Spec.Containers[0].Env, s.definition.Envs...)
 }

@@ -15,14 +15,15 @@
 package shared
 
 import (
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // ProtoBufConfigMapReconciler ...
@@ -33,70 +34,81 @@ type ProtoBufConfigMapReconciler interface {
 type protoBufConfigMapReconciler struct {
 	operator.Context
 	instance                 api.KogitoSupportingServiceInterface
+	serviceDefinition        *kogitoservice.ServiceDefinition
+	runtimeHandler           manager.KogitoRuntimeHandler
 	configMapHandler         infrastructure.ConfigMapHandler
 	protobufConfigMapHandler ProtoBufConfigMapHandler
 	deltaProcessor           infrastructure.DeltaProcessor
-	runtimeHandler           manager.KogitoRuntimeHandler
 }
 
 // NewProtoBufConfigMapReconciler ...
-func NewProtoBufConfigMapReconciler(context operator.Context, instance api.KogitoSupportingServiceInterface, runtimeHandler manager.KogitoRuntimeHandler) ProtoBufConfigMapReconciler {
+func NewProtoBufConfigMapReconciler(context operator.Context, instance api.KogitoSupportingServiceInterface, serviceDefinition *kogitoservice.ServiceDefinition, runtimeHandler manager.KogitoRuntimeHandler) ProtoBufConfigMapReconciler {
 	return &protoBufConfigMapReconciler{
 		Context:                  context,
 		instance:                 instance,
+		serviceDefinition:        serviceDefinition,
+		runtimeHandler:           runtimeHandler,
 		configMapHandler:         infrastructure.NewConfigMapHandler(context),
 		protobufConfigMapHandler: NewProtoBufConfigMapHandler(context),
 		deltaProcessor:           infrastructure.NewDeltaProcessor(context),
-		runtimeHandler:           runtimeHandler,
 	}
 }
 
-func (p *protoBufConfigMapReconciler) Reconcile() (err error) {
-	// Create Required resource
-	requestedResources, err := p.createRequiredResources()
-	if err != nil {
-		return
-	}
-
-	// Get Deployed resource
-	deployedResources, err := p.getDeployedResources()
-	if err != nil {
-		return
-	}
-
-	// Process Delta
-	return p.processDelta(requestedResources, deployedResources)
-}
-
-func (p *protoBufConfigMapReconciler) createRequiredResources() (map[reflect.Type][]resource.KubernetesResource, error) {
-	resources := make(map[reflect.Type][]resource.KubernetesResource)
+func (p *protoBufConfigMapReconciler) Reconcile() error {
 
 	runtimeInstances, err := p.runtimeHandler.FetchAllKogitoRuntimeInstances(p.instance.GetNamespace())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, runtimeInstance := range runtimeInstances.GetItems() {
-		protoBufConfigMap, err := p.protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
+		// Create Required resource
+		requestedResources, err := p.createRequiredResources(runtimeInstance)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		if err := framework.SetOwner(p.instance, p.Scheme, protoBufConfigMap); err != nil {
-			return nil, err
+
+		// Get Deployed resource
+		deployedResources, err := p.getDeployedResources(runtimeInstance)
+		if err != nil {
+			return err
 		}
-		resources[reflect.TypeOf(v1.ConfigMap{})] = []resource.KubernetesResource{protoBufConfigMap}
+
+		// Process Delta
+		if err = p.processDelta(requestedResources, deployedResources); err != nil {
+			return err
+		}
+
+		volumeReference := p.protobufConfigMapHandler.CreateProtoBufConfigMapReference(runtimeInstance)
+		p.serviceDefinition.ConfigMapVolumeReferences = append(p.serviceDefinition.ConfigMapVolumeReferences, volumeReference)
 	}
+	return nil
+}
+
+func (p *protoBufConfigMapReconciler) createRequiredResources(runtimeInstance api.KogitoRuntimeInterface) (map[reflect.Type][]client.Object, error) {
+	resources := make(map[reflect.Type][]client.Object)
+	protoBufConfigMap, err := p.protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
+	if err != nil {
+		return nil, err
+	}
+	if err := framework.SetOwner(p.instance, p.Scheme, protoBufConfigMap); err != nil {
+		return nil, err
+	}
+	resources[reflect.TypeOf(v1.ConfigMap{})] = []client.Object{protoBufConfigMap}
 	return resources, nil
 }
 
-func (p *protoBufConfigMapReconciler) getDeployedResources() (map[reflect.Type][]resource.KubernetesResource, error) {
-	resources := make(map[reflect.Type][]resource.KubernetesResource)
-	labels := map[string]string{ConfigMapProtoBufEnabledLabelKey: "true"}
+func (p *protoBufConfigMapReconciler) getDeployedResources(runtimeInstance api.KogitoRuntimeInterface) (map[reflect.Type][]client.Object, error) {
+	resources := make(map[reflect.Type][]client.Object)
+	labels := map[string]string{
+		framework.LabelAppKey:            runtimeInstance.GetName(),
+		ConfigMapProtoBufEnabledLabelKey: "true",
+	}
 	configMapList, err := p.configMapHandler.FetchConfigMapsForLabel(p.instance.GetNamespace(), labels)
 	if err != nil {
 		return nil, err
 	}
 	if len(configMapList.Items) > 0 {
-		kubernetesResources := make([]resource.KubernetesResource, len(configMapList.Items))
+		kubernetesResources := make([]client.Object, len(configMapList.Items))
 		for i, configMap := range configMapList.Items {
 			item := configMap
 			kubernetesResources[i] = &item
@@ -106,7 +118,7 @@ func (p *protoBufConfigMapReconciler) getDeployedResources() (map[reflect.Type][
 	return resources, nil
 }
 
-func (p *protoBufConfigMapReconciler) processDelta(requestedResources map[reflect.Type][]resource.KubernetesResource, deployedResources map[reflect.Type][]resource.KubernetesResource) (err error) {
+func (p *protoBufConfigMapReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := p.configMapHandler.GetComparator()
 	_, err = p.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return

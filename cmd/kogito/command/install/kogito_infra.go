@@ -28,6 +28,7 @@ import (
 type infraFlags struct {
 	flag.InfraResourceFlags
 	flag.PropertiesFlag
+	flag.EnvVarFlags
 	Name    string
 	Project string
 }
@@ -87,6 +88,9 @@ func (i *infraCommand) RegisterHook() {
 			if err := flag.CheckPropertiesArgs(&i.flags.PropertiesFlag); err != nil {
 				return err
 			}
+			if err := flag.CheckEnvVarArgs(&i.flags.EnvVarFlags); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -97,6 +101,7 @@ func (i *infraCommand) InitHook() {
 	i.flags = &infraFlags{}
 	flag.AddInfraResourceFlags(i.command, &i.flags.InfraResourceFlags)
 	flag.AddPropertiesFlags(i.command, &i.flags.PropertiesFlag)
+	flag.AddEnvVarFlags(i.command, &i.flags.EnvVarFlags, "env", "e")
 	i.command.Flags().StringVarP(&i.flags.Project, "project", "p", "", "The project name where the service will be deployed")
 }
 
@@ -116,6 +121,7 @@ func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 		Spec: v1beta1.KogitoInfraSpec{
 			Resource:        converter.FromInfraResourceFlagsToResource(&i.flags.InfraResourceFlags),
 			InfraProperties: converter.FromPropertiesFlagToStringMap(&i.flags.PropertiesFlag),
+			Envs:            converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 		},
 	}
 

@@ -98,8 +98,10 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	./hack/kogito-module-api.sh --enable
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	./hack/kogito-module-api.sh --disable
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 	./hack/openapi.sh
+	./hack/kogito-module-api.sh --enable
 	./hack/client-gen.sh
 
 fmt: ## Run go fmt against code.
@@ -115,7 +117,9 @@ vet: generate-installer generate-profiling-installer bundle ## Run go vet agains
 
 # Generate CSV
 csv:
+	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests
+	./hack/kogito-module-api.sh --enable
 
 ##@ Build
 

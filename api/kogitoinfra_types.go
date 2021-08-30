@@ -62,8 +62,14 @@ type KogitoInfraInterface interface {
 // KogitoInfraSpecInterface ...
 type KogitoInfraSpecInterface interface {
 	GetResource() ResourceInterface
+	IsResourceEmpty() bool
 	GetInfraProperties() map[string]string
 	AddInfraProperties(infraProperties map[string]string)
+	GetEnvs() []v1.EnvVar
+	GetConfigMapEnvFromReferences() []string
+	GetConfigMapVolumeReferences() []VolumeReferenceInterface
+	GetSecretEnvFromReferences() []string
+	GetSecretVolumeReferences() []VolumeReferenceInterface
 }
 
 // ResourceInterface ...
@@ -82,37 +88,26 @@ type ResourceInterface interface {
 type KogitoInfraStatusInterface interface {
 	GetConditions() *[]metav1.Condition
 	SetConditions(conditions *[]metav1.Condition)
-	GetRuntimeProperties(runtimeType RuntimeType) RuntimePropertiesInterface
-	AddRuntimeProperties(runtimeType RuntimeType, appProps map[string]string, env []v1.EnvVar)
-	GetVolumes() []KogitoInfraVolumeInterface
-	SetVolumes(infraVolumes []KogitoInfraVolumeInterface)
+	GetEnvs() []v1.EnvVar
+	SetEnvs(envs []v1.EnvVar)
+	AddEnvs(envs []v1.EnvVar)
+	GetConfigMapEnvFromReferences() []string
+	SetConfigMapEnvFromReferences(configMapEnvFromReferences []string)
+	AddConfigMapEnvFromReferences(cmName string)
+	GetConfigMapVolumeReferences() []VolumeReferenceInterface
+	SetConfigMapVolumeReferences(volumeReferences []VolumeReferenceInterface)
+	AddConfigMapVolumeReference(name string, mountPath string, fileMode *int32, optional *bool)
+	GetSecretEnvFromReferences() []string
+	SetSecretEnvFromReferences(secretEnvFromReferences []string)
+	AddSecretEnvFromReferences(cmName string)
+	GetSecretVolumeReferences() []VolumeReferenceInterface
+	SetSecretVolumeReferences(volumeReferences []VolumeReferenceInterface)
+	AddSecretVolumeReference(name string, mountPath string, fileMode *int32, optional *bool)
 }
 
 // RuntimePropertiesMap defines the map that KogitoInfraStatus
 // will use to link the runtime to their variables.
 type RuntimePropertiesMap map[RuntimeType]RuntimePropertiesInterface
-
-// ConfigVolumeSourceInterface ...
-type ConfigVolumeSourceInterface interface {
-	GetSecret() *v1.SecretVolumeSource
-	SetSecret(secret *v1.SecretVolumeSource)
-	GetConfigMap() *v1.ConfigMapVolumeSource
-	SetConfigMap(configMap *v1.ConfigMapVolumeSource)
-}
-
-// ConfigVolumeInterface ...
-type ConfigVolumeInterface interface {
-	ConfigVolumeSourceInterface
-	GetName() string
-	SetName(name string)
-	ToKubeVolume() v1.Volume
-}
-
-// KogitoInfraVolumeInterface ...
-type KogitoInfraVolumeInterface interface {
-	GetMount() v1.VolumeMount
-	GetNamedVolume() ConfigVolumeInterface
-}
 
 // RuntimePropertiesInterface ...
 type RuntimePropertiesInterface interface {

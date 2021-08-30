@@ -16,7 +16,6 @@ package kogitoservice
 
 import (
 	"fmt"
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -28,7 +27,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -49,7 +47,7 @@ type ServiceDefinition struct {
 	// E.g. if you need an additional Kubernetes resource, just create your own map that the API will append to its managed resources.
 	// The "objectLists" array is the List object reference of the types created.
 	// For example: if a ConfigMap is created, then ConfigMapList empty reference should be added to this list
-	OnObjectsCreate func(kogitoService api.KogitoService) (resources map[reflect.Type][]resource.KubernetesResource, objectLists []client.ObjectList, err error)
+	OnObjectsCreate func(kogitoService api.KogitoService) (resources map[reflect.Type][]client.Object, objectLists []client.ObjectList, err error)
 	// OnGetComparators is called during the deployment phase to compare the deployed resources against the created ones
 	// Use this hook to add your comparators to override a specific comparator or to add your own if you have created extra objects via OnObjectsCreate
 	// Use framework.NewComparatorBuilder() to build your own
@@ -64,7 +62,11 @@ type ServiceDefinition struct {
 	// extraManagedObjectLists is a holder for the OnObjectsCreate return function
 	extraManagedObjectLists []client.ObjectList
 
-	OnConfigMapReconcile func() error
+	ConfigMapEnvFromReferences []string
+	ConfigMapVolumeReferences  []api.VolumeReferenceInterface
+	SecretEnvFromReferences    []string
+	SecretVolumeReferences     []api.VolumeReferenceInterface
+	Envs                       []v1.EnvVar
 }
 
 const (
@@ -109,8 +111,6 @@ func newRecorder(scheme *runtime.Scheme, eventSourceName string) record.EventRec
 	return record.NewRecorder(scheme, v1.EventSource{Component: eventSourceName, Host: record.GetHostName()})
 }
 
-func (s *serviceDeployer) getNamespace() string { return s.definition.Request.Namespace }
-
 func (s *serviceDeployer) Deploy() error {
 	if s.instance.GetSpec().GetReplicas() == nil {
 		s.instance.GetSpec().SetReplicas(defaultReplicas)
@@ -125,15 +125,25 @@ func (s *serviceDeployer) Deploy() error {
 	statusHandler := NewStatusHandler(s.Context)
 	defer statusHandler.HandleStatusUpdate(s.instance, &err)
 
-	// we need to take ownership of the provided KogitoInfra instances
-	if len(s.instance.GetSpec().GetInfra()) > 0 {
-		err = s.takeKogitoInfraOwnership()
-		if err != nil {
-			return err
-		}
+	s.definition.Envs = s.instance.GetSpec().GetEnvs()
+
+	infraPropertiesReconciler := newConfigReconciler(s.Context, s.instance, &s.definition)
+	if err = infraPropertiesReconciler.Reconcile(); err != nil {
+		return err
 	}
 
-	if err = s.checkInfraDependencies(); err != nil {
+	configMapReferenceReconciler := newPropertiesConfigMapReconciler(s.Context, s.instance, &s.definition)
+	if err = configMapReferenceReconciler.Reconcile(); err != nil {
+		return err
+	}
+
+	trustStoreReconciler := newTrustStoreReconciler(s.Context, s.instance, &s.definition)
+	if err = trustStoreReconciler.Reconcile(); err != nil {
+		return err
+	}
+
+	kogitoInfraReconciler := newKogitoInfraReconciler(s.Context, s.instance, &s.definition, s.infraHandler)
+	if err = kogitoInfraReconciler.Reconcile(); err != nil {
 		return err
 	}
 
@@ -148,11 +158,6 @@ func (s *serviceDeployer) Deploy() error {
 		return err
 	} else if len(imageName) == 0 {
 		return fmt.Errorf("image not found")
-	}
-
-	configMapReconciler := NewConfigMapReconciler(s.Context, s, s.infraHandler)
-	if err = configMapReconciler.Reconcile(); err != nil {
-		return err
 	}
 
 	// create our resources
@@ -202,39 +207,10 @@ func (s *serviceDeployer) Deploy() error {
 	return err
 }
 
-func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, resourceType reflect.Type, addedResources []resource.KubernetesResource) {
+func (s *serviceDeployer) generateEventForDeltaResources(eventReason string, resourceType reflect.Type, addedResources []client.Object) {
 	for _, newResource := range addedResources {
 		s.recorder.Eventf(s.Client, s.instance, v1.EventTypeNormal, eventReason, "%s %s: %s", eventReason, resourceType.Name(), newResource.GetName())
 	}
-}
-
-func (s *serviceDeployer) takeKogitoInfraOwnership() error {
-	infraManager := manager.NewKogitoInfraManager(s.Context, s.infraHandler)
-	for _, infraName := range s.instance.GetSpec().GetInfra() {
-		if err := infraManager.TakeKogitoInfraOwnership(types.NamespacedName{Name: infraName, Namespace: s.getNamespace()}, s.instance); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// checkInfraDependencies verifies if every KogitoInfra resource have an ok status.
-func (s *serviceDeployer) checkInfraDependencies() error {
-	kogitoInfraReferences := s.instance.GetSpec().GetInfra()
-	s.Log.Debug("Going to fetch kogito infra properties", "infra name", kogitoInfraReferences)
-	infraManager := manager.NewKogitoInfraManager(s.Context, s.infraHandler)
-	for _, infraName := range kogitoInfraReferences {
-		if isReady, err := infraManager.IsKogitoInfraReady(types.NamespacedName{Name: infraName, Namespace: s.getNamespace()}); err != nil {
-			return err
-		} else if !isReady {
-			conditionReason, err := infraManager.GetKogitoInfraFailureConditionReason(types.NamespacedName{Name: infraName, Namespace: s.getNamespace()})
-			if err != nil {
-				return err
-			}
-			return infrastructure.ErrorForInfraNotReady(s.instance.GetName(), infraName, conditionReason)
-		}
-	}
-	return nil
 }
 
 func (s *serviceDeployer) configureMessaging() error {

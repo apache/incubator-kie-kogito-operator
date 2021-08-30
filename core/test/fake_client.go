@@ -15,7 +15,6 @@
 package test
 
 import (
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,6 +22,7 @@ import (
 	"k8s.io/client-go/discovery"
 	discfake "k8s.io/client-go/discovery/fake"
 	clienttesting "k8s.io/client-go/testing"
+	client2 "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	imgfake "github.com/openshift/client-go/image/clientset/versioned/fake"
@@ -125,6 +125,7 @@ func (f *fakeClientStruct) createFakeDiscoveryClient() discovery.DiscoveryInterf
 				{GroupVersion: "infinispan.org/v1"},
 				{GroupVersion: "kafka.strimzi.io/v1beta2"},
 				{GroupVersion: "keycloak.org/v1alpha1"},
+				{GroupVersion: "mongodb.com/v1"},
 				{GroupVersion: "app.kiegroup.org/v1beta1"},
 			},
 		},
@@ -149,7 +150,7 @@ func (f *fakeClientStruct) createFakeDiscoveryClient() discovery.DiscoveryInterf
 }
 
 // ToRuntimeObjects converts RHSysUtils array KubernetesResource into k8s runtime.Object array
-func ToRuntimeObjects(resources ...resource.KubernetesResource) []runtime.Object {
+func ToRuntimeObjects(resources ...client2.Object) []runtime.Object {
 	var k8sObject []runtime.Object
 	for _, resource := range resources {
 		k8sObject = append(k8sObject, resource)

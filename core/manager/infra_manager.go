@@ -16,10 +16,6 @@ package manager
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/core/framework/util"
-	corev1 "k8s.io/api/core/v1"
-
-	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/kiegroup/kogito-operator/api"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
@@ -27,16 +23,16 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // KogitoInfraManager ...
 type KogitoInfraManager interface {
 	MustFetchKogitoInfraInstance(key types.NamespacedName) (api.KogitoInfraInterface, error)
-	TakeKogitoInfraOwnership(key types.NamespacedName, owner resource.KubernetesResource) error
-	RemoveKogitoInfraOwnership(key types.NamespacedName, owner resource.KubernetesResource) error
+	TakeKogitoInfraOwnership(key types.NamespacedName, owner client.Object) error
+	RemoveKogitoInfraOwnership(key types.NamespacedName, owner client.Object) error
 	IsKogitoInfraReady(key types.NamespacedName) (bool, error)
 	GetKogitoInfraFailureConditionReason(key types.NamespacedName) (string, error)
-	FetchKogitoInfraProperties(runtimeType api.RuntimeType, namespace string, kogitoInfraReferences ...string) (map[string]string, []corev1.EnvVar, []api.KogitoInfraVolumeInterface, error)
 }
 
 // KogitoInfraHandler ...
@@ -75,7 +71,7 @@ func (k *kogitoInfraManager) MustFetchKogitoInfraInstance(key types.NamespacedNa
 	}
 }
 
-func (k *kogitoInfraManager) TakeKogitoInfraOwnership(key types.NamespacedName, owner resource.KubernetesResource) (err error) {
+func (k *kogitoInfraManager) TakeKogitoInfraOwnership(key types.NamespacedName, owner client.Object) (err error) {
 	kogitoInfra, err := k.MustFetchKogitoInfraInstance(key)
 	if err != nil {
 		return
@@ -92,7 +88,7 @@ func (k *kogitoInfraManager) TakeKogitoInfraOwnership(key types.NamespacedName, 
 	return
 }
 
-func (k *kogitoInfraManager) RemoveKogitoInfraOwnership(key types.NamespacedName, owner resource.KubernetesResource) (err error) {
+func (k *kogitoInfraManager) RemoveKogitoInfraOwnership(key types.NamespacedName, owner client.Object) (err error) {
 	k.Log.Info("Removing kogito infra ownership", "infra name", key.Name, "owner", owner.GetName())
 	kogitoInfra, err := k.infraHandler.FetchKogitoInfraInstance(key)
 	if err != nil || kogitoInfra == nil {
@@ -132,32 +128,4 @@ func (k *kogitoInfraManager) GetKogitoInfraFailureConditionReason(key types.Name
 		return failureCondition.Reason, nil
 	}
 	return "", nil
-}
-
-func (k *kogitoInfraManager) FetchKogitoInfraProperties(runtimeType api.RuntimeType, namespace string, kogitoInfraReferences ...string) (map[string]string, []corev1.EnvVar, []api.KogitoInfraVolumeInterface, error) {
-	k.Log.Debug("Going to fetch kogito infra properties", "infra", kogitoInfraReferences)
-	consolidateAppProperties := map[string]string{}
-	var consolidateEnvProperties []corev1.EnvVar
-	var volumes []api.KogitoInfraVolumeInterface
-	for _, kogitoInfraName := range kogitoInfraReferences {
-		// load infra resource
-		kogitoInfraInstance, err := k.MustFetchKogitoInfraInstance(types.NamespacedName{Name: kogitoInfraName, Namespace: namespace})
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
-		// fetch app properties from Kogito infra instance
-		runtimeProperties := kogitoInfraInstance.GetStatus().GetRuntimeProperties(runtimeType)
-		if runtimeProperties != nil {
-			appProp := runtimeProperties.GetAppProps()
-			util.AppendToStringMap(appProp, consolidateAppProperties)
-
-			// fetch env properties from Kogito infra instance
-			envProp := runtimeProperties.GetEnv()
-			consolidateEnvProperties = append(consolidateEnvProperties, envProp...)
-		}
-		// fetch volume from Kogito infra instance
-		volumes = append(volumes, kogitoInfraInstance.GetStatus().GetVolumes()...)
-	}
-	return consolidateAppProperties, consolidateEnvProperties, volumes, nil
 }

@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package framework
+package api
 
-import (
-	utilsres "github.com/RHsyseng/operator-utils/pkg/resource"
-	"reflect"
-)
-
-// GetResource walks on KubernetesResource map and returns the object for the given name and type
-func GetResource(resourceType reflect.Type, name string, resources map[reflect.Type][]utilsres.KubernetesResource) utilsres.KubernetesResource {
-	for _, res := range resources[resourceType] {
-		if res.GetName() == name {
-			return res
-		}
-	}
-	return nil
+// VolumeReferenceInterface ...
+type VolumeReferenceInterface interface {
+	GetName() string
+	SetName(name string)
+	GetMountPath() string
+	SetMountPath(mountPath string)
+	IsOptional() *bool
+	SetOptional(optional *bool)
+	GetFileMode() *int32
+	SetFileMode(fileMode *int32)
 }

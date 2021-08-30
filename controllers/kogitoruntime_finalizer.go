@@ -85,7 +85,6 @@ func (f *FinalizeKogitoRuntime) Reconcile(ctx context.Context, request reconcile
 	infraHandler := internal.NewKogitoInfraHandler(kogitoContext)
 	infraFinalizer := kogitoservice.NewInfraFinalizerHandler(kogitoContext, infraHandler)
 	imageStreamFinalizer := kogitoruntime.NewImageStreamFinalizerHandler(kogitoContext)
-	configMapFinalizer := kogitoservice.NewConfigMapFinalizerHandler(kogitoContext)
 	// examine DeletionTimestamp to determine if object is under deletion
 	if instance.GetDeletionTimestamp().IsZero() {
 		// Add finalizer for this CR
@@ -98,10 +97,6 @@ func (f *FinalizeKogitoRuntime) Reconcile(ctx context.Context, request reconcile
 				result.Requeue = true
 				return
 			}
-		}
-		if err = configMapFinalizer.AddFinalizer(instance); err != nil {
-			result.Requeue = true
-			return
 		}
 		return
 	}
@@ -117,10 +112,6 @@ func (f *FinalizeKogitoRuntime) Reconcile(ctx context.Context, request reconcile
 			result.Requeue = true
 			return
 		}
-	}
-	if err = configMapFinalizer.HandleFinalization(instance); err != nil {
-		result.Requeue = true
-		return
 	}
 	result.Requeue = false
 	return

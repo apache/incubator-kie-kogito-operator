@@ -16,7 +16,6 @@ package kubernetes
 
 import (
 	"context"
-	resource2 "github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -37,7 +36,7 @@ type ResourceReader interface {
 	// ListWithNamespaceAndLabel same as ListWithNamespace, but also limit the query scope by the given labels
 	ListWithNamespaceAndLabel(namespace string, list runtime.ObjectList, labels map[string]string) error
 	// ListAll returns a map of Kubernetes resources organized by type, based on provided List objects
-	ListAll(objectTypes []runtime.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]resource2.KubernetesResource, error)
+	ListAll(objectTypes []runtime.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]runtime.Object, error)
 }
 
 // ResourceReaderC provide ResourceReader reference
@@ -85,7 +84,7 @@ func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list runtim
 	return nil
 }
 
-func (r *resourceReader) ListAll(objectTypes []runtime.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]resource2.KubernetesResource, error) {
+func (r *resourceReader) ListAll(objectTypes []runtime.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]runtime.Object, error) {
 	reader := read.New(r.client.ControlCli).WithNamespace(namespace).WithOwnerObject(ownerObject)
 	return reader.ListAll(objectTypes...)
 }
