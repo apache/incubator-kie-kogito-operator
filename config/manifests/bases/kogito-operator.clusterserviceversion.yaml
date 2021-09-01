@@ -524,4 +524,4 @@ spec:
   provider:
     name: Red Hat
   replaces: kogito-operator.v1.9.0
-  version: 0.0.0
+  version: 2.0.0-snapshot

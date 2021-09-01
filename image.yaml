@@ -1,6 +1,6 @@
 - name: operator-builder
   version: 1.0.0
-  from: golang:1.14
+  from: golang:1.16
   description: Builder Image for the Operator
 
   modules:

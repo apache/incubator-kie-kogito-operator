@@ -29,6 +29,6 @@ require (
 
 // local modules
 replace (
-	github.com/RHsyseng/operator-utils => /home/vaibhavjain/RedHatRepo/operator-utils
+	github.com/RHsyseng/operator-utils => github.com/vaibhavjainwiz/operator-utils v1.4.6-0.20210831083917-af0d4e3c3c71
 	github.com/kiegroup/kogito-operator/api => ./api
 )

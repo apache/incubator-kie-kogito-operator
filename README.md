@@ -137,8 +137,8 @@ For code contributions, review the following prerequisites:
 
 - [Docker](https://www.docker.com/)
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
-- [Operator SDK](https://github.com/operator-framework/operator-sdk) v1.2.0
-- [Go](https://golang.org/) v1.14 is installed.
+- [Operator SDK](https://github.com/operator-framework/operator-sdk) v1.11.0
+- [Go](https://golang.org/) v1.16 is installed.
 - [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
 - [Python 3.x](https://www.python.org/downloads/) v3.x is installed
