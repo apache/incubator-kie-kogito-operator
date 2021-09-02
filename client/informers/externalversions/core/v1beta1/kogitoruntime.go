@@ -59,13 +59,13 @@ func NewFilteredKogitoRuntimeInformer(client versioned.Interface, namespace stri
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CoreV1beta1().KogitoRuntimes(namespace).List(context.TODO(), options)
+				return client.AppV1beta1().KogitoRuntimes(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CoreV1beta1().KogitoRuntimes(namespace).Watch(context.TODO(), options)
+				return client.AppV1beta1().KogitoRuntimes(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&apiv1beta1.KogitoRuntime{},

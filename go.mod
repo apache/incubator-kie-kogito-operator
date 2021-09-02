@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/RHsyseng/operator-utils v0.0.0-00010101000000-000000000000
 	github.com/go-logr/logr v0.4.0
-	github.com/go-openapi/swag v0.19.15
 	github.com/google/uuid v1.3.0
 	github.com/kiegroup/kogito-operator/api v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.16.4

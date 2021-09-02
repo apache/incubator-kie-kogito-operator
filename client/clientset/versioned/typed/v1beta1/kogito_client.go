@@ -21,7 +21,7 @@ import (
 	rest "k8s.io/client-go/rest"
 )
 
-type V1beta1Interface interface {
+type AppV1beta1Interface interface {
 	RESTClient() rest.Interface
 	KogitoBuildsGetter
 	KogitoInfrasGetter
@@ -29,29 +29,29 @@ type V1beta1Interface interface {
 	KogitoSupportingServicesGetter
 }
 
-// V1beta1Client is used to interact with features provided by the  group.
-type V1beta1Client struct {
+// AppV1beta1Client is used to interact with features provided by the app.kiegroup.org group.
+type AppV1beta1Client struct {
 	restClient rest.Interface
 }
 
-func (c *V1beta1Client) KogitoBuilds(namespace string) KogitoBuildInterface {
+func (c *AppV1beta1Client) KogitoBuilds(namespace string) KogitoBuildInterface {
 	return newKogitoBuilds(c, namespace)
 }
 
-func (c *V1beta1Client) KogitoInfras(namespace string) KogitoInfraInterface {
+func (c *AppV1beta1Client) KogitoInfras(namespace string) KogitoInfraInterface {
 	return newKogitoInfras(c, namespace)
 }
 
-func (c *V1beta1Client) KogitoRuntimes(namespace string) KogitoRuntimeInterface {
+func (c *AppV1beta1Client) KogitoRuntimes(namespace string) KogitoRuntimeInterface {
 	return newKogitoRuntimes(c, namespace)
 }
 
-func (c *V1beta1Client) KogitoSupportingServices(namespace string) KogitoSupportingServiceInterface {
+func (c *AppV1beta1Client) KogitoSupportingServices(namespace string) KogitoSupportingServiceInterface {
 	return newKogitoSupportingServices(c, namespace)
 }
 
-// NewForConfig creates a new V1beta1Client for the given config.
-func NewForConfig(c *rest.Config) (*V1beta1Client, error) {
+// NewForConfig creates a new AppV1beta1Client for the given config.
+func NewForConfig(c *rest.Config) (*AppV1beta1Client, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
@@ -60,12 +60,12 @@ func NewForConfig(c *rest.Config) (*V1beta1Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &V1beta1Client{client}, nil
+	return &AppV1beta1Client{client}, nil
 }
 
-// NewForConfigOrDie creates a new V1beta1Client for the given config and
+// NewForConfigOrDie creates a new AppV1beta1Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *V1beta1Client {
+func NewForConfigOrDie(c *rest.Config) *AppV1beta1Client {
 	client, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -73,9 +73,9 @@ func NewForConfigOrDie(c *rest.Config) *V1beta1Client {
 	return client
 }
 
-// New creates a new V1beta1Client for the given RESTClient.
-func New(c rest.Interface) *V1beta1Client {
-	return &V1beta1Client{c}
+// New creates a new AppV1beta1Client for the given RESTClient.
+func New(c rest.Interface) *AppV1beta1Client {
+	return &AppV1beta1Client{c}
 }
 
 func setConfigDefaults(config *rest.Config) error {
@@ -93,7 +93,7 @@ func setConfigDefaults(config *rest.Config) error {
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *V1beta1Client) RESTClient() rest.Interface {
+func (c *AppV1beta1Client) RESTClient() rest.Interface {
 	if c == nil {
 		return nil
 	}

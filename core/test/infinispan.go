@@ -15,7 +15,6 @@
 package test
 
 import (
-	"github.com/go-openapi/swag"
 	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
 	"io/ioutil"
 	v13 "k8s.io/api/core/v1"
@@ -25,6 +24,7 @@ import (
 
 // CreateFakeInfinispan ...
 func CreateFakeInfinispan(namespace string) *infinispan.Infinispan {
+	trueValue := true
 	return &infinispan.Infinispan{
 		ObjectMeta: v12.ObjectMeta{
 			Name:      "kogito-infinispan",
@@ -32,7 +32,7 @@ func CreateFakeInfinispan(namespace string) *infinispan.Infinispan {
 		},
 		Spec: infinispan.InfinispanSpec{
 			Security: infinispan.InfinispanSecurity{
-				EndpointAuthentication: swag.Bool(true),
+				EndpointAuthentication: &trueValue,
 				EndpointSecretName:     "kogito-infinispan-generated-secret",
 				EndpointEncryption: &infinispan.EndpointEncryption{
 					CertSecretName: "infinispan-cert-secret",

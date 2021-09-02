@@ -17,7 +17,6 @@ package framework
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-openapi/swag"
 	"regexp"
 
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -76,7 +75,7 @@ func DeployKeycloakRealm(namespace, realmName string) error {
 // DeployKeycloakClient deploys a client configuration of Keycloak
 func DeployKeycloakClient(namespace, clientName string) error {
 	GetLogger(namespace).Info("Creating Keycloak client", "clientName", clientName)
-
+	trueValue := true
 	client := &keycloak.KeycloakClient{
 		ObjectMeta: createKeycloakMeta(namespace, clientName),
 		Spec: keycloak.KeycloakClientSpec{
@@ -94,7 +93,7 @@ func DeployKeycloakClient(namespace, clientName string) error {
 				PublicClient:              true,
 				RedirectUris:              []string{"*"},
 				Protocol:                  "openid-connect",
-				FullScopeAllowed:          swag.Bool(true),
+				FullScopeAllowed:          &trueValue,
 			},
 		},
 	}

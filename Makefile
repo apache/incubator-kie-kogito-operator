@@ -99,8 +99,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	./hack/kogito-module-api.sh --disable
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
-	./hack/openapi.sh
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths=./...
 	./hack/kogito-module-api.sh --enable
 	./hack/client-gen.sh
 

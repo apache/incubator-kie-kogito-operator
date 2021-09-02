@@ -18,7 +18,7 @@ package versioned
 import (
 	"fmt"
 
-	v1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1"
+	appv1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -26,19 +26,19 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	V1beta1() v1beta1.V1beta1Interface
+	AppV1beta1() appv1beta1.AppV1beta1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	V1beta1 *v1beta1.V1beta1Client
+	appV1beta1 *appv1beta1.AppV1beta1Client
 }
 
-// V1beta1 retrieves the V1beta1Client
-func (c *Clientset) V1beta1() v1beta1.V1beta1Interface {
-	return c.V1beta1
+// AppV1beta1 retrieves the AppV1beta1Client
+func (c *Clientset) AppV1beta1() appv1beta1.AppV1beta1Interface {
+	return c.appV1beta1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -62,7 +62,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.V1beta1, err = v1beta1.NewForConfig(&configShallowCopy)
+	cs.appV1beta1, err = appv1beta1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.V1beta1 = v1beta1.NewForConfigOrDie(c)
+	cs.appV1beta1 = appv1beta1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -87,7 +87,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.V1beta1 = v1beta1.New(c)
+	cs.appV1beta1 = appv1beta1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

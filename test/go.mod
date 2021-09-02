@@ -8,7 +8,6 @@ require (
 	github.com/cucumber/messages-go/v10 v10.0.3
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.2.0
-	github.com/go-openapi/swag v0.19.15
 	github.com/kiegroup/kogito-operator v0.0.0-00010101000000-000000000000
 	github.com/kiegroup/kogito-operator/api v0.0.0-00010101000000-000000000000
 	github.com/machinebox/graphql v0.2.2

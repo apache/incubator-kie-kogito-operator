@@ -29,13 +29,13 @@ import (
 
 // FakeKogitoSupportingServices implements KogitoSupportingServiceInterface
 type FakeKogitoSupportingServices struct {
-	Fake *FakeV1beta1
+	Fake *FakeAppV1beta1
 	ns   string
 }
 
-var kogitosupportingservicesResource = schema.GroupVersionResource{Group: "", Version: "v1beta1", Resource: "kogitosupportingservices"}
+var kogitosupportingservicesResource = schema.GroupVersionResource{Group: "app.kiegroup.org", Version: "v1beta1", Resource: "kogitosupportingservices"}
 
-var kogitosupportingservicesKind = schema.GroupVersionKind{Group: "", Version: "v1beta1", Kind: "KogitoSupportingService"}
+var kogitosupportingservicesKind = schema.GroupVersionKind{Group: "app.kiegroup.org", Version: "v1beta1", Kind: "KogitoSupportingService"}
 
 // Get takes name of the kogitoSupportingService, and returns the corresponding kogitoSupportingService object, and an error if there is any.
 func (c *FakeKogitoSupportingServices) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.KogitoSupportingService, err error) {

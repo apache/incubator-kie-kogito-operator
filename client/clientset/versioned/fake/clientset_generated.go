@@ -17,8 +17,8 @@ package fake
 
 import (
 	clientset "github.com/kiegroup/kogito-operator/client/clientset/versioned"
-	v1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1"
-	fakev1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1/fake"
+	appv1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1"
+	fakeappv1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -76,7 +76,7 @@ var (
 	_ testing.FakeClient  = &Clientset{}
 )
 
-// V1beta1 retrieves the V1beta1Client
-func (c *Clientset) V1beta1() v1beta1.V1beta1Interface {
-	return &fakev1beta1.FakeV1beta1{Fake: &c.Fake}
+// AppV1beta1 retrieves the AppV1beta1Client
+func (c *Clientset) AppV1beta1() appv1beta1.AppV1beta1Interface {
+	return &fakeappv1beta1.FakeAppV1beta1{Fake: &c.Fake}
 }

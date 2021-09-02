@@ -29,13 +29,13 @@ import (
 
 // FakeKogitoInfras implements KogitoInfraInterface
 type FakeKogitoInfras struct {
-	Fake *FakeV1beta1
+	Fake *FakeAppV1beta1
 	ns   string
 }
 
-var kogitoinfrasResource = schema.GroupVersionResource{Group: "", Version: "v1beta1", Resource: "kogitoinfras"}
+var kogitoinfrasResource = schema.GroupVersionResource{Group: "app.kiegroup.org", Version: "v1beta1", Resource: "kogitoinfras"}
 
-var kogitoinfrasKind = schema.GroupVersionKind{Group: "", Version: "v1beta1", Kind: "KogitoInfra"}
+var kogitoinfrasKind = schema.GroupVersionKind{Group: "app.kiegroup.org", Version: "v1beta1", Kind: "KogitoInfra"}
 
 // Get takes name of the kogitoInfra, and returns the corresponding kogitoInfra object, and an error if there is any.
 func (c *FakeKogitoInfras) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.KogitoInfra, err error) {
