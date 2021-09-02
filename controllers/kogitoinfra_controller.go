@@ -79,7 +79,7 @@ func (r *KogitoInfraReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return reconcile.Result{}, nil
 	}
 	var resultErr error
-	statusHandler := kogitoinfra.NewStatusHandler(kogitoContext)
+	statusHandler := kogitoinfra.NewStatusHandler(kogitoContext, infraHandler)
 	defer statusHandler.UpdateBaseStatus(instance, &resultErr)
 
 	instance.GetStatus().SetEnvs(nil)
