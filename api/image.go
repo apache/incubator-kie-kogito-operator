@@ -18,16 +18,14 @@ import "fmt"
 
 // Image is a definition of a Docker image.
 type Image struct {
-	Domain    string `json:"domain,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Tag       string `json:"tag,omitempty"`
+	Domain string `json:"domain,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Tag    string `json:"tag,omitempty"`
 }
 
 // IsEmpty verifies if this Image instance is empty.
 func (i *Image) IsEmpty() bool {
-	return len(i.Namespace) == 0 &&
-		len(i.Domain) == 0 &&
+	return len(i.Domain) == 0 &&
 		len(i.Name) == 0 &&
 		len(i.Tag) == 0
 }
@@ -37,5 +35,5 @@ func (i *Image) String() string {
 	if i.IsEmpty() {
 		return ""
 	}
-	return fmt.Sprintf("%s/%s/%s:%s", i.Domain, i.Namespace, i.Name, i.Tag)
+	return fmt.Sprintf("%s/%s:%s", i.Domain, i.Name, i.Tag)
 }
