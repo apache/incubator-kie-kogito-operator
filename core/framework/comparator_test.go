@@ -809,6 +809,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 		deployed  resource.KubernetesResource
 		requested resource.KubernetesResource
 	}
+	familyPolicy := v1.IPFamilyPolicyRequireDualStack
 	tests := []struct {
 		name  string
 		args  args
@@ -880,6 +881,32 @@ func Test_CreateServiceComparator(t *testing.T) {
 				deployed: &v1.Service{
 					Spec: v1.ServiceSpec{
 						ClusterIP: "10.217.5.142",
+					},
+				},
+				requested: &v1.Service{},
+			},
+			reflect.TypeOf(v1.Service{}),
+			true,
+		},
+		{
+			"DifferentIPFamilies",
+			args{
+				deployed: &v1.Service{
+					Spec: v1.ServiceSpec{
+						IPFamilies: []v1.IPFamily{"IPv4"},
+					},
+				},
+				requested: &v1.Service{},
+			},
+			reflect.TypeOf(v1.Service{}),
+			true,
+		},
+		{
+			"DifferentIPFamilyPolicy",
+			args{
+				deployed: &v1.Service{
+					Spec: v1.ServiceSpec{
+						IPFamilyPolicy: &familyPolicy,
 					},
 				},
 				requested: &v1.Service{},

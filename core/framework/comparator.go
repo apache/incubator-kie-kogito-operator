@@ -198,7 +198,7 @@ func CreateBuildConfigComparator() func(deployed resource.KubernetesResource, re
 	}
 }
 
-// CreateServiceComparator creates a new comparator for Service skipping ClusterIPs
+// CreateServiceComparator creates a new comparator for Service skipping ClusterIPs, IPFamilies and IPFamilyPolicy
 func CreateServiceComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 		svcDeployed := deployed.(*v1.Service)
@@ -207,6 +207,16 @@ func CreateServiceComparator() func(deployed resource.KubernetesResource, reques
 		if len(svcDeployed.Spec.ClusterIPs) > 0 && len(svcRequested.Spec.ClusterIPs) == 0 {
 			//Cluster IPs are assigned in the cluster, can be ignored for comparing
 			svcDeployed.Spec.ClusterIPs = svcRequested.Spec.ClusterIPs
+		}
+
+		if len(svcDeployed.Spec.IPFamilies) > 0 && len(svcRequested.Spec.IPFamilies) == 0 {
+			//IPFamilies is assigned in the cluster, can be ignored for comparing
+			svcDeployed.Spec.IPFamilies = svcRequested.Spec.IPFamilies
+		}
+
+		if svcDeployed.Spec.IPFamilyPolicy != nil && svcRequested.Spec.IPFamilyPolicy == nil {
+			//IPFamilyPolicy is assigned in the cluster, can be ignored for comparing
+			svcDeployed.Spec.IPFamilyPolicy = svcRequested.Spec.IPFamilyPolicy
 		}
 
 		return true
