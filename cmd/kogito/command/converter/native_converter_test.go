@@ -30,7 +30,7 @@ func Test_FromArgsToNative_NotBinaryBuild(t *testing.T) {
 }
 
 func Test_FromArgsToNative_BinaryBuild_FastJar_NotNative(t *testing.T) {
-	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-kogito")
 	defer os.RemoveAll(tmpDir)
 
 	// test correct use case of no native flag, returns false

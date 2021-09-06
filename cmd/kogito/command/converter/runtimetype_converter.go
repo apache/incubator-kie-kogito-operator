@@ -18,13 +18,13 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 )
 
 var (
 	quarkusLegacyJarSuffix       = "-runner.jar"
-	quarkusRuntimeTargetSuffixes = []string{quarkusLegacyJarSuffix, "quarkus-app", "-runner"}
+	quarkusRuntimeTargetSuffixes = []string{quarkusLegacyJarSuffix, "quarkus-kogito", "-runner"}
 )
 
 // FromRuntimeFlagsToRuntimeType converts given RuntimeTypeFlags into RuntimeType

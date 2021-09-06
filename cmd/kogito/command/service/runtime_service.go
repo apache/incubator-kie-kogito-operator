@@ -15,8 +15,8 @@
 package service
 
 import (
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
@@ -58,15 +58,15 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err != nil {
 		return err
 	}
-	kogitoRuntime := v1beta1.KogitoRuntime{
+	kogitoRuntime := v1beta12.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      flags.Name,
 			Namespace: flags.Project,
 		},
-		Spec: v1beta1.KogitoRuntimeSpec{
+		Spec: v1beta12.KogitoRuntimeSpec{
 			EnableIstio: flags.EnableIstio,
 			Runtime:     converter.FromRuntimeFlagsToRuntimeType(&flags.RuntimeTypeFlags),
-			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
 				Replicas:              &flags.Replicas,
 				Env:                   converter.FromStringArrayToEnvs(flags.Env, flags.SecretEnv),
 				Image:                 flags.ImageFlags.Image,
@@ -127,7 +127,7 @@ func (i runtimeService) DeleteRuntimeService(cli *client.Client, name, project s
 		return err
 	}
 	log.Debugf("About to delete service %s in namespace %s", name, project)
-	if err := kubernetes.ResourceC(cli).Delete(&v1beta1.KogitoRuntime{
+	if err := kubernetes.ResourceC(cli).Delete(&v1beta12.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: project,

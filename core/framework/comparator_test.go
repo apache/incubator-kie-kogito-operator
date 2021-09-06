@@ -44,7 +44,7 @@ func Test_containAllLabels(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -52,7 +52,7 @@ func Test_containAllLabels(t *testing.T) {
 				requested: &v1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -66,7 +66,7 @@ func Test_containAllLabels(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test1",
 						},
 					},
@@ -74,7 +74,7 @@ func Test_containAllLabels(t *testing.T) {
 				requested: &v1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -109,7 +109,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				deployed: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -117,7 +117,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				requested: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -132,7 +132,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				deployed: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -140,7 +140,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				requested: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test1",
 						},
 					},
@@ -221,7 +221,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -240,7 +240,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -269,7 +269,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -288,7 +288,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test1"},
 										},
 									},
@@ -402,7 +402,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -418,7 +418,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -441,7 +441,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -457,7 +457,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "app", Value: "test"},
+											{Name: "kogito", Value: "test"},
 											{Name: "service", Value: "test1"},
 										},
 									},
@@ -538,14 +538,14 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Volumes: []v1.Volume{
-									{Name: "app-prop-config"},
+									{Name: "kogito-prop-config"},
 									{Name: "process-quarkus-example-protobuf-files"},
 								},
 								Containers: []v1.Container{
 									{
 										VolumeMounts: []v1.VolumeMount{
 											{
-												Name:      "app-prop-config",
+												Name:      "kogito-prop-config",
 												MountPath: "/home/kogito/config",
 											},
 											{
@@ -568,7 +568,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Volumes: []v1.Volume{
-									{Name: "app-prop-config"},
+									{Name: "kogito-prop-config"},
 									{Name: "process-quarkus-example-protobuf-files"},
 								},
 								Containers: []v1.Container{
@@ -576,7 +576,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 										// notice the array order, that matters. using logs from KOGITO-2797 bug report
 										VolumeMounts: []v1.VolumeMount{
 											{
-												Name:      "app-prop-config",
+												Name:      "kogito-prop-config",
 												MountPath: "/home/kogito/config",
 											},
 											{
@@ -745,7 +745,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				deployed: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -753,7 +753,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				requested: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -768,7 +768,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				deployed: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -776,7 +776,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				requested: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test1",
 						},
 					},
@@ -821,7 +821,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -829,7 +829,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				requested: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -844,7 +844,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test",
 						},
 					},
@@ -852,7 +852,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				requested: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app":     "test",
+							"kogito":  "test",
 							"service": "test1",
 						},
 					},

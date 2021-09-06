@@ -15,20 +15,20 @@
 package test
 
 import (
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // CreateFakeKogitoRuntime ...
-func CreateFakeKogitoRuntime(namespace string) *v1beta1.KogitoRuntime {
+func CreateFakeKogitoRuntime(namespace string) *v1beta12.KogitoRuntime {
 	replicas := int32(1)
-	return &v1beta1.KogitoRuntime{
+	return &v1beta12.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "test-kogito-runtime",
 			Namespace: namespace,
 		},
-		Spec: v1beta1.KogitoRuntimeSpec{
-			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
+		Spec: v1beta12.KogitoRuntimeSpec{
+			KogitoServiceSpec: v1beta12.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 }

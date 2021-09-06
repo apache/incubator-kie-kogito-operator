@@ -16,5 +16,5 @@ package framework
 
 const (
 	// LabelAppKey is the default label key to bind resources together in "Application Group"
-	LabelAppKey = "app"
+	LabelAppKey = "kogito"
 )

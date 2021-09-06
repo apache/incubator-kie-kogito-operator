@@ -16,9 +16,9 @@ package install
 
 import (
 	"fmt"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
@@ -181,14 +181,14 @@ func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string
 	if err != nil {
 		return err
 	}
-	supportingService := &v1beta1.KogitoSupportingService{
+	supportingService := &v1beta12.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      i.supportingService.serviceName,
 			Namespace: i.flags.Project,
 		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: i.supportingService.serviceType,
-			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
 				Replicas:              &i.flags.Replicas,
 				Env:                   converter.FromStringArrayToEnvs(i.flags.Env, i.flags.SecretEnv),
 				Image:                 i.flags.ImageFlags.Image,

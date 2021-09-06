@@ -70,7 +70,7 @@ func (data *Data) infinispanInstanceIsDeployedWithConfiguration(name string, tab
 		return err
 	}
 
-	return framework.WaitForPodsWithLabel(data.Namespace, "app", "infinispan-pod", 1, 3)
+	return framework.WaitForPodsWithLabel(data.Namespace, "kogito", "infinispan-pod", 1, 3)
 }
 
 func (data *Data) infinispanInstanceIsDeployedForPerformanceWithinMinutesWithConfiguration(name string, timeOutInMin int, table *godog.Table) error {

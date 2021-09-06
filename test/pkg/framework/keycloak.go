@@ -171,5 +171,5 @@ func createKeycloakMeta(namespace, name string) metav1.ObjectMeta {
 }
 
 func createKeycloakLabel(namespace string) map[string]string {
-	return map[string]string{"app": "keycloak-in-" + namespace}
+	return map[string]string{"kogito": "keycloak-in-" + namespace}
 }

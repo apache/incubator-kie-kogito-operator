@@ -16,7 +16,7 @@ package connector
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/manager"
@@ -227,7 +227,7 @@ func (u *urlHandler) getSupportingServiceEndpoints(namespace string, serviceHTTP
 }
 
 func (u *urlHandler) updateServiceEndpointIntoDeploymentEnv(deployment *appsv1.Deployment, serviceEndpoints *ServiceEndpoints) (updateHTTP bool, updateWS bool) {
-	// here we compare the current value to avoid updating the app every time
+	// here we compare the current value to avoid updating the kogito every time
 	if len(deployment.Spec.Template.Spec.Containers) > 0 && serviceEndpoints != nil {
 		if len(serviceEndpoints.HTTPRouteEnv) > 0 {
 			updateHTTP = framework.GetEnvVarFromContainer(serviceEndpoints.HTTPRouteEnv, &deployment.Spec.Template.Spec.Containers[0]) != serviceEndpoints.HTTPRouteURI

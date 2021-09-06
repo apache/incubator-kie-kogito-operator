@@ -16,7 +16,7 @@ package shared
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-operator/core/client"
@@ -118,7 +118,7 @@ func (r resourceCheckServiceImpl) CheckKogitoRuntimeNotExists(kubeCli *client.Cl
 func isKogitoRuntimeExists(kubeCli *client.Client, name string, namespace string) (bool, error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Checking if Kogito Service '%s' was deployed before on namespace %s", name, namespace)
-	kogitoRuntime := &v1beta1.KogitoRuntime{
+	kogitoRuntime := &v1beta12.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -160,7 +160,7 @@ func (r resourceCheckServiceImpl) CheckKogitoBuildNotExists(kubeCli *client.Clie
 func isKogitoBuildExists(kubeCli *client.Client, name string, namespace string) (bool, error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Checking if Kogito Build '%s' was deployed before on namespace %s", name, namespace)
-	kogitoBuild := &v1beta1.KogitoBuild{
+	kogitoBuild := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,

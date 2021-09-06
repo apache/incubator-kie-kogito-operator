@@ -44,7 +44,7 @@ var supportedExtensions = map[flag.BinaryBuildType][]string{
 var binaryAddedFolders = map[flag.BinaryBuildType][]string{
 	flag.SourceToImageBuild:             {},
 	flag.BinaryQuarkusLegacyJarJvmBuild: {"lib/"},
-	flag.BinaryQuarkusFastJarJvmBuild:   {"quarkus-app/", "quarkus-app/lib/", "quarkus-app/lib/main/", "quarkus-app/lib/boot/", "quarkus-app/app/", "quarkus-app/quarkus/"},
+	flag.BinaryQuarkusFastJarJvmBuild:   {"quarkus-kogito/", "quarkus-kogito/lib/", "quarkus-kogito/lib/main/", "quarkus-kogito/lib/boot/", "quarkus-kogito/kogito/", "quarkus-kogito/quarkus/"},
 	flag.BinarySpringBootJvmBuild:       {},
 	flag.BinaryQuarkusNativeBuild:       {},
 }

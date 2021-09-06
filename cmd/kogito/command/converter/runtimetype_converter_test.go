@@ -18,7 +18,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
@@ -70,7 +70,7 @@ func Test_FromArgsToRuntime_BinaryBuild_QuarkusFastJar(t *testing.T) {
 		Runtime: "quarkus",
 	}
 
-	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-kogito")
 	defer os.RemoveAll(tmpDir)
 
 	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
@@ -105,7 +105,7 @@ func Test_FromArgsToRuntime_BinaryBuild_QuarkusNative(t *testing.T) {
 }
 
 func Test_ToQuarkusLegacyJarType_WithFastJar(t *testing.T) {
-	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-kogito")
 	defer os.RemoveAll(tmpDir)
 
 	legacy, err := ToQuarkusLegacyJarType(flag.LocalBinaryDirectoryResource, tmpDir)

@@ -1,6 +1,7 @@
 <!-- Keep them in alphabetical order -->
 ## Enhancements
 - [KOGITO-3793](https://issues.redhat.com/browse/KOGITO-3793) - Review OLM UI spec descriptors
+- [KOGITO-5834](https://issues.redhat.com/browse/KOGITO-5834) - Change project structure to multi-group
 
 ## Bug Fixes
 - [KOGITO-5512](https://issues.redhat.com/browse/KOGITO-5512) - controller-gen doesn't generate CRD's

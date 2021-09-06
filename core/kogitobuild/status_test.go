@@ -16,8 +16,8 @@ package kogitobuild
 
 import (
 	"errors"
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/framework/util"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
@@ -33,11 +33,11 @@ import (
 
 func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &v1beta1.KogitoBuild{
+	instance := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: v1beta12.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: v1beta1.GitSource{
+			GitSource: v1beta12.GitSource{
 				URI: "https://github.com/kiegroup/kogito-examples/",
 			},
 			Runtime: api.QuarkusRuntimeType,
@@ -76,11 +76,11 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 
 func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &v1beta1.KogitoBuild{
+	instance := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: v1beta12.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: v1beta1.GitSource{
+			GitSource: v1beta12.GitSource{
 				URI: "https://github.com/kiegroup/kogito-examples/",
 			},
 			Runtime: api.QuarkusRuntimeType,

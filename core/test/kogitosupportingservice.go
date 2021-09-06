@@ -15,56 +15,56 @@
 package test
 
 import (
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // CreateFakeDataIndex ...
-func CreateFakeDataIndex(namespace string) *v1beta1.KogitoSupportingService {
+func CreateFakeDataIndex(namespace string) *v1beta12.KogitoSupportingService {
 	return createFakeKogitoSupportingServiceInstance("data-index", namespace, api.DataIndex)
 }
 
 // CreateFakeJobsService ...
-func CreateFakeJobsService(namespace string) *v1beta1.KogitoSupportingService {
+func CreateFakeJobsService(namespace string) *v1beta12.KogitoSupportingService {
 	return createFakeKogitoSupportingServiceInstance("jobs-service", namespace, api.JobsService)
 }
 
 // CreateFakeMgmtConsole ...
-func CreateFakeMgmtConsole(namespace string) *v1beta1.KogitoSupportingService {
+func CreateFakeMgmtConsole(namespace string) *v1beta12.KogitoSupportingService {
 	return createFakeKogitoSupportingServiceInstance("mgmt-console", namespace, api.MgmtConsole)
 }
 
 // CreateFakeExplainabilityService ...
-func CreateFakeExplainabilityService(namespace string) *v1beta1.KogitoSupportingService {
+func CreateFakeExplainabilityService(namespace string) *v1beta12.KogitoSupportingService {
 	return createFakeKogitoSupportingServiceInstance("explainability-service", namespace, api.Explainability)
 }
 
 // CreateFakeTaskConsole ...
-func CreateFakeTaskConsole(namespace string) *v1beta1.KogitoSupportingService {
+func CreateFakeTaskConsole(namespace string) *v1beta12.KogitoSupportingService {
 	return createFakeKogitoSupportingServiceInstance("task-console", namespace, api.TaskConsole)
 }
 
 // CreateFakeTrustyAIService ...
-func CreateFakeTrustyAIService(namespace string) *v1beta1.KogitoSupportingService {
+func CreateFakeTrustyAIService(namespace string) *v1beta12.KogitoSupportingService {
 	return createFakeKogitoSupportingServiceInstance("trusty-ai", namespace, api.TrustyAI)
 }
 
 // CreateFakeTrustyUIService ...
-func CreateFakeTrustyUIService(namespace string) *v1beta1.KogitoSupportingService {
+func CreateFakeTrustyUIService(namespace string) *v1beta12.KogitoSupportingService {
 	return createFakeKogitoSupportingServiceInstance("trusty-ui", namespace, api.TrustyUI)
 }
 
-func createFakeKogitoSupportingServiceInstance(name, namespace string, serviceType api.ServiceType) *v1beta1.KogitoSupportingService {
+func createFakeKogitoSupportingServiceInstance(name, namespace string, serviceType api.ServiceType) *v1beta12.KogitoSupportingService {
 	replicas := int32(1)
-	return &v1beta1.KogitoSupportingService{
+	return &v1beta12.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: serviceType,
-			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
 				Replicas: &replicas,
 			},
 		},

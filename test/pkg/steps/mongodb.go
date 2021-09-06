@@ -39,7 +39,7 @@ func (data *Data) mongoDbOperatorIsDeployed() error {
 }
 
 func (data *Data) mongodbInstanceHasPodsRunningWithinMinutes(name string, numberOfPods, timeOutInMin int) error {
-	return framework.WaitForPodsWithLabel(data.Namespace, "app", name+"-svc", numberOfPods, timeOutInMin)
+	return framework.WaitForPodsWithLabel(data.Namespace, "kogito", name+"-svc", numberOfPods, timeOutInMin)
 }
 
 func (data *Data) mongodbInstanceIsDeployedWithConfiguration(name string, table *godog.Table) error {
@@ -65,5 +65,5 @@ func (data *Data) mongodbInstanceIsDeployedWithConfiguration(name string, table 
 		return err
 	}
 
-	return framework.WaitForPodsWithLabel(data.Namespace, "app", name+"-svc", 1, 3)
+	return framework.WaitForPodsWithLabel(data.Namespace, "kogito", name+"-svc", 1, 3)
 }

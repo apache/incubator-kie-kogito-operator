@@ -15,8 +15,8 @@
 package connector
 
 import (
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -36,9 +36,9 @@ import (
 
 func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	ns := t.Name()
-	name := "my-kogito-app"
+	name := "my-kogito-kogito"
 	expectedRoute := "http://dataindex-route.com"
-	kogitoRuntime := &v1beta1.KogitoRuntime{
+	kogitoRuntime := &v1beta12.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -53,16 +53,16 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 			},
 		},
 	}
-	dataIndex := &v1beta1.KogitoSupportingService{
+	dataIndex := &v1beta12.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: ns,
 		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
-		Status: v1beta1.KogitoSupportingServiceStatus{
-			KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedRoute},
+		Status: v1beta12.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta12.KogitoServiceStatus{ExternalURI: expectedRoute},
 		},
 	}
 
@@ -86,23 +86,23 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 
 func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 	URI := "http://localhost:8080"
-	app := &v1beta1.KogitoRuntime{
+	app := &v1beta12.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kogito-app",
+			Name:      "kogito-kogito",
 			Namespace: t.Name(),
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &v1beta1.KogitoSupportingService{
+	jobs := &v1beta12.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
 		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: api.JobsService,
 		},
-		Status: v1beta1.KogitoSupportingServiceStatus{
-			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
+		Status: v1beta12.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta12.KogitoServiceStatus{
 				ExternalURI: URI,
 			},
 		},
@@ -113,7 +113,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 			UID:  app.UID,
 		}}},
 		Spec: appsv1.DeploymentSpec{
-			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-app"}}}},
+			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-kogito"}}}},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(app, dc, jobs).Build()
@@ -141,22 +141,22 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 
 func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 	URI := "http://localhost:8080"
-	app := &v1beta1.KogitoRuntime{
+	app := &v1beta12.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kogito-app",
+			Name:      "kogito-kogito",
 			Namespace: t.Name(),
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &v1beta1.KogitoSupportingService{
+	jobs := &v1beta12.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
 		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: api.JobsService,
 		},
-		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: URI}},
+		Status: v1beta12.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta12.KogitoServiceStatus{ExternalURI: URI}},
 	}
 	dc := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
@@ -164,7 +164,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 			UID:  app.UID,
 		}}},
 		Spec: appsv1.DeploymentSpec{
-			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-app"}}}},
+			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-kogito"}}}},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dc, app, jobs).Build()
@@ -191,9 +191,9 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 
 func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 	ns := t.Name()
-	name := "my-kogito-app"
+	name := "my-kogito-kogito"
 	expectedRoute := "http://trusty-route.com"
-	kogitoRuntime := &v1beta1.KogitoRuntime{
+	kogitoRuntime := &v1beta12.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -208,16 +208,16 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 			},
 		},
 	}
-	trustyService := &v1beta1.KogitoSupportingService{
+	trustyService := &v1beta12.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "trusty",
 			Namespace: ns,
 		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: api.TrustyAI,
 		},
-		Status: v1beta1.KogitoSupportingServiceStatus{
-			KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedRoute},
+		Status: v1beta12.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta12.KogitoServiceStatus{ExternalURI: expectedRoute},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, dc, trustyService).Build()
@@ -245,26 +245,26 @@ func Test_getKogitoDataIndexURLs(t *testing.T) {
 	expectedWSURL := "ws://" + hostname
 	expectedHTTPSURL := "https://" + hostname
 	expectedWSSURL := "wss://" + hostname
-	insecureDI := &v1beta1.KogitoSupportingService{
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+	insecureDI := &v1beta12.KogitoSupportingService{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "data-index",
 			Namespace: ns,
 		},
-		Status: v1beta1.KogitoSupportingServiceStatus{
-			KogitoServiceStatus: v1beta1.KogitoServiceStatus{
+		Status: v1beta12.KogitoSupportingServiceStatus{
+			KogitoServiceStatus: v1beta12.KogitoServiceStatus{
 				ExternalURI: expectedHTTPURL,
 			},
 		},
 	}
-	secureDI := &v1beta1.KogitoSupportingService{
-		Spec: v1beta1.KogitoSupportingServiceSpec{
+	secureDI := &v1beta12.KogitoSupportingService{
+		Spec: v1beta12.KogitoSupportingServiceSpec{
 			ServiceType: api.DataIndex,
 		},
 		ObjectMeta: metav1.ObjectMeta{Name: "data-index", Namespace: ns},
-		Status:     v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
+		Status:     v1beta12.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta12.KogitoServiceStatus{ExternalURI: expectedHTTPSURL}},
 	}
 
 	cliInsecure := test.NewFakeClientBuilder().AddK8sObjects(insecureDI).Build()

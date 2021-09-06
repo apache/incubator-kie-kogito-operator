@@ -15,8 +15,8 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
@@ -32,12 +32,12 @@ import (
 )
 
 func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
-	build := &v1beta1.KogitoBuild{
+	build := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "quarkus-example", Namespace: t.Name()},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: v1beta12.KogitoBuildSpec{
 			Runtime: api.QuarkusRuntimeType,
 			Type:    api.RemoteSourceBuildType,
-			GitSource: v1beta1.GitSource{
+			GitSource: v1beta12.GitSource{
 				URI: "http://myrepo.com/namespace/project",
 			},
 		},
@@ -84,12 +84,12 @@ func TestNewWhenBuildingFromRemoteSource(t *testing.T) {
 }
 
 func TestNewWhenBuildingFromLocalSource(t *testing.T) {
-	build := &v1beta1.KogitoBuild{
+	build := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: v1beta12.KogitoBuildSpec{
 			Type:    api.LocalSourceBuildType,
 			Runtime: api.QuarkusRuntimeType,
 		},
@@ -136,12 +136,12 @@ func TestNewWhenBuildingFromLocalSource(t *testing.T) {
 }
 
 func TestNewWhenBuildingFromBinary(t *testing.T) {
-	build := &v1beta1.KogitoBuild{
+	build := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: v1beta12.KogitoBuildSpec{
 			Type:    api.BinaryBuildType,
 			Runtime: api.QuarkusRuntimeType,
 		},
@@ -179,12 +179,12 @@ func TestNewWhenBuildingFromBinary(t *testing.T) {
 }
 
 func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
-	build := &v1beta1.KogitoBuild{
+	build := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: v1beta12.KogitoBuildSpec{
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
@@ -203,12 +203,12 @@ func TestNewWhenSanityCheckComplainAboutType(t *testing.T) {
 }
 
 func TestNewWhenSanityCheckComplainAboutGit(t *testing.T) {
-	build := &v1beta1.KogitoBuild{
+	build := &v1beta12.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "quarkus-example",
 			Namespace: t.Name(),
 		},
-		Spec: v1beta1.KogitoBuildSpec{
+		Spec: v1beta12.KogitoBuildSpec{
 			Type:    api.RemoteSourceBuildType,
 			Runtime: api.QuarkusRuntimeType,
 		},

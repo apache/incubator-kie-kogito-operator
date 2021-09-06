@@ -17,7 +17,7 @@ require (
 	github.com/infinispan/infinispan-operator v0.0.0-20210621093106-4662500f4ae1
 	github.com/integr8ly/grafana-operator/v3 v3.10.0
 	github.com/keycloak/keycloak-operator v0.0.0-20200917060808-9858b19ca8bf
-	github.com/kiegroup/kogito-operator/api v0.0.0-00010101000000-000000000000
+	github.com/kiegroup/kogito-operator/apis v0.0.0-00010101000000-000000000000
 	github.com/machinebox/graphql v0.2.2
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/mongodb/mongodb-kubernetes-operator v0.3.0
@@ -55,7 +55,7 @@ require (
 
 // local modules
 replace (
-	github.com/kiegroup/kogito-operator/api => ./api
+	github.com/kiegroup/kogito-operator/apis => ./apis
 	github.com/kiegroup/kogito-operator/client => ./client
 )
 

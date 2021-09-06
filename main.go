@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/kiegroup/kogito-operator/controllers/app"
 	"os"
 	"strings"
 
@@ -29,8 +30,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	"github.com/kiegroup/kogito-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -70,7 +69,7 @@ func main() {
 
 	kubeCli := client.NewForController(mgr)
 
-	if err = (&controllers.KogitoRuntimeReconciler{
+	if err = (&app.KogitoRuntimeReconciler{
 		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoruntime_controllers"),
 		Scheme: mgr.GetScheme(),
@@ -78,7 +77,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
 		os.Exit(1)
 	}
-	if err = (&controllers.KogitoSupportingServiceReconciler{
+	if err = (&app.KogitoSupportingServiceReconciler{
 		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoSupportingService-controller"),
 		Scheme: mgr.GetScheme(),
@@ -86,7 +85,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService")
 		os.Exit(1)
 	}
-	if err = (&controllers.KogitoBuildReconciler{
+	if err = (&app.KogitoBuildReconciler{
 		Client: kubeCli,
 		Log:    logger.GetLogger("kogitoBuild-controller"),
 		Scheme: mgr.GetScheme(),
@@ -94,7 +93,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoBuild")
 		os.Exit(1)
 	}
-	if err = (&controllers.KogitoInfraReconciler{
+	if err = (&app.KogitoInfraReconciler{
 		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoInfra-controller"),
 		Scheme: mgr.GetScheme(),
@@ -102,7 +101,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
 		os.Exit(1)
 	}
-	if err = (&controllers.FinalizeKogitoSupportingService{
+	if err = (&app.FinalizeKogitoSupportingService{
 		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoSupportingService-finalizer"),
 		Scheme: mgr.GetScheme(),
@@ -110,7 +109,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService-finalizer")
 		os.Exit(1)
 	}
-	if err = (&controllers.FinalizeKogitoRuntime{
+	if err = (&app.FinalizeKogitoRuntime{
 		Client: kubeCli,
 		Log:    logger.GetLogger("KogitoRuntime-finalizer"),
 		Scheme: mgr.GetScheme(),

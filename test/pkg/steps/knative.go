@@ -58,10 +58,10 @@ func (data *Data) deployEventDisplay(name string) error {
 			Namespace: data.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": name}},
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kogito": name}},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": name},
+					Labels: map[string]string{"kogito": name},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
@@ -99,5 +99,5 @@ func (data *Data) deployEventDisplay(name string) error {
 	if err := framework.CreateObject(service); err != nil {
 		return err
 	}
-	return framework.WaitForPodsWithLabel(data.Namespace, "app", name, 1, 3)
+	return framework.WaitForPodsWithLabel(data.Namespace, "kogito", name, 1, 3)
 }

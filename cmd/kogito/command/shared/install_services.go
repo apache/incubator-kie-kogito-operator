@@ -16,8 +16,8 @@ package shared
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/core"
@@ -42,16 +42,16 @@ type servicesInstallation struct {
 type ServicesInstallation interface {
 	// InstallBuildService build kogito service.
 	// Depends on the Operator, install it first.
-	InstallBuildService(build *v1beta1.KogitoBuild) ServicesInstallation
+	InstallBuildService(build *v1beta12.KogitoBuild) ServicesInstallation
 	// InstallRuntimeService deploy Runtime service.
 	// Depends on the Operator, install it first.
-	InstallRuntimeService(runtime *v1beta1.KogitoRuntime) ServicesInstallation
+	InstallRuntimeService(runtime *v1beta12.KogitoRuntime) ServicesInstallation
 	// InstallSupportingService installs supporting services. If no reference provided, it will install the default instance.
 	// Depends on the Operator, install it first.
-	InstallSupportingService(supportingService *v1beta1.KogitoSupportingService) ServicesInstallation
+	InstallSupportingService(supportingService *v1beta12.KogitoSupportingService) ServicesInstallation
 	// InstallInfraResource install kogito Infra.
 	// Depends on the Operator, install it first.
-	InstallInfraResource(infra *v1beta1.KogitoInfra) ServicesInstallation
+	InstallInfraResource(infra *v1beta12.KogitoInfra) ServicesInstallation
 	// CheckOperatorCRDs checks whether the CRDs are available on the cluster or not
 	CheckOperatorCRDs() ServicesInstallation
 	// GetError return any given error during the installation process
@@ -67,7 +67,7 @@ func ServicesInstallationBuilder(client *kogitocli.Client, namespace string) Ser
 	}
 }
 
-func (s *servicesInstallation) InstallBuildService(build *v1beta1.KogitoBuild) ServicesInstallation {
+func (s *servicesInstallation) InstallBuildService(build *v1beta12.KogitoBuild) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoResource(build,
 			&serviceInfoMessages{
@@ -79,7 +79,7 @@ func (s *servicesInstallation) InstallBuildService(build *v1beta1.KogitoBuild) S
 	return s
 }
 
-func (s *servicesInstallation) InstallRuntimeService(runtime *v1beta1.KogitoRuntime) ServicesInstallation {
+func (s *servicesInstallation) InstallRuntimeService(runtime *v1beta12.KogitoRuntime) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoResource(runtime,
 			&serviceInfoMessages{
@@ -91,7 +91,7 @@ func (s *servicesInstallation) InstallRuntimeService(runtime *v1beta1.KogitoRunt
 	return s
 }
 
-func (s *servicesInstallation) InstallSupportingService(supportingService *v1beta1.KogitoSupportingService) ServicesInstallation {
+func (s *servicesInstallation) InstallSupportingService(supportingService *v1beta12.KogitoSupportingService) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoResource(supportingService, getSupportingServiceInfoMessages(supportingService.Spec.ServiceType))
 	}
@@ -146,7 +146,7 @@ func getSupportingServiceInfoMessages(serviceType api.ServiceType) *serviceInfoM
 	return nil
 }
 
-func (s *servicesInstallation) InstallInfraResource(infra *v1beta1.KogitoInfra) ServicesInstallation {
+func (s *servicesInstallation) InstallInfraResource(infra *v1beta12.KogitoInfra) ServicesInstallation {
 	if s.err == nil {
 		s.err = s.installKogitoResource(infra,
 			&serviceInfoMessages{
@@ -183,5 +183,5 @@ func (s *servicesInstallation) CheckOperatorCRDs() ServicesInstallation {
 
 // IsKogitoCRDsAvailable detects if the CRDs for kogito-operator are available or not
 func IsKogitoCRDsAvailable(client *kogitocli.Client) bool {
-	return client.HasServerGroup(v1beta1.GroupVersion.Group)
+	return client.HasServerGroup(v1beta12.GroupVersion.Group)
 }

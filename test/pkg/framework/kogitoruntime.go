@@ -16,15 +16,15 @@ package framework
 
 import (
 	"fmt"
+	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 
-	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/apis"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
 )
@@ -49,22 +49,22 @@ func SetKogitoRuntimeReplicas(namespace, name string, nbPods int) error {
 }
 
 // GetKogitoRuntimeStub Get basic KogitoRuntime stub with all needed fields initialized
-func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta1.KogitoRuntime {
+func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta12.KogitoRuntime {
 	replicas := int32(1)
-	kogitoRuntime := &v1beta1.KogitoRuntime{
+	kogitoRuntime := &v1beta12.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: v1beta1.KogitoRuntimeSpec{
+		Spec: v1beta12.KogitoRuntimeSpec{
 			Runtime: api.RuntimeType(runtimeType),
-			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
 				Image: imageTag,
 				// Use insecure registry flag in tests
 				InsecureImageRegistry: true,
 				Replicas:              &replicas,
 				// Extends the probe interval for slow test environment
-				Probes: v1beta1.KogitoProbe{
+				Probes: v1beta12.KogitoProbe{
 					ReadinessProbe: corev1.Probe{
 						FailureThreshold: 12,
 					},
@@ -82,8 +82,8 @@ func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta
 	return kogitoRuntime
 }
 
-func getKogitoRuntime(namespace, name string) (*v1beta1.KogitoRuntime, error) {
-	kogitoRuntime := &v1beta1.KogitoRuntime{}
+func getKogitoRuntime(namespace, name string) (*v1beta12.KogitoRuntime, error) {
+	kogitoRuntime := &v1beta12.KogitoRuntime{}
 	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kogitoRuntime); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for KogitoRuntime %s: %v ", name, err)
 	} else if errors.IsNotFound(err) || !exists {
