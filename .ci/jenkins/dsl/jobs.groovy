@@ -140,6 +140,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
             stringParam('IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Image namespace to use to deploy images')
             stringParam('IMAGE_NAME_SUFFIX', '', 'Image name suffix to use to deploy images. In case you need to change the final image name, you can add a suffix to it.')
             stringParam('IMAGE_TAG', '', 'Image tag to use to deploy images')
+            booleanParam('DEPLOY_WITH_LATEST_TAG', false, 'Set to true if you want the deployed image to also be with the `latest` tag')
             booleanParam('SKIP_DEPLOY', false, 'In case you don\'t want to deploy the final image.')
 
             // Test config if needed specifics. Else test default config will apply.
@@ -282,6 +283,7 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
             stringParam('IMAGE_NAME_PREFIX', '', 'Image name prefix to use to deploy images. In case you need to change the final image name, you can add a prefix to it.')
             stringParam('IMAGE_NAME_SUFFIX', '', 'Image name suffix to use to deploy images. In case you need to change the final image name, you can add a suffix to it.')
             stringParam('IMAGE_TAG', '', 'Image tag to use to deploy images')
+            booleanParam('DEPLOY_WITH_LATEST_TAG', false, 'Set to true if you want the deployed image to also be with the `latest` tag')
 
             // Test config if needed specifics. Else test default config will apply.
             booleanParam('KOGITO_IMAGES_USE_OPENSHIFT_REGISTRY', false, 'Set to true if kogito images for tests are in internal Openshift registry.In this case, KOGITO_IMAGES_REGISTRY and KOGITO_IMAGES_NAMESPACE parameters will be ignored')

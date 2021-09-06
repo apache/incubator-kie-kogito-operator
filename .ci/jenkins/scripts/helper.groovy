@@ -243,6 +243,17 @@ String getShortGitCommitHash() {
     return sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 }
 
+String getReducedTag(String paramsPrefix = defaultImageParamsPrefix) {
+    String tag = helper.getImageTag(paramsPrefix)
+    try {
+        String[] versionSplit = tag.split('\\.')
+        return "${versionSplit[0]}.${versionSplit[1]}"
+    } catch (error) {
+        echo "${tag} cannot be reduced to the format X.Y"
+    }
+    return ''
+}
+
 /////////////////////////////////////////////////////////////////////
 // Utils
 
