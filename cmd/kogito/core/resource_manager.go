@@ -19,7 +19,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
-	runtime "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sync"
 	"time"
 )
@@ -31,7 +31,7 @@ const (
 
 // ResourceManager is the API entry point for Kubernetes Resource management for CLI
 type ResourceManager interface {
-	CreateOrUpdate(resource runtime.Object) error
+	CreateOrUpdate(resource client.Object) error
 }
 
 // NewResourceManager creates a new reference of a ResourceManager
@@ -44,23 +44,23 @@ type resourceManager struct {
 }
 
 // CreateOrUpdate creates the Kubernetes Resource if it does not exist, updates otherwise
-func (r *resourceManager) CreateOrUpdate(resource runtime.Object) error {
+func (r *resourceManager) CreateOrUpdate(resource client.Object) error {
 	fetchedResource := resource.DeepCopyObject()
-	exists, err := kubernetes.ResourceC(r.Client).Fetch(fetchedResource.(runtime.Object))
+	exists, err := kubernetes.ResourceC(r.Client).Fetch(fetchedResource.(client.Object))
 	if err != nil {
 		return err
 	}
 	if exists {
-		return r.update(resource, fetchedResource.(runtime.Object))
+		return r.update(resource, fetchedResource.(client.Object))
 	}
 	return kubernetes.ResourceC(r.Client).Create(resource)
 }
 
-func (r *resourceManager) update(newResource runtime.Object, oldResource runtime.Object) error {
+func (r *resourceManager) update(newResource client.Object, oldResource client.Object) error {
 	var updateError error
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go func(res runtime.Object) {
+	go func(res client.Object) {
 		defer wg.Done()
 		// handle race conditions
 		err := wait.Poll(poolWaitTimeout, cancelUpdateTimeout, func() (bool, error) {

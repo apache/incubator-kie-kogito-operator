@@ -17,41 +17,41 @@ package kubernetes
 import (
 	"context"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
-	"github.com/kiegroup/kogito-operator/core/client"
-	runtime "sigs.k8s.io/controller-runtime/pkg/client"
+	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // ResourceWriter interface to write kubernetes object
 type ResourceWriter interface {
 	// Create creates a new Kubernetes object in the cluster.
 	// Note that no checks will be performed in the cluster. If you're not sure, use CreateIfNotExists.
-	Create(resource runtime.Object) error
+	Create(resource client.Object) error
 	// Delete delete the given object
-	Delete(resource runtime.Object) error
+	Delete(resource client.Object) error
 	// Update the given object
-	Update(resource runtime.Object) error
+	Update(resource client.Object) error
 	// UpdateStatus update the given object status
-	UpdateStatus(resource runtime.Object) error
+	UpdateStatus(resource client.Object) error
 	// CreateResources create provided objects
-	CreateResources(resources []runtime.Object) (bool, error)
+	CreateResources(resources []client.Object) (bool, error)
 	// UpdateResources update provided objects
-	UpdateResources(existing []runtime.Object, resources []runtime.Object) (bool, error)
+	UpdateResources(existing []client.Object, resources []client.Object) (bool, error)
 	// DeleteResources delete provided objects
-	DeleteResources(resources []runtime.Object) (bool, error)
+	DeleteResources(resources []client.Object) (bool, error)
 }
 
 // ResourceWriterC provide ResourceWrite reference
-func ResourceWriterC(cli *client.Client) ResourceWriter {
+func ResourceWriterC(cli *kogitocli.Client) ResourceWriter {
 	return &resourceWriter{
 		client: cli,
 	}
 }
 
 type resourceWriter struct {
-	client *client.Client
+	client *kogitocli.Client
 }
 
-func (r *resourceWriter) Create(resource runtime.Object) error {
+func (r *resourceWriter) Create(resource client.Object) error {
 	log.Debug("Creating resource", "kind", resource.GetObjectKind().GroupVersionKind().Kind, "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Create(context.TODO(), resource); err != nil {
 		log.Error(err, "Failed to create object. ")
@@ -60,7 +60,7 @@ func (r *resourceWriter) Create(resource runtime.Object) error {
 	return nil
 }
 
-func (r *resourceWriter) Update(resource runtime.Object) error {
+func (r *resourceWriter) Update(resource client.Object) error {
 	log.Debug("About to update resource", "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Update(context.TODO(), resource); err != nil {
 		return err
@@ -69,7 +69,7 @@ func (r *resourceWriter) Update(resource runtime.Object) error {
 	return nil
 }
 
-func (r *resourceWriter) Delete(resource runtime.Object) error {
+func (r *resourceWriter) Delete(resource client.Object) error {
 	if err := r.client.ControlCli.Delete(context.TODO(), resource); err != nil {
 		log.Error(err, "Failed to delete resource.", "name", resource.GetName())
 		return err
@@ -77,7 +77,7 @@ func (r *resourceWriter) Delete(resource runtime.Object) error {
 	return nil
 }
 
-func (r *resourceWriter) UpdateStatus(resource runtime.Object) error {
+func (r *resourceWriter) UpdateStatus(resource client.Object) error {
 	log.Debug("About to update status for object", "name", resource.GetName(), "namespace", resource.GetNamespace())
 	if err := r.client.ControlCli.Status().Update(context.TODO(), resource); err != nil {
 		return err
@@ -87,17 +87,17 @@ func (r *resourceWriter) UpdateStatus(resource runtime.Object) error {
 	return nil
 }
 
-func (r *resourceWriter) CreateResources(resources []runtime.Object) (bool, error) {
+func (r *resourceWriter) CreateResources(resources []client.Object) (bool, error) {
 	writer := write.New(r.client.ControlCli)
 	return writer.AddResources(resources)
 }
 
-func (r *resourceWriter) UpdateResources(existing []runtime.Object, resources []runtime.Object) (bool, error) {
+func (r *resourceWriter) UpdateResources(existing []client.Object, resources []client.Object) (bool, error) {
 	writer := write.New(r.client.ControlCli)
 	return writer.UpdateResources(existing, resources)
 }
 
-func (r *resourceWriter) DeleteResources(resources []runtime.Object) (bool, error) {
+func (r *resourceWriter) DeleteResources(resources []client.Object) (bool, error) {
 	writer := write.New(r.client.ControlCli)
 	return writer.RemoveResources(resources)
 }

@@ -291,7 +291,7 @@ func (installer *OlmNamespacedServiceInstaller) getAllCrsInNamespace(namespace s
 }
 
 func (installer *OlmNamespacedServiceInstaller) uninstallFromNamespace(namespace string) error {
-	subscription, err := framework.GetSubscription(namespace, installer.SubscriptionName, installer.Catalog().Source)
+	subscription, err := framework.GetSubscription(namespace, installer.SubscriptionName, installer.Catalog())
 	if err != nil {
 		return err
 	}

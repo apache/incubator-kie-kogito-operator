@@ -17,44 +17,44 @@ package kubernetes
 import (
 	"context"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
-	"github.com/kiegroup/kogito-operator/core/client"
+	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
-	runtime "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // ResourceReader interface to read kubernetes object
 type ResourceReader interface {
 	// FetchWithKey fetches and binds a resource from the Kubernetes cluster with the defined key. If not exists, returns false.
-	FetchWithKey(key types.NamespacedName, resource runtime.Object) (exists bool, err error)
+	FetchWithKey(key types.NamespacedName, resource client.Object) (exists bool, err error)
 	// Fetch fetches and binds a resource with given name and namespace from the Kubernetes cluster. If not exists, returns false.
-	Fetch(resource runtime.Object) (exists bool, err error)
+	Fetch(resource client.Object) (exists bool, err error)
 	// ListWithNamespace fetches and binds a list resource from the Kubernetes cluster with the defined namespace.
-	ListWithNamespace(namespace string, list runtime.ObjectList) error
+	ListWithNamespace(namespace string, list client.ObjectList) error
 	// ListWithNamespaceAndLabel same as ListWithNamespace, but also limit the query scope by the given labels
-	ListWithNamespaceAndLabel(namespace string, list runtime.ObjectList, labels map[string]string) error
+	ListWithNamespaceAndLabel(namespace string, list client.ObjectList, labels map[string]string) error
 	// ListAll returns a map of Kubernetes resources organized by type, based on provided List objects
-	ListAll(objectTypes []runtime.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]runtime.Object, error)
+	ListAll(objectTypes []client.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]client.Object, error)
 }
 
 // ResourceReaderC provide ResourceReader reference
-func ResourceReaderC(cli *client.Client) ResourceReader {
+func ResourceReaderC(cli *kogitocli.Client) ResourceReader {
 	return &resourceReader{
 		client: cli,
 	}
 }
 
 type resourceReader struct {
-	client *client.Client
+	client *kogitocli.Client
 }
 
-func (r *resourceReader) Fetch(resource runtime.Object) (bool, error) {
+func (r *resourceReader) Fetch(resource client.Object) (bool, error) {
 	return r.FetchWithKey(types.NamespacedName{Name: resource.GetName(), Namespace: resource.GetNamespace()}, resource)
 }
 
-func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource runtime.Object) (bool, error) {
+func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource client.Object) (bool, error) {
 	log.Debug("About to fetch object", "name", key.Name, "namespace", key.Namespace)
 	err := r.client.ControlCli.Get(context.TODO(), key, resource)
 	if err != nil && errors.IsNotFound(err) {
@@ -66,8 +66,8 @@ func (r *resourceReader) FetchWithKey(key types.NamespacedName, resource runtime
 	return true, nil
 }
 
-func (r *resourceReader) ListWithNamespace(namespace string, list runtime.ObjectList) error {
-	err := r.client.ControlCli.List(context.TODO(), list, runtime.InNamespace(namespace))
+func (r *resourceReader) ListWithNamespace(namespace string, list client.ObjectList) error {
+	err := r.client.ControlCli.List(context.TODO(), list, client.InNamespace(namespace))
 	if err != nil {
 		log.Error(err, "Failed to list resource.")
 		return err
@@ -75,8 +75,8 @@ func (r *resourceReader) ListWithNamespace(namespace string, list runtime.Object
 	return nil
 }
 
-func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list runtime.ObjectList, labels map[string]string) error {
-	err := r.client.ControlCli.List(context.TODO(), list, runtime.InNamespace(namespace), runtime.MatchingLabels(labels))
+func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list client.ObjectList, labels map[string]string) error {
+	err := r.client.ControlCli.List(context.TODO(), list, client.InNamespace(namespace), client.MatchingLabels(labels))
 	if err != nil {
 		log.Error(err, "Failed to list resource. ")
 		return err
@@ -84,7 +84,7 @@ func (r *resourceReader) ListWithNamespaceAndLabel(namespace string, list runtim
 	return nil
 }
 
-func (r *resourceReader) ListAll(objectTypes []runtime.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]runtime.Object, error) {
+func (r *resourceReader) ListAll(objectTypes []client.ObjectList, namespace string, ownerObject metav1.Object) (map[reflect.Type][]client.Object, error) {
 	reader := read.New(r.client.ControlCli).WithNamespace(namespace).WithOwnerObject(ownerObject)
 	return reader.ListAll(objectTypes...)
 }
