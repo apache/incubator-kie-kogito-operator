@@ -899,10 +899,8 @@ spec:
                   value: kogito-runtime-jvm
                 - name: RUNTIME_NATIVE_IMAGE
                   value: kogito-runtime-native
-                - name: IMAGE_NAMESPACE
-                  value: kiegroup
                 - name: IMAGE_REGISTRY
-                  value: quay.io
+                  value: quay.io/kiegroup
                 image: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
                 livenessProbe:
                   httpGet:

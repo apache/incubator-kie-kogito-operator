@@ -34,12 +34,8 @@ const (
 	LatestTag = "latest"
 	// imageRegistryEnvVar ...
 	imageRegistryEnvVar = "IMAGE_REGISTRY"
-	// imageNamespaceEnvVar ...
-	imageNamespaceEnvVar = "IMAGE_NAMESPACE"
 	// defaultImageRegistry the default services image repository
-	defaultImageRegistry = "quay.io"
-	// defaultImageNamespace the default services image namespace
-	defaultImageNamespace = "kiegroup"
+	defaultImageRegistry = "quay.io/kiegroup"
 	//RuntimeTypeKey Env key to switch between the runtime
 	RuntimeTypeKey = "RUNTIME_TYPE"
 )
@@ -122,11 +118,7 @@ func (i *imageHandler) resolveRegistryImage() string {
 	if len(domain) == 0 {
 		domain = GetDefaultImageRegistry()
 	}
-	ns := i.image.Namespace
-	if len(ns) == 0 {
-		ns = GetDefaultImageNamespace()
-	}
-	return fmt.Sprintf("%s/%s/%s", domain, ns, i.ResolveImageNameTag())
+	return fmt.Sprintf("%s/%s", domain, i.ResolveImageNameTag())
 }
 
 // resolves like "kogito-jobs-service:latest"
@@ -186,13 +178,4 @@ func GetDefaultImageRegistry() string {
 		registry = defaultImageRegistry
 	}
 	return registry
-}
-
-// GetDefaultImageNamespace ...
-func GetDefaultImageNamespace() string {
-	imageNamespace := os.Getenv(imageNamespaceEnvVar)
-	if len(imageNamespace) == 0 {
-		imageNamespace = defaultImageNamespace
-	}
-	return imageNamespace
 }

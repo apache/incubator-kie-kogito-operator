@@ -113,10 +113,21 @@ pipeline {
                     // Retrieve the list of images
                     images = readFile(file: 'test/examples/logs/built_project_image_names.log').split('\n')
 
-                    if (helper.getImageRegistry() == 'quay.io') {
-                        // Set visible each repo
-                        images.each {
-                            helper.makeQuayImagePublic(helper.getFullImageName(it))
+                    for (String imageName : images) {
+                        if (helper.isDeployLatestTag()) {
+                            String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, 'latest')
+                            container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
+                            container.pushImage(finalFullImage)
+                        }
+                        String reducedTag = helper.getReducedTag()
+                        if (reducedTag) {
+                            String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, reducedTag)
+                            container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
+                            container.pushImage(finalFullImage)
+                        }
+
+                        if (helper.getImageRegistry() == 'quay.io') {
+                            helper.makeQuayImagePublic(helper.getFullImageName(imageName))
                         }
                     }
 
