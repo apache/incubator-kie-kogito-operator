@@ -37,7 +37,8 @@ IMAGE_TAG_BASE ?= quay.io/kiegroup/kogito-operator
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
-# Default bundle image tag
+# PROFILING_IMG defines the image:tag used for the profiling.
+# It is used to catch the coverage with BDD test.
 PROFILING_IMG ?= $(IMAGE_TAG_BASE)-profiling:$(VERSION)
 
 # Image URL to use all building/pushing image targets
