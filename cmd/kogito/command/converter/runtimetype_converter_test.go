@@ -70,7 +70,7 @@ func Test_FromArgsToRuntime_BinaryBuild_QuarkusFastJar(t *testing.T) {
 		Runtime: "quarkus",
 	}
 
-	tmpDir := test.TempDirWithSubDir("target", "quarkus-kogito")
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
 	defer os.RemoveAll(tmpDir)
 
 	runtimeType, err := FromArgsToRuntimeType(flags, flag.LocalBinaryDirectoryResource, tmpDir)
@@ -105,7 +105,7 @@ func Test_FromArgsToRuntime_BinaryBuild_QuarkusNative(t *testing.T) {
 }
 
 func Test_ToQuarkusLegacyJarType_WithFastJar(t *testing.T) {
-	tmpDir := test.TempDirWithSubDir("target", "quarkus-kogito")
+	tmpDir := test.TempDirWithSubDir("target", "quarkus-app")
 	defer os.RemoveAll(tmpDir)
 
 	legacy, err := ToQuarkusLegacyJarType(flag.LocalBinaryDirectoryResource, tmpDir)

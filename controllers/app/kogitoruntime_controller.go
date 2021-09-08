@@ -15,7 +15,7 @@
 package app
 
 import (
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
@@ -128,16 +128,16 @@ func (r *KogitoRuntimeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		},
 	}
 	b := ctrl.NewControllerManagedBy(mgr).
-		For(&v1beta12.KogitoRuntime{}, builder.WithPredicates(pred)).
+		For(&v1beta1.KogitoRuntime{}, builder.WithPredicates(pred)).
 		Owns(&corev1.Service{}).Owns(&appsv1.Deployment{}).Owns(&corev1.ConfigMap{})
 
-	infraHandler := &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1beta12.KogitoRuntime{}}
+	infraHandler := &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1beta1.KogitoRuntime{}}
 	infraPred := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			return reflect.DeepEqual(e.MetaNew.GetOwnerReferences(), e.MetaOld.GetOwnerReferences())
 		},
 	}
-	b.Watches(&source.Kind{Type: &v1beta12.KogitoInfra{}}, infraHandler, builder.WithPredicates(infraPred))
+	b.Watches(&source.Kind{Type: &v1beta1.KogitoInfra{}}, infraHandler, builder.WithPredicates(infraPred))
 	if r.IsOpenshift() {
 		b.Owns(&routev1.Route{}).Owns(&imagev1.ImageStream{})
 	}

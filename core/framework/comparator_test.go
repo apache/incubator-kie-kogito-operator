@@ -44,7 +44,7 @@ func Test_containAllLabels(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -52,7 +52,7 @@ func Test_containAllLabels(t *testing.T) {
 				requested: &v1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -66,7 +66,7 @@ func Test_containAllLabels(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test1",
 						},
 					},
@@ -74,7 +74,7 @@ func Test_containAllLabels(t *testing.T) {
 				requested: &v1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -109,7 +109,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				deployed: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -117,7 +117,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				requested: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -132,7 +132,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				deployed: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -140,7 +140,7 @@ func Test_CreateBuildConfigComparator(t *testing.T) {
 				requested: &buildv1.BuildConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test1",
 						},
 					},
@@ -745,7 +745,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				deployed: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -753,7 +753,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				requested: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -768,7 +768,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				deployed: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -776,7 +776,7 @@ func Test_CreateRouteComparator(t *testing.T) {
 				requested: &routev1.Route{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test1",
 						},
 					},
@@ -821,7 +821,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -829,7 +829,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				requested: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -844,7 +844,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				deployed: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test",
 						},
 					},
@@ -852,7 +852,7 @@ func Test_CreateServiceComparator(t *testing.T) {
 				requested: &v1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"kogito":  "test",
+							"app":     "test",
 							"service": "test1",
 						},
 					},

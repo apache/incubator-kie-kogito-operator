@@ -16,7 +16,7 @@ package framework
 
 import (
 	"fmt"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
@@ -91,14 +91,14 @@ func NewObjectMetadata(namespace string, name string) metav1.ObjectMeta {
 }
 
 // NewKogitoServiceSpec creates a new Kogito Service Spec object.
-func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName string) v1beta12.KogitoServiceSpec {
-	return v1beta12.KogitoServiceSpec{
+func NewKogitoServiceSpec(replicas int32, fullImage string, defaultImageName string) v1beta1.KogitoServiceSpec {
+	return v1beta1.KogitoServiceSpec{
 		Replicas: &replicas,
 		Image:    NewImageOrDefault(fullImage, defaultImageName),
 		// Sets insecure image registry as service images can be stored in insecure registries
 		InsecureImageRegistry: true,
 		// Extends the probe interval for slow test environment
-		Probes: v1beta12.KogitoProbe{
+		Probes: v1beta1.KogitoProbe{
 			ReadinessProbe: corev1.Probe{
 				FailureThreshold: 12,
 			},
@@ -203,10 +203,10 @@ func patchKogitoProbes(serviceHolder *bddtypes.KogitoServiceHolder) error {
 // Return new empty KogitoService based on same type as parameter
 func newKogitoService(s api.KogitoService) (api.KogitoService, error) {
 	switch v := s.GetSpec().(type) {
-	case *v1beta12.KogitoRuntimeSpec:
-		return &v1beta12.KogitoRuntime{}, nil
-	case *v1beta12.KogitoSupportingServiceSpec:
-		return &v1beta12.KogitoSupportingService{}, nil
+	case *v1beta1.KogitoRuntimeSpec:
+		return &v1beta1.KogitoRuntime{}, nil
+	case *v1beta1.KogitoSupportingServiceSpec:
+		return &v1beta1.KogitoSupportingService{}, nil
 	default:
 		return nil, fmt.Errorf("Type %T not defined", v)
 	}

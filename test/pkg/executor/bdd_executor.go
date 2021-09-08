@@ -16,7 +16,7 @@ package executor
 
 import (
 	"fmt"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"io"
 	"os"
 	"strings"
@@ -201,7 +201,7 @@ func initializeScenario(ctx *godog.ScenarioContext) {
 
 	// Log objects
 	if logKogitoCommunityObjects {
-		data.RegisterLogsKubernetesObjects(&v1beta12.KogitoRuntimeList{}, &v1beta12.KogitoBuildList{}, &v1beta12.KogitoSupportingService{}, &v1beta12.KogitoInfraList{})
+		data.RegisterLogsKubernetesObjects(&v1beta1.KogitoRuntimeList{}, &v1beta1.KogitoBuildList{}, &v1beta1.KogitoSupportingService{}, &v1beta1.KogitoInfraList{})
 	}
 	data.RegisterLogsKubernetesObjects(&olmapiv1alpha1.ClusterServiceVersionList{})
 	if framework.IsOpenshift() {

@@ -38,7 +38,7 @@ const (
 
 	postgresqlPort                     = 5432
 	postgresqlPersistentVolumeCapacity = "1Gi"
-	postgresqlLabelName                = "kogito"
+	postgresqlLabelName                = "app"
 	postgresqlLabelValue               = "postgres"
 )
 

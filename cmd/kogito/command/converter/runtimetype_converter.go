@@ -24,7 +24,7 @@ import (
 
 var (
 	quarkusLegacyJarSuffix       = "-runner.jar"
-	quarkusRuntimeTargetSuffixes = []string{quarkusLegacyJarSuffix, "quarkus-kogito", "-runner"}
+	quarkusRuntimeTargetSuffixes = []string{quarkusLegacyJarSuffix, "quarkus-app", "-runner"}
 )
 
 // FromRuntimeFlagsToRuntimeType converts given RuntimeTypeFlags into RuntimeType

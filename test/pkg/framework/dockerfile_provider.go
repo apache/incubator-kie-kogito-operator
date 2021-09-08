@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	quarkusFastJarFolder = "quarkus-kogito"
+	quarkusFastJarFolder = "quarkus-app"
 	quarkusFastJarName   = "quarkus-run.jar"
 
 	quarkusJVMLegacyApplicationBinarySuffix = "-runner.jar"
@@ -58,7 +58,7 @@ var quarkusNonNativeFastJarKogitoApplicationDockerfileProvider = kogitoApplicati
 	jarSubDirectory:         quarkusFastJarFolder,
 	executableFileName:      quarkusFastJarName,
 	applicationBinarySuffix: quarkusJVMFastApplicationBinarySuffix,
-	folderDependencies:      []string{"lib", "quarkus", "kogito"},
+	folderDependencies:      []string{"lib", "quarkus", "app"},
 }
 
 var quarkusNativeKogitoApplicationDockerfileProvider = kogitoApplicationDockerfileProviderStruct{

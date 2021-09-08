@@ -16,7 +16,7 @@ package app
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitobuild"
@@ -39,11 +39,11 @@ import (
 
 func TestReconcileKogitoBuildSimple(t *testing.T) {
 	instanceName := "quarkus-example"
-	instance := &v1beta12.KogitoBuild{
+	instance := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceName, Namespace: t.Name()},
-		Spec: v1beta12.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: v1beta12.GitSource{
+			GitSource: v1beta1.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: instanceName,
 			},
@@ -123,20 +123,20 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 func TestReconcileKogitoBuildMultiple(t *testing.T) {
 	kogitoServiceName := "quarkus-example"
 	instanceLocalName := "quarkus-example-local"
-	instanceRemote := &v1beta12.KogitoBuild{
+	instanceRemote := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: kogitoServiceName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: v1beta12.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
-			GitSource: v1beta12.GitSource{
+			GitSource: v1beta1.GitSource{
 				URI:        "https://github.com/kiegroup/kogito-examples/",
 				ContextDir: kogitoServiceName,
 			},
 			Runtime: api.QuarkusRuntimeType,
 		},
 	}
-	instanceLocal := &v1beta12.KogitoBuild{
+	instanceLocal := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: instanceLocalName, Namespace: t.Name(), UID: test.GenerateUID()},
-		Spec: v1beta12.KogitoBuildSpec{
+		Spec: v1beta1.KogitoBuildSpec{
 			Type:                api.LocalSourceBuildType,
 			Runtime:             api.QuarkusRuntimeType,
 			TargetKogitoRuntime: kogitoServiceName,

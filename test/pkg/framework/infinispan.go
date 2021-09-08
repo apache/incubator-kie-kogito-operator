@@ -58,7 +58,7 @@ func CreateInfinispanSecret(namespace, name string, credentialsMap map[string]st
 func WaitForInfinispanPodsToBeRunningWithConfig(namespace string, expectedConfig infinispan.InfinispanContainerSpec, numberOfPods, timeoutInMin int) error {
 	return WaitForOnOpenshift(namespace, fmt.Sprintf("Infinispan pod to be running with expected configuration: %+v", expectedConfig), timeoutInMin,
 		func() (bool, error) {
-			pods, err := GetPodsWithLabels(namespace, map[string]string{"kogito": "infinispan-pod"})
+			pods, err := GetPodsWithLabels(namespace, map[string]string{"app": "infinispan-pod"})
 			if err != nil || len(pods.Items) != numberOfPods {
 				return false, err
 			}

@@ -151,7 +151,7 @@ func TestCompressAsTGZQuarkusNative(t *testing.T) {
 
 func TestCompressAsTGZQuarkusFastJvm(t *testing.T) {
 	libTempDir := baseTempDir + "lib/"
-	quarkusFastJarTempDir := baseTempDir + "quarkus-kogito/"
+	quarkusFastJarTempDir := baseTempDir + "quarkus-app/"
 	quarkusFastJarLibTempDir := quarkusFastJarTempDir + "lib/"
 	quarkusFastJarLibMainTempDir := quarkusFastJarLibTempDir + "main/"
 	quarkusFastJarLibBootTempDir := quarkusFastJarLibTempDir + "boot/"
@@ -198,8 +198,8 @@ func TestCompressAsTGZQuarkusFastJvm(t *testing.T) {
 	defer testGzip.Close()
 
 	filesFromGzip := getFilesFromGzip(t, fileToWrite)
-	filesInGzip := []string{"file.json", "file3-runner.jar", "quarkus-kogito/quarkus-run.jar", "quarkus-kogito/lib/main/filelibmain.jar", "quarkus-kogito/lib/boot/filelibboot.jar", "quarkus-kogito/quarkus/file9.dat"}
-	filesNotInGzip := []string{"file2-runner", "file4.unsupported", "lib/file6.unsupported", "lib/file5.jar", "quarkus-kogito/file11.unsupported", "quarkus-kogito/lib/main/filelibmain.unsupported", "quarkus-kogito/lib/boot/filelibboot.unsupported"}
+	filesInGzip := []string{"file.json", "file3-runner.jar", "quarkus-app/quarkus-run.jar", "quarkus-app/lib/main/filelibmain.jar", "quarkus-app/lib/boot/filelibboot.jar", "quarkus-app/quarkus/file9.dat"}
+	filesNotInGzip := []string{"file2-runner", "file4.unsupported", "lib/file6.unsupported", "lib/file5.jar", "quarkus-app/file11.unsupported", "quarkus-app/lib/main/filelibmain.unsupported", "quarkus-app/lib/boot/filelibboot.unsupported"}
 	for _, file := range filesInGzip {
 		assert.True(t, contains(file, filesFromGzip))
 	}
@@ -212,7 +212,7 @@ func TestCompressAsTGZQuarkusFastJvm(t *testing.T) {
 
 func TestCompressAsTGZQuarkusLegacyJvm(t *testing.T) {
 	libTempDir := baseTempDir + "lib/"
-	quarkusLibTempDir := baseTempDir + "quarkus-kogito/lib/"
+	quarkusLibTempDir := baseTempDir + "quarkus-app/lib/"
 	test.Mkdir(libTempDir)
 	test.Mkdir(quarkusLibTempDir)
 
@@ -244,7 +244,7 @@ func TestCompressAsTGZQuarkusLegacyJvm(t *testing.T) {
 
 	filesFromGzip := getFilesFromGzip(t, fileToWrite)
 	filesInGzip := []string{"file.json", "file3-runner.jar", "lib/file5.jar"}
-	filesNotInGzip := []string{"file2-runner", "file4.unsupported", "lib/file6.unsupported", "quarkus-kogito/lib/file7.jar", "quarkus-kogito/lib/file8.unsupported"}
+	filesNotInGzip := []string{"file2-runner", "file4.unsupported", "lib/file6.unsupported", "quarkus-app/lib/file7.jar", "quarkus-app/lib/file8.unsupported"}
 	for _, file := range filesInGzip {
 		assert.True(t, contains(file, filesFromGzip))
 	}
@@ -257,7 +257,7 @@ func TestCompressAsTGZQuarkusLegacyJvm(t *testing.T) {
 
 func TestCompressAsTGZSpringBootJvm(t *testing.T) {
 	libTempDir := baseTempDir + "lib/"
-	quarkusLibTempDir := baseTempDir + "quarkus-kogito/lib/"
+	quarkusLibTempDir := baseTempDir + "quarkus-app/lib/"
 	test.Mkdir(libTempDir)
 	test.Mkdir(quarkusLibTempDir)
 
@@ -288,7 +288,7 @@ func TestCompressAsTGZSpringBootJvm(t *testing.T) {
 
 	filesFromGzip := getFilesFromGzip(t, fileToWrite)
 	filesInGzip := []string{"file.json", "file3.jar"}
-	filesNotInGzip := []string{"file2-runner", "file4.unsupported", "lib/file5.jar", "lib/file6.unsupported", "quarkus-kogito/lib/file7.jar", "quarkus-kogito/lib/file8.unsupported"}
+	filesNotInGzip := []string{"file2-runner", "file4.unsupported", "lib/file5.jar", "lib/file6.unsupported", "quarkus-app/lib/file7.jar", "quarkus-app/lib/file8.unsupported"}
 	for _, file := range filesInGzip {
 		assert.True(t, contains(file, filesFromGzip))
 	}

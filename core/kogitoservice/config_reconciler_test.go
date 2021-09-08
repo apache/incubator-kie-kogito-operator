@@ -16,7 +16,7 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -29,11 +29,11 @@ import (
 )
 
 func TestInfraPropertiesReconciler_CustomConfig(t *testing.T) {
-	instance := &v1beta12.KogitoRuntime{
+	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
-		Spec: v1beta12.KogitoRuntimeSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
-			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Config: map[string]string{
 					"key1": "value1",
 					"key2": "value2",

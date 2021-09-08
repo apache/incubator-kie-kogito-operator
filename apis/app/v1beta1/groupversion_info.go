@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package v1beta1 contains API Schema definitions for the kogito v1beta1 API group
+// Package v1beta1 contains API Schema definitions for the app v1beta1 API group
 // +kubebuilder:object:generate=true
 // +groupName=app.kiegroup.org
 package v1beta1

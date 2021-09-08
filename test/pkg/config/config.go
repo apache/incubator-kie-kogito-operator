@@ -186,7 +186,7 @@ func BindFlags(set *flag.FlagSet) {
 	// build
 	set.StringVar(&env.customMavenRepoURL, prefix+"custom-maven-repo-url", "", "Set a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information")
 	set.BoolVar(&env.customMavenRepoReplaceDefault, prefix+"custom-maven-repo-replace-default", false, "If you specified the option 'tests.custom-maven-repo-url' and you want that one to replace the main JBoss repository (useful with snapshots).")
-	set.StringVar(&env.mavenMirrorURL, prefix+"maven-mirror-url", "", "Maven mirror url to be used when building kogito in the tests")
+	set.StringVar(&env.mavenMirrorURL, prefix+"maven-mirror-url", "", "Maven mirror url to be used when building app in the tests")
 	set.BoolVar(&env.mavenIgnoreSelfSignedCertificate, prefix+"maven-ignore-self-signed-certificate", false, "Set to true if maven build need to ignore self-signed certificate. This could happen when using internal maven mirror url.")
 	set.StringVar(&env.buildImageRegistry, prefix+"build-image-registry", "", "Set the build image registry")
 	set.StringVar(&env.buildImageNamespace, prefix+"build-image-namespace", "", "Set the build image namespace")

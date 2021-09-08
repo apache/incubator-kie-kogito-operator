@@ -15,7 +15,7 @@
 package kogitoinfra
 
 import (
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
@@ -27,17 +27,17 @@ import (
 
 func TestConfigMapReferenceReconciler_Reconcile(t *testing.T) {
 	ns := t.Name()
-	infraInstance := &v1beta12.KogitoInfra{
+	infraInstance := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "kogito-kafka",
 			Namespace: ns,
 		},
-		Spec: v1beta12.KogitoInfraSpec{
+		Spec: v1beta1.KogitoInfraSpec{
 			ConfigMapEnvFromReferences: []string{
 				"my-config-1",
 				"my-config-2",
 			},
-			ConfigMapVolumeReferences: []v1beta12.VolumeReference{
+			ConfigMapVolumeReferences: []v1beta1.VolumeReference{
 				{
 					Name:      "volume-reference-1",
 					MountPath: "/testPath",
@@ -93,12 +93,12 @@ func TestConfigMapReferenceReconciler_Reconcile(t *testing.T) {
 
 func TestConfigMapReferenceReconciler_WrongConfigMapName(t *testing.T) {
 	ns := t.Name()
-	infraInstance := &v1beta12.KogitoInfra{
+	infraInstance := &v1beta1.KogitoInfra{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "kogito-kafka",
 			Namespace: ns,
 		},
-		Spec: v1beta12.KogitoInfraSpec{
+		Spec: v1beta1.KogitoInfraSpec{
 			ConfigMapEnvFromReferences: []string{
 				"my-config-1",
 			},

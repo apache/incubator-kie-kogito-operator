@@ -58,10 +58,10 @@ func (data *Data) deployEventDisplay(name string) error {
 			Namespace: data.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kogito": name}},
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": name}},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"kogito": name},
+					Labels: map[string]string{"app": name},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{

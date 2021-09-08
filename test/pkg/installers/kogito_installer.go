@@ -17,7 +17,7 @@ package installers
 import (
 	"errors"
 	"fmt"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"regexp"
 
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -134,7 +134,7 @@ func uninstallKogitoUsingYaml() error {
 func getKogitoCrsInNamespace(namespace string) ([]kubernetes.ResourceObject, error) {
 	crs := []kubernetes.ResourceObject{}
 
-	kogitoRuntimes := &v1beta12.KogitoRuntimeList{}
+	kogitoRuntimes := &v1beta1.KogitoRuntimeList{}
 	if err := framework.GetObjectsInNamespace(namespace, kogitoRuntimes); err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func getKogitoCrsInNamespace(namespace string) ([]kubernetes.ResourceObject, err
 		crs = append(crs, &kogitoRuntimes.Items[i])
 	}
 
-	kogitoBuilds := &v1beta12.KogitoBuildList{}
+	kogitoBuilds := &v1beta1.KogitoBuildList{}
 	if err := framework.GetObjectsInNamespace(namespace, kogitoBuilds); err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func getKogitoCrsInNamespace(namespace string) ([]kubernetes.ResourceObject, err
 		crs = append(crs, &kogitoBuilds.Items[i])
 	}
 
-	kogitoSupportingServices := &v1beta12.KogitoSupportingServiceList{}
+	kogitoSupportingServices := &v1beta1.KogitoSupportingServiceList{}
 	if err := framework.GetObjectsInNamespace(namespace, kogitoSupportingServices); err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func getKogitoCrsInNamespace(namespace string) ([]kubernetes.ResourceObject, err
 		crs = append(crs, &kogitoSupportingServices.Items[i])
 	}
 
-	kogitoInfras := &v1beta12.KogitoInfraList{}
+	kogitoInfras := &v1beta1.KogitoInfraList{}
 	if err := framework.GetObjectsInNamespace(namespace, kogitoInfras); err != nil {
 		return nil, err
 	}

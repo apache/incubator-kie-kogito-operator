@@ -16,7 +16,7 @@ package mappers
 
 import (
 	"fmt"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 
 	"github.com/kiegroup/kogito-operator/apis"
 
@@ -46,7 +46,7 @@ func MapKogitoBuildTable(table *godog.Table, buildHolder *types.KogitoBuildHolde
 		mappingFound, serviceMapErr := MapKogitoServiceTableRow(row, buildHolder.KogitoServiceHolder)
 		if !mappingFound {
 			// Try to map configuration row to KogitoBuild
-			mappingFound, buildMapErr := mapKogitoBuildTableRow(row, buildHolder.KogitoBuild.(*v1beta12.KogitoBuild))
+			mappingFound, buildMapErr := mapKogitoBuildTableRow(row, buildHolder.KogitoBuild.(*v1beta1.KogitoBuild))
 			if !mappingFound {
 				return fmt.Errorf("Row mapping not found, Kogito service mapping error: %v , Kogito build mapping error: %v", serviceMapErr, buildMapErr)
 			}
@@ -57,7 +57,7 @@ func MapKogitoBuildTable(table *godog.Table, buildHolder *types.KogitoBuildHolde
 }
 
 // mapKogitoBuildTableRow maps Cucumber table row to KogitoBuild
-func mapKogitoBuildTableRow(row *TableRow, kogitoBuild *v1beta12.KogitoBuild) (mappingFound bool, err error) {
+func mapKogitoBuildTableRow(row *TableRow, kogitoBuild *v1beta1.KogitoBuild) (mappingFound bool, err error) {
 	if len(row.Cells) != 3 {
 		return false, fmt.Errorf("expected table to have exactly three columns")
 	}
@@ -84,7 +84,7 @@ func mapKogitoBuildTableRow(row *TableRow, kogitoBuild *v1beta12.KogitoBuild) (m
 	}
 }
 
-func mapKogitoBuildConfigTableRow(row *TableRow, kogitoBuild *v1beta12.KogitoBuild) (mappingFound bool, err error) {
+func mapKogitoBuildConfigTableRow(row *TableRow, kogitoBuild *v1beta1.KogitoBuild) (mappingFound bool, err error) {
 	secondColumn := GetSecondColumn(row)
 
 	switch secondColumn {
@@ -98,11 +98,11 @@ func mapKogitoBuildConfigTableRow(row *TableRow, kogitoBuild *v1beta12.KogitoBui
 	return true, nil
 }
 
-func mapKogitoBuildWebhookTableRow(row *TableRow, kogitoBuild *v1beta12.KogitoBuild) (mappingFound bool, err error) {
+func mapKogitoBuildWebhookTableRow(row *TableRow, kogitoBuild *v1beta1.KogitoBuild) (mappingFound bool, err error) {
 	secondColumn := GetSecondColumn(row)
 
 	if len(kogitoBuild.Spec.WebHooks) == 0 {
-		kogitoBuild.Spec.WebHooks = []v1beta12.WebHookSecret{{}}
+		kogitoBuild.Spec.WebHooks = []v1beta1.WebHookSecret{{}}
 	}
 
 	switch secondColumn {

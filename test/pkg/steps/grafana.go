@@ -34,5 +34,5 @@ func (data *Data) grafanaInstanceIsDeployed(labelName, labelValue string) error 
 	if err != nil {
 		return err
 	}
-	return framework.WaitForPodsWithLabel(data.Namespace, "kogito", "grafana", 1, 3)
+	return framework.WaitForPodsWithLabel(data.Namespace, "app", "grafana", 1, 3)
 }

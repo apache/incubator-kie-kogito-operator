@@ -16,7 +16,7 @@ package framework
 
 import (
 	"fmt"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 
 	"github.com/kiegroup/kogito-operator/apis"
 
@@ -49,22 +49,22 @@ func SetKogitoRuntimeReplicas(namespace, name string, nbPods int) error {
 }
 
 // GetKogitoRuntimeStub Get basic KogitoRuntime stub with all needed fields initialized
-func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta12.KogitoRuntime {
+func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta1.KogitoRuntime {
 	replicas := int32(1)
-	kogitoRuntime := &v1beta12.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: v1beta12.KogitoRuntimeSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.RuntimeType(runtimeType),
-			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Image: imageTag,
 				// Use insecure registry flag in tests
 				InsecureImageRegistry: true,
 				Replicas:              &replicas,
 				// Extends the probe interval for slow test environment
-				Probes: v1beta12.KogitoProbe{
+				Probes: v1beta1.KogitoProbe{
 					ReadinessProbe: corev1.Probe{
 						FailureThreshold: 12,
 					},
@@ -82,8 +82,8 @@ func GetKogitoRuntimeStub(namespace, runtimeType, name, imageTag string) *v1beta
 	return kogitoRuntime
 }
 
-func getKogitoRuntime(namespace, name string) (*v1beta12.KogitoRuntime, error) {
-	kogitoRuntime := &v1beta12.KogitoRuntime{}
+func getKogitoRuntime(namespace, name string) (*v1beta1.KogitoRuntime, error) {
+	kogitoRuntime := &v1beta1.KogitoRuntime{}
 	if exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Name: name, Namespace: namespace}, kogitoRuntime); err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("Error while trying to look for KogitoRuntime %s: %v ", name, err)
 	} else if errors.IsNotFound(err) || !exists {

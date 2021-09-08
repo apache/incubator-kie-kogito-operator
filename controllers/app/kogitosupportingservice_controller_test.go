@@ -16,7 +16,7 @@ package app
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/test"
@@ -28,11 +28,11 @@ import (
 
 func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1beta12.KogitoSupportingService{
+	instance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: v1.ObjectMeta{Name: kogitosupportingservice.DefaultJobsServiceName, Namespace: t.Name()},
-		Spec: v1beta12.KogitoSupportingServiceSpec{
+		Spec: v1beta1.KogitoSupportingServiceSpec{
 			ServiceType:       api.JobsService,
-			KogitoServiceSpec: v1beta12.KogitoServiceSpec{Replicas: &replicas},
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{Replicas: &replicas},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()

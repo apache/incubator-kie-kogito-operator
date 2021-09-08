@@ -99,7 +99,7 @@ func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, reso
 			resourceRef.SetNamespace(namespace)
 		}
 		resourceRef.SetResourceVersion("")
-		resourceRef.SetLabels(map[string]string{"kogito": operator.Name})
+		resourceRef.SetLabels(map[string]string{"app": operator.Name})
 
 		log.Debug("Will create a new resource", "kind", resourceRef.GetObjectKind().GroupVersionKind().Kind, "name", resourceRef.GetName(), "namespace", resourceRef.GetNamespace())
 		if beforeCreate != nil {

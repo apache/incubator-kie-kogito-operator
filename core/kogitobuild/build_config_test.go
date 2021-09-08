@@ -16,7 +16,7 @@ package kogitobuild
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/stretchr/testify/assert"
@@ -24,9 +24,9 @@ import (
 )
 
 func TestNewBuildConfig_CustomLabels(t *testing.T) {
-	kogitoBuild := &v1beta12.KogitoBuild{
-		Spec: v1beta12.KogitoBuildSpec{
-			WebHooks: []v1beta12.WebHookSecret{
+	kogitoBuild := &v1beta1.KogitoBuild{
+		Spec: v1beta1.KogitoBuildSpec{
+			WebHooks: []v1beta1.WebHookSecret{
 				{
 					Type:   api.GenericWebHook,
 					Secret: "generic_secret",

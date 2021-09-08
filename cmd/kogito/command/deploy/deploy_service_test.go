@@ -17,7 +17,7 @@ package deploy
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/apis"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/converter"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
@@ -45,7 +45,7 @@ func Test_DeployServiceCmd_DefaultConfigurations(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
 
 	// This should be created, given the command above
-	kogitoRuntime := &v1beta12.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-drools",
 			Namespace: ns,
@@ -75,7 +75,7 @@ func Test_DeployCmd_WithCustomImage(t *testing.T) {
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
 
 	// This should be created, given the command above
-	kogitoRuntime := &v1beta12.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "process-business-rules-quarkus",
 			Namespace: ns,
@@ -113,7 +113,7 @@ my.nice.property=socool
 	assert.Contains(t, lines, "Kogito Service successfully installed in the Project")
 
 	// This should be created, given the command above
-	kogitoRuntime := &v1beta12.KogitoRuntime{
+	kogitoRuntime := &v1beta1.KogitoRuntime{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "process-business-rules-quarkus",
 			Namespace: ns,
@@ -162,7 +162,7 @@ func Test_DeployCmd_SWFile(t *testing.T) {
 	// error from fake build is ok, we don't have a server to upload the binaries here.
 	assert.Contains(t, errLines, "v1.BinaryBuildRequestOptions is not suitable for converting")
 
-	kogitoBuild := &v1beta12.KogitoBuild{
+	kogitoBuild := &v1beta1.KogitoBuild{
 		ObjectMeta: metav1.ObjectMeta{Name: "serverless-workflow-greeting-quarkus", Namespace: ns},
 	}
 	exists, err := kubernetes.ResourceC(ctx.GetClient()).Fetch(kogitoBuild)

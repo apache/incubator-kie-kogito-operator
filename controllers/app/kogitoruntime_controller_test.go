@@ -16,7 +16,7 @@ package app
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	v1beta12 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/test"
@@ -38,10 +38,10 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	kogitoKafka := test.CreateFakeKogitoKafka(t.Name())
 	kogitoInfinispan := test.CreateFakeKogitoInfinispan(t.Name())
 
-	instance := &v1beta12.KogitoRuntime{
+	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "example-quarkus", Namespace: t.Name()},
-		Spec: v1beta12.KogitoRuntimeSpec{
-			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:      &replicas,
 				ServiceLabels: map[string]string{"process": "example-quarkus"},
 				Infra: []string{
@@ -87,11 +87,11 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 	replicas := int32(1)
 	ns := t.Name()
-	instance := &v1beta12.KogitoRuntime{
+	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: ns, UID: test.GenerateUID()},
-		Spec: v1beta12.KogitoRuntimeSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
-			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Image:    "quay.io/kiegroup/process-springboot-example-default:latest",
 			},
@@ -125,11 +125,11 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 // see https://issues.redhat.com/browse/KOGITO-2535
 func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 	replicas := int32(1)
-	instance := &v1beta12.KogitoRuntime{
+	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
-		Spec: v1beta12.KogitoRuntimeSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
-			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas: &replicas,
 				Image:    "quay.io/custom/process-springboot-example-default-invalid:latest",
 			},
@@ -191,11 +191,11 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 			"application.properties": "key1=value1",
 		},
 	}
-	instance := &v1beta12.KogitoRuntime{
+	instance := &v1beta1.KogitoRuntime{
 		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
-		Spec: v1beta12.KogitoRuntimeSpec{
+		Spec: v1beta1.KogitoRuntimeSpec{
 			Runtime: api.SpringBootRuntimeType,
-			KogitoServiceSpec: v1beta12.KogitoServiceSpec{
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
 				Replicas:            &replicas,
 				PropertiesConfigMap: "mysuper-cm",
 			},
