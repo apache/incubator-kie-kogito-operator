@@ -30,7 +30,6 @@ require (
 
 // local modules
 replace (
-	github.com/RHsyseng/operator-utils => github.com/vaibhavjainwiz/operator-utils v1.4.6-0.20210903063828-d5234ed62c72
 	github.com/kiegroup/kogito-operator => ../
 	github.com/kiegroup/kogito-operator/api => ../api
 )

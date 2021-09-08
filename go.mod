@@ -3,7 +3,7 @@ module github.com/kiegroup/kogito-operator
 go 1.16
 
 require (
-	github.com/RHsyseng/operator-utils v0.0.0-00010101000000-000000000000
+	github.com/RHsyseng/operator-utils v1.4.6-0.20210908015233-197f6b3e7a3d
 	github.com/go-logr/logr v0.4.0
 	github.com/google/uuid v1.3.0
 	github.com/kiegroup/kogito-operator/api v0.0.0-00010101000000-000000000000
@@ -27,7 +27,4 @@ require (
 )
 
 // local modules
-replace (
-	github.com/RHsyseng/operator-utils => github.com/vaibhavjainwiz/operator-utils v1.4.6-0.20210903063828-d5234ed62c72
-	github.com/kiegroup/kogito-operator/api => ./api
-)
+replace github.com/kiegroup/kogito-operator/api => ./api
