@@ -99,5 +99,5 @@ func (data *Data) deployEventDisplay(name string) error {
 	if err := framework.CreateObject(service); err != nil {
 		return err
 	}
-	return framework.WaitForPodsWithLabel(data.Namespace, "kogito", name, 1, 3)
+	return framework.WaitForPodsWithLabel(data.Namespace, "app", name, 1, 3)
 }

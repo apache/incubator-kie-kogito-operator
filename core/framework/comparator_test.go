@@ -221,7 +221,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -240,7 +240,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -269,7 +269,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -288,7 +288,7 @@ func Test_CreateDeploymentConfigComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test1"},
 										},
 									},
@@ -402,7 +402,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -418,7 +418,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -441,7 +441,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test"},
 										},
 									},
@@ -457,7 +457,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 								Containers: []v1.Container{
 									{
 										Env: []v1.EnvVar{
-											{Name: "kogito", Value: "test"},
+											{Name: "app", Value: "test"},
 											{Name: "service", Value: "test1"},
 										},
 									},
@@ -538,14 +538,14 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Volumes: []v1.Volume{
-									{Name: "kogito-prop-config"},
+									{Name: "app-prop-config"},
 									{Name: "process-quarkus-example-protobuf-files"},
 								},
 								Containers: []v1.Container{
 									{
 										VolumeMounts: []v1.VolumeMount{
 											{
-												Name:      "kogito-prop-config",
+												Name:      "app-prop-config",
 												MountPath: "/home/kogito/config",
 											},
 											{
@@ -568,7 +568,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 						Template: v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Volumes: []v1.Volume{
-									{Name: "kogito-prop-config"},
+									{Name: "app-prop-config"},
 									{Name: "process-quarkus-example-protobuf-files"},
 								},
 								Containers: []v1.Container{
@@ -576,7 +576,7 @@ func Test_CreateDeploymentComparator(t *testing.T) {
 										// notice the array order, that matters. using logs from KOGITO-2797 bug report
 										VolumeMounts: []v1.VolumeMount{
 											{
-												Name:      "kogito-prop-config",
+												Name:      "app-prop-config",
 												MountPath: "/home/kogito/config",
 											},
 											{

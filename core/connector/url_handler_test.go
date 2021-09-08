@@ -113,7 +113,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 			UID:  app.UID,
 		}}},
 		Spec: appsv1.DeploymentSpec{
-			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-kogito"}}}},
+			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-app"}}}},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(app, dc, jobs).Build()
@@ -164,7 +164,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
 			UID:  app.UID,
 		}}},
 		Spec: appsv1.DeploymentSpec{
-			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-kogito"}}}},
+			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-app"}}}},
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(dc, app, jobs).Build()

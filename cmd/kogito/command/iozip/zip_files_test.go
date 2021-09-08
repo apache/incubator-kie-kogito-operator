@@ -156,7 +156,7 @@ func TestCompressAsTGZQuarkusFastJvm(t *testing.T) {
 	quarkusFastJarLibMainTempDir := quarkusFastJarLibTempDir + "main/"
 	quarkusFastJarLibBootTempDir := quarkusFastJarLibTempDir + "boot/"
 	quarkusFastJarQuarkusTempDir := quarkusFastJarTempDir + "quarkus/"
-	quarkusFastJarAppTempDir := quarkusFastJarTempDir + "kogito/"
+	quarkusFastJarAppTempDir := quarkusFastJarTempDir + "app/"
 	test.Mkdir(libTempDir)
 	test.Mkdir(quarkusFastJarTempDir)
 	test.Mkdir(quarkusFastJarLibTempDir)
