@@ -198,29 +198,50 @@ func CreateBuildConfigComparator() func(deployed resource.KubernetesResource, re
 	}
 }
 
-// CreateServiceComparator creates a new comparator for Service skipping ClusterIPs, IPFamilies and IPFamilyPolicy
+// CreateServiceComparator creates a new comparator for Service only checking required fields
 func CreateServiceComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
 	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
-		svcDeployed := deployed.(*v1.Service)
-		svcRequested := requested.(*v1.Service).DeepCopy()
+		svcDeployed := deployed.(*v1.Service).DeepCopy()
+		svcRequested := requested.(*v1.Service)
 
-		if len(svcDeployed.Spec.ClusterIPs) > 0 && len(svcRequested.Spec.ClusterIPs) == 0 {
-			//Cluster IPs are assigned in the cluster, can be ignored for comparing
-			svcDeployed.Spec.ClusterIPs = svcRequested.Spec.ClusterIPs
+		// Remove generated fields from deployed version, when not specified in requested object
+		for _, portRequested := range svcRequested.Spec.Ports {
+			if found, portDeployed := findServicePort(portRequested, svcDeployed.Spec.Ports); found {
+				if portRequested.Protocol == "" {
+					portDeployed.Protocol = ""
+				}
+			}
+		}
+		// Ignore empty label maps
+		if svcRequested.GetLabels() == nil && svcDeployed.GetLabels() != nil && len(svcDeployed.GetLabels()) == 0 {
+			svcDeployed.SetLabels(nil)
 		}
 
-		if len(svcDeployed.Spec.IPFamilies) > 0 && len(svcRequested.Spec.IPFamilies) == 0 {
-			//IPFamilies is assigned in the cluster, can be ignored for comparing
-			svcDeployed.Spec.IPFamilies = svcRequested.Spec.IPFamilies
-		}
+		var pairs [][2]interface{}
+		pairs = append(pairs, [2]interface{}{svcDeployed.Name, svcRequested.Name})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Namespace, svcRequested.Namespace})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Labels, svcRequested.Labels})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Spec.Ports, svcRequested.Spec.Ports})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Spec.Selector, svcRequested.Spec.Selector})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Spec.Type, svcRequested.Spec.Type})
+		equal := compare.EqualPairs(pairs)
 
-		if svcDeployed.Spec.IPFamilyPolicy != nil && svcRequested.Spec.IPFamilyPolicy == nil {
-			//IPFamilyPolicy is assigned in the cluster, can be ignored for comparing
-			svcDeployed.Spec.IPFamilyPolicy = svcRequested.Spec.IPFamilyPolicy
-		}
-
-		return true
+		// TODO: Figure out how to log differences
+		// if !equal {
+		// 	logger.Debug("Resources are not equal", "deployed", deployed, "requested", requested)
+		// }
+		return equal
 	}
+}
+
+// See https://github.com/RHsyseng/operator-utils/blob/0f7acfb7a492851cad0ca5eb327b85cee0aa7e10/pkg/resource/compare/defaults.go#L424
+func findServicePort(port v1.ServicePort, ports []v1.ServicePort) (bool, *v1.ServicePort) {
+	for index, candidate := range ports {
+		if port.Name == candidate.Name {
+			return true, &ports[index]
+		}
+	}
+	return false, &v1.ServicePort{}
 }
 
 // CreateRouteComparator creates a new comparator for Route using Label

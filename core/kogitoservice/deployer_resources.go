@@ -148,7 +148,6 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(corev1.Service{})).
-			UseDefaultComparator().
 			WithCustomComparator(framework.CreateServiceComparator()).
 			Build())
 

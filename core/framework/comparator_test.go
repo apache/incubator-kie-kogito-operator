@@ -920,7 +920,6 @@ func Test_CreateServiceComparator(t *testing.T) {
 			got, got1 :=
 				NewComparatorBuilder().
 					WithType(tt.want).
-					UseDefaultComparator().
 					WithCustomComparator(CreateServiceComparator()).
 					Build()
 			if !reflect.DeepEqual(got, tt.want) {
