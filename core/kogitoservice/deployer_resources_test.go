@@ -33,6 +33,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -70,6 +71,21 @@ func Test_serviceDeployer_createServiceComparator(t *testing.T) {
 		requested resource.KubernetesResource
 	}
 	familyPolicy := corev1.IPFamilyPolicyRequireDualStack
+	port1 := make([]corev1.ServicePort, 1)
+	port1[0] = corev1.ServicePort{
+		Name:       "http",
+		Protocol:   "TCP",
+		Port:       80,
+		TargetPort: intstr.FromInt(int(8080)),
+	}
+
+	port2 := make([]corev1.ServicePort, 1)
+	port2[0] = corev1.ServicePort{
+		Name:       "http",
+		Protocol:   "TCP",
+		Port:       90,
+		TargetPort: intstr.FromInt(int(8080)),
+	}
 	tests := []struct {
 		name  string
 		args  args
@@ -173,6 +189,40 @@ func Test_serviceDeployer_createServiceComparator(t *testing.T) {
 			},
 			reflect.TypeOf(corev1.Service{}),
 			true,
+		},
+		{
+			"NotEqualPorts",
+			args{
+				deployed: &corev1.Service{
+					Spec: corev1.ServiceSpec{
+						Ports: port1,
+					},
+				},
+				requested: &corev1.Service{
+					Spec: corev1.ServiceSpec{
+						Ports: port2,
+					},
+				},
+			},
+			reflect.TypeOf(corev1.Service{}),
+			false,
+		},
+		{
+			"NotEqualSelector",
+			args{
+				deployed: &corev1.Service{
+					Spec: corev1.ServiceSpec{
+						Selector: map[string]string{"app": "test"},
+					},
+				},
+				requested: &corev1.Service{
+					Spec: corev1.ServiceSpec{
+						Selector: map[string]string{"app": "test1"},
+					},
+				},
+			},
+			reflect.TypeOf(corev1.Service{}),
+			false,
 		},
 	}
 	jobsService := test.CreateFakeJobsService(t.Name())
