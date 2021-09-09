@@ -245,7 +245,6 @@ func (s *serviceDeployer) CreateServiceComparator() func(deployed resource.Kuber
 		pairs = append(pairs, [2]interface{}{svcDeployed.Spec.Type, svcRequested.Spec.Type})
 		equal := compare.EqualPairs(pairs)
 
-		// TODO: Figure out how to log differences
 		if !equal {
 			s.Log.Debug("Resources are not equal", "deployed", deployed, "requested", requested)
 		}
