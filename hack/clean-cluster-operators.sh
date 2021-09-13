@@ -14,12 +14,13 @@
 # limitations under the License.
 
 script_dir_path=`dirname "${BASH_SOURCE[0]}"`
+source ${script_dir_path}/env.sh
 
 function clean_installed_operators() {
   echo "--- Clean subscriptions in $1"
-  oc get subscription -n $1 | grep -v NAME | awk '{print $1}' | xargs oc delete subscription -n $1
+  get_and_clean_resources $1 'subscription'
   echo "--- Clean clusterserviceversions in $1"
-  oc get clusterserviceversion -n $1 | grep -v NAME | awk '{print $1}' | xargs oc delete clusterserviceversion -n $1
+  get_and_clean_resources $1 'clusterserviceversion'
 }
 
 clean_installed_operators 'openshift-operators'
