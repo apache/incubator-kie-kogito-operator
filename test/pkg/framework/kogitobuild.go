@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/kiegroup/kogito-operator/api"
-	"github.com/kiegroup/kogito-operator/core/kogitobuild"
 
 	"github.com/kiegroup/kogito-operator/api/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -110,42 +109,6 @@ func GetKogitoBuild(namespace, buildName string) (*v1beta1.KogitoBuild, error) {
 
 // SetupKogitoBuildImageStreams sets the correct images for the KogitoBuild
 func SetupKogitoBuildImageStreams(kogitoBuild *v1beta1.KogitoBuild) {
-	kogitoBuild.Spec.BuildImage = getKogitoBuildS2IImage()
-	kogitoBuild.Spec.RuntimeImage = getKogitoBuildRuntimeImage(kogitoBuild)
-}
-
-func getKogitoBuildS2IImage() string {
-	if len(config.GetBuildS2IImageStreamTag()) > 0 {
-		return config.GetBuildS2IImageStreamTag()
-	}
-
-	return getKogitoBuildImage(kogitobuild.GetDefaultBuilderImage())
-}
-
-func getKogitoBuildRuntimeImage(kogitoBuild *v1beta1.KogitoBuild) string {
-	var imageName string
-	if len(config.GetBuildRuntimeImageStreamTag()) > 0 {
-		return config.GetBuildRuntimeImageStreamTag()
-	}
-	if kogitoBuild.Spec.Native {
-		imageName = kogitobuild.GetDefaultRuntimeNativeImage()
-	} else {
-		imageName = kogitobuild.GetDefaultRuntimeJVMImage()
-	}
-	return getKogitoBuildImage(imageName)
-}
-
-// getKogitoBuildImage returns a build image with defaults set
-func getKogitoBuildImage(imageName string) string {
-	image := api.Image{
-		Domain:    config.GetBuildImageRegistry(),
-		Namespace: config.GetBuildImageNamespace(),
-		Tag:       config.GetBuildImageVersion(),
-	}
-
-	// Update image name with suffix if provided
-	if len(config.GetBuildImageNameSuffix()) > 0 {
-		image.Name = fmt.Sprintf("%s-%s", imageName, config.GetBuildImageNameSuffix())
-	}
-	return framework.ConvertImageToImageTag(image)
+	kogitoBuild.Spec.BuildImage = GetKogitoBuildS2IImage()
+	kogitoBuild.Spec.RuntimeImage = GetKogitoBuildRuntimeImage(kogitoBuild.Spec.Native)
 }
