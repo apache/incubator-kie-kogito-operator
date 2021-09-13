@@ -18,7 +18,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"

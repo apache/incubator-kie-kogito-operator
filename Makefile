@@ -66,7 +66,7 @@ deploy: manifests kustomize
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	./hack/kogito-module-api.sh --disable
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./apis/app/..." output:crd:artifacts:config=config/crd/bases
 	./hack/kogito-module-api.sh --enable
 
 # Run go fmt against code

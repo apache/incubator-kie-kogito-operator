@@ -14,8 +14,8 @@ artifacts:
 
     # this is a local module, adding in here since the main go.mod refers to it
   - name: api-module
-    path: "../../../../api"
-    dest: /workspace/api
+    path: "../../../../apis"
+    dest: /workspace/apis
 
 execute:
   - script: install.sh

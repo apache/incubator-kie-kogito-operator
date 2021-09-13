@@ -21,7 +21,7 @@ import (
 	time "time"
 
 	versioned "github.com/kiegroup/kogito-operator/client/clientset/versioned"
-	core "github.com/kiegroup/kogito-operator/client/informers/externalversions/core"
+	app "github.com/kiegroup/kogito-operator/client/informers/externalversions/app"
 	internalinterfaces "github.com/kiegroup/kogito-operator/client/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -169,9 +169,9 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	App() core.Interface
+	App() app.Interface
 }
 
-func (f *sharedInformerFactory) App() core.Interface {
-	return core.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) App() app.Interface {
+	return app.New(f, f.namespace, f.tweakListOptions)
 }

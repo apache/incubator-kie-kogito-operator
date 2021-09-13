@@ -17,8 +17,8 @@ package fake
 
 import (
 	clientset "github.com/kiegroup/kogito-operator/client/clientset/versioned"
-	appv1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1"
-	fakeappv1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/v1beta1/fake"
+	appv1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/app/v1beta1"
+	fakeappv1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/app/v1beta1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
