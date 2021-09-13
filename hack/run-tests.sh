@@ -522,6 +522,9 @@ echo "-------- Delete stucked namespaces"
 ${SCRIPT_DIR}/clean-stuck-namespaces.sh
 
 if [ "${KEEP_NAMESPACE}" = "false" ]; then
+  echo "-------- Delete Cluster operators"
+  ${SCRIPT_DIR}/clean-cluster-operators.sh
+
   echo "-------- Delete dependencies CRDs"
   ${SCRIPT_DIR}/clean-crds.sh
 fi
