@@ -518,6 +518,7 @@ func GetOperatorCatalog(namespace, source string) OperatorCatalog {
 	}
 }
 
+// InitOperatorClusterWideKubeClients initializes the kube client for the cluster wide operators namespace
 func InitOperatorClusterWideKubeClients() error {
 	if err := InitKubeClient(GetClusterOperatorNamespace()); err != nil {
 		return err

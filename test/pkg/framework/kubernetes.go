@@ -45,12 +45,13 @@ var (
 // podErrorReasons contains all the reasons to state a pod in error.
 var podErrorReasons = []string{"InvalidImageName"}
 
+// GetKubeClient returns the kube client for a specific namespace
 func GetKubeClient(namespace string) *client.Client {
 	kubeClient, _ := monitoredNamespaces.Load(namespace)
 	return kubeClient.(*client.Client)
 }
 
-// CreateKubeClient creates the Kubernetes Client for a specific namespace
+// InitKubeClient initializes the Kubernetes Client for a specific namespace
 func InitKubeClient(namespace string) error {
 	mux.Lock()
 	defer mux.Unlock()
