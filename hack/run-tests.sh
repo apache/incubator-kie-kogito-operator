@@ -119,6 +119,7 @@ function usage(){
   printf "\n--keep_namespace\n\tDo not delete namespace(s) after scenario run (WARNING: can be resources consuming ...)."
   printf "\n--namespace_name\n\tSpecify name of the namespace which will be used for scenario execution (intended for development purposes)."
   printf "\n--local_cluster\n\tSpecify whether you run test using a local cluster."
+  printf "\n--disable_clean_cluster\n\tSet to true to avoid the cleanup of the cluster before/after the tests."
   printf "\n"
 }
 
@@ -152,6 +153,14 @@ function isValueNotEmpty(){
   return 1
 }
 
+function clean_cluster() {
+  echo "-------- Clean Cluster operators"
+  ${SCRIPT_DIR}/clean-cluster-operators.sh
+
+  echo "-------- Clean dependencies CRDs"
+  ${SCRIPT_DIR}/clean-crds.sh
+}
+
 PARAMS=""
 TAGS="" # tags are parsed independently as there could be whitespace to be handled correctly
 FEATURE=""
@@ -160,6 +169,7 @@ DEBUG=false
 KEEP_NAMESPACE=false
 LOAD_DEFAULT_CONFIG=false
 TEST_MAIN_DIR=${SCRIPT_DIR}/../test
+DISABLE_CLEAN_CLUSTER=false
 
 while (( $# ))
 do
@@ -463,6 +473,7 @@ case $1 in
   ;;
   --keep_namespace)
     KEEP_NAMESPACE=true
+    DISABLE_CLEAN_CLUSTER=true
     addParam "--tests.keep-namespace"
     shift
   ;;
@@ -472,6 +483,10 @@ case $1 in
   ;;
   --local_cluster)
     addParam "--tests.dev.local-cluster"
+    shift
+  ;;
+  --disable_clean_cluster)
+    DISABLE_CLEAN_CLUSTER=true
     shift
   ;;
 
@@ -499,6 +514,11 @@ if [ "${LOAD_DEFAULT_CONFIG}" = "true" ]; then
   done < "${SCRIPT_DIR}/../test/.default_config"
 fi
 
+## Clean cluster before executing the tests
+if [ "${DISABLE_CLEAN_CLUSTER}" = "false" ]; then
+  clean_cluster
+fi
+
 echo "-------- Running BDD tests"
 echo "DEBUG=${DEBUG} go test ${TEST_MAIN_DIR} -v -timeout \"${TIMEOUT}m\" --godog.tags=\"${TAGS}\" ${PARAMS} ${FEATURE}"
 DEBUG=${DEBUG} go test ${TEST_MAIN_DIR} -v -timeout "${TIMEOUT}m" --godog.tags="${TAGS}" ${PARAMS} ${FEATURE}
@@ -516,12 +536,8 @@ fi
 echo "-------- Delete stucked namespaces"
 ${SCRIPT_DIR}/clean-stuck-namespaces.sh
 
-if [ "${KEEP_NAMESPACE}" = "false" ]; then
-  echo "-------- Delete Cluster operators"
-  ${SCRIPT_DIR}/clean-cluster-operators.sh
-
-  echo "-------- Delete dependencies CRDs"
-  ${SCRIPT_DIR}/clean-crds.sh
+if [ "${DISABLE_CLEAN_CLUSTER}" = "false" ]; then
+  clean_cluster
 fi
 
 exit ${exit_code}
