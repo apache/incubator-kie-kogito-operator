@@ -16,7 +16,7 @@ package remove
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/api/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"

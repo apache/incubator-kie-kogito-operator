@@ -16,8 +16,4 @@
 script_dir_path=`dirname "${BASH_SOURCE[0]}"`
 source ${script_dir_path}/env.sh
 
-for crdName in $(getAllDependentCrds)
-do
-  echo "Delete crd ${crdName} if exists"
-  oc delete crds ${crdName}
-done
+clean_cluster_resources 'crds' "$(getAllDependentCrds)"

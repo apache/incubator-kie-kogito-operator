@@ -297,8 +297,9 @@ You can set those optional keys:
 - `build_image_namespace` sets the build image namespace.
 - `build_image_name_suffix` sets the build image name suffix to append to usual image names.
 - `build_image_version` sets the build image version
-- `build_s2i_image_tag` sets the build S2I image full tag.
-- `build_runtime_image_tag` sets the build Runtime image full tag.
+- `build_builder_image_tag` sets the Builder image full tag.
+- `build_runtime_jvm_image_tag` sets the Runtime JVM image full tag.
+- `build_runtime_native_image_tag` sets the Runtime Native image full tag.
 - `disable_maven_native_build_container` disables the default Maven native build done in container.
 <!--- examples repository -->
 - `examples_uri` sets the URI for the kogito-examples repository.  

@@ -16,7 +16,7 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/api"
+	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	mongodb "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
 	corev1 "k8s.io/api/core/v1"

@@ -6,7 +6,7 @@ require (
 	github.com/RHsyseng/operator-utils v1.4.6-0.20210908015233-197f6b3e7a3d
 	github.com/go-logr/logr v0.4.0
 	github.com/google/uuid v1.3.0
-	github.com/kiegroup/kogito-operator/api v0.0.0-00010101000000-000000000000
+	github.com/kiegroup/kogito-operator/apis v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/openshift/api v0.0.0-20210105115604-44119421ec6b
@@ -27,4 +27,4 @@ require (
 )
 
 // local modules
-replace github.com/kiegroup/kogito-operator/api => ./api
+replace github.com/kiegroup/kogito-operator/apis => ./api

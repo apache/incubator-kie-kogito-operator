@@ -29,8 +29,6 @@ import (
 var (
 	// Map of created namespaces
 	namespacesCreated sync.Map
-
-	logsKubernetesObjects []client.ObjectList
 )
 
 // Data contains all data needed by Gherkin steps to run
@@ -40,6 +38,7 @@ type Data struct {
 	KogitoExamplesLocation string
 	ScenarioName           string
 	ScenarioContext        map[string]string
+	logsKubernetesObjects  []runtime.Object
 }
 
 // RegisterAllSteps register all steps available to the test suite
@@ -142,7 +141,7 @@ func (data *Data) AfterScenario(scenario *godog.Scenario, err error) error {
 		if err := framework.BumpEvents(data.Namespace); err != nil {
 			framework.GetMainLogger().Error(err, "Error bumping events", "namespace", namespace)
 		}
-		if err := framework.LogKubernetesObjects(data.Namespace, logsKubernetesObjects...); err != nil {
+		if err := framework.LogKubernetesObjects(data.Namespace, data.logsKubernetesObjects...); err != nil {
 			framework.GetMainLogger().Error(err, "Error logging Kubernetes objects", "namespace", namespace)
 		}
 		return nil
