@@ -15,8 +15,9 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/manager"
 	"reflect"
+
+	"github.com/kiegroup/kogito-operator/core/manager"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
@@ -165,8 +166,7 @@ func (s *serviceDeployer) getComparator() compare.MapComparator {
 	resourceComparator.SetComparator(
 		framework.NewComparatorBuilder().
 			WithType(reflect.TypeOf(corev1.Service{})).
-			UseDefaultComparator().
-			WithCustomComparator(framework.CreateServiceComparator()).
+			WithCustomComparator(s.CreateServiceComparator()).
 			Build())
 
 	resourceComparator.SetComparator(
@@ -227,4 +227,49 @@ func (s *serviceDeployer) mountConfigMapOnDeployment(deployment *appsv1.Deployme
 		}
 	}
 	return nil
+}
+
+// CreateServiceComparator creates a new comparator for Service only checking required fields
+func (s *serviceDeployer) CreateServiceComparator() func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+	return func(deployed resource.KubernetesResource, requested resource.KubernetesResource) bool {
+		svcDeployed := deployed.(*corev1.Service).DeepCopy()
+		svcRequested := requested.(*corev1.Service)
+
+		// Remove generated fields from deployed version, when not specified in requested object
+		for _, portRequested := range svcRequested.Spec.Ports {
+			if found, portDeployed := findServicePort(portRequested, svcDeployed.Spec.Ports); found {
+				if portRequested.Protocol == "" {
+					portDeployed.Protocol = ""
+				}
+			}
+		}
+		// Ignore empty label maps
+		if svcRequested.GetLabels() == nil && svcDeployed.GetLabels() != nil && len(svcDeployed.GetLabels()) == 0 {
+			svcDeployed.SetLabels(nil)
+		}
+
+		var pairs [][2]interface{}
+		pairs = append(pairs, [2]interface{}{svcDeployed.Name, svcRequested.Name})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Namespace, svcRequested.Namespace})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Labels, svcRequested.Labels})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Spec.Ports, svcRequested.Spec.Ports})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Spec.Selector, svcRequested.Spec.Selector})
+		pairs = append(pairs, [2]interface{}{svcDeployed.Spec.Type, svcRequested.Spec.Type})
+		equal := compare.EqualPairs(pairs)
+
+		if !equal {
+			s.Log.Debug("Resources are not equal", "deployed", deployed, "requested", requested)
+		}
+		return equal
+	}
+}
+
+// See https://github.com/RHsyseng/operator-utils/blob/0f7acfb7a492851cad0ca5eb327b85cee0aa7e10/pkg/resource/compare/defaults.go#L424
+func findServicePort(port corev1.ServicePort, ports []corev1.ServicePort) (bool, *corev1.ServicePort) {
+	for index, candidate := range ports {
+		if port.Name == candidate.Name {
+			return true, &ports[index]
+		}
+	}
+	return false, &corev1.ServicePort{}
 }
