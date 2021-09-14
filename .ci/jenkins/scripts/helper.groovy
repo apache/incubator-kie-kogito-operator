@@ -370,8 +370,7 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
 Map getBDDBuildImageParameters(String paramsPrefix = defaultImageParamsPrefix) {
     Map testParamsMap = [:]
 
-    testParamsMap['build_image_registry'] = getImageRegistry(paramsPrefix)
-    testParamsMap['build_image_namespace'] = getImageNamespace(paramsPrefix)
+    testParamsMap['build_image_registry'] = "${getImageRegistry(paramsPrefix)}/${getImageNamespace(paramsPrefix)}"
     testParamsMap['build_image_name_suffix'] = getImageNameSuffix(paramsPrefix) ?: ''
     testParamsMap['build_image_version'] = getImageTag(paramsPrefix) ?: ''
 
@@ -381,8 +380,7 @@ Map getBDDBuildImageParameters(String paramsPrefix = defaultImageParamsPrefix) {
 Map getBDDServicesImageParameters(String paramsPrefix = defaultImageParamsPrefix) {
     Map testParamsMap = [:]
 
-    testParamsMap['services_image_registry'] = getImageRegistry(paramsPrefix)
-    testParamsMap['services_image_namespace'] = getImageNamespace(paramsPrefix)
+    testParamsMap['services_image_registry'] = "${getImageRegistry(paramsPrefix)}/${getImageNamespace(paramsPrefix)}"
     testParamsMap['services_image_name_suffix'] = getImageNameSuffix(paramsPrefix) ?: ''
     testParamsMap['services_image_version'] = getImageTag(paramsPrefix) ?: ''
 
@@ -392,8 +390,7 @@ Map getBDDServicesImageParameters(String paramsPrefix = defaultImageParamsPrefix
 Map getBDDRuntimeImageParameters(String paramsPrefix = defaultImageParamsPrefix) {
     Map testParamsMap = [:]
 
-    testParamsMap['runtime_application_image_registry'] = getImageRegistry(paramsPrefix)
-    testParamsMap['runtime_application_image_namespace'] = getImageNamespace(paramsPrefix)
+    testParamsMap['runtime_application_image_registry'] = "${getImageRegistry(paramsPrefix)}/${getImageNamespace(paramsPrefix)}"
     testParamsMap['runtime_application_image_name_prefix'] = getImageNamePrefix(paramsPrefix) ?: ''
     testParamsMap['runtime_application_image_name_suffix'] = getImageNameSuffix(paramsPrefix) ?: ''
     testParamsMap['runtime_application_image_version'] = getImageTag(paramsPrefix) ?: ''
