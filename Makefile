@@ -1,5 +1,5 @@
 # Current Operator version
-VERSION ?= 1.11.1
+VERSION ?= 1.11.2-snapshot
 # Default bundle image tag
 BUNDLE_IMG ?= quay.io/kiegroup/kogito-operator-bundle:$(VERSION)
 # Default catalog image tag
