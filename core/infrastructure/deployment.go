@@ -89,9 +89,11 @@ func (d *deploymentHandler) IsDeploymentAvailable(key types.NamespacedName) (boo
 }
 
 func (d *deploymentHandler) FetchReadyReplicas(key types.NamespacedName) (int32, error) {
-	deployment, err := d.MustFetchDeployment(key)
+	deployment, err := d.FetchDeployment(key)
 	if err != nil {
 		return 0, err
+	} else if deployment == nil {
+		return 0, nil
 	}
 	return deployment.Status.AvailableReplicas, nil
 }
