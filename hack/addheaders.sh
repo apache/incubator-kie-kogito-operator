@@ -15,4 +15,4 @@
 
 command -v  addlicense > /dev/null || go get -modfile=go.tools.mod -u github.com/google/addlicense@v1.0.0
 
-addlicense -c "Red Hat, Inc. and/or its affiliates" -l=apache cmd hack api controllers core internal meta version client
+addlicense -c "Red Hat, Inc. and/or its affiliates" -l=apache cmd hack apis controllers core internal meta version client

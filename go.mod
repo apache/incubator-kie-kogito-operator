@@ -27,4 +27,4 @@ require (
 )
 
 // local modules
-replace github.com/kiegroup/kogito-operator/apis => ./api
+replace github.com/kiegroup/kogito-operator/apis => ./apis

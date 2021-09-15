@@ -31,5 +31,5 @@ require (
 // local modules
 replace (
 	github.com/kiegroup/kogito-operator => ../
-	github.com/kiegroup/kogito-operator/apis => ../api
+	github.com/kiegroup/kogito-operator/apis => ../apis
 )

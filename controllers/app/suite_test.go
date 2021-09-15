@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controllers
+package app
 
 import (
 	"path/filepath"
@@ -27,7 +27,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appv1beta1 "github.com/kiegroup/kogito-operator/apis/v1beta1"
+	appv1beta1 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	//+kubebuilder:scaffold:imports
 )
 

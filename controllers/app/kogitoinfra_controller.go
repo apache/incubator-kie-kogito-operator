@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controllers
+package app
 
 import (
 	"context"
@@ -31,7 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/kiegroup/kogito-operator/apis/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 )
 
 // KogitoInfraReconciler reconciles a KogitoInfra object

@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	"regexp"
 	"strings"
@@ -86,8 +87,8 @@ func (d *grafanaDashboardManager) isGrafanaAvailable() bool {
 }
 
 func (d *grafanaDashboardManager) fetchGrafanaDashboards(instance api.KogitoService) ([]GrafanaDashboard, error) {
-	deploymentHandler := NewDeploymentHandler(d.Context)
-	available, err := deploymentHandler.IsDeploymentAvailable(instance)
+	deploymentHandler := infrastructure.NewDeploymentHandler(d.Context)
+	available, err := deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}

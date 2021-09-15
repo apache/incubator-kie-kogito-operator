@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controllers
+package app
 
 import (
 	"context"
-	appv1beta1 "github.com/kiegroup/kogito-operator/apis/v1beta1"
+	appv1beta1 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"

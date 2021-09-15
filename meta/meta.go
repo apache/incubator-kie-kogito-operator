@@ -15,7 +15,7 @@
 package meta
 
 import (
-	"github.com/kiegroup/kogito-operator/apis/v1beta1"
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	grafana "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
 	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
