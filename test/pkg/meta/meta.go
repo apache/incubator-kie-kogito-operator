@@ -35,6 +35,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
+	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 	olmv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/package-server/apis/operators/v1"
 	prometheus "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -66,6 +67,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 	metav1.AddToGroupVersion(s, sources.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, hyperfoil.GroupVersion)
 	metav1.AddToGroupVersion(s, olmapiv1.SchemeGroupVersion)
+	metav1.AddToGroupVersion(s, olmapiv1alpha1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, olmv1.SchemeGroupVersion)
 	return s
 }
@@ -92,6 +94,7 @@ func getRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		eventing.AddToScheme, sources.AddToScheme,
 		grafana.AddToScheme,
 		hyperfoil.AddToScheme,
+		olmapiv1alpha1.AddToScheme,
 		olmapiv1.AddToScheme,
 		olmv1.AddToScheme)
 }
