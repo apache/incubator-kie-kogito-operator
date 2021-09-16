@@ -16,7 +16,6 @@ package steps
 
 import (
 	"fmt"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +23,7 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-operator/test/pkg/config"
 	"github.com/kiegroup/kogito-operator/test/pkg/framework"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
@@ -38,7 +38,7 @@ type Data struct {
 	KogitoExamplesLocation string
 	ScenarioName           string
 	ScenarioContext        map[string]string
-	logsKubernetesObjects  []runtime.Object
+	logsKubernetesObjects  []client.ObjectList
 }
 
 // RegisterAllSteps register all steps available to the test suite
@@ -77,7 +77,7 @@ func (data *Data) RegisterAllSteps(ctx *godog.ScenarioContext) {
 
 // RegisterLogsKubernetesObjects allows to change which kubernetes objects logs should be saved
 func (data *Data) RegisterLogsKubernetesObjects(objects ...client.ObjectList) {
-	logsKubernetesObjects = append(logsKubernetesObjects, objects...)
+	data.logsKubernetesObjects = append(data.logsKubernetesObjects, objects...)
 }
 
 // BeforeScenario configure the data before a scenario is launched

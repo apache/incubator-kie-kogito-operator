@@ -19,15 +19,15 @@ import (
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/logger"
 
-	"github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators"
+	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
 )
 
 // getSubscription returns subscription or nil if no subscription is found.
-func getSubscription(cli *client.Client, namespace, packageName, catalogSource string) (*operators.Subscription, error) {
+func getSubscription(cli *client.Client, namespace, packageName, catalogSource string) (*olmapiv1alpha1.Subscription, error) {
 	log := logger.GetLogger("subscription")
 	log.Debug("Trying to fetch Subscription", "namespace", namespace, "Package name", packageName, "CatalogSource", namespace, packageName, catalogSource)
 
-	subs := &operators.SubscriptionList{}
+	subs := &olmapiv1alpha1.SubscriptionList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(namespace, subs); err != nil {
 		return nil, err
 	}
