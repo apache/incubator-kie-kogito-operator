@@ -38,6 +38,11 @@ func (k *KogitoSupportingServiceSpec) GetRuntime() api.RuntimeType {
 	return api.QuarkusRuntimeType
 }
 
+// IsRouteEnabled ...
+func (k *KogitoSupportingServiceSpec) IsRouteEnabled() bool {
+	return true
+}
+
 // GetServiceType ...
 func (k *KogitoSupportingServiceSpec) GetServiceType() api.ServiceType {
 	return k.ServiceType

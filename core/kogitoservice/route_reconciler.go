@@ -53,6 +53,11 @@ func (i *routeReconciler) Reconcile() error {
 		return nil
 	}
 
+	if !i.instance.GetSpec().IsRouteEnabled() {
+		i.Log.Debug("Skipping route creation. Routes are not enable.")
+		return nil
+	}
+
 	// Create Required resource
 	requestedResources, err := i.createRequiredResources()
 	if err != nil {
@@ -67,7 +72,7 @@ func (i *routeReconciler) Reconcile() error {
 
 	// Process Delta
 	if err = i.processDelta(requestedResources, deployedResources); err != nil {
-		return err
+		return infrastructure.ErrorForRouteCreation(err)
 	}
 
 	return nil

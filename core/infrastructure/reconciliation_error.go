@@ -17,9 +17,10 @@ package infrastructure
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/kiegroup/kogito-operator/core/operator"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"time"
 )
 
 // ConditionReason is the type of reason
@@ -60,6 +61,8 @@ const (
 	ProcessingProtoBufConfigMapDelta ConditionReason = "ProcessingProtoBufConfigMapDelta"
 	// ImageNotFound ...
 	ImageNotFound ConditionReason = "ImageNotFound"
+	// RouteCreationFailureReason
+	RouteCreationFailureReason ConditionReason = "RouteCreationFailureReason"
 )
 
 const (
@@ -183,6 +186,14 @@ func ErrorForImageNotFound() ReconciliationError {
 	}
 }
 
+// ErrorForRouteCreation ...
+func ErrorForRouteCreation(err error) ReconciliationError {
+	return ReconciliationError{
+		reason:     RouteCreationFailureReason,
+		innerError: err,
+	}
+}
+
 // ReconciliationErrorHandler ...
 type ReconciliationErrorHandler interface {
 	IsReconciliationError(err error) bool
@@ -217,7 +228,6 @@ func (r *reconciliationErrorHandler) GetReconcileResultFor(err error) (ctrl.Resu
 		reconcileError := err.(ReconciliationError)
 		r.Log.Info("Waiting for all resources to be created, re-scheduling.", "reason", reconcileError.reason, "requeueAfter", reconcileError.reconciliationInterval)
 		reconcileResult.RequeueAfter = reconcileError.reconciliationInterval
-		reconcileResult.Requeue = true
 		return reconcileResult, nil
 	}
 	return reconcileResult, err

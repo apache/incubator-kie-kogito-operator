@@ -36,6 +36,15 @@ type KogitoRuntimeSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Runtime"
 	// +kubebuilder:validation:Enum=quarkus;springboot
 	Runtime api.RuntimeType `json:"runtime,omitempty"`
+
+	// A flag indicating that default route should be created. Usable just on OpenShift.
+	//
+	// Defaults to 'false'.
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Route"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	Route bool `json:"route,omitempty"`
 }
 
 // GetRuntime ...
@@ -45,6 +54,9 @@ func (k *KogitoRuntimeSpec) GetRuntime() api.RuntimeType {
 	}
 	return k.Runtime
 }
+
+// IsRouteEnabled ...
+func (k *KogitoRuntimeSpec) IsRouteEnabled() bool { return k.Route }
 
 // IsEnableIstio ...
 func (k *KogitoRuntimeSpec) IsEnableIstio() bool {
