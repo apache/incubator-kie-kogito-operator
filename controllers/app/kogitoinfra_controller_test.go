@@ -16,15 +16,14 @@ package app
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
-	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	"testing"
 
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,7 +43,7 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	}
 	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra).Build()
 	scheme := meta.GetRegisteredSchema()
-	r := &KogitoInfraReconciler{Client: client, Scheme: scheme, Log: test.TestLogger}
+	r := &KogitoInfraReconciler{Client: client, Scheme: scheme}
 	// basic checks
 	test.AssertReconcileMustNotRequeue(t, r, kogitoInfra)
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
@@ -93,7 +92,7 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra, deployedKafkaInstance).Build()
 
 	scheme := meta.GetRegisteredSchema()
-	r := &KogitoInfraReconciler{Client: client, Scheme: scheme, Log: logger.GetLogger("kogito infra reconciler")}
+	r := &KogitoInfraReconciler{Client: client, Scheme: scheme}
 	// basic checks
 	test.AssertReconcile(t, r, kogitoInfra)
 

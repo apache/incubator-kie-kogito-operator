@@ -31,7 +31,7 @@ func TestReconcileKogitoRuntimeFinalizer_AddFinalizer_Kubernetes(t *testing.T) {
 	instance := test.CreateFakeKogitoRuntime(ns)
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
-	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema()}
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
 
 	updatedInstance := &v1beta1.KogitoRuntime{ObjectMeta: v1.ObjectMeta{
@@ -48,7 +48,7 @@ func TestReconcileKogitoRuntimeFinalizer_AddFinalizer_Openshift(t *testing.T) {
 	instance := test.CreateFakeKogitoRuntime(ns)
 
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
-	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema()}
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
 
 	updatedInstance := &v1beta1.KogitoRuntime{ObjectMeta: v1.ObjectMeta{
@@ -68,7 +68,7 @@ func TestReconcileKogitoRuntimeFinalizer_RemoveFinalizer_kubernetes(t *testing.T
 	instance.SetFinalizers([]string{"delete.kogitoInfra.ownership.finalizer"})
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
-	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema()}
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
 
 	updatedInstance := &v1beta1.KogitoRuntime{ObjectMeta: v1.ObjectMeta{
@@ -90,7 +90,7 @@ func TestReconcileKogitoRuntimeFinalizer_RemoveFinalizer_Openshift(t *testing.T)
 	is, ist := test.CreateFakeImageStreams(instance.Name, instance.Namespace, infrastructure.GetKogitoImageVersion(version.Version))
 
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance, is).AddImageObjects(ist).Build()
-	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	r := FinalizeKogitoRuntime{Client: cli, Scheme: meta.GetRegisteredSchema()}
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
 
 	updatedInstance := &v1beta1.KogitoRuntime{ObjectMeta: v1.ObjectMeta{

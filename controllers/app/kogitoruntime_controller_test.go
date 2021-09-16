@@ -15,6 +15,7 @@
 package app
 
 import (
+	"context"
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -53,7 +54,7 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	}
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, kogitoKafka, kogitoInfinispan).Build()
-	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
+	r := KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
 
 	// first reconciliation
 	test.AssertReconcileMustNotRequeue(t, &r, instance)
@@ -103,7 +104,7 @@ func TestReconcileKogitoRuntime_CustomImage(t *testing.T) {
 
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, is).AddImageObjects(tag).OnOpenShift().Build()
 
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}, instance)
 
 	_, err = kubernetes.ResourceC(cli).Fetch(instance)
 	assert.NoError(t, err)
@@ -167,8 +168,9 @@ func TestReconcileKogitoRuntime_InvalidCustomImage(t *testing.T) {
 	err := framework.AddOwnerReference(instance, meta.GetRegisteredSchema(), imageStream)
 	assert.NoError(t, err)
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, imageStream).OnOpenShift().Build()
-	r := &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}
-	_, err = r.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
+	r := &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+
+	_, err = r.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}})
 	assert.Error(t, err)
 
 	_, err = kubernetes.ResourceC(cli).Fetch(instance)
@@ -202,7 +204,7 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, cm).Build()
-	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema(), Log: test.TestLogger}, instance)
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}, instance)
 
 	_, err := kubernetes.ResourceC(cli).Fetch(cm)
 	assert.NoError(t, err)

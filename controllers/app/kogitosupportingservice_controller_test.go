@@ -18,7 +18,6 @@ import (
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
-	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +38,6 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 
 	r := &KogitoSupportingServiceReconciler{
 		Client: cli,
-		Log:    logger.GetLogger("KogitoSupportingService"),
 		Scheme: meta.GetRegisteredSchema(),
 	}
 	test.AssertReconcileMustNotRequeue(t, r, instance)

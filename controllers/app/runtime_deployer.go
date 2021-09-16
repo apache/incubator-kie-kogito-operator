@@ -15,16 +15,13 @@
 package app
 
 import (
-	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/connector"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	v1 "k8s.io/api/apps/v1"
-	"reflect"
 )
 
 const (
@@ -34,7 +31,6 @@ const (
 
 // RuntimeDeployerHandler ...
 type RuntimeDeployerHandler interface {
-	OnGetComparators(comparator compare.ResourceComparator)
 	OnDeploymentCreate(deployment *v1.Deployment) error
 }
 
@@ -53,14 +49,6 @@ func NewRuntimeDeployerHandler(context operator.Context, instance api.KogitoRunt
 		supportingServiceHandler: supportingServiceHandler,
 		runtimeHandler:           runtimeHandler,
 	}
-}
-
-func (d *runtimeDeployerHandler) OnGetComparators(comparator compare.ResourceComparator) {
-	comparator.SetComparator(
-		framework.NewComparatorBuilder().
-			WithType(reflect.TypeOf(monv1.ServiceMonitor{})).
-			WithCustomComparator(framework.CreateServiceMonitorComparator()).
-			Build())
 }
 
 // onDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties to the deployment creation

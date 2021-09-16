@@ -11,7 +11,7 @@ on:
       - '.github/workflows/Kogito-Operator-OLM-tests.yaml'
 env:
   OP_TEST_CONTAINER_TOOL: docker
-  GO_VERSION: 1.14
+  GO_VERSION: 1.16
   OP_TEST_DEBUG: 1
   OP_TEST_CONTAINER_OPT: "-t"
 jobs:

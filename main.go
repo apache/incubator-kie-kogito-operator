@@ -1,5 +1,5 @@
 /*
-
+Copyright 2021.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,49 +18,60 @@ package main
 
 import (
 	"flag"
-	"github.com/kiegroup/kogito-operator/controllers/app"
-	"os"
-	"strings"
-
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/meta"
-	"k8s.io/apimachinery/pkg/runtime"
+	"os"
+	"strings"
 
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	// +kubebuilder:scaffold:imports
+
+	"github.com/kiegroup/kogito-operator/controllers/app"
+	//+kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   *runtime.Scheme
-	setupLog = logger.GetLogger("setup")
-
+	scheme               *runtime.Scheme
+	setupLog             = logger.GetLogger("setup")
 	metricsAddr          string
 	enableLeaderElection bool
+	probeAddr            string
 )
 
 func init() {
 	scheme = meta.GetRegisteredSchema()
-
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
+	//+kubebuilder:scaffold:scheme
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 }
 
 func main() {
+	opts := zap.Options{
+		Development: isDebugMode(),
+	}
+	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
-	ctrl.SetLogger(zap.New(zap.UseDevMode(isDebugMode())))
+
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	watchNamespace := getWatchNamespace()
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
-		Port:               9443,
-		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "4662f1d5.kiegroup.org",
-		Namespace:          watchNamespace,
+		Scheme:                 scheme,
+		MetricsBindAddress:     metricsAddr,
+		Port:                   9443,
+		HealthProbeBindAddress: probeAddr,
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "d1731e98.kiegroup.org",
+		Namespace:              watchNamespace,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -71,7 +82,6 @@ func main() {
 
 	if err = (&app.KogitoRuntimeReconciler{
 		Client: kubeCli,
-		Log:    logger.GetLogger("kogitoruntime_controllers"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
@@ -79,7 +89,6 @@ func main() {
 	}
 	if err = (&app.KogitoSupportingServiceReconciler{
 		Client: kubeCli,
-		Log:    logger.GetLogger("kogitoSupportingService-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService")
@@ -87,7 +96,6 @@ func main() {
 	}
 	if err = (&app.KogitoBuildReconciler{
 		Client: kubeCli,
-		Log:    logger.GetLogger("kogitoBuild-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoBuild")
@@ -95,7 +103,6 @@ func main() {
 	}
 	if err = (&app.KogitoInfraReconciler{
 		Client: kubeCli,
-		Log:    logger.GetLogger("KogitoInfra-controller"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
@@ -103,7 +110,6 @@ func main() {
 	}
 	if err = (&app.FinalizeKogitoSupportingService{
 		Client: kubeCli,
-		Log:    logger.GetLogger("KogitoSupportingService-finalizer"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService-finalizer")
@@ -111,13 +117,21 @@ func main() {
 	}
 	if err = (&app.FinalizeKogitoRuntime{
 		Client: kubeCli,
-		Log:    logger.GetLogger("KogitoRuntime-finalizer"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime-finalizer")
 		os.Exit(1)
 	}
-	// +kubebuilder:scaffold:builder
+	//+kubebuilder:scaffold:builder
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

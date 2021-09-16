@@ -1,7 +1,7 @@
 # Create a copy of ../image.yaml file
 - name: operator-builder
   version: 1.0.0
-  from: golang:1.14
+  from: golang:1.16
   description: Builder Image for the profiling Operator
 
   modules:
@@ -31,5 +31,6 @@
       dest: /
   run:
     workdir: /
+    user: 65532
     entrypoint:
       - "/entrypoint-profiling"

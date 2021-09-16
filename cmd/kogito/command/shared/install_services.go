@@ -22,7 +22,7 @@ import (
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/core"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type serviceInfoMessages struct {
@@ -162,7 +162,7 @@ func (s *servicesInstallation) GetError() error {
 	return s.err
 }
 
-func (s *servicesInstallation) installKogitoResource(resource kubernetes.ResourceObject, messages *serviceInfoMessages) error {
+func (s *servicesInstallation) installKogitoResource(resource client.Object, messages *serviceInfoMessages) error {
 	if s.err == nil {
 		log := context.GetDefaultLogger()
 		if err := s.manager.CreateOrUpdate(resource); err != nil {
