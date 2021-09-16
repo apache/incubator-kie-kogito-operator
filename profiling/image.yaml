@@ -31,5 +31,6 @@
       dest: /
   run:
     workdir: /
+    user: 65532
     entrypoint:
       - "/entrypoint-profiling"
