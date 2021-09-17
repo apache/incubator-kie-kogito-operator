@@ -59,88 +59,88 @@ pipeline {
             }
         }
 
-        stage('Build examples images') {
-            steps {
-                script {
-                    try {
-                        // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images concurrent=3 operator_namespaced=true smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
-                    } catch (err) {
-                        unstable("Error building non-native examples' images. Check the junit results.")
-                    }
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/examples/logs/**/junit.xml', allowEmptyResults: true
-                }
-            }
-        }
+        // stage('Build examples images') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
+        //                 // setting operator_namespaced=true so the operator won't be deployed for building of example images
+        //                 sh "make build-examples-images concurrent=3 operator_namespaced=true smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
+        //             } catch (err) {
+        //                 unstable("Error building non-native examples' images. Check the junit results.")
+        //             }
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
+        //             junit testResults: 'test/examples/logs/**/junit.xml', allowEmptyResults: true
+        //         }
+        //     }
+        // }
 
-        stage('Build native examples images') {
-            when {
-                expression { return !params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS }
-            }
-            steps {
-                script {
-                    try {
-                        // Optaplanner taking a lot of resources, we should not build in parallel
-                        // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
-                    } catch (err) {
-                        unstable("Error building native examples' images. Check the junit results.")
-                    } finally {
-                        // moving to another folder to avoid conflicts with junit
-                        sh 'cp -r test/examples test/examples-native'
-                    }
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/examples-native/logs/**/junit.xml', allowEmptyResults: true
-                }
-            }
-        }
+        // stage('Build native examples images') {
+        //     when {
+        //         expression { return !params.SMOKE_TESTS_ONLY && !params.SKIP_NATIVE_TESTS }
+        //     }
+        //     steps {
+        //         script {
+        //             try {
+        //                 // Optaplanner taking a lot of resources, we should not build in parallel
+        //                 // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
+        //                 // setting operator_namespaced=true so the operator won't be deployed for building of example images
+        //                 sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
+        //             } catch (err) {
+        //                 unstable("Error building native examples' images. Check the junit results.")
+        //             } finally {
+        //                 // moving to another folder to avoid conflicts with junit
+        //                 sh 'cp -r test/examples test/examples-native'
+        //             }
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
+        //             junit testResults: 'test/examples-native/logs/**/junit.xml', allowEmptyResults: true
+        //         }
+        //     }
+        // }
 
 
-        stage('Handle built images') {
-            steps {
-                script {
-                    // Retrieve the list of images
-                    images = readFile(file: 'test/examples/logs/built_project_image_names.log').split('\n')
+        // stage('Handle built images') {
+        //     steps {
+        //         script {
+        //             // Retrieve the list of images
+        //             images = readFile(file: 'test/examples/logs/built_project_image_names.log').split('\n')
 
-                    for (String imageName : images) {
-                        if (helper.isDeployLatestTag()) {
-                            String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, 'latest')
-                            container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
-                            container.pushImage(finalFullImage)
-                        }
-                        String reducedTag = helper.getReducedTag()
-                        if (reducedTag) {
-                            String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, reducedTag)
-                            container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
-                            container.pushImage(finalFullImage)
-                        }
+        //             for (String imageName : images) {
+        //                 if (helper.isDeployLatestTag()) {
+        //                     String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, 'latest')
+        //                     container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
+        //                     container.pushImage(finalFullImage)
+        //                 }
+        //                 String reducedTag = helper.getReducedTag()
+        //                 if (reducedTag) {
+        //                     String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, reducedTag)
+        //                     container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
+        //                     container.pushImage(finalFullImage)
+        //                 }
 
-                        if (helper.getImageRegistry() == 'quay.io') {
-                            helper.makeQuayImagePublic(helper.getFullImageName(imageName))
-                        }
-                    }
+        //                 if (helper.getImageRegistry() == 'quay.io') {
+        //                     helper.makeQuayImagePublic(helper.getFullImageName(imageName))
+        //                 }
+        //             }
 
-                    // Store image deployment information
-                    properties.add(helper.getImageRegistryProperty(), helper.getImageRegistry())
-                    properties.add(helper.getImageNamespaceProperty(), helper.getImageNamespace())
-                    properties.add(helper.getImageNamePrefixProperty(), helper.getImageNamePrefix())
-                    properties.add(helper.getImageNameSuffixProperty(), helper.getImageNameSuffix())
-                    properties.add(helper.getImageNamesProperty(), images.join(','))
-                    properties.add(helper.getImageTagProperty(), helper.getImageTag())
-                }
-            }
-        }
+        //             // Store image deployment information
+        //             properties.add(helper.getImageRegistryProperty(), helper.getImageRegistry())
+        //             properties.add(helper.getImageNamespaceProperty(), helper.getImageNamespace())
+        //             properties.add(helper.getImageNamePrefixProperty(), helper.getImageNamePrefix())
+        //             properties.add(helper.getImageNameSuffixProperty(), helper.getImageNameSuffix())
+        //             properties.add(helper.getImageNamesProperty(), images.join(','))
+        //             properties.add(helper.getImageTagProperty(), helper.getImageTag())
+        //         }
+        //     }
+        // }
     }
     post {
         always {
