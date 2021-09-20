@@ -586,6 +586,10 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                     type: object
                 type: object
+              route:
+                description: "A flag indicating that default route should be created.
+                  Usable just on OpenShift. \n Defaults to 'false'."
+                type: boolean
               runtime:
                 description: "The name of the runtime used, either Quarkus or SpringBoot.
                   \n Default value: quarkus"

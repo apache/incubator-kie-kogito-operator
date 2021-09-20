@@ -355,6 +355,12 @@ spec:
         path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      - description: "A flag indicating that default route should be created. Usable
+          just on OpenShift. \n Defaults to 'false'."
+        displayName: Route
+        path: route
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: "The name of the runtime used, either Quarkus or SpringBoot.
           \n Default value: quarkus"
         displayName: Runtime
