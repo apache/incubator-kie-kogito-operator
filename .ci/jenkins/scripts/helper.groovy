@@ -285,6 +285,10 @@ String getGitAuthorCredsID() {
     return env.AUTHOR_CREDS_ID
 }
 
+String getGitAuthorCredsID() {
+    return env.AUTHOR_CREDS_ID
+}
+
 String getBotBranch() {
     return "${getKogitoVersion()}-${env.BOT_BRANCH_HASH}"
 }
