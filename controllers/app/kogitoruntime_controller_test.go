@@ -16,13 +16,16 @@ package app
 
 import (
 	"context"
-	"github.com/kiegroup/kogito-operator/apis"
+	"testing"
+
+	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	imagev1 "github.com/openshift/api/image/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -30,7 +33,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
 )
 
 func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
@@ -223,4 +225,57 @@ func TestReconcileKogitoRuntime_CustomConfigMap(t *testing.T) {
 		}
 	}
 	assert.True(t, configMapMounted)
+}
+func TestRouteEnabled(t *testing.T) {
+	replicas := int32(1)
+	instance := &v1beta1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		Spec: v1beta1.KogitoRuntimeSpec{
+			Runtime: api.SpringBootRuntimeType,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+				Replicas: &replicas,
+				Image:    "quay.io/kiegroup/process-springboot-example-default:latest",
+			},
+			Route: true,
+		},
+	}
+
+	is, tag := test.CreateFakeImageStreams("process-springboot-example-default", t.Name(), "latest")
+	err := framework.AddOwnerReference(instance, meta.GetRegisteredSchema(), is)
+	assert.NoError(t, err)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, is).AddImageObjects(tag).OnOpenShift().Build()
+
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}, instance)
+
+	route := &routev1.Route{ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
+	exists, err := kubernetes.ResourceC(cli).Fetch(route)
+	assert.NoError(t, err)
+	assert.True(t, exists)
+
+}
+
+func TestRouteDisabled(t *testing.T) {
+	replicas := int32(1)
+	instance := &v1beta1.KogitoRuntime{
+		ObjectMeta: v1.ObjectMeta{Name: "process-springboot-example", Namespace: t.Name()},
+		Spec: v1beta1.KogitoRuntimeSpec{
+			Runtime: api.SpringBootRuntimeType,
+			KogitoServiceSpec: v1beta1.KogitoServiceSpec{
+				Replicas: &replicas,
+				Image:    "quay.io/kiegroup/process-springboot-example-default:latest",
+			},
+		},
+	}
+
+	is, tag := test.CreateFakeImageStreams("process-springboot-example-default", t.Name(), "latest")
+	err := framework.AddOwnerReference(instance, meta.GetRegisteredSchema(), is)
+	assert.NoError(t, err)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(instance, is).AddImageObjects(tag).OnOpenShift().Build()
+
+	test.AssertReconcileMustNotRequeue(t, &KogitoRuntimeReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}, instance)
+
+	route := &routev1.Route{ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
+	exists, err := kubernetes.ResourceC(cli).Fetch(route)
+	assert.NoError(t, err)
+	assert.False(t, exists)
 }
