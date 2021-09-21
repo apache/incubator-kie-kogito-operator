@@ -1,27 +1,12 @@
 import org.kie.jenkins.jobdsl.templates.KogitoJobTemplate
-import org.kie.jenkins.jobdsl.KogitoConstants
+import org.kie.jenkins.jobdsl.FolderUtils
 import org.kie.jenkins.jobdsl.Utils
 import org.kie.jenkins.jobdsl.KogitoJobType
 
 JENKINSFILE_PATH = '.ci/jenkins'
 
-boolean isMainBranch() {
-    return "${GIT_BRANCH}" == "${GIT_MAIN_BRANCH}"
-}
-
 def getDefaultJobParams() {
-    return [
-        job: [
-            name: 'kogito-operator'
-        ],
-        git: [
-            author: "${GIT_AUTHOR_NAME}",
-            branch: "${GIT_BRANCH}",
-            repository: 'kogito-operator',
-            credentials: "${GIT_AUTHOR_CREDENTIALS_ID}",
-            token_credentials: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}"
-        ]
-    ]
+    return KogitoJobTemplate.getDefaultJobParams(this, 'kogito-operator')
 }
 
 def getJobParams(String jobName, String jobFolder, String jenkinsfileName, String jobDescription = '') {
@@ -35,53 +20,31 @@ def getJobParams(String jobName, String jobFolder, String jenkinsfileName, Strin
     return jobParams
 }
 
-def bddRuntimesPrFolder = "${KogitoConstants.KOGITO_DSL_PULLREQUEST_FOLDER}/${KogitoConstants.KOGITO_DSL_RUNTIMES_BDD_FOLDER}"
-def nightlyBranchFolder = "${KogitoConstants.KOGITO_DSL_NIGHTLY_FOLDER}/${JOB_BRANCH_FOLDER}"
-def releaseBranchFolder = "${KogitoConstants.KOGITO_DSL_RELEASE_FOLDER}/${JOB_BRANCH_FOLDER}"
-
-if (isMainBranch()) {
-    // PR job is disabled for now as handled by another Jenkins
-    // folder(KogitoConstants.KOGITO_DSL_PULLREQUEST_FOLDER)
-
-    // setupPrJob(KogitoConstants.KOGITO_DSL_PULLREQUEST_FOLDER)
-
-    // For BDD runtimes PR job
-    folder(bddRuntimesPrFolder)
-
-    setupDeployJob(bddRuntimesPrFolder, KogitoJobType.PR)
+if (Utils.isMainBranch(this)) {
+    setupDeployJob(FolderUtils.getPullRequestRuntimesBDDFolder(this), KogitoJobType.PR)
 }
 
 // Nightly jobs
-folder(KogitoConstants.KOGITO_DSL_NIGHTLY_FOLDER)
-folder(nightlyBranchFolder)
-setupProfilingJob(nightlyBranchFolder)
-setupDeployJob(nightlyBranchFolder, KogitoJobType.NIGHTLY)
-setupPromoteJob(nightlyBranchFolder, KogitoJobType.NIGHTLY)
-setupExamplesImagesDeployJob(nightlyBranchFolder, KogitoJobType.NIGHTLY)
-setupExamplesImagesPromoteJob(nightlyBranchFolder, KogitoJobType.NIGHTLY)
+setupProfilingJob()
+setupDeployJob(FolderUtils.getNightlyFolder(this), KogitoJobType.NIGHTLY)
+setupPromoteJob(FolderUtils.getNightlyFolder(this), KogitoJobType.NIGHTLY)
+setupExamplesImagesDeployJob(FolderUtils.getNightlyFolder(this), KogitoJobType.NIGHTLY)
+setupExamplesImagesPromoteJob(FolderUtils.getNightlyFolder(this), KogitoJobType.NIGHTLY)
 
 // No release directly on main branch
-if (!isMainBranch()) {
-    folder(KogitoConstants.KOGITO_DSL_RELEASE_FOLDER)
-    folder(releaseBranchFolder)
-    setupDeployJob(releaseBranchFolder, KogitoJobType.RELEASE)
-    setupPromoteJob(releaseBranchFolder, KogitoJobType.RELEASE)
-    setupExamplesImagesDeployJob(releaseBranchFolder, KogitoJobType.RELEASE)
-    setupExamplesImagesPromoteJob(releaseBranchFolder, KogitoJobType.RELEASE)
+if (!Utils.isMainBranch(this)) {
+    setupDeployJob(FolderUtils.getReleaseFolder(this), KogitoJobType.RELEASE)
+    setupPromoteJob(FolderUtils.getReleaseFolder(this), KogitoJobType.RELEASE)
+    setupExamplesImagesDeployJob(FolderUtils.getReleaseFolder(this), KogitoJobType.RELEASE)
+    setupExamplesImagesPromoteJob(FolderUtils.getReleaseFolder(this), KogitoJobType.RELEASE)
 }
 
 /////////////////////////////////////////////////////////////////
 // Methods
 /////////////////////////////////////////////////////////////////
 
-void setupPrJob(String jobFolder) {
-    def jobParams = getDefaultJobParams()
-    jobParams.job.folder = jobFolder
-    KogitoJobTemplate.createPRJob(this, jobParams)
-}
-
-void setupProfilingJob(String jobFolder) {
-    def jobParams = getJobParams('kogito-operator-profiling', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
+void setupProfilingJob() {
+    def jobParams = getJobParams('kogito-operator-profiling', FolderUtils.getNightlyFolder(this), "${JENKINSFILE_PATH}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
     jobParams.triggers = [ cron : '@midnight' ]
     KogitoJobTemplate.createPipelineJob(this, jobParams).with {
         parameters {
