@@ -137,7 +137,7 @@ endif
 
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
-bundle: manifests kustomize
+bundle: manifests kustomize install-operator-sdk
 	# the api package can't be a module for the `operator-sdk generate` command to work
 	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests -q
@@ -177,7 +177,7 @@ generate-profiling-installer: generate manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 
 # Generate CSV
-csv:
+csv: install-operator-sdk
 	operator-sdk generate kustomize manifests
 
 vet: generate-installer generate-profiling-installer bundle
@@ -212,6 +212,12 @@ deploy-operator-on-ocp:
 
 olm-tests:
 	./hack/ci/run-olm-tests.sh
+
+install-operator-sdk:
+	./hack/ci/install-operator-sdk.sh
+
+uninstall-operator-sdk:
+	./hack/ci/uninstall-operator-sdk.sh
 
 # Run this before any PR to make sure everything is updated, so CI won't fail
 before-pr: vet test
