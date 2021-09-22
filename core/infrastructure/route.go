@@ -15,6 +15,9 @@
 package infrastructure
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -22,10 +25,10 @@ import (
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	routev1 "github.com/openshift/api/route/v1"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"reflect"
 )
 
 // RouteHandler ...
@@ -62,6 +65,16 @@ func (r *routeHandler) GetHostFromRoute(routeKey types.NamespacedName) (string, 
 	route, err := r.FetchRoute(routeKey)
 	if err != nil || route == nil {
 		return "", err
+	}
+
+	for _, ingress := range route.Status.Ingress {
+		for _, routeCondition := range ingress.Conditions {
+			if routeCondition.Type == routev1.RouteAdmitted {
+				if routeCondition.Status == corev1.ConditionFalse {
+					return "", fmt.Errorf(routeCondition.Message)
+				}
+			}
+		}
 	}
 	return route.Spec.Host, nil
 }

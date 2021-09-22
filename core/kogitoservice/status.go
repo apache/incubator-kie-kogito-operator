@@ -16,7 +16,8 @@ package kogitoservice
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
+
+	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -161,7 +162,8 @@ func (s *statusHandler) updateRouteStatus(instance api.KogitoService) error {
 		routeHandler := infrastructure.NewRouteHandler(s.Context)
 		route, err := routeHandler.GetHostFromRoute(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 		if err != nil {
-			return err
+			instance.GetStatus().SetExternalURI(err.Error())
+			return nil
 		}
 
 		if len(route) > 0 {
