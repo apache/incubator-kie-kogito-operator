@@ -15,13 +15,14 @@
 package kogitoservice
 
 import (
+	"reflect"
+
 	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	v1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -54,7 +55,7 @@ func (i *routeReconciler) Reconcile() error {
 	}
 
 	if !i.instance.GetSpec().IsRouteEnabled() {
-		i.Log.Debug("Skipping route creation. Routes are not enable.")
+		i.Log.Debug("Skipping route creation. Routes are not enabled.")
 		return nil
 	}
 
@@ -72,6 +73,11 @@ func (i *routeReconciler) Reconcile() error {
 
 	// Process Delta
 	if err = i.processDelta(requestedResources, deployedResources); err != nil {
+		return infrastructure.ErrorForRouteCreation(err)
+	}
+
+	// Check Route Status
+	if _, err := i.routeHandler.GetHostFromRoute(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()}); err != nil {
 		return infrastructure.ErrorForRouteCreation(err)
 	}
 
