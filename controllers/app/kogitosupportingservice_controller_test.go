@@ -36,10 +36,7 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 	}
 	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
 
-	r := &KogitoSupportingServiceReconciler{
-		Client: cli,
-		Scheme: meta.GetRegisteredSchema(),
-	}
+	r := NewKogitoSupportingServiceReconciler(cli, meta.GetRegisteredSchema())
 	test.AssertReconcileMustNotRequeue(t, r, instance)
 }
 

@@ -1,0 +1,36 @@
+name: org.kie.kogito.rhpam.builder
+version: "7.11.0"
+description: Builds the operator binary
+
+envs:
+  - name: "GOPRIVATE"
+    value: ""
+
+artifacts:
+    - name: main
+      path: "../../../../main.go"
+      target: "main.go"
+      dest: /workspace/
+
+    - name: controllers
+      path: "../../../../controllers/rhpam"
+      dest: /workspace/controllers/rhpam
+
+    - name: core
+        path: "../../../../core"
+        dest: /workspace/core
+
+    - name: internal
+      path: "../../../../internal/rhpam"
+      dest: /workspace/internal/rhpam
+
+    - name: version
+      path: "../../../../version/rhpam"
+      dest: /workspace/version/rhpam
+
+    - name: meta
+      path: "../../../../meta"
+      dest: /workspace/meta
+
+execute:
+  - script: install.sh

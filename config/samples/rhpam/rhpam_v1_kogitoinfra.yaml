@@ -1,0 +1,10 @@
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoInfra
+metadata:
+  name: kogitoinfra-sample
+spec:
+  # Add fields here
+  resource:
+    apiVersion: kafka.strimzi.io/v1beta2
+    kind: Kafka
+    name: kogito-kafka

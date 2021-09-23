@@ -1,0 +1,7 @@
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoSupportingService
+metadata:
+  name: kogito-jobs-service
+spec:
+  serviceType: JobsService
+  replicas: 1

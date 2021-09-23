@@ -1,0 +1,58 @@
+include Makefile
+
+
+VERSION = 7.11.0
+CHANNELS = 7.x
+DEFAULT_CHANNEL = 7.x
+IMAGE_TAG_BASE = registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator
+CEKIT_CMD := cekit -v --redhat ${cekit_option}
+
+##@ Development
+
+manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	./hack/kogito-module-api.sh --disable
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/rhpam/..." output:crd:artifacts:config=config/crd/rhpam/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/rhpam" output:rbac:artifacts:config=config/rbac/rhpam
+	$(CONTROLLER_GEN) webhook paths="./..."
+	./hack/kogito-module-api.sh --enable
+
+generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	./hack/kogito-module-api.sh --disable
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths=./...
+	./hack/kogito-module-api.sh --enable
+
+# Run vet
+.PHONY: rhpam-vet
+rhpam-vet: generate-installer bundle
+	go vet ./...
+
+##@ Build
+
+
+container-build: ## Build the container image
+	cekit -v build --overrides-file kogito-rhpam-image-overrides.yaml $(BUILDER)
+	$(BUILDER) tag rhpam-7/rhpam-kogito-operator ${IMG}
+
+container-push: ## Push the container image
+	$(BUILDER) push ${IMG}
+
+container-prod-build: ## prod build
+	$(CEKIT_CMD) build $(BUILDER)
+
+.PHONY: bundle-prod-build
+bundle-prod-build: bundle
+	 $(CEKIT_CMD) --descriptor=kogito-rhpam-image-bundle-overrides.yaml build $(BUILDER)
+
+##@ Deployment
+
+bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+	./hack/kogito-module-api.sh --disable
+	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/rhpam --output-dir=./config/manifests/rhpam --package=rhpam-kogito-operator -q
+	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/manifests/rhpam | operator-sdk generate bundle --package=rhpam-kogito-operator --output-dir=bundle/rhpam -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle/rhpam
+	./hack/kogito-module-api.sh --enable
+
+generate-installer: generate manifests kustomize
+	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/default/rhpam > rhpam-kogito-operator.yaml

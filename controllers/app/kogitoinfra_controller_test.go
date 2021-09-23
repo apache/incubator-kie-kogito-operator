@@ -43,7 +43,7 @@ func Test_Reconcile_ResourceNotFound(t *testing.T) {
 	}
 	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra).Build()
 	scheme := meta.GetRegisteredSchema()
-	r := &KogitoInfraReconciler{Client: client, Scheme: scheme}
+	r := NewKogitoInfraReconciler(client, scheme)
 	// basic checks
 	test.AssertReconcileMustNotRequeue(t, r, kogitoInfra)
 	exists, err := kubernetes.ResourceC(client).Fetch(kogitoInfra)
@@ -92,7 +92,7 @@ func Test_Reconcile_KafkaResource(t *testing.T) {
 	client := test.NewFakeClientBuilder().AddK8sObjects(kogitoInfra, deployedKafkaInstance).Build()
 
 	scheme := meta.GetRegisteredSchema()
-	r := &KogitoInfraReconciler{Client: client, Scheme: scheme}
+	r := NewKogitoInfraReconciler(client, scheme)
 	// basic checks
 	test.AssertReconcile(t, r, kogitoInfra)
 

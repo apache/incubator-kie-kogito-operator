@@ -1,4 +1,4 @@
-# Create a copy of ../image.yaml file
+# Create a copy of ../kogito-app-image-overrides.yaml file
 - name: operator-builder
   version: 1.0.0
   from: golang:1.16

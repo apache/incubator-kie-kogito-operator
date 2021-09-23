@@ -1,0 +1,13 @@
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoBuild
+metadata:
+  name: process-quarkus-example
+spec:
+  type: RemoteSource
+  gitSource:
+    uri: https://github.com/kiegroup/kogito-examples
+    contextDir: process-quarkus-example
+  # set your maven nexus repository
+  #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+  # enable to print maven transfer logs in console
+  #enableMavenDownloadOutput: true

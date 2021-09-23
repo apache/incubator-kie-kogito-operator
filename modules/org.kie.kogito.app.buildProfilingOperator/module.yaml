@@ -1,0 +1,16 @@
+name: org.kie.kogito.app.buildProfilingOperator
+version: "1.0"
+description: Builds the profiling operator binary
+
+artifacts:
+  - name: test_main
+    path: "../../../../main_test.go"
+    target: "main_test.go"
+    dest: /workspace/
+
+modules:
+  install:
+    - name: org.kie.kogito.buildOperator
+
+execute:
+  - script: install.sh

@@ -18,7 +18,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/internal"
+	"github.com/kiegroup/kogito-operator/internal/app"
 	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -33,7 +33,7 @@ func TestAddFinalizer(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	infraHandler := internal.NewKogitoInfraHandler(context)
+	infraHandler := app.NewKogitoInfraHandler(context)
 	finalizerHandler := NewInfraFinalizerHandler(context, infraHandler)
 	err := finalizerHandler.AddFinalizer(dataIndex)
 	assert.NoError(t, err)
@@ -53,7 +53,7 @@ func TestHandleFinalization(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	infraHandler := internal.NewKogitoInfraHandler(context)
+	infraHandler := app.NewKogitoInfraHandler(context)
 	finalizerHandler := NewInfraFinalizerHandler(context, infraHandler)
 	err := finalizerHandler.HandleFinalization(dataIndex)
 	assert.NoError(t, err)

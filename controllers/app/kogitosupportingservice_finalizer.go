@@ -15,88 +15,20 @@
 package app
 
 import (
-	"context"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/kogitoservice"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/internal"
-	"github.com/kiegroup/kogito-operator/version"
+	app2 "github.com/kiegroup/kogito-operator/internal/app"
+	"github.com/kiegroup/kogito-operator/version/app"
 	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-// FinalizeKogitoSupportingService reconciles a KogitoSupportingService object
-type FinalizeKogitoSupportingService struct {
-	// This client, initialized using mgr.Client() above, is a split client
-	// that reads objects from the cache and writes to the apiserver
-	Client *kogitocli.Client
-	Scheme *runtime.Scheme
-}
-
-// SetupWithManager adds a new Controller to mgr with r as the reconcile.Reconciler
-func (f *FinalizeKogitoSupportingService) SetupWithManager(mgr manager.Manager) error {
-	pred := predicate.Funcs{
-		// Don't watch delete events as the resource removals will be handled by its finalizer
-		DeleteFunc: func(e event.DeleteEvent) bool {
-			return false
-		},
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			return !e.ObjectNew.GetDeletionTimestamp().IsZero()
-		},
+// NewFinalizeKogitoSupportingServiceReconciler ...
+func NewFinalizeKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.FinalizeKogitoSupportingServiceReconciler {
+	return &common.FinalizeKogitoSupportingServiceReconciler{
+		Client:                   client,
+		Scheme:                   scheme,
+		Version:                  app.Version,
+		SupportingServiceHandler: app2.NewKogitoSupportingServiceHandler,
+		InfraHandler:             app2.NewKogitoInfraHandler,
 	}
-	b := ctrl.NewControllerManagedBy(mgr).For(&v1beta1.KogitoSupportingService{}, builder.WithPredicates(pred))
-	// Create a new controller
-	return b.Complete(f)
-}
-
-// Reconcile reads that state of the cluster for a KogitoSupportingService object and makes changes based on the state read
-// and what is in the KogitoSupportingService.Spec
-func (f *FinalizeKogitoSupportingService) Reconcile(ctx context.Context, request reconcile.Request) (result reconcile.Result, err error) {
-	log := logger.FromContext(ctx)
-	log.Info("Reconciling for KogitoSupportingService finalizer")
-
-	// create kogitoContext
-	kogitoContext := operator.Context{
-		Client:  f.Client,
-		Log:     log,
-		Scheme:  f.Scheme,
-		Version: version.Version,
-	}
-
-	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(kogitoContext)
-	instance, err := supportingServiceHandler.FetchKogitoSupportingService(request.NamespacedName)
-	if err != nil {
-		return
-	}
-	if instance == nil {
-		log.Debug("KogitoSupportingService instance not found. Going to return reconciliation request", "name", request.Name, "namespace", request.Namespace)
-		return
-	}
-	infraHandler := internal.NewKogitoInfraHandler(kogitoContext)
-	infraFinalizer := kogitoservice.NewInfraFinalizerHandler(kogitoContext, infraHandler)
-	// examine DeletionTimestamp to determine if object is under deletion
-	if instance.GetDeletionTimestamp().IsZero() {
-		// Add finalizer for this CR
-		if err = infraFinalizer.AddFinalizer(instance); err != nil {
-			result.Requeue = true
-			return
-		}
-		return
-	}
-
-	// The object is being deleted
-	log.Info("KogitoSupportingService has been deleted")
-	if err = infraFinalizer.HandleFinalization(instance); err != nil {
-		result.Requeue = true
-		return
-	}
-	result.Requeue = false
-	return
 }

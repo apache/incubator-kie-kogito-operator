@@ -10,7 +10,7 @@ VERSION ?= 2.0.0-snapshot
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
 # - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
-CHANNELS=alpha,1.x
+CHANNELS ?= alpha,1.x
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
@@ -20,7 +20,7 @@ endif
 # To re-generate a bundle for any other default channel without changing the default setup, you can:
 # - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
 # - use environment variables to overwrite this value (e.g export DEFAULT_CHANNEL="stable")
-DEFAULT_CHANNEL=1.x
+DEFAULT_CHANNEL ?= 1.x
 ifneq ($(origin DEFAULT_CHANNEL), undefined)
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
@@ -107,7 +107,9 @@ test: fmt lint
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	./hack/kogito-module-api.sh --disable
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./apis/app/..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/app/..." output:crd:artifacts:config=config/crd/app/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/app" output:rbac:artifacts:config=config/rbac/app
+	$(CONTROLLER_GEN) webhook paths="./..."
 	./hack/kogito-module-api.sh --enable
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -124,6 +126,8 @@ fmt: ## Run go fmt against code.
 lint:
 	./hack/go-lint.sh
 
+# Run vet
+.PHONY: vet
 vet: generate-installer generate-profiling-installer bundle ## Run go vet against code.
 	go vet ./...
 
@@ -142,7 +146,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 docker-build: ## Build the docker image
-	cekit -v build $(BUILDER)
+	cekit -v build --overrides-file kogito-app-image-overrides.yaml $(BUILDER)
 	$(BUILDER) tag operator-runtime ${IMG}
 
 docker-push: ## Push the docker image
@@ -213,10 +217,10 @@ endef
 .PHONY: bundle
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
 	./hack/kogito-module-api.sh --disable
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle
+	operator-sdk generate kustomize manifests  --apis-dir=apis/app --input-dir=./config/manifests/app --output-dir=./config/manifests/app --package=kogito-operator -q
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/manifests/app | operator-sdk generate bundle --package=kogito-operator --output-dir=bundle/app -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle/app
 	./hack/kogito-module-api.sh --enable
 
 .PHONY: bundle-build
@@ -258,14 +262,14 @@ catalog-push: ## Push a catalog image.
 
 
 generate-installer: generate manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/default > kogito-operator.yaml
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/default/app > kogito-operator.yaml
 
 generate-profiling-installer: generate manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(PROFILING_IMG)
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(PROFILING_IMG)
 	$(KUSTOMIZE) build config/profiling > profiling/kogito-operator-profiling.yaml
 	$(KUSTOMIZE) build config/profiling-data-access > profiling/kogito-operator-profiling-data-access.yaml
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
 
 # Update bundle manifest files for test purposes, will override default image tag and remove the replaces field
 .PHONY: update-bundle

@@ -24,7 +24,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/internal"
+	"github.com/kiegroup/kogito-operator/internal/app"
 	"github.com/kiegroup/kogito-operator/meta"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -183,7 +183,7 @@ func (r resourceCheckServiceImpl) CheckKogitoInfraExists(kubeCli *client.Client,
 		Log:    coreLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	infraHandler := internal.NewKogitoInfraHandler(context)
+	infraHandler := app.NewKogitoInfraHandler(context)
 	infraManager := manager.NewKogitoInfraManager(context, infraHandler)
 	_, err := infraManager.MustFetchKogitoInfraInstance(types.NamespacedName{Name: name, Namespace: namespace})
 	return err

@@ -1,0 +1,32 @@
+name: org.kie.kogito.app.builder
+version: "1.0"
+description: Builds the operator binary
+
+artifacts:
+    - name: main
+      path: "../../../../main.go"
+      target: "main.go"
+      dest: /workspace/
+
+    - name: controllers
+      path: "../../../../controllers/app"
+      dest: /workspace/controllers/app
+
+    - name: core
+      path: "../../../../core"
+      dest: /workspace/core
+
+    - name: internal
+      path: "../../../../internal/app"
+      dest: /workspace/internal/app
+
+    - name: version
+      path: "../../../../version/app"
+      dest: /workspace/version/app
+
+    - name: meta
+      path: "../../../../meta"
+      dest: /workspace/meta
+
+execute:
+  - script: install.sh

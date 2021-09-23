@@ -9,7 +9,7 @@ namespace: kogito-operator-system
 namePrefix: kogito-operator-
 
 resources:
-- ../full
+- ../full/app
 - bases/profiling_pvc.yaml
 
 patchesStrategicMerge:
