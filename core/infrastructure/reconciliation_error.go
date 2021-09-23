@@ -61,8 +61,8 @@ const (
 	ProcessingProtoBufConfigMapDelta ConditionReason = "ProcessingProtoBufConfigMapDelta"
 	// ImageNotFound ...
 	ImageNotFound ConditionReason = "ImageNotFound"
-	// RouteCreationFailureReason
-	RouteCreationFailureReason ConditionReason = "RouteCreationFailureReason"
+	// RouteCreationFailureReason - Unable to properly create Route
+	RouteCreationFailureReason ConditionReason = "RouteCreationFailure"
 )
 
 const (
