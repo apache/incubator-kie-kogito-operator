@@ -10,4 +10,6 @@
 - [KOGITO-5573](https://issues.redhat.com/browse/KOGITO-5573) - Kogito Operator Data-Index Unable to connect to Infinispan Instance
 - [KOGITO-5811](https://issues.redhat.com/browse/KOGITO-5811) - no kind is registered for the type v1beta1.KogitoInfra
 - [KOGITO-5740](https://issues.redhat.com/browse/KOGITO-5740) - Unnecessary reconciliations triggered for Service
+- [KOGITO-4791](https://issues.redhat.com/browse/KOGITO-4791) - Add metrics related files back in the operator bundle
+
 ## Known Issues
