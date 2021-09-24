@@ -73,12 +73,14 @@ func (i *routeReconciler) Reconcile() error {
 
 	// Process Delta
 	if err = i.processDelta(requestedResources, deployedResources); err != nil {
-		return infrastructure.ErrorForRouteCreation(err)
+		return err
 	}
 
-	// Check Route Status
-	if _, err := i.routeHandler.GetHostFromRoute(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()}); err != nil {
+	// Validate Route Status
+	if isValid, err := i.routeHandler.ValidateRouteStatus(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()}); err != nil {
 		return infrastructure.ErrorForRouteCreation(err)
+	} else if !isValid {
+		return infrastructure.ErrorForProcessingRouteDelta()
 	}
 
 	return nil
@@ -108,6 +110,12 @@ func (i *routeReconciler) getDeployedResources() (map[reflect.Type][]client.Obje
 
 func (i *routeReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := i.routeHandler.GetComparator()
-	_, err = i.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
+	isDeltaProcessed, err := i.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
+	if err != nil {
+		return err
+	}
+	if isDeltaProcessed {
+		return infrastructure.ErrorForProcessingRouteDelta()
+	}
 	return
 }
