@@ -15,3 +15,4 @@ resources:
 patchesStrategicMerge:
 - patches/manager_profiling_entrypoint.yaml
 - patches/manager_profiling_volume_mount.yaml
+- patches/manager_profiling_limits.yaml
