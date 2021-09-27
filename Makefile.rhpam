@@ -21,11 +21,6 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths=./...
 	./hack/kogito-module-api.sh --enable
 
-# Run vet
-.PHONY: rhpam-vet
-rhpam-vet: generate-installer bundle
-	go vet ./...
-
 ##@ Build
 
 
@@ -56,3 +51,23 @@ bundle: manifests kustomize ## Generate bundle manifests and metadata, then vali
 generate-installer: generate manifests kustomize
 	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/default/rhpam > rhpam-kogito-operator.yaml
+
+# Update bundle manifest files for test purposes, will override default image tag and remove the replaces field
+.PHONY: update-bundle
+update-bundle:
+	./hack/rhpam-update-bundle.sh ${IMG}
+
+.PHONY: bump-version
+new_version = ""
+bump-version:
+	./hack/rhpam-bump-version.sh $(new_version)
+
+.PHONY: deploy-operator-on-ocp
+image ?= $2
+deploy-operator-on-ocp:
+	./hack/rhpam-deploy-operator-on-ocp.sh $(image)
+
+olm-manifests: bundle
+	./hack/rhpam-create-olm-manifests.sh
+
+generate-profiling-installer:

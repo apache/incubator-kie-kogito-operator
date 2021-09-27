@@ -9,20 +9,20 @@ artifacts:
       dest: /workspace/
 
     - name: controllers
-      path: "../../../../controllers/app"
-      dest: /workspace/controllers/app
+      path: "../../../../controllers"
+      dest: /workspace/controllers
 
     - name: core
       path: "../../../../core"
       dest: /workspace/core
 
     - name: internal
-      path: "../../../../internal/app"
-      dest: /workspace/internal/app
+      path: "../../../../internal"
+      dest: /workspace/internal
 
     - name: version
-      path: "../../../../version/app"
-      dest: /workspace/version/app
+      path: "../../../../version"
+      dest: /workspace/version
 
     - name: meta
       path: "../../../../meta"

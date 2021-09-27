@@ -10,7 +10,7 @@ artifacts:
 
 modules:
   install:
-    - name: org.kie.kogito.buildOperator
+    - name: org.kie.kogito.app.builder
 
 execute:
   - script: install.sh

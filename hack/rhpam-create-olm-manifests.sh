@@ -15,7 +15,7 @@
 
 
 script_dir_path=`dirname "${BASH_SOURCE[0]}"`
-source ${script_dir_path}/env.sh
+source ${script_dir_path}/rhpam-env.sh
 
 OLM_DIR="build/_output/olm/"
 VERSION=$(getOperatorVersion)
@@ -27,14 +27,14 @@ rm -rf "${OLM_DIR}"
 mkdir -p "${MANIFESTS}"
 
 #copy bundle manifests and Dockerfile
-cp -r bundle/app/*  "${MANIFESTS}/"
+cp -r bundle/rhpam/*  "${MANIFESTS}/"
 cp bundle.Dockerfile "${MANIFESTS}/Dockerfile"
 
 #Correct the relative path in Dockerfile
-sed -i "s|bundle/app/manifests|manifests|g"  "${MANIFESTS}/Dockerfile"
-sed -i "s|bundle/app/metadata|metadata|g"    "${MANIFESTS}/Dockerfile"
-sed -i "s|bundle/app/tests|tests|g"          "${MANIFESTS}/Dockerfile"
+sed -i "s|bundle/rhpam/manifests|manifests|g"  "${MANIFESTS}/Dockerfile"
+sed -i "s|bundle/rhpam/metadata|metadata|g"    "${MANIFESTS}/Dockerfile"
+sed -i "s|bundle/rhpam/tests|tests|g"          "${MANIFESTS}/Dockerfile"
 
 #removing metrics files, due to KOGITO-4547, once the issue or the upstream issue https://github.com/operator-framework/operator-lifecycle-manager/issues/2019 is resolved we can remove the lines below
-rm "${MANIFESTS}/manifests/kogito-operator-controller-manager-metrics-service_v1_service.yaml"
-rm "${MANIFESTS}/manifests/kogito-operator-metrics-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml"
+rm "${MANIFESTS}/manifests/rhpam-kogito-operator-controller-manager-metrics-service_v1_service.yaml"
+rm "${MANIFESTS}/manifests/rhpam-kogito-operator-metrics-reader_rbac.authorization.k8s.io_v1_clusterrole.yaml"

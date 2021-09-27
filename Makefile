@@ -146,17 +146,17 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 docker-build: ## Build the docker image
-	cekit -v build --overrides-file kogito-app-image-overrides.yaml $(BUILDER)
+	cekit -v --descriptor kogito-app-image.yaml build $(BUILDER)
 	$(BUILDER) tag operator-runtime ${IMG}
 
 docker-push: ## Push the docker image
 	$(BUILDER) push ${IMG}
 
 profiling-build: ## Build the profiling docker image
-	cp image.yaml image.yaml.save && \
-	cp profiling/image.yaml image.yaml && \
-	cekit -v build $(BUILDER); \
-	mv image.yaml.save image.yaml
+	cp kogito-app-image.yaml kogito-app-image.yaml.save && \
+	cp profiling/image.yaml kogito-app-image.yaml && \
+	cekit -v --descriptor kogito-app-image.yaml build $(BUILDER); \
+	mv kogito-app-image.yaml.save kogito-app-image.yaml
 	$(BUILDER) tag operator-runtime ${PROFILING_IMG}
 
 profiling-push: ## Push the profiling docker image
