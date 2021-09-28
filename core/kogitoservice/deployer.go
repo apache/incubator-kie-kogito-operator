@@ -144,7 +144,6 @@ func (s *serviceDeployer) Deploy() error {
 
 	routeReconciler := newRouteReconciler(s.Context, s.instance)
 	if err = routeReconciler.Reconcile(); err != nil {
-		s.Log.Info("Error occurs while reconciling route", "err", err)
 		return err
 	}
 

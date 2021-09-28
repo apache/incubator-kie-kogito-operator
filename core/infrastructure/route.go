@@ -71,18 +71,14 @@ func (r *routeHandler) GetHostFromRoute(routeKey types.NamespacedName) (string, 
 }
 
 func (r *routeHandler) ValidateRouteStatus(routeKey types.NamespacedName) (bool, error) {
-	r.Log.Info("ValidateRouteStatus....")
 	route, err := r.FetchRoute(routeKey)
 	if err != nil || route == nil {
 		return false, err
 	}
-	r.Log.Info("Route Ingress", "route.Status.Ingress : ", route.Status.Ingress)
+
 	for _, ingress := range route.Status.Ingress {
 		for _, routeCondition := range ingress.Conditions {
-			r.Log.Info("Route Condition", "routeCondition", routeCondition)
-
 			if routeCondition.Type == routev1.RouteAdmitted {
-				r.Log.Info("Route condition status", "routeCondition is RouteAdmitted. routeCondition.status : ", routeCondition.Status)
 				if routeCondition.Status == corev1.ConditionFalse {
 					return false, fmt.Errorf(routeCondition.Message)
 				}
@@ -91,7 +87,7 @@ func (r *routeHandler) ValidateRouteStatus(routeKey types.NamespacedName) (bool,
 			}
 		}
 	}
-	r.Log.Info("returning Nil")
+
 	return false, nil
 }
 

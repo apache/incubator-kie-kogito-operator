@@ -62,7 +62,6 @@ func (s *statusHandler) ensureResourcesStatusChanges(instance api.KogitoService,
 			return err
 		}
 	} else {
-		s.Log.Info("errCondition == nil, going to update route status")
 		if err = s.handleConditionTransition(instance); err != nil {
 			return err
 		}
@@ -159,7 +158,6 @@ func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) error
 }
 
 func (s *statusHandler) updateRouteStatus(instance api.KogitoService) error {
-	s.Log.Info("updateRouteStatus....")
 	if s.Client.IsOpenshift() {
 		routeHandler := infrastructure.NewRouteHandler(s.Context)
 		route, err := routeHandler.GetHostFromRoute(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
