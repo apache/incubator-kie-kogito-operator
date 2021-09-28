@@ -18,12 +18,13 @@ import (
 	"errors"
 	"fmt"
 
-	hyperfoilv1alpha2 "github.com/kiegroup/kogito-operator/test/pkg/api/hyperfoil/v1alpha2"
 	"github.com/cucumber/godog"
+	hyperfoilv1alpha2 "github.com/kiegroup/kogito-operator/test/pkg/api/hyperfoil/v1alpha2"
 	"github.com/kiegroup/kogito-operator/test/pkg/config"
 	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 	"github.com/kiegroup/kogito-operator/test/pkg/installers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -34,6 +35,8 @@ func registerHyperfoilSteps(ctx *godog.ScenarioContext, data *Data) {
 	ctx.Step(`^Hyperfoil Operator is deployed$`, data.hyperfoilOperatorIsDeployed)
 	ctx.Step(`^Hyperfoil instance "([^"]*)" is deployed within (\d+) (?:minute|minutes)$`, data.hyperfoilInstanceIsDeployedWithinMinutes)
 
+	ctx.Step(`^Hyperfoil Node scraper is deployed$`, data.hyperfoilNodeScraperIsDeployed)
+
 	ctx.Step(`^Create benchmark on Hyperfoil instance "([^"]*)" within (\d+) (?:minute|minutes) with content:$`, data.createBenchmarkOnHyperfoilInstanceWithinMinutesWithBody)
 	ctx.Step(`^Start benchmark "([^"]*)" on Hyperfoil instance "([^"]*)" within (\d+) (?:minute|minutes)$`, data.startBenchmarkOnHyperfoilInstanceWithinMinutes)
 	ctx.Step(`^Benchmark run on Hyperfoil instance "([^"]*)" finished within (\d+) (?:minute|minutes)$`, data.benchmarkRunOnHyperfoilInstanceFinishedWithinMinutes)
@@ -42,6 +45,10 @@ func registerHyperfoilSteps(ctx *godog.ScenarioContext, data *Data) {
 
 func (data *Data) hyperfoilOperatorIsDeployed() error {
 	return installers.GetHyperfoilInstaller().Install(data.Namespace)
+}
+
+func (data *Data) hyperfoilNodeScraperIsDeployed() error {
+	return installers.GetHyperfoilNodeScraperInstaller().Install(data.Namespace)
 }
 
 func (data *Data) hyperfoilInstanceIsDeployedWithinMinutes(name string, timeOutInMin int) error {
@@ -130,12 +137,32 @@ func (data *Data) storeBenchmarkStatisticsOfHyperfoilInstance(hyperfoilName, ben
 }
 
 func getHyperfoilDefaultResource(name, namespace string) *hyperfoilv1alpha2.Hyperfoil {
-	return &hyperfoilv1alpha2.Hyperfoil{
+	hyperfoil := &hyperfoilv1alpha2.Hyperfoil{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
+		Spec: hyperfoilv1alpha2.HyperfoilSpec{
+			PreHooks:  []string{},
+			PostHooks: []string{},
+		},
 	}
+	if exists, err := framework.IsConfigMapExist(types.NamespacedName{Namespace: namespace, Name: installers.NodeScraperStartConfigMapName}); err != nil {
+		framework.GetLogger(namespace).Error(err, "Cannot fetch ConfigMap", "name", name, "namespace", namespace)
+	} else if exists {
+		hyperfoil.Spec.PreHooks = append(hyperfoil.Spec.PreHooks, installers.NodeScraperStartConfigMapName)
+	}
+	if exists, err := framework.IsConfigMapExist(types.NamespacedName{Namespace: namespace, Name: installers.NodeScraperStopConfigMapName}); err != nil {
+		framework.GetLogger(namespace).Error(err, "Cannot fetch ConfigMap", "name", name, "namespace", namespace)
+	} else if exists {
+		hyperfoil.Spec.PostHooks = append(hyperfoil.Spec.PostHooks, installers.NodeScraperStopConfigMapName)
+	}
+
+	if imageVersion := config.GetHyperfoilControllerImageVersion(); len(imageVersion) > 0 {
+		hyperfoil.Spec.Version = imageVersion
+	}
+
+	return hyperfoil
 }
 
 // HyperfoilRun represents informations about the Hyperfoil run

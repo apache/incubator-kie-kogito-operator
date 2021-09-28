@@ -16,8 +16,9 @@ package config
 
 import (
 	"github.com/kiegroup/kogito-operator/version/app"
-	flag "github.com/spf13/pflag"
 	"path/filepath"
+
+	flag "github.com/spf13/pflag"
 )
 
 // TestConfig contains the information about the tests environment
@@ -90,7 +91,8 @@ type TestConfig struct {
 	infinispanInstallationSource string
 
 	// Hyperfoil
-	hyperfoilOutputDirectory string
+	hyperfoilOutputDirectory        string
+	hyperfoilControllerImageVersion string
 
 	// dev options
 	showScenarios bool
@@ -102,8 +104,6 @@ type TestConfig struct {
 }
 
 const (
-	defaultOperatorImageName = "quay.io/kiegroup/kogito-operator"
-
 	defaultOperatorYamlURI = "../kogito-operator.yaml"
 	defaultCliPath         = "../build/_output/bin/kogito"
 
@@ -146,7 +146,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.StringVar(&env.olmNamespace, prefix+"olm-namespace", "", "Set the namespace which is used for cluster scope operators. Default is 'openshift-operators'.")
 
 	// operator information
-	set.StringVar(&env.operatorImageName, prefix+"operator-image-name", defaultOperatorImageName, "Operator image name")
+	set.StringVar(&env.operatorImageName, prefix+"operator-image-name", "", "Operator image name")
 	set.StringVar(&env.operatorImageTag, prefix+"operator-image-tag", defaultOperatorImageTag, "Operator image tag")
 	set.BoolVar(&env.operatorNamespaced, prefix+"operator-namespaced", false, "Set to true to deploy Kogito operator into namespace used for scenario execution, false for cluster wide deployment. Default is false.")
 	set.StringVar(&env.operatorInstallationSource, prefix+"operator-installation-source", installationSourceYaml, "Operator installation source")
@@ -201,6 +201,7 @@ func BindFlags(set *flag.FlagSet) {
 
 	// Hyperfoil
 	set.StringVar(&env.hyperfoilOutputDirectory, prefix+"hyperfoil-output-directory", "..", "Defines output directory to store Hyperfoil run statistics. Default is Kogito operator base folder.")
+	set.StringVar(&env.hyperfoilControllerImageVersion, prefix+"hyperfoil-controller-image-version", "", "Set the Hyperfoil controller image version")
 
 	// dev options
 	set.BoolVar(&env.showScenarios, prefix+"show-scenarios", false, "Show all scenarios which will be executed.")
@@ -497,6 +498,11 @@ func IsInfinispanInstalledByYaml() bool {
 // GetHyperfoilOutputDirectory returns directory to store Hyperfoil run results
 func GetHyperfoilOutputDirectory() string {
 	return env.hyperfoilOutputDirectory
+}
+
+// GetHyperfoilControllerImageVersion returns the Hyperfoil controller image version
+func GetHyperfoilControllerImageVersion() string {
+	return env.hyperfoilControllerImageVersion
 }
 
 // dev options

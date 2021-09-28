@@ -82,6 +82,6 @@ clean_cluster_resources() {
   for resourceName in $2
   do
     echo "Delete cluster $1 ${resourceName}"
-    oc delete $1 ${resourceName}
+    oc delete $1 ${resourceName} --timeout=30s
   done
 }

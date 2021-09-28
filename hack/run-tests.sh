@@ -109,6 +109,7 @@ function usage(){
 
   # Hyperfoil
   printf "\n--hyperfoil_output_directory {PATH}\n\tDefines output directory to store Hyperfoil run statistics. Default is test folder."
+  printf "\n--hyperfoil_controller_image_version {VERSION}\n\ttSet the Hyperfoil controller image version."
 
   # dev options
   printf "\n--show_scenarios\n\tDisplay scenarios which will be executed."
@@ -446,6 +447,10 @@ case $1 in
     shift
     if addParamKeyValueIfAccepted "--tests.hyperfoil-output-directory" ${1}; then shift; fi
   ;;
+  --hyperfoil_controller_image_version)
+    shift
+    if addParamKeyValueIfAccepted "--tests.hyperfoil-controller-image-version" ${1}; then shift; fi
+  ;;
 
   # dev options
   --show_scenarios)
@@ -513,6 +518,9 @@ echo "-------- Running BDD tests"
 echo "DEBUG=${DEBUG} go test ${TEST_MAIN_DIR} -v -timeout \"${TIMEOUT}m\" --godog.tags=\"${TAGS}\" ${PARAMS} ${FEATURE}"
 DEBUG=${DEBUG} go test ${TEST_MAIN_DIR} -v -timeout "${TIMEOUT}m" --godog.tags="${TAGS}" ${PARAMS} ${FEATURE}
 exit_code=$?
+
+echo "${exit_code}" > /tmp/bdd-exit-code.txt
+
 echo "Tests finished with code ${exit_code}"
 
 if [ "${KEEP_NAMESPACE}" = "false" ]; then
