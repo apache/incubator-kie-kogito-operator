@@ -188,7 +188,7 @@ func ErrorForImageNotFound() ReconciliationError {
 	}
 }
 
-// ErrorForProcessingImageStreamDelta ...
+// ErrorForProcessingRouteDelta ...
 func ErrorForProcessingRouteDelta() ReconciliationError {
 	return ReconciliationError{
 		reason:                 ProcessingRouteDelta,

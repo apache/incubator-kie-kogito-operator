@@ -85,9 +85,9 @@ func (r *routeHandler) ValidateRouteStatus(routeKey types.NamespacedName) (bool,
 				r.Log.Info("Route condition status", "routeCondition is RouteAdmitted. routeCondition.status : ", routeCondition.Status)
 				if routeCondition.Status == corev1.ConditionFalse {
 					return false, fmt.Errorf(routeCondition.Message)
-				} else {
-					return true, nil
 				}
+				return true, nil
+
 			}
 		}
 	}

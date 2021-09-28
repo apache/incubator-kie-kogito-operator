@@ -57,7 +57,7 @@ func TestRouteReconciler_OpenshiftRouteEnabled(t *testing.T) {
 	}
 	routeReconciler := newRouteReconciler(context, instance)
 	err := routeReconciler.Reconcile()
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "Processing Route ")
 
 	route := &v1.Route{ObjectMeta: v13.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
 	exists, err := kubernetes.ResourceC(cli).Fetch(route)
