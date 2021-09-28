@@ -63,5 +63,7 @@ spec:
             value: rhpam-kogito-runtime-jvm-rhel8
           - name: IMAGE_REGISTRY
             value: registry.stage.redhat.io/rhpam-7
+          - name: GROUP
+            value: RHPAM
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

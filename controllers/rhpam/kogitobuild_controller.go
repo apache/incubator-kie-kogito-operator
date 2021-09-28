@@ -15,6 +15,7 @@
 package rhpam
 
 import (
+	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/internal/rhpam"
@@ -33,9 +34,10 @@ import (
 // NewKogitoBuildReconciler ...
 func NewKogitoBuildReconciler(client *client.Client, scheme *runtime.Scheme) *common.KogitoBuildReconciler {
 	return &common.KogitoBuildReconciler{
-		Client:       client,
-		Scheme:       scheme,
-		Version:      rhpam2.Version,
-		BuildHandler: rhpam.NewKogitoBuildHandler,
+		Client:            client,
+		Scheme:            scheme,
+		Version:           rhpam2.Version,
+		BuildHandler:      rhpam.NewKogitoBuildHandler,
+		ReconcilingObject: &v1.KogitoBuild{},
 	}
 }

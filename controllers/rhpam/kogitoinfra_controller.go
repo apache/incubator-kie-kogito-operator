@@ -15,6 +15,7 @@
 package rhpam
 
 import (
+	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	"github.com/kiegroup/kogito-operator/internal/rhpam"
 	rhpam2 "github.com/kiegroup/kogito-operator/version/rhpam"
@@ -40,9 +41,10 @@ import (
 // NewKogitoInfraReconciler ...
 func NewKogitoInfraReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoInfraReconciler {
 	return &common.KogitoInfraReconciler{
-		Client:       client,
-		Scheme:       scheme,
-		Version:      rhpam2.Version,
-		InfraHandler: rhpam.NewKogitoInfraHandler,
+		Client:            client,
+		Scheme:            scheme,
+		Version:           rhpam2.Version,
+		InfraHandler:      rhpam.NewKogitoInfraHandler,
+		ReconcilingObject: &v1.KogitoInfra{},
 	}
 }

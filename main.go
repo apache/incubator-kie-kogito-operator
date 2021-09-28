@@ -20,6 +20,7 @@ import (
 	"flag"
 	"github.com/kiegroup/kogito-operator/controllers/rhpam"
 	"github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/framework/util"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/meta"
 	"os"
@@ -81,54 +82,56 @@ func main() {
 
 	kubeCli := client.NewForController(mgr)
 
-	if err = app.NewKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
-		os.Exit(1)
-	}
-	if err = app.NewKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService")
-		os.Exit(1)
-	}
-	if err = app.NewKogitoBuildReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoBuild")
-		os.Exit(1)
-	}
-	if err = app.NewKogitoInfraReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
-		os.Exit(1)
-	}
-	if err = app.NewFinalizeKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService-finalizer")
-		os.Exit(1)
-	}
-	if err = app.NewFinalizeKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime-finalizer")
-		os.Exit(1)
-	}
-
-	if err = rhpam.NewKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
-		os.Exit(1)
-	}
-	if err = rhpam.NewKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService")
-		os.Exit(1)
-	}
-	if err = rhpam.NewKogitoBuildReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoBuild")
-		os.Exit(1)
-	}
-	if err = rhpam.NewKogitoInfraReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
-		os.Exit(1)
-	}
-	if err = rhpam.NewFinalizeKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService-finalizer")
-		os.Exit(1)
-	}
-	if err = rhpam.NewFinalizeKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime-finalizer")
-		os.Exit(1)
+	if !util.IsProductMode() {
+		if err = app.NewKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
+			os.Exit(1)
+		}
+		if err = app.NewKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService")
+			os.Exit(1)
+		}
+		if err = app.NewKogitoBuildReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoBuild")
+			os.Exit(1)
+		}
+		if err = app.NewKogitoInfraReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
+			os.Exit(1)
+		}
+		if err = app.NewFinalizeKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService-finalizer")
+			os.Exit(1)
+		}
+		if err = app.NewFinalizeKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime-finalizer")
+			os.Exit(1)
+		}
+	} else {
+		if err = rhpam.NewKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
+			os.Exit(1)
+		}
+		if err = rhpam.NewKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService")
+			os.Exit(1)
+		}
+		if err = rhpam.NewKogitoBuildReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoBuild")
+			os.Exit(1)
+		}
+		if err = rhpam.NewKogitoInfraReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
+			os.Exit(1)
+		}
+		if err = rhpam.NewFinalizeKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService-finalizer")
+			os.Exit(1)
+		}
+		if err = rhpam.NewFinalizeKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime-finalizer")
+			os.Exit(1)
+		}
 	}
 
 	//+kubebuilder:scaffold:builder

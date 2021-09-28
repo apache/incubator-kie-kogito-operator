@@ -15,6 +15,7 @@
 package app
 
 import (
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/internal/app"
@@ -33,9 +34,10 @@ import (
 // NewKogitoBuildReconciler ...
 func NewKogitoBuildReconciler(client *client.Client, scheme *runtime.Scheme) *common.KogitoBuildReconciler {
 	return &common.KogitoBuildReconciler{
-		Client:       client,
-		Scheme:       scheme,
-		Version:      app2.Version,
-		BuildHandler: app.NewKogitoBuildHandler,
+		Client:            client,
+		Scheme:            scheme,
+		Version:           app2.Version,
+		BuildHandler:      app.NewKogitoBuildHandler,
+		ReconcilingObject: &v1beta1.KogitoBuild{},
 	}
 }

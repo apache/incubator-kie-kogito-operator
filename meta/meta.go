@@ -17,6 +17,7 @@ package meta
 import (
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
+	"github.com/kiegroup/kogito-operator/core/framework/util"
 	grafana "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
 	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
 	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
@@ -50,8 +51,11 @@ func GetRegisteredSchema() *runtime.Scheme {
 	}
 
 	// After upgrading to Operator SDK 0.11.0 we need to add CreateOptions to our own schema. See: https://issues.jboss.org/browse/KOGITO-493
-	metav1.AddToGroupVersion(s, v1beta1.GroupVersion)
-	metav1.AddToGroupVersion(s, v1.GroupVersion)
+	if util.IsProductMode() {
+		metav1.AddToGroupVersion(s, v1.GroupVersion)
+	} else {
+		metav1.AddToGroupVersion(s, v1beta1.GroupVersion)
+	}
 	// https://issues.jboss.org/browse/KOGITO-617
 	metav1.AddToGroupVersion(s, apiextensionsv1.SchemeGroupVersion)
 	metav1.AddToGroupVersion(s, appsv1.GroupVersion)

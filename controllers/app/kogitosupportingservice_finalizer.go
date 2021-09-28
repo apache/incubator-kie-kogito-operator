@@ -15,6 +15,7 @@
 package app
 
 import (
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	app2 "github.com/kiegroup/kogito-operator/internal/app"
@@ -30,5 +31,6 @@ func NewFinalizeKogitoSupportingServiceReconciler(client *kogitocli.Client, sche
 		Version:                  app.Version,
 		SupportingServiceHandler: app2.NewKogitoSupportingServiceHandler,
 		InfraHandler:             app2.NewKogitoInfraHandler,
+		ReconcilingObject:        &v1beta1.KogitoSupportingService{},
 	}
 }

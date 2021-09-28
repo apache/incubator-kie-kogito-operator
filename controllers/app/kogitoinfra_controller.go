@@ -15,6 +15,7 @@
 package app
 
 import (
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	"github.com/kiegroup/kogito-operator/internal/app"
 	app2 "github.com/kiegroup/kogito-operator/version/app"
@@ -40,9 +41,10 @@ import (
 // NewKogitoInfraReconciler ...
 func NewKogitoInfraReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoInfraReconciler {
 	return &common.KogitoInfraReconciler{
-		Client:       client,
-		Scheme:       scheme,
-		Version:      app2.Version,
-		InfraHandler: app.NewKogitoInfraHandler,
+		Client:            client,
+		Scheme:            scheme,
+		Version:           app2.Version,
+		InfraHandler:      app.NewKogitoInfraHandler,
+		ReconcilingObject: &v1beta1.KogitoInfra{},
 	}
 }

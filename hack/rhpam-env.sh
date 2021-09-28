@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CSV_DIR="config/rhpam/manifests/bases"
+CSV_DIR="config/manifests/rhpam/bases"
 BUNDLE_CSV_DIR="bundle/rhpam/manifests"
 TEST_CONFIG_FILE="test/.default_config"
 

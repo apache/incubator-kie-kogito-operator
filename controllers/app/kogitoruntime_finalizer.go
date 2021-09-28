@@ -15,6 +15,7 @@
 package app
 
 import (
+	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	app2 "github.com/kiegroup/kogito-operator/internal/app"
@@ -25,10 +26,11 @@ import (
 // NewFinalizeKogitoRuntimeReconciler ...
 func NewFinalizeKogitoRuntimeReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.FinalizeKogitoRuntimeReconciler {
 	return &common.FinalizeKogitoRuntimeReconciler{
-		Client:         client,
-		Scheme:         scheme,
-		Version:        app.Version,
-		RuntimeHandler: app2.NewKogitoRuntimeHandler,
-		InfraHandler:   app2.NewKogitoInfraHandler,
+		Client:            client,
+		Scheme:            scheme,
+		Version:           app.Version,
+		RuntimeHandler:    app2.NewKogitoRuntimeHandler,
+		InfraHandler:      app2.NewKogitoInfraHandler,
+		ReconcilingObject: &v1beta1.KogitoRuntime{},
 	}
 }

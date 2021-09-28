@@ -15,6 +15,7 @@
 package rhpam
 
 import (
+	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/internal/rhpam"
@@ -42,5 +43,6 @@ func NewKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runt
 		RuntimeHandler:           rhpam.NewKogitoRuntimeHandler,
 		SupportingServiceHandler: rhpam.NewKogitoSupportingServiceHandler,
 		InfraHandler:             rhpam.NewKogitoInfraHandler,
+		ReconcilingObject:        &v1.KogitoSupportingService{},
 	}
 }
