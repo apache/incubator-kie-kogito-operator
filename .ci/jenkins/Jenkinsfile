@@ -5,8 +5,8 @@ def changeBranch = env.ghprbSourceBranch ?: CHANGE_BRANCH
 def changeTarget = env.ghprbTargetBranch ?: CHANGE_TARGET
 
 pipeline {
-    agent { 
-        label 'kogito-operator-node' 
+    agent {
+        label 'kogito-operator-node'
     }
     tools {
         go 'golang-1.14'
@@ -26,6 +26,8 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
+                    cleanGoPath()
+
                     sh ' git config --global user.email "jenkins@kie.com" '
                     sh ' git config --global user.name "kie user"'
                     githubscm.checkoutIfExists('kogito-operator', changeAuthor, changeBranch, 'kiegroup', changeTarget, true, ['token' : 'GITHUB_TOKEN', 'usernamePassword' : 'user-kie-ci10'])
@@ -90,10 +92,17 @@ pipeline {
         }
     }
     post {
-        always {
-            cleanWs()
+        cleanup {
+            script {
+                cleanGoPath()
+                cleanWs()
+            }
         }
     }
+}
+
+void cleanGoPath() {
+    sh 'rm -rf $GOPATH/bin/*'
 }
 
 String getBDDParameters() {
