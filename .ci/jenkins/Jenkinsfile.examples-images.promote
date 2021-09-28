@@ -36,6 +36,8 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
+                    helper.cleanGoPath()
+                    
                     helper.updateDisplayName()
 
                     properties.readFromUrl(helper.getDeployPropertiesFileUrl())
@@ -105,6 +107,7 @@ pipeline {
         }
         cleanup {
             script {
+                helper.cleanGoPath()
                 util.cleanNode(containerEngine)
             }
         }
