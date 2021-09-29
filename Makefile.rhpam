@@ -49,7 +49,7 @@ bundle-prod-build: bundle
 
 ##@ Deployment
 
-bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+bundle: manifests kustomize install-operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
 	echo "calling RHPAM bundle......................................"
 	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/rhpam --output-dir=./config/manifests/rhpam --package=rhpam-kogito-operator -q

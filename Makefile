@@ -135,7 +135,7 @@ vet: generate-installer generate-profiling-installer bundle ## Run go vet agains
 	go vet ./...
 
 # Generate CSV
-csv:
+csv: install-operator-sdk
 	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests
 	./hack/kogito-module-api.sh --enable
@@ -218,7 +218,7 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+bundle: manifests kustomize install-operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
 	echo "calling APP bundle ##################################"
 	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests  --apis-dir=apis/app --input-dir=./config/manifests/app --output-dir=./config/manifests/app --package=kogito-operator -q
@@ -295,6 +295,12 @@ deploy-operator-on-ocp:
 
 olm-tests:
 	./hack/ci/run-olm-tests.sh
+
+install-operator-sdk:
+	./hack/ci/install-operator-sdk.sh
+
+uninstall-operator-sdk:
+	./hack/ci/uninstall-operator-sdk.sh
 
 # Run this before any PR to make sure everything is updated, so CI won't fail
 before-pr: vet test
