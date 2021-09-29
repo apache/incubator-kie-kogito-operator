@@ -57,7 +57,7 @@ resources:
     namespaced: true
   controller: true
   domain: kiegroup.org
-  group: app
+  group: rhpam
   kind: KogitoSupportingService
   path: github.com/kiegroup/kogito-operator/apis/rhpam
   version: v1

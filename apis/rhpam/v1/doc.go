@@ -15,5 +15,5 @@
 // +k8s:deepcopy-gen=package
 // +groupName=rhpam.kiegroup.org
 
-// Package v1 contains API Schema definitions for the app v1beta1 API group
+// Package v1 contains API Schema definitions for the rhpam v1 API group
 package v1

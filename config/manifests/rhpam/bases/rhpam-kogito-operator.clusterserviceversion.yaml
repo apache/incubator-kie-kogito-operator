@@ -74,6 +74,25 @@ spec:
         name: A Openshift Route
         version: route.openshift.io/v1
       version: v1
+    - description: KogitoSupportingService deploys the Supporting service in the given
+        namespace.
+      displayName: Kogito Supporting Service
+      kind: KogitoSupportingService
+      name: kogitosupportingservices.rhpam.kiegroup.org
+      resources:
+      - kind: Deployment
+        name: A Kubernetes Deployment
+        version: apps/v1
+      - kind: Service
+        name: A Kubernetes Service
+        version: v1
+      - kind: ImageStream
+        name: A Openshift ImageStream
+        version: image.openshift.io/v1
+      - kind: Route
+        name: A Openshift Route
+        version: route.openshift.io/v1
+      version: v1
   description: |-
     RHPAM Kogito Operator is designed for deployment and management of Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
 

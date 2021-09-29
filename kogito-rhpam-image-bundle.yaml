@@ -30,7 +30,7 @@ labels:
   - name: operators.operatorframework.io.metrics.mediatype.v1
     value: metrics+v1
   - name: operators.operatorframework.io.metrics.builder
-    value: operator-sdk-v1.2.0
+    value: operator-sdk-v1.11.0
   - name: operators.operatorframework.io.metrics.project_layout
     value: go.kubebuilder.io/v2
   - name: operators.operatorframework.io.test.config.v1

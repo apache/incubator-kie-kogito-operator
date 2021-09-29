@@ -1,6 +1,7 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
 - rhpam_v1_kogitoruntime.yaml
+- rhpam_v1_kogitosupportingservice.yaml
 - rhpam_v1_kogitobuild.yaml
 - rhpam_v1_kogitoinfra.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

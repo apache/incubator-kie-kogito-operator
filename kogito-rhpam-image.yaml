@@ -8,7 +8,7 @@
     repositories:
       - path: modules
     install:
-      - name: org.kie.kogito.gomoddownloader
+      - name: org.kie.kogito.goModDownload
       - name: org.kie.kogito.rhpam.builder
 
   osbs:

@@ -79,6 +79,7 @@ SHELL = /usr/bin/env bash -o pipefail
 print-%  : ; @echo $($*)
 
 all: generate manifests docker-build
+	echo "calling APP all ##################################"
 
 profiling: generate manifests profiling-build
 
@@ -106,6 +107,7 @@ test: fmt lint
 	./hack/go-test.sh
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	echo "calling APP manifests ##################################"
 	./hack/kogito-module-api.sh --disable
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/app/..." output:crd:artifacts:config=config/crd/app/bases
 	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/app" output:rbac:artifacts:config=config/rbac/app
@@ -113,6 +115,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	./hack/kogito-module-api.sh --enable
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	echo "calling APP generate ##################################"
 	./hack/kogito-module-api.sh --disable
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths=./...
 	./hack/kogito-module-api.sh --enable
@@ -146,6 +149,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 docker-build: ## Build the docker image
+	echo "calling APP docker-build ##################################"
 	cekit -v --descriptor kogito-app-image.yaml build $(BUILDER)
 	$(BUILDER) tag operator-runtime ${IMG}
 
@@ -214,8 +218,8 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-.PHONY: bundle
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+	echo "calling APP bundle ##################################"
 	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests  --apis-dir=apis/app --input-dir=./config/manifests/app --output-dir=./config/manifests/app --package=kogito-operator -q
 	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
@@ -262,10 +266,12 @@ catalog-push: ## Push a catalog image.
 
 
 generate-installer: generate manifests kustomize
+	echo "calling APP generate-installer ##################################"
 	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/default/app > kogito-operator.yaml
 
 generate-profiling-installer: generate manifests kustomize
+	echo "calling APP generate-profiling-installer ##################################"
 	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(PROFILING_IMG)
 	$(KUSTOMIZE) build config/profiling > profiling/kogito-operator-profiling.yaml
 	$(KUSTOMIZE) build config/profiling-data-access > profiling/kogito-operator-profiling-data-access.yaml

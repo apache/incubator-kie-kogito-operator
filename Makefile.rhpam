@@ -4,12 +4,19 @@ include Makefile
 VERSION = 7.11.0
 CHANNELS = 7.x
 DEFAULT_CHANNEL = 7.x
+BUNDLE_CHANNELS = --channels=$(CHANNELS)
+BUNDLE_DEFAULT_CHANNEL = --default-channel=$(DEFAULT_CHANNEL)
+
 IMAGE_TAG_BASE = registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator
 CEKIT_CMD := cekit -v --redhat ${cekit_option}
+
+all: generate manifests container-build
+	echo "calling RHPAM all......................................"
 
 ##@ Development
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	echo "calling RHPAM manifests......................................"
 	./hack/kogito-module-api.sh --disable
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/rhpam/..." output:crd:artifacts:config=config/crd/rhpam/bases
 	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/rhpam" output:rbac:artifacts:config=config/rbac/rhpam
@@ -17,6 +24,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	./hack/kogito-module-api.sh --enable
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	echo "calling RHPAM generate......................................"
 	./hack/kogito-module-api.sh --disable
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths=./...
 	./hack/kogito-module-api.sh --enable
@@ -25,7 +33,8 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 
 
 container-build: ## Build the container image
-	cekit -v build --overrides-file kogito-rhpam-image-overrides.yaml $(BUILDER)
+	echo "calling RHPAM container-build......................................"
+	cekit -v --descriptor kogito-rhpam-image.yaml build $(BUILDER)
 	$(BUILDER) tag rhpam-7/rhpam-kogito-operator ${IMG}
 
 container-push: ## Push the container image
@@ -36,11 +45,12 @@ container-prod-build: ## prod build
 
 .PHONY: bundle-prod-build
 bundle-prod-build: bundle
-	 $(CEKIT_CMD) --descriptor=kogito-rhpam-image-bundle-overrides.yaml build $(BUILDER)
+	 $(CEKIT_CMD) --descriptor=kogito-rhpam-image-bundle.yaml build $(BUILDER)
 
 ##@ Deployment
 
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+	echo "calling RHPAM bundle......................................"
 	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/rhpam --output-dir=./config/manifests/rhpam --package=rhpam-kogito-operator -q
 	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
@@ -49,6 +59,7 @@ bundle: manifests kustomize ## Generate bundle manifests and metadata, then vali
 	./hack/kogito-module-api.sh --enable
 
 generate-installer: generate manifests kustomize
+	echo "calling RHPAM generate-installer......................................"
 	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/default/rhpam > rhpam-kogito-operator.yaml
 
@@ -71,3 +82,4 @@ olm-manifests: bundle
 	./hack/rhpam-create-olm-manifests.sh
 
 generate-profiling-installer:
+	echo "calling RHPAM generate-profiling-installer......................................"

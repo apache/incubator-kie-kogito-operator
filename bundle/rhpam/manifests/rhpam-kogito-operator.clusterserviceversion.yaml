@@ -41,6 +41,17 @@ metadata:
           "spec": {
             "replicas": 1
           }
+        },
+        {
+          "apiVersion": "rhpam.kiegroup.org/v1",
+          "kind": "KogitoSupportingService",
+          "metadata": {
+            "name": "kogito-jobs-service"
+          },
+          "spec": {
+            "replicas": 1,
+            "serviceType": "JobsService"
+          }
         }
       ]
     capabilities: Basic Install
@@ -114,8 +125,24 @@ spec:
         name: A Openshift Route
         version: route.openshift.io/v1
       version: v1
-    - kind: KogitoSupportingService
+    - description: KogitoSupportingService deploys the Supporting service in the given
+        namespace.
+      displayName: Kogito Supporting Service
+      kind: KogitoSupportingService
       name: kogitosupportingservices.rhpam.kiegroup.org
+      resources:
+      - kind: Deployment
+        name: A Kubernetes Deployment
+        version: apps/v1
+      - kind: Service
+        name: A Kubernetes Service
+        version: v1
+      - kind: ImageStream
+        name: A Openshift ImageStream
+        version: image.openshift.io/v1
+      - kind: Route
+        name: A Openshift Route
+        version: route.openshift.io/v1
       version: v1
   description: |-
     RHPAM Kogito Operator is designed for deployment and management of Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
@@ -491,6 +518,8 @@ spec:
                   value: rhpam-kogito-runtime-jvm-rhel8
                 - name: IMAGE_REGISTRY
                   value: registry.stage.redhat.io/rhpam-7
+                - name: GROUP
+                  value: RHPAM
                 image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.11.0
                 livenessProbe:
                   httpGet:
