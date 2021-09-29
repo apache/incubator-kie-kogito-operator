@@ -64,8 +64,7 @@ pipeline {
                 script {
                     try {
                         // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images concurrent=3 operator_namespaced=true smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
+                        sh "make build-examples-images concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
                     } catch (err) {
                         unstable("Error building non-native examples' images. Check the junit results.")
                     }
@@ -88,8 +87,7 @@ pipeline {
                     try {
                         // Optaplanner taking a lot of resources, we should not build in parallel
                         // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
-                        // setting operator_namespaced=true so the operator won't be deployed for building of example images
-                        sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
+                        sh "make build-examples-images concurrent=1 ${getExamplesBuildParameters(true)}"
                     } catch (err) {
                         unstable("Error building native examples' images. Check the junit results.")
                     } finally {
@@ -105,7 +103,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Handle built images') {
             steps {
@@ -179,7 +176,7 @@ String getExamplesBuildParameters(boolean nativeTag = false) {
 
     testParamsMap['image_cache_mode'] = 'never'
     testParamsMap.putAll(helper.getBDDRuntimeImageParameters())
-    
+
     // May be used by the features ...
     testParamsMap.putAll(helper.getBDDBuildImageParameters('KOGITO_IMAGES'))
     testParamsMap.putAll(helper.getBDDServicesImageParameters('KOGITO_IMAGES'))
