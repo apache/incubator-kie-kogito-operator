@@ -116,14 +116,6 @@ func (r *KogitoSupportingServiceReconciler) SetupWithManager(mgr ctrl.Manager) e
 		For(r.ReconcilingObject, builder.WithPredicates(pred)).
 		Owns(&corev1.Service{}).Owns(&appsv1.Deployment{}).Owns(&corev1.ConfigMap{})
 
-	//infraHandler := &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &appv1beta1.KogitoSupportingService{}}
-	//infraPred := predicate.Funcs{
-	//	UpdateFunc: func(e event.UpdateEvent) bool {
-	//		return reflect.DeepEqual(e.ObjectNew.GetOwnerReferences(), e.ObjectOld.GetOwnerReferences())
-	//	},
-	//}
-	//b.Watches(&source.Kind{Type: &appv1beta1.KogitoInfra{}}, infraHandler, builder.WithPredicates(infraPred))
-
 	if r.IsOpenshift() {
 		b.Owns(&routev1.Route{}).Owns(&imgv1.ImageStream{})
 	}

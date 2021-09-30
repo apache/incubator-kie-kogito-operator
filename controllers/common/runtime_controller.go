@@ -129,13 +129,6 @@ func (r *KogitoRuntimeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(r.ReconcilingObject, builder.WithPredicates(pred)).
 		Owns(&corev1.Service{}).Owns(&appsv1.Deployment{}).Owns(&corev1.ConfigMap{})
 
-	//infraHandler := &handler.EnqueueRequestForOwner{IsController: false, OwnerType: &v1beta1.KogitoRuntime{}}
-	//infraPred := predicate.Funcs{
-	//	UpdateFunc: func(e event.UpdateEvent) bool {
-	//		return reflect.DeepEqual(e.ObjectNew.GetOwnerReferences(), e.ObjectOld.GetOwnerReferences())
-	//	},
-	//}
-	//b.Watches(&source.Kind{Type: &v1beta1.KogitoInfra{}}, infraHandler, builder.WithPredicates(infraPred))
 	if r.IsOpenshift() {
 		b.Owns(&routev1.Route{}).Owns(&imagev1.ImageStream{})
 	}
