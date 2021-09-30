@@ -1,0 +1,18 @@
+# After deploying your service via process-quarkus-example-runtime, use this file to expose it
+# Ref.: https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/#create-an-ingress-resource
+# don't forget to edit your /etc/hosts file!!
+apiVersion: networking.k8s.io/v1beta1 # for versions before 1.14 use extensions/v1beta1
+kind: Ingress
+metadata:
+  name: process-quarkus-example-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: process-quarkus-example.info
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: process-quarkus-example
+              servicePort: 8080

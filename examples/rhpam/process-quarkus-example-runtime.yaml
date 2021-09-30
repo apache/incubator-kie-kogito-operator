@@ -1,0 +1,7 @@
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoRuntime
+metadata:
+  name: process-quarkus-example
+spec:
+  replicas: 1
+  image: quay.io/kiegroup/process-quarkus-example

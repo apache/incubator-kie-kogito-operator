@@ -1,0 +1,10 @@
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoBuild
+metadata:
+  name: example-quarkus-flash
+---
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoRuntime
+metadata:
+  name: example-quarkus-flash
+# run this from your terminal on your project's root: oc start-build example-quarkus-flash --from-dir=target
