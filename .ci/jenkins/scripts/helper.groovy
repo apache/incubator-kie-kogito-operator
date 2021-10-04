@@ -366,6 +366,9 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
         testParamsMap['native_builder_image'] = params.NATIVE_BUILDER_IMAGE
     }
 
+    // Clean the cluster before/after BDD test execution
+    testParamsMap['enable_clean_cluster'] = true
+
     testParamsMap['container_engine'] = containerEngine
 
     return testParamsMap
