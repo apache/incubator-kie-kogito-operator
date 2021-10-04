@@ -56,6 +56,8 @@ const (
 	DeploymentNotAvailable ConditionReason = "DeploymentNotAvailable"
 	// ProcessingImageStreamDelta ...
 	ProcessingImageStreamDelta ConditionReason = "ProcessingImageStreamDelta"
+	// ImageNotFound ...
+	ImageNotFound ConditionReason = "ImageNotFound"
 )
 
 const (
@@ -156,6 +158,15 @@ func ErrorForProcessingImageStreamDelta() ReconciliationError {
 		reason:                 ProcessingImageStreamDelta,
 		reconciliationInterval: ReconciliationAfterTen,
 		innerError:             fmt.Errorf("Processing Image stream "),
+	}
+}
+
+// ErrorForImageNotFound ...
+func ErrorForImageNotFound() ReconciliationError {
+	return ReconciliationError{
+		reason:                 ImageNotFound,
+		reconciliationInterval: ReconciliationAfterTen,
+		innerError:             fmt.Errorf("Image not found "),
 	}
 }
 

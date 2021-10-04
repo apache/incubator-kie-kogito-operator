@@ -15,7 +15,6 @@
 package kogitoservice
 
 import (
-	"fmt"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-operator/api"
@@ -137,7 +136,7 @@ func (s *serviceDeployer) Deploy() error {
 	}
 
 	imageHandler := s.newImageHandler()
-	if err := imageHandler.ReconcileImageStream(s.instance); err != nil {
+	if err = imageHandler.ReconcileImageStream(s.instance); err != nil {
 		return err
 	}
 
@@ -146,7 +145,7 @@ func (s *serviceDeployer) Deploy() error {
 	if err != nil {
 		return err
 	} else if len(imageName) == 0 {
-		return fmt.Errorf("image not found")
+		return infrastructure.ErrorForImageNotFound()
 	}
 
 	configMapReconciler := NewConfigMapReconciler(s.Context, s, s.infraHandler)
