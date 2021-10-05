@@ -194,13 +194,9 @@ func Test_decoratorForCustomLabels(t *testing.T) {
 			Log:    test.TestLogger,
 			Scheme: meta.GetRegisteredSchema(),
 		},
-		Labels: map[string]string{
-			"key1": "value1",
-		},
 	}
 
 	decoratorHandler := NewDecoratorHandler(context)
 	decoratorHandler.decoratorForCustomLabels()(kogitoBuild, bc)
-	assert.Equal(t, 1, len(bc.Labels))
-	assert.Equal(t, "value1", bc.Labels["key1"])
+	assert.Equal(t, 7, len(bc.Labels))
 }

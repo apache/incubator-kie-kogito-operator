@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/framework/util"
+	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -242,6 +243,7 @@ func getBuilderImageStreamOutputTo(build api.KogitoBuildInterface) *corev1.Objec
 
 func (b *decoratorHandler) decoratorForCustomLabels() decorator {
 	return func(build api.KogitoBuildInterface, bc *buildv1.BuildConfig) {
-		util.AppendToStringMap(b.Labels, bc.Labels)
+		meteringLabelHandler := infrastructure.NewMeteringLabelHandler(b.Context)
+		util.AppendToStringMap(meteringLabelHandler.GetMeteringLabels(), bc.Labels)
 	}
 }

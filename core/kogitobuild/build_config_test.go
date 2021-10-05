@@ -39,9 +39,6 @@ func TestNewBuildConfig_CustomLabels(t *testing.T) {
 		Context: operator.Context{
 			Log: test.TestLogger,
 		},
-		Labels: map[string]string{
-			"key1": "value1",
-		},
 	}
 
 	decoratorHandler := NewDecoratorHandler(context)
@@ -49,6 +46,5 @@ func TestNewBuildConfig_CustomLabels(t *testing.T) {
 	buildConfigHandler := NewBuildConfigHandler(context)
 	buildConfig := buildConfigHandler.newBuildConfig(kogitoBuild, decorator)
 	finalLabels := buildConfig.Labels
-	assert.Equal(t, 3, len(finalLabels))
-	assert.Equal(t, "value1", finalLabels["key1"])
+	assert.Equal(t, 9, len(finalLabels))
 }

@@ -43,6 +43,7 @@ func NewKogitoRuntimeReconciler(client *kogitocli.Client, scheme *runtime.Scheme
 		Version:               app.Version,
 		RuntimeHandler:        app2.NewKogitoRuntimeHandler,
 		SupportServiceHandler: app2.NewKogitoSupportingServiceHandler,
+		InfraHandler:          app2.NewKogitoInfraHandler,
 		ReconcilingObject:     &v1beta1.KogitoRuntime{},
 	}
 }

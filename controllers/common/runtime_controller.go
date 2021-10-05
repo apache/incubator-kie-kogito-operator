@@ -23,7 +23,6 @@ import (
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/shared"
-	"github.com/kiegroup/kogito-operator/internal/app"
 	imagev1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -43,6 +42,7 @@ type KogitoRuntimeReconciler struct {
 	Version               string
 	RuntimeHandler        func(context operator.Context) manager.KogitoRuntimeHandler
 	SupportServiceHandler func(context operator.Context) manager.KogitoSupportingServiceHandler
+	InfraHandler          func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject     client.Object
 }
 
@@ -97,7 +97,7 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		OnDeploymentCreate: deploymentHandler.OnDeploymentCreate,
 		CustomService:      true,
 	}
-	infraHandler := app.NewKogitoInfraHandler(kogitoContext)
+	infraHandler := r.InfraHandler(kogitoContext)
 	err = kogitoservice.NewServiceDeployer(kogitoContext, definition, instance, infraHandler).Deploy()
 	if err != nil {
 		return infrastructure.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
