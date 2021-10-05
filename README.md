@@ -502,6 +502,6 @@ Kogito operator integrates with various other technologies and operators. The te
 | Keycloak           | Keycloak operator 15.0.2 (deployed by OLM `alpha` channel)    |
 | Prometheus         | Prometheus operator 0.47.0 (deployed by OLM `beta` channel)   |
 | Grafana            | Grafana operator 3.10.3 (deployed by OLM `alpha` channel)     |
-| Knative Eventing   | Knative Eventing 0.20.0                                       |
+| Knative Eventing   | Knative Eventing 0.26.0                                       |
 | MongoDB            | MongoDB Community Kubernetes Operator 0.2.2                   |
 | PostgreSQL         | PostgreSQL 12.7 (deployed directly using image)               |

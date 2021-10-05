@@ -130,6 +130,9 @@ String getBDDParameters() {
 
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
 
+    // Clean the cluster before/after BDD test execution
+    testParamsMap['enable_clean_cluster'] = true
+
     String testParams = testParamsMap.collect { entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
     echo "BDD parameters = ${testParams}"
     return testParams

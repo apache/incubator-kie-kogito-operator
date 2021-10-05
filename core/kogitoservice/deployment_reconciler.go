@@ -15,7 +15,6 @@
 package kogitoservice
 
 import (
-	"fmt"
 	"github.com/kiegroup/kogito-operator/core/framework/util"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
@@ -62,7 +61,7 @@ func (d *deploymentReconciler) Reconcile() error {
 	if err != nil {
 		return err
 	} else if len(imageName) == 0 {
-		return fmt.Errorf("image not found")
+		return infrastructure.ErrorForImageNotFound()
 	}
 
 	// Create Required resource
