@@ -51,6 +51,7 @@ func (data *Data) RegisterAllSteps(ctx *godog.ScenarioContext) {
 	registerImageRegistrySteps(ctx, data)
 	registerInfinispanSteps(ctx, data)
 	registerKafkaSteps(ctx, data)
+	registerKnativeEventingKogitoSteps(ctx, data)
 	registerKnativeSteps(ctx, data)
 	registerKogitoBuildSteps(ctx, data)
 	registerKogitoRuntimeSteps(ctx, data)
@@ -108,9 +109,9 @@ func getNamespaceName() string {
 }
 
 func generateNamespaceName() string {
-	ns := framework.GenerateNamespaceName("cucumber")
+	ns := framework.GenerateNamespaceName("bdd")
 	for isNamespaceAlreadyCreated(ns) {
-		ns = framework.GenerateNamespaceName("cucumber")
+		ns = framework.GenerateNamespaceName("bdd")
 	}
 	namespacesCreated.Store(ns, true)
 	return ns

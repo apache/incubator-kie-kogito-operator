@@ -4,12 +4,13 @@ helper = null
 
 pipeline {
     agent {
-        label 'kogito-operator-slave && !master'
+        label 'kogito-operator-node && !master'
     }
 
     // Needed for local build
     tools {
         jdk 'kie-jdk11'
+        go 'golang-1.16'
     }
 
     options {
@@ -40,6 +41,8 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
+                    helper.cleanGoPath()
+
                     helper.updateDisplayName()
                     helper.checkoutRepo()
 
@@ -151,6 +154,7 @@ pipeline {
         }
         cleanup {
             script {
+                helper.cleanGoPath()
                 util.cleanNode(containerEngine)
             }
         }

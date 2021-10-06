@@ -6,7 +6,7 @@ helper = null
 
 pipeline {
     agent {
-        label 'kogito-operator-slave && !master'
+        label 'kogito-operator-node && !master'
     }
 
     options {
@@ -38,6 +38,8 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
+                    helper.cleanGoPath()
+
                     helper.updateDisplayName()
 
                     properties.readFromUrl(helper.getDeployPropertiesFileUrl())
@@ -163,6 +165,7 @@ pipeline {
         }
         cleanup {
             script {
+                helper.cleanGoPath()
                 util.cleanNode(containerEngine)
             }
         }

@@ -17,7 +17,7 @@ domain_suffix=
 image_cache_mode=
 http_retry_nb=
 olm_namespace=
-disable_clean_cluster=
+enable_clean_cluster=
 # operator information
 operator_image=
 operator_tag=
@@ -64,6 +64,7 @@ examples_ref=
 examples_ignore_ssl=
 # Infinispan
 infinispan_installation_source=
+infinispan_storage_class=
 # Hyperfoil
 hyperfoil_output_directory=
 hyperfoil_controller_image_version=
@@ -94,7 +95,7 @@ run-tests:
 	&& if [ "${custom_maven_repo_replace_default}" = "true" ]; then opts+=("--custom_maven_repo_replace_default"); fi \
 	&& if [ "${examples_ignore_ssl}" = "true" ]; then opts+=("--examples_ignore_ssl"); fi \
 	&& if [ "${operator_profiling}" = "true" ]; then opts+=("--operator_profiling"); fi \
-	&& if [ "${disable_clean_cluster}" = "true" ]; then opts+=("--disable_clean_cluster"); fi \
+	&& if [ "${enable_clean_cluster}" = "true" ]; then opts+=("--enable_clean_cluster"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ../hack/run-tests.sh \
 		--test_main_dir ${test_main_dir} \
@@ -144,6 +145,7 @@ run-tests:
 		--operator_installation_source ${operator_installation_source} \
 		--operator_catalog_image ${operator_catalog_image} \
 		--infinispan_installation_source ${infinispan_installation_source} \
+		--infinispan_storage_class ${infinispan_storage_class} \
 		--hyperfoil_output_directory ${hyperfoil_output_directory} \
 		--hyperfoil_controller_image_version ${hyperfoil_controller_image_version} \
 		$${opts_str}

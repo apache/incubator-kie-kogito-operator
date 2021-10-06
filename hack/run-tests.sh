@@ -105,6 +105,7 @@ function usage(){
 
   # Infinispan
   printf "\n--infinispan_installation_source {TAG}\n\tDefines installation source for the Infinispan operator. Options are 'olm' and 'yaml'. Default is olm."
+  printf "\n--infinispan_storage_class {TAG}\n\tDefines storage class for Infinispan PVC to be used."
 
   # Hyperfoil
   printf "\n--hyperfoil_output_directory {PATH}\n\tDefines output directory to store Hyperfoil run statistics. Default is test folder."
@@ -117,7 +118,7 @@ function usage(){
   printf "\n--keep_namespace\n\tDo not delete namespace(s) after scenario run (WARNING: can be resources consuming ...)."
   printf "\n--namespace_name\n\tSpecify name of the namespace which will be used for scenario execution (intended for development purposes)."
   printf "\n--local_cluster\n\tSpecify whether you run test using a local cluster."
-  printf "\n--disable_clean_cluster\n\tSet to true to avoid the cleanup of the cluster before/after the tests."
+  printf "\n--enable_clean_cluster\n\tSet to true to cleanup the cluster before/after the tests."
   printf "\n"
 }
 
@@ -167,7 +168,7 @@ DEBUG=false
 KEEP_NAMESPACE=false
 LOAD_DEFAULT_CONFIG=false
 TEST_MAIN_DIR=${SCRIPT_DIR}/../test
-DISABLE_CLEAN_CLUSTER=false
+ENABLE_CLEAN_CLUSTER=false
 
 while (( $# ))
 do
@@ -436,6 +437,10 @@ case $1 in
     shift
     if addParamKeyValueIfAccepted "--tests.infinispan-installation-source" ${1}; then shift; fi
   ;;
+  --infinispan_storage_class)
+    shift
+    if addParamKeyValueIfAccepted "--tests.infinispan-storage-class" ${1}; then shift; fi
+  ;;
 
   # Hyperfoil
   --hyperfoil_output_directory)
@@ -463,7 +468,6 @@ case $1 in
   ;;
   --keep_namespace)
     KEEP_NAMESPACE=true
-    DISABLE_CLEAN_CLUSTER=true
     addParam "--tests.keep-namespace"
     shift
   ;;
@@ -475,8 +479,8 @@ case $1 in
     addParam "--tests.dev.local-cluster"
     shift
   ;;
-  --disable_clean_cluster)
-    DISABLE_CLEAN_CLUSTER=true
+  --enable_clean_cluster)
+    ENABLE_CLEAN_CLUSTER=true
     shift
   ;;
 
@@ -505,7 +509,7 @@ if [ "${LOAD_DEFAULT_CONFIG}" = "true" ]; then
 fi
 
 ## Clean cluster before executing the tests
-if [ "${DISABLE_CLEAN_CLUSTER}" = "false" ]; then
+if [ "${ENABLE_CLEAN_CLUSTER}" = "true" ]; then
   clean_cluster
 fi
 
@@ -529,7 +533,7 @@ fi
 echo "-------- Delete stucked namespaces"
 ${SCRIPT_DIR}/clean-stuck-namespaces.sh
 
-if [ "${DISABLE_CLEAN_CLUSTER}" = "false" ]; then
+if [ "${ENABLE_CLEAN_CLUSTER}" = "true" ]; then
   clean_cluster
 fi
 

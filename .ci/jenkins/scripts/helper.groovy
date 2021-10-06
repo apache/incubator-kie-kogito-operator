@@ -25,6 +25,10 @@ void updateDisplayName() {
     }
 }
 
+void cleanGoPath() {
+    sh 'rm -rf $GOPATH/bin/*'
+}
+
 String buildTempOpenshiftImageFullName(boolean internal=false) {
     return "${getTempOpenshiftImageName(internal)}:${getTempTag()}"
 }
@@ -200,7 +204,7 @@ String getImageNamePrefix(String paramsPrefix = defaultImageParamsPrefix) {
 List getImageNames(String paramsPrefix = defaultImageParamsPrefix) {
     String commaSepImages = ''
     if (paramsPrefix == baseImageParamsPrefix && properties.contains(getImageNamesProperty())) {
-        commaSepImages= properties.retrieve(getImageNamesProperty())
+        commaSepImages = properties.retrieve(getImageNamesProperty())
     } else {
         commaSepImages = params[constructKey(paramsPrefix, 'NAMES')]
     }
@@ -361,6 +365,9 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
     if (params.NATIVE_BUILDER_IMAGE) {
         testParamsMap['native_builder_image'] = params.NATIVE_BUILDER_IMAGE
     }
+
+    // Clean the cluster before/after BDD test execution
+    testParamsMap['enable_clean_cluster'] = true
 
     testParamsMap['container_engine'] = containerEngine
 

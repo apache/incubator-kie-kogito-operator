@@ -5,7 +5,12 @@ def changeBranch = env.ghprbSourceBranch ?: CHANGE_BRANCH
 def changeTarget = env.ghprbTargetBranch ?: CHANGE_TARGET
 
 pipeline {
-    agent { label 'operator-slave' }
+    agent {
+        label 'kogito-operator-node'
+    }
+    tools {
+        go 'golang-1.16'
+    }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
         timeout(time: 90, unit: 'MINUTES')
@@ -13,7 +18,6 @@ pipeline {
     environment {
         OPENSHIFT_INTERNAL_REGISTRY = 'image-registry.openshift-image-registry.svc:5000'
 
-        // Use buildah container engine in this pipeline
         CONTAINER_ENGINE = 'podman'
 
         CODECOV_TOKEN = credentials('KOGITO_OPERATOR_CODECOV_TOKEN')
@@ -22,6 +26,8 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
+                    cleanGoPath()
+
                     sh ' git config --global user.email "jenkins@kie.com" '
                     sh ' git config --global user.name "kie user"'
                     githubscm.checkoutIfExists('kogito-operator', changeAuthor, changeBranch, 'kiegroup', changeTarget, true, ['token' : 'GITHUB_TOKEN', 'usernamePassword' : 'user-kie-ci10'])
@@ -86,17 +92,24 @@ pipeline {
         }
     }
     post {
-        always {
-            cleanWs()
+        cleanup {
+            script {
+                cleanGoPath()
+                cleanWs()
+            }
         }
     }
+}
+
+void cleanGoPath() {
+    sh 'rm -rf $GOPATH/bin/*'
 }
 
 String getBDDParameters() {
     testParamsMap = [:]
 
     testParamsMap['load_default_config'] = true
-    testParamsMap['ci'] = 'jenkins'
+    testParamsMap['ci'] = 'j'
     testParamsMap['load_factor'] = 3
     testParamsMap['disable_maven_native_build_container'] = true
 
@@ -116,6 +129,9 @@ String getBDDParameters() {
     testParamsMap['runtime_application_image_registry'] = 'quay.io/kiegroup'
 
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
+
+    // Clean the cluster before/after BDD test execution
+    testParamsMap['enable_clean_cluster'] = true
 
     String testParams = testParamsMap.collect { entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
     echo "BDD parameters = ${testParams}"
