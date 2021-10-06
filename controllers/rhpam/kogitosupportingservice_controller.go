@@ -44,5 +44,6 @@ func NewKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runt
 		SupportingServiceHandler: rhpam.NewKogitoSupportingServiceHandler,
 		InfraHandler:             rhpam.NewKogitoInfraHandler,
 		ReconcilingObject:        &v1.KogitoSupportingService{},
+		Labels:                   getMeteringLabels(),
 	}
 }

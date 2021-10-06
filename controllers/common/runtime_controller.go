@@ -44,6 +44,7 @@ type KogitoRuntimeReconciler struct {
 	SupportServiceHandler func(context operator.Context) manager.KogitoSupportingServiceHandler
 	InfraHandler          func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject     client.Object
+	Labels                map[string]string
 }
 
 //+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes,verbs=get;list;watch;create;update;patch;delete
@@ -70,6 +71,7 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		Log:     log,
 		Scheme:  r.Scheme,
 		Version: r.Version,
+		Labels:  r.Labels,
 	}
 
 	// fetch the requested instance

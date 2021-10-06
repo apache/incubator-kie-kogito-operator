@@ -26,4 +26,5 @@ type Context struct {
 	Log     logger.Logger
 	Scheme  *runtime.Scheme
 	Version string
+	Labels  map[string]string
 }

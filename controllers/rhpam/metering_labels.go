@@ -12,36 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package infrastructure
+package rhpam
 
 import (
-	"github.com/kiegroup/kogito-operator/core/operator"
+	rhpam2 "github.com/kiegroup/kogito-operator/version/rhpam"
 )
 
-// MeteringLabelHandler ...
-type MeteringLabelHandler interface {
-	GetMeteringLabels() map[string]string
-}
-
-type meteringLabelHandler struct {
-	operator.Context
-}
-
-// NewMeteringLabelHandler ...
-func NewMeteringLabelHandler(context operator.Context) MeteringLabelHandler {
-	return &meteringLabelHandler{
-		context,
-	}
-}
-
-// GetMeteringLabels returns metering labels
-func (m *meteringLabelHandler) GetMeteringLabels() map[string]string {
+// getMeteringLabels returns metering labels
+func getMeteringLabels() map[string]string {
 	return map[string]string{
 		"com.company":   "Red_Hat",
 		"rht.prod_name": "Red_Hat_Process_Automation",
-		"rht.prod_ver":  GetKogitoImageVersion(m.Version),
+		"rht.prod_ver":  rhpam2.Version,
 		"rht.comp":      "PAM",
-		"rht.comp_ver":  GetKogitoImageVersion(m.Version),
+		"rht.comp_ver":  rhpam2.Version,
 		"rht.subcomp":   "rhpam-kogito-runtime",
 		"rht.subcomp_t": "application",
 	}

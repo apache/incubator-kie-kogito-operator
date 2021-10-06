@@ -46,6 +46,7 @@ type KogitoSupportingServiceReconciler struct {
 	SupportingServiceHandler func(context operator.Context) manager.KogitoSupportingServiceHandler
 	InfraHandler             func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject        client.Object
+	Labels                   map[string]string
 }
 
 //+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices,verbs=get;list;watch;create;update;patch;delete
@@ -71,6 +72,7 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(ctx context.Context, req c
 		Log:     log,
 		Scheme:  r.Scheme,
 		Version: app2.Version,
+		Labels:  r.Labels,
 	}
 
 	// Fetch the KogitoSupportingService instance

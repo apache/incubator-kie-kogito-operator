@@ -171,6 +171,5 @@ func (d *deploymentReconciler) mountEnvsOnDeployment(deployment *appsv1.Deployme
 }
 
 func (d *deploymentReconciler) mountMeteringLabelsOnDeployment(deployment *appsv1.Deployment) {
-	meteringLabelHandler := infrastructure.NewMeteringLabelHandler(d.Context)
-	util.AppendToStringMap(meteringLabelHandler.GetMeteringLabels(), deployment.Spec.Template.Labels)
+	util.AppendToStringMap(d.Labels, deployment.Spec.Template.Labels)
 }

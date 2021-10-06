@@ -47,6 +47,7 @@ type KogitoBuildReconciler struct {
 	Version           string
 	BuildHandler      func(context kogitobuild.BuildContext) manager.KogitoBuildHandler
 	ReconcilingObject client.Object
+	Labels            map[string]string
 }
 
 // Reconcile reads that state of the cluster for a KogitoBuild object and makes changes based on the state read
@@ -62,6 +63,7 @@ func (r *KogitoBuildReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			Log:     log,
 			Scheme:  r.Scheme,
 			Version: r.Version,
+			Labels:  r.Labels,
 		},
 	}
 

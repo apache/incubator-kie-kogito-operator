@@ -45,5 +45,6 @@ func NewKogitoRuntimeReconciler(client *kogitocli.Client, scheme *runtime.Scheme
 		SupportServiceHandler: rhpam.NewKogitoSupportingServiceHandler,
 		InfraHandler:          rhpam.NewKogitoInfraHandler,
 		ReconcilingObject:     &v1.KogitoRuntime{},
+		Labels:                getMeteringLabels(),
 	}
 }
