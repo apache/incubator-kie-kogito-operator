@@ -7,7 +7,7 @@ DEFAULT_CHANNEL = 7.x
 BUNDLE_CHANNELS = --channels=$(CHANNELS)
 BUNDLE_DEFAULT_CHANNEL = --default-channel=$(DEFAULT_CHANNEL)
 
-IMAGE_TAG_BASE = rhpam-7/rhpam-kogito-rhel8-operator
+IMAGE_TAG_BASE = registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator
 CEKIT_CMD := cekit -v --redhat ${cekit_option}
 
 all: generate manifests container-build
