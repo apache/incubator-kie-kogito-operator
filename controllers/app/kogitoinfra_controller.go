@@ -36,7 +36,7 @@ import (
 //+kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;delete;update
 //+kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
 //+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
-//+kubebuilder:rbac:groups=mongodb.com,resources=mongodb,verbs=get;create;list;watch;delete
+//+kubebuilder:rbac:groups=mongodbcommunity.mongodb.com,resources=mongodbcommunity,verbs=get;create;list;watch;delete
 
 // NewKogitoInfraReconciler ...
 func NewKogitoInfraReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoInfraReconciler {
