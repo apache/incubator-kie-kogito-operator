@@ -24,7 +24,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
-	"github.com/kiegroup/kogito-operator/version"
+	"github.com/kiegroup/kogito-operator/version/app"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
@@ -60,10 +60,10 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
-	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := NewKogitoBuildReconciler(cli, meta.GetRegisteredSchema())
 
 	// first reconciliation
-	result := test.AssertReconcileMustRequeue(t, &r, instance)
+	result := test.AssertReconcileMustRequeue(t, r, instance)
 	assert.Equal(t, time.Second*10, result.RequeueAfter)
 
 	// verifying if all images have been created
@@ -76,11 +76,11 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	})
 	assert.Equal(t, kogitobuild.GetDefaultBuilderImage(), kogitoISList.Items[0].Name)
 	assert.Equal(t, kogitobuild.GetDefaultRuntimeJVMImage(), kogitoISList.Items[1].Name)
-	assert.Equal(t, infrastructure.GetKogitoImageVersion(version.Version), kogitoISList.Items[0].Spec.Tags[0].Name)
-	assert.Equal(t, infrastructure.GetKogitoImageVersion(version.Version), kogitoISList.Items[1].Spec.Tags[0].Name)
+	assert.Equal(t, infrastructure.GetKogitoImageVersion(app.Version), kogitoISList.Items[0].Spec.Tags[0].Name)
+	assert.Equal(t, infrastructure.GetKogitoImageVersion(app.Version), kogitoISList.Items[1].Spec.Tags[0].Name)
 
 	// reconcile again, check for builds
-	result = test.AssertReconcileMustNotRequeue(t, &r, instance)
+	result = test.AssertReconcileMustNotRequeue(t, r, instance)
 
 	kogitoISList = &imagev1.ImageStreamList{}
 	err = kubernetes.ResourceC(cli).ListWithNamespace(t.Name(), kogitoISList)
@@ -103,7 +103,7 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	test.AssertFetchMustExist(t, cli, runtimeBC)
 
 	// reconcile one more time having everything in place
-	test.AssertReconcileMustNotRequeue(t, &r, instance)
+	test.AssertReconcileMustNotRequeue(t, r, instance)
 
 	// change something
 	test.AssertFetchMustExist(t, cli, instance)
@@ -112,7 +112,7 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 	assert.NoError(t, err)
 
 	// reconcile
-	result = test.AssertReconcileMustNotRequeue(t, &r, instance)
+	result = test.AssertReconcileMustNotRequeue(t, r, instance)
 	test.AssertFetchMustExist(t, cli, instance)
 
 	conditions := *instance.Status.Conditions
@@ -143,15 +143,15 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instanceRemote, instanceLocal).Build()
-	r := KogitoBuildReconciler{Client: cli, Scheme: meta.GetRegisteredSchema()}
+	r := NewKogitoBuildReconciler(cli, meta.GetRegisteredSchema())
 
 	// first reconciliation
-	result := test.AssertReconcileMustRequeue(t, &r, instanceRemote)
+	result := test.AssertReconcileMustRequeue(t, r, instanceRemote)
 	assert.Equal(t, time.Second*10, result.RequeueAfter)
 	// we won't requeue since the Kogito ImageStreams should be created for the first instance
-	result = test.AssertReconcileMustNotRequeue(t, &r, instanceLocal)
+	result = test.AssertReconcileMustNotRequeue(t, r, instanceLocal)
 	// now we create the objects for Remote
-	result = test.AssertReconcileMustNotRequeue(t, &r, instanceRemote)
+	result = test.AssertReconcileMustNotRequeue(t, r, instanceRemote)
 
 	context := operator.Context{
 		Client: cli,

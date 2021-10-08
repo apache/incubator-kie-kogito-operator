@@ -1,0 +1,72 @@
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoBuild
+metadata:
+  name: onboarding
+spec:
+  type: RemoteSource
+  gitSource:
+    uri: https://github.com/kiegroup/kogito-examples
+    contextDir: onboarding-example/onboarding
+  # set your maven nexus repository to speed up the build time
+  #mavenMirrorURL:
+---
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoRuntime
+metadata:
+  name: onboarding
+spec:
+  # uncomment to enable persistence
+  #env:
+  #  - name: MAVEN_ARGS_APPEND
+  #    value: "-Ppersistence"
+  #infinispan:
+  #  useKogitoInfra: true
+  serviceLabels:
+    onboarding: process
+  env:
+    - name: NAMESPACE
+      value: "<namespace_where_this_app_is_deployed>"
+---
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoBuild
+metadata:
+  name: hr
+spec:
+  type: RemoteSource
+  gitSource:
+    uri: https://github.com/kiegroup/kogito-examples
+    contextDir: onboarding-example/hr
+  # set your maven nexus repository to speed up the build time
+  #mavenMirrorURL:
+---
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoRuntime
+metadata:
+  name: hr
+spec:
+  serviceLabels:
+    department/first: process
+    id: process
+    employee-validation/first: process
+---
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoBuild
+metadata:
+  name: payroll
+spec:
+  type: RemoteSource
+  gitSource:
+    uri: https://github.com/kiegroup/kogito-examples
+    contextDir: onboarding-example/payroll
+  # set your maven nexus repository to speed up the build time
+  #mavenMirrorURL:
+---
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoRuntime
+metadata:
+  name: payroll
+spec:
+  serviceLabels:
+    taxes/rate: process
+    vacations/days: process
+    payments/date: process

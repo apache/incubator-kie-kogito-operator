@@ -1,0 +1,14 @@
+name: org.kie.kogito.rhpam.bundleinstall
+version: "7.11.0"
+description: Copy the bund files to the target image
+
+artifacts:
+  - name: manifests
+    path: "../../../../bundle/rhpam/manifests"
+    dest: /manifests/
+  - name: metadata
+    path: "../../../../bundle/rhpam/metadata"
+    dest: /metadata/
+  - name: tests-scorecard
+    path: "../../../../bundle/rhpam/tests/scorecard/"
+    dest: /tests/scorecard/

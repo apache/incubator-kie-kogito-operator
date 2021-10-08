@@ -27,10 +27,10 @@ rm -rf "${OLM_DIR}"
 mkdir -p "${MANIFESTS}"
 
 #copy bundle manifests and Dockerfile
-cp -r bundle/*  "${MANIFESTS}/"
+cp -r bundle/app/*  "${MANIFESTS}/"
 cp bundle.Dockerfile "${MANIFESTS}/Dockerfile"
 
 #Correct the relative path in Dockerfile
-sed -i "s|bundle/manifests|manifests|g"  "${MANIFESTS}/Dockerfile"
-sed -i "s|bundle/metadata|metadata|g"    "${MANIFESTS}/Dockerfile"
-sed -i "s|bundle/tests|tests|g"          "${MANIFESTS}/Dockerfile"
+sed -i "s|bundle/app/manifests|manifests|g"  "${MANIFESTS}/Dockerfile"
+sed -i "s|bundle/app/metadata|metadata|g"    "${MANIFESTS}/Dockerfile"
+sed -i "s|bundle/app/tests|tests|g"          "${MANIFESTS}/Dockerfile"
