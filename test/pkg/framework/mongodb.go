@@ -80,7 +80,7 @@ func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserC
 	// Default capacity is 10G, default to 1G
 	capacity, _ := resource.ParseQuantity("1G")
 
-	// Taken from https://github.com/mongodb/mongodb-kubernetes-operator/blob/master/deploy/crds/mongodb.com_v1_mongodb_cr.yaml
+	// Taken from https://github.com/mongodb/mongodb-kubernetes-operator/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
 	stub := &mongodb.MongoDB{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -145,7 +145,7 @@ func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserC
 	}
 
 	if openshift {
-		// OCP Specificies https://github.com/mongodb/mongodb-kubernetes-operator/blob/master/deploy/crds/mongodb.com_v1_mongodb_openshift_cr.yaml
+		// OCP Specificies https://github.com/mongodb/mongodb-kubernetes-operator/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
 		GetLogger(namespace).Debug("Setup MANAGED_SECURITY_CONTEXT env in MongoDB entity for Openshift")
 		stub.Spec.StatefulSetConfiguration.Spec.Template = corev1.PodTemplateSpec{
 			Spec: corev1.PodSpec{

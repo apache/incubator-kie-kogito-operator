@@ -53,7 +53,7 @@ type KogitoInfraReconciler struct {
 //+kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;delete;update
 //+kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
 //+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
-//+kubebuilder:rbac:groups=mongodb.com,resources=mongodb,verbs=get;create;list;watch;delete
+//+kubebuilder:rbac:groups=mongodbcommunity.mongodb.com,resources=mongodb,verbs=get;create;list;watch;delete
 
 // Reconcile reads that state of the cluster for a KogitoInfra object and makes changes based on the state read
 // and what is in the KogitoInfra.Spec

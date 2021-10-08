@@ -17,7 +17,7 @@
 // Package v1 contains API Schema definitions for the mongodb v1 API group
 // +kubebuilder:skip
 // +k8s:deepcopy-gen=package,register
-// +groupName=mongodb.com
+// +groupName=mongodbcommunity.mongodb.com
 package v1
 
 import (
@@ -27,7 +27,7 @@ import (
 
 var (
 	// SchemeGroupVersion is group version used to register these objects
-	SchemeGroupVersion = schema.GroupVersion{Group: "mongodb.com", Version: "v1"}
+	SchemeGroupVersion = schema.GroupVersion{Group: "mongodbcommunity.mongodb.com", Version: "v1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}

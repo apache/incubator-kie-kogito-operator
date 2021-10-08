@@ -37,8 +37,8 @@ var (
 	}
 
 	mongoDBOperatorServiceName    = "Mongo DB"
-	mongoDBOperatorVersion        = "v0.2.2"
-	mongoDBOperatorDeployFilesURI = "https://raw.githubusercontent.com/mongodb/mongodb-kubernetes-operator/" + mongoDBOperatorVersion + "/deploy/"
+	mongoDBOperatorVersion        = "v0.7.0"
+	mongoDBOperatorDeployFilesURI = "https://raw.githubusercontent.com/mongodb/mongodb-kubernetes-operator/" + mongoDBOperatorVersion + "/config/"
 )
 
 // GetMongoDbInstaller returns MongoDB installer
@@ -50,23 +50,23 @@ func installMongoDbUsingYaml(namespace string) error {
 	framework.GetLogger(namespace).Info("Deploy MongoDB from yaml files", "file uri", mongoDBOperatorDeployFilesURI)
 
 	if !framework.IsMongoDBAvailable(namespace) {
-		if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"crds/mongodb.com_mongodb_crd.yaml", &apiextensionsv1beta1.CustomResourceDefinition{}, nil); err != nil {
+		if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"crd/bases/mongodbcommunity.mongodb.com_mongodbcommunity.yaml", &apiextensionsv1beta1.CustomResourceDefinition{}, nil); err != nil {
 			return err
 		}
 	}
 
-	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"service_account.yaml", &corev1.ServiceAccount{}, nil); err != nil {
+	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/service_account.yaml", &corev1.ServiceAccount{}, nil); err != nil {
 		return err
 	}
-	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"role.yaml", &rbac.Role{}, nil); err != nil {
+	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role.yaml", &rbac.Role{}, nil); err != nil {
 		return err
 	}
-	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"role_binding.yaml", &rbac.RoleBinding{}, nil); err != nil {
+	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role_binding.yaml", &rbac.RoleBinding{}, nil); err != nil {
 		return err
 	}
 
 	// Then deploy operator
-	err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"operator.yaml", &coreapps.Deployment{}, func(object interface{}) {
+	err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"manager/manager.yaml", &coreapps.Deployment{}, func(object interface{}) {
 		if framework.IsOpenshift() {
 			framework.GetLogger(namespace).Debug("Setup MANAGED_SECURITY_CONTEXT env in MongoDB operator for Openshift")
 			object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env = append(object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env,
@@ -110,7 +110,7 @@ func uninstallMongoDbUsingYaml(namespace string) error {
 		originalError = err
 	}
 
-	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"operator.yaml").WithLoggerContext(namespace).Execute()
+	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"manager/manager.yaml").WithLoggerContext(namespace).Execute()
 	if err != nil {
 		framework.GetLogger(namespace).Error(err, fmt.Sprintf("Deleting Mongo DB operator failed, output: %s", output))
 		if originalError == nil {
@@ -118,7 +118,7 @@ func uninstallMongoDbUsingYaml(namespace string) error {
 		}
 	}
 
-	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"role_binding.yaml").WithLoggerContext(namespace).Execute()
+	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"rbac/role_binding.yaml").WithLoggerContext(namespace).Execute()
 	if err != nil {
 		framework.GetLogger(namespace).Error(err, fmt.Sprintf("Deleting Mongo DB role binding failed, output: %s", output))
 		if originalError == nil {
@@ -126,7 +126,7 @@ func uninstallMongoDbUsingYaml(namespace string) error {
 		}
 	}
 
-	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"role.yaml").WithLoggerContext(namespace).Execute()
+	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"rbac/role.yaml").WithLoggerContext(namespace).Execute()
 	if err != nil {
 		framework.GetLogger(namespace).Error(err, fmt.Sprintf("Deleting Mongo DB role failed, output: %s", output))
 		if originalError == nil {
@@ -134,7 +134,7 @@ func uninstallMongoDbUsingYaml(namespace string) error {
 		}
 	}
 
-	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"service_account.yaml").WithLoggerContext(namespace).Execute()
+	output, err = framework.CreateCommand("oc", "delete", "-f", mongoDBOperatorDeployFilesURI+"rbac/service_account.yaml").WithLoggerContext(namespace).Execute()
 	if err != nil {
 		framework.GetLogger(namespace).Error(err, fmt.Sprintf("Deleting Mongo DB service account failed, output: %s", output))
 		if originalError == nil {
