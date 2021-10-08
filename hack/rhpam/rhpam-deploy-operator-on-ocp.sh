@@ -27,8 +27,8 @@ mkdir -p $TMP_FOLDER
 rm -rf $TMP_FOLDER/*
 
 # Apply all
-sed "s|image: registry.stage.redhat.io/rhpam-7/.*|image: $IMAGE|g" rhpam-kogito-operator.yaml > $TMP_FOLDER/rhpam-kogito-operator.yaml
-kubectl apply -f $TMP_FOLDER/rhpam-kogito-operator.yaml
+sed "s|image: registry.stage.redhat.io/rhpam-7/.*|image: $IMAGE|g" rhpam-operator.yaml > $TMP_FOLDER/rhpam-operator.yaml
+kubectl apply -f $TMP_FOLDER/rhpam-operator.yaml
 
 # Clean Up
 rm -rf $TMP_FOLDER/*

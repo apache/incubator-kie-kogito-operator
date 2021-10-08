@@ -150,17 +150,17 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 docker-build: ## Build the docker image
 	echo "calling APP docker-build ##################################"
-	cekit -v --descriptor kogito-app-image.yaml build $(BUILDER)
+	cekit -v --descriptor kogito-image.yaml build $(BUILDER)
 	$(BUILDER) tag operator-runtime ${IMG}
 
 docker-push: ## Push the docker image
 	$(BUILDER) push ${IMG}
 
 profiling-build: ## Build the profiling docker image
-	cp kogito-app-image.yaml kogito-app-image.yaml.save && \
-	cp profiling/image.yaml kogito-app-image.yaml && \
-	cekit -v --descriptor kogito-app-image.yaml build $(BUILDER); \
-	mv kogito-app-image.yaml.save kogito-app-image.yaml
+	cp kogito-image.yaml kogito-image.yaml.save && \
+	cp profiling/image.yaml kogito-image.yaml && \
+	cekit -v --descriptor kogito-image.yaml build $(BUILDER); \
+	mv kogito-image.yaml.save kogito-image.yaml
 	$(BUILDER) tag operator-runtime ${PROFILING_IMG}
 
 profiling-push: ## Push the profiling docker image
