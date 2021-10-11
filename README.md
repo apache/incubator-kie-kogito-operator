@@ -273,11 +273,14 @@ You can set those optional keys:
 - `operator_installation_source` Defines what source is used to install Kogito operator. Available options are `olm` and `yaml`.
   *Default is yaml*.
 - `operator_catalog_image` Specifies catalog image containing Kogito operator bundle. Needs to be specified when `operator_installation_source` is set to `olm`.
+- `use_product_operator` Set true if you want to run tests using product operator.
 <!--- files/binaries -->
-- `deploy_uri` set operator *deploy* folder.  
-  *Default is ./deploy*.
+- `operator_yaml_uri` Url or Path to kogito-operator.yaml file.
+*Default is ../kogito-operator.yaml*.
 - `cli_path` set the built CLI path.  
   *Default is ./build/_output/bin/kogito*.
+- `rhpam_operator_yaml_uri` Url or Path to rhpam-operator.yaml file.
+*Default is ../rhpam-operator.yaml*.
 <!--- runtime -->
 - `services_image_version` sets the services (jobs-service, data-index, ...) image version.
 - `services_image_namespace` sets the services (jobs-service, data-index, ...) image namespace.
