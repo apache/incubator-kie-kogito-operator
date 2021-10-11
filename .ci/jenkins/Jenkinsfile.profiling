@@ -14,7 +14,7 @@ pipeline {
     }
 
     options {
-        timeout(time: 360, unit: 'MINUTES')
+        timeout(time: 24, unit: 'HOURS') // Give the day to be executed (due to the lock)
     }
 
     // parameters {
@@ -25,7 +25,7 @@ pipeline {
         // Static env is defined into ./dsl/jobs.groovy file
 
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
-        
+
         CODECOV_TOKEN = credentials('KOGITO_OPERATOR_CODECOV_TOKEN')
 
         JAVA_HOME = "${GRAALVM_HOME}"
@@ -89,26 +89,33 @@ pipeline {
                 // Lock on OCP API as we want only one run at a time
                 lock("BDD tests on OCP API ${getLockOpenshiftApi()}")
             }
-            steps {
-                script {
-                    // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                    sh "make run-tests timeout=360 load_factor=1 concurrent=3 ${getBDDParameters()}"
-                }
-            }
-            post {
-                always {
-                    // Upload coverage
-                    sh '''
-                        curl -s https://codecov.io/bash -o codecov
-                        chmod u+x codecov
-                        ./codecov -f test/bdd-cover.out -F bdd -n bdd-tests &> test/logs/bdd-cover-upload.log
-                    '''
+            stages {
+                stage('Run full testing') {
+                    options {
+                        timeout(time: 360, unit: 'MINUTES')
+                    }
+                    steps {
+                        script {
+                            // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
+                            sh "make run-tests timeout=360 load_factor=1 concurrent=3 ${getBDDParameters()}"
+                        }
+                    }
+                    post {
+                        always {
+                            // Upload coverage
+                            sh '''
+                                curl -s https://codecov.io/bash -o codecov
+                                chmod u+x codecov
+                                ./codecov -f test/bdd-cover.out -F bdd -n bdd-tests &> test/logs/bdd-cover-upload.log
+                            '''
 
-                    archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
-                }
-                cleanup {
-                    sh 'cd test && go run scripts/prune_namespaces.go'
+                            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                        }
+                        cleanup {
+                            sh 'cd test && go run scripts/prune_namespaces.go'
+                        }
+                    }
                 }
             }
         }

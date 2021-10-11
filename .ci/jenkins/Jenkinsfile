@@ -13,7 +13,7 @@ pipeline {
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
-        timeout(time: 90, unit: 'MINUTES')
+        timeout(time: 12, unit: 'HOURS') // We give a lot of time to timeout due to the lock on Openshift
     }
     environment {
         OPENSHIFT_INTERNAL_REGISTRY = 'image-registry.openshift-image-registry.svc:5000'
@@ -67,6 +67,9 @@ pipeline {
             }
             stages {
                 stage('Running smoke tests') {
+                    options {
+                        timeout(time: 90, unit: 'MINUTES')
+                    }
                     steps {
                         // Run just smoke tests to verify basic operator functionality
                         sh "make run-smoke-tests concurrent=5 ${getBDDParameters()}"
