@@ -268,8 +268,6 @@ You can set those optional keys:
   *Default: operator_image=quay.io/kiegroup/kogito-operator*.
 - `operator_tag` is the Operator image tag.  
   *Default is the current version*.
-- `operator_namespaced` Set true if you want to run operator namespace scoped.
-  *Default is false*.
 - `operator_installation_source` Defines what source is used to install Kogito operator. Available options are `olm` and `yaml`.
   *Default is yaml*.
 - `operator_catalog_image` Specifies catalog image containing Kogito operator bundle. Needs to be specified when `operator_installation_source` is set to `olm`.
