@@ -181,6 +181,7 @@ Feature: Deploy Kogito Runtime
       | springboot | process-mongodb-persistence-springboot | disabled |
 
     @quarkus
+    @test
     Examples:
       | runtime    | example-service                     | native   |
       | quarkus    | process-mongodb-persistence-quarkus | disabled |

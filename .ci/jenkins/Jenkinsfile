@@ -72,7 +72,8 @@ pipeline {
                     }
                     steps {
                         // Run just smoke tests to verify basic operator functionality
-                        sh "make run-smoke-tests concurrent=5 ${getBDDParameters()}"
+                        // TODO to remove
+                        sh "make run-tests tags='@mongodb' concurrent=5 ${getBDDParameters()}"
                     }
                     post {
                         always {

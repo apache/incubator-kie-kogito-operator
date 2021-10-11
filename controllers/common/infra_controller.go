@@ -16,11 +16,12 @@ package common
 
 import (
 	"context"
+	"reflect"
+
 	"github.com/kiegroup/kogito-operator/core/kogitoinfra"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -53,7 +54,7 @@ type KogitoInfraReconciler struct {
 //+kubebuilder:rbac:groups=eventing.knative.dev,resources=triggers,verbs=get;list;watch;create;delete;update
 //+kubebuilder:rbac:groups=sources.knative.dev,resources=sinkbindings,verbs=get;list;watch;create;delete;update
 //+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;create;delete;update
-//+kubebuilder:rbac:groups=mongodbcommunity.mongodb.com,resources=mongodb,verbs=get;create;list;watch;delete
+//+kubebuilder:rbac:groups=mongodbcommunity.mongodb.com,resources=mongodbcommunity,verbs=get;create;list;watch;delete
 
 // Reconcile reads that state of the cluster for a KogitoInfra object and makes changes based on the state read
 // and what is in the KogitoInfra.Spec

@@ -2275,7 +2275,7 @@ rules:
 - apiGroups:
   - mongodbcommunity.mongodb.com
   resources:
-  - mongodb
+  - mongodbcommunity
   verbs:
   - create
   - delete

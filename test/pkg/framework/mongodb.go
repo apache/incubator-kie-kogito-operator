@@ -33,11 +33,11 @@ import (
 const (
 	membersSize = 1
 
-	mongoDBVersion = "4.4.1"
+	mongoDBVersion = "4.4.9"
 )
 
 // DeployMongoDBInstance deploys an instance of Mongo DB
-func DeployMongoDBInstance(namespace string, instance *mongodb.MongoDB) error {
+func DeployMongoDBInstance(namespace string, instance *mongodb.MongoDBCommunity) error {
 	GetLogger(namespace).Info("Creating MongoDB instance")
 
 	if err := kubernetes.ResourceC(kubeClient).Create(instance); err != nil {
@@ -76,32 +76,34 @@ type MongoDBUserCred struct {
 }
 
 // GetMongoDBStub returns the preconfigured MongoDB stub with set namespace, name and secretName
-func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserCred) *mongodb.MongoDB {
+func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserCred) *mongodb.MongoDBCommunity {
 	// Default capacity is 10G, default to 1G
 	capacity, _ := resource.ParseQuantity("1G")
 
-	// Taken from https://github.com/mongodb/mongodb-kubernetes-operator/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
-	stub := &mongodb.MongoDB{
+	// Taken from https://github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
+	stub := &mongodb.MongoDBCommunity{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
 		},
-		Spec: mongodb.MongoDBSpec{
+		Spec: mongodb.MongoDBCommunitySpec{
 			Members:  membersSize,
 			Type:     mongodb.ReplicaSet,
 			Version:  mongoDBVersion,
 			Security: mongodb.Security{Authentication: mongodb.Authentication{Modes: []mongodb.AuthMode{"SCRAM"}}},
 			StatefulSetConfiguration: mongodb.StatefulSetConfiguration{
-				Spec: v1.StatefulSetSpec{
-					VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-						{
-							ObjectMeta: metav1.ObjectMeta{
-								Name: "data-volume",
-							},
-							Spec: corev1.PersistentVolumeClaimSpec{
-								Resources: corev1.ResourceRequirements{
-									Requests: corev1.ResourceList{
-										corev1.ResourceStorage: capacity,
+				SpecWrapper: mongodb.StatefulSetSpecWrapper{
+					Spec: v1.StatefulSetSpec{
+						VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									Name: "data-volume",
+								},
+								Spec: corev1.PersistentVolumeClaimSpec{
+									Resources: corev1.ResourceRequirements{
+										Requests: corev1.ResourceList{
+											corev1.ResourceStorage: capacity,
+										},
 									},
 								},
 							},
@@ -117,6 +119,7 @@ func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserC
 			PasswordSecretRef: mongodb.SecretKeyReference{
 				Name: user.SecretName,
 			},
+			ScramCredentialsSecretName: user.Name,
 		}
 		if len(user.AuthDatabase) > 0 {
 			userStub.DB = user.AuthDatabase
@@ -145,9 +148,9 @@ func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserC
 	}
 
 	if openshift {
-		// OCP Specificies https://github.com/mongodb/mongodb-kubernetes-operator/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
+		// OCP Specificies https://github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
 		GetLogger(namespace).Debug("Setup MANAGED_SECURITY_CONTEXT env in MongoDB entity for Openshift")
-		stub.Spec.StatefulSetConfiguration.Spec.Template = corev1.PodTemplateSpec{
+		stub.Spec.StatefulSetConfiguration.SpecWrapper.Spec.Template = corev1.PodTemplateSpec{
 			Spec: corev1.PodSpec{
 				Containers: []corev1.Container{
 					{

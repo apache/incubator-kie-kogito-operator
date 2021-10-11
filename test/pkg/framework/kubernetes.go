@@ -16,10 +16,11 @@ package framework
 
 import (
 	"fmt"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync"
 	"time"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	rbac "k8s.io/api/rbac/v1"
 
@@ -227,6 +228,7 @@ func LoadResource(namespace, uri string, resourceRef client.Object, beforeCreate
 	GetLogger(namespace).Debug("loadResource", "uri", uri)
 
 	data, err := ReadFromURI(uri)
+	GetLogger(namespace).Debug("Load data", "data", data)
 	if err != nil {
 		return fmt.Errorf("Unable to read from URI %s: %v", uri, err)
 	}

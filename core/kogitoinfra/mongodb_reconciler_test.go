@@ -20,8 +20,9 @@ import (
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMongoDBInfraReconciler(t *testing.T) {

@@ -16,6 +16,8 @@ package installers
 
 import (
 	"fmt"
+	"sync"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	mongodbv1 "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
@@ -23,7 +25,7 @@ import (
 	coreapps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 var (
@@ -39,6 +41,9 @@ var (
 	mongoDBOperatorServiceName    = "Mongo DB"
 	mongoDBOperatorVersion        = "v0.7.0"
 	mongoDBOperatorDeployFilesURI = "https://raw.githubusercontent.com/mongodb/mongodb-kubernetes-operator/" + mongoDBOperatorVersion + "/config/"
+
+	// Used for CRD creation in case of parallel execution of scenarios
+	mongoDBCrdMux = &sync.Mutex{}
 )
 
 // GetMongoDbInstaller returns MongoDB installer
@@ -49,24 +54,29 @@ func GetMongoDbInstaller() ServiceInstaller {
 func installMongoDbUsingYaml(namespace string) error {
 	framework.GetLogger(namespace).Info("Deploy MongoDB from yaml files", "file uri", mongoDBOperatorDeployFilesURI)
 
+	// Lock to avoid parallel creation
+	var err error
+	mongoDBCrdMux.Lock()
 	if !framework.IsMongoDBAvailable(namespace) {
-		if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"crd/bases/mongodbcommunity.mongodb.com_mongodbcommunity.yaml", &apiextensionsv1beta1.CustomResourceDefinition{}, nil); err != nil {
-			return err
-		}
+		err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"crd/bases/mongodbcommunity.mongodb.com_mongodbcommunity.yaml", &apiextensionsv1.CustomResourceDefinition{}, nil)
+	}
+	mongoDBCrdMux.Unlock()
+	if err != nil {
+		return err
 	}
 
-	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/service_account.yaml", &corev1.ServiceAccount{}, nil); err != nil {
+	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/service_account.yaml", &corev1.ServiceAccount{}, nil); err != nil {
 		return err
 	}
-	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role.yaml", &rbac.Role{}, nil); err != nil {
+	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role.yaml", &rbac.Role{}, nil); err != nil {
 		return err
 	}
-	if err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role_binding.yaml", &rbac.RoleBinding{}, nil); err != nil {
+	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role_binding.yaml", &rbac.RoleBinding{}, nil); err != nil {
 		return err
 	}
 
 	// Then deploy operator
-	err := framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"manager/manager.yaml", &coreapps.Deployment{}, func(object interface{}) {
+	err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"manager/manager.yaml", &coreapps.Deployment{}, func(object interface{}) {
 		if framework.IsOpenshift() {
 			framework.GetLogger(namespace).Debug("Setup MANAGED_SECURITY_CONTEXT env in MongoDB operator for Openshift")
 			object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env = append(object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env,
@@ -148,7 +158,7 @@ func uninstallMongoDbUsingYaml(namespace string) error {
 func getMongoDbCrsInNamespace(namespace string) ([]client.Object, error) {
 	var crs []client.Object
 
-	mongoDbs := &mongodbv1.MongoDBList{}
+	mongoDbs := &mongodbv1.MongoDBCommunityList{}
 	if err := framework.GetObjectsInNamespace(namespace, mongoDbs); err != nil {
 		return nil, err
 	}

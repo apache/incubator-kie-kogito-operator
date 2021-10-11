@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package v1 contains API Schema definitions for the mongodb v1 API group
-// +k8s:deepcopy-gen=package,register
-// +groupName=mongodbcommunity.mongodb.com
 package v1
+
+// +k8s:deepcopy-gen=package
+// +versionName=v1
