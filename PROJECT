@@ -14,7 +14,7 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoRuntime
-  path: github.com/kiegroup/kogito-operator/apis/v1beta1
+  path: github.com/kiegroup/kogito-operator/apis/app
   version: v1beta1
 - api:
     crdVersion: v1
@@ -23,7 +23,7 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoSupportingService
-  path: github.com/kiegroup/kogito-operator/apis/v1beta1
+  path: github.com/kiegroup/kogito-operator/apis/app
   version: v1beta1
 - api:
     crdVersion: v1
@@ -32,7 +32,7 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoBuild
-  path: github.com/kiegroup/kogito-operator/apis/v1beta1
+  path: github.com/kiegroup/kogito-operator/apis/app
   version: v1beta1
 - api:
     crdVersion: v1
@@ -41,7 +41,43 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoInfra
-  path: github.com/kiegroup/kogito-operator/apis/v1beta1
+  path: github.com/kiegroup/kogito-operator/apis/app
   version: v1beta1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: rhpam
+  kind: KogitoRuntime
+  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: rhpam
+  kind: KogitoSupportingService
+  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: rhpam
+  kind: KogitoBuild
+  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kiegroup.org
+  group: rhpam
+  kind: KogitoInfra
+  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  version: v1
 version: "3"
 multigroup: true

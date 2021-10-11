@@ -1,4 +1,4 @@
-# Create a copy of ../image.yaml file
+# Create a copy of ../kogito-image.yaml file
 - name: operator-builder
   version: 1.0.0
   from: golang:1.16
@@ -9,7 +9,7 @@
       - path: modules
     install:
       - name: org.kie.kogito.goModDownload
-      - name: org.kie.kogito.buildProfilingOperator
+      - name: org.kie.kogito.app.buildProfilingOperator
 
 - name: operator-runtime
   version: 1.0.0

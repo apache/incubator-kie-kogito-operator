@@ -1,0 +1,65 @@
+schema_version: 1
+name: "rhpam-7/rhpam-kogito-operator-bundle"
+description: "RHPAM Kogito Operator Bundle"
+version: "7.11.0"
+from: "scratch"
+
+labels:
+  - name: maintainer
+    value: bsig-cloud@redhat.com
+  - name: com.redhat.component
+    value: rhpam-7-kogito-rhel8-operator-bundle-container
+  - name: io.k8s.description
+    value: Operator Bundle for deploying RHPAM & RHDM
+  - name: io.k8s.display-name
+    value: Red Hat Business Automation Operator Bundle
+  - name: io.openshift.tags
+    value: rhpam,rhdm,operator
+  - name: operators.operatorframework.io.bundle.mediatype.v1
+    value: registry+v1
+  - name: operators.operatorframework.io.bundle.manifests.v1
+    value: manifests/
+  - name: operators.operatorframework.io.bundle.metadata.v1
+    value: metadata/
+  - name: operators.operatorframework.io.bundle.package.v1
+    value: rhpam-kogito-operator
+  - name: operators.operatorframework.io.bundle.channels.v1
+    value: 7.x
+  - name: operators.operatorframework.io.bundle.channel.default.v1
+    value: 7.x
+  - name: operators.operatorframework.io.metrics.mediatype.v1
+    value: metrics+v1
+  - name: operators.operatorframework.io.metrics.builder
+    value: operator-sdk-v1.11.0
+  - name: operators.operatorframework.io.metrics.project_layout
+    value: go.kubebuilder.io/v2
+  - name: operators.operatorframework.io.test.config.v1
+    value: tests/scorecard/
+  - name: operators.operatorframework.io.test.mediatype.v1
+    value: scorecard+v1
+  - name: com.redhat.delivery.operator.bundle
+    value: "true"
+  - name: com.redhat.openshift.versions
+    value: v4.6
+
+modules:
+  repositories:
+    - path: modules
+  install:
+    - name: org.kie.kogito.rhpam.bundleinstall
+
+osbs:
+  configuration:
+    container:
+      operator_manifests:
+        enable_digest_pinning: true
+        enable_repo_replacements: true
+        enable_registry_replacements: true
+        manifests_dir: "manifests"
+      platforms:
+        only:
+          - x86_64
+  extra_dir: osbs-extra
+  repository:
+    name: containers/rhpam-7-kogito-operator-bundle
+    branch: rhba-7-rhel-8

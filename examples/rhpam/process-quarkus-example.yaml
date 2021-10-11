@@ -1,0 +1,20 @@
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoBuild
+metadata:
+  name: example-quarkus
+spec:
+  type: RemoteSource
+  #env:
+  # env can be used to set variables during build
+  #- name: MY_CUSTOM_ENV
+  #  value: "my value"
+  gitSource:
+    contextDir: process-quarkus-example
+    uri: 'https://github.com/kiegroup/kogito-examples'
+  # set your maven nexus repository
+  #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
+---
+apiVersion: rhpam.kiegroup.org/v1
+kind: KogitoRuntime
+metadata:
+  name: example-quarkus

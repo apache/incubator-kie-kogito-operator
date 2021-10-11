@@ -17,7 +17,8 @@ package config
 import (
 	"path/filepath"
 
-	"github.com/kiegroup/kogito-operator/version"
+	"github.com/kiegroup/kogito-operator/version/app"
+
 	flag "github.com/spf13/pflag"
 )
 
@@ -41,6 +42,7 @@ type TestConfig struct {
 	operatorImageTag           string
 	operatorInstallationSource string
 	operatorCatalogImage       string
+	useProductOperator         bool
 
 	// profiling
 	operatorProfiling                  bool
@@ -48,8 +50,9 @@ type TestConfig struct {
 	operatorProfilingOutputFileURI     string
 
 	// files/binaries
-	operatorYamlURI string
-	cliPath         string
+	operatorYamlURI      string
+	rhpamOperatorYamlURI string
+	cliPath              string
 
 	// runtime
 	servicesImageRegistry             string
@@ -104,8 +107,9 @@ type TestConfig struct {
 }
 
 const (
-	defaultOperatorYamlURI = "../kogito-operator.yaml"
-	defaultCliPath         = "../build/_output/bin/kogito"
+	defaultOperatorYamlURI      = "../kogito-operator.yaml"
+	defaultRhpamOperatorYamlURI = "../rhpam-operator.yaml"
+	defaultCliPath              = "../build/_output/bin/kogito"
 
 	defaultOperatorProfilingDataAccessYamlURI = "../profiling/kogito-operator-profiling-data-access.yaml"
 	defaultOperatorProfilingOutputFileURI     = "./bdd-cover.out"
@@ -122,7 +126,7 @@ const (
 )
 
 var (
-	defaultOperatorImageTag = version.Version
+	defaultOperatorImageTag = app.Version
 
 	env = TestConfig{}
 )
@@ -150,6 +154,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.StringVar(&env.operatorImageTag, prefix+"operator-image-tag", defaultOperatorImageTag, "Operator image tag")
 	set.StringVar(&env.operatorInstallationSource, prefix+"operator-installation-source", installationSourceYaml, "Operator installation source")
 	set.StringVar(&env.operatorCatalogImage, prefix+"operator-catalog-image", "", "Operator catalog image")
+	set.BoolVar(&env.useProductOperator, prefix+"use-product-operator", false, "Set to true to deploy RHPAM Kogito operator, false for using Kogito operator. Default is false.")
 
 	// operator profiling
 	set.BoolVar(&env.operatorProfiling, prefix+"operator-profiling", false, "Enable the profiling of the operator. If enabled, operator will be automatically deployed with yaml files.")
@@ -158,6 +163,7 @@ func BindFlags(set *flag.FlagSet) {
 
 	// files/binaries
 	set.StringVar(&env.operatorYamlURI, prefix+"operator-yaml-uri", defaultOperatorYamlURI, "Url or Path to kogito-operator.yaml file")
+	set.StringVar(&env.rhpamOperatorYamlURI, prefix+"rhpam-operator-yaml-uri", defaultRhpamOperatorYamlURI, "Url or Path to kogito-operator.yaml file")
 	set.StringVar(&env.cliPath, prefix+"cli-path", defaultCliPath, "Path to built CLI to test")
 
 	// runtime
@@ -296,6 +302,11 @@ func GetOperatorCatalogImage() string {
 	return env.operatorCatalogImage
 }
 
+// UseProductOperator return true if RHPAM Kogito operator should be used, false for Kogito operator
+func UseProductOperator() bool {
+	return env.useProductOperator
+}
+
 // operator profiling
 
 // IsOperatorProfiling returns whether the operator profiling is activated
@@ -318,6 +329,11 @@ func GetOperatorProfilingOutputFileURI() string {
 // GetOperatorYamlURI return the uri for kogito-operator.yaml file
 func GetOperatorYamlURI() string {
 	return env.operatorYamlURI
+}
+
+// GetRhpamOperatorYamlURI return the uri for rhpam-kogito-operator.yaml file
+func GetRhpamOperatorYamlURI() string {
+	return env.rhpamOperatorYamlURI
 }
 
 // GetOperatorCliPath return the path to the kogito CLI binary

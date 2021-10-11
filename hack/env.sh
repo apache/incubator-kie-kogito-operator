@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CSV_DIR="config/manifests/bases"
+CSV_DIR="config/manifests/app/bases"
 TEST_CONFIG_FILE="test/.default_config"
 
 DEPENDENT_CRDS_KEYS=(grafana hyperfoil infinispan kafka keycloak knative kogito mongodb)
 DEPENDENT_SENSITIVE_CRDS_KEYS=(prometheus)
 
 getOperatorVersion() {
-  local version=$(grep -m 1 'Version =' version/version.go) && version=$(echo ${version#*=} | tr -d '"' | tr -d ' ')
+  local version=$(grep -m 1 'Version =' version/app/version.go) && version=$(echo ${version#*=} | tr -d '"' | tr -d ' ')
   echo "${version}"
 }
 

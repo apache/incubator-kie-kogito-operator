@@ -16,6 +16,7 @@ package meta
 
 import (
 	kogito "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	rhpamkogito "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 	grafana "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
 	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
 	kafka "github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
@@ -33,6 +34,7 @@ import (
 	sources "knative.dev/eventing/pkg/apis/sources/v1"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
@@ -76,6 +78,7 @@ func GetRegisteredSchema() *runtime.Scheme {
 func getRegisteredSchemeBuilder() runtime.SchemeBuilder {
 	return runtime.NewSchemeBuilder(
 		kogito.SchemeBuilder.AddToScheme,
+		rhpamkogito.SchemeBuilder.AddToScheme,
 		clientgoscheme.AddToScheme,
 		corev1.AddToScheme,
 		coreappsv1.AddToScheme,
@@ -96,5 +99,7 @@ func getRegisteredSchemeBuilder() runtime.SchemeBuilder {
 		hyperfoil.AddToScheme,
 		olmapiv1alpha1.AddToScheme,
 		olmapiv1.AddToScheme,
-		olmv1.AddToScheme)
+		olmv1.AddToScheme,
+		// Required for MogoDB, can be removed once we start using newer MongoDB operator version
+		apiextensionsv1beta1.AddToScheme)
 }

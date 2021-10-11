@@ -28,7 +28,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/internal"
+	"github.com/kiegroup/kogito-operator/internal/app"
 	"github.com/kiegroup/kogito-operator/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -106,7 +106,7 @@ func printMgmtConsoleInfo(client *client.Client, project string) error {
 		Log:    logger.GetLogger("deploy_runtime"),
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	supportingServiceHandler := internal.NewKogitoSupportingServiceHandler(context)
+	supportingServiceHandler := app.NewKogitoSupportingServiceHandler(context)
 	supportingServiceManager := manager.NewKogitoSupportingServiceManager(context, supportingServiceHandler)
 	route, err := supportingServiceManager.FetchKogitoSupportingServiceRoute(project, api.MgmtConsole)
 	if err != nil {

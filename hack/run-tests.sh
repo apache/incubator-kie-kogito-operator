@@ -57,6 +57,7 @@ function usage(){
   printf "\n--operator_tag {TAG}\n\tOperator image tag. Default is operator version."
   printf "\n--operator_installation_source {TAG}\n\tDefines installation source for the Kogito operator. Options are 'olm' and 'yaml'. Default is yaml."
   printf "\n--operator_catalog_image {TAG}\n\tDefines image containing operator catalog. Needs to be specified only when operator_installation_source is 'olm'."
+  printf "\n--use_product_operator {TAG}\n\tSet to true to deploy RHPAM Kogito operator, false for using Kogito operator. Default is false."
 
   # operator profiling
   printf "\n--operator_profiling\n\tEnable the profiling of the operator. If enabled, operator will be automatically deployed with yaml files."
@@ -66,6 +67,7 @@ function usage(){
   # files/binaries
   printf "\n--operator_yaml_uri {URI}\n\tUrl or Path to kogito-operator.yaml file."
   printf "\n--cli_path {PATH}\n\tPath to built CLI to test. Default is local built one."
+  printf "\n--rhpam_operator_yaml_uri {URI}\n\tUrl or Path to kogito-operator.yaml file."
 
   # runtime
 
@@ -285,6 +287,10 @@ case $1 in
     shift
     if addParamKeyValueIfAccepted "--tests.operator-catalog-image" ${1}; then shift; fi
   ;;
+  --use_product_operator)
+    addParam "--tests.use-product-operator"
+    shift
+  ;;
 
   # operator profiling
   --operator_profiling)
@@ -308,6 +314,10 @@ case $1 in
   --cli_path)
     shift
     if addParamKeyValueIfAccepted "--tests.cli-path" ${1}; then shift; fi
+  ;;
+  --rhpam_operator_yaml_uri)
+    shift
+    if addParamKeyValueIfAccepted "--tests.rhpam-operator-yaml-uri" ${1}; then shift; fi
   ;;
 
   # runtime

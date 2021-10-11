@@ -10,7 +10,7 @@ VERSION ?= 2.0.0-snapshot
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
 # - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
-CHANNELS=alpha,1.x
+CHANNELS ?= alpha,1.x
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
@@ -20,7 +20,7 @@ endif
 # To re-generate a bundle for any other default channel without changing the default setup, you can:
 # - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
 # - use environment variables to overwrite this value (e.g export DEFAULT_CHANNEL="stable")
-DEFAULT_CHANNEL=1.x
+DEFAULT_CHANNEL ?= 1.x
 ifneq ($(origin DEFAULT_CHANNEL), undefined)
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
@@ -79,6 +79,7 @@ SHELL = /usr/bin/env bash -o pipefail
 print-%  : ; @echo $($*)
 
 all: generate manifests docker-build
+	echo "calling APP all ##################################"
 
 profiling: generate manifests profiling-build
 
@@ -106,11 +107,15 @@ test: fmt lint
 	./hack/go-test.sh
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	echo "calling APP manifests ##################################"
 	./hack/kogito-module-api.sh --disable
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./apis/app/..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/app/..." output:crd:artifacts:config=config/crd/app/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/app" output:rbac:artifacts:config=config/rbac/app
+	$(CONTROLLER_GEN) webhook paths="./..."
 	./hack/kogito-module-api.sh --enable
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	echo "calling APP generate ##################################"
 	./hack/kogito-module-api.sh --disable
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths=./...
 	./hack/kogito-module-api.sh --enable
@@ -124,6 +129,8 @@ fmt: ## Run go fmt against code.
 lint:
 	./hack/go-lint.sh
 
+# Run vet
+.PHONY: vet
 vet: generate-installer generate-profiling-installer bundle ## Run go vet against code.
 	go vet ./...
 
@@ -142,17 +149,18 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 docker-build: ## Build the docker image
-	cekit -v build $(BUILDER)
+	echo "calling APP docker-build ##################################"
+	cekit -v --descriptor kogito-image.yaml build $(BUILDER)
 	$(BUILDER) tag operator-runtime ${IMG}
 
 docker-push: ## Push the docker image
 	$(BUILDER) push ${IMG}
 
 profiling-build: ## Build the profiling docker image
-	cp image.yaml image.yaml.save && \
-	cp profiling/image.yaml image.yaml && \
-	cekit -v build $(BUILDER); \
-	mv image.yaml.save image.yaml
+	cp kogito-image.yaml kogito-image.yaml.save && \
+	cp profiling/image.yaml kogito-image.yaml && \
+	cekit -v --descriptor kogito-image.yaml build $(BUILDER); \
+	mv kogito-image.yaml.save kogito-image.yaml
 	$(BUILDER) tag operator-runtime ${PROFILING_IMG}
 
 profiling-push: ## Push the profiling docker image
@@ -210,13 +218,13 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-.PHONY: bundle
 bundle: manifests kustomize install-operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
+	echo "calling APP bundle ##################################"
 	./hack/kogito-module-api.sh --disable
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle
+	operator-sdk generate kustomize manifests  --apis-dir=apis/app --input-dir=./config/manifests/app --output-dir=./config/manifests/app --package=kogito-operator -q
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/manifests/app | operator-sdk generate bundle --package=kogito-operator --output-dir=bundle/app -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle/app
 	./hack/kogito-module-api.sh --enable
 
 .PHONY: bundle-build
@@ -258,14 +266,16 @@ catalog-push: ## Push a catalog image.
 
 
 generate-installer: generate manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/default > kogito-operator.yaml
+	echo "calling APP generate-installer ##################################"
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/default/app > kogito-operator.yaml
 
 generate-profiling-installer: generate manifests kustomize
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(PROFILING_IMG)
+	echo "calling APP generate-profiling-installer ##################################"
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(PROFILING_IMG)
 	$(KUSTOMIZE) build config/profiling > profiling/kogito-operator-profiling.yaml
 	$(KUSTOMIZE) build config/profiling-data-access > profiling/kogito-operator-profiling-data-access.yaml
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	cd config/manager/app && $(KUSTOMIZE) edit set image controller=$(IMG)
 
 # Update bundle manifest files for test purposes, will override default image tag and remove the replaces field
 .PHONY: update-bundle
