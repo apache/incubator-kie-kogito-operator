@@ -2478,7 +2478,7 @@ spec:
           value: kogito-runtime-native
         - name: IMAGE_REGISTRY
           value: quay.io/kiegroup
-        image: quay.io/kiegroup/kogito-operator-profiling:2.0.0-snapshot
+        image: quay.io/kiegroup/kogito-operator-profiling:1.12.0
         livenessProbe:
           httpGet:
             path: /healthz
