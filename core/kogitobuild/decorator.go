@@ -51,7 +51,7 @@ type DecoratorHandler interface {
 	decoratorForBinaryRuntimeBuilder() decorator
 	decoratorForSourceRuntimeBuilder() decorator
 	decoratorForRuntimeBuilder() decorator
-	decoratorForCustomLabels() decorator
+	decoratorForMeteringLabels() decorator
 }
 
 type decoratorHandler struct {
@@ -240,8 +240,8 @@ func getBuilderImageStreamOutputTo(build api.KogitoBuildInterface) *corev1.Objec
 	}
 }
 
-func (b *decoratorHandler) decoratorForCustomLabels() decorator {
+func (b *decoratorHandler) decoratorForMeteringLabels() decorator {
 	return func(build api.KogitoBuildInterface, bc *buildv1.BuildConfig) {
-		util.AppendToStringMap(b.Labels, bc.Labels)
+		util.AppendToStringMap(b.MeteringLabels, bc.Labels)
 	}
 }

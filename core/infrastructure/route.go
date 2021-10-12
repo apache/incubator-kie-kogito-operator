@@ -16,13 +16,12 @@ package infrastructure
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/client/openshift"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	routev1 "github.com/openshift/api/route/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"reflect"
@@ -32,7 +31,7 @@ import (
 type RouteHandler interface {
 	FetchRoute(key types.NamespacedName) (*routev1.Route, error)
 	GetHostFromRoute(routeKey types.NamespacedName) (string, error)
-	CreateRoute(instance api.KogitoService) *routev1.Route
+	CreateRoute(key types.NamespacedName) *routev1.Route
 	GetComparator() compare.MapComparator
 }
 
@@ -67,20 +66,20 @@ func (r *routeHandler) GetHostFromRoute(routeKey types.NamespacedName) (string, 
 }
 
 // createRequiredRoute creates a new Route resource based on the given Service
-func (r *routeHandler) CreateRoute(instance api.KogitoService) *routev1.Route {
+func (r *routeHandler) CreateRoute(key types.NamespacedName) *routev1.Route {
 	route := &routev1.Route{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      instance.GetName(),
-			Namespace: instance.GetNamespace(),
-			Labels:    map[string]string{framework.LabelAppKey: instance.GetName()},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      key.Name,
+			Namespace: key.Namespace,
+			Labels:    map[string]string{framework.LabelAppKey: key.Name},
 		},
 		Spec: routev1.RouteSpec{
 			Port: &routev1.RoutePort{
-				TargetPort: intstr.FromString(framework.DefaultPortName),
+				TargetPort: intstr.FromString(framework.DefaultHTTPPortName),
 			},
 			To: routev1.RouteTargetReference{
 				Kind: openshift.KindService.Name,
-				Name: instance.GetName(),
+				Name: key.Name,
 			},
 		},
 	}

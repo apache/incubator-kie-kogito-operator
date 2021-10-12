@@ -53,7 +53,7 @@ type ProtoBufConfigMapHandler interface {
 type protobufConfigMapHandler struct {
 	operator.Context
 	deploymentHandler    infrastructure.DeploymentHandler
-	kogitoServiceHandler kogitoservice.ServiceHandler
+	kogitoServiceHandler framework.ServiceHandler
 	configMapHandler     infrastructure.ConfigMapHandler
 }
 
@@ -62,7 +62,7 @@ func NewProtoBufConfigMapHandler(context operator.Context) ProtoBufConfigMapHand
 	return &protobufConfigMapHandler{
 		Context:              context,
 		deploymentHandler:    infrastructure.NewDeploymentHandler(context),
-		kogitoServiceHandler: kogitoservice.NewKogitoServiceHandler(context),
+		kogitoServiceHandler: framework.NewKogitoServiceHandler(context),
 		configMapHandler:     infrastructure.NewConfigMapHandler(context),
 	}
 }
@@ -117,10 +117,10 @@ func (p *protobufConfigMapHandler) getProtobufData(runtimeInstance api.KogitoRun
 	}
 	if !available {
 		p.Log.Debug("deployment not available")
-		return nil, infrastructure.ErrorForDeploymentNotReachable(runtimeInstance.GetName())
+		return nil, framework.ErrorForDeploymentNotReachable(runtimeInstance.GetName())
 	}
 
-	protobufEndpoint := p.kogitoServiceHandler.GetKogitoServiceEndpoint(runtimeInstance) + protobufSubdir
+	protobufEndpoint := p.kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: runtimeInstance.GetName(), Namespace: runtimeInstance.GetNamespace()}) + protobufSubdir
 	protobufListURL := protobufEndpoint + protobufListFileName
 	protobufListBytes, err := getHTTPFileBytes(protobufListURL)
 	if err != nil {

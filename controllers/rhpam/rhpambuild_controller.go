@@ -39,6 +39,6 @@ func NewKogitoBuildReconciler(client *client.Client, scheme *runtime.Scheme) *co
 		Version:           rhpam2.Version,
 		BuildHandler:      rhpam.NewKogitoBuildHandler,
 		ReconcilingObject: &v1.KogitoBuild{},
-		Labels:            getMeteringLabels(),
+		MeteringLabels:    getMeteringLabels(),
 	}
 }

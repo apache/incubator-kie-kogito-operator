@@ -15,7 +15,7 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
@@ -68,6 +68,6 @@ func TestTrustStoreReconcilerTrustStore_MissingCM(t *testing.T) {
 	trustStoreReconciler := newTrustStoreReconciler(context, instance, &serviceDefinition)
 	err := trustStoreReconciler.Reconcile()
 	assert.Error(t, err)
-	errorHandler := infrastructure.NewReconciliationErrorHandler(context)
-	assert.Equal(t, infrastructure.TrustStoreMountFailureReason, errorHandler.GetReasonForError(err))
+	errorHandler := framework.NewReconciliationErrorHandler(context)
+	assert.Equal(t, framework.TrustStoreMountFailureReason, errorHandler.GetReasonForError(err))
 }

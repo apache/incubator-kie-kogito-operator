@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
@@ -82,7 +81,7 @@ func (k *kogitoInfraReconciler) checkInfraDependencies(infra api.KogitoInfraInte
 		if err != nil {
 			return err
 		}
-		return infrastructure.ErrorForInfraNotReady(k.instance.GetName(), infra.GetName(), conditionReason)
+		return framework.ErrorForInfraNotReady(k.instance.GetName(), infra.GetName(), conditionReason)
 	}
 	return nil
 }

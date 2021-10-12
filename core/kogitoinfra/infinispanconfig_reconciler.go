@@ -100,7 +100,7 @@ func (i *infinispanConfigReconciler) getDeployedResources() (map[reflect.Type][]
 
 func (i *infinispanConfigReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := i.configMapHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.Context)
+	deltaProcessor := framework.NewDeltaProcessor(i.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }

@@ -30,7 +30,7 @@ func (m *binaryManager) GetRequestedResources() (map[reflect.Type][]client.Objec
 	resources := make(map[reflect.Type][]client.Object)
 	decoratorHandler := NewDecoratorHandler(m.BuildContext)
 	buildConfigHandler := NewBuildConfigHandler(m.BuildContext)
-	buildConfig := buildConfigHandler.newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForBinaryRuntimeBuilder(), decoratorHandler.decoratorForCustomLabels())
+	buildConfig := buildConfigHandler.newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForBinaryRuntimeBuilder(), decoratorHandler.decoratorForMeteringLabels())
 	imageStream, err := newOutputImageStreamForRuntime(m.Context, &buildConfig, m.build)
 	if err != nil {
 		return resources, err

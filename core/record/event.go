@@ -31,31 +31,32 @@ import (
 type EventRecorder interface {
 
 	// The resulting event will be created in the same namespace as the reference object.
-	Event(cli *client.Client, object runtime.Object, eventType, reason, message string)
+	Event(object runtime.Object, eventType, reason, message string)
 
 	// Eventf is just like Event, but with Sprintf for the message field.
-	Eventf(cli *client.Client, object runtime.Object, eventType, reason, messageFmt string, args ...interface{})
+	Eventf(object runtime.Object, eventType, reason, messageFmt string, args ...interface{})
 }
 
 // NewRecorder returns an EventRecorder that can be used to send events with the given event source.
-func NewRecorder(scheme *runtime.Scheme, source corev1.EventSource) EventRecorder {
-	return &recorderImpl{scheme, source}
+func NewRecorder(cli *client.Client, scheme *runtime.Scheme, source corev1.EventSource) EventRecorder {
+	return &recorderImpl{cli, scheme, source}
 }
 
 type recorderImpl struct {
+	cli    *client.Client
 	scheme *runtime.Scheme
 	source corev1.EventSource
 }
 
-func (recorder *recorderImpl) Event(cli *client.Client, object runtime.Object, eventType, reason, message string) {
-	recorder.generateEvent(cli, object, eventType, reason, message)
+func (recorder *recorderImpl) Event(object runtime.Object, eventType, reason, message string) {
+	recorder.generateEvent(object, eventType, reason, message)
 }
 
-func (recorder *recorderImpl) Eventf(cli *client.Client, object runtime.Object, eventType, reason, messageFmt string, args ...interface{}) {
-	recorder.Event(cli, object, eventType, reason, fmt.Sprintf(messageFmt, args...))
+func (recorder *recorderImpl) Eventf(object runtime.Object, eventType, reason, messageFmt string, args ...interface{}) {
+	recorder.Event(object, eventType, reason, fmt.Sprintf(messageFmt, args...))
 }
 
-func (recorder *recorderImpl) generateEvent(cli *client.Client, object runtime.Object, eventType, reason, message string) {
+func (recorder *recorderImpl) generateEvent(object runtime.Object, eventType, reason, message string) {
 	objectRef, err := ref.GetReference(recorder.scheme, object)
 	if err != nil {
 		log.Error(err, "Could not construct object reference. Event will not be reported", "object", object, "error", err, "event type", eventType, "reason", reason, "message", message)
@@ -70,7 +71,7 @@ func (recorder *recorderImpl) generateEvent(cli *client.Client, object runtime.O
 	event := makeEvent(objectRef, eventType, reason, message)
 	event.Source = recorder.source
 
-	if err := kubernetes.ResourceC(cli).Create(event); err != nil {
+	if err := kubernetes.ResourceC(recorder.cli).Create(event); err != nil {
 		log.Error(err, "Error occurs while creating event", "event", event)
 	}
 }

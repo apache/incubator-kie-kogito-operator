@@ -31,8 +31,8 @@ func (m *sourceManager) GetRequestedResources() (map[reflect.Type][]client.Objec
 	resources := make(map[reflect.Type][]client.Object)
 	decoratorHandler := NewDecoratorHandler(m.BuildContext)
 	buildConfigHandler := NewBuildConfigHandler(m.BuildContext)
-	builderBC := buildConfigHandler.newBuildConfig(m.build, decoratorHandler.decoratorForSourceBuilder(), m.getBuilderDecorator(), decoratorHandler.decoratorForCustomLabels())
-	runtimeBC := buildConfigHandler.newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForSourceRuntimeBuilder(), decoratorHandler.decoratorForCustomLabels())
+	builderBC := buildConfigHandler.newBuildConfig(m.build, decoratorHandler.decoratorForSourceBuilder(), m.getBuilderDecorator(), decoratorHandler.decoratorForMeteringLabels())
+	runtimeBC := buildConfigHandler.newBuildConfig(m.build, decoratorHandler.decoratorForRuntimeBuilder(), decoratorHandler.decoratorForSourceRuntimeBuilder(), decoratorHandler.decoratorForMeteringLabels())
 	builderIS := newOutputImageStreamForBuilder(&builderBC)
 	runtimeIS, err := newOutputImageStreamForRuntime(m.Context, &runtimeBC, m.build)
 	if err != nil {

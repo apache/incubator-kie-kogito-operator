@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package deployment
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	"regexp"
@@ -25,7 +26,6 @@ import (
 
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 
-	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
@@ -40,11 +40,12 @@ const (
 
 // GrafanaDashboardManager ...
 type GrafanaDashboardManager interface {
-	ConfigureGrafanaDashboards(kogitoService api.KogitoService) error
+	ConfigureGrafanaDashboards() error
 }
 
 type grafanaDashboardManager struct {
 	operator.Context
+	deployment *v1.Deployment
 }
 
 // GrafanaDashboard is a structure that contains the fetched dashboards
@@ -53,11 +54,11 @@ type GrafanaDashboard struct {
 	RawJSONDashboard string
 }
 
-// NewGrafanaDashboardManager ...
-func NewGrafanaDashboardManager(context operator.Context) GrafanaDashboardManager {
+func newGrafanaDashboardManager(context operator.Context, deployment *v1.Deployment) GrafanaDashboardManager {
 	context.Log = context.Log.WithValues("monitoring", "grafana")
 	return &grafanaDashboardManager{
-		context,
+		Context:    context,
+		deployment: deployment,
 	}
 }
 
@@ -65,19 +66,20 @@ var (
 	dashboardNameRegex = regexp.MustCompile("[^a-zA-Z0-9-]+")
 )
 
-func (d *grafanaDashboardManager) ConfigureGrafanaDashboards(kogitoService api.KogitoService) error {
+func (d *grafanaDashboardManager) ConfigureGrafanaDashboards() error {
+	d.Log.Debug("Going to configuring Grafana Dashboard")
 	grafanaAvailable := d.isGrafanaAvailable()
 	if !grafanaAvailable {
 		d.Log.Debug("grafana operator not available in namespace")
 		return nil
 	}
 
-	dashboards, err := d.fetchGrafanaDashboards(kogitoService)
+	dashboards, err := d.fetchGrafanaDashboards()
 	if err != nil {
 		return err
 	}
 
-	err = d.deployGrafanaDashboards(dashboards, kogitoService)
+	err = d.deployGrafanaDashboards(dashboards)
 	return err
 }
 
@@ -86,19 +88,19 @@ func (d *grafanaDashboardManager) isGrafanaAvailable() bool {
 	return d.Client.HasServerGroup(grafanav1.GroupVersion.Group)
 }
 
-func (d *grafanaDashboardManager) fetchGrafanaDashboards(instance api.KogitoService) ([]GrafanaDashboard, error) {
+func (d *grafanaDashboardManager) fetchGrafanaDashboards() ([]GrafanaDashboard, error) {
 	deploymentHandler := infrastructure.NewDeploymentHandler(d.Context)
-	available, err := deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
+	available, err := deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: d.deployment.GetName(), Namespace: d.deployment.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}
 	if !available {
-		d.Log.Debug("Deployment not yet available")
-		return nil, nil
+		d.Log.Debug("Deployment is currently not available, will try in next reconciliation loop")
+		return nil, framework.ErrorForDeploymentNotReachable(d.deployment.GetName())
 	}
 
-	kogitoServiceHandler := NewKogitoServiceHandler(d.Context)
-	svcURL := kogitoServiceHandler.GetKogitoServiceEndpoint(instance)
+	kogitoServiceHandler := framework.NewKogitoServiceHandler(d.Context)
+	svcURL := kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: d.deployment.GetName(), Namespace: d.deployment.GetNamespace()})
 	dashboardNames, err := d.fetchGrafanaDashboardNamesForURL(svcURL)
 	if err != nil {
 		return nil, err
@@ -111,7 +113,9 @@ func (d *grafanaDashboardManager) fetchGrafanaDashboardNamesForURL(serverURL str
 	dashboardsURL := fmt.Sprintf("%s%s%s", serverURL, dashboardsPath, "list.json")
 	resp, err := http.Get(dashboardsURL)
 	if err != nil {
-		return nil, err
+		//d.Log.Error(err, "Error occurs while fetching dashboard name", "dashboardsURL", dashboardsURL)
+		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Grafana", "Error occurs while fetching dashboard name. Error : %s", err.Error())
+		return nil, nil
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
@@ -119,7 +123,7 @@ func (d *grafanaDashboardManager) fetchGrafanaDashboardNamesForURL(serverURL str
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, infrastructure.ErrorForServiceNotReachable(resp.StatusCode, dashboardsURL, "GET")
+		return nil, framework.ErrorForServiceNotReachable(resp.StatusCode, dashboardsURL, "GET")
 	}
 	var dashboardNames []string
 	if err := json.NewDecoder(resp.Body).Decode(&dashboardNames); err != nil {
@@ -164,22 +168,22 @@ func (d *grafanaDashboardManager) fetchDashboard(name, dashboardURL string) (*Gr
 	return &GrafanaDashboard{Name: name, RawJSONDashboard: string(bodyBytes)}, nil
 }
 
-func (d *grafanaDashboardManager) deployGrafanaDashboards(dashboards []GrafanaDashboard, kogitoService api.KogitoService) error {
+func (d *grafanaDashboardManager) deployGrafanaDashboards(dashboards []GrafanaDashboard) error {
 	for _, dashboard := range dashboards {
 		resourceName := sanitizeDashboardName(dashboard.Name)
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      resourceName,
-				Namespace: kogitoService.GetNamespace(),
+				Namespace: d.deployment.GetNamespace(),
 				Labels: map[string]string{
-					framework.LabelAppKey: kogitoService.GetName(),
+					framework.LabelAppKey: d.deployment.GetName(),
 				},
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
 				JSON: dashboard.RawJSONDashboard,
 			},
 		}
-		if err := kubernetes.ResourceC(d.Client).CreateIfNotExistsForOwner(dashboardDefinition, kogitoService, d.Scheme); err != nil {
+		if err := kubernetes.ResourceC(d.Client).CreateIfNotExistsForOwner(dashboardDefinition, d.deployment, d.Scheme); err != nil {
 			d.Log.Error(err, "Error occurs while creating dashboard, not going to reconcile the resource", "dashboard name", dashboard.Name)
 			return err
 		}

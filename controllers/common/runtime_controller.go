@@ -17,6 +17,7 @@ package common
 import (
 	"context"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/logger"
@@ -44,20 +45,9 @@ type KogitoRuntimeReconciler struct {
 	SupportServiceHandler func(context operator.Context) manager.KogitoSupportingServiceHandler
 	InfraHandler          func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject     client.Object
-	Labels                map[string]string
+	MeteringLabels        map[string]string
+	DeploymentLabels      map[string]string
 }
-
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes/finalizers,verbs=get;update;patch
-//+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
-//+kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
-//+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings;roles,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;serviceaccounts;services,verbs=create;delete;get;list;patch;update;watch
 
 // Reconcile reads that state of the cluster for a KogitoRuntime object and makes changes based on the state read
 // and what is in the KogitoRuntime.Spec
@@ -67,11 +57,12 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// create kogitoContext
 	kogitoContext := operator.Context{
-		Client:  r.Client,
-		Log:     log,
-		Scheme:  r.Scheme,
-		Version: r.Version,
-		Labels:  r.Labels,
+		Client:           r.Client,
+		Log:              log,
+		Scheme:           r.Scheme,
+		Version:          r.Version,
+		MeteringLabels:   r.MeteringLabels,
+		DeploymentLabels: r.DeploymentLabels,
 	}
 
 	// fetch the requested instance
@@ -102,14 +93,14 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	infraHandler := r.InfraHandler(kogitoContext)
 	err = kogitoservice.NewServiceDeployer(kogitoContext, definition, instance, infraHandler).Deploy()
 	if err != nil {
-		return infrastructure.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
+		return framework.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
 	}
 
 	protoBufHandler := shared.NewProtoBufHandler(kogitoContext, supportingServiceHandler)
 	err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance)
 	if err != nil {
 		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
-		return infrastructure.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
+		return framework.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
 	}
 
 	log.Debug("Finish reconciliation", "requeue", result.Requeue, "requeueAfter", result.RequeueAfter)
@@ -122,9 +113,6 @@ func (r *KogitoRuntimeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		// Don't watch delete events as the resource removals will be handled by its finalizer
 		DeleteFunc: func(e event.DeleteEvent) bool {
 			return false
-		},
-		UpdateFunc: func(e event.UpdateEvent) bool {
-			return e.ObjectNew.GetDeletionTimestamp().IsZero()
 		},
 	}
 	b := ctrl.NewControllerManagedBy(mgr).

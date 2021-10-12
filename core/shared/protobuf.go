@@ -89,7 +89,7 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.
 		if err = kubernetes.ResourceC(p.Client).Create(protoBufConfigMap); err != nil {
 			return err
 		}
-		return infrastructure.ErrorForProcessingProtoBufConfigMapDelta()
+		return framework.ErrorForProcessingProtoBufConfigMapDelta()
 	}
 
 	// mount protobuf configmap on data-index deployment

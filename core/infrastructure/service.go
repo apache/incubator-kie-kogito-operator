@@ -16,7 +16,6 @@ package infrastructure
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -35,7 +34,7 @@ const (
 // ServiceHandler ...
 type ServiceHandler interface {
 	FetchService(key types.NamespacedName) (*corev1.Service, error)
-	CreateService(instance api.KogitoService) *corev1.Service
+	CreateService(key types.NamespacedName) *corev1.Service
 	GetComparator() compare.MapComparator
 }
 
@@ -64,23 +63,20 @@ func (s *serviceHandler) FetchService(key types.NamespacedName) (*corev1.Service
 	}
 }
 
-func (s *serviceHandler) CreateService(instance api.KogitoService) *corev1.Service {
+func (s *serviceHandler) CreateService(key types.NamespacedName) *corev1.Service {
 	ports := createServicePorts()
-	labels := instance.GetSpec().GetServiceLabels()
-	if labels == nil {
-		labels = make(map[string]string)
-	}
-	labels[framework.LabelAppKey] = instance.GetName()
+	labels := make(map[string]string)
+	labels[framework.LabelAppKey] = key.Name
 
 	svc := corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.GetName(),
-			Namespace: instance.GetNamespace(),
+			Name:      key.Name,
+			Namespace: key.Namespace,
 			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports:    ports,
-			Selector: map[string]string{framework.LabelAppKey: instance.GetName()},
+			Selector: map[string]string{framework.LabelAppKey: key.Name},
 			Type:     corev1.ServiceTypeClusterIP,
 		},
 	}
@@ -91,7 +87,7 @@ func (s *serviceHandler) CreateService(instance api.KogitoService) *corev1.Servi
 func createServicePorts() []corev1.ServicePort {
 	svcPorts := []corev1.ServicePort{
 		{
-			Name:       framework.DefaultPortName,
+			Name:       framework.DefaultHTTPPortName,
 			Protocol:   corev1.ProtocolTCP,
 			Port:       defaultHTTPPort,
 			TargetPort: intstr.FromInt(framework.DefaultExposedPort),

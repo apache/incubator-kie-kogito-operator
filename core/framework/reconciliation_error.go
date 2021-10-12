@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package infrastructure
+package framework
 
 import (
 	"errors"
@@ -152,7 +152,7 @@ func ErrorForDeploymentNotReachable(instance string) ReconciliationError {
 	return ReconciliationError{
 		reason:                 DeploymentNotAvailable,
 		reconciliationInterval: ReconciliationAfterThirty,
-		innerError:             fmt.Errorf("Deployment is not yet available for service instance %s ", instance),
+		innerError:             fmt.Errorf("Deployment is not yet available for service deployment %s ", instance),
 	}
 }
 

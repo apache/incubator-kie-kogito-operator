@@ -99,7 +99,7 @@ func (i *mongoDBCredentialReconciler) getDeployedResources() (map[reflect.Type][
 
 func (i *mongoDBCredentialReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := i.secretHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.infraContext.Context)
+	deltaProcessor := framework.NewDeltaProcessor(i.infraContext.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }

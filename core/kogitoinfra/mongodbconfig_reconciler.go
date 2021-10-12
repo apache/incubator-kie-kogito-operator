@@ -100,7 +100,7 @@ func (i *mongoDBConfigReconciler) getDeployedResources() (map[reflect.Type][]cli
 
 func (i *mongoDBConfigReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := i.configMapHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.infraContext.Context)
+	deltaProcessor := framework.NewDeltaProcessor(i.infraContext.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }

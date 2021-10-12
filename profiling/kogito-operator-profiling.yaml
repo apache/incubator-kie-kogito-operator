@@ -2466,10 +2466,6 @@ spec:
         command:
         - /entrypoint-profiling
         env:
-        - name: WATCH_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.annotations['olm.targetNamespaces']
         - name: BUILDER_IMAGE
           value: kogito-builder
         - name: RUNTIME_IMAGE

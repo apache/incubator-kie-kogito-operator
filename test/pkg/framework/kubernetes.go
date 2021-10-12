@@ -16,6 +16,8 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-operator/core/operator"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync"
@@ -231,8 +233,31 @@ func LoadResource(namespace, uri string, resourceRef client.Object, beforeCreate
 		return fmt.Errorf("Unable to read from URI %s: %v", uri, err)
 	}
 
-	if err = kubernetes.ResourceC(kubeClient).CreateFromYamlContent(data, namespace, resourceRef, beforeCreate); err != nil {
+	if err = createFromYamlContent(data, namespace, resourceRef, beforeCreate); err != nil {
 		return fmt.Errorf("Error while creating resources from file '%s': %v ", uri, err)
+	}
+	return nil
+}
+
+func createFromYamlContent(yamlFileContent, namespace string, resourceRef client.Object, beforeCreate func(object interface{})) error {
+	docs := strings.Split(yamlFileContent, "---")
+	for _, doc := range docs {
+		if err := yaml.NewYAMLOrJSONDecoder(strings.NewReader(doc), len([]byte(doc))).Decode(resourceRef); err != nil {
+			return fmt.Errorf("Error while unmarshalling file: %v ", err)
+		}
+
+		if namespace != "" {
+			resourceRef.SetNamespace(namespace)
+		}
+		resourceRef.SetResourceVersion("")
+		resourceRef.SetLabels(map[string]string{"app": operator.Name})
+
+		if beforeCreate != nil {
+			beforeCreate(resourceRef)
+		}
+		if err := kubernetes.ResourceC(kubeClient).CreateIfNotExists(resourceRef); err != nil {
+			return fmt.Errorf("Error creating object %s: %v ", resourceRef.GetName(), err)
+		}
 	}
 	return nil
 }

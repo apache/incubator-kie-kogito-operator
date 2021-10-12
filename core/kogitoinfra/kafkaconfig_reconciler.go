@@ -106,7 +106,7 @@ func (k *kafkaConfigReconciler) getDeployedResources() (map[reflect.Type][]clien
 
 func (k *kafkaConfigReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := k.configMapHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(k.Context)
+	deltaProcessor := framework.NewDeltaProcessor(k.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }

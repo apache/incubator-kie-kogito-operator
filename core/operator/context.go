@@ -17,14 +17,17 @@ package operator
 import (
 	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-operator/core/record"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Context ...
 type Context struct {
-	Client  *client.Client
-	Log     logger.Logger
-	Scheme  *runtime.Scheme
-	Version string
-	Labels  map[string]string
+	Client           *client.Client
+	Log              logger.Logger
+	Scheme           *runtime.Scheme
+	Version          string
+	MeteringLabels   map[string]string
+	DeploymentLabels map[string]string
+	Recorder         record.EventRecorder
 }

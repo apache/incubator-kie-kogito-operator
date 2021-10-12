@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"k8s.io/apimachinery/pkg/types"
 	"os"
 )
 
 const (
-	envVarKogitoServiceURL = "LOCAL_KOGITO_SERVICE_URL"
+	// EnvVarKogitoServiceURL ...
+	EnvVarKogitoServiceURL = "LOCAL_KOGITO_SERVICE_URL"
 )
 
 // ServiceHandler ...
 type ServiceHandler interface {
-	GetKogitoServiceEndpoint(kogitoService api.KogitoService) string
+	GetKogitoServiceEndpoint(key types.NamespacedName) string
 }
 
 type kogitoServiceHandler struct {
@@ -42,22 +43,22 @@ func NewKogitoServiceHandler(context operator.Context) ServiceHandler {
 }
 
 // GetKogitoServiceEndpoint gets the endpoint depending on
-// if the envVarKogitoServiceURL is set (for when running
+// if the EnvVarKogitoServiceURL is set (for when running
 // operator locally). Else, the internal endpoint is
 // returned.
-func (k *kogitoServiceHandler) GetKogitoServiceEndpoint(kogitoService api.KogitoService) string {
-	externalURL := os.Getenv(envVarKogitoServiceURL)
+func (k *kogitoServiceHandler) GetKogitoServiceEndpoint(key types.NamespacedName) string {
+	externalURL := os.Getenv(EnvVarKogitoServiceURL)
 	if len(externalURL) > 0 {
 		return externalURL
 	}
-	return k.getKogitoServiceURL(kogitoService)
+	return k.getKogitoServiceURL(key)
 }
 
 // getKogitoServiceURL provides kogito service URL for given instance name
-func (k *kogitoServiceHandler) getKogitoServiceURL(service api.KogitoService) string {
+func (k *kogitoServiceHandler) getKogitoServiceURL(key types.NamespacedName) string {
 	k.Log.Debug("Creating kogito service instance URL.")
 	// resolves to http://servicename.mynamespace for example
-	serviceURL := fmt.Sprintf("http://%s.%s", service.GetName(), service.GetNamespace())
+	serviceURL := fmt.Sprintf("http://%s.%s", key.Name, key.Namespace)
 	k.Log.Debug("", "kogito service instance URL", serviceURL)
 	return serviceURL
 }

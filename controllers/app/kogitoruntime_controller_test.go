@@ -66,18 +66,12 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	assert.NotNil(t, instance.Status)
 	assert.Len(t, *instance.Status.Conditions, 2)
 
-	// svc discovery
-	svc := &corev1.Service{ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
-	exists, err := kubernetes.ResourceC(cli).Fetch(svc)
-	assert.NoError(t, err)
-	assert.True(t, exists)
-	assert.True(t, svc.Labels["process"] == instance.Name)
-
 	// sa, namespace env var, volume count and protobuf
 	deployment := &appsv1.Deployment{ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
-	exists, err = kubernetes.ResourceC(cli).Fetch(deployment)
+	exists, err := kubernetes.ResourceC(cli).Fetch(deployment)
 	assert.NoError(t, err)
 	assert.True(t, exists)
+	assert.Equal(t, "true", deployment.Labels["kogito.app"])
 	assert.True(t, framework.GetEnvVarFromContainer("NAMESPACE", &deployment.Spec.Template.Spec.Containers[0]) == instance.Namespace)
 	assert.Equal(t, "kogito-service-viewer", deployment.Spec.Template.Spec.ServiceAccountName)
 	// command to register protobuf does not exist anymore

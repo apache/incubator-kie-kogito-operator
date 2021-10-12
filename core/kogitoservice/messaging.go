@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
@@ -89,8 +90,8 @@ func NewKafkaMessagingDeployer(context operator.Context, definition ServiceDefin
 }
 
 func (m *messagingDeployer) fetchTopicsAndSetCloudEventsStatus(instance api.KogitoService) ([]messagingTopic, error) {
-	kogitoServiceHandler := NewKogitoServiceHandler(m.Context)
-	topics, err := m.fetchRequiredTopicsForURL(instance, kogitoServiceHandler.GetKogitoServiceEndpoint(instance))
+	kogitoServiceHandler := framework.NewKogitoServiceHandler(m.Context)
+	topics, err := m.fetchRequiredTopicsForURL(instance, kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +138,7 @@ func (m *messagingDeployer) fetchRequiredTopicsForURL(instance api.KogitoService
 		return nil, nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, infrastructure.ErrorForServiceNotReachable(resp.StatusCode, topicsURL, "GET")
+		return nil, framework.ErrorForServiceNotReachable(resp.StatusCode, topicsURL, "GET")
 	}
 	var topics []messagingTopic
 	if err := json.NewDecoder(resp.Body).Decode(&topics); err != nil {

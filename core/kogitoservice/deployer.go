@@ -20,10 +20,8 @@ import (
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/record"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -67,9 +65,8 @@ type serviceDeployer struct {
 	operator.Context
 	definition   ServiceDefinition
 	instance     api.KogitoService
-	recorder     record.EventRecorder
 	infraHandler manager.KogitoInfraHandler
-	errorHandler infrastructure.ReconciliationErrorHandler
+	errorHandler framework.ReconciliationErrorHandler
 }
 
 // NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
@@ -81,14 +78,9 @@ func NewServiceDeployer(context operator.Context, definition ServiceDefinition, 
 		Context:      context,
 		definition:   definition,
 		instance:     serviceType,
-		recorder:     newRecorder(context.Scheme, definition.Request.Name),
 		infraHandler: infraHandler,
-		errorHandler: infrastructure.NewReconciliationErrorHandler(context),
+		errorHandler: framework.NewReconciliationErrorHandler(context),
 	}
-}
-
-func newRecorder(scheme *runtime.Scheme, eventSourceName string) record.EventRecorder {
-	return record.NewRecorder(scheme, v1.EventSource{Component: eventSourceName, Host: record.GetHostName()})
 }
 
 func (s *serviceDeployer) Deploy() error {
@@ -137,21 +129,6 @@ func (s *serviceDeployer) Deploy() error {
 		return err
 	}
 
-	serviceReconciler := newServiceReconciler(s.Context, s.instance)
-	if err = serviceReconciler.Reconcile(); err != nil {
-		return err
-	}
-
-	routeReconciler := newRouteReconciler(s.Context, s.instance)
-	if err = routeReconciler.Reconcile(); err != nil {
-		return err
-	}
-
-	err = s.configureMonitoring()
-	if err != nil {
-		return err
-	}
-
 	err = s.configureMessaging()
 
 	return err
@@ -161,30 +138,13 @@ func (s *serviceDeployer) configureMessaging() error {
 	s.Log.Debug("Going to configuring messaging")
 	kafkaMessagingDeployer := NewKafkaMessagingDeployer(s.Context, s.definition, s.infraHandler)
 	if err := kafkaMessagingDeployer.CreateRequiredResources(s.instance); err != nil {
-		return infrastructure.ErrorForMessaging(err)
+		return framework.ErrorForMessaging(err)
 	}
 
 	knativeMessagingDeployer := NewKnativeMessagingDeployer(s.Context, s.definition, s.infraHandler)
 	if err := knativeMessagingDeployer.CreateRequiredResources(s.instance); err != nil {
-		return infrastructure.ErrorForMessaging(err)
+		return framework.ErrorForMessaging(err)
 	}
-	return nil
-}
-
-func (s *serviceDeployer) configureMonitoring() error {
-	s.Log.Debug("Going to configuring monitoring")
-	prometheusManager := NewPrometheusManager(s.Context)
-	if err := prometheusManager.ConfigurePrometheus(s.instance); err != nil {
-		s.Log.Error(err, "Could not deploy prometheus monitoring")
-		return infrastructure.ErrorForMonitoring(err)
-	}
-
-	grafanaDashboardManager := NewGrafanaDashboardManager(s.Context)
-	if err := grafanaDashboardManager.ConfigureGrafanaDashboards(s.instance); err != nil {
-		s.Log.Error(err, "Could not deploy grafana dashboards")
-		return infrastructure.ErrorForDashboards(err)
-	}
-
 	return nil
 }
 

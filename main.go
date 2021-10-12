@@ -24,8 +24,6 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/meta"
 	"os"
-	"strings"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -59,13 +57,12 @@ func init() {
 
 func main() {
 	opts := zap.Options{
-		Development: isDebugMode(),
+		Development: util.IsDebugMode(),
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
-	watchNamespace := getWatchNamespace()
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -73,7 +70,6 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "d1731e98.kiegroup.org",
-		Namespace:              watchNamespace,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -99,21 +95,29 @@ func main() {
 			setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
 			os.Exit(1)
 		}
+		if err = app.NewKogitoDeploymentReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoDeployment")
+			os.Exit(1)
+		}
 	} else {
 		if err = rhpam.NewKogitoRuntimeReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntime")
+			setupLog.Error(err, "unable to create controller", "controller", "RHPAMRuntime")
 			os.Exit(1)
 		}
 		if err = rhpam.NewKogitoSupportingServiceReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "KogitoSupportingService")
+			setupLog.Error(err, "unable to create controller", "controller", "RHPAMSupportingService")
 			os.Exit(1)
 		}
 		if err = rhpam.NewKogitoBuildReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "KogitoBuild")
+			setupLog.Error(err, "unable to create controller", "controller", "RHPAMBuild")
 			os.Exit(1)
 		}
 		if err = rhpam.NewKogitoInfraReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
+			setupLog.Error(err, "unable to create controller", "controller", "RHPAMInfra")
+			os.Exit(1)
+		}
+		if err = rhpam.NewKogitoDeploymentReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "RHPAMDeployment")
 			os.Exit(1)
 		}
 	}
@@ -134,34 +138,4 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-}
-
-// getWatchNamespace returns the Namespace the operator should be watching for changes
-func getWatchNamespace() string {
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which specifies the Namespace to watch.
-	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-
-	ns, _ := os.LookupEnv(watchNamespaceEnvVar)
-
-	// Check if operator is running as cluster scoped
-	if len(ns) == 0 {
-		setupLog.Info(
-			"The operator is running as cluster scoped. It will watch and manage resources in all namespaces",
-			"Env Var lookup", watchNamespaceEnvVar)
-	}
-	return ns
-}
-
-func isDebugMode() bool {
-	var debug = "DEBUG"
-	devMode, _ := os.LookupEnv(debug)
-
-	if strings.ToUpper(devMode) == "TRUE" {
-		setupLog.Info("Running in Debug Mode")
-		return true
-	}
-	return false
-
 }

@@ -15,6 +15,7 @@
 package kogitoservice
 
 import (
+	dep "github.com/kiegroup/kogito-operator/core/deployment"
 	"github.com/kiegroup/kogito-operator/core/framework/util"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
@@ -39,7 +40,7 @@ type deploymentReconciler struct {
 	imageHandler            infrastructure.ImageHandler
 	kogitoDeploymentHandler KogitoDeploymentHandler
 	deploymentHandler       infrastructure.DeploymentHandler
-	deltaProcessor          infrastructure.DeltaProcessor
+	deltaProcessor          framework.DeltaProcessor
 }
 
 func newDeploymentReconciler(context operator.Context, instance api.KogitoService, definition ServiceDefinition, imageHandler infrastructure.ImageHandler) DeploymentReconciler {
@@ -50,7 +51,7 @@ func newDeploymentReconciler(context operator.Context, instance api.KogitoServic
 		definition:              definition,
 		kogitoDeploymentHandler: NewKogitoDeploymentHandler(context),
 		deploymentHandler:       infrastructure.NewDeploymentHandler(context),
-		deltaProcessor:          infrastructure.NewDeltaProcessor(context),
+		deltaProcessor:          framework.NewDeltaProcessor(context),
 	}
 }
 
@@ -61,7 +62,7 @@ func (d *deploymentReconciler) Reconcile() error {
 	if err != nil {
 		return err
 	} else if len(imageName) == 0 {
-		return infrastructure.ErrorForImageNotFound()
+		return framework.ErrorForImageNotFound()
 	}
 
 	// Create Required resource
@@ -91,6 +92,9 @@ func (d *deploymentReconciler) createRequiredResources(imageName string) (map[re
 		return resources, err
 	}
 
+	d.mountDeploymentLabels(deployment)
+	d.mountMeteringLabelsOnDeployment(deployment)
+	d.mountMonitoringAnnotationsOnDeployment(deployment)
 	d.mountEnvsOnDeployment(deployment)
 	if err := d.mountConfigMapReferencesOnDeployment(deployment); err != nil {
 		return resources, err
@@ -98,7 +102,6 @@ func (d *deploymentReconciler) createRequiredResources(imageName string) (map[re
 	if err := d.mountSecretReferencesOnDeployment(deployment); err != nil {
 		return resources, err
 	}
-	d.mountMeteringLabelsOnDeployment(deployment)
 	if err := framework.SetOwner(d.instance, d.Scheme, deployment); err != nil {
 		return nil, err
 	}
@@ -171,5 +174,21 @@ func (d *deploymentReconciler) mountEnvsOnDeployment(deployment *appsv1.Deployme
 }
 
 func (d *deploymentReconciler) mountMeteringLabelsOnDeployment(deployment *appsv1.Deployment) {
-	util.AppendToStringMap(d.Labels, deployment.Spec.Template.Labels)
+	util.AppendToStringMap(d.MeteringLabels, deployment.Spec.Template.Labels)
+}
+
+func (d *deploymentReconciler) mountMonitoringAnnotationsOnDeployment(deployment *appsv1.Deployment) {
+	monitoring := d.instance.GetSpec().GetMonitoring()
+	if monitoring != nil {
+		if deployment.Annotations == nil {
+			deployment.Annotations = map[string]string{}
+		}
+
+		util.AddToMap(dep.MonitoringPathLabel, monitoring.GetPath(), deployment.Annotations)
+		util.AddToMap(dep.MonitoringSchemeLabel, monitoring.GetScheme(), deployment.Annotations)
+	}
+}
+
+func (d *deploymentReconciler) mountDeploymentLabels(deployment *appsv1.Deployment) {
+	util.AppendToStringMap(d.DeploymentLabels, deployment.Labels)
 }

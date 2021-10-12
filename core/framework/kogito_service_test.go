@@ -1,4 +1,4 @@
-// Copyright 2021 Red Hat, Inc. and/or its affiliates
+// Copyright 2020 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,34 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package framework
 
 import (
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
-	"github.com/stretchr/testify/assert"
-	"k8s.io/api/core/v1"
-	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestServiceReconciler(t *testing.T) {
-	ns := t.Name()
-	instance := test.CreateFakeKogitoRuntime(ns)
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+func Test_GetKogitoServiceEndpoint(t *testing.T) {
+	service := test.CreateFakeDataIndex(t.Name())
+	cli := test.NewFakeClientBuilder().Build()
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	serviceReconciler := newServiceReconciler(context, instance)
-	err := serviceReconciler.Reconcile()
-	assert.NoError(t, err)
-
-	service := &v1.Service{ObjectMeta: v13.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
-	exists, err := kubernetes.ResourceC(cli).Fetch(service)
-	assert.NoError(t, err)
-	assert.True(t, exists)
+	kogitoServiceHandler := NewKogitoServiceHandler(context)
+	actualURL := kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: service.Name, Namespace: service.Namespace})
+	assert.Equal(t, "http://"+service.GetName()+"."+t.Name(), actualURL)
 }

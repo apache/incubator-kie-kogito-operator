@@ -58,7 +58,6 @@ func (d *kogitoDeploymentHandler) CreateDeployment(service api.KogitoService, re
 		labels = make(map[string]string)
 	}
 	labels[framework.LabelAppKey] = service.GetName()
-
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: service.GetName(), Namespace: service.GetNamespace(), Labels: labels},
 		Spec: appsv1.DeploymentSpec{
@@ -72,7 +71,7 @@ func (d *kogitoDeploymentHandler) CreateDeployment(service api.KogitoService, re
 							Name: service.GetName(),
 							Ports: []corev1.ContainerPort{
 								{
-									Name:          framework.DefaultPortName,
+									Name:          framework.DefaultHTTPPortName,
 									ContainerPort: int32(framework.DefaultExposedPort),
 									Protocol:      corev1.ProtocolTCP,
 								},

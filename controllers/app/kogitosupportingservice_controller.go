@@ -44,5 +44,8 @@ func NewKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runt
 		SupportingServiceHandler: app2.NewKogitoSupportingServiceHandler,
 		InfraHandler:             app2.NewKogitoInfraHandler,
 		ReconcilingObject:        &v1beta1.KogitoSupportingService{},
+		DeploymentLabels: map[string]string{
+			"kogito.app": "true",
+		},
 	}
 }

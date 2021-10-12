@@ -16,7 +16,7 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
@@ -77,7 +77,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 
 	err = deployer.Deploy()
 	assert.Error(t, err)
-	errorHandler := infrastructure.NewReconciliationErrorHandler(context)
+	errorHandler := framework.NewReconciliationErrorHandler(context)
 	assert.True(t, errorHandler.IsReconciliationError(err))
 	test.AssertFetchMustExist(t, cli, dataIndex)
 	assert.NotNil(t, dataIndex.GetStatus())
@@ -107,7 +107,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReconciled(t *testing.T) {
 	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
 	err := deployer.Deploy()
 	assert.Error(t, err)
-	errorHandler := infrastructure.NewReconciliationErrorHandler(context)
+	errorHandler := framework.NewReconciliationErrorHandler(context)
 	assert.False(t, errorHandler.IsReconciliationError(err))
 
 	test.AssertFetchMustExist(t, cli, dataIndex)

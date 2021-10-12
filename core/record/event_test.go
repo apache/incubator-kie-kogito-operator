@@ -26,8 +26,8 @@ import (
 func Test_generateEvent(t *testing.T) {
 	service := test.CreateFakeKogitoRuntime(t.Name())
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
-	recorder := NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
-	recorder.Eventf(cli, service, "Normal", "Created", "Create Deployment")
+	recorder := NewRecorder(cli, meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
+	recorder.Eventf(service, "Normal", "Created", "Create Deployment")
 
 	eventList := &corev1.EventList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(t.Name(), eventList); err != nil {
@@ -40,8 +40,8 @@ func Test_generateEvent(t *testing.T) {
 func Test_generateEvent_InvalidEventType(t *testing.T) {
 	service := test.CreateFakeKogitoRuntime(t.Name())
 	cli := test.NewFakeClientBuilder().OnOpenShift().Build()
-	recorder := NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
-	recorder.Eventf(cli, service, "InvalidEventType", "Created", "Create Deployment")
+	recorder := NewRecorder(cli, meta.GetRegisteredSchema(), corev1.EventSource{Component: service.GetName()})
+	recorder.Eventf(service, "InvalidEventType", "Created", "Create Deployment")
 
 	eventList := &corev1.EventList{}
 	if err := kubernetes.ResourceC(cli).ListWithNamespace(t.Name(), eventList); err != nil {

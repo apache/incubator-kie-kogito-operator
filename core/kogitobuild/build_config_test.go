@@ -38,14 +38,14 @@ func TestNewBuildConfig_CustomLabels(t *testing.T) {
 	context := BuildContext{
 		Context: operator.Context{
 			Log: test.TestLogger,
-			Labels: map[string]string{
+			MeteringLabels: map[string]string{
 				"key1": "value1",
 			},
 		},
 	}
 
 	decoratorHandler := NewDecoratorHandler(context)
-	decorator := decoratorHandler.decoratorForCustomLabels()
+	decorator := decoratorHandler.decoratorForMeteringLabels()
 	buildConfigHandler := NewBuildConfigHandler(context)
 	buildConfig := buildConfigHandler.newBuildConfig(kogitoBuild, decorator)
 	finalLabels := buildConfig.Labels

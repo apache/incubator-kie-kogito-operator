@@ -17,7 +17,7 @@ package common
 import (
 	"context"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
@@ -46,19 +46,9 @@ type KogitoSupportingServiceReconciler struct {
 	SupportingServiceHandler func(context operator.Context) manager.KogitoSupportingServiceHandler
 	InfraHandler             func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject        client.Object
-	Labels                   map[string]string
+	MeteringLabels           map[string]string
+	DeploymentLabels         map[string]string
 }
-
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices/finalizers,verbs=get;update;patch
-//+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
-//+kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
-//+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;services,verbs=create;delete;get;list;patch;update;watch
 
 // Reconcile reads that state of the cluster for a KogitoSupportingService object and makes changes based on the state read
 // and what is in the KogitoSupportingService.Spec
@@ -68,11 +58,12 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(ctx context.Context, req c
 
 	// create kogitoContext
 	kogitoContext := operator.Context{
-		Client:  r.Client,
-		Log:     log,
-		Scheme:  r.Scheme,
-		Version: app2.Version,
-		Labels:  r.Labels,
+		Client:           r.Client,
+		Log:              log,
+		Scheme:           r.Scheme,
+		Version:          app2.Version,
+		MeteringLabels:   r.MeteringLabels,
+		DeploymentLabels: r.DeploymentLabels,
 	}
 
 	// Fetch the KogitoSupportingService instance
@@ -97,7 +88,7 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(ctx context.Context, req c
 	reconciler := reconcileHandler.GetSupportingServiceReconciler(instance)
 	resultErr = reconciler.Reconcile()
 	if resultErr != nil {
-		return infrastructure.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(resultErr)
+		return framework.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(resultErr)
 	}
 	return
 }

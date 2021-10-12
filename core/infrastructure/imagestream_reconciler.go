@@ -111,10 +111,10 @@ func (i *imageStreamReconciler) getDeployedResources() (map[reflect.Type][]clien
 
 func (i *imageStreamReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := i.getComparator()
-	deltaProcessor := NewDeltaProcessor(i.Context)
+	deltaProcessor := framework.NewDeltaProcessor(i.Context)
 	isDeltaProcessed, err := deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	if isDeltaProcessed {
-		return ErrorForProcessingImageStreamDelta()
+		return framework.ErrorForProcessingImageStreamDelta()
 	}
 	return
 }

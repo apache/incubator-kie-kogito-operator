@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
@@ -68,7 +68,7 @@ func TestReconciliation_RecoverableErrorOccur(t *testing.T) {
 		Scheme: meta.GetRegisteredSchema(),
 	}
 	statusHandler := NewStatusHandler(context)
-	var reconciliationError error = infrastructure.ErrorForMonitoring(fmt.Errorf("test error"))
+	var reconciliationError error = framework.ErrorForMonitoring(fmt.Errorf("test error"))
 	statusHandler.HandleStatusUpdate(instance, &reconciliationError)
 	assert.NotNil(t, instance)
 

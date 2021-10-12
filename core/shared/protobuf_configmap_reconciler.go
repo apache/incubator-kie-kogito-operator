@@ -38,7 +38,7 @@ type protoBufConfigMapReconciler struct {
 	runtimeHandler           manager.KogitoRuntimeHandler
 	configMapHandler         infrastructure.ConfigMapHandler
 	protobufConfigMapHandler ProtoBufConfigMapHandler
-	deltaProcessor           infrastructure.DeltaProcessor
+	deltaProcessor           framework.DeltaProcessor
 }
 
 // NewProtoBufConfigMapReconciler ...
@@ -50,7 +50,7 @@ func NewProtoBufConfigMapReconciler(context operator.Context, instance api.Kogit
 		runtimeHandler:           runtimeHandler,
 		configMapHandler:         infrastructure.NewConfigMapHandler(context),
 		protobufConfigMapHandler: NewProtoBufConfigMapHandler(context),
-		deltaProcessor:           infrastructure.NewDeltaProcessor(context),
+		deltaProcessor:           framework.NewDeltaProcessor(context),
 	}
 }
 

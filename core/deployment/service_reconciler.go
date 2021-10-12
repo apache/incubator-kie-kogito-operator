@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package deployment
 
 import (
-	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	v12 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
@@ -32,17 +32,17 @@ type ServiceReconciler interface {
 
 type serviceReconciler struct {
 	operator.Context
-	instance       api.KogitoService
+	deployment     *v12.Deployment
 	serviceHandler infrastructure.ServiceHandler
-	deltaProcessor infrastructure.DeltaProcessor
+	deltaProcessor framework.DeltaProcessor
 }
 
-func newServiceReconciler(context operator.Context, instance api.KogitoService) ServiceReconciler {
+func newServiceReconciler(context operator.Context, deployment *v12.Deployment) ServiceReconciler {
 	return &serviceReconciler{
 		Context:        context,
-		instance:       instance,
+		deployment:     deployment,
 		serviceHandler: infrastructure.NewServiceHandler(context),
-		deltaProcessor: infrastructure.NewDeltaProcessor(context),
+		deltaProcessor: framework.NewDeltaProcessor(context),
 	}
 }
 
@@ -70,8 +70,8 @@ func (i *serviceReconciler) Reconcile() error {
 
 func (i *serviceReconciler) createRequiredResources() (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
-	service := i.serviceHandler.CreateService(i.instance)
-	if err := framework.SetOwner(i.instance, i.Scheme, service); err != nil {
+	service := i.serviceHandler.CreateService(types.NamespacedName{Name: i.deployment.GetName(), Namespace: i.deployment.GetNamespace()})
+	if err := framework.SetOwner(i.deployment, i.Scheme, service); err != nil {
 		return nil, err
 	}
 	resources[reflect.TypeOf(v1.Service{})] = []client.Object{service}
@@ -80,7 +80,7 @@ func (i *serviceReconciler) createRequiredResources() (map[reflect.Type][]client
 
 func (i *serviceReconciler) getDeployedResources() (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
-	service, err := i.serviceHandler.FetchService(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()})
+	service, err := i.serviceHandler.FetchService(types.NamespacedName{Name: i.deployment.GetName(), Namespace: i.deployment.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}

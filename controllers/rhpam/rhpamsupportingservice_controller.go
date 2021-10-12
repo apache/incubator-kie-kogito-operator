@@ -12,41 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package app
+package rhpam
 
 import (
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	app2 "github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/version/app"
+	"github.com/kiegroup/kogito-operator/internal/rhpam"
+	rhpam2 "github.com/kiegroup/kogito-operator/version/rhpam"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes/finalizers,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitosupportingservices,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitosupportingservices/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitosupportingservices/finalizers,verbs=get;update;patch
 //+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
 //+kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
 //+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings;roles,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;serviceaccounts;services,verbs=create;delete;get;list;patch;update;watch
+//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;services,verbs=create;delete;get;list;patch;update;watch
 
-// NewKogitoRuntimeReconciler ...
-func NewKogitoRuntimeReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoRuntimeReconciler {
-	return &common.KogitoRuntimeReconciler{
-		Client:                client,
-		Scheme:                scheme,
-		Version:               app.Version,
-		RuntimeHandler:        app2.NewKogitoRuntimeHandler,
-		SupportServiceHandler: app2.NewKogitoSupportingServiceHandler,
-		InfraHandler:          app2.NewKogitoInfraHandler,
-		ReconcilingObject:     &v1beta1.KogitoRuntime{},
+// NewKogitoSupportingServiceReconciler ...
+func NewKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoSupportingServiceReconciler {
+	return &common.KogitoSupportingServiceReconciler{
+		Client:                   client,
+		Scheme:                   scheme,
+		Version:                  rhpam2.Version,
+		RuntimeHandler:           rhpam.NewKogitoRuntimeHandler,
+		SupportingServiceHandler: rhpam.NewKogitoSupportingServiceHandler,
+		InfraHandler:             rhpam.NewKogitoInfraHandler,
+		ReconcilingObject:        &v1.KogitoSupportingService{},
+		MeteringLabels:           getMeteringLabels(),
 		DeploymentLabels: map[string]string{
-			"kogito.app": "true",
+			"rhpam.kogito.app": "true",
 		},
 	}
 }

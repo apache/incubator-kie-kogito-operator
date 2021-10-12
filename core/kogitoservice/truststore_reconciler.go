@@ -77,14 +77,14 @@ func (t *trustStoreReconciler) fetchAndValidateTrustStoreSecret() (*v1.Secret, e
 	if err != nil {
 		return nil, err
 	} else if secret == nil {
-		return nil, infrastructure.ErrorForTrustStoreMount("Failed to find Trust store secret named " + t.instance.GetSpec().GetTrustStoreSecret() + " in the namespace " + t.instance.GetNamespace())
+		return nil, framework.ErrorForTrustStoreMount("Failed to find Trust store secret named " + t.instance.GetSpec().GetTrustStoreSecret() + " in the namespace " + t.instance.GetNamespace())
 	}
 	return secret, nil
 }
 
 func (t *trustStoreReconciler) mountTrustStoreFile(secret *v1.Secret) error {
 	if _, ok := secret.Data[trustStoreSecretFileKey]; !ok {
-		return infrastructure.ErrorForTrustStoreMount("Failed to mount Truststore. Secret " + secret.Name + " doesn't have the file with key " + trustStoreSecretFileKey)
+		return framework.ErrorForTrustStoreMount("Failed to mount Truststore. Secret " + secret.Name + " doesn't have the file with key " + trustStoreSecretFileKey)
 	}
 
 	secretVolumeReference := &VolumeReference{

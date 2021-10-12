@@ -15,16 +15,11 @@
 package kubernetes
 
 import (
-	"fmt"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"strings"
-
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // ResourceInterface has functions that interacts with any resource object in the Kubernetes cluster
@@ -38,8 +33,6 @@ type ResourceInterface interface {
 	CreateIfNotExistsForOwner(resource client.Object, owner metav1.Object, scheme *runtime.Scheme) (err error)
 	// CreateForOwner sets the controller owner to the given resource and creates the resource.
 	CreateForOwner(resource client.Object, owner metav1.Object, scheme *runtime.Scheme) error
-	// CreateFromYamlContent creates Kubernetes resources from a yaml string content
-	CreateFromYamlContent(yamlContent, namespace string, resourceRef client.Object, beforeCreate func(object interface{})) error
 }
 
 type resource struct {
@@ -85,30 +78,6 @@ func (r *resource) CreateForOwner(resource client.Object, owner metav1.Object, s
 	}
 	if err := r.ResourceWriter.Create(resource); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (r *resource) CreateFromYamlContent(yamlFileContent, namespace string, resourceRef client.Object, beforeCreate func(object interface{})) error {
-	docs := strings.Split(yamlFileContent, "---")
-	for _, doc := range docs {
-		if err := yaml.NewYAMLOrJSONDecoder(strings.NewReader(doc), len([]byte(doc))).Decode(resourceRef); err != nil {
-			return fmt.Errorf("Error while unmarshalling file: %v ", err)
-		}
-
-		if namespace != "" {
-			resourceRef.SetNamespace(namespace)
-		}
-		resourceRef.SetResourceVersion("")
-		resourceRef.SetLabels(map[string]string{"app": operator.Name})
-
-		log.Debug("Will create a new resource", "kind", resourceRef.GetObjectKind().GroupVersionKind().Kind, "name", resourceRef.GetName(), "namespace", resourceRef.GetNamespace())
-		if beforeCreate != nil {
-			beforeCreate(resourceRef)
-		}
-		if err := r.CreateIfNotExists(resourceRef); err != nil {
-			return fmt.Errorf("Error creating object %s: %v ", resourceRef.GetName(), err)
-		}
 	}
 	return nil
 }

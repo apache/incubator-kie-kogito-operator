@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package deployment
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
@@ -27,14 +26,14 @@ import (
 func Test_createServiceMonitor_defaultConfiguration(t *testing.T) {
 	ns := t.Name()
 	cli := test.NewFakeClientBuilder().Build()
-	kogitoService := test.CreateFakeKogitoRuntime(ns)
+	deployment := test.CreateFakeDeployment(ns)
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	monitoringManager := prometheusManager{Context: context}
-	serviceMonitor, err := monitoringManager.createServiceMonitor(kogitoService)
+	monitoringManager := prometheusManager{Context: context, deployment: deployment}
+	serviceMonitor, err := monitoringManager.createServiceMonitor()
 	assert.NoError(t, err)
 	assert.Equal(t, api.MonitoringDefaultPath, serviceMonitor.Spec.Endpoints[0].Path)
 	assert.Equal(t, api.MonitoringDefaultScheme, serviceMonitor.Spec.Endpoints[0].Scheme)
@@ -43,18 +42,18 @@ func Test_createServiceMonitor_defaultConfiguration(t *testing.T) {
 func Test_createServiceMonitor_customConfiguration(t *testing.T) {
 	ns := t.Name()
 	cli := test.NewFakeClientBuilder().Build()
-	kogitoService := test.CreateFakeKogitoRuntime(ns)
-	kogitoService.GetSpec().SetMonitoring(&v1beta1.Monitoring{
-		Path:   "/testPath",
-		Scheme: "https",
-	})
+	deployment := test.CreateFakeDeployment(ns)
+	deployment.Annotations = map[string]string{
+		MonitoringPathLabel:   "/testPath",
+		MonitoringSchemeLabel: "https",
+	}
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	monitoringManager := prometheusManager{Context: context}
-	serviceMonitor, err := monitoringManager.createServiceMonitor(kogitoService)
+	monitoringManager := prometheusManager{Context: context, deployment: deployment}
+	serviceMonitor, err := monitoringManager.createServiceMonitor()
 	assert.NoError(t, err)
 	assert.Equal(t, "/testPath", serviceMonitor.Spec.Endpoints[0].Path)
 	assert.Equal(t, "https", serviceMonitor.Spec.Endpoints[0].Scheme)

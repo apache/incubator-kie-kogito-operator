@@ -12,23 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package test
 
 import (
-	"os"
-	"strings"
+	v1 "k8s.io/api/apps/v1"
+	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// IsProductMode returns true if application is running in product mode.
-func IsProductMode() bool {
-	var group = "GROUP"
-	productMode, _ := os.LookupEnv(group)
-	return strings.ToUpper(productMode) == "RHPAM"
-}
-
-// IsDebugMode returns true if application is running in debug mode.
-func IsDebugMode() bool {
-	var debug = "DEBUG"
-	devMode, _ := os.LookupEnv(debug)
-	return strings.ToUpper(devMode) == "TRUE"
+// CreateFakeDeployment ...
+func CreateFakeDeployment(namespace string) *v1.Deployment {
+	return &v1.Deployment{
+		ObjectMeta: v12.ObjectMeta{
+			Name:      "test-deployment",
+			Namespace: namespace,
+		},
+	}
 }

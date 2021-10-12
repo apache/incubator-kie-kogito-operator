@@ -1,4 +1,4 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package app
+package rhpam
 
 import (
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	app2 "github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/version/app"
+	"github.com/kiegroup/kogito-operator/core/framework/util"
+	"github.com/kiegroup/kogito-operator/version/rhpam"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes/finalizers,verbs=get;update;patch
 //+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
 //+kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
@@ -35,18 +33,24 @@ import (
 //+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;serviceaccounts;services,verbs=create;delete;get;list;patch;update;watch
 
-// NewKogitoRuntimeReconciler ...
-func NewKogitoRuntimeReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoRuntimeReconciler {
-	return &common.KogitoRuntimeReconciler{
-		Client:                client,
-		Scheme:                scheme,
-		Version:               app.Version,
-		RuntimeHandler:        app2.NewKogitoRuntimeHandler,
-		SupportServiceHandler: app2.NewKogitoSupportingServiceHandler,
-		InfraHandler:          app2.NewKogitoInfraHandler,
-		ReconcilingObject:     &v1beta1.KogitoRuntime{},
-		DeploymentLabels: map[string]string{
-			"kogito.app": "true",
+// NewKogitoDeploymentReconciler ...
+func NewKogitoDeploymentReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoDeploymentReconciler {
+
+	return &common.KogitoDeploymentReconciler{
+		Client:  client,
+		Scheme:  scheme,
+		Version: rhpam.Version,
+		Predicate: predicate.Funcs{
+			CreateFunc: func(createEvent event.CreateEvent) bool {
+				return util.MapContains(createEvent.Object.GetLabels(), "rhpam.kogito.app", "true")
+			},
+			UpdateFunc: func(updateEvent event.UpdateEvent) bool {
+				return util.MapContains(updateEvent.ObjectNew.GetLabels(), "rhpam.kogito.app", "true")
+			},
+			// Don't watch delete events as the resource removals will be handled by its finalizer
+			DeleteFunc: func(e event.DeleteEvent) bool {
+				return false
+			},
 		},
 	}
 }

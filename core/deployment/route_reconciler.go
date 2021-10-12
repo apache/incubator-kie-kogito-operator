@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package deployment
 
 import (
-	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	v1 "github.com/openshift/api/route/v1"
+	v12 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -32,17 +32,17 @@ type RouteReconciler interface {
 
 type routeReconciler struct {
 	operator.Context
-	instance       api.KogitoService
+	deployment     *v12.Deployment
 	routeHandler   infrastructure.RouteHandler
-	deltaProcessor infrastructure.DeltaProcessor
+	deltaProcessor framework.DeltaProcessor
 }
 
-func newRouteReconciler(context operator.Context, instance api.KogitoService) RouteReconciler {
+func newRouteReconciler(context operator.Context, deployment *v12.Deployment) RouteReconciler {
 	return &routeReconciler{
 		Context:        context,
-		instance:       instance,
+		deployment:     deployment,
 		routeHandler:   infrastructure.NewRouteHandler(context),
-		deltaProcessor: infrastructure.NewDeltaProcessor(context),
+		deltaProcessor: framework.NewDeltaProcessor(context),
 	}
 }
 
@@ -75,8 +75,8 @@ func (i *routeReconciler) Reconcile() error {
 
 func (i *routeReconciler) createRequiredResources() (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
-	route := i.routeHandler.CreateRoute(i.instance)
-	if err := framework.SetOwner(i.instance, i.Scheme, route); err != nil {
+	route := i.routeHandler.CreateRoute(types.NamespacedName{Name: i.deployment.GetName(), Namespace: i.deployment.GetNamespace()})
+	if err := framework.SetOwner(i.deployment, i.Scheme, route); err != nil {
 		return nil, err
 	}
 	resources[reflect.TypeOf(v1.Route{})] = []client.Object{route}
@@ -85,7 +85,7 @@ func (i *routeReconciler) createRequiredResources() (map[reflect.Type][]client.O
 
 func (i *routeReconciler) getDeployedResources() (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
-	route, err := i.routeHandler.FetchRoute(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()})
+	route, err := i.routeHandler.FetchRoute(types.NamespacedName{Name: i.deployment.GetName(), Namespace: i.deployment.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}

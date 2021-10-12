@@ -15,7 +15,7 @@
 package framework
 
 import (
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -33,7 +33,7 @@ func IsOwner(resource client.Object, owner client.Object) bool {
 }
 
 // SetOwner sets the given owner object into the given resources
-func SetOwner(owner client.Object, scheme *runtime.Scheme, resources ...client.Object) error {
+func SetOwner(owner metav1.Object, scheme *runtime.Scheme, resources ...client.Object) error {
 	for _, res := range resources {
 		if err := controllerutil.SetControllerReference(owner, res, scheme); err != nil {
 			return err
@@ -52,7 +52,7 @@ func AddOwnerReference(owner client.Object, scheme *runtime.Scheme, resources ..
 		if !IsOwner(res, owner) {
 			owners := res.GetOwnerReferences()
 			falseValue := false
-			owners = append(owners, v1.OwnerReference{
+			owners = append(owners, metav1.OwnerReference{
 				APIVersion:         gvk.GroupVersion().String(),
 				Kind:               gvk.Kind,
 				Name:               owner.GetName(),

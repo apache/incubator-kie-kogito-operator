@@ -40,7 +40,7 @@ type configReconciler struct {
 	instance          api.KogitoService
 	serviceDefinition *ServiceDefinition
 	configMapHandler  infrastructure.ConfigMapHandler
-	deltaProcessor    infrastructure.DeltaProcessor
+	deltaProcessor    framework.DeltaProcessor
 }
 
 func newConfigReconciler(context operator.Context, instance api.KogitoService, serviceDefinition *ServiceDefinition) ConfigReconciler {
@@ -50,7 +50,7 @@ func newConfigReconciler(context operator.Context, instance api.KogitoService, s
 		instance:          instance,
 		serviceDefinition: serviceDefinition,
 		configMapHandler:  infrastructure.NewConfigMapHandler(context),
-		deltaProcessor:    infrastructure.NewDeltaProcessor(context),
+		deltaProcessor:    framework.NewDeltaProcessor(context),
 	}
 }
 

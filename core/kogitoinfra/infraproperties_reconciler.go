@@ -31,7 +31,7 @@ const (
 type infraPropertiesReconciler struct {
 	infraContext
 	configMapHandler infrastructure.ConfigMapHandler
-	deltaProcessor   infrastructure.DeltaProcessor
+	deltaProcessor   framework.DeltaProcessor
 }
 
 // initInfraPropertiesReconciler ...
@@ -40,7 +40,7 @@ func initInfraPropertiesReconciler(infraContext infraContext) Reconciler {
 	return &infraPropertiesReconciler{
 		infraContext:     infraContext,
 		configMapHandler: infrastructure.NewConfigMapHandler(infraContext.Context),
-		deltaProcessor:   infrastructure.NewDeltaProcessor(infraContext.Context),
+		deltaProcessor:   framework.NewDeltaProcessor(infraContext.Context),
 	}
 }
 

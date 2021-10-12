@@ -104,7 +104,7 @@ func (i *infinispanCredentialReconciler) getDeployedResources() (map[reflect.Typ
 
 func (i *infinispanCredentialReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := i.secretHandler.GetComparator()
-	deltaProcessor := infrastructure.NewDeltaProcessor(i.Context)
+	deltaProcessor := framework.NewDeltaProcessor(i.Context)
 	_, err = deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return err
 }

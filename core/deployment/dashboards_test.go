@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package deployment
 
 import (
-	"testing"
-
 	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
 func Test_fetchDashboardNames(t *testing.T) {
 	dashboardNames := `["dashboard1.json", "dashboard2.json"]`
 
-	server := mockKogitoSvcReplies(t, serverHandler{Path: dashboardsPath + "list.json", JSONResponse: dashboardNames})
+	server := test.MockKogitoSvcReplies(t, test.ServerHandler{Path: dashboardsPath + "list.json", JSONResponse: dashboardNames})
 	defer server.Close()
 
 	cli := test.NewFakeClientBuilder().Build()
@@ -50,7 +49,7 @@ func Test_fetchDashboards(t *testing.T) {
 	dashboard1 := `mydashboard1`
 	dashboard2 := `mydashboard2`
 
-	handlers := []serverHandler{
+	handlers := []test.ServerHandler{
 		{
 			Path:         dashboardsPath + "list.json",
 			JSONResponse: dashboardNames,
@@ -65,7 +64,7 @@ func Test_fetchDashboards(t *testing.T) {
 		},
 	}
 
-	server := mockKogitoSvcReplies(t, handlers...)
+	server := test.MockKogitoSvcReplies(t, handlers...)
 	defer server.Close()
 	cli := test.NewFakeClientBuilder().Build()
 	context := operator.Context{
@@ -85,8 +84,8 @@ func Test_fetchDashboards(t *testing.T) {
 }
 
 func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
-	service := test.CreateFakeKogitoRuntime(t.Name())
-	cli := test.NewFakeClientBuilder().AddK8sObjects(service).OnOpenShift().Build()
+	deployment := test.CreateFakeDeployment(t.Name())
+	cli := test.NewFakeClientBuilder().AddK8sObjects(deployment).OnOpenShift().Build()
 
 	dashboards := []GrafanaDashboard{
 		{
@@ -103,8 +102,8 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	dashboardManager := grafanaDashboardManager{Context: context}
-	err := dashboardManager.deployGrafanaDashboards(dashboards, service)
+	dashboardManager := grafanaDashboardManager{Context: context, deployment: deployment}
+	err := dashboardManager.deployGrafanaDashboards(dashboards)
 	assert.NoError(t, err)
 
 	dashboard := &grafanav1.GrafanaDashboard{

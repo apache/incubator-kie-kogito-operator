@@ -12,53 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package deployment
 
 import (
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
-	v1 "github.com/openshift/api/route/v1"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/api/core/v1"
 	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
-func TestRouteReconciler_K8s(t *testing.T) {
+func TestServiceReconciler(t *testing.T) {
 	ns := t.Name()
-	instance := test.CreateFakeKogitoRuntime(ns)
-	cli := test.NewFakeClientBuilder().AddK8sObjects(instance).Build()
+	deployment := test.CreateFakeDeployment(ns)
+	cli := test.NewFakeClientBuilder().AddK8sObjects(deployment).Build()
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	routeReconciler := newRouteReconciler(context, instance)
-	err := routeReconciler.Reconcile()
+	serviceReconciler := newServiceReconciler(context, deployment)
+	err := serviceReconciler.Reconcile()
 	assert.NoError(t, err)
 
-	route := &v1.Route{ObjectMeta: v13.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
-	exists, err := kubernetes.ResourceC(cli).Fetch(route)
-	assert.NoError(t, err)
-	assert.False(t, exists)
-}
-
-func TestRouteReconciler_Openshift(t *testing.T) {
-	ns := t.Name()
-	instance := test.CreateFakeKogitoRuntime(ns)
-	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
-	context := operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	routeReconciler := newRouteReconciler(context, instance)
-	err := routeReconciler.Reconcile()
-	assert.NoError(t, err)
-
-	route := &v1.Route{ObjectMeta: v13.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
-	exists, err := kubernetes.ResourceC(cli).Fetch(route)
+	service := &v1.Service{ObjectMeta: v13.ObjectMeta{Name: deployment.Name, Namespace: deployment.Namespace}}
+	exists, err := kubernetes.ResourceC(cli).Fetch(service)
 	assert.NoError(t, err)
 	assert.True(t, exists)
 }

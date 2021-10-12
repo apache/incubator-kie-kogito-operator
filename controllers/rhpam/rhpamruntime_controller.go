@@ -23,27 +23,31 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitosupportingservices,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitosupportingservices/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitosupportingservices/finalizers,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitoruntimes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitoruntimes/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rhpam.kiegroup.org,resources=kogitoruntimes/finalizers,verbs=get;update;patch
 //+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create;list;delete
 //+kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
 //+kubebuilder:rbac:groups=integreatly.org,resources=grafanadashboards,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;create;list;watch;delete;update
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings;roles,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;services,verbs=create;delete;get;list;patch;update;watch
+//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;serviceaccounts;services,verbs=create;delete;get;list;patch;update;watch
 
-// NewKogitoSupportingServiceReconciler ...
-func NewKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoSupportingServiceReconciler {
-	return &common.KogitoSupportingServiceReconciler{
-		Client:                   client,
-		Scheme:                   scheme,
-		Version:                  rhpam2.Version,
-		RuntimeHandler:           rhpam.NewKogitoRuntimeHandler,
-		SupportingServiceHandler: rhpam.NewKogitoSupportingServiceHandler,
-		InfraHandler:             rhpam.NewKogitoInfraHandler,
-		ReconcilingObject:        &v1.KogitoSupportingService{},
-		Labels:                   getMeteringLabels(),
+// NewKogitoRuntimeReconciler ...
+func NewKogitoRuntimeReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoRuntimeReconciler {
+	return &common.KogitoRuntimeReconciler{
+		Client:                client,
+		Scheme:                scheme,
+		Version:               rhpam2.Version,
+		RuntimeHandler:        rhpam.NewKogitoRuntimeHandler,
+		SupportServiceHandler: rhpam.NewKogitoSupportingServiceHandler,
+		InfraHandler:          rhpam.NewKogitoInfraHandler,
+		ReconcilingObject:     &v1.KogitoRuntime{},
+		MeteringLabels:        getMeteringLabels(),
+		DeploymentLabels: map[string]string{
+			"rhpam.kogito.app": "true",
+		},
 	}
 }
