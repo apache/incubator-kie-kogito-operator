@@ -116,11 +116,6 @@ String getBDDParameters() {
     testParamsMap['cr_deployment_only'] = 'true'
     testParamsMap['use_product_operator'] = 'true'
 
-    // Using upstream images as a workaround until there are nightly product images available
-    testParamsMap['build_builder_image_tag'] = "quay.io/kiegroup/kogito-builder-nightly:latest"
-    testParamsMap['build_runtime_jvm_image_tag'] = "quay.io/kiegroup/kogito-runtime-jvm-nightly:latest"
-    testParamsMap['build_runtime_native_image_tag'] = "quay.io/kiegroup/kogito-runtime-native-nightly:latest"
-
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
 
     // Clean the cluster before/after BDD test execution
