@@ -64,10 +64,6 @@ type MongoDBCommunitySpec struct {
 	// Version defines which version of MongoDB will be used
 	Version string `json:"version"`
 
-	// Arbiters is the number of arbiters (each counted as a member) in the replica set
-	// +optional
-	Arbiters int `json:"arbiters"`
-
 	// FeatureCompatibilityVersion configures the feature compatibility version that will
 	// be set for the deployment
 	// +optional
@@ -89,7 +85,6 @@ type MongoDBCommunitySpec struct {
 	// configuration file: https://docs.mongodb.com/manual/reference/configuration-options/
 	// +kubebuilder:validation:Type=object
 	// +optional
-	// +kubebuilder:pruning:PreserveUnknownFields
 	// +nullable
 	AdditionalMongodConfig MongodConfiguration `json:"additionalMongodConfig,omitempty"`
 }
@@ -139,7 +134,6 @@ type AuthenticationRestriction struct {
 // StatefulSetConfiguration holds the optional custom StatefulSet
 // that should be merged into the operator created one.
 type StatefulSetConfiguration struct {
-	// +kubebuilder:pruning:PreserveUnknownFields
 	SpecWrapper StatefulSetSpecWrapper `json:"spec"`
 }
 
@@ -306,7 +300,7 @@ type Authentication struct {
 }
 
 // AuthMode ...
-// +kubebuilder:validation:Enum=SCRAM;SCRAM-SHA-256;SCRAM-SHA-1
+// +kubebuilder:validation:Enum=SCRAM
 type AuthMode string
 
 // MongoDBCommunityStatus defines the observed state of MongoDB
@@ -377,12 +371,9 @@ func (m MongoDBCommunity) Hosts() []string {
 	return hosts
 }
 
-// ServiceName returns the name of the Service that should be created for this resource
+// ServiceName returns the name of the Service that should be created for
+// this resource
 func (m MongoDBCommunity) ServiceName() string {
-	serviceName := m.Spec.StatefulSetConfiguration.SpecWrapper.Spec.ServiceName
-	if serviceName != "" {
-		return serviceName
-	}
 	return m.Name + "-svc"
 }
 
@@ -411,6 +402,11 @@ func (m MongoDBCommunity) TLSOperatorSecretNamespacedName() types.NamespacedName
 // NamespacedName ...
 func (m MongoDBCommunity) NamespacedName() types.NamespacedName {
 	return types.NamespacedName{Name: m.Name, Namespace: m.Namespace}
+}
+
+// GetAgentScramCredentialsNamespacedName ...
+func (m MongoDBCommunity) GetAgentScramCredentialsNamespacedName() types.NamespacedName {
+	return types.NamespacedName{Name: fmt.Sprintf("%s-agent-scram-credentials", m.Name), Namespace: m.Namespace}
 }
 
 // DesiredReplicas ...
