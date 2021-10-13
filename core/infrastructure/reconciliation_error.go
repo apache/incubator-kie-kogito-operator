@@ -201,7 +201,7 @@ func ErrorForProcessingRouteDelta() ReconciliationError {
 func ErrorForRouteCreation(err error) ReconciliationError {
 	return ReconciliationError{
 		reason:     RouteCreationFailureReason,
-		innerError: err,
+		innerError: fmt.Errorf("%w; Note the option to disable routes and provide manual route if needed", err),
 	}
 }
 

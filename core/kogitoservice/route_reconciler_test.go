@@ -19,10 +19,12 @@ import (
 
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/record"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	v1 "github.com/openshift/api/route/v1"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -35,7 +37,8 @@ func TestRouteReconciler_K8s(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	routeReconciler := newRouteReconciler(context, instance)
+	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
+	routeReconciler := newRouteReconciler(context, instance, recorder)
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)
 
@@ -48,16 +51,18 @@ func TestRouteReconciler_K8s(t *testing.T) {
 func TestRouteReconciler_OpenshiftRouteEnabled(t *testing.T) {
 	ns := t.Name()
 	instance := test.CreateFakeKogitoRuntime(ns)
-	instance.Spec.Route = true
+	falseVal := false
+	instance.Spec.DisableRoute = &falseVal
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	routeReconciler := newRouteReconciler(context, instance)
+	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
+	routeReconciler := newRouteReconciler(context, instance, recorder)
 	err := routeReconciler.Reconcile()
-	assert.EqualError(t, err, "Processing Route ")
+	assert.NoError(t, err)
 
 	route := &v1.Route{ObjectMeta: v13.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
 	exists, err := kubernetes.ResourceC(cli).Fetch(route)
@@ -67,14 +72,19 @@ func TestRouteReconciler_OpenshiftRouteEnabled(t *testing.T) {
 
 func TestRouteReconciler_Openshift(t *testing.T) {
 	ns := t.Name()
+
 	instance := test.CreateFakeKogitoRuntime(ns)
+	trueVal := true
+	instance.Spec.DisableRoute = &trueVal
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	routeReconciler := newRouteReconciler(context, instance)
+	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
+	routeReconciler := newRouteReconciler(context, instance, recorder)
+
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)
 

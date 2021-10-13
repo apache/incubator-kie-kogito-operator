@@ -65,6 +65,11 @@ spec:
                 description: Additional labels to be added to the Deployment and Pods
                   managed by the operator.
                 type: object
+              disableRoute:
+                description: "A flag indicating that default routes are disabled.
+                  Usable just on OpenShift. \n If not provided, defaults to 'true'
+                  for Kogito runtime and 'false' for supporting services."
+                type: boolean
               env:
                 description: Environment variables to be added to the runtime container.
                   Keys must be a C_IDENTIFIER.

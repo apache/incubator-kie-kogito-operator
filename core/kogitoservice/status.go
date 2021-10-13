@@ -159,7 +159,24 @@ func (s *statusHandler) updateDeploymentStatus(instance api.KogitoService) error
 
 func (s *statusHandler) updateRouteStatus(instance api.KogitoService) error {
 	if s.Client.IsOpenshift() {
+
 		routeHandler := infrastructure.NewRouteHandler(s.Context)
+		if *instance.GetSpec().IsRouteDisabled() {
+			// update status message that route was disabled
+			s.Log.Debug("Routes are not enabled.")
+			return nil
+		}
+		// check if route is successfully created and update runtime conditions with error message
+		if isValid, err := routeHandler.ValidateRouteStatus(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()}); err != nil {
+			errCondition := infrastructure.ErrorForRouteCreation(err)
+			s.Log.Info("Error occured during route creation", "err", err)
+			return s.setFailedConditions(instance, s.errorHandler.GetReasonForError(errCondition), errCondition)
+
+		} else if !isValid {
+			errCondition := infrastructure.ErrorForProcessingRouteDelta()
+			return s.setFailedConditions(instance, s.errorHandler.GetReasonForError(errCondition), errCondition)
+		}
+
 		route, err := routeHandler.GetHostFromRoute(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 		if err != nil {
 			return err

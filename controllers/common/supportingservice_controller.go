@@ -16,6 +16,7 @@ package common
 
 import (
 	"context"
+
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
@@ -84,6 +85,12 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(ctx context.Context, req c
 	if instance == nil {
 		log.Debug("kogitoSupportingService Instance not found")
 		return
+	}
+
+	// set default behaviour as enable routes
+	if instance.GetSpec().IsRouteDisabled() == nil {
+		falseValue := false
+		instance.GetSpec().SetDisableRoute(&falseValue)
 	}
 
 	supportingServiceManager := manager.NewKogitoSupportingServiceManager(kogitoContext, supportingServiceHandler)

@@ -15,7 +15,7 @@
 package v1beta1
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
+	api "github.com/kiegroup/kogito-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -36,11 +36,6 @@ type KogitoSupportingServiceSpec struct {
 // GetRuntime ...
 func (k *KogitoSupportingServiceSpec) GetRuntime() api.RuntimeType {
 	return api.QuarkusRuntimeType
-}
-
-// IsRouteEnabled ...
-func (k *KogitoSupportingServiceSpec) IsRouteEnabled() bool {
-	return true
 }
 
 // GetServiceType ...

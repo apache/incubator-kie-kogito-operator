@@ -835,6 +835,9 @@ spec:
                   type: string
                 description: Additional labels to be added to the Deployment and Pods managed by the operator.
                 type: object
+              disableRoute:
+                description: "A flag indicating that default routes are disabled. Usable just on OpenShift. \n If not provided, defaults to 'true' for Kogito runtime and 'false' for supporting services."
+                type: boolean
               enableIstio:
                 description: Annotates the pods managed by the operator with the required metadata for Istio to setup its sidecars, enabling the mesh. Defaults to false.
                 type: boolean
@@ -1229,9 +1232,6 @@ spec:
                     description: 'Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                     type: object
                 type: object
-              route:
-                description: "A flag indicating that default route should be created. Usable just on OpenShift. \n Defaults to 'false'."
-                type: boolean
               runtime:
                 description: "The name of the runtime used, either Quarkus or SpringBoot. \n Default value: quarkus"
                 enum:
@@ -1435,6 +1435,9 @@ spec:
                   type: string
                 description: Additional labels to be added to the Deployment and Pods managed by the operator.
                 type: object
+              disableRoute:
+                description: "A flag indicating that default routes are disabled. Usable just on OpenShift. \n If not provided, defaults to 'true' for Kogito runtime and 'false' for supporting services."
+                type: boolean
               env:
                 description: Environment variables to be added to the runtime container. Keys must be a C_IDENTIFIER.
                 items:

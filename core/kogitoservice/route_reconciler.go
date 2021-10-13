@@ -21,6 +21,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/record"
 	v1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -36,14 +37,16 @@ type routeReconciler struct {
 	instance       api.KogitoService
 	routeHandler   infrastructure.RouteHandler
 	deltaProcessor infrastructure.DeltaProcessor
+	recorder       record.EventRecorder
 }
 
-func newRouteReconciler(context operator.Context, instance api.KogitoService) RouteReconciler {
+func newRouteReconciler(context operator.Context, instance api.KogitoService, recorder record.EventRecorder) RouteReconciler {
 	return &routeReconciler{
 		Context:        context,
 		instance:       instance,
 		routeHandler:   infrastructure.NewRouteHandler(context),
 		deltaProcessor: infrastructure.NewDeltaProcessor(context),
+		recorder:       recorder,
 	}
 }
 
@@ -54,8 +57,9 @@ func (i *routeReconciler) Reconcile() error {
 		return nil
 	}
 
-	if !i.instance.GetSpec().IsRouteEnabled() {
+	if *i.instance.GetSpec().IsRouteDisabled() {
 		i.Log.Debug("Skipping route creation. Routes are not enabled.")
+		i.recorder.Eventf(i.Client, i.instance, "Normal", "Info", "Skipping route creation. Routes are not enabled.")
 		return nil
 	}
 
@@ -74,13 +78,6 @@ func (i *routeReconciler) Reconcile() error {
 	// Process Delta
 	if err = i.processDelta(requestedResources, deployedResources); err != nil {
 		return err
-	}
-
-	// Validate Route Status
-	if isValid, err := i.routeHandler.ValidateRouteStatus(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()}); err != nil {
-		return infrastructure.ErrorForRouteCreation(err)
-	} else if !isValid {
-		return infrastructure.ErrorForProcessingRouteDelta()
 	}
 
 	return nil
@@ -110,12 +107,9 @@ func (i *routeReconciler) getDeployedResources() (map[reflect.Type][]client.Obje
 
 func (i *routeReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
 	comparator := i.routeHandler.GetComparator()
-	isDeltaProcessed, err := i.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
+	_, err = i.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	if err != nil {
 		return err
-	}
-	if isDeltaProcessed {
-		return infrastructure.ErrorForProcessingRouteDelta()
 	}
 	return
 }

@@ -16,6 +16,7 @@ package common
 
 import (
 	"context"
+
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
@@ -83,6 +84,12 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	if instance == nil {
 		log.Debug("KogitoRuntime instance not found")
 		return
+	}
+
+	// set default behaviour as disable routes
+	if instance.GetSpec().IsRouteDisabled() == nil {
+		trueValue := true
+		instance.GetSpec().SetDisableRoute(&trueValue)
 	}
 
 	rbacHandler := infrastructure.NewRBACHandler(kogitoContext)

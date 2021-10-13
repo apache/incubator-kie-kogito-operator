@@ -71,7 +71,8 @@ type KogitoServiceSpecInterface interface {
 	SetServiceLabels(labels map[string]string)
 	AddServiceLabel(name, value string)
 	GetRuntime() RuntimeType
-	IsRouteEnabled() bool
+	IsRouteDisabled() *bool
+	SetDisableRoute(disableRoute *bool)
 	IsInsecureImageRegistry() bool
 	GetPropertiesConfigMap() string
 	GetInfra() []string
