@@ -111,7 +111,6 @@ String getBDDParameters() {
 
     // Reuse runtime application images from nightly builds
     testParamsMap['image_cache_mode'] = 'always'
-    testParamsMap['runtime_application_image_registry'] = 'quay.io/kiegroup'
 
     // Don't run tests using CLI as it is not supported for product
     testParamsMap['cr_deployment_only'] = 'true'
