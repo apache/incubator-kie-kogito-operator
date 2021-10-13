@@ -131,49 +131,49 @@ Feature: Deploy Kogito Runtime
   @persistence
   @mongodb
   Scenario: Deploy <example-service> service with native <native> using MongoDB
-    Given Kogito Operator is deployed
+    # Given Kogito Operator is deployed
     And MongoDB Operator is deployed
     And MongoDB instance "kogito-mongodb" is deployed with configuration:
       | username | developer            |
       | password | mypass               |
       | database | kogito_dataindex     |
-    And Install MongoDB Kogito Infra "kogito-mongodb" targeting service "kogito-mongodb" within 5 minutes with configuration:
-      | config   | username | developer            |
-      | config   | database | kogito_dataindex     |
-    And Clone Kogito examples into local directory
-    And Local example service "<example-service>" is built by Maven and deployed to runtime registry with Maven configuration:
-      | native | <native> |
+    # And Install MongoDB Kogito Infra "kogito-mongodb" targeting service "kogito-mongodb" within 5 minutes with configuration:
+    #   | config   | username | developer            |
+    #   | config   | database | kogito_dataindex     |
+    # And Clone Kogito examples into local directory
+    # And Local example service "<example-service>" is built by Maven and deployed to runtime registry with Maven configuration:
+    #   | native | <native> |
 
-    When Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
-      | config | infra | kogito-mongodb   |
-      # Setup short name as it can create some problems with route name too long ...
-      | config | name  | process-mongodb  |
-    And Kogito Runtime "process-mongodb" has 1 pods running within 10 minutes
-    And Start "deals" process on service "process-mongodb" within 3 minutes with body:
-      """json
-      {
-        "name" : "my fancy deal",
-        "traveller" : {
-          "firstName" : "John",
-          "lastName" : "Doe",
-          "email" : "jon.doe@example.com",
-          "nationality" : "American",
-          "address" : {
-            "street" : "main street",
-            "city" : "Boston",
-            "zipCode" : "10005",
-            "country" : "US" 
-          }
-        }
-      }
-      """
+    # When Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
+    #   | config | infra | kogito-mongodb   |
+    #   # Setup short name as it can create some problems with route name too long ...
+    #   | config | name  | process-mongodb  |
+    # And Kogito Runtime "process-mongodb" has 1 pods running within 10 minutes
+    # And Start "deals" process on service "process-mongodb" within 3 minutes with body:
+    #   """json
+    #   {
+    #     "name" : "my fancy deal",
+    #     "traveller" : {
+    #       "firstName" : "John",
+    #       "lastName" : "Doe",
+    #       "email" : "jon.doe@example.com",
+    #       "nationality" : "American",
+    #       "address" : {
+    #         "street" : "main street",
+    #         "city" : "Boston",
+    #         "zipCode" : "10005",
+    #         "country" : "US" 
+    #       }
+    #     }
+    #   }
+    #   """
 
-    Then Service "process-mongodb" contains 1 instances of process with name "dealreviews"
+    # Then Service "process-mongodb" contains 1 instances of process with name "dealreviews"
 
-    When Scale Kogito Runtime "process-mongodb" to 0 pods within 2 minutes
-    And Scale Kogito Runtime "process-mongodb" to 1 pods within 2 minutes
+    # When Scale Kogito Runtime "process-mongodb" to 0 pods within 2 minutes
+    # And Scale Kogito Runtime "process-mongodb" to 1 pods within 2 minutes
 
-    Then Service "process-mongodb" contains 1 instances of process with name "dealreviews" within 2 minutes
+    # Then Service "process-mongodb" contains 1 instances of process with name "dealreviews" within 2 minutes
 
     @springboot
     Examples:

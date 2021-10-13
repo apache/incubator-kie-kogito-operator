@@ -26,14 +26,13 @@ import (
 	mongodb "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
 	membersSize = 1
 
-	mongoDBVersion = "4.4.9"
+	mongoDBVersion = "4.4.1"
 )
 
 // DeployMongoDBInstance deploys an instance of Mongo DB
@@ -77,10 +76,7 @@ type MongoDBUserCred struct {
 
 // GetMongoDBStub returns the preconfigured MongoDB stub with set namespace, name and secretName
 func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserCred) *mongodb.MongoDBCommunity {
-	// Default capacity is 10G, default to 1G
-	capacity, _ := resource.ParseQuantity("1G")
-
-	// Taken from https://github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
+	// Taken from https://github.com/mongodb/mongodb-kubernetes-operator/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
 	stub := &mongodb.MongoDBCommunity{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -94,20 +90,7 @@ func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserC
 			StatefulSetConfiguration: mongodb.StatefulSetConfiguration{
 				SpecWrapper: mongodb.StatefulSetSpecWrapper{
 					Spec: v1.StatefulSetSpec{
-						VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name: "data-volume",
-								},
-								Spec: corev1.PersistentVolumeClaimSpec{
-									Resources: corev1.ResourceRequirements{
-										Requests: corev1.ResourceList{
-											corev1.ResourceStorage: capacity,
-										},
-									},
-								},
-							},
-						},
+						ServiceName: name,
 					},
 				},
 			},
@@ -148,7 +131,7 @@ func GetMongoDBStub(openshift bool, namespace, name string, users []MongoDBUserC
 	}
 
 	if openshift {
-		// OCP Specificies https://github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
+		// OCP Specificies https://github.com/mongodb/mongodb-kubernetes-operator/blob/v0.7.0/config/samples/mongodb.com_v1_mongodbcommunity_openshift_cr.yaml
 		GetLogger(namespace).Debug("Setup MANAGED_SECURITY_CONTEXT env in MongoDB entity for Openshift")
 		stub.Spec.StatefulSetConfiguration.SpecWrapper.Spec.Template = corev1.PodTemplateSpec{
 			Spec: corev1.PodSpec{

@@ -20,6 +20,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	operatorframework "github.com/kiegroup/kogito-operator/core/framework"
 	mongodbv1 "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
 	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 	coreapps "k8s.io/api/apps/v1"
@@ -40,7 +41,7 @@ var (
 
 	mongoDBOperatorServiceName    = "Mongo DB"
 	mongoDBOperatorVersion        = "v0.7.0"
-	mongoDBOperatorDeployFilesURI = "https://raw.githubusercontent.com/mongodb/mongodb-kubernetes-operator/" + mongoDBOperatorVersion + "/config/"
+	mongoDBOperatorDeployFilesURI = "https://raw.githubusercontent.com/mongodb/mongodb-kubernetes-operator/" + mongoDBOperatorVersion + "/"
 
 	// Used for CRD creation in case of parallel execution of scenarios
 	mongoDBCrdMux = &sync.Mutex{}
@@ -54,39 +55,44 @@ func GetMongoDbInstaller() ServiceInstaller {
 func installMongoDbUsingYaml(namespace string) error {
 	framework.GetLogger(namespace).Info("Deploy MongoDB from yaml files", "file uri", mongoDBOperatorDeployFilesURI)
 
-	// Lock to avoid parallel creation
+	// Lock to avoid parallel creation of crds
 	var err error
 	mongoDBCrdMux.Lock()
 	if !framework.IsMongoDBAvailable(namespace) {
-		err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"crd/bases/mongodbcommunity.mongodb.com_mongodbcommunity.yaml", &apiextensionsv1.CustomResourceDefinition{}, nil)
+		err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"config/crd/bases/mongodbcommunity.mongodb.com_mongodbcommunity.yaml", &apiextensionsv1.CustomResourceDefinition{}, nil)
 	}
 	mongoDBCrdMux.Unlock()
 	if err != nil {
 		return err
 	}
 
-	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/service_account.yaml", &corev1.ServiceAccount{}, nil); err != nil {
+	// rbac
+	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"config/rbac/service_account.yaml", &corev1.ServiceAccount{}, nil); err != nil {
 		return err
 	}
-	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role.yaml", &rbac.Role{}, nil); err != nil {
+	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"config/rbac/role.yaml", &rbac.Role{}, nil); err != nil {
 		return err
 	}
-	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"rbac/role_binding.yaml", &rbac.RoleBinding{}, nil); err != nil {
+	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"config/rbac/role_binding.yaml", &rbac.RoleBinding{}, nil); err != nil {
 		return err
 	}
 
-	// Then deploy operator
-	err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"manager/manager.yaml", &coreapps.Deployment{}, func(object interface{}) {
+	// Then operator
+	if err = framework.LoadResource(namespace, mongoDBOperatorDeployFilesURI+"config/manager/manager.yaml", &coreapps.Deployment{}, func(object interface{}) {
+		// Override with v0.7.0 values as the branch does not have the correct ones ...
+		object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Image = "quay.io/mongodb/mongodb-kubernetes-operator:0.7.0"
+		object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env = operatorframework.EnvOverride(object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env,
+			corev1.EnvVar{Name: "AGENT_IMAGE", Value: "quay.io/mongodb/mongodb-agent:11.0.5.6963-1"},
+			corev1.EnvVar{Name: "VERSION_UPGRADE_HOOK_IMAGE", Value: "quay.io/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook:1.0.2"},
+			corev1.EnvVar{Name: "READINESS_PROBE_IMAGE", Value: "quay.io/mongodb/mongodb-kubernetes-readinessprobe:1.0.4"},
+		)
 		if framework.IsOpenshift() {
 			framework.GetLogger(namespace).Debug("Setup MANAGED_SECURITY_CONTEXT env in MongoDB operator for Openshift")
-			object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env = append(object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env,
-				corev1.EnvVar{
-					Name:  "MANAGED_SECURITY_CONTEXT",
-					Value: "true",
-				})
+			object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env = operatorframework.EnvOverride(object.(*coreapps.Deployment).Spec.Template.Spec.Containers[0].Env,
+				corev1.EnvVar{Name: "MANAGED_SECURITY_CONTEXT", Value: "true"},
+			)
 		}
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
