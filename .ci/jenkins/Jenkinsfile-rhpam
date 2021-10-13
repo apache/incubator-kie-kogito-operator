@@ -102,26 +102,19 @@ String getBDDParameters() {
     testParamsMap['load_factor'] = 3
     testParamsMap['disable_maven_native_build_container'] = true
 
-    testParamsMap['operator_image'] = "${OPENSHIFT_REGISTRY}/openshift/rhpam-kogito-rhel8-operator"
-    testParamsMap['operator_tag'] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
+    testParamsMap['operator_image_tag'] = "${OPENSHIFT_REGISTRY}/openshift/rhpam-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
 
     if (env.MAVEN_MIRROR_REPOSITORY) {
-        testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
+        testParamsMap['maven_mirror_url'] = env.MAVEN_MIRROR_REPOSITORY
         testParamsMap['maven_ignore_self_signed_certificate'] = true
     }
 
     // Reuse runtime application images from nightly builds
     testParamsMap['image_cache_mode'] = 'always'
-    testParamsMap['runtime_application_image_registry'] = 'quay.io/kiegroup'
 
     // Don't run tests using CLI as it is not supported for product
     testParamsMap['cr_deployment_only'] = 'true'
     testParamsMap['use_product_operator'] = 'true'
-
-    // Using upstream images as a workaround until there are nightly product images available
-    testParamsMap['build_builder_image_tag'] = "quay.io/kiegroup/kogito-builder-nightly:latest"
-    testParamsMap['build_runtime_jvm_image_tag'] = "quay.io/kiegroup/kogito-runtime-jvm-nightly:latest"
-    testParamsMap['build_runtime_native_image_tag'] = "quay.io/kiegroup/kogito-runtime-native-nightly:latest"
 
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
 

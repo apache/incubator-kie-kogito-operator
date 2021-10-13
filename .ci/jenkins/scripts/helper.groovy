@@ -338,20 +338,19 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
     testParamsMap['load_default_config'] = true
     testParamsMap['ci'] = 'jenkins'
 
-    testParamsMap['operator_image'] = getTempOpenshiftImageName(true)
-    testParamsMap['operator_tag'] = getTempTag()
+    testParamsMap['operator_image_tag'] = "${getTempOpenshiftImageName(true)}:${getTempTag()}"
 
     String mavenRepository = env.MAVEN_ARTIFACT_REPOSITORY ?: (isRelease() ? env.DEFAULT_STAGING_REPOSITORY : '')
     if (mavenRepository) {
         // No mirror if we set directly the Maven repository
         // Tests will be slower but we need to test against specific artifacts
-        testParamsMap['custom_maven_repo'] = mavenRepository
+        testParamsMap['custom_maven_repo_url'] = mavenRepository
         testParamsMap['maven_ignore_self_signed_certificate'] = true
     }
     // Disabled as we now use IBMCloud
     // Follow-up issue to make it more dynamic: https://issues.redhat.com/browse/KOGITO-5739
     // if (env.MAVEN_MIRROR_REPOSITORY) {
-    //     testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
+    //     testParamsMap['maven_mirror_url'] = env.MAVEN_MIRROR_REPOSITORY
     //     testParamsMap['maven_ignore_self_signed_certificate'] = true
     // }
 
@@ -377,9 +376,13 @@ Map getBDDCommonParameters(boolean runtime_app_registry_internal) {
 Map getBDDBuildImageParameters(String paramsPrefix = defaultImageParamsPrefix) {
     Map testParamsMap = [:]
 
-    testParamsMap['build_image_registry'] = "${getImageRegistry(paramsPrefix)}/${getImageNamespace(paramsPrefix)}"
-    testParamsMap['build_image_name_suffix'] = getImageNameSuffix(paramsPrefix) ?: ''
-    testParamsMap['build_image_version'] = getImageTag(paramsPrefix) ?: ''
+    String registry = "${getImageRegistry(paramsPrefix)}/${getImageNamespace(paramsPrefix)}"
+    String nameSuffix = getImageNameSuffix(paramsPrefix) ? "-${getImageNameSuffix(paramsPrefix)}" : ''
+    String tag = getImageTag(paramsPrefix) ? ":${getImageTag(paramsPrefix)}" : ''
+
+    testParamsMap['build_builder_image_tag'] = "${registry}/kogito-builder${nameSuffix}${tag}"
+    testParamsMap['build_runtime_jvm_image_tag'] = "${registry}/kogito-runtime-jvm${nameSuffix}${tag}"
+    testParamsMap['build_runtime_native_image_tag'] = "${registry}/kogito-runtime-native${nameSuffix}${tag}"
 
     return testParamsMap
 }

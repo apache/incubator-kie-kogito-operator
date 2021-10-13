@@ -251,8 +251,6 @@ You can set those optional keys:
   *Default is false.*
 - `load_factor` sets the tests load factor. Useful for the tests to take into account that the cluster can be overloaded, for example for the calculation of timeouts.  
   *Default is 1.*
-- `local` to be set to true if running tests in local using either a local or remote cluster.
-  *Default is false.*
 - `ci` to be set if running tests with CI. Give CI name.
 - `cr_deployment_only` to be set if you don't have a CLI built. Default will deploy applications via the CLI.
 - `load_default_config` sets to true if you want to directly use the default test config (from test/.default_config)
@@ -264,10 +262,8 @@ You can set those optional keys:
   *Default is 3.*
 - `olm_namespace` Set the namespace which is used for cluster scope operators. Default is 'openshift-operators'.
 <!--- operator information -->
-- `operator_image` is the Operator image full name.  
-  *Default: operator_image=quay.io/kiegroup/kogito-operator*.
-- `operator_tag` is the Operator image tag.  
-  *Default is the current version*.
+- `operator_image_tag` is the Operator image full name.
+  *Default: quay.io/kiegroup/kogito-operator:${currentVersion}*.
 - `operator_installation_source` Defines what source is used to install Kogito operator. Available options are `olm` and `yaml`.
   *Default is yaml*.
 - `operator_catalog_image` Specifies catalog image containing Kogito operator bundle. Needs to be specified when `operator_installation_source` is set to `olm`.
@@ -280,24 +276,17 @@ You can set those optional keys:
 - `rhpam_operator_yaml_uri` Url or Path to rhpam-operator.yaml file.
 *Default is ../rhpam-operator.yaml*.
 <!--- runtime -->
-- `services_image_version` sets the services (jobs-service, data-index, ...) image version.
-- `services_image_namespace` sets the services (jobs-service, data-index, ...) image namespace.
-- `services_image_registry` sets the services (jobs-service, data-index, ...) image registry.
-- `data_index_image_tag` sets the Kogito Data Index image tag ('services_image_version' is ignored)
-- `explainability_image_tag` sets the Kogito Explainability image tag ('services_image_version' is ignored)
-- `jobs_service_image_tag` sets the Kogito Jobs Service image tag ('services_image_version' is ignored)
-- `management_console_image_tag` sets the Kogito Management Console image tag ('services_image_version' is ignored)
-- `task_console_image_tag` sets the Kogito Task Console image tag ('services_image_version' is ignored)
-- `trusty_image_tag` sets the Kogito Trusty image tag ('services_image_version' is ignored)
-- `trusty_ui_image_tag` sets the Kogito Trusty UI image tag ('services_image_version' is ignored)
+- `services_{image_type}_{persistence_type}_image_tag` sets the services (jobs-service, data-index, ...) image tag.  
+  image_type => data-index, explainibility, jobs-service, mgmt-console, task-console, trusty, trusty-ui  
+  persistence_type => ephemeral, infinispan, mongodb, postgresql, redis  
+  This will override those parameters for the given image: `services_image_version`, `services_image_namespace`, `services_image_registry`.
+- `services_image_registry` sets the global services image registry.
+- `services_image_name_suffix` sets the global services image name suffix to append to usual image names.
+- `services_image_version` sets the global services image version.
 <!--- build -->
-- `custom_maven_repo` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information.
-- `maven_mirror` is the Maven mirror URL.  
+- `custom_maven_repo_url` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information.
+- `maven_mirror_url` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
-- `build_image_registry` sets the build image registry.
-- `build_image_namespace` sets the build image namespace.
-- `build_image_name_suffix` sets the build image name suffix to append to usual image names.
-- `build_image_version` sets the build image version
 - `build_builder_image_tag` sets the Builder image full tag.
 - `build_runtime_jvm_image_tag` sets the Runtime JVM image full tag.
 - `build_runtime_native_image_tag` sets the Runtime Native image full tag.
@@ -323,6 +312,8 @@ You can set those optional keys:
   *Default is false.*
 - `namespace_name` to specify name of the namespace which will be used for scenario execution (intended for development purposes).
 - `local_cluster` to be set to true if running tests using a local cluster.
+  *Default is false.*
+- `local_execution` to be set to true if running tests in local using either a local or remote cluster.
   *Default is false.*
 
 Logs will be shown on the Terminal.
