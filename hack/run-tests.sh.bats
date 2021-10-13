@@ -946,19 +946,19 @@ export -f oc
 }
 
 @test "invoke run-tests with infinispan_storage_class" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --infinispan_storage_class local --dry_run
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --infinispan_storage_class local
     [ "$status" -eq 0 ]
     [[ "${output}" =~ "--tests.infinispan_storage_class=local" ]]
 }
 
 @test "invoke run-tests with infinispan_storage_class missing value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --infinispan_storage_class --dry_run
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --infinispan_storage_class
     [ "$status" -eq 0 ]
     [[ "${output}" != *"--tests.infinispan_storage_class"* ]]
 }
 
 @test "invoke run-tests with infinispan_storage_class empty value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --infinispan_storage_class "" --dry_run
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --infinispan_storage_class ""
     [ "$status" -eq 0 ]
     [[ "${output}" != *"--tests.infinispan_storage_class"* ]]
 }
@@ -984,19 +984,19 @@ export -f oc
 }
 
 @test "invoke run-tests with hyperfoil_controller_image_version" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_controller_image_version 0.1.0 --dry_run
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_controller_image_version 0.1.0
     [ "$status" -eq 0 ]
     [[ "${output}" =~ "--tests.hyperfoil_controller_image_version=0.1.0" ]]
 }
 
 @test "invoke run-tests with hyperfoil_controller_image_version missing value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_controller_image_version --dry_run
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_controller_image_version
     [ "$status" -eq 0 ]
     [[ "${output}" != *"--tests.hyperfoil_controller_image_version"* ]]
 }
 
 @test "invoke run-tests with hyperfoil_controller_image_version empty value" {
-    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_controller_image_version "" --dry_run
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --hyperfoil_controller_image_version ""
     [ "$status" -eq 0 ]
     [[ "${output}" != *"--tests.hyperfoil_controller_image_version"* ]]
 }
