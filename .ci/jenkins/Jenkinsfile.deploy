@@ -316,7 +316,10 @@ String getBDDParameters() {
         tags.add(params.BDD_TEST_TAGS)
     }
     if (params.SKIP_NATIVE_TESTS) {
-        tags.add(helper.getNonNativeTag())
+        tags.add("~${helper.getNativeTag()}")
+    }
+    if (params.SKIP_NON_NATIVE_TESTS) {
+        tags.add("~${helper.getNonNativeTag()}")
     }
     testParamsMap['tags'] = tags.join('&&')
 
