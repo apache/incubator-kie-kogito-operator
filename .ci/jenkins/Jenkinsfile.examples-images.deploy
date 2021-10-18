@@ -63,6 +63,9 @@ pipeline {
         }
 
         stage('Build examples images') {
+            when {
+                expression { return !params.SKIP_NON_NATIVE_TESTS }
+            }
             steps {
                 script {
                     try {

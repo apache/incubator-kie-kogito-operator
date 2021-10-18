@@ -92,6 +92,7 @@ void setupDeployJob(String jobFolder, KogitoJobType jobType) {
             booleanParam('SKIP_TESTS', false, 'Skip tests')
             booleanParam('SMOKE_TESTS_ONLY', false, 'If only smoke tests should be run. Default is full testing.')
             booleanParam('SKIP_NATIVE_TESTS', false, 'Skip native tests')
+            booleanParam('SKIP_NON_NATIVE_TESTS', false, 'Skip non native tests')
             stringParam('BDD_TEST_TAGS', '', 'Execute only a subset of BDD tests')
 
             stringParam('NATIVE_BUILDER_IMAGE', '', 'Force the native builder image')
@@ -234,6 +235,7 @@ void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
             booleanParam('SKIP_TESTS', false, 'Skip tests')
             booleanParam('SMOKE_TESTS_ONLY', false, 'If only smoke tests should be run. Default is full testing.')
             booleanParam('SKIP_NATIVE_TESTS', false, 'Skip native tests')
+            booleanParam('SKIP_NON_NATIVE_TESTS', false, 'Skip non native tests')
             stringParam('BDD_TEST_TAGS', '', 'Execute only a subset of BDD tests')
 
             stringParam('NATIVE_BUILDER_IMAGE', '', 'Force the native builder image')
