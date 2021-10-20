@@ -188,15 +188,6 @@ func ErrorForImageNotFound() ReconciliationError {
 	}
 }
 
-// ErrorForProcessingRouteDelta ...
-// func ErrorForProcessingRouteDelta() ReconciliationError {
-// 	return ReconciliationError{
-// 		reason:                 SuccessfulRouteCreation,
-// 		reconciliationInterval: ReconciliationAfterFive,
-// 		innerError:             fmt.Errorf("Processing Route "),
-// 	}
-// }
-
 // ErrorForRouteCreation ...
 func ErrorForRouteCreation(err error) ReconciliationError {
 	return ReconciliationError{
