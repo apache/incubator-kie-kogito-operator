@@ -34,6 +34,11 @@ type KogitoServiceStatus struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Deployment Conditions"
 	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:io.kubernetes.conditions"
 	DeploymentConditions []appsv1.DeploymentCondition `json:"deploymentConditions,omitempty"`
+	// General conditions for the Kogito Service route.
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Route Conditions"
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:io.kubernetes.conditions"
+	RouteConditions *[]metav1.Condition `json:"routeConditions,omitempty"`
 	// Image is the resolved image for this service.
 	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Image string `json:"image,omitempty"`
@@ -64,6 +69,16 @@ func (k *KogitoServiceStatus) GetDeploymentConditions() []appsv1.DeploymentCondi
 // SetDeploymentConditions sets the deployment conditions for the service.
 func (k *KogitoServiceStatus) SetDeploymentConditions(deploymentConditions []appsv1.DeploymentCondition) {
 	k.DeploymentConditions = deploymentConditions
+}
+
+// GetRouteConditions gets the deployment conditions for the service.
+func (k *KogitoServiceStatus) GetRouteConditions() *[]metav1.Condition {
+	return k.RouteConditions
+}
+
+// SetRouteConditions sets the deployment conditions for the service.
+func (k *KogitoServiceStatus) SetRouteConditions(conditions *[]metav1.Condition) {
+	k.RouteConditions = conditions
 }
 
 // GetImage ...

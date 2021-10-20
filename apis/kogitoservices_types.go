@@ -92,6 +92,8 @@ type KogitoServiceStatusInterface interface {
 	SetConditions(conditions *[]metav1.Condition)
 	GetDeploymentConditions() []appsv1.DeploymentCondition
 	SetDeploymentConditions(deploymentConditions []appsv1.DeploymentCondition)
+	GetRouteConditions() *[]metav1.Condition
+	SetRouteConditions(conditions *[]metav1.Condition)
 	GetImage() string
 	SetImage(image string)
 	GetExternalURI() string

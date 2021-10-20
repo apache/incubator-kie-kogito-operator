@@ -70,6 +70,7 @@ func (r *routeHandler) GetHostFromRoute(routeKey types.NamespacedName) (string, 
 	return route.Spec.Host, nil
 }
 
+// ValidateRouteStatus return false with te error if route does not  have condition ready.
 func (r *routeHandler) ValidateRouteStatus(routeKey types.NamespacedName) (bool, error) {
 	route, err := r.FetchRoute(routeKey)
 	if err != nil || route == nil {

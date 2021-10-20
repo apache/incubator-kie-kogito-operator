@@ -61,8 +61,8 @@ const (
 	ProcessingProtoBufConfigMapDelta ConditionReason = "ProcessingProtoBufConfigMapDelta"
 	// ImageNotFound ...
 	ImageNotFound ConditionReason = "ImageNotFound"
-	// ProcessingRouteDelta ...
-	ProcessingRouteDelta ConditionReason = "ProcessingRouteDelta"
+	// RouteProcessed ...
+	RouteProcessed ConditionReason = "RouteProcessed"
 	// RouteCreationFailureReason - Unable to properly create Route
 	RouteCreationFailureReason ConditionReason = "RouteCreationFailure"
 )
@@ -189,13 +189,13 @@ func ErrorForImageNotFound() ReconciliationError {
 }
 
 // ErrorForProcessingRouteDelta ...
-func ErrorForProcessingRouteDelta() ReconciliationError {
-	return ReconciliationError{
-		reason:                 ProcessingRouteDelta,
-		reconciliationInterval: ReconciliationAfterFive,
-		innerError:             fmt.Errorf("Processing Route "),
-	}
-}
+// func ErrorForProcessingRouteDelta() ReconciliationError {
+// 	return ReconciliationError{
+// 		reason:                 SuccessfulRouteCreation,
+// 		reconciliationInterval: ReconciliationAfterFive,
+// 		innerError:             fmt.Errorf("Processing Route "),
+// 	}
+// }
 
 // ErrorForRouteCreation ...
 func ErrorForRouteCreation(err error) ReconciliationError {

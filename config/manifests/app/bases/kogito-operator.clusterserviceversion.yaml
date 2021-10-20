@@ -359,6 +359,11 @@ spec:
       - description: Image is the resolved image for this service.
         displayName: Image
         path: image
+      - description: General conditions for the Kogito Service route.
+        displayName: Route Conditions
+        path: routeConditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1beta1
     - description: KogitoSupportingService deploys the Supporting service in the given
         namespace.
@@ -483,6 +488,11 @@ spec:
       - description: Image is the resolved image for this service.
         displayName: Image
         path: image
+      - description: General conditions for the Kogito Service route.
+        displayName: Route Conditions
+        path: routeConditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1beta1
   description: |-
     Kogito Operator is designed to deploy Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
