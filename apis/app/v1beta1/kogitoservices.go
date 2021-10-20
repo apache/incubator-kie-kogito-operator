@@ -269,14 +269,14 @@ type KogitoServiceSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:io.kubernetes:Secret"
 	TrustStoreSecret string `json:"trustStoreSecret,omitempty"`
 
-	// A flag indicating that default routes are disabled. Usable just on OpenShift.
+	// A flag indicating that routes are disabled. Usable just on OpenShift.
 	//
-	// If not provided, defaults to 'true' for Kogito runtime and 'false' for supporting services.
+	// If not provided, defaults to 'false'.
 	// +optional
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="DisableRoute"
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
-	DisableRoute *bool `json:"disableRoute,omitempty"`
+	DisableRoute bool `json:"disableRoute,omitempty"`
 }
 
 // GetReplicas ...
@@ -436,11 +436,11 @@ func (k *KogitoServiceSpec) SetTrustStoreSecret(trustStoreSecret string) {
 }
 
 // IsRouteDisabled ...
-func (k *KogitoServiceSpec) IsRouteDisabled() *bool {
+func (k *KogitoServiceSpec) IsRouteDisabled() bool {
 	return k.DisableRoute
 }
 
 // SetDisableRoute ...
-func (k *KogitoServiceSpec) SetDisableRoute(disableRoute *bool) {
+func (k *KogitoServiceSpec) SetDisableRoute(disableRoute bool) {
 	k.DisableRoute = disableRoute
 }

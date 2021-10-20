@@ -164,7 +164,7 @@ func (s *statusHandler) updateRouteStatus(instance api.KogitoService) error {
 		}
 
 		routeHandler := infrastructure.NewRouteHandler(s.Context)
-		if *instance.GetSpec().IsRouteDisabled() {
+		if instance.GetSpec().IsRouteDisabled() {
 			// update route condition that route was disabled
 			s.Log.Debug("Routes are disabled.")
 			successCondition := s.newFailedCondition(metav1.ConditionFalse, infrastructure.RouteProcessed, "Routes are disabled.")

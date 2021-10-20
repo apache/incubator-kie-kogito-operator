@@ -57,7 +57,7 @@ func (i *routeReconciler) Reconcile() error {
 		return nil
 	}
 
-	if *i.instance.GetSpec().IsRouteDisabled() {
+	if i.instance.GetSpec().IsRouteDisabled() {
 		i.Log.Debug("Skipping route creation. Routes are not enabled.")
 		i.recorder.Eventf(i.Client, i.instance, "Normal", "Info", "Skipping route creation. Routes are not enabled.")
 		return nil

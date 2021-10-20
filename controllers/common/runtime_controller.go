@@ -86,12 +86,6 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return
 	}
 
-	// set default behaviour as disable routes
-	if instance.GetSpec().IsRouteDisabled() == nil {
-		trueValue := true
-		instance.GetSpec().SetDisableRoute(&trueValue)
-	}
-
 	rbacHandler := infrastructure.NewRBACHandler(kogitoContext)
 	if err = rbacHandler.SetupRBAC(req.Namespace); err != nil {
 		return

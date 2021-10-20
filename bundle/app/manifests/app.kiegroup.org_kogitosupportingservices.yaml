@@ -66,9 +66,8 @@ spec:
                   managed by the operator.
                 type: object
               disableRoute:
-                description: "A flag indicating that default routes are disabled.
-                  Usable just on OpenShift. \n If not provided, defaults to 'true'
-                  for Kogito runtime and 'false' for supporting services."
+                description: "A flag indicating that routes are disabled. Usable just
+                  on OpenShift. \n If not provided, defaults to 'false'."
                 type: boolean
               env:
                 description: Environment variables to be added to the runtime container.

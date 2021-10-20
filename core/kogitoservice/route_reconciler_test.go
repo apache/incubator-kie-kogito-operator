@@ -48,11 +48,10 @@ func TestRouteReconciler_K8s(t *testing.T) {
 	assert.False(t, exists)
 }
 
-func TestRouteReconciler_OpenshiftRouteEnabled(t *testing.T) {
+func TestRouteReconciler_OpenshiftRouteDisabled(t *testing.T) {
 	ns := t.Name()
 	instance := test.CreateFakeKogitoRuntime(ns)
-	falseVal := false
-	instance.Spec.DisableRoute = &falseVal
+	instance.Spec.DisableRoute = true
 	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
 	context := operator.Context{
 		Client: cli,
@@ -61,30 +60,6 @@ func TestRouteReconciler_OpenshiftRouteEnabled(t *testing.T) {
 	}
 	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
 	routeReconciler := newRouteReconciler(context, instance, recorder)
-	err := routeReconciler.Reconcile()
-	assert.NoError(t, err)
-
-	route := &v1.Route{ObjectMeta: v13.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
-	exists, err := kubernetes.ResourceC(cli).Fetch(route)
-	assert.NoError(t, err)
-	assert.True(t, exists)
-}
-
-func TestRouteReconciler_Openshift(t *testing.T) {
-	ns := t.Name()
-
-	instance := test.CreateFakeKogitoRuntime(ns)
-	trueVal := true
-	instance.Spec.DisableRoute = &trueVal
-	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
-	context := operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
-	routeReconciler := newRouteReconciler(context, instance, recorder)
-
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)
 
@@ -92,4 +67,26 @@ func TestRouteReconciler_Openshift(t *testing.T) {
 	exists, err := kubernetes.ResourceC(cli).Fetch(route)
 	assert.NoError(t, err)
 	assert.False(t, exists)
+}
+
+func TestRouteReconciler_Openshift(t *testing.T) {
+	ns := t.Name()
+
+	instance := test.CreateFakeKogitoRuntime(ns)
+	cli := test.NewFakeClientBuilder().OnOpenShift().AddK8sObjects(instance).Build()
+	context := operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
+	routeReconciler := newRouteReconciler(context, instance, recorder)
+
+	err := routeReconciler.Reconcile()
+	assert.NoError(t, err)
+
+	route := &v1.Route{ObjectMeta: v13.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
+	exists, err := kubernetes.ResourceC(cli).Fetch(route)
+	assert.NoError(t, err)
+	assert.True(t, exists)
 }

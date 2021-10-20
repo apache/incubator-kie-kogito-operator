@@ -258,9 +258,8 @@ spec:
           by the operator.
         displayName: Additional Deployment Labels
         path: deploymentLabels
-      - description: "A flag indicating that default routes are disabled. Usable just
-          on OpenShift. \n If not provided, defaults to 'true' for Kogito runtime
-          and 'false' for supporting services."
+      - description: "A flag indicating that routes are disabled. Usable just on OpenShift.
+          \n If not provided, defaults to 'false'."
         displayName: DisableRoute
         path: disableRoute
         x-descriptors:
@@ -394,9 +393,8 @@ spec:
           by the operator.
         displayName: Additional Deployment Labels
         path: deploymentLabels
-      - description: "A flag indicating that default routes are disabled. Usable just
-          on OpenShift. \n If not provided, defaults to 'true' for Kogito runtime
-          and 'false' for supporting services."
+      - description: "A flag indicating that routes are disabled. Usable just on OpenShift.
+          \n If not provided, defaults to 'false'."
         displayName: DisableRoute
         path: disableRoute
         x-descriptors:
