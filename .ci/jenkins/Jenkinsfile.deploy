@@ -181,7 +181,7 @@ pipeline {
                             // in case we decide to continue in the release
                             try {
                                 // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                                sh "make run-tests timeout=360 load_factor=2 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
+                                sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
                             } catch (err) {
                                 unstable('Tests are failing')
                             }
@@ -316,7 +316,10 @@ String getBDDParameters() {
         tags.add(params.BDD_TEST_TAGS)
     }
     if (params.SKIP_NATIVE_TESTS) {
-        tags.add(helper.getNonNativeTag())
+        tags.add("~${helper.getNativeTag()}")
+    }
+    if (params.SKIP_NON_NATIVE_TESTS) {
+        tags.add("~${helper.getNonNativeTag()}")
     }
     testParamsMap['tags'] = tags.join('&&')
 

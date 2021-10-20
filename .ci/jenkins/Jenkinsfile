@@ -116,20 +116,18 @@ String getBDDParameters() {
     testParamsMap['load_factor'] = 3
     testParamsMap['disable_maven_native_build_container'] = true
 
-    testParamsMap['operator_profiling'] = true
+    testParamsMap['operator_profiling_enabled'] = true
     testParamsMap['operator_yaml_uri'] = '../profiling/kogito-operator-profiling.yaml'
 
-    testParamsMap['operator_image'] = "${OPENSHIFT_REGISTRY}/openshift/kogito-operator-profiling"
-    testParamsMap['operator_tag'] = "pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
+    testParamsMap['operator_image_tag'] = "${OPENSHIFT_REGISTRY}/openshift/kogito-operator-profiling:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
 
     if (env.MAVEN_MIRROR_REPOSITORY) {
-        testParamsMap['maven_mirror'] = env.MAVEN_MIRROR_REPOSITORY
+        testParamsMap['maven_mirror_url'] = env.MAVEN_MIRROR_REPOSITORY
         testParamsMap['maven_ignore_self_signed_certificate'] = true
     }
 
     // Reuse runtime application images from nightly builds
     testParamsMap['image_cache_mode'] = 'always'
-    testParamsMap['runtime_application_image_registry'] = 'quay.io/kiegroup'
 
     testParamsMap['container_engine'] = env.CONTAINER_ENGINE
 
