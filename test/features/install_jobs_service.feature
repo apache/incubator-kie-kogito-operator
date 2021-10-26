@@ -8,7 +8,7 @@ Feature: Install Kogito Jobs Service
   @smoke
   Scenario: Install Kogito Jobs Service without persistence
     When Install Kogito Jobs Service with 1 replicas
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
     
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -32,10 +32,10 @@ Feature: Install Kogito Jobs Service
       | password | mypass    |
     And Install Infinispan Kogito Infra "infinispan" targeting service "kogito-infinispan" within 5 minutes
 
-    When Install Kogito Jobs Service with 1 replicas with configuration:
+    And Install Kogito Jobs Service with 1 replicas with configuration:
       | config | database-type | Infinispan |
       | config | infra         | infinispan |
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
     
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -46,10 +46,11 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
     
-    When Scale Kogito Jobs Service to 0 pods within 2 minutes
+    And Scale Kogito Jobs Service to 0 pods within 2 minutes
     And Scale Kogito Jobs Service to 1 pods within 2 minutes
+    
     Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
 #####
@@ -62,13 +63,13 @@ Feature: Install Kogito Jobs Service
       | password | mypass |
       | database | mydb   |
 
-    When Install Kogito Jobs Service with 1 replicas with configuration:
+    And Install Kogito Jobs Service with 1 replicas with configuration:
       | config      | database-type                   | PostgreSQL                             |
       | runtime-env | QUARKUS_DATASOURCE_JDBC_URL     | jdbc:postgresql://postgresql:5432/mydb |
       | runtime-env | QUARKUS_DATASOURCE_REACTIVE_URL | postgresql://postgresql:5432/mydb      |
       | runtime-env | QUARKUS_DATASOURCE_USERNAME     | myuser                                 |
       | runtime-env | QUARKUS_DATASOURCE_PASSWORD     | mypass                                 |
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
     
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -79,10 +80,11 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
     
-    When Scale Kogito Jobs Service to 0 pods within 2 minutes
+    And Scale Kogito Jobs Service to 0 pods within 2 minutes
     And Scale Kogito Jobs Service to 1 pods within 2 minutes
+    
     Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
 #####
@@ -99,10 +101,10 @@ Feature: Install Kogito Jobs Service
       | config   | username | developer            |
       | config   | database | kogito_jobsservice     |
     
-    When Install Kogito Jobs Service with 1 replicas with configuration:
+    And Install Kogito Jobs Service with 1 replicas with configuration:
       | config | database-type | MongoDB  |
       | config | infra         | mongodb  |
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
 
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -113,10 +115,11 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
     
-    When Scale Kogito Jobs Service to 0 pods within 2 minutes
+    And Scale Kogito Jobs Service to 0 pods within 2 minutes
     And Scale Kogito Jobs Service to 1 pods within 2 minutes
+    
     Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
 #####
@@ -174,11 +177,11 @@ Feature: Install Kogito Jobs Service
       | config | infra | infinispan |
       | config | infra | kafka      |
     
-    When Install Kogito Jobs Service with 1 replicas with configuration:
+    And Install Kogito Jobs Service with 1 replicas with configuration:
       | config | database-type | Infinispan |
       | config | infra         | infinispan |
       | config | infra         | kafka |
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
 
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -189,10 +192,10 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/jobs-service-data-index-id" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/jobs-service-data-index-id" is successful within 1 minutes
     And GraphQL request on Data Index service returns Jobs ID "jobs-service-data-index-id" within 2 minutes
 
-    When Scale Kafka instance "kogito-kafka" down
+    And Scale Kafka instance "kogito-kafka" down
     And HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
       {
@@ -202,12 +205,12 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/jobs-service-data-index-id-2" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/jobs-service-data-index-id-2" is successful within 1 minutes
     
-    When Kafka instance "kogito-kafka" has 1 kafka pod running within 2 minutes
+    And Kafka instance "kogito-kafka" has 1 kafka pod running within 2 minutes
     And GraphQL request on Data Index service returns Jobs ID "jobs-service-data-index-id-2" within 2 minutes
 
-    When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
+    And HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
       {
         "id": "jobs-service-data-index-id-3",
@@ -216,6 +219,7 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
+    
     Then HTTP GET request on service "jobs-service" with path "jobs/jobs-service-data-index-id-3" is successful within 1 minutes
     And GraphQL request on Data Index service returns Jobs ID "jobs-service-data-index-id-3" within 2 minutes
 
@@ -230,10 +234,10 @@ Feature: Install Kogito Jobs Service
       | password | mypass    |
     And Install Infinispan Kogito Infra "infinispan" targeting service "kogito-infinispan" within 5 minutes
     
-    When Install Kogito Jobs Service with 1 replicas with configuration:
+    And Install Kogito Jobs Service with 1 replicas with configuration:
       | config | database-type | Infinispan |
       | config | infra         | infinispan |
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
     
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -244,15 +248,15 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
-    When Scale Infinispan instance "kogito-infinispan" to 0 pods within 2 minutes
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" fails within 2 minutes
+    And Scale Infinispan instance "kogito-infinispan" to 0 pods within 2 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" fails within 2 minutes
 
-    When Scale Infinispan instance "kogito-infinispan" to 1 pods within 2 minutes
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And Scale Infinispan instance "kogito-infinispan" to 1 pods within 2 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
-    When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
+    And HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
       {
         "id": "2",
@@ -261,6 +265,7 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
+    
     Then HTTP GET request on service "jobs-service" with path "jobs/2" is successful within 1 minutes
 
 #####
@@ -277,10 +282,10 @@ Feature: Install Kogito Jobs Service
       | config   | username | developer            |
       | config   | database | kogito_jobsservice   |
     
-    When Install Kogito Jobs Service with 1 replicas with configuration:
+    And Install Kogito Jobs Service with 1 replicas with configuration:
       | config | database-type | MongoDB |
       | config | infra         | mongodb |
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
     
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -291,15 +296,15 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
-    When Scale MongoDB instance "kogito-mongodb" to 0 pods within 2 minutes
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" fails within 2 minutes
+    And Scale MongoDB instance "kogito-mongodb" to 0 pods within 2 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" fails within 2 minutes
 
-    When Scale MongoDB instance "kogito-mongodb" to 1 pods within 2 minutes
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And Scale MongoDB instance "kogito-mongodb" to 1 pods within 2 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
-    When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
+    And HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
       {
         "id": "2",
@@ -308,6 +313,7 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
+    
     Then HTTP GET request on service "jobs-service" with path "jobs/2" is successful within 1 minutes
 
 #####
@@ -320,13 +326,13 @@ Feature: Install Kogito Jobs Service
       | password | mypass |
       | database | mydb   |
     
-    When Install Kogito Jobs Service with 1 replicas with configuration:
+    And Install Kogito Jobs Service with 1 replicas with configuration:
       | config      | database-type                   | PostgreSQL                             |
       | runtime-env | QUARKUS_DATASOURCE_JDBC_URL     | jdbc:postgresql://postgresql:5432/mydb |
       | runtime-env | QUARKUS_DATASOURCE_REACTIVE_URL | postgresql://postgresql:5432/mydb      |
       | runtime-env | QUARKUS_DATASOURCE_USERNAME     | myuser                                 |
       | runtime-env | QUARKUS_DATASOURCE_PASSWORD     | mypass                                 |
-    Then Kogito Jobs Service has 1 pods running within 10 minutes
+    And Kogito Jobs Service has 1 pods running within 10 minutes
     
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
@@ -337,15 +343,15 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
-    When Scale PostgreSQL instance "postgresql" to 0 pods within 2 minutes
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" fails within 2 minutes
+    And Scale PostgreSQL instance "postgresql" to 0 pods within 2 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" fails within 2 minutes
 
-    When Scale PostgreSQL instance "postgresql" to 1 pods within 2 minutes
-    Then HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
+    And Scale PostgreSQL instance "postgresql" to 1 pods within 2 minutes
+    And HTTP GET request on service "jobs-service" with path "jobs/1" is successful within 1 minutes
 
-    When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
+    And HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
       """json
       {
         "id": "2",
@@ -354,4 +360,5 @@ Feature: Install Kogito Jobs Service
         "callbackEndpoint": "http://localhost:8080/callback"
       }
       """
+    
     Then HTTP GET request on service "jobs-service" with path "jobs/2" is successful within 1 minutes

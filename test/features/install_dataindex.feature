@@ -101,19 +101,19 @@ Feature: Kogito Data Index
       | username | developer |
       | password | mypass    |
     And Install Infinispan Kogito Infra "infinispan" targeting service "kogito-infinispan" within 5 minutes
-    When Install Kogito Data Index with 1 replicas with configuration:
+
+    And Install Kogito Data Index with 1 replicas with configuration:
       | config | infra | infinispan |
       | config | infra | kafka      |
-    Then Kogito Data Index has 1 pods running within 10 minutes
-    
-    When Clone Kogito examples into local directory
+    And Kogito Data Index has 1 pods running within 10 minutes
+
+    And Clone Kogito examples into local directory
     And Local example service "process-quarkus-example" is built by Maven and deployed to runtime registry with Maven configuration:
       | profile | persistence,events |
     And Deploy quarkus example service "process-quarkus-example" from runtime registry with configuration:
       | config | infra | infinispan |
       | config | infra | kafka      |
-
-    Then Kogito Runtime "process-quarkus-example" has 1 pods running within 10 minutes
+    And Kogito Runtime "process-quarkus-example" has 1 pods running within 10 minutes
     
     When Start "orders" process on service "process-quarkus-example" within 3 minutes with body:
       """json
@@ -125,17 +125,13 @@ Feature: Kogito Data Index
         }
       }
       """
-
-    Then Service "process-quarkus-example" contains 1 instances of process with name "orders"
+    And Service "process-quarkus-example" contains 1 instances of process with name "orders"
     And GraphQL request on Data Index service returns 1 instance of process with name "orders" within 2 minutes
-
-    When Scale Infinispan instance "kogito-infinispan" to 0 pods within 2 minutes
-    Then GraphQL request on Data Index service returns 0 instances of process with name "orders" within 2 minutes
-
-    When Scale Infinispan instance "kogito-infinispan" to 1 pods within 2 minutes
-    Then GraphQL request on Data Index service returns 1 instances of process with name "orders" within 2 minutes
-
-    When Start "orders" process on service "process-quarkus-example" within 3 minutes with body:
+    And Scale Infinispan instance "kogito-infinispan" to 0 pods within 2 minutes
+    And GraphQL request on Data Index service returns 0 instances of process with name "orders" within 2 minutes
+    And Scale Infinispan instance "kogito-infinispan" to 1 pods within 2 minutes
+    And GraphQL request on Data Index service returns 1 instances of process with name "orders" within 2 minutes
+    And Start "orders" process on service "process-quarkus-example" within 3 minutes with body:
       """json
       {
         "approver" : "john",
@@ -145,6 +141,7 @@ Feature: Kogito Data Index
         }
       }
       """
+    
     Then Service "process-quarkus-example" contains 1 instances of process with name "orders"
     And GraphQL request on Data Index service returns 2 instances of process with name "orders" within 2 minutes
 
@@ -163,13 +160,13 @@ Feature: Kogito Data Index
     And Install MongoDB Kogito Infra "mongodb" targeting service "kogito-mongodb" within 5 minutes with configuration:
       | config   | username | developer            |
       | config   | database | kogito_dataindex     |
-    When Install Kogito Data Index with 1 replicas with configuration:
+    And Install Kogito Data Index with 1 replicas with configuration:
       | config | database-type | MongoDB  |
       | config | infra         | mongodb  |
       | config | infra         | kafka    |
-    Then Kogito Data Index has 1 pods running within 10 minutes
+    And Kogito Data Index has 1 pods running within 10 minutes
       
-    When Clone Kogito examples into local directory
+    And Clone Kogito examples into local directory
     And Local example service "process-mongodb-persistence-quarkus" is built by Maven and deployed to runtime registry with Maven configuration:
       | profile | events |
     And Deploy quarkus example service "process-mongodb-persistence-quarkus" from runtime registry with configuration:
@@ -177,7 +174,7 @@ Feature: Kogito Data Index
       | config | infra | kafka            |
       # Setup short name as it can create some problems with route name too long ...
       | config | name  | process-mongodb  |
-    Then Kogito Runtime "process-mongodb" has 1 pods running within 10 minutes
+    And Kogito Runtime "process-mongodb" has 1 pods running within 10 minutes
     
     When Start "deals" process on service "process-mongodb" within 3 minutes with body:
       """json
@@ -198,16 +195,16 @@ Feature: Kogito Data Index
       }
       """
 
-    Then Service "process-mongodb" contains 1 instances of process with name "dealreviews"
+    And Service "process-mongodb" contains 1 instances of process with name "dealreviews"
     And GraphQL request on Data Index service returns 1 instance of process with id "dealreviews" within 2 minutes
 
-    When Scale MongoDB instance "kogito-mongodb" to 0 pods within 2 minutes
-    Then GraphQL request on Data Index service getting instances of process with id "dealreviews" fails within 2 minutes
+    And Scale MongoDB instance "kogito-mongodb" to 0 pods within 2 minutes
+    And GraphQL request on Data Index service getting instances of process with id "dealreviews" fails within 2 minutes
 
-    When Scale MongoDB instance "kogito-mongodb" to 1 pods within 2 minutes
-    Then GraphQL request on Data Index service returns 1 instances of process with id "dealreviews" within 2 minutes
+    And Scale MongoDB instance "kogito-mongodb" to 1 pods within 2 minutes
+    And GraphQL request on Data Index service returns 1 instances of process with id "dealreviews" within 2 minutes
 
-    When Start "deals" process on service "process-mongodb" within 3 minutes with body:
+    And Start "deals" process on service "process-mongodb" within 3 minutes with body:
       """json
       {
         "name" : "my fancy deal",
@@ -225,6 +222,7 @@ Feature: Kogito Data Index
         }
       }
       """
+    
     Then Service "process-mongodb" contains 2 instances of process with name "dealreviews"
     And GraphQL request on Data Index service returns 2 instances of process with id "dealreviews" within 2 minutes
 
@@ -240,16 +238,16 @@ Feature: Kogito Data Index
       | password | mypass |
       | database | mydb   |
 
-    When Install Kogito Data Index with 1 replicas with configuration:
+    And Install Kogito Data Index with 1 replicas with configuration:
       | config      | database-type                             | PostgreSQL                             |
       | config      | infra                                     | kafka                                  |
       | runtime-env | QUARKUS_DATASOURCE_JDBC_URL               | jdbc:postgresql://postgresql:5432/mydb |
       | runtime-env | QUARKUS_DATASOURCE_USERNAME               | myuser                                 |
       | runtime-env | QUARKUS_DATASOURCE_PASSWORD               | mypass                                 |
       | runtime-env | QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION | update                                 |
-    Then Kogito Data Index has 1 pods running within 10 minutes
+    And Kogito Data Index has 1 pods running within 10 minutes
       
-    When Clone Kogito examples into local directory
+    And Clone Kogito examples into local directory
     And Local example service "process-postgresql-persistence-quarkus" is built by Maven and deployed to runtime registry with Maven configuration:
       | profile | persistence,events |
     And Deploy quarkus example service "process-postgresql-persistence-quarkus" from runtime registry with configuration:
@@ -260,7 +258,7 @@ Feature: Kogito Data Index
       | runtime-env | QUARKUS_DATASOURCE_USERNAME                  | myuser                                          |
       | runtime-env | QUARKUS_DATASOURCE_PASSWORD                  | mypass                                          |
       | runtime-env | QUARKUS_DATASOURCE_REACTIVE_URL              | postgresql://postgresql:5432/mydb               |
-    Then Kogito Runtime "process-postgres" has 1 pods running within 10 minutes
+    And Kogito Runtime "process-postgres" has 1 pods running within 10 minutes
     
     When Start "deals" process on service "process-postgres" within 3 minutes with body:
       """json
@@ -281,16 +279,16 @@ Feature: Kogito Data Index
       }
       """
 
-    Then Service "process-postgres" contains 1 instances of process with name "dealreviews"
-    Then GraphQL request on Data Index service returns 1 instance of process with id "dealreviews" within 2 minutes
+    And Service "process-postgres" contains 1 instances of process with name "dealreviews"
+    And GraphQL request on Data Index service returns 1 instance of process with id "dealreviews" within 2 minutes
 
-    When Scale PostgreSQL instance "postgresql" to 0 pods within 2 minutes
-    Then GraphQL request on Data Index service getting instances of process with id "dealreviews" fails within 2 minutes
+    And Scale PostgreSQL instance "postgresql" to 0 pods within 2 minutes
+    And GraphQL request on Data Index service getting instances of process with id "dealreviews" fails within 2 minutes
 
-    When Scale PostgreSQL instance "postgresql" to 1 pods within 2 minutes
-    Then GraphQL request on Data Index service returns 1 instances of process with id "dealreviews" within 2 minutes
+    And Scale PostgreSQL instance "postgresql" to 1 pods within 2 minutes
+    And GraphQL request on Data Index service returns 1 instances of process with id "dealreviews" within 2 minutes
 
-    When Start "deals" process on service "process-postgres" within 3 minutes with body:
+    And Start "deals" process on service "process-postgres" within 3 minutes with body:
       """json
       {
         "name" : "my fancy deal",
@@ -308,6 +306,7 @@ Feature: Kogito Data Index
         }
       }
       """
+    
     Then Service "process-postgres" contains 2 instances of process with name "dealreviews"
     And GraphQL request on Data Index service returns 2 instances of process with id "dealreviews" within 2 minutes
 
