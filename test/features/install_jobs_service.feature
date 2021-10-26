@@ -319,7 +319,7 @@ Feature: Install Kogito Jobs Service
 #####
 
   @failover
-  @mongodb
+  @postgresql
   Scenario: Test Kogito Jobs service failover with PostgreSQL
     Given PostgreSQL instance "postgresql" is deployed within 3 minutes with configuration:
       | username | myuser |
