@@ -72,8 +72,6 @@ func NewMongoDBHandler(context operator.Context) MongoDBHandler {
 
 // IsMongoDBAvailable checks if MongoDB CRD is available in the cluster
 func (m *mongoDBHandler) IsMongoDBAvailable() bool {
-	m.Log.Info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "mongoDBServerGroup", mongoDBServerGroup)
-	m.Log.Info("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "IsMongoDBAvailable", m.Client.HasServerGroup(mongoDBServerGroup))
 	return m.Client.HasServerGroup(mongoDBServerGroup)
 }
 
