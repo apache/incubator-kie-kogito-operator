@@ -298,9 +298,9 @@ spec:
           - list
           - watch
         - apiGroups:
-          - mongodb.com
+          - mongodbcommunity.mongodb.com
           resources:
-          - mongodb
+          - mongodbcommunity
           verbs:
           - create
           - delete

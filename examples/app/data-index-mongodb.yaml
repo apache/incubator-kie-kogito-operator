@@ -21,7 +21,7 @@ metadata:
   name: kogito-mongodb
 spec:
   resource:
-    apiVersion: mongodb.com/v1
+    apiVersion: mongodbcommunity.mongodb.com/v1
     kind: MongoDB
     name: external-mongodb # to change if you don't use the example MongoDB below
   infraProperties:
@@ -65,7 +65,7 @@ spec:
 # data:
 #   password: bXlwYXNz #mypass
 # ---
-# apiVersion: mongodb.com/v1
+# apiVersion: mongodbcommunity.mongodb.com/v1
 # kind: MongoDB
 # metadata:
 #   name: external-mongodb
