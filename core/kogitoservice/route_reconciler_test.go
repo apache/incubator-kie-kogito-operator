@@ -19,12 +19,10 @@ import (
 
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/record"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	v1 "github.com/openshift/api/route/v1"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
 	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,8 +35,7 @@ func TestRouteReconciler_K8s(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
-	routeReconciler := newRouteReconciler(context, instance, recorder)
+	routeReconciler := newRouteReconciler(context, instance)
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)
 
@@ -58,8 +55,7 @@ func TestRouteReconciler_OpenshiftRouteDisabled(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
-	routeReconciler := newRouteReconciler(context, instance, recorder)
+	routeReconciler := newRouteReconciler(context, instance)
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)
 
@@ -79,8 +75,7 @@ func TestRouteReconciler_Openshift(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	recorder := record.NewRecorder(meta.GetRegisteredSchema(), corev1.EventSource{Component: instance.GetName()})
-	routeReconciler := newRouteReconciler(context, instance, recorder)
+	routeReconciler := newRouteReconciler(context, instance)
 
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)

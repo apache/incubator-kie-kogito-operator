@@ -21,7 +21,6 @@ import (
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/record"
 	v1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -37,16 +36,14 @@ type routeReconciler struct {
 	instance       api.KogitoService
 	routeHandler   infrastructure.RouteHandler
 	deltaProcessor infrastructure.DeltaProcessor
-	recorder       record.EventRecorder
 }
 
-func newRouteReconciler(context operator.Context, instance api.KogitoService, recorder record.EventRecorder) RouteReconciler {
+func newRouteReconciler(context operator.Context, instance api.KogitoService) RouteReconciler {
 	return &routeReconciler{
 		Context:        context,
 		instance:       instance,
 		routeHandler:   infrastructure.NewRouteHandler(context),
 		deltaProcessor: infrastructure.NewDeltaProcessor(context),
-		recorder:       recorder,
 	}
 }
 
@@ -59,7 +56,6 @@ func (i *routeReconciler) Reconcile() error {
 
 	if i.instance.GetSpec().IsRouteDisabled() {
 		i.Log.Debug("Skipping route creation. Routes are not enabled.")
-		i.recorder.Eventf(i.Client, i.instance, "Normal", "Info", "Skipping route creation. Routes are not enabled.")
 		return nil
 	}
 
