@@ -89,7 +89,7 @@ func WaitForSuccessfulGraphQLRequestUsingAccessToken(namespace, uri, path, query
 		})
 }
 
-// WaitForFailingGraphQLRequest waits for an GraphQL request to be successful
+// WaitForFailingGraphQLRequest waits for an GraphQL request to be fail
 func WaitForFailingGraphQLRequest(namespace, uri, path, query string, timeoutInMin int) error {
 	return WaitForFailingGraphQLRequestUsingAccessToken(namespace, uri, path, query, graphQLNoAuthToken, timeoutInMin)
 }
