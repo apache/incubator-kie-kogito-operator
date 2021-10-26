@@ -7,7 +7,7 @@ Feature: Install Kogito Jobs Service
 
   @smoke
   Scenario: Install Kogito Jobs Service without persistence
-    When Install Kogito Jobs Service with 1 replicas
+    Given Install Kogito Jobs Service with 1 replicas
     And Kogito Jobs Service has 1 pods running within 10 minutes
     
     When HTTP POST request on service "jobs-service" is successful within 2 minutes with path "jobs" and body:
