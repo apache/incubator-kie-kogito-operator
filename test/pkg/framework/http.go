@@ -319,7 +319,7 @@ func DoesHTTPResponseContain(namespace string, requestInfo HTTPRequestInfo, resp
 	return strings.Contains(resultBody, responseContent), nil
 }
 
-// DoesHTTPResponseContain checks whether the response of an http request contains a certain string
+// DoesNotHTTPResponseContain checks whether the response of an http request does not contain a certain string
 func DoesNotHTTPResponseContain(namespace string, requestInfo HTTPRequestInfo, responseContent string) (bool, error) {
 	resultBody, err := ExecuteHTTPRequestWithStringResponse(namespace, requestInfo)
 	if err != nil {
