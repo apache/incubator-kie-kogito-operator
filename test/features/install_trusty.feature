@@ -68,7 +68,7 @@ Feature: Kogito Trusty
   @events
   @kafka
   @infinispan
-  Scenario: Test Jobs service failover with Infinispan
+  Scenario: Test Trusty service failover with Infinispan
     Given Infinispan instance "kogito-infinispan" is deployed with configuration:
       | username | developer |
       | password | mypass    |
