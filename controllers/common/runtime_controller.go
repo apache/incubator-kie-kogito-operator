@@ -16,6 +16,7 @@ package common
 
 import (
 	"context"
+
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"

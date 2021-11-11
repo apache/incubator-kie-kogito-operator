@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strconv"
 
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/core/framework"
@@ -94,6 +95,7 @@ func (d *deploymentReconciler) createRequiredResources(imageName string) (map[re
 	d.addDeploymentIdentifier(deployment)
 	d.mountMeteringLabelsOnDeployment(deployment)
 	d.mountMonitoringAnnotationsOnDeployment(deployment)
+	d.mountRouteAnnotationsOnDeployment(deployment)
 	d.mountEnvsOnDeployment(deployment)
 	if err := d.mountConfigMapReferencesOnDeployment(deployment); err != nil {
 		return resources, err
@@ -192,4 +194,11 @@ func (d *deploymentReconciler) mountMonitoringAnnotationsOnDeployment(deployment
 		util.AddToMap(infrastructure.MonitoringPathAnnotation, monitoring.GetPath(), deployment.Annotations)
 		util.AddToMap(infrastructure.MonitoringSchemeAnnotation, monitoring.GetScheme(), deployment.Annotations)
 	}
+}
+
+func (d *deploymentReconciler) mountRouteAnnotationsOnDeployment(deployment *appsv1.Deployment) {
+	if deployment.Annotations == nil {
+		deployment.Annotations = map[string]string{}
+	}
+	util.AddToMap(infrastructure.RouteDisabledAnnotation, strconv.FormatBool(d.instance.GetSpec().IsRouteDisabled()), deployment.Annotations)
 }

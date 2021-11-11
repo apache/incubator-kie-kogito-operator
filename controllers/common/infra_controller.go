@@ -16,6 +16,7 @@ package common
 
 import (
 	"context"
+
 	"github.com/kiegroup/kogito-operator/core/kogitoinfra"
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"

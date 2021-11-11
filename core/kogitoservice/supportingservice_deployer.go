@@ -20,6 +20,8 @@ import (
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	v1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type supportingServiceDeployer struct {
@@ -88,17 +90,23 @@ func (s *supportingServiceDeployer) Deploy() error {
 		return err
 	}
 
-	serviceReconciler := infrastructure.NewServiceReconciler(s.Context, s.instance)
+	deploymentHandler := infrastructure.NewDeploymentHandler(s.Context)
+	deployment, err := deploymentHandler.FetchDeployment(types.NamespacedName{Name: s.instance.GetName(), Namespace: s.instance.GetNamespace()})
+	if err != nil {
+		return err
+	}
+
+	serviceReconciler := infrastructure.NewServiceReconciler(s.Context, deployment)
 	if err = serviceReconciler.Reconcile(); err != nil {
 		return err
 	}
 
-	routeReconciler := infrastructure.NewRouteReconciler(s.Context, s.instance)
+	routeReconciler := infrastructure.NewRouteReconciler(s.Context, deployment)
 	if err = routeReconciler.Reconcile(); err != nil {
 		s.Log.Info("Error occurs while reconciling route", "err", err)
 	}
 
-	if err = s.configureMonitoring(); err != nil {
+	if err = s.configureMonitoring(deployment); err != nil {
 		return err
 	}
 
@@ -123,9 +131,9 @@ func (s *supportingServiceDeployer) configureMessaging() error {
 	return nil
 }
 
-func (s *supportingServiceDeployer) configureMonitoring() error {
-	prometheusManager := infrastructure.NewPrometheusManager(s.Context, s.instance)
-	if err := prometheusManager.ConfigurePrometheus(); err != nil {
+func (s *supportingServiceDeployer) configureMonitoring(deployment *v1.Deployment) error {
+	prometheusManager := infrastructure.NewPrometheusManager(s.Context)
+	if err := prometheusManager.ConfigurePrometheus(deployment); err != nil {
 		s.Log.Error(err, "Could not deploy prometheus monitoring")
 		return err
 	}

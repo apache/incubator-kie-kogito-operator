@@ -16,7 +16,9 @@ package app
 
 import (
 	"context"
-	"github.com/kiegroup/kogito-operator/apis"
+	"testing"
+
+	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
@@ -31,7 +33,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
 )
 
 func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {

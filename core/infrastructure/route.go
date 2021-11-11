@@ -15,6 +15,10 @@
 package infrastructure
 
 import (
+	"fmt"
+	corev1 "k8s.io/api/core/v1"
+	"reflect"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/client/openshift"
@@ -24,7 +28,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"reflect"
 )
 
 // RouteHandler ...
@@ -33,6 +36,7 @@ type RouteHandler interface {
 	GetHostFromRoute(routeKey types.NamespacedName) (string, error)
 	CreateRoute(key types.NamespacedName) *routev1.Route
 	GetComparator() compare.MapComparator
+	ValidateRouteStatus(routeKey types.NamespacedName) (bool, error)
 }
 
 type routeHandler struct {
@@ -63,6 +67,28 @@ func (r *routeHandler) GetHostFromRoute(routeKey types.NamespacedName) (string, 
 		return "", err
 	}
 	return route.Spec.Host, nil
+}
+
+// ValidateRouteStatus return false with the error if route does not have condition ready.
+func (r *routeHandler) ValidateRouteStatus(routeKey types.NamespacedName) (bool, error) {
+	route, err := r.FetchRoute(routeKey)
+	if err != nil || route == nil {
+		return false, err
+	}
+
+	for _, ingress := range route.Status.Ingress {
+		for _, routeCondition := range ingress.Conditions {
+			if routeCondition.Type == routev1.RouteAdmitted {
+				if routeCondition.Status == corev1.ConditionFalse {
+					return false, fmt.Errorf(routeCondition.Message)
+				}
+				return true, nil
+
+			}
+		}
+	}
+
+	return false, nil
 }
 
 // createRequiredRoute creates a new Route resource based on the given Service

@@ -32,8 +32,8 @@ func Test_createServiceMonitor_defaultConfiguration(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	monitoringManager := prometheusManager{Context: context, instance: deployment}
-	serviceMonitor, err := monitoringManager.createServiceMonitor()
+	monitoringManager := prometheusManager{Context: context}
+	serviceMonitor, err := monitoringManager.createServiceMonitor(deployment)
 	assert.NoError(t, err)
 	assert.Equal(t, api.MonitoringDefaultPath, serviceMonitor.Spec.Endpoints[0].Path)
 	assert.Equal(t, api.MonitoringDefaultScheme, serviceMonitor.Spec.Endpoints[0].Scheme)
@@ -52,8 +52,8 @@ func Test_createServiceMonitor_customConfiguration(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	monitoringManager := prometheusManager{Context: context, instance: deployment}
-	serviceMonitor, err := monitoringManager.createServiceMonitor()
+	monitoringManager := prometheusManager{Context: context}
+	serviceMonitor, err := monitoringManager.createServiceMonitor(deployment)
 	assert.NoError(t, err)
 	assert.Equal(t, "/testPath", serviceMonitor.Spec.Endpoints[0].Path)
 	assert.Equal(t, "https", serviceMonitor.Spec.Endpoints[0].Scheme)

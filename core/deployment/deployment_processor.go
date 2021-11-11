@@ -52,12 +52,12 @@ func (d *deploymentProcessor) Process() (err error) {
 
 	routeReconciler := infrastructure.NewRouteReconciler(d.Context, d.deployment)
 	if err = routeReconciler.Reconcile(); err != nil {
+		d.Log.Error(err, "Error occurs while reconciling route")
 		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Route", "Error occurs while configuring Route. Error : %s", err.Error())
-		return err
 	}
 
-	prometheusManager := infrastructure.NewPrometheusManager(d.Context, d.deployment)
-	if err = prometheusManager.ConfigurePrometheus(); err != nil {
+	prometheusManager := infrastructure.NewPrometheusManager(d.Context)
+	if err = prometheusManager.ConfigurePrometheus(d.deployment); err != nil {
 		d.Log.Error(err, "Could not deploy prometheus monitoring")
 		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Prometheus", "Error occurs while configuring Prometheus. Error : %s", err.Error())
 		return err

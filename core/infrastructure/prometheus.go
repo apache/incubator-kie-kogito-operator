@@ -16,15 +16,14 @@ package infrastructure
 
 import (
 	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"net/http"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"net/http"
 )
 
 const (
@@ -37,24 +36,22 @@ const (
 
 // PrometheusManager ...
 type PrometheusManager interface {
-	ConfigurePrometheus() error
+	ConfigurePrometheus(deployment *v1.Deployment) error
 }
 
 type prometheusManager struct {
 	operator.Context
-	instance client.Object
 }
 
 // NewPrometheusManager ...
-func NewPrometheusManager(context operator.Context, instance client.Object) PrometheusManager {
+func NewPrometheusManager(context operator.Context) PrometheusManager {
 	context.Log = context.Log.WithValues("monitoring", "prometheus")
 	return &prometheusManager{
-		Context:  context,
-		instance: instance,
+		Context: context,
 	}
 }
 
-func (m *prometheusManager) ConfigurePrometheus() error {
+func (m *prometheusManager) ConfigurePrometheus(deployment *v1.Deployment) error {
 	m.Log.Debug("Going to configuring prometheus")
 	prometheusAvailable := m.isPrometheusAvailable()
 	if !prometheusAvailable {
@@ -63,19 +60,19 @@ func (m *prometheusManager) ConfigurePrometheus() error {
 	}
 
 	deploymentHandler := NewDeploymentHandler(m.Context)
-	deploymentAvailable, err := deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: m.instance.GetName(), Namespace: m.instance.GetNamespace()})
+	deploymentAvailable, err := deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: deployment.GetName(), Namespace: deployment.GetNamespace()})
 	if err != nil {
 		return err
 	}
 	if !deploymentAvailable {
 		m.Log.Debug("Deployment is currently not available, will try in next reconciliation loop")
-		return framework.ErrorForDeploymentNotReachable(m.instance.GetName())
+		return framework.ErrorForDeploymentNotReachable(deployment.GetName())
 	}
 
-	prometheusAddOnAvailable := m.isPrometheusAddOnAvailable()
+	prometheusAddOnAvailable := m.isPrometheusAddOnAvailable(deployment)
 
 	if prometheusAddOnAvailable {
-		if err := m.createPrometheusServiceMonitorIfNotExists(); err != nil {
+		if err := m.createPrometheusServiceMonitorIfNotExists(deployment); err != nil {
 			return err
 		}
 	}
@@ -87,12 +84,12 @@ func (m *prometheusManager) isPrometheusAvailable() bool {
 	return m.Client.HasServerGroup(prometheusServerGroup)
 }
 
-func (m *prometheusManager) isPrometheusAddOnAvailable() bool {
+func (m *prometheusManager) isPrometheusAddOnAvailable(deployment *v1.Deployment) bool {
 	kogitoServiceHandler := framework.NewKogitoServiceHandler(m.Context)
-	url := kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: m.instance.GetName(), Namespace: m.instance.GetNamespace()})
-	url = url + getMonitoringPath(m.instance)
+	url := kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: deployment.GetName(), Namespace: deployment.GetNamespace()})
+	url = url + getMonitoringPath(deployment)
 	if resp, err := http.Head(url); err != nil {
-		m.Recorder.Eventf(m.instance, "Normal", "Configuring Prometheus", "Error occurs while checking Prometheus URL. Error : %s", err.Error())
+		m.Recorder.Eventf(deployment, "Normal", "Configuring Prometheus", "Error occurs while checking Prometheus URL. Error : %s", err.Error())
 		return false
 	} else if resp.StatusCode == http.StatusOK {
 		return true
@@ -101,13 +98,13 @@ func (m *prometheusManager) isPrometheusAddOnAvailable() bool {
 	return false
 }
 
-func (m *prometheusManager) createPrometheusServiceMonitorIfNotExists() error {
-	serviceMonitor, err := m.loadDeployedServiceMonitor()
+func (m *prometheusManager) createPrometheusServiceMonitorIfNotExists(deployment *v1.Deployment) error {
+	serviceMonitor, err := m.loadDeployedServiceMonitor(deployment)
 	if err != nil {
 		return err
 	}
 	if serviceMonitor == nil {
-		_, err := m.createServiceMonitor()
+		_, err := m.createServiceMonitor(deployment)
 		if err != nil {
 			return err
 		}
@@ -115,10 +112,10 @@ func (m *prometheusManager) createPrometheusServiceMonitorIfNotExists() error {
 	return nil
 }
 
-func (m *prometheusManager) loadDeployedServiceMonitor() (*monv1.ServiceMonitor, error) {
-	m.Log.Debug("fetching deployed Service monitor instance", "instanceName", m.instance.GetName(), "namespace", m.instance.GetNamespace())
+func (m *prometheusManager) loadDeployedServiceMonitor(deployment *v1.Deployment) (*monv1.ServiceMonitor, error) {
+	m.Log.Debug("fetching deployed Service monitor instance", "instanceName", deployment.GetName(), "namespace", deployment.GetNamespace())
 	serviceMonitor := &monv1.ServiceMonitor{}
-	if exits, err := kubernetes.ResourceC(m.Client).FetchWithKey(types.NamespacedName{Name: m.instance.GetName(), Namespace: m.instance.GetNamespace()}, serviceMonitor); err != nil {
+	if exits, err := kubernetes.ResourceC(m.Client).FetchWithKey(types.NamespacedName{Name: deployment.GetName(), Namespace: deployment.GetNamespace()}, serviceMonitor); err != nil {
 		m.Log.Error(err, "Error occurs while fetching Service monitor instance")
 		return nil, err
 	} else if !exits {
@@ -131,28 +128,28 @@ func (m *prometheusManager) loadDeployedServiceMonitor() (*monv1.ServiceMonitor,
 }
 
 // createServiceMonitor create ServiceMonitor used for scraping by prometheus for kogito service
-func (m *prometheusManager) createServiceMonitor() (*monv1.ServiceMonitor, error) {
+func (m *prometheusManager) createServiceMonitor(deployment *v1.Deployment) (*monv1.ServiceMonitor, error) {
 	endPoint := monv1.Endpoint{}
-	endPoint.Path = getMonitoringPath(m.instance)
-	endPoint.Scheme = getMonitoringScheme(m.instance)
+	endPoint.Path = getMonitoringPath(deployment)
+	endPoint.Scheme = getMonitoringScheme(deployment)
 
 	serviceSelectorLabels := make(map[string]string)
-	serviceSelectorLabels[framework.LabelAppKey] = m.instance.GetName()
+	serviceSelectorLabels[framework.LabelAppKey] = deployment.GetName()
 
 	serviceMonitorLabels := make(map[string]string)
 	serviceMonitorLabels["name"] = operator.Name
-	serviceMonitorLabels[framework.LabelAppKey] = m.instance.GetName()
+	serviceMonitorLabels[framework.LabelAppKey] = deployment.GetName()
 
 	sm := &monv1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.instance.GetName(),
-			Namespace: m.instance.GetNamespace(),
+			Name:      deployment.GetName(),
+			Namespace: deployment.GetNamespace(),
 			Labels:    serviceMonitorLabels,
 		},
 		Spec: monv1.ServiceMonitorSpec{
 			NamespaceSelector: monv1.NamespaceSelector{
 				MatchNames: []string{
-					m.instance.GetNamespace(),
+					deployment.GetNamespace(),
 				},
 			},
 			Selector: metav1.LabelSelector{
@@ -164,7 +161,7 @@ func (m *prometheusManager) createServiceMonitor() (*monv1.ServiceMonitor, error
 		},
 	}
 
-	if err := framework.SetOwner(m.instance, m.Scheme, sm); err != nil {
+	if err := framework.SetOwner(deployment, m.Scheme, sm); err != nil {
 		return nil, err
 	}
 	if err := kubernetes.ResourceC(m.Client).Create(sm); err != nil {
@@ -174,16 +171,16 @@ func (m *prometheusManager) createServiceMonitor() (*monv1.ServiceMonitor, error
 	return sm, nil
 }
 
-func getMonitoringPath(instance client.Object) string {
-	path := instance.GetAnnotations()[MonitoringPathAnnotation]
+func getMonitoringPath(deployment *v1.Deployment) string {
+	path := deployment.GetAnnotations()[MonitoringPathAnnotation]
 	if len(path) == 0 {
 		path = api.MonitoringDefaultPath
 	}
 	return path
 }
 
-func getMonitoringScheme(instance client.Object) string {
-	scheme := instance.GetAnnotations()[MonitoringSchemeAnnotation]
+func getMonitoringScheme(deployment *v1.Deployment) string {
+	scheme := deployment.GetAnnotations()[MonitoringSchemeAnnotation]
 	if len(scheme) == 0 {
 		scheme = api.MonitoringDefaultScheme
 	}
