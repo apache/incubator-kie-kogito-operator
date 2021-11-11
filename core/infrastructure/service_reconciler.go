@@ -12,46 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deployment
+package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	v1 "github.com/openshift/api/route/v1"
-	v12 "k8s.io/api/apps/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// RouteReconciler ...
-type RouteReconciler interface {
+// ServiceReconciler ...
+type ServiceReconciler interface {
 	Reconcile() error
 }
 
-type routeReconciler struct {
+type serviceReconciler struct {
 	operator.Context
-	deployment     *v12.Deployment
-	routeHandler   infrastructure.RouteHandler
+	instance       client.Object
+	serviceHandler ServiceHandler
 	deltaProcessor framework.DeltaProcessor
 }
 
-func newRouteReconciler(context operator.Context, deployment *v12.Deployment) RouteReconciler {
-	return &routeReconciler{
+// NewServiceReconciler ...
+func NewServiceReconciler(context operator.Context, instance client.Object) ServiceReconciler {
+	return &serviceReconciler{
 		Context:        context,
-		deployment:     deployment,
-		routeHandler:   infrastructure.NewRouteHandler(context),
+		instance:       instance,
+		serviceHandler: NewServiceHandler(context),
 		deltaProcessor: framework.NewDeltaProcessor(context),
 	}
 }
 
-func (i *routeReconciler) Reconcile() error {
-
-	if !i.Client.IsOpenshift() {
-		i.Log.Debug("Skipping route creation. Routes are only created in Openshift env.")
-		return nil
-	}
+func (i *serviceReconciler) Reconcile() error {
 
 	// Create Required resource
 	requestedResources, err := i.createRequiredResources()
@@ -73,30 +67,30 @@ func (i *routeReconciler) Reconcile() error {
 	return nil
 }
 
-func (i *routeReconciler) createRequiredResources() (map[reflect.Type][]client.Object, error) {
+func (i *serviceReconciler) createRequiredResources() (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
-	route := i.routeHandler.CreateRoute(types.NamespacedName{Name: i.deployment.GetName(), Namespace: i.deployment.GetNamespace()})
-	if err := framework.SetOwner(i.deployment, i.Scheme, route); err != nil {
+	service := i.serviceHandler.CreateService(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()})
+	if err := framework.SetOwner(i.instance, i.Scheme, service); err != nil {
 		return nil, err
 	}
-	resources[reflect.TypeOf(v1.Route{})] = []client.Object{route}
+	resources[reflect.TypeOf(v1.Service{})] = []client.Object{service}
 	return resources, nil
 }
 
-func (i *routeReconciler) getDeployedResources() (map[reflect.Type][]client.Object, error) {
+func (i *serviceReconciler) getDeployedResources() (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
-	route, err := i.routeHandler.FetchRoute(types.NamespacedName{Name: i.deployment.GetName(), Namespace: i.deployment.GetNamespace()})
+	service, err := i.serviceHandler.FetchService(types.NamespacedName{Name: i.instance.GetName(), Namespace: i.instance.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}
-	if route != nil {
-		resources[reflect.TypeOf(v1.Route{})] = []client.Object{route}
+	if service != nil {
+		resources[reflect.TypeOf(v1.Service{})] = []client.Object{service}
 	}
 	return resources, nil
 }
 
-func (i *routeReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
-	comparator := i.routeHandler.GetComparator()
+func (i *serviceReconciler) processDelta(requestedResources map[reflect.Type][]client.Object, deployedResources map[reflect.Type][]client.Object) (err error) {
+	comparator := i.serviceHandler.GetComparator()
 	_, err = i.deltaProcessor.ProcessDelta(comparator, requestedResources, deployedResources)
 	return
 }

@@ -22,6 +22,8 @@ import (
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -33,7 +35,7 @@ const (
 
 // ProtoBufHandler ...
 type ProtoBufHandler interface {
-	MountProtoBufConfigMapOnDataIndex(runtimeInstance api.KogitoRuntimeInterface) (err error)
+	MountProtoBufConfigMapOnDataIndex(instance client.Object) (err error)
 }
 
 type protoBufHandler struct {
@@ -56,10 +58,10 @@ func NewProtoBufHandler(context operator.Context, supportingServiceHandler manag
 }
 
 // MountProtoBufConfigMapOnDataIndex mounts protobuf configMaps from KogitoRuntime services into the given deployment instance of DataIndex
-func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.KogitoRuntimeInterface) (err error) {
+func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(instance client.Object) (err error) {
 
 	// Load Data index service instance
-	dataIndexService, err := p.supportingServiceManager.FetchKogitoSupportingServiceForServiceType(runtimeInstance.GetNamespace(), api.DataIndex)
+	dataIndexService, err := p.supportingServiceManager.FetchKogitoSupportingServiceForServiceType(instance.GetNamespace(), api.DataIndex)
 	if err != nil {
 		return err
 	}
@@ -71,14 +73,14 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.
 	}
 
 	// Fetch Protobuf configmap for provided runtime
-	protoBufConfigMap, err := p.protoBufConfigMapHandler.FetchProtoBufConfigMap(runtimeInstance)
+	protoBufConfigMap, err := p.protoBufConfigMapHandler.FetchProtoBufConfigMap(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err != nil {
 		return err
 	}
 
 	// If protobuf configmap not exists then create new configmap
 	if protoBufConfigMap == nil {
-		protoBufConfigMap, err = p.protoBufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
+		protoBufConfigMap, err = p.protoBufConfigMapHandler.CreateProtoBufConfigMap(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 		if err != nil {
 			return err
 		}
@@ -93,12 +95,12 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.
 	}
 
 	// mount protobuf configmap on data-index deployment
-	dataIndexDeployment, err := p.supportingServiceManager.FetchKogitoSupportingServiceDeployment(runtimeInstance.GetNamespace(), api.DataIndex)
+	dataIndexDeployment, err := p.supportingServiceManager.FetchKogitoSupportingServiceDeployment(instance.GetNamespace(), api.DataIndex)
 	if err != nil || dataIndexDeployment == nil {
 		return
 	}
 
-	volumeReference := p.protoBufConfigMapHandler.CreateProtoBufConfigMapReference(runtimeInstance)
+	volumeReference := p.protoBufConfigMapHandler.CreateProtoBufVolumeReference(types.NamespacedName{Name: instance.GetName(), Namespace: instance.GetNamespace()})
 	if err = p.configMapHandler.MountAsVolume(dataIndexDeployment, volumeReference); err != nil {
 		return
 	}

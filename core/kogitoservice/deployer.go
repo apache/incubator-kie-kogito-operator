@@ -8,7 +8,7 @@
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implies.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
@@ -16,10 +16,6 @@ package kogitoservice
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/manager"
-	"github.com/kiegroup/kogito-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -59,110 +55,4 @@ const (
 type ServiceDeployer interface {
 	// Deploy deploys the Kogito Service in the Kubernetes cluster according to a given ServiceDefinition
 	Deploy() error
-}
-
-type serviceDeployer struct {
-	operator.Context
-	definition   ServiceDefinition
-	instance     api.KogitoService
-	infraHandler manager.KogitoInfraHandler
-	errorHandler framework.ReconciliationErrorHandler
-}
-
-// NewServiceDeployer creates a new ServiceDeployer to handle a custom Kogito Service instance to be handled by Operator SDK controller.
-func NewServiceDeployer(context operator.Context, definition ServiceDefinition, serviceType api.KogitoService, infraHandler manager.KogitoInfraHandler) ServiceDeployer {
-	if len(definition.Request.NamespacedName.Namespace) == 0 && len(definition.Request.NamespacedName.Name) == 0 {
-		panic("No Request provided for the Service Deployer")
-	}
-	return &serviceDeployer{
-		Context:      context,
-		definition:   definition,
-		instance:     serviceType,
-		infraHandler: infraHandler,
-		errorHandler: framework.NewReconciliationErrorHandler(context),
-	}
-}
-
-func (s *serviceDeployer) Deploy() error {
-	if s.instance.GetSpec().GetReplicas() == nil {
-		s.instance.GetSpec().SetReplicas(defaultReplicas)
-	}
-	if len(s.definition.DefaultImageName) == 0 {
-		s.definition.DefaultImageName = s.definition.Request.Name
-	}
-
-	var err error
-
-	// always updateStatus its status
-	statusHandler := NewStatusHandler(s.Context)
-	defer statusHandler.HandleStatusUpdate(s.instance, &err)
-
-	s.definition.Envs = s.instance.GetSpec().GetEnvs()
-
-	infraPropertiesReconciler := newConfigReconciler(s.Context, s.instance, &s.definition)
-	if err = infraPropertiesReconciler.Reconcile(); err != nil {
-		return err
-	}
-
-	configMapReferenceReconciler := newPropertiesConfigMapReconciler(s.Context, s.instance, &s.definition)
-	if err = configMapReferenceReconciler.Reconcile(); err != nil {
-		return err
-	}
-
-	trustStoreReconciler := newTrustStoreReconciler(s.Context, s.instance, &s.definition)
-	if err = trustStoreReconciler.Reconcile(); err != nil {
-		return err
-	}
-
-	kogitoInfraReconciler := newKogitoInfraReconciler(s.Context, s.instance, &s.definition, s.infraHandler)
-	if err = kogitoInfraReconciler.Reconcile(); err != nil {
-		return err
-	}
-
-	imageHandler := s.newImageHandler()
-	if err = imageHandler.ReconcileImageStream(s.instance); err != nil {
-		return err
-	}
-
-	deploymentReconciler := newDeploymentReconciler(s.Context, s.instance, s.definition, imageHandler)
-	if err = deploymentReconciler.Reconcile(); err != nil {
-		return err
-	}
-
-	err = s.configureMessaging()
-
-	return err
-}
-
-func (s *serviceDeployer) configureMessaging() error {
-	s.Log.Debug("Going to configuring messaging")
-	kafkaMessagingDeployer := NewKafkaMessagingDeployer(s.Context, s.definition, s.infraHandler)
-	if err := kafkaMessagingDeployer.CreateRequiredResources(s.instance); err != nil {
-		return framework.ErrorForMessaging(err)
-	}
-
-	knativeMessagingDeployer := NewKnativeMessagingDeployer(s.Context, s.definition, s.infraHandler)
-	if err := knativeMessagingDeployer.CreateRequiredResources(s.instance); err != nil {
-		return framework.ErrorForMessaging(err)
-	}
-	return nil
-}
-
-func (s *serviceDeployer) newImageHandler() infrastructure.ImageHandler {
-	addDockerImageReference := len(s.instance.GetSpec().GetImage()) != 0 || !s.definition.CustomService
-	image := s.resolveImage()
-	return infrastructure.NewImageHandler(s.Context, image, s.definition.DefaultImageName, image.Name, s.instance.GetNamespace(), addDockerImageReference, s.instance.GetSpec().IsInsecureImageRegistry())
-}
-
-func (s *serviceDeployer) resolveImage() *api.Image {
-	var image api.Image
-	if len(s.instance.GetSpec().GetImage()) == 0 {
-		image = api.Image{
-			Name: s.definition.DefaultImageName,
-			Tag:  s.definition.DefaultImageTag,
-		}
-	} else {
-		image = framework.ConvertImageTagToImage(s.instance.GetSpec().GetImage())
-	}
-	return &image
 }

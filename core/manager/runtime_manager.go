@@ -16,6 +16,7 @@ package manager
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
+	"github.com/kiegroup/kogito-operator/core/framework/util"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"k8s.io/api/apps/v1"
@@ -49,13 +50,6 @@ func NewKogitoRuntimeManager(context operator.Context, runtimeHandler KogitoRunt
 // FetchKogitoRuntimeDeployments gets all dcs owned by KogitoRuntime services within the given namespace
 func (k *kogitoRuntimeManager) FetchKogitoRuntimeDeployments(namespace string) ([]v1.Deployment, error) {
 	var kdcs []v1.Deployment
-	kogitoRuntimeServices, err := k.runtimeHandler.FetchAllKogitoRuntimeInstances(namespace)
-	if err != nil {
-		return nil, err
-	} else if len(kogitoRuntimeServices.GetItems()) == 0 {
-		return kdcs, nil
-	}
-
 	deploymentHandler := infrastructure.NewDeploymentHandler(k.Context)
 	deps, err := deploymentHandler.FetchDeploymentList(namespace)
 	if err != nil {
@@ -63,13 +57,8 @@ func (k *kogitoRuntimeManager) FetchKogitoRuntimeDeployments(namespace string) (
 	}
 	k.Log.Debug("Looking for Deployments owned by KogitoRuntime")
 	for _, dep := range deps.Items {
-		for _, owner := range dep.OwnerReferences {
-			for _, app := range kogitoRuntimeServices.GetItems() {
-				if owner.UID == app.GetUID() {
-					kdcs = append(kdcs, dep)
-					break
-				}
-			}
+		if util.MapContains(dep.Annotations, operator.KogitoRuntimeKey, "true") {
+			kdcs = append(kdcs, dep)
 		}
 	}
 	return kdcs, nil

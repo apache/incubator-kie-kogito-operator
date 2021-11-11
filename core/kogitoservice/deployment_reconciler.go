@@ -15,7 +15,6 @@
 package kogitoservice
 
 import (
-	dep "github.com/kiegroup/kogito-operator/core/deployment"
 	"github.com/kiegroup/kogito-operator/core/framework/util"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
@@ -92,7 +91,7 @@ func (d *deploymentReconciler) createRequiredResources(imageName string) (map[re
 		return resources, err
 	}
 
-	d.mountDeploymentLabels(deployment)
+	d.addDeploymentIdentifier(deployment)
 	d.mountMeteringLabelsOnDeployment(deployment)
 	d.mountMonitoringAnnotationsOnDeployment(deployment)
 	d.mountEnvsOnDeployment(deployment)
@@ -177,18 +176,20 @@ func (d *deploymentReconciler) mountMeteringLabelsOnDeployment(deployment *appsv
 	util.AppendToStringMap(d.MeteringLabels, deployment.Spec.Template.Labels)
 }
 
+func (d *deploymentReconciler) addDeploymentIdentifier(deployment *appsv1.Deployment) {
+	if deployment.Annotations == nil {
+		deployment.Annotations = map[string]string{}
+	}
+	util.AddToMap(d.DeploymentIdentifier, "true", deployment.Annotations)
+}
+
 func (d *deploymentReconciler) mountMonitoringAnnotationsOnDeployment(deployment *appsv1.Deployment) {
 	monitoring := d.instance.GetSpec().GetMonitoring()
 	if monitoring != nil {
 		if deployment.Annotations == nil {
 			deployment.Annotations = map[string]string{}
 		}
-
-		util.AddToMap(dep.MonitoringPathLabel, monitoring.GetPath(), deployment.Annotations)
-		util.AddToMap(dep.MonitoringSchemeLabel, monitoring.GetScheme(), deployment.Annotations)
+		util.AddToMap(infrastructure.MonitoringPathAnnotation, monitoring.GetPath(), deployment.Annotations)
+		util.AddToMap(infrastructure.MonitoringSchemeAnnotation, monitoring.GetScheme(), deployment.Annotations)
 	}
-}
-
-func (d *deploymentReconciler) mountDeploymentLabels(deployment *appsv1.Deployment) {
-	util.AppendToStringMap(d.DeploymentLabels, deployment.Labels)
 }

@@ -59,7 +59,11 @@ func (d *kogitoDeploymentHandler) CreateDeployment(service api.KogitoService, re
 	}
 	labels[framework.LabelAppKey] = service.GetName()
 	deployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{Name: service.GetName(), Namespace: service.GetNamespace(), Labels: labels},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      service.GetName(),
+			Namespace: service.GetNamespace(),
+			Labels:    labels,
+		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: replicas,
 			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{framework.LabelAppKey: service.GetName()}},

@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,10 +50,11 @@ func (r *KogitoInfraReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// create kogitoContext
 	kogitoContext := operator.Context{
-		Client:  r.Client,
-		Log:     log,
-		Scheme:  r.Scheme,
-		Version: r.Version,
+		Client:   r.Client,
+		Log:      log,
+		Scheme:   r.Scheme,
+		Version:  r.Version,
+		Recorder: record.NewRecorder(r.Client, r.Scheme, req.Name),
 	}
 
 	// Fetch the KogitoInfra instance

@@ -24,6 +24,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/record"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -64,6 +65,7 @@ func (r *KogitoBuildReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			Scheme:         r.Scheme,
 			Version:        r.Version,
 			MeteringLabels: r.MeteringLabels,
+			Recorder:       record.NewRecorder(r.Client, r.Scheme, req.Name),
 		},
 	}
 

@@ -53,7 +53,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReady(t *testing.T) {
 		Scheme: meta.GetRegisteredSchema(),
 	}
 	infraHandler := app.NewKogitoInfraHandler(context)
-	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
+	deployer := NewSupportingServiceDeployer(context, definition, dataIndex, infraHandler)
 	err := deployer.Deploy()
 	assert.Error(t, err)
 
@@ -104,7 +104,7 @@ func Test_serviceDeployer_DataIndex_InfraNotReconciled(t *testing.T) {
 		Scheme: meta.GetRegisteredSchema(),
 	}
 	infraHandler := app.NewKogitoInfraHandler(context)
-	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
+	deployer := NewSupportingServiceDeployer(context, definition, dataIndex, infraHandler)
 	err := deployer.Deploy()
 	assert.Error(t, err)
 	errorHandler := framework.NewReconciliationErrorHandler(context)
@@ -152,7 +152,7 @@ func Test_serviceDeployer_DataIndex(t *testing.T) {
 		Scheme: meta.GetRegisteredSchema(),
 	}
 	infraHandler := app.NewKogitoInfraHandler(context)
-	deployer := NewServiceDeployer(context, definition, dataIndex, infraHandler)
+	deployer := NewSupportingServiceDeployer(context, definition, dataIndex, infraHandler)
 	err := deployer.Deploy()
 	assert.NoError(t, err)
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deployment
+package infrastructure
 
 import (
 	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
@@ -102,7 +102,7 @@ func Test_serviceDeployer_DeployGrafanaDashboards(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	dashboardManager := grafanaDashboardManager{Context: context, deployment: deployment}
+	dashboardManager := grafanaDashboardManager{Context: context, instance: deployment}
 	err := dashboardManager.deployGrafanaDashboards(dashboards)
 	assert.NoError(t, err)
 

@@ -45,11 +45,23 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	dc := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{Name: kogitoRuntime.Name, Namespace: kogitoRuntime.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoRuntime.UID}}},
+	runtimeDeployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kogitoRuntime.Name,
+			Namespace: kogitoRuntime.Namespace,
+			Annotations: map[string]string{
+				operator.KogitoRuntimeKey: "true",
+			},
+		},
 		Spec: appsv1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{
-				Spec: v1.PodSpec{Containers: []v1.Container{{Name: "test"}}},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name: "test",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -66,7 +78,7 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 		},
 	}
 
-	cli := test.NewFakeClientBuilder().AddK8sObjects(dc, kogitoRuntime, dataIndex).Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(runtimeDeployment, kogitoRuntime, dataIndex).Build()
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
@@ -78,10 +90,10 @@ func TestInjectDataIndexURLIntoKogitoRuntime(t *testing.T) {
 	err := urlHandler.InjectDataIndexURLIntoKogitoRuntimeServices(ns)
 	assert.NoError(t, err)
 
-	exist, err := kubernetes.ResourceC(cli).Fetch(dc)
+	exist, err := kubernetes.ResourceC(cli).Fetch(runtimeDeployment)
 	assert.NoError(t, err)
 	assert.True(t, exist)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: dataIndexHTTPRouteEnv, Value: expectedRoute})
+	assert.Contains(t, runtimeDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: dataIndexHTTPRouteEnv, Value: expectedRoute})
 }
 
 func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
@@ -93,7 +105,7 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	jobs := &v1beta1.KogitoSupportingService{
+	jobInstance := &v1beta1.KogitoSupportingService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "jobs-service",
 			Namespace: t.Name(),
@@ -107,16 +119,27 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 			},
 		},
 	}
-	dc := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
-			Name: kogitoRuntime.Name,
-			UID:  kogitoRuntime.UID,
-		}}},
+	runtimeDeployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kogitoRuntime.Name,
+			Namespace: kogitoRuntime.Namespace,
+			Annotations: map[string]string{
+				operator.KogitoRuntimeKey: "true",
+			},
+		},
 		Spec: appsv1.DeploymentSpec{
-			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-app"}}}},
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name: "test",
+						},
+					},
+				},
+			},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, dc, jobs).Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, runtimeDeployment, jobInstance).Build()
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
@@ -127,69 +150,19 @@ func TestInjectJobsServicesURLIntoKogitoRuntime(t *testing.T) {
 	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
 	err := urlHandler.InjectJobsServicesURLIntoKogitoRuntimeServices(t.Name())
 	assert.NoError(t, err)
-	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 0)
+	assert.Len(t, runtimeDeployment.Spec.Template.Spec.Containers[0].Env, 0)
 
-	exists, err := kubernetes.ResourceC(cli).Fetch(dc)
+	exists, err := kubernetes.ResourceC(cli).Fetch(runtimeDeployment)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.Len(t, dc.Spec.Template.Spec.Containers[0].Env, 1)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
+	assert.Len(t, runtimeDeployment.Spec.Template.Spec.Containers[0].Env, 1)
+	assert.Contains(t, runtimeDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
 		Name:  jobsServicesHTTPRouteEnv,
 		Value: URI,
 	})
 }
 
-func TestInjectJobsServicesURLIntoKogitoRuntimeCleanUp(t *testing.T) {
-	URI := "http://localhost:8080"
-	kogitoRuntime := &v1beta1.KogitoRuntime{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kogito-app",
-			Namespace: t.Name(),
-			UID:       types.UID(uuid.New().String()),
-		},
-	}
-	jobs := &v1beta1.KogitoSupportingService{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "jobs-service",
-			Namespace: t.Name(),
-		},
-		Spec: v1beta1.KogitoSupportingServiceSpec{
-			ServiceType: api.JobsService,
-		},
-		Status: v1beta1.KogitoSupportingServiceStatus{KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: URI}},
-	}
-	dc := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{Name: "dc", Namespace: t.Name(), OwnerReferences: []metav1.OwnerReference{{
-			Name: kogitoRuntime.Name,
-			UID:  kogitoRuntime.UID,
-		}}},
-		Spec: appsv1.DeploymentSpec{
-			Template: v1.PodTemplateSpec{Spec: v1.PodSpec{Containers: []v1.Container{{Name: "the-app"}}}},
-		},
-	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(dc, kogitoRuntime, jobs).Build()
-	context := operator.Context{
-		Client: cli,
-		Log:    test.TestLogger,
-		Scheme: meta.GetRegisteredSchema(),
-	}
-	runtimeHandler := app.NewKogitoRuntimeHandler(context)
-	supportingServiceHandler := app.NewKogitoSupportingServiceHandler(context)
-	urlHandler := NewURLHandler(context, runtimeHandler, supportingServiceHandler)
-	// first we inject
-	err := urlHandler.InjectJobsServicesURLIntoKogitoRuntimeServices(t.Name())
-	assert.NoError(t, err)
-
-	exists, err := kubernetes.ResourceC(cli).Fetch(dc)
-	assert.NoError(t, err)
-	assert.True(t, exists)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{
-		Name:  jobsServicesHTTPRouteEnv,
-		Value: URI,
-	})
-}
-
-func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
+func TestInjectTrustyURLIntoKogitoRuntime(t *testing.T) {
 	ns := t.Name()
 	name := "my-kogito-app"
 	expectedRoute := "http://trusty-route.com"
@@ -200,8 +173,14 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 			UID:       types.UID(uuid.New().String()),
 		},
 	}
-	dc := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{Name: kogitoRuntime.Name, Namespace: kogitoRuntime.Namespace, OwnerReferences: []metav1.OwnerReference{{UID: kogitoRuntime.UID}}},
+	runtimeDeployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kogitoRuntime.Name,
+			Namespace: kogitoRuntime.Namespace,
+			Annotations: map[string]string{
+				operator.KogitoRuntimeKey: "true",
+			},
+		},
 		Spec: appsv1.DeploymentSpec{
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{Containers: []v1.Container{{Name: "test"}}},
@@ -220,7 +199,7 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 			KogitoServiceStatus: v1beta1.KogitoServiceStatus{ExternalURI: expectedRoute},
 		},
 	}
-	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, dc, trustyService).Build()
+	cli := test.NewFakeClientBuilder().AddK8sObjects(kogitoRuntime, runtimeDeployment, trustyService).Build()
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
@@ -232,10 +211,10 @@ func TestInjectTrustyURLIntoKogitoApps(t *testing.T) {
 	err := urlHandler.InjectTrustyURLIntoKogitoRuntimeServices(ns)
 	assert.NoError(t, err)
 
-	exist, err := kubernetes.ResourceC(cli).Fetch(dc)
+	exist, err := kubernetes.ResourceC(cli).Fetch(runtimeDeployment)
 	assert.NoError(t, err)
 	assert.True(t, exist)
-	assert.Contains(t, dc.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: trustyHTTPRouteEnv, Value: expectedRoute})
+	assert.Contains(t, runtimeDeployment.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: trustyHTTPRouteEnv, Value: expectedRoute})
 }
 
 func Test_getKogitoDataIndexURLs(t *testing.T) {

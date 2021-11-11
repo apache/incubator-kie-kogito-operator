@@ -21,7 +21,9 @@ import (
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	v12 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -35,10 +37,11 @@ type protoBufConfigMapReconciler struct {
 	operator.Context
 	instance                 api.KogitoSupportingServiceInterface
 	serviceDefinition        *kogitoservice.ServiceDefinition
-	runtimeHandler           manager.KogitoRuntimeHandler
+	runtimeManager           manager.KogitoRuntimeManager
 	configMapHandler         infrastructure.ConfigMapHandler
 	protobufConfigMapHandler ProtoBufConfigMapHandler
 	deltaProcessor           framework.DeltaProcessor
+	deploymentHandler        infrastructure.DeploymentHandler
 }
 
 // NewProtoBufConfigMapReconciler ...
@@ -47,28 +50,29 @@ func NewProtoBufConfigMapReconciler(context operator.Context, instance api.Kogit
 		Context:                  context,
 		instance:                 instance,
 		serviceDefinition:        serviceDefinition,
-		runtimeHandler:           runtimeHandler,
+		runtimeManager:           manager.NewKogitoRuntimeManager(context, runtimeHandler),
 		configMapHandler:         infrastructure.NewConfigMapHandler(context),
 		protobufConfigMapHandler: NewProtoBufConfigMapHandler(context),
 		deltaProcessor:           framework.NewDeltaProcessor(context),
+		deploymentHandler:        infrastructure.NewDeploymentHandler(context),
 	}
 }
 
 func (p *protoBufConfigMapReconciler) Reconcile() error {
 
-	runtimeInstances, err := p.runtimeHandler.FetchAllKogitoRuntimeInstances(p.instance.GetNamespace())
+	runtimeDeployments, err := p.runtimeManager.FetchKogitoRuntimeDeployments(p.instance.GetNamespace())
 	if err != nil {
 		return err
 	}
-	for _, runtimeInstance := range runtimeInstances.GetItems() {
+	for _, runtimeDeployment := range runtimeDeployments {
 		// Create Required resource
-		requestedResources, err := p.createRequiredResources(runtimeInstance)
+		requestedResources, err := p.createRequiredResources(runtimeDeployment)
 		if err != nil {
 			return err
 		}
 
 		// Get Deployed resource
-		deployedResources, err := p.getDeployedResources(runtimeInstance)
+		deployedResources, err := p.getDeployedResources(runtimeDeployment)
 		if err != nil {
 			return err
 		}
@@ -78,15 +82,15 @@ func (p *protoBufConfigMapReconciler) Reconcile() error {
 			return err
 		}
 
-		volumeReference := p.protobufConfigMapHandler.CreateProtoBufConfigMapReference(runtimeInstance)
+		volumeReference := p.protobufConfigMapHandler.CreateProtoBufVolumeReference(types.NamespacedName{Name: runtimeDeployment.GetName(), Namespace: runtimeDeployment.GetNamespace()})
 		p.serviceDefinition.ConfigMapVolumeReferences = append(p.serviceDefinition.ConfigMapVolumeReferences, volumeReference)
 	}
 	return nil
 }
 
-func (p *protoBufConfigMapReconciler) createRequiredResources(runtimeInstance api.KogitoRuntimeInterface) (map[reflect.Type][]client.Object, error) {
+func (p *protoBufConfigMapReconciler) createRequiredResources(runtimeDeployment v12.Deployment) (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
-	protoBufConfigMap, err := p.protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeInstance)
+	protoBufConfigMap, err := p.protobufConfigMapHandler.CreateProtoBufConfigMap(types.NamespacedName{Name: runtimeDeployment.GetName(), Namespace: runtimeDeployment.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}
@@ -97,13 +101,13 @@ func (p *protoBufConfigMapReconciler) createRequiredResources(runtimeInstance ap
 	return resources, nil
 }
 
-func (p *protoBufConfigMapReconciler) getDeployedResources(runtimeInstance api.KogitoRuntimeInterface) (map[reflect.Type][]client.Object, error) {
+func (p *protoBufConfigMapReconciler) getDeployedResources(runtimeDeployment v12.Deployment) (map[reflect.Type][]client.Object, error) {
 	resources := make(map[reflect.Type][]client.Object)
 	labels := map[string]string{
-		framework.LabelAppKey:            runtimeInstance.GetName(),
+		framework.LabelAppKey:            runtimeDeployment.GetName(),
 		ConfigMapProtoBufEnabledLabelKey: "true",
 	}
-	configMapList, err := p.configMapHandler.FetchConfigMapsForLabel(p.instance.GetNamespace(), labels)
+	configMapList, err := p.configMapHandler.FetchConfigMapsForLabel(runtimeDeployment.GetNamespace(), labels)
 	if err != nil {
 		return nil, err
 	}

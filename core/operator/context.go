@@ -23,11 +23,11 @@ import (
 
 // Context ...
 type Context struct {
-	Client           *client.Client
-	Log              logger.Logger
-	Scheme           *runtime.Scheme
-	Version          string
-	MeteringLabels   map[string]string
-	DeploymentLabels map[string]string
-	Recorder         record.EventRecorder
+	Client               *client.Client
+	Log                  logger.Logger
+	Scheme               *runtime.Scheme
+	Version              string
+	MeteringLabels       map[string]string
+	Recorder             record.EventRecorder
+	DeploymentIdentifier string
 }

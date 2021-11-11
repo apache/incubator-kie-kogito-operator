@@ -21,14 +21,12 @@ import (
 
 // IsProductMode returns true if application is running in product mode.
 func IsProductMode() bool {
-	var group = "GROUP"
-	productMode, _ := os.LookupEnv(group)
-	return strings.ToUpper(productMode) == "RHPAM"
+	group, _ := os.LookupEnv("GROUP")
+	return strings.ToUpper(group) == "RHPAM"
 }
 
 // IsDebugMode returns true if application is running in debug mode.
 func IsDebugMode() bool {
-	var debug = "DEBUG"
-	devMode, _ := os.LookupEnv(debug)
-	return strings.ToUpper(devMode) == "TRUE"
+	debug, _ := os.LookupEnv("DEBUG")
+	return strings.ToUpper(debug) == "TRUE"
 }

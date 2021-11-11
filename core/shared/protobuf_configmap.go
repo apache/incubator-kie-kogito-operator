@@ -44,10 +44,10 @@ const (
 
 // ProtoBufConfigMapHandler ...
 type ProtoBufConfigMapHandler interface {
-	GetProtoBufConfigMapName(runtimeInstance api.KogitoRuntimeInterface) string
-	CreateProtoBufConfigMap(runtimeInstance api.KogitoRuntimeInterface) (*corev1.ConfigMap, error)
-	FetchProtoBufConfigMap(runtimeInstance api.KogitoRuntimeInterface) (*corev1.ConfigMap, error)
-	CreateProtoBufConfigMapReference(runtimeInstance api.KogitoRuntimeInterface) api.VolumeReferenceInterface
+	GetProtoBufConfigMapName(key types.NamespacedName) string
+	CreateProtoBufConfigMap(key types.NamespacedName) (*corev1.ConfigMap, error)
+	FetchProtoBufConfigMap(key types.NamespacedName) (*corev1.ConfigMap, error)
+	CreateProtoBufVolumeReference(key types.NamespacedName) api.VolumeReferenceInterface
 }
 
 type protobufConfigMapHandler struct {
@@ -67,12 +67,12 @@ func NewProtoBufConfigMapHandler(context operator.Context) ProtoBufConfigMapHand
 	}
 }
 
-func (p *protobufConfigMapHandler) FetchProtoBufConfigMap(runtimeInstance api.KogitoRuntimeInterface) (*corev1.ConfigMap, error) {
+func (p *protobufConfigMapHandler) FetchProtoBufConfigMap(key types.NamespacedName) (*corev1.ConfigMap, error) {
 	labelSelector := map[string]string{
-		framework.LabelAppKey:            runtimeInstance.GetName(),
+		framework.LabelAppKey:            key.Name,
 		ConfigMapProtoBufEnabledLabelKey: "true",
 	}
-	configMapList, err := p.configMapHandler.FetchConfigMapsForLabel(runtimeInstance.GetNamespace(), labelSelector)
+	configMapList, err := p.configMapHandler.FetchConfigMapsForLabel(key.Namespace, labelSelector)
 	if err != nil {
 		return nil, err
 	}
@@ -82,18 +82,18 @@ func (p *protobufConfigMapHandler) FetchProtoBufConfigMap(runtimeInstance api.Ko
 	return nil, nil
 }
 
-func (p *protobufConfigMapHandler) CreateProtoBufConfigMap(runtimeInstance api.KogitoRuntimeInterface) (*corev1.ConfigMap, error) {
-	protoBufData, err := p.getProtobufData(runtimeInstance)
+func (p *protobufConfigMapHandler) CreateProtoBufConfigMap(key types.NamespacedName) (*corev1.ConfigMap, error) {
+	protoBufData, err := p.getProtobufData(key)
 	if err != nil {
 		return nil, err
 	}
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: runtimeInstance.GetNamespace(),
-			Name:      p.GetProtoBufConfigMapName(runtimeInstance),
+			Namespace: key.Namespace,
+			Name:      p.GetProtoBufConfigMapName(key),
 			Labels: map[string]string{
 				ConfigMapProtoBufEnabledLabelKey: "true",
-				framework.LabelAppKey:            runtimeInstance.GetName(),
+				framework.LabelAppKey:            key.Name,
 			},
 		},
 		Data: protoBufData,
@@ -101,26 +101,26 @@ func (p *protobufConfigMapHandler) CreateProtoBufConfigMap(runtimeInstance api.K
 	return configMap, nil
 }
 
-func (p *protobufConfigMapHandler) CreateProtoBufConfigMapReference(runtimeInstance api.KogitoRuntimeInterface) api.VolumeReferenceInterface {
+func (p *protobufConfigMapHandler) CreateProtoBufVolumeReference(key types.NamespacedName) api.VolumeReferenceInterface {
 	return &kogitoservice.VolumeReference{
-		Name:      p.GetProtoBufConfigMapName(runtimeInstance),
-		MountPath: path.Join(DefaultProtobufMountPath, runtimeInstance.GetName()),
+		Name:      p.GetProtoBufConfigMapName(key),
+		MountPath: path.Join(DefaultProtobufMountPath, key.Name),
 		FileMode:  &framework.ModeForProtoBufConfigMapVolume,
 	}
 }
 
-func (p *protobufConfigMapHandler) getProtobufData(runtimeInstance api.KogitoRuntimeInterface) (map[string]string, error) {
-	available, err := p.deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: runtimeInstance.GetName(), Namespace: runtimeInstance.GetNamespace()})
+func (p *protobufConfigMapHandler) getProtobufData(key types.NamespacedName) (map[string]string, error) {
+	available, err := p.deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: key.Name, Namespace: key.Namespace})
 	if err != nil {
 		p.Log.Error(err, "failed to check deployment status")
 		return nil, err
 	}
 	if !available {
 		p.Log.Debug("deployment not available")
-		return nil, framework.ErrorForDeploymentNotReachable(runtimeInstance.GetName())
+		return nil, framework.ErrorForDeploymentNotReachable(key.Name)
 	}
 
-	protobufEndpoint := p.kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: runtimeInstance.GetName(), Namespace: runtimeInstance.GetNamespace()}) + protobufSubdir
+	protobufEndpoint := p.kogitoServiceHandler.GetKogitoServiceEndpoint(key) + protobufSubdir
 	protobufListURL := protobufEndpoint + protobufListFileName
 	protobufListBytes, err := getHTTPFileBytes(protobufListURL)
 	if err != nil {
@@ -158,8 +158,8 @@ func (p *protobufConfigMapHandler) getProtobufData(runtimeInstance api.KogitoRun
 }
 
 // GetProtoBufConfigMapName gets the name of the protobuf configMap based the given KogitoRuntime instance
-func (p *protobufConfigMapHandler) GetProtoBufConfigMapName(runtimeInstance api.KogitoRuntimeInterface) string {
-	return fmt.Sprintf("%s-%s", runtimeInstance.GetName(), protobufConfigMapSuffix)
+func (p *protobufConfigMapHandler) GetProtoBufConfigMapName(key types.NamespacedName) string {
+	return fmt.Sprintf("%s-%s", key.Name, protobufConfigMapSuffix)
 }
 
 func getHTTPFileBytes(fileURL string) ([]byte, error) {

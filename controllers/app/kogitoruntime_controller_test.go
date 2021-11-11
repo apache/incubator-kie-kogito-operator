@@ -20,6 +20,7 @@ import (
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/framework"
+	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	imagev1 "github.com/openshift/api/image/v1"
@@ -71,7 +72,7 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	exists, err := kubernetes.ResourceC(cli).Fetch(deployment)
 	assert.NoError(t, err)
 	assert.True(t, exists)
-	assert.Equal(t, "true", deployment.Labels["kogito.app"])
+	assert.Equal(t, "true", deployment.Annotations[operator.KogitoRuntimeKey])
 	assert.True(t, framework.GetEnvVarFromContainer("NAMESPACE", &deployment.Spec.Template.Spec.Containers[0]) == instance.Namespace)
 	assert.Equal(t, "kogito-service-viewer", deployment.Spec.Template.Spec.ServiceAccountName)
 	// command to register protobuf does not exist anymore

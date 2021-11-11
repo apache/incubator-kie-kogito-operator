@@ -17,11 +17,8 @@ package app
 import (
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/framework/util"
-	"github.com/kiegroup/kogito-operator/version/app"
+	app2 "github.com/kiegroup/kogito-operator/internal/app"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 //+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
@@ -33,23 +30,11 @@ import (
 //+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;create;list;watch;delete;update
 //+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;serviceaccounts;services,verbs=create;delete;get;list;patch;update;watch
 
-// NewKogitoDeploymentReconciler ...
-func NewKogitoDeploymentReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.KogitoDeploymentReconciler {
-	return &common.KogitoDeploymentReconciler{
-		Client:  client,
-		Scheme:  scheme,
-		Version: app.Version,
-		Predicate: predicate.Funcs{
-			CreateFunc: func(createEvent event.CreateEvent) bool {
-				return util.MapContains(createEvent.Object.GetLabels(), "kogito.app", "true")
-			},
-			UpdateFunc: func(updateEvent event.UpdateEvent) bool {
-				return util.MapContains(updateEvent.ObjectNew.GetLabels(), "kogito.app", "true")
-			},
-			// Don't watch delete events as the resource removals will be handled by its finalizer
-			DeleteFunc: func(e event.DeleteEvent) bool {
-				return false
-			},
-		},
+// NewKogitoRuntimeDeploymentReconciler ...
+func NewKogitoRuntimeDeploymentReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.RuntimeDeploymentReconciler {
+	return &common.RuntimeDeploymentReconciler{
+		Client:                client,
+		Scheme:                scheme,
+		SupportServiceHandler: app2.NewKogitoSupportingServiceHandler,
 	}
 }

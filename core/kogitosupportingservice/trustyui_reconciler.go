@@ -50,7 +50,7 @@ func (t *trustyUISupportingServiceResource) Reconcile() (err error) {
 		SingleReplica:      false,
 		OnDeploymentCreate: t.trustyUIOnDeploymentCreate,
 	}
-	return kogitoservice.NewServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
+	return kogitoservice.NewSupportingServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
 }
 
 func (t *trustyUISupportingServiceResource) trustyUIOnDeploymentCreate(deployment *appsv1.Deployment) error {

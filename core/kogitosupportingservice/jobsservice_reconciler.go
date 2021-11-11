@@ -61,7 +61,7 @@ func (j *jobsServiceSupportingServiceResource) Reconcile() (err error) {
 		SingleReplica:    true,
 		KafkaTopics:      jobsServicekafkaTopics,
 	}
-	return kogitoservice.NewServiceDeployer(j.Context, definition, j.instance, j.infraHandler).Deploy()
+	return kogitoservice.NewSupportingServiceDeployer(j.Context, definition, j.instance, j.infraHandler).Deploy()
 }
 
 // Collection of kafka topics that should be handled by the Jobs service

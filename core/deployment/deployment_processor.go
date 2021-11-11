@@ -15,7 +15,10 @@
 package deployment
 
 import (
+	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/shared"
 	v1 "k8s.io/api/apps/v1"
 )
 
@@ -26,43 +29,54 @@ type Processor interface {
 
 type deploymentProcessor struct {
 	operator.Context
-	deployment *v1.Deployment
+	deployment               *v1.Deployment
+	supportingServiceHandler manager.KogitoSupportingServiceHandler
 }
 
 // NewDeploymentProcessor ...
-func NewDeploymentProcessor(context operator.Context, deployment *v1.Deployment) Processor {
+func NewDeploymentProcessor(context operator.Context, deployment *v1.Deployment, supportingServiceHandler manager.KogitoSupportingServiceHandler) Processor {
 	return &deploymentProcessor{
-		Context:    context,
-		deployment: deployment,
+		Context:                  context,
+		deployment:               deployment,
+		supportingServiceHandler: supportingServiceHandler,
 	}
 }
 
 func (d *deploymentProcessor) Process() (err error) {
 
-	serviceReconciler := newServiceReconciler(d.Context, d.deployment)
+	serviceReconciler := infrastructure.NewServiceReconciler(d.Context, d.deployment)
 	if err = serviceReconciler.Reconcile(); err != nil {
 		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Service", "Error occurs while configuring Service. Error : %s", err.Error())
-		return
+		return err
 	}
 
-	routeReconciler := newRouteReconciler(d.Context, d.deployment)
+	routeReconciler := infrastructure.NewRouteReconciler(d.Context, d.deployment)
 	if err = routeReconciler.Reconcile(); err != nil {
 		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Route", "Error occurs while configuring Route. Error : %s", err.Error())
-		return
+		return err
 	}
 
-	prometheusManager := newPrometheusManager(d.Context, d.deployment)
+	prometheusManager := infrastructure.NewPrometheusManager(d.Context, d.deployment)
 	if err = prometheusManager.ConfigurePrometheus(); err != nil {
 		d.Log.Error(err, "Could not deploy prometheus monitoring")
 		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Prometheus", "Error occurs while configuring Prometheus. Error : %s", err.Error())
-		return
+		return err
 	}
 
-	grafanaDashboardManager := newGrafanaDashboardManager(d.Context, d.deployment)
+	grafanaDashboardManager := infrastructure.NewGrafanaDashboardManager(d.Context, d.deployment)
 	if err = grafanaDashboardManager.ConfigureGrafanaDashboards(); err != nil {
 		d.Log.Error(err, "Could not deploy grafana dashboards")
 		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Grafana", "Error occurs while configuring Grafana. Error : %s", err.Error())
-		return
+		return err
 	}
+
+	protoBufHandler := shared.NewProtoBufHandler(d.Context, d.supportingServiceHandler)
+	err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(d.deployment)
+	if err != nil {
+		d.Log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
+		d.Recorder.Eventf(d.deployment, "Normal", "Mount Protobuf", "Error occurs while mounting Protobuf file on DataIndex. Error : %s", err.Error())
+		return err
+	}
+
 	return
 }

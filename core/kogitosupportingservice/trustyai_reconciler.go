@@ -52,7 +52,7 @@ func (t *trustyAISupportingServiceResource) Reconcile() (err error) {
 		Request:          controller.Request{NamespacedName: types.NamespacedName{Name: t.instance.GetName(), Namespace: t.instance.GetNamespace()}},
 		KafkaTopics:      trustyAiKafkaTopics,
 	}
-	return kogitoservice.NewServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
+	return kogitoservice.NewSupportingServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
 }
 
 // Collection of kafka topics that should be handled by the Trusty service

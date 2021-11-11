@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deployment
+package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -34,7 +34,7 @@ func TestServiceReconciler(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	serviceReconciler := newServiceReconciler(context, deployment)
+	serviceReconciler := NewServiceReconciler(context, deployment)
 	err := serviceReconciler.Reconcile()
 	assert.NoError(t, err)
 

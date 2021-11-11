@@ -12,22 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deployment
+package infrastructure
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kiegroup/kogito-operator/core/framework"
 	"io/ioutil"
-	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"net/http"
 	"regexp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework"
 	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,7 +43,7 @@ type GrafanaDashboardManager interface {
 
 type grafanaDashboardManager struct {
 	operator.Context
-	deployment *v1.Deployment
+	instance client.Object
 }
 
 // GrafanaDashboard is a structure that contains the fetched dashboards
@@ -54,11 +52,12 @@ type GrafanaDashboard struct {
 	RawJSONDashboard string
 }
 
-func newGrafanaDashboardManager(context operator.Context, deployment *v1.Deployment) GrafanaDashboardManager {
+// NewGrafanaDashboardManager ...
+func NewGrafanaDashboardManager(context operator.Context, instance client.Object) GrafanaDashboardManager {
 	context.Log = context.Log.WithValues("monitoring", "grafana")
 	return &grafanaDashboardManager{
-		Context:    context,
-		deployment: deployment,
+		Context:  context,
+		instance: instance,
 	}
 }
 
@@ -89,18 +88,18 @@ func (d *grafanaDashboardManager) isGrafanaAvailable() bool {
 }
 
 func (d *grafanaDashboardManager) fetchGrafanaDashboards() ([]GrafanaDashboard, error) {
-	deploymentHandler := infrastructure.NewDeploymentHandler(d.Context)
-	available, err := deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: d.deployment.GetName(), Namespace: d.deployment.GetNamespace()})
+	deploymentHandler := NewDeploymentHandler(d.Context)
+	available, err := deploymentHandler.IsDeploymentAvailable(types.NamespacedName{Name: d.instance.GetName(), Namespace: d.instance.GetNamespace()})
 	if err != nil {
 		return nil, err
 	}
 	if !available {
 		d.Log.Debug("Deployment is currently not available, will try in next reconciliation loop")
-		return nil, framework.ErrorForDeploymentNotReachable(d.deployment.GetName())
+		return nil, framework.ErrorForDeploymentNotReachable(d.instance.GetName())
 	}
 
 	kogitoServiceHandler := framework.NewKogitoServiceHandler(d.Context)
-	svcURL := kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: d.deployment.GetName(), Namespace: d.deployment.GetNamespace()})
+	svcURL := kogitoServiceHandler.GetKogitoServiceEndpoint(types.NamespacedName{Name: d.instance.GetName(), Namespace: d.instance.GetNamespace()})
 	dashboardNames, err := d.fetchGrafanaDashboardNamesForURL(svcURL)
 	if err != nil {
 		return nil, err
@@ -114,7 +113,7 @@ func (d *grafanaDashboardManager) fetchGrafanaDashboardNamesForURL(serverURL str
 	resp, err := http.Get(dashboardsURL)
 	if err != nil {
 		//d.Log.Error(err, "Error occurs while fetching dashboard name", "dashboardsURL", dashboardsURL)
-		d.Recorder.Eventf(d.deployment, "Normal", "Configuring Grafana", "Error occurs while fetching dashboard name. Error : %s", err.Error())
+		d.Recorder.Eventf(d.instance, "Normal", "Configuring Grafana", "Error occurs while fetching dashboard name. Error : %s", err.Error())
 		return nil, nil
 	}
 	defer resp.Body.Close()
@@ -174,16 +173,16 @@ func (d *grafanaDashboardManager) deployGrafanaDashboards(dashboards []GrafanaDa
 		dashboardDefinition := &grafanav1.GrafanaDashboard{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      resourceName,
-				Namespace: d.deployment.GetNamespace(),
+				Namespace: d.instance.GetNamespace(),
 				Labels: map[string]string{
-					framework.LabelAppKey: d.deployment.GetName(),
+					framework.LabelAppKey: d.instance.GetName(),
 				},
 			},
 			Spec: grafanav1.GrafanaDashboardSpec{
 				JSON: dashboard.RawJSONDashboard,
 			},
 		}
-		if err := kubernetes.ResourceC(d.Client).CreateIfNotExistsForOwner(dashboardDefinition, d.deployment, d.Scheme); err != nil {
+		if err := kubernetes.ResourceC(d.Client).CreateIfNotExistsForOwner(dashboardDefinition, d.instance, d.Scheme); err != nil {
 			d.Log.Error(err, "Error occurs while creating dashboard, not going to reconcile the resource", "dashboard name", dashboard.Name)
 			return err
 		}

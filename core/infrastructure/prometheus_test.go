@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deployment
+package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-operator/apis"
@@ -32,7 +32,7 @@ func Test_createServiceMonitor_defaultConfiguration(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	monitoringManager := prometheusManager{Context: context, deployment: deployment}
+	monitoringManager := prometheusManager{Context: context, instance: deployment}
 	serviceMonitor, err := monitoringManager.createServiceMonitor()
 	assert.NoError(t, err)
 	assert.Equal(t, api.MonitoringDefaultPath, serviceMonitor.Spec.Endpoints[0].Path)
@@ -44,15 +44,15 @@ func Test_createServiceMonitor_customConfiguration(t *testing.T) {
 	cli := test.NewFakeClientBuilder().Build()
 	deployment := test.CreateFakeDeployment(ns)
 	deployment.Annotations = map[string]string{
-		MonitoringPathLabel:   "/testPath",
-		MonitoringSchemeLabel: "https",
+		MonitoringPathAnnotation:   "/testPath",
+		MonitoringSchemeAnnotation: "https",
 	}
 	context := operator.Context{
 		Client: cli,
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	monitoringManager := prometheusManager{Context: context, deployment: deployment}
+	monitoringManager := prometheusManager{Context: context, instance: deployment}
 	serviceMonitor, err := monitoringManager.createServiceMonitor()
 	assert.NoError(t, err)
 	assert.Equal(t, "/testPath", serviceMonitor.Spec.Endpoints[0].Path)

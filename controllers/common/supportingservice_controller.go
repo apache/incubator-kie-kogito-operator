@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/core/record"
 	app2 "github.com/kiegroup/kogito-operator/version/app"
 	imgv1 "github.com/openshift/api/image/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -47,7 +48,7 @@ type KogitoSupportingServiceReconciler struct {
 	InfraHandler             func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject        client.Object
 	MeteringLabels           map[string]string
-	DeploymentLabels         map[string]string
+	DeploymentIdentifier     string
 }
 
 // Reconcile reads that state of the cluster for a KogitoSupportingService object and makes changes based on the state read
@@ -58,12 +59,13 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(ctx context.Context, req c
 
 	// create kogitoContext
 	kogitoContext := operator.Context{
-		Client:           r.Client,
-		Log:              log,
-		Scheme:           r.Scheme,
-		Version:          app2.Version,
-		MeteringLabels:   r.MeteringLabels,
-		DeploymentLabels: r.DeploymentLabels,
+		Client:               r.Client,
+		Log:                  log,
+		Scheme:               r.Scheme,
+		Version:              app2.Version,
+		MeteringLabels:       r.MeteringLabels,
+		Recorder:             record.NewRecorder(r.Client, r.Scheme, req.Name),
+		DeploymentIdentifier: r.DeploymentIdentifier,
 	}
 
 	// Fetch the KogitoSupportingService instance

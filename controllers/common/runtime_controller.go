@@ -23,9 +23,8 @@ import (
 	"github.com/kiegroup/kogito-operator/core/logger"
 	"github.com/kiegroup/kogito-operator/core/manager"
 	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/shared"
+	"github.com/kiegroup/kogito-operator/core/record"
 	imagev1 "github.com/openshift/api/image/v1"
-	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,7 +45,7 @@ type KogitoRuntimeReconciler struct {
 	InfraHandler          func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject     client.Object
 	MeteringLabels        map[string]string
-	DeploymentLabels      map[string]string
+	DeploymentIdentifier  string
 }
 
 // Reconcile reads that state of the cluster for a KogitoRuntime object and makes changes based on the state read
@@ -57,12 +56,13 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// create kogitoContext
 	kogitoContext := operator.Context{
-		Client:           r.Client,
-		Log:              log,
-		Scheme:           r.Scheme,
-		Version:          r.Version,
-		MeteringLabels:   r.MeteringLabels,
-		DeploymentLabels: r.DeploymentLabels,
+		Client:               r.Client,
+		Log:                  log,
+		Scheme:               r.Scheme,
+		Version:              r.Version,
+		MeteringLabels:       r.MeteringLabels,
+		Recorder:             record.NewRecorder(r.Client, r.Scheme, req.Name),
+		DeploymentIdentifier: r.DeploymentIdentifier,
 	}
 
 	// fetch the requested instance
@@ -91,15 +91,8 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		CustomService:      true,
 	}
 	infraHandler := r.InfraHandler(kogitoContext)
-	err = kogitoservice.NewServiceDeployer(kogitoContext, definition, instance, infraHandler).Deploy()
+	err = kogitoservice.NewRuntimeDeployer(kogitoContext, definition, instance, infraHandler).Deploy()
 	if err != nil {
-		return framework.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
-	}
-
-	protoBufHandler := shared.NewProtoBufHandler(kogitoContext, supportingServiceHandler)
-	err = protoBufHandler.MountProtoBufConfigMapOnDataIndex(instance)
-	if err != nil {
-		log.Error(err, "Fail to mount Proto Buf config map of Kogito runtime on DataIndex")
 		return framework.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
 	}
 
@@ -117,10 +110,10 @@ func (r *KogitoRuntimeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 	b := ctrl.NewControllerManagedBy(mgr).
 		For(r.ReconcilingObject, builder.WithPredicates(pred)).
-		Owns(&corev1.Service{}).Owns(&appsv1.Deployment{}).Owns(&corev1.ConfigMap{})
+		Owns(&appsv1.Deployment{}).Owns(&corev1.ConfigMap{})
 
 	if r.IsOpenshift() {
-		b.Owns(&routev1.Route{}).Owns(&imagev1.ImageStream{})
+		b.Owns(&imagev1.ImageStream{})
 	}
 
 	return b.Complete(r)

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deployment
+package infrastructure
 
 import (
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -34,7 +34,7 @@ func TestRouteReconciler_K8s(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	routeReconciler := newRouteReconciler(context, deployment)
+	routeReconciler := NewRouteReconciler(context, deployment)
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)
 
@@ -53,7 +53,7 @@ func TestRouteReconciler_Openshift(t *testing.T) {
 		Log:    test.TestLogger,
 		Scheme: meta.GetRegisteredSchema(),
 	}
-	routeReconciler := newRouteReconciler(context, deployment)
+	routeReconciler := NewRouteReconciler(context, deployment)
 	err := routeReconciler.Reconcile()
 	assert.NoError(t, err)
 

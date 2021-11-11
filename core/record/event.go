@@ -38,8 +38,15 @@ type EventRecorder interface {
 }
 
 // NewRecorder returns an EventRecorder that can be used to send events with the given event source.
-func NewRecorder(cli *client.Client, scheme *runtime.Scheme, source corev1.EventSource) EventRecorder {
-	return &recorderImpl{cli, scheme, source}
+func NewRecorder(cli *client.Client, scheme *runtime.Scheme, component string) EventRecorder {
+	return &recorderImpl{
+		cli:    cli,
+		scheme: scheme,
+		source: corev1.EventSource{
+			Component: component,
+			Host:      GetHostName(),
+		},
+	}
 }
 
 type recorderImpl struct {

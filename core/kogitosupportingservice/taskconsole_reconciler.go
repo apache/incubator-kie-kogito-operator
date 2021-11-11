@@ -50,7 +50,7 @@ func (t *taskConsoleSupportingServiceResource) Reconcile() (err error) {
 		SingleReplica:      false,
 		OnDeploymentCreate: t.taskConsoleOnDeploymentCreate,
 	}
-	return kogitoservice.NewServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
+	return kogitoservice.NewSupportingServiceDeployer(t.Context, definition, t.instance, t.infraHandler).Deploy()
 }
 
 func (t *taskConsoleSupportingServiceResource) taskConsoleOnDeploymentCreate(deployment *appsv1.Deployment) error {

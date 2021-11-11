@@ -69,7 +69,7 @@ func (d *dataIndexSupportingServiceResource) Reconcile() (err error) {
 	if err = protoBufConfigMapReconciler.Reconcile(); err != nil {
 		return err
 	}
-	return kogitoservice.NewServiceDeployer(d.Context, definition, d.instance, d.infraHandler).Deploy()
+	return kogitoservice.NewSupportingServiceDeployer(d.Context, definition, d.instance, d.infraHandler).Deploy()
 }
 
 // Collection of kafka topics that should be handled by the Data-Index service

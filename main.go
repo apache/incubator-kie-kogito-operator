@@ -95,8 +95,8 @@ func main() {
 			setupLog.Error(err, "unable to create controller", "controller", "KogitoInfra")
 			os.Exit(1)
 		}
-		if err = app.NewKogitoDeploymentReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "KogitoDeployment")
+		if err = app.NewKogitoRuntimeDeploymentReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntimeDeployment")
 			os.Exit(1)
 		}
 	} else {
@@ -116,8 +116,8 @@ func main() {
 			setupLog.Error(err, "unable to create controller", "controller", "RHPAMInfra")
 			os.Exit(1)
 		}
-		if err = rhpam.NewKogitoDeploymentReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "RHPAMDeployment")
+		if err = rhpam.NewKogitoRuntimeDeploymentReconciler(kubeCli, mgr.GetScheme()).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "KogitoRuntimeDeployment")
 			os.Exit(1)
 		}
 	}
