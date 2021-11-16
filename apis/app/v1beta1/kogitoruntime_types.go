@@ -64,6 +64,7 @@ type KogitoRuntimeStatus struct {
 // +kubebuilder:object:root=true
 // +k8s:openapi-gen=true
 // +genclient
+// +kubebuilder:deprecatedversion
 // +kubebuilder:resource:path=kogitoruntimes,scope=Namespaced
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description="Number of replicas set for this service"
@@ -76,6 +77,7 @@ type KogitoRuntimeStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:resources={{Service,v1,"A Kubernetes Service"}}
 
 // KogitoRuntime is a custom Kogito service.
+// Deprecated: use annotation based deployment
 type KogitoRuntime struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -105,8 +107,10 @@ func (k *KogitoRuntime) GetStatus() api.KogitoServiceStatusInterface {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:deprecatedversion
 
 // KogitoRuntimeList contains a list of KogitoRuntime.
+// Deprecated: use annotation based deployment
 type KogitoRuntimeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

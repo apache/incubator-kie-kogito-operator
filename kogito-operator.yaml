@@ -46,10 +46,11 @@ spec:
       jsonPath: .spec.gitSource.uri
       name: Git Repository
       type: string
+    deprecated: true
     name: v1beta1
     schema:
       openAPIV3Schema:
-        description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
+        description: 'KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster. Deprecated: use custom build'
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -809,10 +810,11 @@ spec:
       jsonPath: .status.externalURI
       name: Endpoint
       type: string
+    deprecated: true
     name: v1beta1
     schema:
       openAPIV3Schema:
-        description: KogitoRuntime is a custom Kogito service.
+        description: 'KogitoRuntime is a custom Kogito service. Deprecated: use annotation based deployment'
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'

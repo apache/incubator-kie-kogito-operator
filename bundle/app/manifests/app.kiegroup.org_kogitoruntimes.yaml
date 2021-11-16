@@ -27,10 +27,12 @@ spec:
       jsonPath: .status.externalURI
       name: Endpoint
       type: string
+    deprecated: true
     name: v1beta1
     schema:
       openAPIV3Schema:
-        description: KogitoRuntime is a custom Kogito service.
+        description: 'KogitoRuntime is a custom Kogito service. Deprecated: use annotation
+          based deployment'
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
