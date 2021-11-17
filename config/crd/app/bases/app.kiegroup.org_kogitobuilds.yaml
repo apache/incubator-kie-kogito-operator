@@ -41,12 +41,11 @@ spec:
       jsonPath: .spec.gitSource.uri
       name: Git Repository
       type: string
-    deprecated: true
     name: v1beta1
     schema:
       openAPIV3Schema:
-        description: 'KogitoBuild handles how to build a custom Kogito service in
-          a Kubernetes/OpenShift cluster. Deprecated: use custom build'
+        description: KogitoBuild handles how to build a custom Kogito service in a
+          Kubernetes/OpenShift cluster.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation

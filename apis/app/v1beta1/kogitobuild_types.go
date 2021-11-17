@@ -474,7 +474,6 @@ func (b *Builds) SetCancelled(cancelled []string) {
 // +genclient
 // +kubebuilder:resource:path=kogitobuilds,scope=Namespaced
 // +kubebuilder:subresource:status
-// +kubebuilder:deprecatedversion
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".spec.type",description="Type of this build instance"
 // +kubebuilder:printcolumn:name="Runtime",type="string",JSONPath=".spec.runtime",description="Runtime used to build the service"
 // +kubebuilder:printcolumn:name="Native",type="boolean",JSONPath=".spec.native",description="Indicates it's a native build"
@@ -486,7 +485,6 @@ func (b *Builds) SetCancelled(cancelled []string) {
 // +operator-sdk:csv:customresourcedefinitions:displayName="Kogito Build"
 
 // KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift cluster.
-// Deprecated: use custom build
 type KogitoBuild struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -506,10 +504,8 @@ func (k *KogitoBuild) GetStatus() api.KogitoBuildStatusInterface {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:deprecatedversion
 
 // KogitoBuildList contains a list of KogitoBuild.
-// Deprecated: use custom build
 type KogitoBuildList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

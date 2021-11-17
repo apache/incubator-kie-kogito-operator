@@ -72,8 +72,8 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: 'KogitoBuild handles how to build a custom Kogito service in a
-        Kubernetes/OpenShift cluster. Deprecated: use custom build'
+    - description: KogitoBuild handles how to build a custom Kogito service in a Kubernetes/OpenShift
+        cluster.
       displayName: Kogito Build
       kind: KogitoBuild
       name: kogitobuilds.app.kiegroup.org
@@ -282,8 +282,7 @@ spec:
         displayName: Secret Volume References
         path: secretVolumeReferences
       version: v1beta1
-    - description: 'KogitoRuntime is a custom Kogito service. Deprecated: use annotation
-        based deployment'
+    - description: KogitoRuntime is a custom Kogito service.
       displayName: Kogito Runtime
       kind: KogitoRuntime
       name: kogitoruntimes.app.kiegroup.org
