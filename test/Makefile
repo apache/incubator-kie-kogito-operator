@@ -76,6 +76,7 @@ dry_run=false
 keep_namespace=false
 namespace_name=
 local_cluster=false
+disable_clean_cluster=false
 
 .PHONY: run-tests
 run-tests:
@@ -97,6 +98,7 @@ run-tests:
 	&& if [ "${examples_ignore_ssl}" = "true" ]; then opts+=("--examples_ignore_ssl"); fi \
 	&& if [ "${operator_namespaced}" = "true" ]; then opts+=("--operator_namespaced"); fi \
 	&& if [ "${operator_profiling}" = "true" ]; then opts+=("--operator_profiling"); fi \
+	&& if [ "${disable_clean_cluster}" = "true" ]; then opts+=("--disable_clean_cluster"); fi \
 	&& opts_str=$$(IFS=' ' ; echo "$${opts[*]}") \
 	&& ../hack/run-tests.sh \
 		--test_main_dir ${test_main_dir} \
