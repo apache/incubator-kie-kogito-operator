@@ -29,9 +29,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/go/pkg/mod/cache
-          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-cache-
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}-cache-
       - name: Install cover
         run: go get golang.org/x/tools/cmd/cover
       - name: Validate codcov yaml file
