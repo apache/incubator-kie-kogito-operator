@@ -2,4 +2,4 @@
 set -e
 cd /workspace
 
-GOOS=linux GOARCH=amd64 go test -covermode=atomic -coverpkg=github.com/kiegroup/kogito-operator/... -c -tags testrunmain ./ -o manager
+go test -covermode=atomic -coverpkg=github.com/kiegroup/kogito-operator/... -c -tags testrunmain ./ -o manager
