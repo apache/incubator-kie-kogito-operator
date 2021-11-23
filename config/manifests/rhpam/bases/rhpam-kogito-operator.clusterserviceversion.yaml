@@ -132,11 +132,11 @@ spec:
     operated-by: rhpam-kogito-operator.7.11.0
   links:
   - name: Product Page
-    url: https://kogito.kie.org/
+    url: https://access.redhat.com/products/red-hat-process-automation-manager
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
+    url: https://access.redhat.com/documentation/en-us/red_hat_decision_manager/7.13/html/getting_started_with_red_hat_decision_manager/proc-kogito-microservices-deploying-on-openshift_getting-started-kogito-microservices
   - name: Source
-    url: https://github.com/kiegroup/rhpam-kogito-operator/
+    url: https://github.com/kiegroup/kogito-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat
