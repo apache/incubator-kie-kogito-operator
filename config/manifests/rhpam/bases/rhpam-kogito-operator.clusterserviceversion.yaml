@@ -134,7 +134,7 @@ spec:
   - name: Product Page
     url: https://access.redhat.com/products/red-hat-process-automation-manager
   - name: Documentation
-    url: https://access.redhat.com/documentation/en-us/red_hat_decision_manager/7.13/html/getting_started_with_red_hat_decision_manager/proc-kogito-microservices-deploying-on-openshift_getting-started-kogito-microservices
+    url: https://access.redhat.com/documentation/en-us/red_hat_process_automation_manager/7.13/html/getting_started_with_red_hat_build_of_kogito_in_red_hat_process_automation_manager/assembly-deploying-kogito-microservices-on-openshift
   - name: Source
     url: https://github.com/kiegroup/kogito-operator/
   maintainers:
