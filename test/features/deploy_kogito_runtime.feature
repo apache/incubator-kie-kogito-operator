@@ -280,7 +280,6 @@ Feature: Deploy Kogito Runtime
 
     Then Kogito Runtime "<example-service>" log contains text "Before timer" within 1 minutes
     And Kogito Runtime "<example-service>" log contains text "After timer" within 1 minutes
-    And Kogito Jobs Service log contains text "<example-service>" within 1 minutes
 
     @springboot
     Examples:
