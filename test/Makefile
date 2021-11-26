@@ -155,7 +155,7 @@ run-tests:
 
 .PHONY: build-examples-images
 build-examples-images:
-	make run-tests test_main_dir=./examples feature=../features cr_deployment_only=true
+	make run-tests test_main_dir=./examples feature=../features cr_deployment_only=true disable_clean_cluster=true
 
 .PHONY: run-smoke-tests
 run-smoke-tests:
