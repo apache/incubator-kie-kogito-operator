@@ -146,6 +146,20 @@ For code contributions, review the following prerequisites:
 
 ### Building the Kogito Operator
 
+Check if your $HOME/.config/containers/registries.conf is like this:
+```bash
+# Note that changing the order here may break tests.
+unqualified-search-registries = ['docker.io']
+
+[[registry]]
+prefix="docker.io/library"
+location="quay.io/libpod"
+
+[[registry]]
+location="localhost:5000"
+insecure=true
+```
+
 To build the Kogito Operator, use the following command:
 
 ```bash
