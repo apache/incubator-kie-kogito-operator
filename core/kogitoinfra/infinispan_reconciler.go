@@ -68,7 +68,7 @@ const (
 var (
 	//Infinispan variables for the KogitoInfra deployed infrastructure.
 	//For Quarkus: https://quarkus.io/guides/infinispan-client#quarkus-infinispan-client_configuration
-	//For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/master/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
+	//For Spring: https://github.com/infinispan/infinispan-spring-boot/blob/main/infinispan-spring-boot-starter-remote/src/test/resources/test-application.properties
 
 	propertiesInfinispan = map[api.RuntimeType]map[int]string{
 		api.QuarkusRuntimeType: {
