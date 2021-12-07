@@ -15,7 +15,7 @@
 package flag
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
+	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ type MonitoringFlags struct {
 // AddMonitoringFlags adds the monitoring flags to the given command
 func AddMonitoringFlags(command *cobra.Command, flags *MonitoringFlags) {
 	command.Flags().StringVar(&flags.Scheme, "monitoring-scheme", api.MonitoringDefaultScheme, "HTTP scheme to use for scraping.Default is "+api.MonitoringDefaultScheme)
-	command.Flags().StringVar(&flags.Path, "monitoring-path", api.MonitoringDefaultPath, "HTTP path to scrape for metrics. Default is "+api.MonitoringDefaultPath)
+	command.Flags().StringVar(&flags.Path, "monitoring-path", api.MonitoringDefaultPathQuarkus, "HTTP path to scrape for metrics. Default for Quarkus is "+api.MonitoringDefaultPathQuarkus)
 }
 
 // CheckMonitoringArgs validates the MonitoringFlags flags
