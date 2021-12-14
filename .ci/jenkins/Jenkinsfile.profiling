@@ -59,18 +59,18 @@ pipeline {
             }
         }
 
-        stage('Build Kogito CLI') {
-            steps {
-                sh 'make build-cli'
-            }
-            post {
-                success {
-                    script {
-                        archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
-                    }
-                }
-            }
-        }
+        // stage('Build Kogito CLI') {
+        //     steps {
+        //         sh 'make build-cli'
+        //     }
+        //     post {
+        //         success {
+        //             script {
+        //                 archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Push Operator Image to Openshift Registry') {
             steps {
@@ -148,6 +148,8 @@ void sendNotification() {
 
 String getBDDParameters() {
     Map testParamsMap = helper.getBDDCommonParameters(true)
+
+    testParamsMap['cr_deployment_only'] = true
 
     testParamsMap['operator_profiling'] = true
     testParamsMap['operator_yaml_uri'] = '../profiling/kogito-operator-profiling.yaml'
