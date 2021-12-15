@@ -126,18 +126,18 @@ pipeline {
             }
         }
 
-        stage('Build Kogito CLI') {
-            steps {
-                sh 'make build-cli'
-            }
-            post {
-                success {
-                    script {
-                        archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
-                    }
-                }
-            }
-        }
+        // stage('Build Kogito CLI') {
+        //     steps {
+        //         sh 'make build-cli'
+        //     }
+        //     post {
+        //         success {
+        //             script {
+        //                 archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
+        //             }
+        //         }
+        //     }
+        // }
         stage('Run OLM tests') {
             when {
                 expression {
@@ -296,6 +296,8 @@ void getLockOpenshiftApi() {
 
 String getBDDParameters() {
     Map testParamsMap = helper.getBDDCommonParameters(true)
+
+    testParamsMap['cr_deployment_only'] = true
 
     testParamsMap.putAll(helper.getBDDBuildImageParameters('KOGITO_IMAGES'))
     testParamsMap.putAll(helper.getBDDServicesImageParameters('KOGITO_IMAGES'))
