@@ -70,14 +70,14 @@ pipeline {
                         // setting operator_namespaced=true so the operator won't be deployed for building of example images
                         sh "make build-examples-images concurrent=3 operator_namespaced=true smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
                     } catch (err) {
-                        unstable("Error building non-native examples' images. Check the junit results.")
+                        util.archiveConsoleLog()
                     }
                 }
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/examples/logs/**/junit.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: false
+                    junit testResults: 'test/examples/logs/**/junit.xml', allowEmptyResults: false
                 }
             }
         }
@@ -94,7 +94,7 @@ pipeline {
                         // setting operator_namespaced=true so the operator won't be deployed for building of example images
                         sh "make build-examples-images concurrent=1 operator_namespaced=true ${getExamplesBuildParameters(true)}"
                     } catch (err) {
-                        unstable("Error building native examples' images. Check the junit results.")
+                        util.archiveConsoleLog()
                     } finally {
                         // moving to another folder to avoid conflicts with junit
                         sh 'cp -r test/examples test/examples-native'
@@ -103,7 +103,7 @@ pipeline {
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'test/examples-native/logs/**/*.log', allowEmptyArchive: true
                     junit testResults: 'test/examples-native/logs/**/junit.xml', allowEmptyResults: true
                 }
             }
@@ -166,9 +166,7 @@ pipeline {
 
 void sendNotification() {
     if (params.SEND_NOTIFICATION) {
-        emailext body: "**Deploy job** #${BUILD_NUMBER} was: ${currentBuild.currentResult}\nPlease look here: ${BUILD_URL}",
-             subject: "[${helper.getBuildBranch()}] Kogito Examples Images",
-             to: env.KOGITO_CI_EMAIL_TO
+        mailer.sendMarkdownTestSummaryNotification('Deploy', "[${helper.getBuildBranch()}] Kogito Examples Images", [env.KOGITO_CI_EMAIL_TO])
     } else {
         echo 'No notification sent per configuration'
     }
