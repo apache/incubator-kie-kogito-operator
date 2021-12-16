@@ -118,11 +118,25 @@ pipeline {
             steps {
                 sh 'make test'
             }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
+            }
         }
 
         stage('Build Kogito Operator') {
             steps {
                 sh "make BUILDER=${env.CONTAINER_ENGINE}"
+            }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
             }
         }
 
@@ -136,6 +150,11 @@ pipeline {
                         archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
                     }
                 }
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
             }
         }
         stage('Run OLM tests') {
@@ -146,6 +165,13 @@ pipeline {
             }
             steps {
                 sh 'make olm-tests'
+            }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
             }
         }
         stage('Push Operator Image to Openshift Registry') {
@@ -183,14 +209,14 @@ pipeline {
                                 // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
                                 sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
                             } catch (err) {
-                                unstable('Tests are failing')
+                                util.archiveConsoleLog()
                             }
                         }
                     }
                     post {
                         always {
-                            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: false
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: false
                         }
                         cleanup {
                             sh 'cd test && go run scripts/prune_namespaces.go'
@@ -279,9 +305,7 @@ pipeline {
 
 void sendNotification() {
     if (params.SEND_NOTIFICATION) {
-        emailext body: "**Deploy job** #${BUILD_NUMBER} was: ${currentBuild.currentResult}\nPlease look here: ${BUILD_URL}",
-             subject: "[${helper.getBuildBranch()}] Kogito Operator",
-             to: env.KOGITO_CI_EMAIL_TO
+        mailer.sendMarkdownTestSummaryNotification('Deploy', "[${helper.getBuildBranch()}] Kogito Operator", [env.KOGITO_CI_EMAIL_TO])
     } else {
         echo 'No notification sent per configuration'
     }

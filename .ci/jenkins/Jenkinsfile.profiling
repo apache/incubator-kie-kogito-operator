@@ -57,6 +57,13 @@ pipeline {
             steps {
                 sh "make profiling BUILDER=${env.CONTAINER_ENGINE}"
             }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
+            }
         }
 
         stage('Build Kogito CLI') {
@@ -67,6 +74,11 @@ pipeline {
                 success {
                     script {
                         archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
+                    }
+                }
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
                     }
                 }
             }
@@ -97,7 +109,11 @@ pipeline {
                     steps {
                         script {
                             // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
-                            sh "make run-tests timeout=360 load_factor=3 concurrent=3 ${getBDDParameters()}"
+                            try {
+                                sh "make run-tests timeout=360 load_factor=3 concurrent=3 ${getBDDParameters()}"
+                            } catch (err) {
+                                util.archiveConsoleLog()
+                            }
                         }
                     }
                     post {
@@ -109,8 +125,8 @@ pipeline {
                                 ./codecov -f test/bdd-cover.out -F bdd -n bdd-tests &> test/logs/bdd-cover-upload.log
                             '''
 
-                            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: false
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: false
                         }
                         cleanup {
                             sh 'cd test && go run scripts/prune_namespaces.go'
@@ -145,9 +161,7 @@ void getLockOpenshiftApi() {
 }
 
 void sendNotification() {
-    emailext body: "**Daily Profiling** #${BUILD_NUMBER} was: ${currentBuild.currentResult}\nPlease look here: ${BUILD_URL}",
-             subject: "[${helper.getBuildBranch()}] Kogito Operator",
-             to: env.KOGITO_CI_EMAIL_TO
+    mailer.sendMarkdownTestSummaryNotification('Profiling', "[${helper.getBuildBranch()}] Kogito Operator", [env.KOGITO_CI_EMAIL_TO])
 }
 
 ////////////////////////////////////////////////////////////////////////
