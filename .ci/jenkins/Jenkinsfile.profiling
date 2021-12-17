@@ -161,7 +161,7 @@ void getLockOpenshiftApi() {
 }
 
 void sendNotification() {
-    mailer.sendMarkdownTestSummaryNotification('Profiling', "[${helper.getBuildBranch()}] Kogito Operator", [env.KOGITO_CI_EMAIL_TO])
+    mailer.sendMarkdownTestSummaryNotification('Profiling', "[${helper.getBuildBranch()}] Kogito Operator", [env.KOGITO_CI_EMAIL_TO], "You can find test error logs here: ${BUILD_URL}/artifact/test/logs/error/")
 }
 
 ////////////////////////////////////////////////////////////////////////
