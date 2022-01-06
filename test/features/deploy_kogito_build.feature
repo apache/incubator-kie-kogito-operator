@@ -38,10 +38,10 @@ Feature: Deploy Kogito Build
 
   Scenario Outline: Build <runtime> binary build with native <native> using KogitoBuild
     Given Clone Kogito examples into local directory
-    And Local example service "<example-service>" is built by Maven with configuration:
+    And Local example service "kogito-quarkus-examples/<example-service>" is built by Maven with configuration:
       | native | <native> |
 
-    When Build binary <runtime> local example service "<example-service>" from target folder with configuration:
+    When Build binary <runtime> local example service "kogito-quarkus-examples/<example-service>" from target folder with configuration:
       | config | native | <native> |
 
     Then Kogito Runtime "<example-service>" has 1 pods running within 5 minutes
