@@ -51,6 +51,7 @@ runtime_application_image_version=
 custom_maven_repo=
 custom_maven_repo_replace_default=false
 maven_mirror=
+archetype_maven_mirror_url=
 maven_ignore_self_signed_certificate=false
 build_image_registry=
 build_image_namespace=
@@ -131,6 +132,7 @@ run-tests:
 		--runtime_application_image_version ${runtime_application_image_version} \
 		--custom_maven_repo $(custom_maven_repo) \
 		--maven_mirror $(maven_mirror) \
+		--archetype_maven_mirror $(archetype_maven_mirror) \
 		--build_image_registry ${build_image_registry} \
 		--build_image_namespace ${build_image_namespace} \
 		--build_image_name_suffix ${build_image_name_suffix} \

@@ -91,6 +91,7 @@ function usage(){
   printf "\n--custom_maven_repo {URI}\n\tSet a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information."
   printf "\n--custom_maven_repo_replace_default\n\tIf you specified the option 'custom_maven_repo' and you want that one to replace the main JBoss repository (useful with snapshots)."
   printf "\n--maven_mirror {URI}\n\tMaven mirror url to be used when building app in the tests."
+  printf "\n--archetype_maven_mirror {URI}\n\tMaven mirror url to be used when building app from source files."
   printf "\n--maven_ignore_self_signed_certificate\n\tSet to true if maven build need to ignore self-signed certificate. This could happen when using internal maven mirror url."
   printf "\n--build_image_registry {REGISTRY}\n\tSet the build image registry."
   printf "\n--build_image_namespace {NAMESPACE}\n\tSet the build image namespace."
@@ -394,6 +395,10 @@ case $1 in
   --maven_mirror)
     shift
     if addParamKeyValueIfAccepted "--tests.maven-mirror-url" ${1}; then shift; fi
+  ;;
+  --archetype_maven_mirror)
+    shift
+    if addParamKeyValueIfAccepted "--tests.archetype-maven-mirror-url" ${1}; then shift; fi
   ;;
   --maven_ignore_self_signed_certificate)
     addParam "--tests.maven-ignore-self-signed-certificate"
