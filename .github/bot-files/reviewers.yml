@@ -8,6 +8,7 @@ review:
     reviewers:
       - ricardozanini
       - spolti
+      - davidesalerno
   - paths:
       - test/**
     reviewers:
@@ -23,3 +24,4 @@ review:
 default:
   - ricardozanini
   - spolti
+  - davidesalerno
