@@ -55,9 +55,7 @@ func deploySourceFilesFromPath(namespace, runtimeType, serviceName, path string)
 	buildHolder.KogitoBuild.GetSpec().SetType(api.LocalSourceBuildType)
 	buildHolder.KogitoBuild.GetSpec().GetGitSource().SetURI(path)
 
-	framework.GetLogger(namespace).Info(fmt.Sprintf("archetype URL is %s and runtimeType is %s", config.GetArchetypeMavenMirrorURL(), runtimeType))
 	if runtimeType == "quarkus" && len(config.GetArchetypeMavenMirrorURL()) > 0 {
-		framework.GetLogger(namespace).Info("Set Maven mirror URL to " + config.GetArchetypeMavenMirrorURL())
 		buildHolder.KogitoBuild.GetSpec().SetMavenMirrorURL(config.GetArchetypeMavenMirrorURL())
 	}
 
