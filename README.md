@@ -389,6 +389,7 @@ All options from BDD tests do also apply here.
 | @trustyui          | Tests including Trusty UI                                                          |
 |                    |                                                                                    |
 | @binary            | Tests using Kogito applications built locally and uploaded to OCP as a binary file |
+| @asset             | Tests using Kogito applications built from assets uploaded to OCP                  |
 | @native            | Tests using native build                                                           |
 | @ignorelts         | Tests using native build that cannot be tested with Quarkus LTS version            |
 | @persistence       | Tests verifying persistence capabilities                                           |

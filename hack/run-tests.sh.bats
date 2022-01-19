@@ -779,6 +779,24 @@ export -f oc
     [[ "${output}" != *"--tests.maven_mirror_url"* ]]
 }
 
+@test "invoke run-tests with archetype_maven_mirror" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --archetype_maven_mirror_url maven --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" =~ "--tests.archetype_maven_mirror_url=maven" ]]
+}
+
+@test "invoke run-tests with archetype_maven_mirror missing value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --archetype_maven_mirror_url --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.archetype_maven_mirror_url"* ]]
+}
+
+@test "invoke run-tests with archetype_maven_mirror empty value" {
+    run ${BATS_TEST_DIRNAME}/run-tests.sh --archetype_maven_mirror_url "" --dry_run
+    [ "$status" -eq 0 ]
+    [[ "${output}" != *"--tests.archetype_maven_mirror_url"* ]]
+}
+
 @test "invoke run-tests with maven_ignore_self_signed_certificate" {
     run ${BATS_TEST_DIRNAME}/run-tests.sh --maven_ignore_self_signed_certificate
     [ "$status" -eq 0 ]
