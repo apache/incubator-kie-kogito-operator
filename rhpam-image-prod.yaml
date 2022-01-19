@@ -46,6 +46,9 @@
     - path: /workspace/rhpam-kogito-operator-manager
       image: operator-builder
       dest: /usr/local/bin
+  
+  packages:
+    content_sets_file: content_sets.yaml
 
   osbs:
     extra_dir: osbs-extra

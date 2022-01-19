@@ -43,6 +43,9 @@
       image: operator-builder
       dest: /usr/local/bin
 
+  packages:
+    content_sets_file: content_sets.yaml
+
   osbs:
     configuration:
       container:
