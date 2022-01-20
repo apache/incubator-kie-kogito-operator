@@ -4,6 +4,8 @@ def changeAuthor = env.ghprbPullAuthorLogin ?: CHANGE_AUTHOR
 def changeBranch = env.ghprbSourceBranch ?: CHANGE_BRANCH
 def changeTarget = env.ghprbTargetBranch ?: CHANGE_TARGET
 
+testsFailed = false
+
 pipeline {
     agent {
         label 'kogito-operator-node'
@@ -64,8 +66,13 @@ pipeline {
                         timeout(time: 90, unit: 'MINUTES')
                     }
                     steps {
-                        // Run just smoke tests to verify basic operator functionality
-                        sh "make run-smoke-tests tags='@rhpam' concurrent=5 ${getBDDParameters()}"
+                        try {
+                            // Run just smoke tests to verify basic operator functionality
+                            sh "make run-smoke-tests tags='@rhpam' concurrent=5 ${getBDDParameters()}"
+                        } catch (err) {
+                            testsFailed = true
+                            util.archiveConsoleLog()
+                        }
                     }
                     post {
                         always {
@@ -81,6 +88,20 @@ pipeline {
         }
     }
     post {
+        always {
+            script {
+                // Verify here if BDD tests due to test errors or build error
+                if (testsFailed && currentBuild.currentResult == 'SUCCESS') {
+                    error 'There was a test execution failure'
+                }
+            }
+        }
+        unsuccessful {
+            script {
+                def additionalInfo = "You can find test error logs here: ${BUILD_URL}/artifact/test/logs/error/"
+                pullrequest.postComment(util.getMarkdownTestSummary('PR', additionalInfo, "${BUILD_URL}", 'GITHUB'))
+            }
+        }
         cleanup {
             script {
                 cleanGoPath()
