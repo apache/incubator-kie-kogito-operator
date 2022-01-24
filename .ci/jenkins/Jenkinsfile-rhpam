@@ -101,7 +101,7 @@ pipeline {
         unsuccessful {
             script {
                 def additionalInfo = "You can find test error logs here: ${BUILD_URL}/artifact/test/logs/error/"
-                pullrequest.postComment(util.getMarkdownTestSummary('PR', additionalInfo, "${BUILD_URL}", 'GITHUB'))
+                pullrequest.postComment(util.getMarkdownTestSummary('PR', additionalInfo, "${BUILD_URL}", 'GITHUB'), 'GITHUB_TOKEN')
             }
         }
         cleanup {
