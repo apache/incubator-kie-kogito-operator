@@ -11,6 +11,9 @@
       - name: org.kie.kogito.goModDownload
       - name: org.kie.kogito.rhpam.builder
 
+  packages:
+    content_sets_file: content_sets.yaml
+
   osbs:
     configuration:
       container:
