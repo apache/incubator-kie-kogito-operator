@@ -406,6 +406,7 @@ All options from BDD tests do also apply here.
 | @usertasks         | Tests interacting with user tasks to check authentication/authorization            |
 | @security          | Tests verifying security capabilities                                              |
 | @failover          | Tests verifying failover capabilities                                              |
+| @metrics           | Tests verifying metrics capabilities                                               |
 |                    |                                                                                    |
 | @resources         | Tests checking resource requests and limits                                        |
 |                    |                                                                                    |
@@ -414,6 +415,8 @@ All options from BDD tests do also apply here.
 | @keycloak          | Tests using the keycloak operator                                                  |
 | @knative           | Tests using the Knative functionality                                              |
 | @postgresql        | Tests using the PostgreSQL functionality                                           |
+| @grafana           | Tests using the Grafana functionality                                              |
+| @prometheus        | Tests using the Prometheus functionality                                           |
 
 ### Running the Kogito Operator locally
 
