@@ -1,6 +1,7 @@
 @Library('jenkins-pipeline-shared-libraries')_
 
 helper = null
+testsFailed = false
 
 pipeline {
     agent {
@@ -72,6 +73,7 @@ pipeline {
                         // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
                         sh "make build-examples-images concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
                     } catch (err) {
+                        testsFailed = true
                         util.archiveConsoleLog()
                     }
                 }
@@ -95,6 +97,7 @@ pipeline {
                         // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
                         sh "make build-examples-images concurrent=1 ${getExamplesBuildParameters(true)}"
                     } catch (err) {
+                        testsFailed = true
                         util.archiveConsoleLog()
                     } finally {
                         // moving to another folder to avoid conflicts with junit
@@ -150,6 +153,11 @@ pipeline {
             script {
                 properties.writeToFile(env.PROPERTIES_FILE_NAME)
                 archiveArtifacts(artifacts: env.PROPERTIES_FILE_NAME)
+
+                // Verify here if BDD tests due to test errors or build error
+                if (testsFailed && currentBuild.currentResult == 'SUCCESS') {
+                    error 'There was a test execution failure'
+                }
             }
         }
         unsuccessful {

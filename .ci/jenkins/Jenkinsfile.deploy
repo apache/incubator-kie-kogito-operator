@@ -1,6 +1,7 @@
 @Library('jenkins-pipeline-shared-libraries')_
 
 helper = null
+testsFailed = false
 
 pipeline {
     agent {
@@ -209,6 +210,7 @@ pipeline {
                                 // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
                                 sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
                             } catch (err) {
+                                testsFailed = true
                                 util.archiveConsoleLog()
                             }
                         }
@@ -289,6 +291,11 @@ pipeline {
             script {
                 properties.writeToFile(env.PROPERTIES_FILE_NAME)
                 archiveArtifacts(artifacts: env.PROPERTIES_FILE_NAME)
+
+                // Verify here if BDD tests due to test errors or build error
+                if (testsFailed && currentBuild.currentResult == 'SUCCESS') {
+                    error 'There was a test execution failure'
+                }
             }
         }
         unsuccessful {
