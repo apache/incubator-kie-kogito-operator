@@ -301,6 +301,7 @@ You can set those optional keys:
 - `custom_maven_repo_url` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information.
 - `maven_mirror_url` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
+- `quarkus_platform_maven_mirror_url` is the Maven mirror url to be used when building app from source files with Quarkus, using the quarkus maven plugin.
 - `build_builder_image_tag` sets the Builder image full tag.
 - `build_runtime_jvm_image_tag` sets the Runtime JVM image full tag.
 - `build_runtime_native_image_tag` sets the Runtime Native image full tag.
@@ -403,6 +404,7 @@ All options from BDD tests do also apply here.
 | @trustyui          | Tests including Trusty UI                                                          |
 |                    |                                                                                    |
 | @binary            | Tests using Kogito applications built locally and uploaded to OCP as a binary file |
+| @asset             | Tests using Kogito applications built from assets uploaded to OCP                  |
 | @native            | Tests using native build                                                           |
 | @ignorelts         | Tests using native build that cannot be tested with Quarkus LTS version            |
 | @persistence       | Tests verifying persistence capabilities                                           |
@@ -411,6 +413,7 @@ All options from BDD tests do also apply here.
 | @usertasks         | Tests interacting with user tasks to check authentication/authorization            |
 | @security          | Tests verifying security capabilities                                              |
 | @failover          | Tests verifying failover capabilities                                              |
+| @metrics           | Tests verifying metrics capabilities                                               |
 |                    |                                                                                    |
 | @resources         | Tests checking resource requests and limits                                        |
 |                    |                                                                                    |
@@ -419,6 +422,8 @@ All options from BDD tests do also apply here.
 | @keycloak          | Tests using the keycloak operator                                                  |
 | @knative           | Tests using the Knative functionality                                              |
 | @postgresql        | Tests using the PostgreSQL functionality                                           |
+| @grafana           | Tests using the Grafana functionality                                              |
+| @prometheus        | Tests using the Prometheus functionality                                           |
 
 ### Running the Kogito Operator locally
 

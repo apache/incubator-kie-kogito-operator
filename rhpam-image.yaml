@@ -11,6 +11,9 @@
       - name: org.kie.kogito.goModDownload
       - name: org.kie.kogito.rhpam.builder
 
+  packages:
+    content_sets_file: content_sets.yaml
+
   osbs:
     configuration:
       container:
@@ -18,6 +21,8 @@
         platforms:
           only:
             - x86_64
+            - ppc64le
+            - s390x
 
 - name: "rhpam-7/rhpam-kogito-operator"
   version: "7.11.0"
@@ -41,6 +46,9 @@
       image: operator-builder
       dest: /usr/local/bin
 
+  packages:
+    content_sets_file: content_sets.yaml
+
   osbs:
     configuration:
       container:
@@ -48,6 +56,8 @@
         platforms:
           only:
             - x86_64
+            - ppc64le
+            - s390x
     extra_dir: osbs-extra
     repository:
       name: containers/rhpam-7-kogito-operator
