@@ -13,6 +13,11 @@ metadata:
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
+  labels:
+    operator-kogitocloud: "true"
+    operatorframework.io/arch.amd64: supported
+    operatorframework.io/arch.ppc64le: supported
+    operatorframework.io/arch.s390x: supported
   name: rhpam-kogito-operator.v7.11.0
   namespace: placeholder
 spec:
