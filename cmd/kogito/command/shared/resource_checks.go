@@ -83,7 +83,7 @@ func checkProjectExists(kubeCli *client.Client, namespace string) error {
 	if ns, err := kubernetes.NamespaceC(kubeCli).Fetch(namespace); err != nil {
 		return fmt.Errorf("Error while trying to fetch for the application context (namespace): %s ", err)
 	} else if ns == nil {
-		return fmt.Errorf("Project %s not found. Try setting your project using 'kogito use-project NAME' ", namespace)
+		return fmt.Errorf("Project context (namespace) %s not found. Try setting your project context using 'kogito use-project NAME' ", namespace)
 	}
 	log.Debugf("Namespace '%s' exists", namespace)
 	return nil
@@ -97,7 +97,7 @@ func (r resourceCheckServiceImpl) CheckKogitoRuntimeExists(kubeCli *client.Clien
 	} else if !exists {
 		return fmt.Errorf("Looks like a Kogito runtime with the name '%s' doesn't exist in this project. Please try another name ", name)
 	} else {
-		log.Debugf("Kogito runtime with name '%s' was found in the project '%s' ", name, namespace)
+		log.Debugf("Kogito runtime with name '%s' was found in the project context (namespace) '%s' ", name, namespace)
 		return nil
 	}
 }
@@ -108,9 +108,9 @@ func (r resourceCheckServiceImpl) CheckKogitoRuntimeNotExists(kubeCli *client.Cl
 	if exists, err := isKogitoRuntimeExists(kubeCli, name, namespace); err != nil {
 		return err
 	} else if exists {
-		return fmt.Errorf("Looks like a Kogito Runtime with the name '%s' already exists in this context/namespace. Please try another name ", name)
+		return fmt.Errorf("Looks like a Kogito Runtime with the name '%s' already exists in this project context (namespace). Please try another name ", name)
 	} else {
-		log.Debugf("Custom resource with name '%s' was not found in the project '%s' ", name, namespace)
+		log.Debugf("Custom resource with name '%s' was not found in the project context (namespace) '%s' ", name, namespace)
 		return nil
 	}
 }
@@ -137,9 +137,9 @@ func (r resourceCheckServiceImpl) CheckKogitoBuildExists(kubeCli *client.Client,
 	if exists, err := isKogitoBuildExists(kubeCli, name, namespace); err != nil {
 		return err
 	} else if !exists {
-		return fmt.Errorf("Looks like a Kogito Build with the name '%s' doesn't exist in this project. Please try another name ", name)
+		return fmt.Errorf("Looks like a Kogito Build with the name '%s' doesn't exist in this project context (namespace). Please try another name ", name)
 	} else {
-		log.Debugf("Kogito Build with name '%s' was found in the project '%s' ", name, namespace)
+		log.Debugf("Kogito Build with name '%s' was found in the project context (namespace) '%s' ", name, namespace)
 		return nil
 	}
 }
@@ -150,9 +150,9 @@ func (r resourceCheckServiceImpl) CheckKogitoBuildNotExists(kubeCli *client.Clie
 	if exists, err := isKogitoBuildExists(kubeCli, name, namespace); err != nil {
 		return err
 	} else if exists {
-		return fmt.Errorf("Looks like a Kogito Build with the name '%s' already exists in this context/namespace. Please try another name ", name)
+		return fmt.Errorf("Looks like a Kogito Build with the name '%s' already exists in this project context (namespace). Please try another name ", name)
 	} else {
-		log.Debugf("Kogito Build with name '%s' was not found in the project '%s' ", name, namespace)
+		log.Debugf("Kogito Build with name '%s' was not found in the project context (namespace) '%s' ", name, namespace)
 		return nil
 	}
 }
