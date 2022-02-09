@@ -41,6 +41,9 @@ pipeline {
         }
         stage('Build RHPAM Kogito Operator') {
             steps {
+                // Workaround until Operator PR checks is solved
+                sh "echo '' > content_sets.yaml"
+
                 sh "make -f Makefile.rhpam BUILDER=${CONTAINER_ENGINE}"
             }
         }
