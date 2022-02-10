@@ -73,7 +73,7 @@ func (i *deleteKogitoInfraServiceCommand) Command() *cobra.Command {
 func (i *deleteKogitoInfraServiceCommand) InitHook() {
 	i.flags = &deleteKogitoInfraFlags{}
 	i.Parent.AddCommand(i.command)
-	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name from where the service needs to be deleted")
+	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project context name from where the service needs to be deleted")
 }
 
 func (i *deleteKogitoInfraServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
@@ -94,6 +94,6 @@ func (i *deleteKogitoInfraServiceCommand) Exec(cmd *cobra.Command, args []string
 	}); err != nil {
 		return err
 	}
-	log.Infof("Successfully deleted Kogito Infra Service %s in the Project %s", i.flags.name, i.flags.project)
+	log.Infof("Successfully deleted Kogito Infra Service %s in the Project context %s", i.flags.name, i.flags.project)
 	return nil
 }

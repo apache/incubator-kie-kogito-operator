@@ -47,5 +47,5 @@ func Test_DeleteProjectCmd_WhenProjectDoesNotExist(t *testing.T) {
 	ctx := test.SetupCliTest(cli, context.CommandFactory{BuildCommands: BuildCommands})
 	_, errLines, err := ctx.ExecuteCli()
 	assert.Error(t, err)
-	assert.Contains(t, errLines, fmt.Sprintf("Project %s not found", ns))
+	assert.Contains(t, errLines, fmt.Sprintf("Project context (namespace) %s not found. Try setting your project context using 'kogito use-project NAME' \n", ns))
 }
