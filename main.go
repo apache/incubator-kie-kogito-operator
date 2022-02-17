@@ -65,7 +65,6 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
-	watchNamespace := getWatchNamespace()
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -73,7 +72,6 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "d1731e98.kiegroup.org",
-		Namespace:              watchNamespace,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -134,24 +132,6 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-}
-
-// getWatchNamespace returns the Namespace the operator should be watching for changes
-func getWatchNamespace() string {
-	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
-	// which specifies the Namespace to watch.
-	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
-
-	ns, _ := os.LookupEnv(watchNamespaceEnvVar)
-
-	// Check if operator is running as cluster scoped
-	if len(ns) == 0 {
-		setupLog.Info(
-			"The operator is running as cluster scoped. It will watch and manage resources in all namespaces",
-			"Env Var lookup", watchNamespaceEnvVar)
-	}
-	return ns
 }
 
 func isDebugMode() bool {
