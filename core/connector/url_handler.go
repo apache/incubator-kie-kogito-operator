@@ -183,7 +183,7 @@ func (u *urlHandler) injectSupportingServiceURLIntoKogitoRuntime(key types.Names
 	return nil
 }
 
-// InjectDataIndexEndpointOnDeployment will inject Supporting service route URL in to kogito runtime deployment env var
+// injectSupportingServiceURLIntoDeployment will inject Supporting service route URL in to kogito runtime deployment env var
 // It will call when Kogito runtime reconcile
 func (u *urlHandler) injectSupportingServiceURLIntoDeployment(resourceType api.ServiceType, deployment *appsv1.Deployment) error {
 
