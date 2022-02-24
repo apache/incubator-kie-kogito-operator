@@ -1,4 +1,4 @@
- // Copyright 2021 Red Hat, Inc. and/or its affiliates
+// Copyright 2021 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,12 +72,12 @@ func (p *protoBufConfigMapReconciler) createRequiredResources(runtimeInstance ap
 	if err != nil {
 		return nil, err
 	}
-	if protoBufConfigMap!=nil{
-	
-	if err := framework.SetOwner(runtimeInstance, p.Scheme, protoBufConfigMap); err != nil {
-		return nil, err
-	}
-	resources[reflect.TypeOf(v1.ConfigMap{})] = []client.Object{protoBufConfigMap}
+	if protoBufConfigMap != nil {
+
+		if err := framework.SetOwner(runtimeInstance, p.Scheme, protoBufConfigMap); err != nil {
+			return nil, err
+		}
+		resources[reflect.TypeOf(v1.ConfigMap{})] = []client.Object{protoBufConfigMap}
 	}
 	return resources, nil
 }
