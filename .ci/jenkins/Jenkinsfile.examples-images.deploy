@@ -1,6 +1,7 @@
 @Library('jenkins-pipeline-shared-libraries')_
 
 helper = null
+testsFailed = false
 
 pipeline {
     agent {
@@ -10,6 +11,7 @@ pipeline {
     // Needed for local build
     tools {
         jdk 'kie-jdk11'
+        maven 'kie-maven-3.8.1'
         go 'golang-1.16'
     }
 
@@ -72,14 +74,15 @@ pipeline {
                         // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
                         sh "make build-examples-images concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getExamplesBuildParameters(false)}"
                     } catch (err) {
-                        unstable("Error building non-native examples' images. Check the junit results.")
+                        testsFailed = true
+                        util.archiveConsoleLog()
                     }
                 }
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: true
-                    junit testResults: 'test/examples/logs/**/junit.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'test/examples/logs/**/*.log', allowEmptyArchive: false
+                    junit testResults: 'test/examples/logs/**/junit.xml', allowEmptyResults: false
                 }
             }
         }
@@ -95,7 +98,8 @@ pipeline {
                         // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
                         sh "make build-examples-images concurrent=1 ${getExamplesBuildParameters(true)}"
                     } catch (err) {
-                        unstable("Error building native examples' images. Check the junit results.")
+                        testsFailed = true
+                        util.archiveConsoleLog()
                     } finally {
                         // moving to another folder to avoid conflicts with junit
                         sh 'cp -r test/examples test/examples-native'
@@ -150,6 +154,11 @@ pipeline {
             script {
                 properties.writeToFile(env.PROPERTIES_FILE_NAME)
                 archiveArtifacts(artifacts: env.PROPERTIES_FILE_NAME)
+
+                // Verify here if BDD tests due to test errors or build error
+                if (testsFailed && currentBuild.currentResult == 'SUCCESS') {
+                    error 'There was a test execution failure'
+                }
             }
         }
         unsuccessful {
@@ -166,9 +175,7 @@ pipeline {
 
 void sendNotification() {
     if (params.SEND_NOTIFICATION) {
-        emailext body: "**Deploy job** #${BUILD_NUMBER} was: ${currentBuild.currentResult}\nPlease look here: ${BUILD_URL}",
-             subject: "[${helper.getBuildBranch()}] Kogito Examples Images",
-             to: env.KOGITO_CI_EMAIL_TO
+        mailer.sendMarkdownTestSummaryNotification('Deploy', "[${helper.getBuildBranch()}] Kogito Examples Images", [env.KOGITO_CI_EMAIL_TO], "You can find test error logs here: ${BUILD_URL}/artifact/test/examples/logs/error/")
     } else {
         echo 'No notification sent per configuration'
     }

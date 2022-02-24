@@ -30,9 +30,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/go/pkg/mod/cache
-          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-cache-
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}-cache-
       - name: Cache the binaries
         uses: actions/cache@v1
         with:
@@ -44,9 +44,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: go.mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod') }}
+          key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-mod-${{ hashFiles('**/go.mod') }}
           restore-keys: |
-            ${{ runner.os }}-go-mod-
+            ${{ runner.os }}-go-${{ env.GO_VERSION }}-mod-
       - run: go mod tidy
       - name: Install Cekit and dependencies
         run: |

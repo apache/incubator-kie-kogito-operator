@@ -1,6 +1,7 @@
 @Library('jenkins-pipeline-shared-libraries')_
 
 helper = null
+testsFailed = false
 
 pipeline {
     agent {
@@ -10,6 +11,7 @@ pipeline {
     // Needed for local build
     tools {
         jdk 'kie-jdk11'
+        maven 'kie-maven-3.8.1'
         go 'golang-1.16'
     }
 
@@ -118,11 +120,25 @@ pipeline {
             steps {
                 sh 'make test'
             }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
+            }
         }
 
         stage('Build Kogito Operator') {
             steps {
                 sh "make BUILDER=${env.CONTAINER_ENGINE}"
+            }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
             }
         }
 
@@ -136,6 +152,11 @@ pipeline {
                         archiveArtifacts artifacts: 'build/_output/bin/kogito', allowEmptyArchive: false
                     }
                 }
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
             }
         }
         stage('Run OLM tests') {
@@ -146,6 +167,13 @@ pipeline {
             }
             steps {
                 sh 'make olm-tests'
+            }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
             }
         }
         stage('Push Operator Image to Openshift Registry') {
@@ -183,14 +211,15 @@ pipeline {
                                 // Use docker because of https://issues.redhat.com/browse/KOGITO-3512
                                 sh "make run-tests timeout=360 load_factor=3 concurrent=3 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
                             } catch (err) {
-                                unstable('Tests are failing')
+                                testsFailed = true
+                                util.archiveConsoleLog()
                             }
                         }
                     }
                     post {
                         always {
-                            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: true
-                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: true
+                            archiveArtifacts artifacts: 'test/logs/**/*.log', allowEmptyArchive: false
+                            junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: false
                         }
                         cleanup {
                             sh 'cd test && go run scripts/prune_namespaces.go'
@@ -263,6 +292,11 @@ pipeline {
             script {
                 properties.writeToFile(env.PROPERTIES_FILE_NAME)
                 archiveArtifacts(artifacts: env.PROPERTIES_FILE_NAME)
+
+                // Verify here if BDD tests due to test errors or build error
+                if (testsFailed && currentBuild.currentResult == 'SUCCESS') {
+                    error 'There was a test execution failure'
+                }
             }
         }
         unsuccessful {
@@ -279,9 +313,7 @@ pipeline {
 
 void sendNotification() {
     if (params.SEND_NOTIFICATION) {
-        emailext body: "**Deploy job** #${BUILD_NUMBER} was: ${currentBuild.currentResult}\nPlease look here: ${BUILD_URL}",
-             subject: "[${helper.getBuildBranch()}] Kogito Operator",
-             to: env.KOGITO_CI_EMAIL_TO
+        mailer.sendMarkdownTestSummaryNotification('Deploy', "[${helper.getBuildBranch()}] Kogito Operator", [env.KOGITO_CI_EMAIL_TO], "You can find test error logs here: ${BUILD_URL}/artifact/test/logs/error/")
     } else {
         echo 'No notification sent per configuration'
     }
