@@ -98,6 +98,10 @@ func (p *protobufConfigMapHandler) CreateProtoBufConfigMap(runtimeInstance api.K
 	if err != nil {
 		return nil, err
 	}
+	//changes
+	if protoBufData == nil {
+		return nil, nil
+	}
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: runtimeInstance.GetNamespace(),
