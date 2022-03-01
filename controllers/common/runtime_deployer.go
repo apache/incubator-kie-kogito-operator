@@ -67,15 +67,15 @@ func (d *runtimeDeployerHandler) OnDeploymentCreate(deployment *v1.Deployment) e
 	}
 
 	urlHandler := connector.NewURLHandler(d.Context, d.runtimeHandler, d.supportingServiceHandler)
-	if err := urlHandler.InjectDataIndexURLIntoDeployment(d.instance.GetNamespace(), deployment); err != nil {
+	if err := urlHandler.InjectDataIndexEndpointOnDeployment(deployment); err != nil {
 		return err
 	}
 
-	if err := urlHandler.InjectJobsServiceURLIntoKogitoRuntimeDeployment(d.instance.GetNamespace(), deployment); err != nil {
+	if err := urlHandler.InjectJobsServiceEndpointOnDeployment(deployment); err != nil {
 		return err
 	}
 
-	if err := urlHandler.InjectTrustyURLIntoDeployment(d.instance.GetNamespace(), deployment); err != nil {
+	if err := urlHandler.InjectTrustyEndpointOnDeployment(deployment); err != nil {
 		return err
 	}
 
