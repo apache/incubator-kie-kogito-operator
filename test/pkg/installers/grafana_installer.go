@@ -32,7 +32,7 @@ var (
 	}
 
 	grafanaOperatorSubscriptionName    = "grafana-operator"
-	grafanaOperatorSubscriptionChannel = "alpha"
+	grafanaOperatorSubscriptionChannel = "v4"
 )
 
 // GetGrafanaInstaller returns Grafana installer
