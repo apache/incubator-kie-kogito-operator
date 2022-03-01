@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitoservice
+package test
 
 import (
 	"net/http"
@@ -22,12 +22,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type serverHandler struct {
+type ServerHandler struct {
 	Path         string
 	JSONResponse string
 }
 
-func mockKogitoSvcReplies(t *testing.T, handlers ...serverHandler) *httptest.Server {
+func MockKogitoSvcReplies(t *testing.T, handlers ...ServerHandler) *httptest.Server {
 	h := http.NewServeMux()
 	for _, handler := range handlers {
 		path := handler.Path

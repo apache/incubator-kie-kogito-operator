@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	envVarKogitoServiceURL = "LOCAL_KOGITO_SERVICE_URL"
+	EnvVarKogitoServiceURL = "LOCAL_KOGITO_SERVICE_URL"
 )
 
 // ServiceHandler ...
@@ -42,11 +42,11 @@ func NewKogitoServiceHandler(context operator.Context) ServiceHandler {
 }
 
 // GetKogitoServiceEndpoint gets the endpoint depending on
-// if the envVarKogitoServiceURL is set (for when running
+// if the EnvVarKogitoServiceURL is set (for when running
 // operator locally). Else, the internal endpoint is
 // returned.
 func (k *kogitoServiceHandler) GetKogitoServiceEndpoint(kogitoService api.KogitoService) string {
-	externalURL := os.Getenv(envVarKogitoServiceURL)
+	externalURL := os.Getenv(EnvVarKogitoServiceURL)
 	if len(externalURL) > 0 {
 		return externalURL
 	}

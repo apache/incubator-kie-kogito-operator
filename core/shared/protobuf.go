@@ -61,12 +61,11 @@ func (p *protoBufHandler) MountProtoBufConfigMapOnDataIndex(runtimeInstance api.
 
 	// Fetch Protobuf configmap for provided runtime
 	protoBufConfigMap, err := p.protoBufConfigMapHandler.FetchProtoBufConfigMap(runtimeInstance)
-	//changes
-	if protoBufConfigMap == nil {
-		return nil
-	}
 	if err != nil {
 		return err
+	}
+	if protoBufConfigMap == nil {
+		return nil
 	}
 
 	// mount protobuf configmap on data-index deployment
