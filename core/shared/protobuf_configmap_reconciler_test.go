@@ -1,21 +1,22 @@
 package shared
 
 import (
+	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"testing"
 )
 
-func TestCreateProtoBufConfigMap(t *testing.T) {
+func TestCreateRequiredResources(t *testing.T) {
 	ns := t.Name()
 	runtimeService := test.CreateFakeKogitoRuntime(ns)
-
 	runtimeDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      runtimeService.Name,
@@ -25,7 +26,6 @@ func TestCreateProtoBufConfigMap(t *testing.T) {
 			AvailableReplicas: 1,
 		},
 	}
-
 	cli := test.NewFakeClientBuilder().AddK8sObjects(runtimeDeployment).Build()
 	context := operator.Context{
 		Client: cli,
@@ -39,9 +39,12 @@ func TestCreateProtoBufConfigMap(t *testing.T) {
 	defer server.Close()
 	err := os.Setenv(kogitoservice.EnvVarKogitoServiceURL, server.URL)
 	assert.NoError(t, err)
-	os.Setenv(kogitoservice.EnvVarKogitoServiceURL, server.URL)
-	protobufConfigMapHandler := NewProtoBufConfigMapHandler(context)
-	configMap, err := protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeService)
+	protobufConfigMapReconciler := NewProtoBufConfigMapReconciler(context, runtimeService)
+	err = protobufConfigMapReconciler.Reconcile()
 	assert.NoError(t, err)
-	assert.Nil(t, configMap)
+
+	configMaps := &v1.ConfigMapList{}
+	err = kubernetes.ResourceC(cli).ListWithNamespace(ns, configMaps)
+	assert.NoError(t, err)
+	assert.Empty(t, configMaps.Items)
 }
