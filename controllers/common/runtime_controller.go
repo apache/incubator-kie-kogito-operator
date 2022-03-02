@@ -107,7 +107,7 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	protoBufConfigMapReconciler := shared.NewProtoBufConfigMapReconciler(kogitoContext, instance)
-	err, _ = protoBufConfigMapReconciler.Reconcile()
+	err = protoBufConfigMapReconciler.Reconcile()
 	if err != nil {
 		log.Error(err, "Fail to create Proto Buf config map of Kogito runtime")
 		return infrastructure.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
