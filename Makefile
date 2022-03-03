@@ -137,7 +137,7 @@ vet: generate-installer generate-profiling-installer bundle ## Run go vet agains
 # Generate CSV
 csv: install-operator-sdk
 	./hack/kogito-module-api.sh --disable
-	operator-sdk generate kustomize manifests
+	operator-sdk generate kustomize manifests  --apis-dir=apis/app --input-dir=./config/manifests/app --output-dir=./config/manifests/app --package=kogito-operator -q
 	./hack/kogito-module-api.sh --enable
 
 ##@ Build
