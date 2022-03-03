@@ -54,6 +54,7 @@ type KogitoBuildSpec struct {
 	//
 	// Ignored for binary builds.
 	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Kogito Git Source"
 	GitSource GitSource `json:"gitSource,omitempty"`
 
 	// Which runtime Kogito service base image to use when building the Kogito service.

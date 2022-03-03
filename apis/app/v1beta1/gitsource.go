@@ -19,15 +19,12 @@ package v1beta1
 // +operator-sdk:csv:customresourcedefinitions:displayName="Kogito Git Source"
 type GitSource struct {
 	// Git URI for the s2i source.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Git URI"
 	URI string `json:"uri"`
 	// Branch to use in the Git repository.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Git Reference"
 	Reference string `json:"reference,omitempty"`
 	// Context/subdirectory where the code is located, relative to the repo root.
-	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Git Context"
 	ContextDir string `json:"contextDir,omitempty"`
 }
