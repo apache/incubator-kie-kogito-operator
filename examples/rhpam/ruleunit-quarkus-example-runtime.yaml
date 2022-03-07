@@ -4,3 +4,4 @@ metadata:
   name: ruleunit-quarkus-example
 spec:
   replicas: 1
+  image: quay.io/kiegroup/examples-ruleunit-quarkus-example
