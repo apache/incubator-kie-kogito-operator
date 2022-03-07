@@ -10,6 +10,9 @@
     install:
       - name: org.kie.kogito.rhpam.builder
 
+  packages:
+    content_sets_file: content_sets.yaml
+
   osbs:
     configuration:
       container:
@@ -46,6 +49,9 @@
     - path: /workspace/rhpam-kogito-operator-manager
       image: operator-builder
       dest: /usr/local/bin
+
+  packages:
+    content_sets_file: content_sets.yaml
 
   osbs:
     extra_dir: osbs-extra

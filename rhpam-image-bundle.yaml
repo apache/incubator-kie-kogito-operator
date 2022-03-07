@@ -48,6 +48,9 @@ modules:
   install:
     - name: org.kie.kogito.rhpam.bundleinstall
 
+packages:
+  content_sets_file: content_sets.yaml
+
 osbs:
   configuration:
     container:
