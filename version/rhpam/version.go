@@ -16,5 +16,5 @@ package rhpam
 
 var (
 	// Version of RHPAM Kogito Operator
-	Version = "7.11.0"
+	Version = "7.13.0"
 )
