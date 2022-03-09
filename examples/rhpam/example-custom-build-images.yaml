@@ -1,7 +1,7 @@
 apiVersion: rhpam.kiegroup.org/v1
 kind: KogitoBuild
 metadata:
-  name: example-quarkus
+  name: ruleunit0-quarkus-example
 spec:
   type: RemoteSource
   #env:
@@ -9,7 +9,7 @@ spec:
   #- name: MY_CUSTOM_ENV
   #  value: "my value"
   gitSource:
-    contextDir: process-quarkus-example
+    contextDir: ruleunit-quarkus-example
     uri: 'https://github.com/kiegroup/kogito-examples'
   runtimeImage: quay.io/custom-namespace/kogito-quarkus-jvm-ubi8:1.0
     # set your maven nexus repository
@@ -20,4 +20,4 @@ spec:
 apiVersion: rhpam.kiegroup.org/v1
 kind: KogitoRuntime
 metadata:
-  name: example-quarkus
+  name: ruleunit-quarkus-example

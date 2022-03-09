@@ -31,4 +31,5 @@ else
 fi
 
 ##For verification
+go version
 operator-sdk version

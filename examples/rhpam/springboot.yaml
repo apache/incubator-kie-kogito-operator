@@ -7,7 +7,7 @@ spec:
   runtime: springboot
   gitSource:
     uri: https://github.com/kiegroup/kogito-examples
-    contextDir: process-springboot-example
+    contextDir: ruleunit-springboot-example
     reference: main
   disableIncremental: false
   env:

@@ -1,7 +1,7 @@
 schema_version: 1
 name: "rhpam-7/rhpam-kogito-operator-bundle"
 description: "RHPAM Kogito Operator Bundle"
-version: "7.11.0"
+version: "7.13.0"
 from: "scratch"
 
 labels:
@@ -48,6 +48,9 @@ modules:
   install:
     - name: org.kie.kogito.rhpam.bundleinstall
 
+packages:
+  content_sets_file: content_sets.yaml
+
 osbs:
   configuration:
     container:
@@ -59,6 +62,8 @@ osbs:
       platforms:
         only:
           - x86_64
+          - ppc64le
+          - s390x
   extra_dir: osbs-extra
   repository:
     name: containers/rhpam-7-kogito-operator-bundle

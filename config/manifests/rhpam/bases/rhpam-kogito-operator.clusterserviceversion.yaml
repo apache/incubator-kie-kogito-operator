@@ -6,14 +6,19 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.11.0
+    containerImage: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.0
     description: RHPAM Kogito Operator for deployment and management of Kogito services.
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
-  name: rhpam-kogito-operator.v7.11.0
+  labels:
+    operator-kogitocloud: "true"
+    operatorframework.io/arch.amd64: supported
+    operatorframework.io/arch.ppc64le: supported
+    operatorframework.io/arch.s390x: supported
+  name: rhpam-kogito-operator.v7.13.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -129,18 +134,18 @@ spec:
   - automation
   labels:
     alm-owner-kogito: rhpam-kogito-operator
-    operated-by: rhpam-kogito-operator.7.11.0
+    operated-by: rhpam-kogito-operator.7.13.0
   links:
   - name: Product Page
-    url: https://kogito.kie.org/
+    url: https://access.redhat.com/products/red-hat-process-automation-manager
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
+    url: https://access.redhat.com/documentation/en-us/red_hat_process_automation_manager/7.12/html/getting_started_with_red_hat_build_of_kogito_in_red_hat_process_automation_manager/assembly-deploying-kogito-microservices-on-openshift
   - name: Source
-    url: https://github.com/kiegroup/rhpam-kogito-operator/
+    url: https://github.com/kiegroup/kogito-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat
   maturity: beta
   provider:
     name: Red Hat
-  version: 7.11.0
+  version: 7.13.0-1
