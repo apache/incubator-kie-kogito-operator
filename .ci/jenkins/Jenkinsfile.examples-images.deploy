@@ -195,7 +195,9 @@ String getExamplesBuildParameters(boolean nativeTag = false) {
     testParamsMap.putAll(helper.getBDDBuildImageParameters('KOGITO_IMAGES'))
     testParamsMap.putAll(helper.getBDDServicesImageParameters('KOGITO_IMAGES'))
 
-    def tags = nativeTag ? [ helper.getNativeTag() ] : [ helper.getNonNativeTag() ]
+    def tags = []
+    tags.add('@rhpam') // Build only product features
+    tags.add("~@native") // No native features
     if (params.BDD_TEST_TAGS) {
         tags.add(params.BDD_TEST_TAGS)
     }

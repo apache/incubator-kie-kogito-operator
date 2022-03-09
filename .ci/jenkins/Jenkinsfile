@@ -77,7 +77,7 @@ pipeline {
                             // Unstability if tests failed will be done
                             try {
                                 // Run just smoke tests to verify basic operator functionality
-                                sh "make run-smoke-tests concurrent=5 ${getBDDParameters()}"
+                                sh "make run-smoke-tests tags='@rhpam&&~@native' concurrent=5 ${getBDDParameters()}"
                             } catch (err) {
                                 testsFailed = true
                                 util.archiveConsoleLog()

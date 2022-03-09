@@ -344,11 +344,10 @@ String getBDDParameters() {
 
     // Add tags
     def tags = []
+    tags.add('@rhpam') // Build only product features
+    tags.add("~@native") // No native features
     if (params.BDD_TEST_TAGS) {
         tags.add(params.BDD_TEST_TAGS)
-    }
-    if (params.SKIP_NATIVE_TESTS) {
-        tags.add("~${helper.getNativeTag()}")
     }
     if (params.SKIP_NON_NATIVE_TESTS) {
         tags.add("~${helper.getNonNativeTag()}")
