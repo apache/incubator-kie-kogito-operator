@@ -11,6 +11,7 @@ pipeline {
     // Needed for local build
     tools {
         jdk 'kie-jdk11'
+        maven 'kie-maven-3.8.1'
         go 'golang-1.16'
     }
 
@@ -161,7 +162,7 @@ pipeline {
         stage('Run OLM tests') {
             when {
                 expression {
-                    return helper.shouldLaunchTests()
+                    return helper.isRelease() && helper.shouldLaunchTests()
                 }
             }
             steps {
