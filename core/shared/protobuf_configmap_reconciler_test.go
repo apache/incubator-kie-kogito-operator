@@ -37,7 +37,7 @@ func TestCreateRequiredResources(t *testing.T) {
 	responseWithProtoBufData := `[]`
 	server := test.MockKogitoSvcReplies(t, test.ServerHandler{Path: protoBufFilePath, JSONResponse: responseWithProtoBufData})
 	defer server.Close()
-	err := os.Setenv(kogitoservice.EnvVarKogitoServiceURL, server.URL)
+	err := os.Setenv(kogitoservice.envVarKogitoServiceURL, server.URL)
 	assert.NoError(t, err)
 	protobufConfigMapReconciler := NewProtoBufConfigMapReconciler(context, runtimeService)
 	err = protobufConfigMapReconciler.Reconcile()

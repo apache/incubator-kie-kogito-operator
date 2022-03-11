@@ -1,7 +1,7 @@
 package shared
 
 import (
-	"github.com/kiegroup/kogito-operator/core/kogitoservice"
+	kogitoservice "github.com/kiegroup/kogito-operator/core/kogitoservice"
 	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
@@ -37,9 +37,9 @@ func TestCreateProtoBufConfigMap(t *testing.T) {
 	responseWithProtoBufData := `[]`
 	server := test.MockKogitoSvcReplies(t, test.ServerHandler{Path: protoBufFilePath, JSONResponse: responseWithProtoBufData})
 	defer server.Close()
-	err := os.Setenv(kogitoservice.EnvVarKogitoServiceURL, server.URL)
+	err := os.Setenv(kogitoservice.envVarKogitoServiceURL, server.URL)
 	assert.NoError(t, err)
-	os.Setenv(kogitoservice.EnvVarKogitoServiceURL, server.URL)
+	os.Setenv(kogitoservice.envVarKogitoServiceURL, server.URL)
 	protobufConfigMapHandler := NewProtoBufConfigMapHandler(context)
 	configMap, err := protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeService)
 	assert.NoError(t, err)
