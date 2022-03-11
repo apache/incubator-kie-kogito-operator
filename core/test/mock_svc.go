@@ -22,11 +22,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// ServerHandler  ...
 type ServerHandler struct {
 	Path         string
 	JSONResponse string
 }
 
+//MockKogitoSvcReplies ...
 func MockKogitoSvcReplies(t *testing.T, handlers ...ServerHandler) *httptest.Server {
 	h := http.NewServeMux()
 	for _, handler := range handlers {
