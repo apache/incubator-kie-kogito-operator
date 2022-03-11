@@ -12,11 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kogitobuild
+package v1
 
-import "github.com/kiegroup/kogito-operator/core/operator"
+import "github.com/kiegroup/kogito-operator/apis"
 
-// BuildContext ...
-type BuildContext struct {
-	operator.Context
+// WebHookSecret Secret to use for a given webHook.
+// +k8s:openapi-gen=true
+type WebHookSecret struct {
+	// WebHook type, either GitHub or Generic.
+	// +kubebuilder:validation:Enum=GitHub;Generic
+	Type api.WebHookType `json:"type,omitempty"`
+	// Secret value for webHook
+	Secret string `json:"secret,omitempty"`
+}
+
+// GetType ...
+func (w WebHookSecret) GetType() api.WebHookType {
+	return w.Type
+}
+
+// GetSecret ...
+func (w WebHookSecret) GetSecret() string {
+	return w.Secret
 }

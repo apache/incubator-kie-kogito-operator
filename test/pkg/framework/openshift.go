@@ -16,6 +16,7 @@ package framework
 
 import (
 	"fmt"
+	"github.com/kiegroup/kogito-operator/core/kogitobuild"
 	"time"
 
 	"github.com/kiegroup/kogito-operator/apis"
@@ -49,7 +50,7 @@ func WaitForBuildComplete(namespace, buildName string, timeoutInMin int) error {
 					Namespace: namespace,
 				},
 			}
-			builds, err := openshift.BuildConfigC(kubeClient).GetBuildsStatus(&bc, fmt.Sprintf("%s=%s", openshift.BuildConfigLabelSelector, buildName))
+			builds, err := openshift.BuildConfigC(kubeClient).GetBuildsStatus(&bc, fmt.Sprintf("%s=%s", kogitobuild.BuildConfigLabelSelector, buildName))
 
 			if err != nil {
 				return false, fmt.Errorf("Error while fetching buildconfig %s: %v", buildName, err)

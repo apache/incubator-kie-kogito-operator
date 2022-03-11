@@ -15,6 +15,7 @@
 package rhpam
 
 import (
+	rhpamv1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 	"path/filepath"
 	"testing"
 
@@ -26,8 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	appv1beta1 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -58,16 +57,16 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = appv1beta1.AddToScheme(scheme.Scheme)
+	err = rhpamv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = appv1beta1.AddToScheme(scheme.Scheme)
+	err = rhpamv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = appv1beta1.AddToScheme(scheme.Scheme)
+	err = rhpamv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = appv1beta1.AddToScheme(scheme.Scheme)
+	err = rhpamv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
