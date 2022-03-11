@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/operator"
 	app2 "github.com/kiegroup/kogito-operator/internal/app"
 	"github.com/kiegroup/kogito-operator/version/app"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,5 +45,6 @@ func NewKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runt
 		SupportingServiceHandler: app2.NewKogitoSupportingServiceHandler,
 		InfraHandler:             app2.NewKogitoInfraHandler,
 		ReconcilingObject:        &v1beta1.KogitoSupportingService{},
+		DeploymentIdentifier:     operator.KogitoSupportingServiceKey,
 	}
 }
