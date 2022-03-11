@@ -22,7 +22,7 @@ import (
 )
 
 //+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=get;create;list;watch;delete;update
-//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;services,verbs=create;delete;get;list;patch;update;watch
+//+kubebuilder:rbac:groups=core,resources=configmaps;events;pods;secrets;serviceaccounts;services,verbs=create;delete;get;list;patch;update;watch
 
 // NewKogitoRuntimeDeploymentReconciler ...
 func NewKogitoRuntimeDeploymentReconciler(client *kogitocli.Client, scheme *runtime.Scheme) *common.RuntimeDeploymentReconciler {

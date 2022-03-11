@@ -25,7 +25,6 @@ import (
 	"github.com/kiegroup/kogito-operator/core/operator"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -57,7 +56,7 @@ func (r *RuntimeDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	deploymentHandler := infrastructure.NewDeploymentHandler(kogitoContext)
-	deployment, err := deploymentHandler.FetchDeployment(types.NamespacedName{Name: req.Name, Namespace: req.Namespace})
+	deployment, err := deploymentHandler.FetchDeployment(req.NamespacedName)
 	if err != nil {
 		return
 	}
@@ -65,6 +64,7 @@ func (r *RuntimeDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Debug("KogitoDeployment instance not found")
 		return
 	}
+
 	runtimeHandler := r.RuntimeHandler(kogitoContext)
 	supportingServiceHandler := r.SupportServiceHandler(kogitoContext)
 	depProcessor := dep.NewDeploymentProcessor(kogitoContext, deployment, runtimeHandler, supportingServiceHandler)
