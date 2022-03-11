@@ -98,7 +98,7 @@ func (p *protobufConfigMapHandler) CreateProtoBufConfigMap(runtimeInstance api.K
 	if err != nil {
 		return nil, err
 	}
-	if protoBufData == nil || len(protoBufData) == 0 {
+	if len(protoBufData) == 0 {
 		return nil, nil
 	}
 	configMap := &corev1.ConfigMap{
