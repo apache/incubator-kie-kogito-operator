@@ -37,9 +37,12 @@ func TestCreateProtoBufConfigMap(t *testing.T) {
 	responseWithProtoBufData := `[]`
 	server := test.MockKogitoSvcReplies(t, test.ServerHandler{Path: protoBufFilePath, JSONResponse: responseWithProtoBufData})
 	defer server.Close()
-	err := os.Setenv(kogitoservice.envVarKogitoServiceURL, server.URL)
+	err := os.Setenv(
+		kogitoservice.EnvVarKogitoServiceURL,
+		server.URL,
+	)
 	assert.NoError(t, err)
-	os.Setenv(kogitoservice.envVarKogitoServiceURL, server.URL)
+	os.Setenv(kogitoservice.EnvVarKogitoServiceURL, server.URL)
 	protobufConfigMapHandler := NewProtoBufConfigMapHandler(context)
 	configMap, err := protobufConfigMapHandler.CreateProtoBufConfigMap(runtimeService)
 	assert.NoError(t, err)
