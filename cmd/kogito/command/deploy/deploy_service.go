@@ -72,7 +72,7 @@ func (i *deployCommand) Command() *cobra.Command {
 func (i *deployCommand) RegisterHook() {
 	i.command = &cobra.Command{
 		Use:     "deploy-service NAME [SOURCE]",
-		Short:   "Deploys a new Kogito Service into the given Project",
+		Short:   "Deploys a new Kogito Service into the given Project context",
 		Aliases: []string{"deploy"},
 		Long: `deploy-service will create a new Kogito service in the Project context.
 	Providing a directory containing a pom.xml file in root will upload the whole directory for s2i build on the cluster.

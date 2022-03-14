@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+set -e
 
 BASEDIR=$(pwd)
 KOGITO_CMD_DIR="cmd/kogito"
@@ -74,6 +75,6 @@ if [ "$release" = "true" ]; then
   echo "--- Finishing building Kogito CLI ${version}"
 else
   packTemplateFiles
-  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -o build/_output/bin/kogito github.com/kiegroup/kogito-operator/cmd/kogito
+  CGO_ENABLED=0 go build -v -a -o build/_output/bin/kogito github.com/kiegroup/kogito-operator/cmd/kogito
   cleanTemplateFiles
 fi

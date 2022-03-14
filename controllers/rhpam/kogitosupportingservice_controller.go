@@ -18,6 +18,7 @@ import (
 	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/internal/rhpam"
 	rhpam2 "github.com/kiegroup/kogito-operator/version/rhpam"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -45,5 +46,6 @@ func NewKogitoSupportingServiceReconciler(client *kogitocli.Client, scheme *runt
 		InfraHandler:             rhpam.NewKogitoInfraHandler,
 		ReconcilingObject:        &v1.KogitoSupportingService{},
 		Labels:                   getMeteringLabels(),
+		DeploymentIdentifier:     operator.KogitoSupportingServiceKey,
 	}
 }

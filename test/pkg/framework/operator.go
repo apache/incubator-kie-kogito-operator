@@ -22,6 +22,7 @@ import (
 	"github.com/kiegroup/kogito-operator/meta"
 
 	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -34,13 +35,10 @@ import (
 )
 
 const (
-	kogitoOperatorTimeoutInMin     = 5
-	kogitoInfinispanDependencyName = "Infinispan"
-	kogitoKafkaDependencyName      = "Kafka"
-	kogitoKeycloakDependencyName   = "Keycloak"
+	kogitoOperatorTimeoutInMin = 5
 
-	// clusterWideSubscriptionLabel label marking cluster wide Subscriptions created by BDD tests
-	clusterWideSubscriptionLabel = "kogito-operator-bdd-tests"
+	// createdByBddLabel label marking resources created by BDD tests
+	createdByBddLabel = "kogito-operator-bdd-tests"
 
 	kogitoOperatorDeploymentName = "kogito-operator-controller-manager"
 
@@ -64,9 +62,6 @@ type OperatorCatalog struct {
 
 var (
 	kogitoOperatorPullImageSecretPrefix = operator.Name + "-dockercfg"
-
-	// KogitoOperatorDependencies contains list of operators to be used together with Kogito operator
-	KogitoOperatorDependencies = []string{kogitoInfinispanDependencyName, kogitoKafkaDependencyName, kogitoKeycloakDependencyName}
 
 	// KogitoOperatorMongoDBDependency is the MongoDB identifier for installation
 	KogitoOperatorMongoDBDependency = infrastructure.MongoDBKind
@@ -203,6 +198,9 @@ func WaitForOperatorRunning(namespace, operatorPackageName string, catalog Opera
 	return WaitForOnOpenshift(namespace, fmt.Sprintf("%s operator running", operatorPackageName), timeoutInMin,
 		func() (bool, error) {
 			return IsOperatorRunning(namespace, operatorPackageName, catalog)
+		},
+		func() (bool, error) {
+			return SubscriptionResolutionFails(namespace, operatorPackageName, catalog.source)
 		})
 }
 
@@ -258,6 +256,27 @@ func OperatorExistsUsingSubscription(namespace, operatorPackageName, operatorSou
 	return true, nil
 }
 
+// SubscriptionResolutionFails returns true when Subscription fails to be resolved with error message
+func SubscriptionResolutionFails(namespace, operatorPackageName, operatorSource string) (bool, error) {
+	GetLogger(namespace).Debug("Checking Subscription", "Subscription", operatorPackageName, "Namespace", namespace)
+
+	subscription, err := getSubscription(kubeClient, namespace, operatorPackageName, operatorSource)
+	if err != nil {
+		return false, err
+	} else if subscription == nil {
+		return false, nil
+	}
+	GetLogger(namespace).Debug("Found", "Subscription", operatorPackageName)
+
+	for _, condition := range subscription.Status.Conditions {
+		// TODO: replace with condition.Type == ResolutionFailed when OLM dependency gets updated
+		if condition.Reason == "ConstraintsNotSatisfiable" && condition.Status == corev1.ConditionTrue {
+			return true, fmt.Errorf("Subscription installation fails: %s", condition.Message)
+		}
+	}
+	return false, nil
+}
+
 // CreateOperatorGroupIfNotExists creates an operator group if no exist
 func CreateOperatorGroupIfNotExists(namespace, operatorGroupName string) (*olmapiv1.OperatorGroup, error) {
 	operatorGroup := &olmapiv1.OperatorGroup{
@@ -310,7 +329,7 @@ func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName s
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      subscriptionName,
 			Namespace: namespace,
-			Labels:    map[string]string{clusterWideSubscriptionLabel: ""},
+			Labels:    map[string]string{createdByBddLabel: ""},
 		},
 		Spec: &olmapiv1alpha1.SubscriptionSpec{
 			Package:                operatorName,
@@ -326,18 +345,6 @@ func CreateNamespacedSubscriptionIfNotExist(namespace string, subscriptionName s
 	}
 
 	return subscription, nil
-}
-
-// GetClusterWideTestSubscriptions returns cluster wide subscriptions created by BDD tests
-func GetClusterWideTestSubscriptions() (*olmapiv1alpha1.SubscriptionList, error) {
-	clusterOperatorNamespace := GetClusterOperatorNamespace()
-
-	subscriptions := &olmapiv1alpha1.SubscriptionList{}
-	if err := kubernetes.ResourceC(kubeClient).ListWithNamespaceAndLabel(clusterOperatorNamespace, subscriptions, map[string]string{clusterWideSubscriptionLabel: ""}); err != nil {
-		return nil, fmt.Errorf("Error retrieving SubscriptionList in namespace %s: %v", clusterOperatorNamespace, err)
-	}
-
-	return subscriptions, nil
 }
 
 // GetSubscription returns subscription
@@ -362,20 +369,23 @@ func DeleteSubscription(subscription *olmapiv1alpha1.Subscription) error {
 	installedCsv := subscription.Status.InstalledCSV
 	suscriptionNamespace := subscription.Namespace
 
-	// Delete Subscription
-	if err := kubernetes.ResourceC(kubeClient).Delete(subscription); err != nil {
-		return err
-	}
-
-	// Delete related CSV
-	csv := &olmapiv1alpha1.ClusterServiceVersion{}
-	exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Namespace: suscriptionNamespace, Name: installedCsv}, csv)
-	if err != nil {
-		return err
-	}
-	if exists {
-		if err := kubernetes.ResourceC(kubeClient).Delete(csv); err != nil {
+	// If created by BDD
+	if _, ok := subscription.Labels[createdByBddLabel]; ok {
+		// Delete Subscription
+		if err := kubernetes.ResourceC(kubeClient).Delete(subscription); err != nil {
 			return err
+		}
+
+		// Delete related CSV
+		csv := &olmapiv1alpha1.ClusterServiceVersion{}
+		exists, err := kubernetes.ResourceC(kubeClient).FetchWithKey(types.NamespacedName{Namespace: suscriptionNamespace, Name: installedCsv}, csv)
+		if err != nil {
+			return err
+		}
+		if exists {
+			if err := kubernetes.ResourceC(kubeClient).Delete(csv); err != nil {
+				return err
+			}
 		}
 	}
 

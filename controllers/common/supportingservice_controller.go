@@ -16,6 +16,7 @@ package common
 
 import (
 	"context"
+
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
@@ -47,6 +48,7 @@ type KogitoSupportingServiceReconciler struct {
 	InfraHandler             func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject        client.Object
 	Labels                   map[string]string
+	DeploymentIdentifier     string
 }
 
 //+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitosupportingservices,verbs=get;list;watch;create;update;patch;delete
@@ -68,11 +70,12 @@ func (r *KogitoSupportingServiceReconciler) Reconcile(ctx context.Context, req c
 
 	// create kogitoContext
 	kogitoContext := operator.Context{
-		Client:  r.Client,
-		Log:     log,
-		Scheme:  r.Scheme,
-		Version: app2.Version,
-		Labels:  r.Labels,
+		Client:               r.Client,
+		Log:                  log,
+		Scheme:               r.Scheme,
+		Version:              app2.Version,
+		Labels:               r.Labels,
+		DeploymentIdentifier: r.DeploymentIdentifier,
 	}
 
 	// Fetch the KogitoSupportingService instance

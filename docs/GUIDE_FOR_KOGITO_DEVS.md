@@ -294,7 +294,7 @@ in the operator:
 # Infinispan operator should be pre-installed in namespace
 # And have installed an Infinispan server named "kogito-infinispan" in the same namespace of the Kogito resources
 # Follow these instructions to setup the Infinispan server:
-# https://infinispan.org/infinispan-operator/master/operator.html#creating_minimal_clusters-start
+# https://infinispan.org/docs/infinispan-operator/main/operator.html
 apiVersion: app.kiegroup.org/v1beta1
 kind: KogitoInfra
 metadata:
@@ -319,7 +319,7 @@ spec:
 Ensure that the Infinispan operator is installed in the namespace as 
 the comments in the YAML mention, and the image is built 
 with the `-Ppersistence` flag. The comments also mention that 
-an Infinispan server is required and link to [these instructions to do so](https://infinispan.org/infinispan-operator/master/operator.html#creating_minimal_clusters-start). 
+an Infinispan server is required and link to [these instructions to do so](https://infinispan.org/docs/infinispan-operator/main/operator.html). 
 An example YAML you could do this with is:
 ```yaml
 apiVersion: infinispan.org/v1

@@ -162,7 +162,7 @@ pipeline {
         stage('Run OLM tests') {
             when {
                 expression {
-                    return helper.shouldLaunchTests()
+                    return helper.isRelease() && helper.shouldLaunchTests()
                 }
             }
             steps {

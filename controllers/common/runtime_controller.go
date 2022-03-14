@@ -16,6 +16,7 @@ package common
 
 import (
 	"context"
+
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/infrastructure"
 	"github.com/kiegroup/kogito-operator/core/kogitoservice"
@@ -45,6 +46,7 @@ type KogitoRuntimeReconciler struct {
 	InfraHandler          func(context operator.Context) manager.KogitoInfraHandler
 	ReconcilingObject     client.Object
 	Labels                map[string]string
+	DeploymentIdentifier  string
 }
 
 //+kubebuilder:rbac:groups=app.kiegroup.org,resources=kogitoruntimes,verbs=get;list;watch;create;update;patch;delete
@@ -67,11 +69,12 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// create kogitoContext
 	kogitoContext := operator.Context{
-		Client:  r.Client,
-		Log:     log,
-		Scheme:  r.Scheme,
-		Version: r.Version,
-		Labels:  r.Labels,
+		Client:               r.Client,
+		Log:                  log,
+		Scheme:               r.Scheme,
+		Version:              r.Version,
+		Labels:               r.Labels,
+		DeploymentIdentifier: r.DeploymentIdentifier,
 	}
 
 	// fetch the requested instance
@@ -102,6 +105,13 @@ func (r *KogitoRuntimeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	infraHandler := r.InfraHandler(kogitoContext)
 	err = kogitoservice.NewServiceDeployer(kogitoContext, definition, instance, infraHandler).Deploy()
 	if err != nil {
+		return infrastructure.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
+	}
+
+	protoBufConfigMapReconciler := shared.NewProtoBufConfigMapReconciler(kogitoContext, instance)
+	err = protoBufConfigMapReconciler.Reconcile()
+	if err != nil {
+		log.Error(err, "Fail to create Proto Buf config map of Kogito runtime")
 		return infrastructure.NewReconciliationErrorHandler(kogitoContext).GetReconcileResultFor(err)
 	}
 

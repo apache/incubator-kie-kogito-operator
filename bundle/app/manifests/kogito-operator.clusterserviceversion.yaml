@@ -314,6 +314,12 @@ spec:
           by the operator.
         displayName: Additional Deployment Labels
         path: deploymentLabels
+      - description: "A flag indicating that routes are disabled. Usable just on OpenShift.
+          \n If not provided, defaults to 'false'."
+        displayName: DisableRoute
+        path: disableRoute
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: Annotates the pods managed by the operator with the required
           metadata for Istio to setup its sidecars, enabling the mesh. Defaults to
           false.
@@ -408,6 +414,11 @@ spec:
       - description: Image is the resolved image for this service.
         displayName: Image
         path: image
+      - description: General conditions for the Kogito Service route.
+        displayName: Route Conditions
+        path: routeConditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1beta1
     - description: KogitoSupportingService deploys the Supporting service in the given
         namespace.
@@ -438,6 +449,12 @@ spec:
           by the operator.
         displayName: Additional Deployment Labels
         path: deploymentLabels
+      - description: "A flag indicating that routes are disabled. Usable just on OpenShift.
+          \n If not provided, defaults to 'false'."
+        displayName: DisableRoute
+        path: disableRoute
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
       - description: Environment variables to be added to the runtime container. Keys
           must be a C_IDENTIFIER.
         displayName: Env
@@ -525,6 +542,11 @@ spec:
       - description: Image is the resolved image for this service.
         displayName: Image
         path: image
+      - description: General conditions for the Kogito Service route.
+        displayName: Route Conditions
+        path: routeConditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1beta1
   description: |-
     Kogito Operator is designed to deploy Kogito services from source (only on OpenShift) and every piece of infrastructure that the services might need:
@@ -795,9 +817,9 @@ spec:
           - list
           - watch
         - apiGroups:
-          - mongodb.com
+          - mongodbcommunity.mongodb.com
           resources:
-          - mongodb
+          - mongodbcommunity
           verbs:
           - create
           - delete
@@ -893,10 +915,6 @@ spec:
                 command:
                 - /manager
                 env:
-                - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: BUILDER_IMAGE
                   value: kogito-builder
                 - name: RUNTIME_IMAGE
