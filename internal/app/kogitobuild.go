@@ -18,17 +18,17 @@ import (
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/kogitobuild"
 	"github.com/kiegroup/kogito-operator/core/manager"
+	"github.com/kiegroup/kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type kogitoBuildHandler struct {
-	kogitobuild.BuildContext
+	operator.Context
 }
 
 // NewKogitoBuildHandler ...
-func NewKogitoBuildHandler(context kogitobuild.BuildContext) manager.KogitoBuildHandler {
+func NewKogitoBuildHandler(context operator.Context) manager.KogitoBuildHandler {
 	return &kogitoBuildHandler{
 		context,
 	}
@@ -42,4 +42,8 @@ func (k *kogitoBuildHandler) FetchKogitoBuildInstance(key types.NamespacedName) 
 		return nil, nil
 	}
 	return instance, nil
+}
+
+func (k *kogitoBuildHandler) CreateBuild() api.BuildsInterface {
+	return &v1beta1.Builds{}
 }

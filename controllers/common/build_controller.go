@@ -45,7 +45,7 @@ type KogitoBuildReconciler struct {
 	*kogitocli.Client
 	Scheme            *runtime.Scheme
 	Version           string
-	BuildHandler      func(context kogitobuild.BuildContext) manager.KogitoBuildHandler
+	BuildHandler      func(context operator.Context) manager.KogitoBuildHandler
 	ReconcilingObject client.Object
 	Labels            map[string]string
 }
@@ -57,14 +57,12 @@ func (r *KogitoBuildReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	log.Info("Reconciling for KogitoBuild")
 
 	// create buildContext
-	buildContext := kogitobuild.BuildContext{
-		Context: operator.Context{
-			Client:  r.Client,
-			Log:     log,
-			Scheme:  r.Scheme,
-			Version: r.Version,
-			Labels:  r.Labels,
-		},
+	buildContext := operator.Context{
+		Client:  r.Client,
+		Log:     log,
+		Scheme:  r.Scheme,
+		Version: r.Version,
+		Labels:  r.Labels,
 	}
 
 	// fetch the requested instance
@@ -77,7 +75,7 @@ func (r *KogitoBuildReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return
 	}
 
-	buildStatusHandler := kogitobuild.NewStatusHandler(buildContext)
+	buildStatusHandler := kogitobuild.NewStatusHandler(buildContext, buildHandler)
 	defer buildStatusHandler.HandleStatusChange(instance, resultErr)
 
 	if len(instance.GetSpec().GetRuntime()) == 0 {
@@ -101,7 +99,7 @@ func (r *KogitoBuildReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	// get the build manager to start the reconciliation logic
-	deltaProcessor, resultErr := kogitobuild.NewDeltaProcessor(buildContext, instance)
+	deltaProcessor, resultErr := kogitobuild.NewDeltaProcessor(buildContext, instance, buildHandler)
 	if resultErr != nil {
 		return
 	}
