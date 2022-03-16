@@ -19,6 +19,10 @@ import (
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/service"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
+	"github.com/kiegroup/kogito-operator/core/logger"
+	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/kiegroup/kogito-operator/internal/app"
+	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/spf13/cobra"
 )
 
@@ -28,11 +32,17 @@ type deleteServiceFlags struct {
 }
 
 func initDeleteServiceCommand(ctx *context.CommandContext, parent *cobra.Command) context.KogitoCommand {
+	context := operator.Context{
+		Client: ctx.Client,
+		Scheme: meta.GetRegisteredSchema(),
+		Log:    logger.GetLogger("delete_service"),
+	}
+	buildHandler := app.NewKogitoBuildHandler(context)
 	cmd := &deleteServiceCommand{
 		CommandContext:       *ctx,
 		Parent:               parent,
 		resourceCheckService: shared.NewResourceCheckService(),
-		buildService:         service.NewBuildService(ctx.Client),
+		buildService:         service.NewBuildService(context, buildHandler),
 		runtimeService:       service.NewRuntimeService(),
 	}
 	cmd.RegisterHook()

@@ -12,15 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package manager
+package v1
 
-import (
-	"github.com/kiegroup/kogito-operator/apis"
-	"k8s.io/apimachinery/pkg/types"
-)
+// Monitoring properties to connect with Monitoring service
+type Monitoring struct {
+	// HTTP scheme to use for scraping.
+	// +optional
+	Scheme string `json:"scheme,omitempty"`
 
-// KogitoBuildHandler ...
-type KogitoBuildHandler interface {
-	FetchKogitoBuildInstance(key types.NamespacedName) (api.KogitoBuildInterface, error)
-	CreateBuild() api.BuildsInterface
+	// HTTP path to scrape for metrics.
+	// +optional
+	Path string `json:"path,omitempty"`
+}
+
+// GetScheme ...
+func (m *Monitoring) GetScheme() string {
+	return m.Scheme
+}
+
+// SetScheme ...
+func (m *Monitoring) SetScheme(scheme string) {
+	m.Scheme = scheme
+}
+
+// GetPath ...
+func (m *Monitoring) GetPath() string {
+	return m.Path
+}
+
+// SetPath ...
+func (m *Monitoring) SetPath(path string) {
+	m.Path = path
 }
