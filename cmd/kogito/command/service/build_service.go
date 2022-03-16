@@ -17,6 +17,9 @@ package service
 import (
 	"fmt"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/core/kogitobuild"
+	"github.com/kiegroup/kogito-operator/core/manager"
+	"github.com/kiegroup/kogito-operator/core/operator"
 	"io"
 
 	"github.com/kiegroup/kogito-operator/apis"
@@ -25,9 +28,7 @@ import (
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
 	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-operator/core/client"
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/client/openshift"
 	"github.com/kiegroup/kogito-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"go.uber.org/zap"
@@ -41,15 +42,17 @@ type BuildService interface {
 }
 
 type buildService struct {
+	operator.Context
 	resourceCheckService shared.ResourceCheckService
-	client               *client.Client
+	buildHandler         manager.KogitoBuildHandler
 }
 
 // NewBuildService create and return buildService value
-func NewBuildService(cli *client.Client) BuildService {
+func NewBuildService(context operator.Context, buildHandler manager.KogitoBuildHandler) BuildService {
 	return buildService{
-		client:               cli,
+		Context:              context,
 		resourceCheckService: shared.NewResourceCheckService(),
+		buildHandler:         buildHandler,
 	}
 }
 
@@ -113,7 +116,7 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 
 	// Create the Kogito application
 	err = shared.
-		ServicesInstallationBuilder(i.client, flags.Project).
+		ServicesInstallationBuilder(i.Client, flags.Project).
 		CheckOperatorCRDs().
 		InstallBuildService(&kogitoBuild).
 		GetError()
@@ -130,7 +133,7 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 }
 
 func (i buildService) validatePreRequisite(flags *flag.BuildFlags, log *zap.SugaredLogger) error {
-	if !i.client.IsOpenshift() {
+	if !i.Client.IsOpenshift() {
 		log.Info("Kogito Build is only supported on Openshift.")
 		return fmt.Errorf("kogito build only supported on Openshift. Provide image flag to deploy Kogito service on K8s")
 	}
@@ -147,15 +150,15 @@ func (i buildService) validatePreRequisite(flags *flag.BuildFlags, log *zap.Suga
 func (i buildService) DeleteBuildService(name, project string) (err error) {
 	log := context.GetDefaultLogger()
 
-	if !i.client.IsOpenshift() {
+	if !i.Client.IsOpenshift() {
 		log.Info("Delete Kogito Build is only supported on OpenShift.")
 		return nil
 	}
-	if err := i.resourceCheckService.CheckKogitoBuildExists(i.client, name, project); err != nil {
+	if err := i.resourceCheckService.CheckKogitoBuildExists(i.Client, name, project); err != nil {
 		return err
 	}
 	log.Debugf("About to delete build %s in namespace %s", name, project)
-	if err := kubernetes.ResourceC(i.client).Delete(&v1beta1.KogitoBuild{
+	if err := kubernetes.ResourceC(i.Client).Delete(&v1beta1.KogitoBuild{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: project,
@@ -248,7 +251,8 @@ func (i buildService) triggerBuild(name string, namespace string, fileReader io.
 	}
 
 	log.Info(message.BuildTriggeringNewBuild)
-	build, err := openshift.BuildConfigC(i.client).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild, meta.GetRegisteredSchema())
+
+	build, err := kogitobuild.NewBuildHandler(i.Context, i.buildHandler).TriggerBuildFromFile(namespace, fileReader, options, binaryBuild, meta.GetRegisteredSchema())
 	if err != nil {
 		return err
 	}
