@@ -73,7 +73,7 @@ func WaitForPodsWithLabel(namespace, labelName, labelValue string, numberOfPods,
 		}, CheckPodsWithLabelInError(namespace, labelName, labelValue))
 }
 
-// WaitForPodsWithLabel waits for pods with specific label to be available and running
+// WaitForPodsWithLabels waits for pods with specific label to be available and running
 func WaitForPodsWithLabels(namespace string, labels map[string]string, numberOfPods, timeoutInMin int) error {
 	return WaitForOnOpenshift(namespace, fmt.Sprintf("%d Pods with labels '%v' available and running", numberOfPods, labels), timeoutInMin,
 		func() (bool, error) {
