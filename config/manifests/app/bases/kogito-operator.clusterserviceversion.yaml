@@ -64,6 +64,10 @@ spec:
       - description: Environment variables used during build time.
         displayName: Build Env Variables
         path: env
+      - description: "Information about the git repository where the Kogito Service
+          source code resides. \n Ignored for binary builds."
+        displayName: Kogito Git Source
+        path: gitSource
       - description: Context/subdirectory where the code is located, relative to the
           repo root.
         displayName: Git Context
