@@ -8,11 +8,11 @@ metadata:
           "apiVersion": "rhpam.kiegroup.org/v1",
           "kind": "KogitoBuild",
           "metadata": {
-            "name": "process-quarkus-example"
+            "name": "ruleunit-quarkus-example"
           },
           "spec": {
             "gitSource": {
-              "contextDir": "process-quarkus-example",
+              "contextDir": "ruleunit-quarkus-example",
               "uri": "https://github.com/kiegroup/kogito-examples"
             },
             "type": "RemoteSource"
@@ -36,7 +36,7 @@ metadata:
           "apiVersion": "rhpam.kiegroup.org/v1",
           "kind": "KogitoRuntime",
           "metadata": {
-            "name": "process-quarkus-example"
+            "name": "ruleunit-quarkus-example"
           },
           "spec": {
             "replicas": 1
@@ -57,14 +57,16 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.11.0
+    containerImage: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.0
     description: RHPAM Kogito Operator for deployment and management of Kogito services.
+    operators.openshift.io/valid-subscription: '["Red Hat Process Automation Manager",
+      "Red Hat Decision Manager"]'
     operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
-  name: rhpam-kogito-operator.v7.11.0
+  name: rhpam-kogito-operator.v7.13.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -900,7 +902,7 @@ spec:
                   value: registry.stage.redhat.io/rhpam-7
                 - name: GROUP
                   value: RHPAM
-                image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.11.0
+                image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.0
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -995,4 +997,4 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  version: 7.11.0
+  version: 7.13.0
