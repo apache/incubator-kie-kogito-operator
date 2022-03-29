@@ -59,7 +59,7 @@ metadata:
     containerImage: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito services.
-    operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
+    operators.operatorframework.io/builder: operator-sdk-v1.15.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/kiegroup/kogito-operator
     support: Red Hat

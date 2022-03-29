@@ -16,6 +16,8 @@ package app
 
 import (
 	"context"
+	"github.com/kiegroup/kogito-operator/core/framework/util"
+	"github.com/kiegroup/kogito-operator/core/operator"
 	"testing"
 
 	api "github.com/kiegroup/kogito-operator/apis"
@@ -83,6 +85,7 @@ func TestReconcileKogitoRuntime_Reconcile(t *testing.T) {
 	assert.Equal(t, "kogito-service-viewer", deployment.Spec.Template.Spec.ServiceAccountName)
 	// command to register protobuf does not exist anymore
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Lifecycle)
+	assert.True(t, util.MapContains(deployment.Annotations, operator.KogitoRuntimeKey, "true"))
 }
 
 // see https://issues.redhat.com/browse/KOGITO-2535
