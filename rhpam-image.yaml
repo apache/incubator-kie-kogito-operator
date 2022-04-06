@@ -57,7 +57,6 @@
           only:
             - x86_64
             - ppc64le
-            - s390x
     extra_dir: osbs-extra
     repository:
       name: containers/rhpam-7-kogito-operator
