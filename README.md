@@ -343,8 +343,8 @@ make run-tests 2>&1 | tee log.out
 
 ```
 $ make
-$ docker tag quay.io/kiegroup/kogito-operator:1.20.0-snapshot quay.io/{USERNAME}/kogito-operator:1.20.0-snapshot
-$ docker push quay.io/{USERNAME}/kogito-operator:1.20.0-snapshot
+$ docker tag quay.io/kiegroup/kogito-operator:1.20.0 quay.io/{USERNAME}/kogito-operator:1.20.0
+$ docker push quay.io/{USERNAME}/kogito-operator:1.20.0
 $ make run-tests operator_image=quay.io/{USERNAME}/kogito-operator
 ```
 
