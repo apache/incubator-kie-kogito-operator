@@ -93,6 +93,7 @@ void createRelease() {
         sh """
             export GITHUB_USER=${getGitAuthor()}
             github-release release --tag ${getGitTag()} --target \"${getBuildBranch()}\" --name \"${releaseName}\" --description \"${description}\" --pre-release
+            sleep 10
             github-release upload --tag ${getGitTag()} --name \"${darwinFileName}\" --file \"${releasePath}${darwinFileName}\"
             github-release upload --tag ${getGitTag()} --name \"${linuxFileName}\" --file \"${releasePath}${linuxFileName}\"
             github-release upload --tag ${getGitTag()} --name \"${windowsFileName}\" --file \"${releasePath}${windowsFileName}\"
