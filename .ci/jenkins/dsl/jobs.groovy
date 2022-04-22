@@ -71,7 +71,7 @@ void setupProfilingJob() {
 void setupDeployJob(String jobFolder, KogitoJobType jobType) {
     def jobParams = getJobParams('kogito-operator-deploy', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
     if (jobType == KogitoJobType.PR) {
-        jobParams.git.branch = '${GIT_BRANCH_NAME}'
+        jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
         jobParams.git.project_url = Utils.createProjectUrl("${GIT_AUTHOR_NAME}", jobParams.git.repository)
     }
@@ -217,7 +217,7 @@ void setupPromoteJob(String jobFolder, KogitoJobType jobType) {
 void setupExamplesImagesDeployJob(String jobFolder, KogitoJobType jobType) {
     def jobParams = getJobParams('kogito-examples-images-deploy', jobFolder, "${JENKINSFILE_PATH}/Jenkinsfile.examples-images.deploy", 'Kogito Examples Images Deploy')
     if (jobType == KogitoJobType.PR) {
-        jobParams.git.branch = '${GIT_BRANCH_NAME}'
+        jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
         jobParams.git.project_url = Utils.createProjectUrl("${GIT_AUTHOR_NAME}", jobParams.git.repository)
     }
