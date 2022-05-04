@@ -122,31 +122,25 @@ Feature: Deploy Travel agency service and verify its functionality
     And Service "travels" contains 1 instance of process with name "travels"
     And Service "travels" contains 1 task of process with name "travels" and task name "VisaApplication" for user "jdoe"
     And Complete "VisaApplication" task on service "travels" and process with name "travels" by user "jdoe" with body:
-	  """json
-	  {}
-	  """
+      """json
+      {}
+      """
     And Service "visas" contains 1 instance of process with name "visaApplications" within 1 minutes
     And Service "visas" contains 1 task of process with name "visaApplications" and task name "ApplicationApproval" for user "alice"
     And Complete "ApplicationApproval" task on service "visas" and process with name "visaApplications" by user "alice" with body:
-	  """json
-	{
-		"application" : {
-			"firstName" : "Jan",
-			"lastName" : "Kowalski",
-			"nationality" : "Polish",
-			"city" : "New York",
-			"country" : "US",
-			"passportNumber" : "ABC09876",
-			"duration" : 25,
-			"approved" : true
-		}
-	}
-	  """
-    And Service "travels" contains 1 task of process with name "travels" and task name "ConfirmTravel" for user "jdoe"
+      """json
+      {
+        "resolution":{
+          "approved":true,
+          "reason":"Manual approval"
+        }
+      }
+      """
+    And Service "travels" contains 1 task of process with name "travels" and task name "ConfirmTravel" for user "jdoe" within 1 minutes
     And Complete "ConfirmTravel" task on service "travels" and process with name "travels" by user "jdoe" with body:
-	  """json
-	  {}
-	  """
+      """json
+      {}
+      """
 
     Then Service "travels" with process name "travels" is available
 

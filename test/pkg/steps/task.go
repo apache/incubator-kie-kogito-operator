@@ -24,12 +24,25 @@ import (
 func registerTaskSteps(ctx *godog.ScenarioContext, data *Data) {
 	ctx.Step(`^Service "([^"]*)" contains (\d+) (?:task|tasks) of process with name "([^"]*)" and task name "([^"]*)"$`, data.serviceContainsTasksOfProcessWithNameAndTaskName)
 	ctx.Step(`^Service "([^"]*)" contains (\d+) (?:task|tasks) of process with name "([^"]*)" and task name "([^"]*)" for user "([^"]*)"$`, data.serviceContainsTasksOfProcessWithNameAndTaskNameForUser)
+	ctx.Step(`^Service "([^"]*)" contains (\d+) (?:task|tasks) of process with name "([^"]*)" and task name "([^"]*)" for user "([^"]*)" within (\d+) minutes$`, data.serviceContainsTasksOfProcessWithNameAndTaskNameForUserWithinMinutes)
 	ctx.Step(`^Complete "([^"]*)" task on service "([^"]*)" and process with name "([^"]*)" with body:$`, data.completeTaskOnServiceAndProcessWithName)
 	ctx.Step(`^Complete "([^"]*)" task on service "([^"]*)" and process with name "([^"]*)" by user "([^"]*)" with body:$`, data.completeTaskOnServiceAndProcessWithNameAndUser)
 }
 
 func (data *Data) serviceContainsTasksOfProcessWithNameAndTaskName(serviceName string, numberOfTasks int, processName, taskName string) error {
 	return data.serviceContainsTasksOfProcessWithNameAndTaskNameForUser(serviceName, numberOfTasks, processName, taskName, "")
+}
+
+func (data *Data) serviceContainsTasksOfProcessWithNameAndTaskNameForUserWithinMinutes(serviceName string, numberOfTasks int, processName, taskName, user string, timeoutInMin int) error {
+	return framework.WaitForOnOpenshift(data.Namespace, fmt.Sprintf("Process %s has %d %s task(s)", processName, numberOfTasks, taskName), timeoutInMin,
+		func() (bool, error) {
+			err := data.serviceContainsTasksOfProcessWithNameAndTaskNameForUser(serviceName, numberOfTasks, processName, taskName, user)
+			if err != nil {
+				return false, err
+			}
+
+			return true, nil
+		})
 }
 
 func (data *Data) serviceContainsTasksOfProcessWithNameAndTaskNameForUser(serviceName string, numberOfTasks int, processName, taskName, user string) error {
