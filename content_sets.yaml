@@ -18,4 +18,4 @@ x86_64:
 ppc64le:
   - rhel-8-for-ppc64le-baseos-rpms
   - rhel-8-for-ppc64le-appstream-rpms
-  - openj9-1-for-rhel-8-ppc64le-rpms
+  - rhocp-4.7-for-rhel-8-ppc64le-rpms
