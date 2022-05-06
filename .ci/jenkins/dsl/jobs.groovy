@@ -36,24 +36,23 @@ setupExamplesImagesPromoteJob(Folder.RELEASE)
 void setupProfilingJob() {
     def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-profiling', Folder.NIGHTLY_SONARCLOUD, "${jenkins_path}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
     jobParams.triggers = [ cron : '@midnight' ]
+    jobParams.env.putAll([
+        JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
+
+        REPO_NAME: 'kogito-operator',
+        OPERATOR_IMAGE_NAME: 'kogito-operator-profiling',
+        CONTAINER_ENGINE: 'docker',
+        CONTAINER_TLS_OPTIONS: '',
+        MAX_REGISTRY_RETRIES: 3,
+        OPENSHIFT_API_KEY: 'OPENSHIFT_API',
+        OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
+
+        GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
+        MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
+    ])
     KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
             stringParam('BUILD_BRANCH_NAME', "${GIT_BRANCH}", 'Set the Git branch to checkout')
-        }
-
-        environmentVariables {
-            env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
-
-            env('REPO_NAME', 'kogito-operator')
-            env('OPERATOR_IMAGE_NAME', 'kogito-operator-profiling')
-            env('CONTAINER_ENGINE', 'docker')
-            env('CONTAINER_TLS_OPTIONS', '')
-            env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
-
-            env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
-            env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_ARTIFACTS_REPOSITORY}")
         }
     }
 }
@@ -64,6 +63,35 @@ void setupDeployJob(Folder jobFolder) {
         jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
         jobParams.git.project_url = Utils.createProjectUrl("${GIT_AUTHOR_NAME}", jobParams.git.repository)
+    }
+    jobParams.env.putAll([
+        JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
+
+        REPO_NAME: 'kogito-operator',
+        OPERATOR_IMAGE_NAME: 'kogito-operator',
+        CONTAINER_ENGINE: 'docker',
+        CONTAINER_TLS_OPTIONS: '',
+        MAX_REGISTRY_RETRIES: 3,
+        OPENSHIFT_API_KEY: 'OPENSHIFT_API',
+        OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
+        PROPERTIES_FILE_NAME: 'deployment.properties',
+    ])
+    if (jobFolder.isPullRequest()) {
+        jobParams.env.putAll([
+            MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_PR_CHECKS_REPOSITORY_URL}",
+        ])
+    } else {
+        jobParams.env.putAll([
+            GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
+
+            AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
+            GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
+            GIT_AUTHOR_BOT: "${GIT_BOT_AUTHOR_NAME}",
+            BOT_CREDENTIALS_ID: "${GIT_BOT_AUTHOR_CREDENTIALS_ID}",
+
+            DEFAULT_STAGING_REPOSITORY: "${MAVEN_NEXUS_STAGING_PROFILE_URL}",
+            MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
+        ])
     }
     KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
@@ -117,38 +145,30 @@ void setupDeployJob(Folder jobFolder) {
 
             booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
-
-        environmentVariables {
-            env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
-
-            env('REPO_NAME', 'kogito-operator')
-            env('OPERATOR_IMAGE_NAME', 'kogito-operator')
-            env('CONTAINER_ENGINE', 'docker')
-            env('CONTAINER_TLS_OPTIONS', '')
-            env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
-            env('PROPERTIES_FILE_NAME', 'deployment.properties')
-
-            if (jobFolder.isPullRequest()) {
-                env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_PR_CHECKS_REPOSITORY_URL}")
-            } else {
-                env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
-
-                env('AUTHOR_CREDS_ID', "${GIT_AUTHOR_CREDENTIALS_ID}")
-                env('GITHUB_TOKEN_CREDS_ID', "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}")
-                env('GIT_AUTHOR_BOT', "${GIT_BOT_AUTHOR_NAME}")
-                env('BOT_CREDENTIALS_ID', "${GIT_BOT_AUTHOR_CREDENTIALS_ID}")
-
-                env('DEFAULT_STAGING_REPOSITORY', "${MAVEN_NEXUS_STAGING_PROFILE_URL}")
-                env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_ARTIFACTS_REPOSITORY}")
-            }
-        }
     }
 }
 
 void setupPromoteJob(Folder jobFolder) {
-    KogitoJobTemplate.createPipelineJob(this, KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-promote', jobFolder, "${jenkins_path}/Jenkinsfile.promote", 'Kogito Cloud Operator Promote'))?.with {
+    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-promote', jobFolder, "${jenkins_path}/Jenkinsfile.promote", 'Kogito Cloud Operator Promote')
+    jobParams.env.putAll([
+        JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
+
+        REPO_NAME: 'kogito-operator',
+        CONTAINER_ENGINE: 'podman',
+        CONTAINER_TLS_OPTIONS: '--tls-verify=false',
+        MAX_REGISTRY_RETRIES: 3,
+        OPENSHIFT_API_KEY: 'OPENSHIFT_API',
+        OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
+        PROPERTIES_FILE_NAME: 'deployment.properties',
+
+        GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
+
+        AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
+        GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
+        GIT_AUTHOR_BOT: "${GIT_BOT_AUTHOR_NAME}",
+        BOT_CREDENTIALS_ID: "${GIT_BOT_AUTHOR_CREDENTIALS_ID}",
+    ])
+    KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
@@ -180,25 +200,6 @@ void setupPromoteJob(Folder jobFolder) {
 
             booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
-
-        environmentVariables {
-            env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
-
-            env('REPO_NAME', 'kogito-operator')
-            env('CONTAINER_ENGINE', 'podman')
-            env('CONTAINER_TLS_OPTIONS', '--tls-verify=false')
-            env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
-            env('PROPERTIES_FILE_NAME', 'deployment.properties')
-
-            env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
-
-            env('AUTHOR_CREDS_ID', "${GIT_AUTHOR_CREDENTIALS_ID}")
-            env('GITHUB_TOKEN_CREDS_ID', "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}")
-            env('GIT_AUTHOR_BOT', "${GIT_BOT_AUTHOR_NAME}")
-            env('BOT_CREDENTIALS_ID', "${GIT_BOT_AUTHOR_CREDENTIALS_ID}")
-        }
     }
 }
 
@@ -208,6 +209,29 @@ void setupExamplesImagesDeployJob(Folder jobFolder) {
         jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
         jobParams.git.project_url = Utils.createProjectUrl("${GIT_AUTHOR_NAME}", jobParams.git.repository)
+    }
+    jobParams.env.putAll([
+        JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
+
+        REPO_NAME: 'kogito-operator',
+        CONTAINER_ENGINE: 'docker',
+        CONTAINER_TLS_OPTIONS: '',
+        MAX_REGISTRY_RETRIES: 3,
+        OPENSHIFT_API_KEY: 'OPENSHIFT_API',
+        OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
+        PROPERTIES_FILE_NAME: 'deployment.properties',
+    ])
+    if (jobFolder.isPullRequest()) {
+        jobParams.env.putAll([
+            MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_PR_CHECKS_REPOSITORY_URL}",
+        ])
+    } else {
+        jobParams.env.putAll([
+            GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
+
+            DEFAULT_STAGING_REPOSITORY: "${MAVEN_NEXUS_STAGING_PROFILE_URL}",
+            MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
+        ])
     }
     KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
@@ -247,32 +271,25 @@ void setupExamplesImagesDeployJob(Folder jobFolder) {
 
             booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
-
-        environmentVariables {
-            env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
-
-            env('REPO_NAME', 'kogito-operator')
-            env('CONTAINER_ENGINE', 'docker')
-            env('CONTAINER_TLS_OPTIONS', '')
-            env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
-            env('PROPERTIES_FILE_NAME', 'deployment.properties')
-
-            if (jobFolder.isPullRequest()) {
-                env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_PR_CHECKS_REPOSITORY_URL}")
-            } else {
-                env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
-
-                env('DEFAULT_STAGING_REPOSITORY', "${MAVEN_NEXUS_STAGING_PROFILE_URL}")
-                env('MAVEN_ARTIFACT_REPOSITORY', "${MAVEN_ARTIFACTS_REPOSITORY}")
-            }
-        }
     }
 }
 
 void setupExamplesImagesPromoteJob(Folder jobFolder) {
-    KogitoJobTemplate.createPipelineJob(this, KogitoJobUtils.getBasicJobParams(this, 'kogito-examples-images-promote', jobFolder, "${jenkins_path}/Jenkinsfile.examples-images.promote", 'Kogito Examples Images Promote'))?.with {
+    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-examples-images-promote', jobFolder, "${jenkins_path}/Jenkinsfile.examples-images.promote", 'Kogito Examples Images Promote')
+    jobParams.env.putAll([
+        JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
+
+        REPO_NAME: 'kogito-operator',
+        CONTAINER_ENGINE: 'podman',
+        CONTAINER_TLS_OPTIONS: '--tls-verify=false',
+        MAX_REGISTRY_RETRIES: 3,
+        OPENSHIFT_API_KEY: 'OPENSHIFT_API',
+        OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
+        PROPERTIES_FILE_NAME: 'deployment.properties',
+
+        GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
+    ])
+    KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
@@ -305,20 +322,6 @@ void setupExamplesImagesPromoteJob(Folder jobFolder) {
             stringParam('PROJECT_VERSION', '', 'Override `deployment.properties`. If env.RELEASE, cannot be empty.')
 
             booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
-        }
-
-        environmentVariables {
-            env('JENKINS_EMAIL_CREDS_ID', "${JENKINS_EMAIL_CREDS_ID}")
-
-            env('REPO_NAME', 'kogito-operator')
-            env('CONTAINER_ENGINE', 'podman')
-            env('CONTAINER_TLS_OPTIONS', '--tls-verify=false')
-            env('MAX_REGISTRY_RETRIES', 3)
-            env('OPENSHIFT_API_KEY', 'OPENSHIFT_API')
-            env('OPENSHIFT_CREDS_KEY', 'OPENSHIFT_CREDS')
-            env('PROPERTIES_FILE_NAME', 'deployment.properties')
-
-            env('GIT_AUTHOR', "${GIT_AUTHOR_NAME}")
         }
     }
 }
