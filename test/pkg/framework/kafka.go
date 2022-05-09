@@ -17,6 +17,7 @@ package framework
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
@@ -147,6 +148,58 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 	}
 
 	return messages, nil
+}
+
+// Send gets all messages for a topic
+func SendMessageOnTopic(namespace, kafkaInstanceName, topic, message string) error {
+	kafkaInstance, err := GetKafkaInstance(namespace, kafkaInstanceName)
+	if err != nil {
+		return err
+	}
+	GetLogger(namespace).Debug("Got kafka instance", "instance", kafkaInstance.Name)
+	bootstrapServer := infrastructure.ResolveKafkaServerURI(kafkaInstance)
+	if len(bootstrapServer) <= 0 {
+		GetLogger(namespace).Debug("Not able resolve URI for given kafka instance")
+		return fmt.Errorf("not able resolve URI for given kafka instance %s", kafkaInstance.Name)
+	}
+	GetLogger(namespace).Debug("Got bootstrapServer", "server", bootstrapServer)
+
+	var kafkaPods *v1.PodList
+	kafkaPods, err = GetKafkaPods(namespace, kafkaInstanceName)
+	if err != nil {
+		return fmt.Errorf("Error while retrieving Kafka pods: %v", err)
+	} else if len(kafkaPods.Items) <= 0 {
+		return fmt.Errorf("No pods found for Kafka instance")
+	}
+	subCommand := []string{"echo", fmt.Sprintf("'%s'", regexp.MustCompile(`\r?\n`).ReplaceAllString(message, ""))} // echo as one line to be sent to kafka
+	subCommand = append(subCommand, "|")
+	subCommand = append(subCommand, "bin/kafka-console-producer.sh")
+	subCommand = append(subCommand, "--bootstrap-server", bootstrapServer)
+	subCommand = append(subCommand, "--topic", topic)
+
+	args := []string{"exec", kafkaPods.Items[0].Name}
+	args = append(args, "-n", namespace)
+	args = append(args, "--")
+	args = append(args, "/bin/bash")
+	args = append(args, "-c")
+	args = append(args, fmt.Sprintf("%s", strings.Join(subCommand, " ")))
+
+	output, err := CreateCommand("kubectl", args...).WithLoggerContext(namespace).Execute()
+	GetLogger(namespace).Info("Got output", "output", output)
+	if err != nil {
+		return err
+	}
+
+	messages, err := GetMessagesOnTopic(namespace, kafkaInstanceName, topic)
+	if err != nil {
+		return err
+	}
+	GetLogger(namespace).Info(fmt.Sprintf("Got %d messages", len(messages)))
+	for _, msg := range messages {
+		GetLogger(namespace).Info(fmt.Sprintf("Got message: %s", msg))
+	}
+
+	return nil
 }
 
 // GetKafkaInstance retrieves the Kafka instance
