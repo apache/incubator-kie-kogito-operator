@@ -8,11 +8,11 @@ metadata:
           "apiVersion": "rhpam.kiegroup.org/v1",
           "kind": "KogitoBuild",
           "metadata": {
-            "name": "process-quarkus-example"
+            "name": "ruleunit-quarkus-example"
           },
           "spec": {
             "gitSource": {
-              "contextDir": "process-quarkus-example",
+              "contextDir": "ruleunit-quarkus-example",
               "uri": "https://github.com/kiegroup/kogito-examples"
             },
             "type": "RemoteSource"
@@ -36,7 +36,7 @@ metadata:
           "apiVersion": "rhpam.kiegroup.org/v1",
           "kind": "KogitoRuntime",
           "metadata": {
-            "name": "process-quarkus-example"
+            "name": "ruleunit-quarkus-example"
           },
           "spec": {
             "replicas": 1
@@ -511,7 +511,7 @@ spec:
                 - --metrics-bind-address=127.0.0.1:8080
                 - --leader-elect
                 command:
-                - /manager
+                - /usr/local/bin/rhpam-kogito-operator-manager
                 env:
                 - name: WATCH_NAMESPACE
                   valueFrom:
