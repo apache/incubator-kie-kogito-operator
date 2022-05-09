@@ -3,7 +3,6 @@ Feature: Deploy Kogito Runtime
   Background:
     Given Namespace is created
 
-  @rhpam
   Scenario Outline: Deploy <example-service> with native <native> using Kogito Runtime
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory
@@ -35,7 +34,6 @@ Feature: Deploy Kogito Runtime
 
 #####
 
-  @rhpam
   Scenario Outline: Deploy DMN <example-service> with native <native> using Kogito Runtime
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory
@@ -57,11 +55,13 @@ Feature: Deploy Kogito Runtime
       }
       """
 
+    @rhpam
     @springboot
     Examples:
       | runtime    | example-service        | native   |
       | springboot | dmn-springboot-example | disabled |
 
+    @rhpam
     @quarkus
     Examples:
       | runtime    | example-service     | native   |
@@ -570,7 +570,6 @@ Feature: Deploy Kogito Runtime
       }
       """
 
-    @rhpam
     @quarkus
     Examples:
       | runtime    | example-service             | native   |
@@ -587,7 +586,6 @@ Feature: Deploy Kogito Runtime
 #####
 
   @usertasks
-  @rhpam
   Scenario Outline: Deploy <example-service> service to complete user tasks with native <native>
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory

@@ -1,4 +1,3 @@
-@rhpam
 @asset
 Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
 
@@ -6,6 +5,7 @@ Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
     Given Namespace is created
     And Kogito Operator is deployed
 
+  @rhpam
   Scenario: Deploy .dmn source files with CLI using runtime <runtime>
     Given Clone Kogito examples into local directory
     
@@ -52,16 +52,22 @@ Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
       """
 
   @smoke
+  @rhpam
   Scenario: Deploy source files in folder with CLI
     Given Clone Kogito examples into local directory
     
-    When Deploy quarkus folder from example service "process-timer-quarkus"
-    And Build "process-timer-quarkus-builder" is complete after 10 minutes
-    And Build "process-timer-quarkus" is complete after 5 minutes
+    When Deploy quarkus folder from example service "dmn-quarkus-example"
+    And Build "dmn-quarkus-example-builder" is complete after 10 minutes
+    And Build "dmn-quarkus-example" is complete after 5 minutes
 
-    Then HTTP POST request on service "process-timer-quarkus" is successful within 2 minutes with path "timers" and body:
+    Then HTTP POST request on service "dmn-quarkus-example" is successful within 2 minutes with path "Traffic Violation" and body:
       """json
       {
-          "delay" : "PT30S"
+          "Driver":{"Points":2},
+          "Violation":{
+              "Type":"speed",
+              "Actual Speed":120,
+              "Speed Limit":100
+          }
       }
       """
