@@ -150,7 +150,7 @@ func GetMessagesOnTopic(namespace, kafkaInstanceName, topic string) ([]string, e
 	return messages, nil
 }
 
-// Send gets all messages for a topic
+// SendMessageOnTopic gets all messages for a topic
 func SendMessageOnTopic(namespace, kafkaInstanceName, topic, message string) error {
 	kafkaInstance, err := GetKafkaInstance(namespace, kafkaInstanceName)
 	if err != nil {
