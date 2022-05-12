@@ -115,6 +115,10 @@ func (mvnCmd *mavenCommandStruct) Execute(targets ...string) (string, error) {
 		mvnCmd.otherOptions = append(mvnCmd.otherOptions, "-U")
 	}
 
+	if config.UseProductOperator() {
+		mvnCmd.otherOptions = append(mvnCmd.otherOptions, "-Dproductized")
+	}
+
 	args = append(args, targets...)
 	if len(mvnCmd.profiles) > 0 {
 		args = append(args, fmt.Sprintf("-P%s", strings.Join(mvnCmd.profiles, ",")))
