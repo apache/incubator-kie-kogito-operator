@@ -55,7 +55,7 @@ jobs:
       - name: Build Operator Image
         env:
           BUILDER: docker
-        run: make docker-build
+        run: make container-build
       - name: Run Operator OLM Integration Test
         run: make olm-tests
       - name: Upload

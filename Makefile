@@ -78,7 +78,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 print-%  : ; @echo $($*)
 
-all: generate manifests docker-build
+all: generate manifests container-build
 	echo "calling APP all ##################################"
 
 profiling: generate manifests profiling-build
@@ -148,12 +148,12 @@ build: generate fmt vet ## Build manager binary.
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
-docker-build: ## Build the docker image
-	echo "calling APP docker-build ##################################"
+container-build: ## Build the docker image
+	echo "calling APP container-build ##################################"
 	cekit -v --descriptor kogito-image.yaml build $(BUILDER)
 	$(BUILDER) tag operator-runtime ${IMG}
 
-docker-push: ## Push the docker image
+container-push: ## Push the docker image
 	$(BUILDER) push ${IMG}
 
 profiling-build: ## Build the profiling docker image
@@ -233,7 +233,7 @@ bundle-build: ## Build the bundle image.
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+	$(MAKE) container-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
 OPM = ./bin/opm
@@ -262,7 +262,7 @@ catalog-build: opm ## Build a catalog image.
 # Push the catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
-	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+	$(MAKE) container-push IMG=$(CATALOG_IMG)
 
 
 generate-installer: generate manifests kustomize

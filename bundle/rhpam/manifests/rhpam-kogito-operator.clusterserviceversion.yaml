@@ -888,7 +888,7 @@ spec:
                 - --metrics-bind-address=127.0.0.1:8080
                 - --leader-elect
                 command:
-                - /manager
+                - /usr/local/bin/rhpam-kogito-operator-manager
                 env:
                 - name: WATCH_NAMESPACE
                   valueFrom:
