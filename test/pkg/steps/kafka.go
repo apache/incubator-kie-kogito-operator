@@ -32,6 +32,7 @@ func registerKafkaSteps(ctx *godog.ScenarioContext, data *Data) {
 	ctx.Step(`^Scale Kafka instance "([^"]*)" down`, data.scaleKafkaInstanceDown)
 	ctx.Step(`^Kafka topic "([^"]*)" is deployed$`, data.kafkaTopicIsDeployed)
 	ctx.Step(`^Kafka instance "([^"]*)" should contain at least (\d+) (?:message|messages) on topic "([^"]*)" within (\d+) (?:minute|minutes)$`, data.kafkaInstanceShouldContainAtLeastMessagesOnTopicWithinMinutes)
+	ctx.Step(`^Send message to Kafka instance "([^"]*)" on topic "([^"]*)":$`, data.sendMessageToKafkaInstanceOnTopic)
 }
 
 func (data *Data) kafkaOperatorIsDeployed() error {
@@ -69,6 +70,10 @@ func (data *Data) kafkaTopicIsDeployed(name string) error {
 
 func (data *Data) kafkaInstanceShouldContainAtLeastMessagesOnTopicWithinMinutes(instanceName string, numberOfMsg int, topic string, timeoutInMinutes int) error {
 	return framework.WaitForMessagesOnTopic(data.Namespace, instanceName, topic, numberOfMsg, timeoutInMinutes)
+}
+
+func (data *Data) sendMessageToKafkaInstanceOnTopic(instanceName, topic string, body *godog.DocString) error {
+	return framework.SendMessageOnTopic(data.Namespace, instanceName, topic, body.GetContent())
 }
 
 func getKafkaDefaultResource(name, namespace string) *v1beta2.Kafka {

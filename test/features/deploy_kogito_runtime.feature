@@ -3,7 +3,6 @@ Feature: Deploy Kogito Runtime
   Background:
     Given Namespace is created
 
-  @rhpam
   Scenario Outline: Deploy <example-service> with native <native> using Kogito Runtime
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory
@@ -35,7 +34,6 @@ Feature: Deploy Kogito Runtime
 
 #####
 
-  @rhpam
   Scenario Outline: Deploy DMN <example-service> with native <native> using Kogito Runtime
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory
@@ -57,11 +55,13 @@ Feature: Deploy Kogito Runtime
       }
       """
 
+    @rhpam
     @springboot
     Examples:
       | runtime    | example-service        | native   |
       | springboot | dmn-springboot-example | disabled |
 
+    @rhpam
     @quarkus
     Examples:
       | runtime    | example-service     | native   |
@@ -302,7 +302,6 @@ Feature: Deploy Kogito Runtime
 
   @events
   @kafka
-  @rhpam
   Scenario Outline: Deploy <example-service> with events and native <native> using Kogito Runtime
     Given Kogito Operator is deployed
     And Kafka Operator is deployed
@@ -313,38 +312,53 @@ Feature: Deploy Kogito Runtime
       | profile | events   |
       | native  | <native> |
 
-    When Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
+    And Deploy <runtime> example service "<example-service>" from runtime registry with configuration:
       | config | infra | kafka      |
     And Kogito Runtime "<example-service>" has 1 pods running within 10 minutes
-    And Start "orders" process on service "<example-service>" within 3 minutes with body:
+    
+    When Send message to Kafka instance "kogito-kafka" on topic "dmn-event-driven-requests":
       """json
       {
-        "approver" : "john",
-        "order" : {
-          "orderNumber" : "12345",
-          "shipped" : false
+        "specversion": "1.0",
+        "id": "a89b61a2-5644-487a-8a86-144855c5dce8",
+        "source": "SomeEventSource",
+        "type": "DecisionRequest",
+        "subject": "TheSubject",
+        "kogitodmnmodelname": "Traffic Violation",
+        "kogitodmnmodelnamespace": "https://github.com/kiegroup/drools/kie-dmn/_A4BCA8B8-CF08-433F-93B2-A2598F19ECFF",
+        "data": {
+          "Driver": {
+            "Age": 25,
+            "Points": 13
+          },
+          "Violation": {
+            "Type": "speed",
+            "Actual Speed": 115,
+            "Speed Limit": 100
+          }
         }
       }
       """
 
-    # 2 messages in output => orders and orderItems
-    Then Kafka instance "kogito-kafka" should contain at least 2 messages on topic "kogito-processinstances-events" within 2 minutes
+    Then Kafka instance "kogito-kafka" should contain at least 1 messages on topic "dmn-event-driven-responses" within 2 minutes
 
+    @rhpam
     @springboot
     Examples:
-      | runtime    | example-service            | native   |
-      | springboot | process-springboot-example | disabled |
+      | runtime    | example-service             | native   |
+      | springboot | dmn-event-driven-springboot | disabled |
 
+    @rhpam
     @quarkus
     Examples:
-      | runtime    | example-service         | native   |
-      | quarkus    | process-quarkus-example | disabled |
+      | runtime    | example-service          | native   |
+      | quarkus    | dmn-event-driven-quarkus | disabled |
 
     @quarkus
     @native
     Examples:
-      | runtime    | example-service         | native  |
-      | quarkus    | process-quarkus-example | enabled |
+      | runtime    | example-service          | native  |
+      | quarkus    | dmn-event-driven-quarkus | enabled |
 
 #####
 
@@ -570,7 +584,6 @@ Feature: Deploy Kogito Runtime
       }
       """
 
-    @rhpam
     @quarkus
     Examples:
       | runtime    | example-service             | native   |
@@ -587,7 +600,6 @@ Feature: Deploy Kogito Runtime
 #####
 
   @usertasks
-  @rhpam
   Scenario Outline: Deploy <example-service> service to complete user tasks with native <native>
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory
