@@ -255,7 +255,7 @@ https://maven.apache.org/xsd/settings-1.0.0.xsd">
 	profilesXMLContent = `
   <profiles>
     <profile>
-      <id>default</id>
+      <id>kogito-operator</id>
       <repositories>
       </repositories>
       <pluginRepositories>
@@ -263,6 +263,6 @@ https://maven.apache.org/xsd/settings-1.0.0.xsd">
     </profile>
   </profiles>
   <activeProfiles>
-    <activeProfile>default</activeProfile>
+    <activeProfile>kogito-operator</activeProfile>
   </activeProfiles>`
 )
