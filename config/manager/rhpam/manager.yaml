@@ -26,7 +26,7 @@ spec:
         runAsNonRoot: true
       containers:
       - command:
-        - /manager
+        - /usr/local/bin/rhpam-kogito-operator-manager
         args:
         - --leader-elect
         image: controller:latest
