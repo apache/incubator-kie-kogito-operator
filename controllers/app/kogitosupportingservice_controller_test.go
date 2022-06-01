@@ -17,10 +17,14 @@ package app
 import (
 	"github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"github.com/kiegroup/kogito-operator/core/framework/util"
 	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
+	"github.com/kiegroup/kogito-operator/core/operator"
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
@@ -38,25 +42,8 @@ func TestReconcileKogitoSupportingService_Reconcile(t *testing.T) {
 
 	r := NewKogitoSupportingServiceReconciler(cli, meta.GetRegisteredSchema())
 	test.AssertReconcileMustNotRequeue(t, r, instance)
-}
-
-func TestContains(t *testing.T) {
-	allServices := []api.ServiceType{
-		api.MgmtConsole,
-		api.JobsService,
-		api.TrustyAI,
-	}
-	testService := api.DataIndex
-
-	assert.False(t, contains(allServices, testService))
-}
-
-// Check is the testService is available in the slice of allServices
-func contains(allServices []api.ServiceType, testService api.ServiceType) bool {
-	for _, a := range allServices {
-		if a == testService {
-			return true
-		}
-	}
-	return false
+	deployment := &appsv1.Deployment{ObjectMeta: v1.ObjectMeta{Name: instance.Name, Namespace: instance.Namespace}}
+	_, err := kubernetes.ResourceC(cli).Fetch(deployment)
+	assert.NoError(t, err)
+	assert.True(t, util.MapContains(deployment.Annotations, operator.KogitoSupportingServiceKey, "true"))
 }
