@@ -18,6 +18,7 @@ import (
 	"github.com/kiegroup/kogito-operator/controllers/common"
 	kogitocli "github.com/kiegroup/kogito-operator/core/client"
 	app2 "github.com/kiegroup/kogito-operator/internal/app"
+	"github.com/kiegroup/kogito-operator/version/app"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -29,6 +30,7 @@ func NewKogitoRuntimeDeploymentReconciler(client *kogitocli.Client, scheme *runt
 	return &common.RuntimeDeploymentReconciler{
 		Client:                client,
 		Scheme:                scheme,
+		Version:               app.Version,
 		RuntimeHandler:        app2.NewKogitoRuntimeHandler,
 		SupportServiceHandler: app2.NewKogitoSupportingServiceHandler,
 	}
