@@ -93,6 +93,7 @@ func TestNewDeploymentProcessorTesting(t *testing.T) {
 	v := make(map[string]string)
 	v[framework.KogitoOperatorVersionAnnotation] = "1.0-SNAPSHOT"
 	assert.Equal(t, v, runtimeDeployment.Annotations)
+	assert.Equal(t, v, runtimeDeployment.Spec.Template.Annotations)
 }
 
 func createList(namespace string) *v1beta1.KogitoSupportingServiceList {

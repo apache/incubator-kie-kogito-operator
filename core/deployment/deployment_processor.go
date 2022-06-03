@@ -75,14 +75,18 @@ func (d *deploymentProcessor) injectSupportingServiceEndpointIntoDeployment() er
 }
 
 func (d *deploymentProcessor) injectKogitoAnnotations() error {
-	// annotate the given deployment with the operator version
-	if d.deployment.Annotations == nil {
-		d.deployment.Annotations = make(map[string]string)
+	if len(d.Context.Version) == 0 {
+		d.Log.Warn("Not able to get detect Kogito version, version annotation will not be set", "Version Label", framework.KogitoOperatorVersionAnnotation)
+	} else {
+		// annotate the given deployment with the operator version
+		if d.deployment.Annotations == nil {
+			d.deployment.Annotations = make(map[string]string)
+		}
+		if d.deployment.Spec.Template.Annotations == nil {
+			d.deployment.Spec.Template.Annotations = make(map[string]string)
+		}
+		d.deployment.Annotations[framework.KogitoOperatorVersionAnnotation] = d.Context.Version
+		d.deployment.Spec.Template.Annotations[framework.KogitoOperatorVersionAnnotation] = d.Context.Version
 	}
-	if d.deployment.Spec.Template.Annotations == nil {
-		d.deployment.Spec.Template.Annotations = make(map[string]string)
-	}
-	d.deployment.Annotations[framework.KogitoOperatorVersionAnnotation] = d.Context.Version
-	d.deployment.Spec.Template.Annotations[framework.KogitoOperatorVersionAnnotation] = d.Context.Version
 	return nil
 }

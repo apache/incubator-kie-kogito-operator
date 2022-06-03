@@ -62,6 +62,7 @@ func TestReconcileKogitoSupportingServiceTaskConsole_Reconcile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Equal(t, "1.0-SNAPSHOT", instanceDeployment.Annotations[framework.KogitoOperatorVersionAnnotation])
+	assert.Equal(t, "1.0-SNAPSHOT", instanceDeployment.Spec.Template.Annotations[framework.KogitoOperatorVersionAnnotation])
 }
 
 func TestReconcileKogitoSupportingServiceTaskConsole_CustomImage(t *testing.T) {

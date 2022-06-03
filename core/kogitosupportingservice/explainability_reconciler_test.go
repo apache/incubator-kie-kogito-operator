@@ -61,4 +61,5 @@ func TestReconcileKogitoSupportingServiceExplainability_Reconcile(t *testing.T) 
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Equal(t, "1.0-SNAPSHOT", explainabilityDeployment.Annotations[framework.KogitoOperatorVersionAnnotation])
+	assert.Equal(t, "1.0-SNAPSHOT", explainabilityDeployment.Spec.Template.Annotations[framework.KogitoOperatorVersionAnnotation])
 }

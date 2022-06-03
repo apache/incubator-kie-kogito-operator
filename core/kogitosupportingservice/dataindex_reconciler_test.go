@@ -60,4 +60,5 @@ func TestKogitoSupportingServiceDataIndex_Reconcile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, exists)
 	assert.Equal(t, "1.0-SNAPSHOT", dataIndexDeployment.Annotations[framework.KogitoOperatorVersionAnnotation])
+	assert.Equal(t, "1.0-SNAPSHOT", dataIndexDeployment.Spec.Template.Annotations[framework.KogitoOperatorVersionAnnotation])
 }
