@@ -9,7 +9,8 @@ Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
   Scenario: Deploy .dmn source files with CLI using runtime <runtime>
     Given Clone Kogito examples into local directory
     
-    When Deploy <runtime> file "Traffic Violation.dmn" from example service "dmn-<runtime>-example"
+    When Deploy <runtime> file "Traffic Violation.dmn" from example service "dmn-<runtime>-example" with env:
+      | MAVEN_ARGS_APPEND | <maven_args> |
     And Build "dmn-<runtime>-example-builder" is complete after 10 minutes
     And Build "dmn-<runtime>-example" is complete after 5 minutes
 
@@ -29,13 +30,13 @@ Feature: Deploy source files (dmn, drl, bpmn, bpmn2, ...) with CLI
     @smoke
     @springboot
     Examples:
-      | runtime    |
-      | springboot |
+      | runtime    | maven_args           |
+      | springboot | -Dstarters=decisions |
 
     @quarkus
     Examples:
-      | runtime    |
-      | quarkus    |
+      | runtime    | maven_args |
+      | quarkus    |            |
   
   Scenario: Deploy .bpmn source files with CLI
     Given Clone Kogito examples into local directory
