@@ -1,4 +1,4 @@
-// Copyright 2019 Red Hat, Inc. and/or its affiliates
+// Copyright 2022 Red Hat, Inc. and/or its affiliates
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package rhpam
+package main
+
+import (
+	"flag"
+	"fmt"
+	"github.com/kiegroup/kogito-operator/version/rhpam"
+)
 
 var (
-	// PriorVersion product version
-	PriorVersion = "7.12.0"
-	// CsvPriorVersion - prior csv release
-	CsvPriorVersion = PriorVersion + "-2"
-	// Version - current version
-	Version = "7.13.0"
-	// CsvVersion - csv release
-	CsvVersion = Version + "-1"
+	prior    = flag.Bool("prior", false, "get prior product version")
+	csv      = flag.Bool("csv", false, "get csv version")
+	csvPrior = flag.Bool("csvPrior", false, "get prior csv version")
 )
+
+func main() {
+	flag.Parse()
+	if *prior {
+		fmt.Println(rhpam.PriorVersion)
+	} else if *csv {
+		fmt.Println(rhpam.CsvVersion)
+	} else if *csvPrior {
+		fmt.Println(rhpam.CsvPriorVersion)
+	} else {
+		fmt.Println(rhpam.Version)
+	}
+}

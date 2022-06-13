@@ -66,7 +66,7 @@ metadata:
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
-  name: rhpam-kogito-operator.v7.13.0
+  name: rhpam-kogito-operator.7.13.0-1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -899,7 +899,7 @@ spec:
                 - name: RUNTIME_IMAGE
                   value: rhpam-kogito-runtime-jvm-rhel8
                 - name: IMAGE_REGISTRY
-                  value: registry.stage.redhat.io/rhpam-7
+                  value: registry.redhat.io/rhpam-7
                 - name: GROUP
                   value: RHPAM
                 image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.0
@@ -983,7 +983,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: rhpam-kogito-operator
-    operated-by: rhpam-kogito-operator.7.11.0
+    operated-by: rhpam-kogito-operator.7.13.0-1
   links:
   - name: Product Page
     url: https://kogito.kie.org/
@@ -997,4 +997,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  version: 7.13.0
+  replaces: rhpam-kogito-operator.7.12.0-2
+  version: 7.13.0-1
