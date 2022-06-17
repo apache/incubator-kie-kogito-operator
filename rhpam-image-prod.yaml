@@ -8,7 +8,7 @@
     repositories:
       - path: modules
     install:
-      - name: org.kie.kogito.rhpam.builder
+      - name: org.kie.kogito.rhpam.builder.prod
 
   packages:
     content_sets_file: content_sets.yaml
