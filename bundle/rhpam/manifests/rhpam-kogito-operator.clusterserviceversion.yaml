@@ -8,11 +8,11 @@ metadata:
           "apiVersion": "rhpam.kiegroup.org/v1",
           "kind": "KogitoBuild",
           "metadata": {
-            "name": "ruleunit-quarkus-example"
+            "name": "process-quarkus-example"
           },
           "spec": {
             "gitSource": {
-              "contextDir": "ruleunit-quarkus-example",
+              "contextDir": "process-quarkus-example",
               "uri": "https://github.com/kiegroup/kogito-examples"
             },
             "type": "RemoteSource"
@@ -36,7 +36,7 @@ metadata:
           "apiVersion": "rhpam.kiegroup.org/v1",
           "kind": "KogitoRuntime",
           "metadata": {
-            "name": "ruleunit-quarkus-example"
+            "name": "process-quarkus-example"
           },
           "spec": {
             "replicas": 1
@@ -902,7 +902,7 @@ spec:
                 - --upstream=http://127.0.0.1:8080/
                 - --logtostderr=true
                 - --v=10
-                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.8.0
+                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.10.0
                 name: kube-rbac-proxy
                 ports:
                 - containerPort: 8443
@@ -1023,5 +1023,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: rhpam-kogito-operator.7.12.0-2
+  replaces: rhpam-kogito-operator.v7.12.0-2
   version: 7.13.0-1
