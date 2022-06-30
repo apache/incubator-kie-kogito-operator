@@ -1,6 +1,6 @@
 schema_version: 1
 name: "rhpam-7/rhpam-kogito-operator-bundle"
-description: "RHPAM Kogito Operator Bundle"
+description: "IBM BAMOE Kogito Operator Bundle"
 version: "7.13.0"
 from: "scratch"
 
@@ -10,11 +10,11 @@ labels:
   - name: com.redhat.component
     value: rhpam-7-kogito-rhel8-operator-bundle-container
   - name: io.k8s.description
-    value: Operator Bundle for deploying RHPAM & RHDM
+    value: Operator Bundle for deploying IBM BAMOE
   - name: io.k8s.display-name
     value: Red Hat Business Automation Operator Bundle
   - name: io.openshift.tags
-    value: rhpam,rhdm,operator
+    value: rhpam,rhdm,operator,ibm-bamoe
   - name: operators.operatorframework.io.bundle.mediatype.v1
     value: registry+v1
   - name: operators.operatorframework.io.bundle.manifests.v1
