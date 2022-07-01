@@ -52,7 +52,7 @@ var (
 	}
 
 	rhpamKogitoNamespace            = "rhpam-kogito-operator-system"
-	rhpamKogitoServiceName          = "IBM BAMOE Kogito operator"
+	rhpamKogitoServiceName          = "RHPAM Kogito operator"
 	rhpamKogitoOperatorTimeoutInMin = 5
 	rhpamKogitoImageStreamName      = "rhpam-kogito-operator"
 

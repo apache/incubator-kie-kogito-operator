@@ -8,13 +8,13 @@ labels:
   - name: maintainer
     value: bsig-cloud@redhat.com
   - name: com.redhat.component
-    value: rhpam-7-kogito-rhel8-operator-bundle-container
+    value: ibm-bamoe-7-kogito-rhel8-operator-bundle-container
   - name: io.k8s.description
     value: Operator Bundle for deploying IBM BAMOE
   - name: io.k8s.display-name
-    value: Red Hat Business Automation Operator Bundle
+    value: IBM Business Automation Manager Open Editions Kogito Operator Bundle
   - name: io.openshift.tags
-    value: rhpam,rhdm,operator,ibm-bamoe
+    value: operator,ibm-bamoe-kogito
   - name: operators.operatorframework.io.bundle.mediatype.v1
     value: registry+v1
   - name: operators.operatorframework.io.bundle.manifests.v1
