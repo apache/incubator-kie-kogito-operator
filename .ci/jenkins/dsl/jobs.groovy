@@ -35,6 +35,7 @@ setupExamplesImagesPromoteJob(Folder.RELEASE)
 
 void setupProfilingJob() {
     def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-profiling', Folder.NIGHTLY_SONARCLOUD, "${jenkins_path}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
+    KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     jobParams.triggers = [ cron : '@midnight' ]
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
@@ -59,6 +60,7 @@ void setupProfilingJob() {
 
 void setupDeployJob(Folder jobFolder) {
     def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-deploy', jobFolder, "${jenkins_path}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
+    KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     if (jobFolder.isPullRequest()) {
         jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
@@ -205,6 +207,7 @@ void setupPromoteJob(Folder jobFolder) {
 
 void setupExamplesImagesDeployJob(Folder jobFolder) {
     def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-examples-images-deploy', jobFolder, "${jenkins_path}/Jenkinsfile.examples-images.deploy", 'Kogito Examples Images Deploy')
+    KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     if (jobFolder.isPullRequest()) {
         jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
