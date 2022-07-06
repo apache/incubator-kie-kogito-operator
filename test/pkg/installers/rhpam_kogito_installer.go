@@ -57,7 +57,7 @@ var (
 	rhpamKogitoImageStreamName      = "rhpam-kogito-operator"
 
 	rhpamKogitoOperatorSubscriptionName    = "rhpam-kogito-operator"
-	rhpamKogitoOperatorSubscriptionChannel = "7.x"
+	rhpamKogitoOperatorSubscriptionChannel = "8.x"
 )
 
 // GetRhpamKogitoInstaller returns RHPAM Kogito installer

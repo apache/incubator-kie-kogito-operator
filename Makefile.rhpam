@@ -1,8 +1,8 @@
 include Makefile
 
 VERSION = $(shell go run version/getrhpamversion.go)
-CHANNELS = 7.x
-DEFAULT_CHANNEL = 7.x
+CHANNELS = 8.x
+DEFAULT_CHANNEL = 8.x
 BUNDLE_CHANNELS = --channels=$(CHANNELS)
 BUNDLE_DEFAULT_CHANNEL = --default-channel=$(DEFAULT_CHANNEL)
 

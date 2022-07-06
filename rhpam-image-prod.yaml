@@ -1,6 +1,6 @@
 - schema_version: 1
   name: "operator-builder"
-  version: "7.13.0"
+  version: "8.0.0"
   from: "registry.access.redhat.com/ubi8/go-toolset:1.14.12"
   description: "Golang builder image for the IBM BAMOE Kogito Operator"
 
@@ -28,15 +28,15 @@
             - ppc64le
 
 - name: "rhpam-7/rhpam-kogito-operator"
-  version: "7.13.0"
+  version: "8.0.0"
   from: "registry.access.redhat.com/ubi8/ubi-minimal:latest"
   description: "Runtime Image for the IBM BAMOE Kogito Operator"
 
   labels:
     - name: maintainer
       value: bsig-cloud@redhat.com
-    - name: com.redhat.component
-      value: rhpam-7-kogito-rhel8-operator-container
+    - name: com.ibm.component
+      value: ibm-bamoe-8-kogito-rhel8-operator-container
     - name: io.k8s.description
       value: Operator for deploying IBM BAMOE Kogito Application
     - name: io.k8s.display-name
