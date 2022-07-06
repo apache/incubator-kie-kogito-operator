@@ -35,9 +35,9 @@
     - name: io.k8s.description
       value: Operator for deploying IBM BAMOE Kogito Application
     - name: io.k8s.display-name
-      value: Red Hat PAM Kogito Operator
+      value: IBM BAMOE Kogito Operator
     - name: io.openshift.tags
-      value: rhpam,kogito,operator,ibm-bamoe
+      value: kogito,operator,ibm-bamoe
 
   artifacts:
     - path: /workspace/rhpam-kogito-operator-manager
