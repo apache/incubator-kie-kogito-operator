@@ -6,7 +6,7 @@ DEFAULT_CHANNEL = 8.x
 BUNDLE_CHANNELS = --channels=$(CHANNELS)
 BUNDLE_DEFAULT_CHANNEL = --default-channel=$(DEFAULT_CHANNEL)
 
-IMAGE_TAG_BASE = registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator
+IMAGE_TAG_BASE = registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -43,7 +43,7 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 container-build: ## Build the container image
 	echo "calling IBM BAMOE container-build......................................"
 	cekit -v --descriptor rhpam-image.yaml build $(BUILDER)
-	$(BUILDER) tag rhpam-7/rhpam-kogito-operator ${IMG}
+	$(BUILDER) tag ibm-bamoe/bamoe-kogito-rhel8-operator ${IMG}
 
 container-push: ## Push the container image
 	$(BUILDER) push ${IMG}

@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: rhpam-kogito-operator-system
+  name: bamoe-kogito-operator-system
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1978,13 +1978,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rhpam-kogito-operator-controller-manager
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: rhpam-kogito-operator-leader-election-role
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 rules:
 - apiGroups:
   - ""
@@ -2358,7 +2358,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: rhpam-kogito-operator-leader-election-rolebinding
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -2366,7 +2366,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: rhpam-kogito-operator-controller-manager
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -2379,7 +2379,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: rhpam-kogito-operator-controller-manager
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -2392,7 +2392,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: rhpam-kogito-operator-controller-manager
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 ---
 apiVersion: v1
 data:
@@ -2411,7 +2411,7 @@ data:
 kind: ConfigMap
 metadata:
   name: rhpam-kogito-operator-manager-config
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 ---
 apiVersion: v1
 kind: Service
@@ -2419,7 +2419,7 @@ metadata:
   labels:
     control-plane: controller-manager
   name: rhpam-kogito-operator-controller-manager-metrics-service
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 spec:
   ports:
   - name: https
@@ -2435,7 +2435,7 @@ metadata:
   labels:
     control-plane: controller-manager
   name: rhpam-kogito-operator-controller-manager
-  namespace: rhpam-kogito-operator-system
+  namespace: bamoe-kogito-operator-system
 spec:
   replicas: 1
   selector:
@@ -2470,14 +2470,14 @@ spec:
             fieldRef:
               fieldPath: metadata.annotations['olm.targetNamespaces']
         - name: BUILDER_IMAGE
-          value: rhpam-kogito-builder-rhel8
+          value: ibm-bamoe/bamoe-kogito-builder-rhel8
         - name: RUNTIME_IMAGE
-          value: rhpam-kogito-runtime-jvm-rhel8
+          value: ibm-bamoe/bamoe-kogito-runtime-jvm-rhel8
         - name: IMAGE_REGISTRY
-          value: registry.redhat.io/rhpam-7
+          value: registry.connect.redhat.com/ibm-bamoe
         - name: GROUP
           value: RHPAM
-        image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:8.0.0
+        image: registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
         livenessProbe:
           httpGet:
             path: /healthz

@@ -27,7 +27,7 @@
             - x86_64
             - ppc64le
 
-- name: "rhpam-7/rhpam-kogito-operator"
+- name: "ibm-bamoe/bamoe-kogito-rhel8-operator"
   version: "8.0.0"
   from: "registry.access.redhat.com/ubi8/ubi-minimal:latest"
   description: "Runtime Image for the IBM BAMOE Kogito Operator"
@@ -35,7 +35,7 @@
   labels:
     - name: maintainer
       value: bsig-cloud@redhat.com
-    - name: com.ibm.component
+    - name: com.redhat.component
       value: ibm-bamoe-8-kogito-rhel8-operator-container
     - name: io.k8s.description
       value: Operator for deploying IBM BAMOE Kogito Application

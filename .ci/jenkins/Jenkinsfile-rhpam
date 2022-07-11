@@ -53,8 +53,8 @@ pipeline {
                     set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
                     TAG_OPERATOR=\$(go run version/getrhpamversion.go)
 
-                    ${CONTAINER_ENGINE} tag registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/rhpam-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
-                    ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/rhpam-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} tag registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/bamoe-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/bamoe-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                 """
             }
         }
@@ -128,7 +128,7 @@ String getBDDParameters() {
     testParamsMap['load_factor'] = 3
     testParamsMap['disable_maven_native_build_container'] = true
 
-    testParamsMap['operator_image_tag'] = "${OPENSHIFT_REGISTRY}/openshift/rhpam-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
+    testParamsMap['operator_image_tag'] = "${OPENSHIFT_REGISTRY}/openshift/bamoe-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)"
 
     if (env.MAVEN_MIRROR_REPOSITORY) {
         testParamsMap['maven_mirror_url'] = env.MAVEN_MIRROR_REPOSITORY
