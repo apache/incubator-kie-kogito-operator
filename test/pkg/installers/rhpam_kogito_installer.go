@@ -57,7 +57,7 @@ var (
 	rhpamKogitoImageStreamName      = "rhpam-kogito-operator"
 
 	rhpamKogitoOperatorSubscriptionName    = "rhpam-kogito-operator"
-	rhpamKogitoOperatorSubscriptionChannel = "7.x"
+	rhpamKogitoOperatorSubscriptionChannel = "8.x"
 )
 
 // GetRhpamKogitoInstaller returns RHPAM Kogito installer
@@ -70,11 +70,11 @@ func GetRhpamKogitoInstaller() (ServiceInstaller, error) {
 		return &rhpamKogitoOlmClusterWideInstaller, nil
 	}
 
-	return nil, errors.New("No RHPAM Kogito operator installer available for provided configuration")
+	return nil, errors.New("No IBM BAMOE Kogito operator installer available for provided configuration")
 }
 
 func installRhpamKogitoUsingYaml() error {
-	framework.GetMainLogger().Info("Installing RHPAM Kogito operator")
+	framework.GetMainLogger().Info("Installing IBM BAMOE Kogito operator")
 
 	// Create namespace first so ImageStream can be placed there
 	if err := framework.CreateNamespace(rhpamKogitoNamespace); err != nil {
@@ -112,7 +112,7 @@ func installRhpamKogitoUsingYaml() error {
 
 	_, err = framework.CreateCommand("oc", "apply", "-f", tempFilePath).Execute()
 	if err != nil {
-		framework.GetMainLogger().Error(err, "Error while installing RHPAM Kogito operator from YAML file")
+		framework.GetMainLogger().Error(err, "Error while installing IBM BAMOE Kogito operator from YAML file")
 		return err
 	}
 
@@ -120,11 +120,11 @@ func installRhpamKogitoUsingYaml() error {
 }
 
 func waitForRhpamKogitoOperatorUsingYamlRunning() error {
-	return framework.WaitForOnOpenshift(rhpamKogitoNamespace, "RHPAM Kogito operator running", rhpamKogitoOperatorTimeoutInMin,
+	return framework.WaitForOnOpenshift(rhpamKogitoNamespace, "IBM BAMOE Kogito operator running", rhpamKogitoOperatorTimeoutInMin,
 		func() (bool, error) {
 			podList, err := framework.GetPods(rhpamKogitoNamespace)
 			if err != nil {
-				framework.GetLogger(rhpamKogitoNamespace).Error(err, "Error while trying to retrieve RHPAM Kogito Operator pods")
+				framework.GetLogger(rhpamKogitoNamespace).Error(err, "Error while trying to retrieve IBM BAMOE Kogito Operator pods")
 				return false, nil
 			}
 			if len(podList.Items) != 1 {
@@ -140,10 +140,10 @@ func waitForRhpamKogitoOperatorUsingYamlRunning() error {
 				for _, pod := range podList.Items {
 					if !framework.CheckPodHasImagePullSecretWithPrefix(&pod, rhpmaKogitoOperatorPullImageSecretPrefix) {
 						// Delete pod as it has been misconfigured (missing pull secret)
-						framework.GetLogger(rhpamKogitoNamespace).Info("RHPAM Kogito Operator pod does not have the image pull secret needed. Deleting it to renew it.")
+						framework.GetLogger(rhpamKogitoNamespace).Info("IBM BAMOE Kogito Operator pod does not have the image pull secret needed. Deleting it to renew it.")
 						err := framework.DeleteObject(&pod)
 						if err != nil {
-							framework.GetLogger(rhpamKogitoNamespace).Error(err, "Error while trying to delete RHPAM Kogito Operator pod")
+							framework.GetLogger(rhpamKogitoNamespace).Error(err, "Error while trying to delete IBM BAMOE Kogito Operator pod")
 							return false, nil
 						}
 					}
@@ -158,7 +158,7 @@ func uninstallRhpamKogitoUsingYaml() error {
 
 	output, err := framework.CreateCommand("oc", "delete", "-f", config.GetRhpamOperatorYamlURI(), "--timeout=30s").Execute()
 	if err != nil {
-		framework.GetMainLogger().Error(err, fmt.Sprintf("Deleting RHPAM Kogito operator failed, output: %s", output))
+		framework.GetMainLogger().Error(err, fmt.Sprintf("Deleting IBM BAMOE Kogito operator failed, output: %s", output))
 		return err
 	}
 

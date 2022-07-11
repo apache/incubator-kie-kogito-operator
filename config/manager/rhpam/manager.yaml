@@ -62,7 +62,7 @@ spec:
           - name: RUNTIME_IMAGE
             value: rhpam-kogito-runtime-jvm-rhel8
           - name: IMAGE_REGISTRY
-            value: registry.stage.redhat.io/rhpam-7
+            value: registry.redhat.io/rhpam-7
           - name: GROUP
             value: RHPAM
       serviceAccountName: controller-manager

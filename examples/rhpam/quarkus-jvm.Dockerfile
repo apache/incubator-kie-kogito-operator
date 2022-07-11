@@ -1,4 +1,4 @@
-FROM registry.redhat.io/rhpam-7/rhpam-kogito-runtime-jvm-rhel8:7.13.0
+FROM registry.redhat.io/rhpam-7/rhpam-kogito-runtime-jvm-rhel8:8.0.0
 
 ENV RUNTIME_TYPE quarkus
 # How to use this image with a simple example:

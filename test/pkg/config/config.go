@@ -141,7 +141,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.StringVar(&env.operatorImageTag, prefix+"operator_image_tag", "", "Operator image full tag")
 	set.StringVar(&env.operatorInstallationSource, prefix+"operator_installation_source", installationSourceYaml, "Operator installation source")
 	set.StringVar(&env.operatorCatalogImage, prefix+"operator_catalog_image", "", "Operator catalog image")
-	set.BoolVar(&env.useProductOperator, prefix+"use_product_operator", false, "Set to true to deploy RHPAM Kogito operator, false for using Kogito operator. Default is false.")
+	set.BoolVar(&env.useProductOperator, prefix+"use_product_operator", false, "Set to true to deploy IBM BAMOE Kogito operator, false for using Kogito operator. Default is false.")
 
 	// operator profiling
 	set.BoolVar(&env.operatorProfiling, prefix+"operator_profiling_enabled", false, "Enable the profiling of the operator. If enabled, operator will be automatically deployed with yaml files.")
