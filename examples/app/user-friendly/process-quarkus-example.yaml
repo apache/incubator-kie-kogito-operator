@@ -1,0 +1,29 @@
+# 1. Create container image for kogito runtime application.
+#      Quarkus : https://quarkus.io/guides/container-image
+#      Spring-boot : https://spring.io/guides/gs/spring-boot-docker/
+# 2. Install Kogito-operator on cluster.(https://docs.jboss.org/kogito/release/latest/html_single/#con-kogito-operator-installation_kogito-deploying-on-openshift)
+# 3. Create Deployment custom resource to deploy Kogito application. Note : Add `kogito.kie.org/runtime: 'true'` annotation on deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: process-quarkus-example
+  annotations:
+    kogito.kie.org/runtime: 'true'
+  labels:
+    app: process-quarkus-example
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: process-quarkus-example
+  template:
+    metadata:
+      labels:
+        app: process-quarkus-example
+    spec:
+      containers:
+        - name: process-quarkus-example
+          image: quay.io/vajain/process-quarkus-example:1.0
+          ports:
+            - containerPort: 8080
+
