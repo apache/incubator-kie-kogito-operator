@@ -57,17 +57,15 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:8.0.0
+    containerImage: registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:0.0.0
     description: IBM BAMOE Kogito Operator for deployment and management of Kogito
       services.
-    operators.openshift.io/valid-subscription: '["Red Hat Process Automation Manager",
-      "Red Hat Decision Manager"]'
     operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
-  name: rhpam-kogito-operator.8.0.0-1
+  name: bamoe-kogito-operator.8.0.0-1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -896,14 +894,14 @@ spec:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: BUILDER_IMAGE
-                  value: rhpam-kogito-builder-rhel8
+                  value: bamoe-kogito-builder-rhel8
                 - name: RUNTIME_IMAGE
-                  value: rhpam-kogito-runtime-jvm-rhel8
+                  value: bamoe-kogito-runtime-jvm-rhel8
                 - name: IMAGE_REGISTRY
-                  value: registry.redhat.io/rhpam-7
+                  value: registry.connect.redhat.com/ibm-bamoe
                 - name: GROUP
                   value: RHPAM
-                image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:8.0.0
+                image: registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
                 livenessProbe:
                   httpGet:
                     path: /healthz

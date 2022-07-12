@@ -51,12 +51,12 @@ var (
 		GetAllClusterWideOlmCrsInNamespace: getRhpamKogitoCrsInNamespace,
 	}
 
-	rhpamKogitoNamespace            = "rhpam-kogito-operator-system"
-	rhpamKogitoServiceName          = "RHPAM Kogito operator"
+	rhpamKogitoNamespace            = "bamoe-kogito-operator-system"
+	rhpamKogitoServiceName          = "IBM BAMOE Kogito operator"
 	rhpamKogitoOperatorTimeoutInMin = 5
-	rhpamKogitoImageStreamName      = "rhpam-kogito-operator"
+	rhpamKogitoImageStreamName      = "bamoe-kogito-operator"
 
-	rhpamKogitoOperatorSubscriptionName    = "rhpam-kogito-operator"
+	rhpamKogitoOperatorSubscriptionName    = "bamoe-kogito-operator"
 	rhpamKogitoOperatorSubscriptionChannel = "8.x"
 )
 
@@ -98,7 +98,7 @@ func installRhpamKogitoUsingYaml() error {
 		operatorImageTag = fmt.Sprintf("%s/%s/%s:%s", openShiftInternalRegistryURL, rhpamKogitoNamespace, rhpamKogitoImageStreamName, imageTag)
 	}
 
-	regexp, err := regexp.Compile("registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:.*")
+	regexp, err := regexp.Compile("registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:.*")
 	if err != nil {
 		return err
 	}
