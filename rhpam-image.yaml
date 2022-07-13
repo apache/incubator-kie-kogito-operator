@@ -31,7 +31,7 @@
     - name: maintainer
       value: bsig-cloud@redhat.com
     - name: com.redhat.component
-      value: ibm-bamoe-8-kogito-rhel8-operator-container
+      value: rhpam-7-kogito-rhel8-operator-container
     - name: io.k8s.description
       value: Operator for deploying IBM BAMOE Kogito Application
     - name: io.k8s.display-name
