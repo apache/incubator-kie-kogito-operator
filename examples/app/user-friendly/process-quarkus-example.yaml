@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: process-quarkus-example
-          image: quay.io/vajain/process-quarkus-example:1.0
+          image: quay.io/yournamespace/process-quarkus-example:1.0
           ports:
             - containerPort: 8080
 
