@@ -1,4 +1,6 @@
 # 1. Create container image for kogito runtime application.
+#      Example image name: quay.io/yournamespace/process-quarkus-example:1.0
+#
 #      Quarkus : https://quarkus.io/guides/container-image
 #      Spring-boot : https://spring.io/guides/gs/spring-boot-docker/
 # 2. Install Kogito-operator on cluster.(https://docs.jboss.org/kogito/release/latest/html_single/#con-kogito-operator-installation_kogito-deploying-on-openshift)
