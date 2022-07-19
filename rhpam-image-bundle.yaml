@@ -8,7 +8,7 @@ labels:
   - name: maintainer
     value: bsig-cloud@redhat.com
   - name: com.redhat.component
-    value: rhpam-7-kogito-rhel8-operator-bundle-container
+    value: ibm-bamoe-kogito-rhel8-operator-bundle-container
   - name: io.k8s.description
     value: Operator Bundle for deploying IBM BAMOE
   - name: io.k8s.display-name
@@ -65,5 +65,5 @@ osbs:
           - ppc64le
   extra_dir: osbs-extra
   repository:
-    name: containers/rhpam-7-kogito-operator-bundle
-    branch: rhba-7-rhel-8
+    name: containers/ibm-bamoe-kogito-operator-bundle
+    branch: ibm-bamoe-rhel-8
