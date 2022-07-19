@@ -5,6 +5,7 @@ Feature: Deploy Kogito Build
     Given Namespace is created
     And Kogito Operator is deployed
 
+  @rhpam
   Scenario Outline: Build <runtime> remote S2I with native <native> using KogitoBuild
     When Build <runtime> example service "<example-service>" with configuration:
       | config | native | <native> |
@@ -24,13 +25,11 @@ Feature: Deploy Kogito Build
       }
       """
 
-    @rhpam
     @springboot
     Examples:
       | runtime    | example-service        | native   | minutes |
       | springboot | dmn-springboot-example | disabled | 10      |
 
-    @rhpam
     @smoke
     @quarkus
     Examples:
@@ -46,6 +45,7 @@ Feature: Deploy Kogito Build
 
 #####
 
+  @rhpam
   Scenario Outline: Build <runtime> binary build with native <native> using KogitoBuild
     Given Clone Kogito examples into local directory
     And Local example service "<example-service>" is built by Maven with configuration:
@@ -67,13 +67,11 @@ Feature: Deploy Kogito Build
       }
       """
 
-    @rhpam
     @springboot
     Examples:
       | runtime    | example-service        | native   |
       | springboot | dmn-springboot-example | disabled |
 
-    @rhpam
     @smoke
     @quarkus
     Examples:
