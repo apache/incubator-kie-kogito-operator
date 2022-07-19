@@ -1,4 +1,4 @@
-FROM registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-runtime-jvm-rhel8:8.0.0
+FROM registry.redhat.io/ibm-bamoe/bamoe-kogito-runtime-jvm-rhel8:8.0.0
 
 ENV RUNTIME_TYPE quarkus
 # How to use this image with a simple example:

@@ -2470,14 +2470,14 @@ spec:
             fieldRef:
               fieldPath: metadata.annotations['olm.targetNamespaces']
         - name: BUILDER_IMAGE
-          value: ibm-bamoe/bamoe-kogito-builder-rhel8
+          value: bamoe-kogito-builder-rhel8
         - name: RUNTIME_IMAGE
-          value: ibm-bamoe/bamoe-kogito-runtime-jvm-rhel8
+          value: bamoe-kogito-runtime-jvm-rhel8
         - name: IMAGE_REGISTRY
-          value: registry.connect.redhat.com/ibm-bamoe
+          value: registry.redhat.io/ibm-bamoe
         - name: GROUP
           value: RHPAM
-        image: registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
+        image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
         livenessProbe:
           httpGet:
             path: /healthz
