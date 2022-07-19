@@ -31,7 +31,7 @@
     - name: maintainer
       value: bsig-cloud@redhat.com
     - name: com.redhat.component
-      value: rhpam-7-kogito-rhel8-operator-container
+      value: ibm-bamoe-kogito-rhel8-operator-container
     - name: io.k8s.description
       value: Operator for deploying IBM BAMOE Kogito Application
     - name: io.k8s.display-name
@@ -57,8 +57,8 @@
             - ppc64le
     extra_dir: osbs-extra
     repository:
-      name: containers/rhpam-7-kogito-operator
-      branch: rhba-7-rhel-8
+      name: containers/ibm-bamoe-kogito-operator
+      branch: ibm-bamoe-rhel-8
 
   run:
     user: "1001"
