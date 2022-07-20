@@ -53,7 +53,7 @@ pipeline {
                     set +x && ${CONTAINER_ENGINE} login -u jenkins -p \$(oc whoami -t) --tls-verify=false ${OPENSHIFT_REGISTRY}
                     TAG_OPERATOR=\$(go run version/getrhpamversion.go)
 
-                    ${CONTAINER_ENGINE} tag registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/bamoe-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
+                    ${CONTAINER_ENGINE} tag registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:\${TAG_OPERATOR} ${OPENSHIFT_REGISTRY}/openshift/bamoe-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                     ${CONTAINER_ENGINE} push --tls-verify=false ${OPENSHIFT_REGISTRY}/openshift/bamoe-kogito-rhel8-operator:pr-\$(echo \${GIT_COMMIT} | cut -c1-7)
                 """
             }

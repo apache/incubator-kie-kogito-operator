@@ -35,8 +35,8 @@ sed -i "s/version: $(getOperatorVersion)/version: $(getOperatorCsvVersion)/" $(g
 sed -i  "s|registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator.*|${1}|g" $(getBundleCsvFile)
 
 # replaces the IMAGE_REGISTRY registry value from stage to production
-sed -i '/name: IMAGE_REGISTRY/{n;s/registry.stage.redhat.io/registry.connect.redhat.com/}' $(getBundleCsvFile)
-sed -i '/name: IMAGE_REGISTRY/{n;s/registry.stage.redhat.io/registry.connect.redhat.com/}' rhpam-operator.yaml
+sed -i '/name: IMAGE_REGISTRY/{n;s/registry.stage.redhat.io/registry.redhat.io/}' $(getBundleCsvFile)
+sed -i '/name: IMAGE_REGISTRY/{n;s/registry.stage.redhat.io/registry.redhat.io/}' rhpam-operator.yaml
 
 
 # The script will update the containerImage inside CSV and remove the replaces field

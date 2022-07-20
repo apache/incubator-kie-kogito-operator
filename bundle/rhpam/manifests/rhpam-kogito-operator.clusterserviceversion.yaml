@@ -57,7 +57,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:0.0.0
+    containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
     description: IBM BAMOE Kogito Operator for deployment and management of Kogito
       services.
     operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
@@ -901,7 +901,7 @@ spec:
                   value: registry.connect.redhat.com/ibm-bamoe
                 - name: GROUP
                   value: RHPAM
-                image: registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
+                image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
                 livenessProbe:
                   httpGet:
                     path: /healthz

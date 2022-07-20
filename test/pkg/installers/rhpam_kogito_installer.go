@@ -98,7 +98,7 @@ func installRhpamKogitoUsingYaml() error {
 		operatorImageTag = fmt.Sprintf("%s/%s/%s:%s", openShiftInternalRegistryURL, rhpamKogitoNamespace, rhpamKogitoImageStreamName, imageTag)
 	}
 
-	regexp, err := regexp.Compile("registry.connect.redhat.com/ibm-bamoe/bamoe-kogito-rhel8-operator:.*")
+	regexp, err := regexp.Compile("registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:.*")
 	if err != nil {
 		return err
 	}
