@@ -11,7 +11,7 @@ metadata:
       services.
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-    repository: https://github.com/kiegroup/rhpam-kogito-operator
+    repository: https://github.com/kiegroup/kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
   name: rhpam-kogito-operator.0.0.0
@@ -517,7 +517,7 @@ spec:
   - name: Documentation
     url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
   - name: Source
-    url: https://github.com/kiegroup/rhpam-kogito-operator/
+    url: https://github.com/kiegroup/kogito-operator
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat
