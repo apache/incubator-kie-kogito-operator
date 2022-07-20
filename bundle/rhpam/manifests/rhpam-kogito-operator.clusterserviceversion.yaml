@@ -62,7 +62,7 @@ metadata:
       services.
     operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-    repository: https://github.com/kiegroup/rhpam-kogito-operator
+    repository: https://github.com/kiegroup/kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
   name: bamoe-kogito-operator.8.0.0-1
@@ -898,7 +898,7 @@ spec:
                 - name: RUNTIME_IMAGE
                   value: bamoe-kogito-runtime-jvm-rhel8
                 - name: IMAGE_REGISTRY
-                  value: registry.connect.redhat.com/ibm-bamoe
+                  value: registry.redhat.io/ibm-bamoe
                 - name: GROUP
                   value: RHPAM
                 image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.0
@@ -989,7 +989,7 @@ spec:
   - name: Documentation
     url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
   - name: Source
-    url: https://github.com/kiegroup/rhpam-kogito-operator/
+    url: https://github.com/kiegroup/kogito-operator
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat

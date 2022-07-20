@@ -62,7 +62,7 @@ spec:
           - name: RUNTIME_IMAGE
             value: bamoe-kogito-runtime-jvm-rhel8
           - name: IMAGE_REGISTRY
-            value: registry.connect.redhat.com/ibm-bamoe
+            value: registry.redhat.io/ibm-bamoe
           - name: GROUP
             value: RHPAM
       serviceAccountName: controller-manager
