@@ -34,6 +34,7 @@ Feature: Deploy Kogito Runtime
 
 #####
 
+  @rhpam
   Scenario Outline: Deploy DMN <example-service> with native <native> using Kogito Runtime
     Given Kogito Operator is deployed
     And Clone Kogito examples into local directory
@@ -55,13 +56,11 @@ Feature: Deploy Kogito Runtime
       }
       """
 
-    @rhpam
     @springboot
     Examples:
       | runtime    | example-service        | native   |
       | springboot | dmn-springboot-example | disabled |
 
-    @rhpam
     @quarkus
     Examples:
       | runtime    | example-service     | native   |
@@ -302,6 +301,7 @@ Feature: Deploy Kogito Runtime
 
   @events
   @kafka
+  @rhpam
   Scenario Outline: Deploy <example-service> with events and native <native> using Kogito Runtime
     Given Kogito Operator is deployed
     And Kafka Operator is deployed
@@ -342,13 +342,11 @@ Feature: Deploy Kogito Runtime
 
     Then Kafka instance "kogito-kafka" should contain at least 1 messages on topic "dmn-event-driven-responses" within 2 minutes
 
-    @rhpam
     @springboot
     Examples:
       | runtime    | example-service             | native   |
       | springboot | dmn-event-driven-springboot | disabled |
 
-    @rhpam
     @quarkus
     Examples:
       | runtime    | example-service          | native   |
