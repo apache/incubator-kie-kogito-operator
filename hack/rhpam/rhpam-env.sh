@@ -37,11 +37,11 @@ getOperatorPriorCsvVersion(){
 }
 
 getCsvFile() {
-  echo "${CSV_DIR}/rhpam-kogito-operator.clusterserviceversion.yaml"
+  echo "${CSV_DIR}/ibm-bamoe-kogito-operator.clusterserviceversion.yaml"
 }
 
 getBundleCsvFile() {
-  echo "${BUNDLE_CSV_DIR}/rhpam-kogito-operator.clusterserviceversion.yaml"
+  echo "${BUNDLE_CSV_DIR}/ibm-bamoe-kogito-operator.clusterserviceversion.yaml"
 }
 
 getRhpamManagerFile() {

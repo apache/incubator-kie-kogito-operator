@@ -61,9 +61,9 @@ bundle: manifests generate kustomize install-operator-sdk olm-manifests ## Gener
 	echo "calling IBM BAMOE bundle......................................"
 	sed -i "s/newTag: */newTag: ${VERSION}/g" ./config/manager/rhpam/kustomization.yaml
 	./hack/kogito-module-api.sh --disable
-	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/rhpam --output-dir=./config/manifests/rhpam --package=rhpam-kogito-operator -q
+	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/rhpam --output-dir=./config/manifests/rhpam --package=ibm-bamoe-kogito-operator -q
 	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests/rhpam | operator-sdk generate bundle --package=rhpam-kogito-operator --output-dir=bundle/rhpam -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(KUSTOMIZE) build config/manifests/rhpam | operator-sdk generate bundle --package=ibm-bamoe-kogito-operator --output-dir=bundle/rhpam -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle/rhpam
 	./hack/kogito-module-api.sh --enable
 	./hack/rhpam/rhpam-update-bundle.sh ${IMG}
