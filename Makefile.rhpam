@@ -26,8 +26,8 @@ all: generate manifests container-build
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	echo "calling IBM BAMOE manifests......................................"
 	./hack/kogito-module-api.sh --disable
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/rhpam/..." output:crd:artifacts:config=config/crd/rhpam/bases
-	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/rhpam" output:rbac:artifacts:config=config/rbac/rhpam
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/rhpam/..." output:crd:artifacts:config=config/crd/bamoe/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/rhpam" output:rbac:artifacts:config=config/rbac/bamoe
 	$(CONTROLLER_GEN) webhook paths="./..."
 	./hack/kogito-module-api.sh --enable
 
@@ -42,37 +42,37 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 
 container-build: ## Build the container image
 	echo "calling IBM BAMOE container-build......................................"
-	cekit -v --descriptor rhpam-image.yaml build $(BUILDER)
+	$(CEKIT_CMD) --descriptor bamoe-image.yaml build $(BUILDER)
 	$(BUILDER) tag ibm-bamoe/bamoe-kogito-rhel8-operator ${IMG}
 
 container-push: ## Push the container image
 	$(BUILDER) push ${IMG}
 
 container-prod-build: ## prod build
-	$(CEKIT_CMD) --descriptor=rhpam-image-prod.yaml build $(BUILDER)
+	$(CEKIT_CMD) --descriptor=bamoe-image-prod.yaml build $(BUILDER)
 
 .PHONY: bundle-prod-build
 bundle-prod-build: bundle
-	 $(CEKIT_CMD) --descriptor=rhpam-image-bundle.yaml build $(BUILDER)
+	 $(CEKIT_CMD) --descriptor=bamoe-image-bundle.yaml build $(BUILDER)
 
 ##@ Deployment
 
 bundle: manifests generate kustomize install-operator-sdk olm-manifests ## Generate bundle manifests and metadata, then validate generated files.
 	echo "calling IBM BAMOE bundle......................................"
-	sed -i "s/newTag: */newTag: ${VERSION}/g" ./config/manager/rhpam/kustomization.yaml
+	sed -i "s/newTag: */newTag: ${VERSION}/g" ./config/manager/bamoe/kustomization.yaml
 	./hack/kogito-module-api.sh --disable
-	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/rhpam --output-dir=./config/manifests/rhpam --package=rhpam-kogito-operator -q
-	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests/rhpam | operator-sdk generate bundle --package=rhpam-kogito-operator --output-dir=bundle/rhpam -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle/rhpam
+	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/bamoe --output-dir=./config/manifests/bamoe --package=bamoe-kogito-operator -q
+	cd config/manager/bamoe && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/manifests/bamoe | operator-sdk generate bundle --package=bamoe-kogito-operator --output-dir=bundle/bamoe -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle/bamoe
 	./hack/kogito-module-api.sh --enable
 	./hack/rhpam/rhpam-update-bundle.sh ${IMG}
 
 generate-installer: generate manifests kustomize
 	echo "calling IBM BAMOE generate-installer......................................"
-	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
-	sed -i "s/rhel8:.*/rhel8:${VERSION}/g" ./config/manager/rhpam/manager.yaml
-	$(KUSTOMIZE) build config/default/rhpam > rhpam-operator.yaml
+	cd config/manager/bamoe && $(KUSTOMIZE) edit set image controller=$(IMG)
+	sed -i "s/rhel8:.*/rhel8:${VERSION}/g" ./config/manager/bamoe/manager.yaml
+	$(KUSTOMIZE) build config/default/bamoe > bamoe-operator.yaml
 
 
 .PHONY: deploy-operator-on-ocp

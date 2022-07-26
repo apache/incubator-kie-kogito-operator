@@ -98,7 +98,7 @@ type TestConfig struct {
 
 const (
 	defaultOperatorYamlURI      = "../kogito-operator.yaml"
-	defaultRhpamOperatorYamlURI = "../rhpam-operator.yaml"
+	defaultRhpamOperatorYamlURI = "../bamoe-operator.yaml"
 	defaultCliPath              = "../build/_output/bin/kogito"
 
 	defaultOperatorProfilingDataAccessYamlURI = "../profiling/kogito-operator-profiling-data-access.yaml"
@@ -325,7 +325,7 @@ func GetOperatorYamlURI() string {
 	return env.operatorYamlURI
 }
 
-// GetRhpamOperatorYamlURI return the uri for rhpam-kogito-operator.yaml file
+// GetRhpamOperatorYamlURI return the uri for bamoe-kogito-operator.yaml file
 func GetRhpamOperatorYamlURI() string {
 	return env.rhpamOperatorYamlURI
 }

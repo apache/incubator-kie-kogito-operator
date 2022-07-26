@@ -22,7 +22,7 @@ labels:
   - name: operators.operatorframework.io.bundle.metadata.v1
     value: metadata/
   - name: operators.operatorframework.io.bundle.package.v1
-    value: rhpam-kogito-operator
+    value: bamoe-kogito-operator
   - name: operators.operatorframework.io.bundle.channels.v1
     value: 8.x
   - name: operators.operatorframework.io.bundle.channel.default.v1

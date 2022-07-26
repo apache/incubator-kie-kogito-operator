@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CSV_DIR="config/manifests/rhpam/bases"
-BUNDLE_CSV_DIR="bundle/rhpam/manifests"
+CSV_DIR="config/manifests/bamoe/bases"
+BUNDLE_CSV_DIR="bundle/bamoe/manifests"
 TEST_CONFIG_FILE="test/.default_config"
 
 DEPENDENT_CRDS_KEYS=(grafana hyperfoil infinispan kafka keycloak knative kogito mongodb)
@@ -37,11 +37,11 @@ getOperatorPriorCsvVersion(){
 }
 
 getCsvFile() {
-  echo "${CSV_DIR}/rhpam-kogito-operator.clusterserviceversion.yaml"
+  echo "${CSV_DIR}/bamoe-kogito-operator.clusterserviceversion.yaml"
 }
 
 getBundleCsvFile() {
-  echo "${BUNDLE_CSV_DIR}/rhpam-kogito-operator.clusterserviceversion.yaml"
+  echo "${BUNDLE_CSV_DIR}/bamoe-kogito-operator.clusterserviceversion.yaml"
 }
 
 getRhpamManagerFile() {

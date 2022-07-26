@@ -14,4 +14,4 @@ data:
       resourceName: d1731e98.kiegroup.org
 kind: ConfigMap
 metadata:
-  name: rhpam-kogito-operator-manager-config
+  name: bamoe-kogito-operator-manager-config
