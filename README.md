@@ -273,8 +273,8 @@ You can set those optional keys:
 *Default is ../kogito-operator.yaml*.
 - `cli_path` set the built CLI path.  
   *Default is ./build/_output/bin/kogito*.
-- `rhpam_operator_yaml_uri` Url or Path to rhpam-operator.yaml file.
-*Default is ../rhpam-operator.yaml*.
+- `rhpam_operator_yaml_uri` Url or Path to bamoe-operator.yaml file.
+*Default is ../bamoe-operator.yaml*.
 <!--- runtime -->
 - `services_{image_type}_{persistence_type}_image_tag` sets the services (jobs-service, data-index, ...) image tag.  
   image_type => data-index, explainibility, jobs-service, mgmt-console, task-console, trusty, trusty-ui  

@@ -20,13 +20,13 @@ script_dir_path=`dirname "${BASH_SOURCE[0]}"`
 source ${script_dir_path}/rhpam-env.sh
 
 # update opreator name.version
-sed -i "s/rhpam-kogito-operator.v$(getOperatorVersion)/bamoe-kogito-operator.$(getOperatorCsvVersion)/" $(getBundleCsvFile)
+sed -i "s/bamoe-kogito-operator.v$(getOperatorVersion)/bamoe-kogito-operator.$(getOperatorCsvVersion)/" $(getBundleCsvFile)
 
 # update selector operated-by
-sed -i "s/operated-by: rhpam-kogito-operator.0.0.0/operated-by: rhpam-kogito-operator.$(getOperatorCsvVersion)/" $(getBundleCsvFile)
+sed -i "s/operated-by: bamoe-kogito-operator.0.0.0/operated-by: bamoe-kogito-operator.$(getOperatorCsvVersion)/" $(getBundleCsvFile)
 
 # update the replaces field
-sed -i "s/replaces: rhpam-kogito-operator.0.0.0/replaces: bamoe-kogito-operator.v$(getOperatorPriorCsvVersion)/" $(getBundleCsvFile)
+sed -i "s/replaces: bamoe-kogito-operator.0.0.0/replaces: bamoe-kogito-operator.v$(getOperatorPriorCsvVersion)/" $(getBundleCsvFile)
 
 # update csv version
 sed -i "s/version: $(getOperatorVersion)/version: $(getOperatorCsvVersion)/" $(getBundleCsvFile)
@@ -36,7 +36,7 @@ sed -i  "s|registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator.*|${1}
 
 # replaces the IMAGE_REGISTRY registry value from stage to production
 sed -i '/name: IMAGE_REGISTRY/{n;s/registry.stage.redhat.io/registry.redhat.io/}' $(getBundleCsvFile)
-sed -i '/name: IMAGE_REGISTRY/{n;s/registry.stage.redhat.io/registry.redhat.io/}' rhpam-operator.yaml
+sed -i '/name: IMAGE_REGISTRY/{n;s/registry.stage.redhat.io/registry.redhat.io/}' bamoe-operator.yaml
 
 
 # The script will update the containerImage inside CSV and remove the replaces field

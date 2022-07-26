@@ -14,7 +14,7 @@ metadata:
     repository: https://github.com/kiegroup/kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
-  name: rhpam-kogito-operator.0.0.0
+  name: bamoe-kogito-operator.0.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -509,8 +509,8 @@ spec:
   - native
   - automation
   labels:
-    alm-owner-kogito: rhpam-kogito-operator
-    operated-by: rhpam-kogito-operator.0.0.0
+    alm-owner-kogito: bamoe-kogito-operator
+    operated-by: bamoe-kogito-operator.0.0.0
   links:
   - name: Product Page
     url: https://kogito.kie.org/

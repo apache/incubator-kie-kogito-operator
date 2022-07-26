@@ -28,7 +28,7 @@ import (
 
 const (
 	openShiftInternalRegistryURL             = "image-registry.openshift-image-registry.svc:5000"
-	rhpmaKogitoOperatorPullImageSecretPrefix = "rhpam-kogito-operator-controller-manager-dockercfg"
+	rhpmaKogitoOperatorPullImageSecretPrefix = "bamoe-kogito-operator-controller-manager-dockercfg"
 )
 
 var (
@@ -83,7 +83,7 @@ func installRhpamKogitoUsingYaml() error {
 
 	yamlContent, err := framework.ReadFromURI(config.GetRhpamOperatorYamlURI())
 	if err != nil {
-		framework.GetMainLogger().Error(err, "Error while reading rhpam-operator.yaml file")
+		framework.GetMainLogger().Error(err, "Error while reading bamoe-operator.yaml file")
 		return err
 	}
 
@@ -104,7 +104,7 @@ func installRhpamKogitoUsingYaml() error {
 	}
 	yamlContent = regexp.ReplaceAllString(yamlContent, operatorImageTag)
 
-	tempFilePath, err := framework.CreateTemporaryFile("rhpam-operator*.yaml", yamlContent)
+	tempFilePath, err := framework.CreateTemporaryFile("bamoe-operator*.yaml", yamlContent)
 	if err != nil {
 		framework.GetMainLogger().Error(err, "Error while storing adjusted YAML content to temporary file")
 		return err

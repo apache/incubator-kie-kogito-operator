@@ -1977,13 +1977,13 @@ status:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: rhpam-kogito-operator-controller-manager
+  name: bamoe-kogito-operator-controller-manager
   namespace: bamoe-kogito-operator-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: rhpam-kogito-operator-leader-election-role
+  name: bamoe-kogito-operator-leader-election-role
   namespace: bamoe-kogito-operator-system
 rules:
 - apiGroups:
@@ -2022,7 +2022,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: rhpam-kogito-operator-manager-role
+  name: bamoe-kogito-operator-manager-role
 rules:
 - apiGroups:
   - apps
@@ -2329,7 +2329,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: rhpam-kogito-operator-metrics-reader
+  name: bamoe-kogito-operator-metrics-reader
 rules:
 - nonResourceURLs:
   - /metrics
@@ -2339,7 +2339,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: rhpam-kogito-operator-proxy-role
+  name: bamoe-kogito-operator-proxy-role
 rules:
 - apiGroups:
   - authentication.k8s.io
@@ -2357,41 +2357,41 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: rhpam-kogito-operator-leader-election-rolebinding
+  name: bamoe-kogito-operator-leader-election-rolebinding
   namespace: bamoe-kogito-operator-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: rhpam-kogito-operator-leader-election-role
+  name: bamoe-kogito-operator-leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: rhpam-kogito-operator-controller-manager
+  name: bamoe-kogito-operator-controller-manager
   namespace: bamoe-kogito-operator-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: rhpam-kogito-operator-manager-rolebinding
+  name: bamoe-kogito-operator-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: rhpam-kogito-operator-manager-role
+  name: bamoe-kogito-operator-manager-role
 subjects:
 - kind: ServiceAccount
-  name: rhpam-kogito-operator-controller-manager
+  name: bamoe-kogito-operator-controller-manager
   namespace: bamoe-kogito-operator-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: rhpam-kogito-operator-proxy-rolebinding
+  name: bamoe-kogito-operator-proxy-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: rhpam-kogito-operator-proxy-role
+  name: bamoe-kogito-operator-proxy-role
 subjects:
 - kind: ServiceAccount
-  name: rhpam-kogito-operator-controller-manager
+  name: bamoe-kogito-operator-controller-manager
   namespace: bamoe-kogito-operator-system
 ---
 apiVersion: v1
@@ -2410,7 +2410,7 @@ data:
       resourceName: d1731e98.kiegroup.org
 kind: ConfigMap
 metadata:
-  name: rhpam-kogito-operator-manager-config
+  name: bamoe-kogito-operator-manager-config
   namespace: bamoe-kogito-operator-system
 ---
 apiVersion: v1
@@ -2418,7 +2418,7 @@ kind: Service
 metadata:
   labels:
     control-plane: controller-manager
-  name: rhpam-kogito-operator-controller-manager-metrics-service
+  name: bamoe-kogito-operator-controller-manager-metrics-service
   namespace: bamoe-kogito-operator-system
 spec:
   ports:
@@ -2434,7 +2434,7 @@ kind: Deployment
 metadata:
   labels:
     control-plane: controller-manager
-  name: rhpam-kogito-operator-controller-manager
+  name: bamoe-kogito-operator-controller-manager
   namespace: bamoe-kogito-operator-system
 spec:
   replicas: 1
@@ -2463,7 +2463,7 @@ spec:
         - --metrics-bind-address=127.0.0.1:8080
         - --leader-elect
         command:
-        - /usr/local/bin/rhpam-kogito-operator-manager
+        - /usr/local/bin/bamoe-kogito-operator-manager
         env:
         - name: WATCH_NAMESPACE
           valueFrom:
@@ -2502,5 +2502,5 @@ spec:
           allowPrivilegeEscalation: false
       securityContext:
         runAsNonRoot: true
-      serviceAccountName: rhpam-kogito-operator-controller-manager
+      serviceAccountName: bamoe-kogito-operator-controller-manager
       terminationGracePeriodSeconds: 10

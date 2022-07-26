@@ -4,11 +4,11 @@ description: Copy the bund files to the target image
 
 artifacts:
   - name: manifests
-    path: "../../../../bundle/rhpam/manifests"
+    path: "../../../../bundle/bamoe/manifests"
     dest: /manifests/
   - name: metadata
-    path: "../../../../bundle/rhpam/metadata"
+    path: "../../../../bundle/bamoe/metadata"
     dest: /metadata/
   - name: tests-scorecard
-    path: "../../../../bundle/rhpam/tests/scorecard/"
+    path: "../../../../bundle/bamoe/tests/scorecard/"
     dest: /tests/scorecard/
