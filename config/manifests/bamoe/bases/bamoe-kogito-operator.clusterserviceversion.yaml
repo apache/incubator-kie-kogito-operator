@@ -12,7 +12,7 @@ metadata:
     operators.operatorframework.io/builder: operator-sdk-v1.2.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     repository: https://github.com/kiegroup/kogito-operator
-    support: Red Hat
+    support: https://www.ibm.com/mysupport
     tectonic-visibility: ocs
   name: bamoe-kogito-operator.0.0.0
   namespace: placeholder
@@ -513,15 +513,15 @@ spec:
     operated-by: bamoe-kogito-operator.0.0.0
   links:
   - name: Product Page
-    url: https://kogito.kie.org/
+    url: https://ibm.com
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
+    url: https://www.ibm.com/docs/en/ibamoe
   - name: Source
     url: https://github.com/kiegroup/kogito-operator
   maintainers:
-  - email: bsig-cloud@redhat.com
-    name: Red Hat
+  - email: mysphelp@us.ibm.com
+    name: IBM
   maturity: beta
   provider:
-    name: Red Hat
+    name: IBM
   version: 0.0.0
