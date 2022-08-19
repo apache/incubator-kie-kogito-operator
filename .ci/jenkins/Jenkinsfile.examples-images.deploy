@@ -175,7 +175,7 @@ pipeline {
 
 void sendNotification() {
     if (params.SEND_NOTIFICATION) {
-        mailer.sendMarkdownTestSummaryNotification('Deploy', "[${helper.getBuildBranch()}] Kogito Examples Images", [env.KOGITO_CI_EMAIL_TO], "You can find test error logs here: ${BUILD_URL}/artifact/test/examples/logs/error/")
+        mailer.sendMarkdownTestSummaryNotification(env.JOB_ID ?: 'Deploy', "[${helper.getBuildBranch()}] Kogito Examples Images", [env.KOGITO_CI_EMAIL_TO], "You can find test error logs here: ${BUILD_URL}/artifact/test/examples/logs/error/")
     } else {
         echo 'No notification sent per configuration'
     }
