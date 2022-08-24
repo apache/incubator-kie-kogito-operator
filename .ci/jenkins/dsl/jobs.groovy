@@ -19,8 +19,8 @@ jenkins_path = '.ci/jenkins'
 setupDeployJob(Folder.PULLREQUEST_RUNTIMES_BDD)
 
 // Init branch
-setupExamplesImagesDeployJob(Folder.INIT_BRANCH, 'kogito-examples-images', [ JOB_ID: 'Init' ])
-setupInitBranch()
+setupExamplesImagesDeployJob(Folder.SETUP_BRANCH, 'kogito-examples-images', [ JOB_ID: 'Setup branch' ])
+createSetupBranchJob()
 
 // Nightly jobs
 setupProfilingJob()
@@ -62,8 +62,8 @@ void setupProfilingJob() {
     }
 }
 
-void setupInitBranch() {
-    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator', Folder.INIT_BRANCH, "${jenkins_path}/Jenkinsfile.init-branch", 'Kogito Cloud Operator Init Branch')
+void createSetupBranchJob() {
+    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator', Folder.SETUP_BRANCH, "${jenkins_path}/Jenkinsfile.setup-branch", 'Kogito Cloud Operator Init Branch')
     KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
@@ -77,6 +77,8 @@ void setupInitBranch() {
         GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
         AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
         GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
+
+        IS_MAIN_BRANCH: "${Utils.isMainBranch(this)}"
     ])
     KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
