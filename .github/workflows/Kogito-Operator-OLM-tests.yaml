@@ -51,7 +51,7 @@ jobs:
       - name: Install Cekit and dependencies
         run: |
           sudo apt install -y libkrb5-dev
-          sudo pip3 install cekit==3.8.0 odcs docker docker-squash
+          sudo pip3 install cekit==4.1.1 odcs docker==5.0.3 docker-squash
       - name: Build Operator Image
         env:
           BUILDER: docker
