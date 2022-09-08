@@ -3,27 +3,29 @@ module github.com/kiegroup/kogito-operator
 go 1.16
 
 require (
+	cloud.google.com/go v0.99.0 // indirect
 	github.com/RHsyseng/operator-utils v1.4.6-0.20210908015233-197f6b3e7a3d
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-logr/logr v0.4.0
-	github.com/gobuffalo/packr/v2 v2.8.3 // indirect
 	github.com/google/uuid v1.3.0
-	github.com/karrick/godirwalk v1.17.0 // indirect
+	github.com/googleapis/gnostic v0.5.1 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kiegroup/kogito-operator/apis v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/openshift/api v0.0.0-20210105115604-44119421ec6b
 	github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.50.0
-	github.com/rogpeppe/go-internal v1.8.1 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cobra v1.5.0
-	github.com/spf13/viper v1.10.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.19.0
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/sys v0.0.0-20220731174439-a90be440212d // indirect
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
 	golang.org/x/tools v0.1.12 // indirect
+	google.golang.org/api v0.62.0 // indirect
+	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
+	google.golang.org/grpc v1.42.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.20.7
 	k8s.io/apiextensions-apiserver v0.20.7
