@@ -2662,7 +2662,7 @@ spec:
         - /manager
         env:
         - name: BUILDER_IMAGE
-          value: kogito-builder
+          value: kogito-s2i-builder
         - name: RUNTIME_IMAGE
           value: kogito-runtime-jvm
         - name: RUNTIME_NATIVE_IMAGE

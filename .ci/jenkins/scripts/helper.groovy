@@ -381,7 +381,7 @@ Map getBDDBuildImageParameters(String paramsPrefix = defaultImageParamsPrefix) {
     String nameSuffix = getImageNameSuffix(paramsPrefix) ? "-${getImageNameSuffix(paramsPrefix)}" : ''
     String tag = getImageTag(paramsPrefix) ? ":${getImageTag(paramsPrefix)}" : ''
 
-    testParamsMap['build_builder_image_tag'] = "${registry}/kogito-builder${nameSuffix}${tag}"
+    testParamsMap['build_builder_image_tag'] = "${registry}/kogito-s2i-builder${nameSuffix}${tag}"
     testParamsMap['build_runtime_jvm_image_tag'] = "${registry}/kogito-runtime-jvm${nameSuffix}${tag}"
     testParamsMap['build_runtime_native_image_tag'] = "${registry}/kogito-runtime-native${nameSuffix}${tag}"
 
