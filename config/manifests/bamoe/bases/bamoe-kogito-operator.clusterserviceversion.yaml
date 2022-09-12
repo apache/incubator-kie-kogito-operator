@@ -524,4 +524,5 @@ spec:
   maturity: beta
   provider:
     name: IBM
+  replaces: bamoe-kogito-operator.0.0.0
   version: 0.0.0
