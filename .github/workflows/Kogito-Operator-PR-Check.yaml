@@ -9,7 +9,7 @@ on:
       - "Makefile"
 env:
   OPERATOR_SDK_VERSION: v1.11.0
-  GO_VERSION: 1.16
+  GO_VERSION: 1.17
 jobs:
   golint:
     name: Lint

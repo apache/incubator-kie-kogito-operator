@@ -1,6 +1,6 @@
 module github.com/kiegroup/kogito-operator/test
 
-go 1.16
+go 1.17
 
 require (
 	github.com/cucumber/gherkin-go/v11 v11.0.0

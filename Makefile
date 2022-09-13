@@ -69,6 +69,8 @@ GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
+# set -mod=mod flag to avoid build issues: missing go.sum entry; to add it: ...
+GOFLAGS=-mod=mod
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.

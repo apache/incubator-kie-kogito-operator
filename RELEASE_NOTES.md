@@ -1,7 +1,6 @@
 <!-- Keep them in alphabetical order -->
 ## Enhancements
-- [KOGITO-7481](https://issues.redhat.com/browse/KOGITO-7481) - Update the kube-rbac-proxy to the latest version
-- [KOGITO-6297](https://issues.redhat.com/browse/KOGITO-6297) - Add example in kogito-operator repo
+- [KOGITO-7922](https://issues.redhat.com/browse/KOGITO-7922) - Update Kogito Operator fo Go 1.17
 
 ## Bug Fixes
 

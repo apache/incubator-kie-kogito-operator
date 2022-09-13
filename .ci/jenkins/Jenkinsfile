@@ -11,7 +11,7 @@ pipeline {
         label 'kogito-operator-node && !master'
     }
     tools {
-        go 'golang-1.16'
+        go 'golang-1.17'
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
