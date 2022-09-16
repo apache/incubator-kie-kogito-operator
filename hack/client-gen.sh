@@ -42,7 +42,7 @@ set_up() {
   rm -rf listers
   go mod download k8s.io/code-generator
   error_handler $? "Failed to add k8s.io/code-generator to mod"
-  go install k8s.io/code-generator/cmd/client-gen/generators@"${generator_version}"
+  go get k8s.io/code-generator/cmd/client-gen/generators@"${generator_version}"
   error_handler $? "Failed to add k8s.io/code-generator to mod"
 }
 
