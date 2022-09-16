@@ -64,7 +64,7 @@ in your Golang project. For this to  work, you just have to import our `client` 
 
 ```shell script
 # client depends on the `api` module
-go get github.com/kiegroup/kogito-operator/client {VERSION}
+go install github.com/kiegroup/kogito-operator/client@{VERSION}
 ```
 
 Replace `{VERSION}` with the [latest release](https://github.com/kiegroup/kogito-operator/releases).
@@ -139,7 +139,7 @@ For code contributions, review the following prerequisites:
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
 - [Operator SDK](https://github.com/operator-framework/operator-sdk) v1.11.0
 - [Go](https://golang.org/) v1.17 is installed.
-- [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go get -u golang.org/x/lint/golint
+- [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go install golang.org/x/lint/golint@latest
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
 - [Python 3.x](https://www.python.org/downloads/) v3.x is installed
 - [Cekit](https://cekit.io/) v4.0.0+ is installed

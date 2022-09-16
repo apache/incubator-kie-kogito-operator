@@ -67,7 +67,7 @@ are the specific installation commands/links for Fedora:
 Go, Golint, Python 3.x, CEKit:
 ```sh
 sudo dnf install go python3 python3-pip cekit
-go get -u golang.org/x/lint/golint
+go install golang.org/x/lint/golint@latest
 ```
 
 On other Linux distributions, it is advised to [install CEKit](https://docs.cekit.io/en/latest/handbook/installation/instructions.html#other-systems)
