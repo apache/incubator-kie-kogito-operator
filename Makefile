@@ -161,8 +161,6 @@ container-push: ## Push the docker image
 profiling-build: ## Build the profiling docker image
 	cp kogito-image.yaml kogito-image.yaml.save && \
 	cp profiling/image.yaml kogito-image.yaml && \
-	id
-	podman unshare cat /proc/self/uid_map
 	cekit -v --descriptor kogito-image.yaml build $(BUILDER); \
 	mv kogito-image.yaml.save kogito-image.yaml
 	$(BUILDER) tag operator-runtime ${PROFILING_IMG}
