@@ -34,10 +34,6 @@ pipeline {
                     sh ' git config --global user.name "kie user"'
                     githubscm.checkoutIfExists('kogito-operator', changeAuthor, changeBranch, 'kiegroup', changeTarget, true, ['token' : 'GITHUB_TOKEN', 'usernamePassword' : 'user-kie-ci10'])
                     sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
-                    sh """
-                        usermod --add-subuids 10000-75535 \$(whoami)
-                        usermod --add-subgids 10000-75535 \$(whoami)
-                    """
                 }
             }
         }
