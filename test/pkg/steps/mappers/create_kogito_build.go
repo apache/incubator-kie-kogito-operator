@@ -17,13 +17,13 @@ package mappers
 import (
 	"errors"
 	"fmt"
+	"github.com/cucumber/messages-go"
 
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
 
 	api "github.com/kiegroup/kogito-operator/apis"
 
-	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-operator/test/pkg/types"
 )
 
@@ -43,7 +43,7 @@ const (
 )
 
 // MapKogitoBuildTable maps Cucumber table to KogitoBuildHolder
-func MapKogitoBuildTable(table *godog.Table, buildHolder *types.KogitoBuildHolder) error {
+func MapKogitoBuildTable(table *messages.PickleTable, buildHolder *types.KogitoBuildHolder) error {
 	for _, row := range table.Rows {
 		// Try to map configuration row to KogitoServiceHolder
 		mappingFound, serviceMapErr := MapKogitoServiceTableRow(row, buildHolder.KogitoServiceHolder)

@@ -21,20 +21,18 @@ package gherkin
 import (
 	"bytes"
 	"fmt"
+	"github.com/cucumber/gherkin-go"
+	"github.com/cucumber/messages-go"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/cucumber/gherkin-go/v11"
-	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v10"
 )
 
 // Feature represents a Gherkin feature
 type Feature struct {
 	Document  *messages.GherkinDocument
-	Scenarios []*godog.Scenario
+	Scenarios []*messages.Scenario
 }
 
 // ParseFeatures parse features from given paths
@@ -59,10 +57,10 @@ func ParseFeatures(filter string, paths []string) ([]*Feature, error) {
 		}
 
 		for _, ft := range fts {
-			if _, duplicate := features[ft.Document.Feature.GetName()]; duplicate {
+			if _, duplicate := features[ft.Document.Feature.Name]; duplicate {
 				continue
 			}
-			features[ft.Document.Feature.GetName()] = ft
+			features[ft.Document.Feature.Name] = ft
 		}
 	}
 	return filterFeatures(filter, features), nil
@@ -147,7 +145,7 @@ func applyTagFilter(tags string, ft *Feature) {
 	if len(tags) == 0 {
 		return
 	}
-	var scenarios []*godog.Scenario
+	var scenarios []*messages.Scenario
 	for _, scenario := range ft.Scenarios {
 		if matchesTags(tags, scenario.Tags) {
 			scenarios = append(scenarios, scenario)
@@ -158,7 +156,7 @@ func applyTagFilter(tags string, ft *Feature) {
 }
 
 // based on http://behat.readthedocs.org/en/v2.5/guides/6.cli.html#gherkin-filters
-func matchesTags(filter string, tags []*messages.Pickle_PickleTag) (ok bool) {
+func matchesTags(filter string, tags []*messages.Tag) (ok bool) {
 	ok = true
 	for _, andTags := range strings.Split(filter, "&&") {
 		var okComma bool
@@ -176,7 +174,7 @@ func matchesTags(filter string, tags []*messages.Pickle_PickleTag) (ok bool) {
 	return
 }
 
-func hasTag(tags []*messages.Pickle_PickleTag, tag string) bool {
+func hasTag(tags []*messages.Tag, tag string) bool {
 	for _, t := range tags {
 		tName := strings.Replace(t.Name, "@", "", -1)
 

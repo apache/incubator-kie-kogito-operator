@@ -16,6 +16,7 @@ package steps
 
 import (
 	"fmt"
+	"github.com/cucumber/messages-go"
 	"strings"
 	"sync"
 	"time"
@@ -82,15 +83,15 @@ func (data *Data) RegisterLogsKubernetesObjects(objects ...client.ObjectList) {
 }
 
 // BeforeScenario configure the data before a scenario is launched
-func (data *Data) BeforeScenario(scenario *godog.Scenario) error {
+func (data *Data) BeforeScenario(scenario *messages.Scenario) error {
 	data.StartTime = time.Now()
 	data.Namespace = getNamespaceName()
 	data.KogitoExamplesLocation = createTemporaryFolder()
-	data.ScenarioName = scenario.GetName()
+	data.ScenarioName = scenario.Name
 	data.ScenarioContext = map[string]string{}
 
 	var err error
-	framework.GetLogger(data.Namespace).Info(fmt.Sprintf("Scenario %s", scenario.GetName()))
+	framework.GetLogger(data.Namespace).Info(fmt.Sprintf("Scenario %s", scenario.Name))
 	go func() {
 		err = framework.StartPodLogCollector(data.Namespace)
 	}()
@@ -175,15 +176,15 @@ func logScenarioDuration(data *Data) {
 	framework.GetLogger(data.Namespace).Info("Scenario duration", "duration", duration.String())
 }
 
-func handleScenarioResult(data *Data, scenario *godog.Scenario, err error) {
-	newLogFolderName := fmt.Sprintf("%s - %s", strings.ReplaceAll(scenario.GetName(), "/", "_"), data.Namespace)
+func handleScenarioResult(data *Data, scenario *messages.Scenario, err error) {
+	newLogFolderName := fmt.Sprintf("%s - %s", strings.ReplaceAll(scenario.Name, "/", "_"), data.Namespace)
 	var parentLogFolder string
 	if err != nil {
-		framework.GetLogger(data.Namespace).Error(err, "Error in scenario", "scenarioName", scenario.GetName())
+		framework.GetLogger(data.Namespace).Error(err, "Error in scenario", "scenarioName", scenario.Name)
 		parentLogFolder = "error"
 	} else {
 		parentLogFolder = "success"
-		framework.GetLogger(data.Namespace).Info("Successful scenario", "scenarioName", scenario.GetName())
+		framework.GetLogger(data.Namespace).Info("Successful scenario", "scenarioName", scenario.Name)
 	}
 	err = framework.RenameLogFolder(data.Namespace, parentLogFolder, newLogFolderName)
 	if err != nil {
