@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-default_operator_sdk_version=v1.11.0
+default_operator_sdk_version=v1.21.0
 
 if [[ -z ${OPERATOR_SDK_VERSION} ]]; then
     OPERATOR_SDK_VERSION=$default_operator_sdk_version

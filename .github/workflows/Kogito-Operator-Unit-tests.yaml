@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ENVTEST_ASSETS_DIR: testbin
-      OPERATOR_SDK_VERSION: v1.11.0
+      OPERATOR_SDK_VERSION: v1.21.0
       CGO_ENABLED: 0
     steps:
       - name: Checkout Code
