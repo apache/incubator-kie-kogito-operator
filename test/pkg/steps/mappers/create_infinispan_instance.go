@@ -16,8 +16,7 @@ package mappers
 
 import (
 	"fmt"
-
-	"github.com/cucumber/godog"
+	"github.com/cucumber/messages-go"
 )
 
 // *** Whenever you add new parsing functionality here please add corresponding DataTable example to every file in steps which can use the functionality ***
@@ -29,7 +28,7 @@ const (
 )
 
 // MapInfinispanCredentialsFromTable maps Cucumber table to Infinispan credentials
-func MapInfinispanCredentialsFromTable(table *godog.Table) (username, password string, err error) {
+func MapInfinispanCredentialsFromTable(table *messages.PickleTable) (username, password string, err error) {
 	if len(table.Rows) == 0 { // Using default configuration
 		return
 	}

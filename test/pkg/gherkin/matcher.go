@@ -14,7 +14,9 @@
 
 package gherkin
 
-import "github.com/cucumber/godog"
+import (
+	"github.com/cucumber/messages-go"
+)
 
 // MatchingFeatureWithTags checks whether any scenario in the feature has the given tags
 func MatchingFeatureWithTags(filterTags string, features []*Feature) bool {
@@ -27,7 +29,7 @@ func MatchingFeatureWithTags(filterTags string, features []*Feature) bool {
 }
 
 // MatchesScenariosWithTags checks whether the given scenarioin has the given tags
-func MatchesScenariosWithTags(filterTags string, scenarios []*godog.Scenario) bool {
+func MatchesScenariosWithTags(filterTags string, scenarios []*messages.Scenario) bool {
 	for _, scenario := range scenarios {
 		if matchesTags(filterTags, scenario.Tags) {
 			return true
