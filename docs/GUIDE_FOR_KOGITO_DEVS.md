@@ -67,7 +67,7 @@ are the specific installation commands/links for Fedora:
 Go, Golint, Python 3.x, CEKit:
 ```sh
 sudo dnf install go python3 python3-pip cekit
-go get -u golang.org/x/lint/golint
+go install golang.org/x/lint/golint@latest
 ```
 
 On other Linux distributions, it is advised to [install CEKit](https://docs.cekit.io/en/latest/handbook/installation/instructions.html#other-systems)
@@ -75,10 +75,10 @@ using [`venv`](https://docs.python.org/3/tutorial/venv.html).
 
 ### Multiple Commands
 - [Docker](https://docs.docker.com/engine/install/fedora/) 
-- [Operator SDK](https://sdk.operatorframework.io/docs/installation/#install-from-github-release) v1.11.0
-  - make sure to set `OPERATOR_SDK_DL_URL` to v1.11.0:
+- [Operator SDK](https://sdk.operatorframework.io/docs/installation/#install-from-github-release) v1.21.0
+  - make sure to set `OPERATOR_SDK_DL_URL` to v1.21.0:
     ```sh
-    export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/download/v1.11.0
+    export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/tag/v1.21.0
     ```
 - [Golangci-lint](https://golangci-lint.run/usage/install/#linux-and-windows)
 
