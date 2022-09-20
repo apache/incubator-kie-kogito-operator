@@ -9,8 +9,8 @@ pipeline {
 
     // Needed for local build
     tools {
-        maven env.BUILD_MAVEN_TOOL
-        jdk env.BUILD_JDK_TOOL
+        jdk 'kie-jdk11'
+        maven 'kie-maven-3.8.1'
         go 'golang-1.17'
     }
 
