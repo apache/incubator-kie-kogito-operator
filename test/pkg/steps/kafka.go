@@ -73,7 +73,7 @@ func (data *Data) kafkaInstanceShouldContainAtLeastMessagesOnTopicWithinMinutes(
 }
 
 func (data *Data) sendMessageToKafkaInstanceOnTopic(instanceName, topic string, body *godog.DocString) error {
-	return framework.SendMessageOnTopic(data.Namespace, instanceName, topic, body.GetContent())
+	return framework.SendMessageOnTopic(data.Namespace, instanceName, topic, body.Content)
 }
 
 func getKafkaDefaultResource(name, namespace string) *v1beta2.Kafka {

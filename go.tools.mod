@@ -1,6 +1,6 @@
 module github.com/kiegroup/kogito-operator
 
-go 1.16
+go 1.17
 
 require (
 	github.com/google/addlicense v1.0.0 // indirect
