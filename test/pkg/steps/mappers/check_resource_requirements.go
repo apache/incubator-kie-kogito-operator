@@ -16,7 +16,8 @@ package mappers
 
 import (
 	"fmt"
-	"github.com/cucumber/messages-go"
+
+	"github.com/cucumber/messages-go/v16"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

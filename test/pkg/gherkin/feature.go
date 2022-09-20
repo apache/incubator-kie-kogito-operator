@@ -21,12 +21,13 @@ package gherkin
 import (
 	"bytes"
 	"fmt"
-	"github.com/cucumber/gherkin-go"
-	"github.com/cucumber/messages-go"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/cucumber/gherkin-go/v19"
+	"github.com/cucumber/messages-go/v16"
 )
 
 // Feature represents a Gherkin feature

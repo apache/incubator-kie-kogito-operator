@@ -17,7 +17,8 @@ package mappers
 import (
 	"errors"
 	"fmt"
-	"github.com/cucumber/messages-go"
+
+	"github.com/cucumber/messages-go/v16"
 
 	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"

@@ -16,7 +16,8 @@ package mappers
 
 import (
 	"fmt"
-	"github.com/cucumber/messages-go"
+
+	"github.com/cucumber/messages-go/v16"
 )
 
 // TableRow represents a row of godog.Table made to a step definition

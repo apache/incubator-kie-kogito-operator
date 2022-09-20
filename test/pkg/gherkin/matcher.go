@@ -15,7 +15,7 @@
 package gherkin
 
 import (
-	"github.com/cucumber/messages-go"
+	"github.com/cucumber/messages-go/v16"
 )
 
 // MatchingFeatureWithTags checks whether any scenario in the feature has the given tags

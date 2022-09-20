@@ -16,8 +16,9 @@ package mappers
 
 import (
 	"fmt"
-	"github.com/cucumber/messages-go"
 	"strings"
+
+	"github.com/cucumber/messages-go/v16"
 )
 
 const (

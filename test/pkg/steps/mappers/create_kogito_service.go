@@ -16,7 +16,8 @@ package mappers
 
 import (
 	"fmt"
-	"github.com/cucumber/messages-go"
+
+	"github.com/cucumber/messages-go/v16"
 
 	"github.com/kiegroup/kogito-operator/test/pkg/types"
 	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"

@@ -16,9 +16,10 @@ package mappers
 
 import (
 	"fmt"
-	"github.com/cucumber/messages-go"
 
-	"github.com/kiegroup/kogito-operator/apis"
+	"github.com/cucumber/messages-go/v16"
+
+	api "github.com/kiegroup/kogito-operator/apis"
 	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 )
 

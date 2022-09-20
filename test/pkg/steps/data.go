@@ -16,10 +16,11 @@ package steps
 
 import (
 	"fmt"
-	"github.com/cucumber/messages-go"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/cucumber/messages-go/v16"
 
 	"github.com/cucumber/godog"
 	"github.com/kiegroup/kogito-operator/test/pkg/config"
