@@ -32,8 +32,8 @@ import (
 
 // Feature represents a Gherkin feature
 type Feature struct {
-	Document  *messages.GherkinDocument
-	Scenarios []*messages.Scenario
+	Document *messages.GherkinDocument
+	Pickles  []*messages.Pickle
 }
 
 // ParseFeatures parse features from given paths
@@ -101,11 +101,11 @@ func parseFeatureFile(path string, newIDFunc func() string) (*Feature, error) {
 		return nil, fmt.Errorf("%s - %v", path, err)
 	}
 
-	scenarios := gherkin.Pickles(*ft, path, newIDFunc)
+	pickles := gherkin.Pickles(*ft, path, newIDFunc)
 
 	return &Feature{
-		Document:  ft,
-		Scenarios: scenarios,
+		Document: ft,
+		Pickles:  pickles,
 	}, nil
 }
 
@@ -146,18 +146,18 @@ func applyTagFilter(tags string, ft *Feature) {
 	if len(tags) == 0 {
 		return
 	}
-	var scenarios []*messages.Scenario
-	for _, scenario := range ft.Scenarios {
-		if matchesTags(tags, scenario.Tags) {
-			scenarios = append(scenarios, scenario)
+	var pickles []*messages.Pickle
+	for _, pickle := range ft.Pickles {
+		if matchesTags(tags, pickle.Tags) {
+			pickles = append(pickles, pickle)
 		}
 	}
 
-	ft.Scenarios = scenarios
+	ft.Pickles = pickles
 }
 
 // based on http://behat.readthedocs.org/en/v2.5/guides/6.cli.html#gherkin-filters
-func matchesTags(filter string, tags []*messages.Tag) (ok bool) {
+func matchesTags(filter string, tags []*messages.PickleTag) (ok bool) {
 	ok = true
 	for _, andTags := range strings.Split(filter, "&&") {
 		var okComma bool
@@ -175,7 +175,7 @@ func matchesTags(filter string, tags []*messages.Tag) (ok bool) {
 	return
 }
 
-func hasTag(tags []*messages.Tag, tag string) bool {
+func hasTag(tags []*messages.PickleTag, tag string) bool {
 	for _, t := range tags {
 		tName := strings.Replace(t.Name, "@", "", -1)
 

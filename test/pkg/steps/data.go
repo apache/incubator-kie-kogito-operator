@@ -84,7 +84,7 @@ func (data *Data) RegisterLogsKubernetesObjects(objects ...client.ObjectList) {
 }
 
 // BeforeScenario configure the data before a scenario is launched
-func (data *Data) BeforeScenario(scenario *messages.Scenario) error {
+func (data *Data) BeforeScenario(scenario *messages.Pickle) error {
 	data.StartTime = time.Now()
 	data.Namespace = getNamespaceName()
 	data.KogitoExamplesLocation = createTemporaryFolder()
@@ -177,7 +177,7 @@ func logScenarioDuration(data *Data) {
 	framework.GetLogger(data.Namespace).Info("Scenario duration", "duration", duration.String())
 }
 
-func handleScenarioResult(data *Data, scenario *messages.Scenario, err error) {
+func handleScenarioResult(data *Data, scenario *messages.Pickle, err error) {
 	newLogFolderName := fmt.Sprintf("%s - %s", strings.ReplaceAll(scenario.Name, "/", "_"), data.Namespace)
 	var parentLogFolder string
 	if err != nil {
