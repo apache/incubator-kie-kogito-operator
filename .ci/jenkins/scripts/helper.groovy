@@ -67,7 +67,7 @@ void loginRegistry(String paramsPrefix = defaultImageParamsPrefix) {
 }
 
 void installGitHubReleaseCLI() {
-    sh 'go get github.com/github-release/github-release'
+    sh 'go install github.com/github-release/github-release@latest'
 }
 
 void createRelease() {

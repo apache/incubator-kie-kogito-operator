@@ -6,6 +6,8 @@
 - [KOGITO-5910](https://issues.redhat.com/browse/KOGITO-5910) - Unify kogito community and product into one
 - [KOGITO-5976](https://issues.redhat.com/browse/KOGITO-5976) - Kogito operator de-scoping - support for AllNamespaces
 - [KOGITO-6907](https://issues.redhat.com/browse/KOGITO-6907) - Add subscription annotations to and Kogito operatorsts
+- [KOGITO-7922](https://issues.redhat.com/browse/KOGITO-7922) - Update Kogito Operator to Go 1.17 and operator-sdk to 1.21
+
 
 ## Bug Fixes
 - [KOGITO-5512](https://issues.redhat.com/browse/KOGITO-5512) - controller-gen doesn't generate CRD's
