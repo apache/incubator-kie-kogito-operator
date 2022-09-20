@@ -9,7 +9,7 @@ pipeline {
     }
 
     tools {
-        go 'golang-1.16'
+        go 'golang-1.17'
     }
 
     options {
