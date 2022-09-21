@@ -75,8 +75,8 @@ func (data *Data) completeTaskOnServiceAndProcessWithName(taskName, serviceName,
 		return fmt.Errorf("task with name %s not found", taskName)
 	}
 
-	bodyContent := data.ResolveWithScenarioContext(body.GetContent())
-	err = framework.CompleteTask(data.Namespace, uri, processName, processInstanceID, taskName, taskID, body.GetMediaType(), bodyContent)
+	bodyContent := data.ResolveWithScenarioContext(body.Content)
+	err = framework.CompleteTask(data.Namespace, uri, processName, processInstanceID, taskName, taskID, body.MediaType, bodyContent)
 	if err != nil {
 		return err
 	}
@@ -104,8 +104,8 @@ func (data *Data) completeTaskOnServiceAndProcessWithNameAndUser(taskName, servi
 		return fmt.Errorf("task with name %s not found", taskName)
 	}
 
-	bodyContent := data.ResolveWithScenarioContext(body.GetContent())
-	err = framework.CompleteTaskByUser(data.Namespace, uri, processName, processInstanceID, taskName, taskID, user, body.GetMediaType(), bodyContent)
+	bodyContent := data.ResolveWithScenarioContext(body.Content)
+	err = framework.CompleteTaskByUser(data.Namespace, uri, processName, processInstanceID, taskName, taskID, user, body.MediaType, bodyContent)
 	if err != nil {
 		return err
 	}

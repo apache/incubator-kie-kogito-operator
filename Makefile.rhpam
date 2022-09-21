@@ -11,6 +11,16 @@ IMAGE_TAG_BASE = registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
+# BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
+BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+
+# USE_IMAGE_DIGESTS defines if images are resolved via tags or digests
+# You can enable this value if you would like to use SHA Based Digests
+# To enable set flag to true
+USE_IMAGE_DIGESTS ?= false
+ifeq ($(USE_IMAGE_DIGESTS), true)
+    BUNDLE_GEN_FLAGS += --use-image-digests
+endif
 
 # A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
 # These images MUST exist in a registry and be pull-able.
@@ -26,7 +36,7 @@ all: generate manifests container-build
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	echo "calling IBM BAMOE manifests......................................"
 	./hack/kogito-module-api.sh --disable
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./apis/rhpam/..." output:crd:artifacts:config=config/crd/bamoe/bases
+	$(CONTROLLER_GEN) crd paths="./apis/rhpam/..." output:crd:artifacts:config=config/crd/bamoe/bases
 	$(CONTROLLER_GEN) rbac:roleName=manager-role paths="./controllers/rhpam" output:rbac:artifacts:config=config/rbac/bamoe
 	$(CONTROLLER_GEN) webhook paths="./..."
 	./hack/kogito-module-api.sh --enable
@@ -63,7 +73,7 @@ bundle: manifests generate kustomize install-operator-sdk olm-manifests ## Gener
 	./hack/kogito-module-api.sh --disable
 	operator-sdk generate kustomize manifests --apis-dir=apis/rhpam --input-dir=./config/manifests/bamoe --output-dir=./config/manifests/bamoe --package=bamoe-kogito-operator -q
 	cd config/manager/bamoe && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests/bamoe | operator-sdk generate bundle --package=bamoe-kogito-operator --output-dir=bundle/bamoe -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(KUSTOMIZE) build config/manifests/bamoe | operator-sdk generate bundle --package=bamoe-kogito-operator --output-dir=bundle/bamoe $(BUNDLE_GEN_FLAGS)
 	operator-sdk bundle validate ./bundle/bamoe
 	./hack/kogito-module-api.sh --enable
 	./hack/rhpam/rhpam-update-bundle.sh ${IMG}
