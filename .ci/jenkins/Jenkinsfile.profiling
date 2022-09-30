@@ -4,7 +4,7 @@ helper = null
 
 pipeline {
     agent {
-        label 'kogito-operator-node && !master'
+        label 'kogito-operator-node && !built-in'
     }
 
     // Needed for local build
