@@ -26,7 +26,7 @@ sed -i "s/bamoe-kogito-operator.v$(getOperatorVersion)/bamoe-kogito-operator.$(g
 sed -i "s/operated-by: bamoe-kogito-operator.0.0.0/operated-by: bamoe-kogito-operator.$(getOperatorCsvVersion)/" $(getBundleCsvFile)
 
 # update the replaces field
-sed -i "s/replaces: bamoe-kogito-operator.0.0.0/replaces: bamoe-kogito-operator.v$(getOperatorPriorCsvVersion)/" $(getBundleCsvFile)
+sed -i "s/replaces: bamoe-kogito-operator.0.0.0/replaces: bamoe-kogito-operator.$(getOperatorPriorCsvVersion)/" $(getBundleCsvFile)
 
 # update csv version
 sed -i "s/version: $(getOperatorVersion)/version: $(getOperatorCsvVersion)/" $(getBundleCsvFile)

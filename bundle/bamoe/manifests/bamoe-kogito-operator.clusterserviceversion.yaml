@@ -998,5 +998,5 @@ spec:
   maturity: beta
   provider:
     name: IBM
-  replaces: bamoe-kogito-operator.v8.0.0-1
+  replaces: bamoe-kogito-operator.8.0.0-1
   version: 8.0.1-1
