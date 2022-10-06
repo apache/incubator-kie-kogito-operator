@@ -2693,6 +2693,9 @@ spec:
             memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - mountPath: /tmp/profile
           name: profiling-data
