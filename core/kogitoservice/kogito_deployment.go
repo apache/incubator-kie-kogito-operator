@@ -21,6 +21,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 	"strconv"
 	"strings"
 )
@@ -69,7 +70,8 @@ func (d *kogitoDeploymentHandler) CreateDeployment(service api.KogitoService, re
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name: service.GetName(),
+							Name:  service.GetName(),
+							Image: resolvedImage,
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          framework.DefaultPortName,
@@ -81,8 +83,18 @@ func (d *kogitoDeploymentHandler) CreateDeployment(service api.KogitoService, re
 							LivenessProbe:   probes.liveness,
 							ReadinessProbe:  probes.readiness,
 							ImagePullPolicy: corev1.PullAlways,
-							Image:           resolvedImage,
+							SecurityContext: &corev1.SecurityContext{
+								Capabilities: &corev1.Capabilities{
+									Drop: []corev1.Capability{"ALL"},
+								},
+								Privileged:               pointer.Bool(false),
+								RunAsNonRoot:             pointer.Bool(true),
+								AllowPrivilegeEscalation: pointer.Bool(false),
+							},
 						},
+					},
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsNonRoot: pointer.Bool(true),
 					},
 				},
 			},
