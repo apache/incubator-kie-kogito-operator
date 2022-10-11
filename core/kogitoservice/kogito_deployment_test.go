@@ -20,6 +20,8 @@ import (
 	"github.com/kiegroup/kogito-operator/core/test"
 	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/kiegroup/kogito-operator/version/app"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/pointer"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -80,4 +82,60 @@ func Test_createRequiredDeployment_CheckNilEnvs(t *testing.T) {
 	deployment := deploymentHandler.CreateDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)
 	assert.NotNil(t, deployment)
 	assert.Nil(t, deployment.Spec.Template.Spec.Containers[0].Env)
+}
+
+func Test_createRequiredDeployment_CheckSecContext(t *testing.T) {
+	dataIndex := test.CreateFakeDataIndex(t.Name())
+	managementConsole := test.CreateFakeMgmtConsole(t.Name())
+	jobsService := test.CreateFakeJobsService(t.Name())
+	explainability := test.CreateFakeExplainabilityService(t.Name())
+	taskConsole := test.CreateFakeTaskConsole(t.Name())
+	trustUI := test.CreateFakeTrustyUIService(t.Name())
+	trustAI := test.CreateFakeTrustyAIService(t.Name())
+	serviceDef := ServiceDefinition{}
+	cli := test.NewFakeClientBuilder().Build()
+	context := operator.Context{
+		Client: cli,
+		Log:    test.TestLogger,
+		Scheme: meta.GetRegisteredSchema(),
+	}
+	deploymentHandler := NewKogitoDeploymentHandler(context)
+	dataIndexDeployment := deploymentHandler.CreateDeployment(dataIndex, defaultKogitoImageFullTag, serviceDef)
+	managementConsoleDeployment := deploymentHandler.CreateDeployment(managementConsole, defaultKogitoImageFullTag, serviceDef)
+	jobsServiceDeployment := deploymentHandler.CreateDeployment(jobsService, defaultKogitoImageFullTag, serviceDef)
+	explainabilityDeployment := deploymentHandler.CreateDeployment(explainability, defaultKogitoImageFullTag, serviceDef)
+	taskConsoleDeployment := deploymentHandler.CreateDeployment(taskConsole, defaultKogitoImageFullTag, serviceDef)
+	trustUIDeployment := deploymentHandler.CreateDeployment(trustUI, defaultKogitoImageFullTag, serviceDef)
+	trustAIDeployment := deploymentHandler.CreateDeployment(trustAI, defaultKogitoImageFullTag, serviceDef)
+	assert.NotNil(t, dataIndexDeployment)
+	assert.NotNil(t, managementConsoleDeployment)
+	assert.NotNil(t, jobsServiceDeployment)
+	assert.NotNil(t, explainabilityDeployment)
+	assert.NotNil(t, taskConsoleDeployment)
+	assert.NotNil(t, trustUIDeployment)
+	assert.NotNil(t, trustAIDeployment)
+	specScc := &corev1.PodSecurityContext{RunAsNonRoot: pointer.Bool(true)}
+	assert.Equal(t, specScc, dataIndexDeployment.Spec.Template.Spec.SecurityContext)
+	assert.Equal(t, specScc, managementConsoleDeployment.Spec.Template.Spec.SecurityContext)
+	assert.Equal(t, specScc, jobsServiceDeployment.Spec.Template.Spec.SecurityContext)
+	assert.Equal(t, specScc, explainabilityDeployment.Spec.Template.Spec.SecurityContext)
+	assert.Equal(t, specScc, taskConsoleDeployment.Spec.Template.Spec.SecurityContext)
+	assert.Equal(t, specScc, trustUIDeployment.Spec.Template.Spec.SecurityContext)
+	assert.Equal(t, specScc, trustAIDeployment.Spec.Template.Spec.SecurityContext)
+
+	containerScc := &corev1.SecurityContext{
+		RunAsNonRoot:             pointer.Bool(true),
+		AllowPrivilegeEscalation: pointer.Bool(false),
+		Privileged:               pointer.Bool(false),
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{"ALL"},
+		},
+	}
+	assert.Equal(t, containerScc, dataIndexDeployment.Spec.Template.Spec.Containers[0].SecurityContext)
+	assert.Equal(t, containerScc, managementConsoleDeployment.Spec.Template.Spec.Containers[0].SecurityContext)
+	assert.Equal(t, containerScc, jobsServiceDeployment.Spec.Template.Spec.Containers[0].SecurityContext)
+	assert.Equal(t, containerScc, explainabilityDeployment.Spec.Template.Spec.Containers[0].SecurityContext)
+	assert.Equal(t, containerScc, taskConsoleDeployment.Spec.Template.Spec.Containers[0].SecurityContext)
+	assert.Equal(t, containerScc, trustUIDeployment.Spec.Template.Spec.Containers[0].SecurityContext)
+	assert.Equal(t, containerScc, trustAIDeployment.Spec.Template.Spec.Containers[0].SecurityContext)
 }
