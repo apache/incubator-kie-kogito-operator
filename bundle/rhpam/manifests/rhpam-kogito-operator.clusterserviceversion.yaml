@@ -61,7 +61,7 @@ metadata:
     description: RHPAM Kogito Operator for deployment and management of Kogito services.
     operators.openshift.io/valid-subscription: '["Red Hat Process Automation Manager",
       "Red Hat Decision Manager"]'
-    operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
+    operators.operatorframework.io/builder: operator-sdk-v1.21.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
@@ -884,7 +884,9 @@ spec:
           - create
         serviceAccountName: rhpam-kogito-operator-controller-manager
       deployments:
-      - name: rhpam-kogito-operator-controller-manager
+      - label:
+          control-plane: controller-manager
+        name: rhpam-kogito-operator-controller-manager
         spec:
           replicas: 1
           selector:
@@ -951,6 +953,9 @@ spec:
                     memory: 20Mi
                 securityContext:
                   allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
               securityContext:
                 runAsNonRoot: true
               serviceAccountName: rhpam-kogito-operator-controller-manager
@@ -1012,11 +1017,11 @@ spec:
     operated-by: rhpam-kogito-operator.7.13.0-1
   links:
   - name: Product Page
-    url: https://kogito.kie.org/
+    url: https://access.redhat.com/products/red-hat-process-automation-manager
   - name: Documentation
     url: https://access.redhat.com/documentation/en-us/red_hat_process_automation_manager/7.13/html/getting_started_with_red_hat_build_of_kogito_in_red_hat_process_automation_manager/assembly-deploying-kogito-microservices-on-openshift
   - name: Source
-    url: https://github.com/kiegroup/rhpam-kogito-operator/
+    url: https://github.com/kiegroup/kogito-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat
