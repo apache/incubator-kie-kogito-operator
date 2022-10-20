@@ -2648,7 +2648,7 @@ spec:
         - --upstream=http://127.0.0.1:8080/
         - --logtostderr=true
         - --v=10
-        image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.10.0
+        image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.11.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 8443
@@ -2670,7 +2670,7 @@ spec:
         - name: RUNTIME_IMAGE
           value: rhpam-kogito-runtime-jvm-rhel8
         - name: IMAGE_REGISTRY
-          value: registry.redhat.io/rhpam-7
+          value: registry.stage.redhat.io/rhpam-7
         - name: GROUP
           value: RHPAM
         image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.0
