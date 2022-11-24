@@ -159,23 +159,6 @@ pipeline {
                 }
             }
         }
-        stage('Run OLM tests') {
-            when {
-                expression {
-                    return helper.isRelease() && helper.shouldLaunchTests()
-                }
-            }
-            steps {
-                sh 'make olm-tests'
-            }
-            post {
-                unsuccessful {
-                    script {
-                        util.archiveConsoleLog()
-                    }
-                }
-            }
-        }
         stage('Push Operator Image to Openshift Registry') {
             steps {
                 script {
