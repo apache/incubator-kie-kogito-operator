@@ -61,12 +61,12 @@ metadata:
     description: RHPAM Kogito Operator for deployment and management of Kogito services.
     operators.openshift.io/valid-subscription: '["Red Hat Process Automation Manager",
       "Red Hat Decision Manager"]'
-    operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
+    operators.operatorframework.io/builder: operator-sdk-v1.21.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
-  name: rhpam-kogito-operator.7.13.1-1
+  name: rhpam-kogito-operator.7.13.1-2
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -858,7 +858,9 @@ spec:
           - create
         serviceAccountName: rhpam-kogito-operator-controller-manager
       deployments:
-      - name: rhpam-kogito-operator-controller-manager
+      - label:
+          control-plane: controller-manager
+        name: rhpam-kogito-operator-controller-manager
         spec:
           replicas: 1
           selector:
@@ -983,7 +985,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: rhpam-kogito-operator
-    operated-by: rhpam-kogito-operator.7.13.1-1
+    operated-by: rhpam-kogito-operator.7.13.1-2
   links:
   - name: Product Page
     url: https://kogito.kie.org/
@@ -997,5 +999,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: rhpam-kogito-operator.7.13.0-1
-  version: 7.13.1-1
+  replaces: rhpam-kogito-operator.7.13.1-1
+  version: 7.13.1-2
