@@ -16,5 +16,5 @@ package app
 
 var (
 	// Version of Kogito Operator
-	Version = "1.31.1-snapshot"
+	Version = "1.31.0"
 )
