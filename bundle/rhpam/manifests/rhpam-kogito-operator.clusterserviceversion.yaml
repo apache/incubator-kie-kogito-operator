@@ -57,7 +57,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.1
+    containerImage: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.2
     description: RHPAM Kogito Operator for deployment and management of Kogito services.
     operators.openshift.io/valid-subscription: '["Red Hat Process Automation Manager",
       "Red Hat Decision Manager"]'
@@ -66,7 +66,7 @@ metadata:
     repository: https://github.com/kiegroup/rhpam-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
-  name: rhpam-kogito-operator.7.13.1-1
+  name: rhpam-kogito-operator.7.13.2-1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -878,7 +878,7 @@ spec:
                 - --upstream=http://127.0.0.1:8080/
                 - --logtostderr=true
                 - --v=10
-                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.10.0
+                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.11.0
                 name: kube-rbac-proxy
                 ports:
                 - containerPort: 8443
@@ -904,7 +904,7 @@ spec:
                   value: registry.redhat.io/rhpam-7
                 - name: GROUP
                   value: RHPAM
-                image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.1
+                image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.2
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -988,7 +988,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: rhpam-kogito-operator
-    operated-by: rhpam-kogito-operator.7.13.1-1
+    operated-by: rhpam-kogito-operator.7.13.2-1
   links:
   - name: Product Page
     url: https://access.redhat.com/products/red-hat-process-automation-manager
@@ -1002,5 +1002,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: rhpam-kogito-operator.7.13.0-1
-  version: 7.13.1-1
+  replaces: rhpam-kogito-operator.7.13.1-2
+  version: 7.13.2-1
