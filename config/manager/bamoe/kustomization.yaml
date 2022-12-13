@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator
-  newTag: 8.0.1
+  newTag: 8.0.2

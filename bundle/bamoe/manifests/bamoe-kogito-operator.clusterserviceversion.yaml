@@ -57,7 +57,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.1
+    containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.2
     description: IBM BAMOE Kogito Operator for deployment and management of Kogito
       services.
     operators.operatorframework.io/builder: operator-sdk-v1.21.0
@@ -65,7 +65,7 @@ metadata:
     repository: https://github.com/kiegroup/kogito-operator
     support: https://www.ibm.com/mysupport
     tectonic-visibility: ocs
-  name: bamoe-kogito-operator.8.0.1-1
+  name: bamoe-kogito-operator.8.0.2-1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -877,7 +877,7 @@ spec:
                 - --upstream=http://127.0.0.1:8080/
                 - --logtostderr=true
                 - --v=10
-                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.10.0
+                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.11.0
                 name: kube-rbac-proxy
                 ports:
                 - containerPort: 8443
@@ -903,7 +903,7 @@ spec:
                   value: registry.redhat.io/ibm-bamoe
                 - name: GROUP
                   value: RHPAM
-                image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.1
+                image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.2
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -926,6 +926,9 @@ spec:
                     memory: 20Mi
                 securityContext:
                   allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
               securityContext:
                 runAsNonRoot: true
               serviceAccountName: bamoe-kogito-operator-controller-manager
@@ -984,7 +987,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: bamoe-kogito-operator
-    operated-by: bamoe-kogito-operator.8.0.1-1
+    operated-by: bamoe-kogito-operator.8.0.2-1
   links:
   - name: Product Page
     url: https://ibm.com
@@ -998,5 +1001,5 @@ spec:
   maturity: beta
   provider:
     name: IBM
-  replaces: bamoe-kogito-operator.8.0.0-1
-  version: 8.0.1-1
+  replaces: bamoe-kogito-operator.8.0.1-2
+  version: 8.0.2-1
