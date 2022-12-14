@@ -1,7 +1,7 @@
 schema_version: 1
 name: "rhpam-7/rhpam-kogito-operator-bundle"
 description: "RHPAM Kogito Operator Bundle"
-version: "7.13.1"
+version: "7.13.2"
 from: "scratch"
 
 labels:
