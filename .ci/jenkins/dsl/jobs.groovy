@@ -8,7 +8,8 @@
 * https://github.com/kiegroup/kogito-pipelines/tree/main/dsl/seed/src/main/groovy/org/kie/jenkins/jobdsl.
 */
 
-import org.kie.jenkins.jobdsl.model.Folder
+import org.kie.jenkins.jobdsl.model.JobType
+import org.kie.jenkins.jobdsl.utils.JobParamsUtils
 import org.kie.jenkins.jobdsl.KogitoJobTemplate
 import org.kie.jenkins.jobdsl.KogitoJobUtils
 import org.kie.jenkins.jobdsl.Utils
@@ -16,30 +17,30 @@ import org.kie.jenkins.jobdsl.Utils
 jenkins_path = '.ci/jenkins'
 
 // PR checks
-setupDeployJob(Folder.PULLREQUEST_RUNTIMES_BDD)
+setupDeployJob(JobType.PULL_REQUEST, 'kogito-bdd')
 
 // Init branch
-setupExamplesImagesDeployJob(Folder.SETUP_BRANCH, 'kogito-examples-images', [ JOB_ID: 'Setup branch' ])
+setupExamplesImagesDeployJob(JobType.SETUP_BRANCH, 'kogito-examples-images', [ JOB_ID: 'Setup branch' ])
 createSetupBranchJob()
 
 // Nightly jobs
 setupProfilingJob()
-setupDeployJob(Folder.NIGHTLY)
-setupExamplesImagesDeployJob(Folder.NIGHTLY)
+setupDeployJob(JobType.NIGHTLY)
+setupExamplesImagesDeployJob(JobType.NIGHTLY)
 
 // Release jobs
-setupDeployJob(Folder.RELEASE)
-setupPromoteJob(Folder.RELEASE)
-setupExamplesImagesDeployJob(Folder.RELEASE)
-setupExamplesImagesPromoteJob(Folder.RELEASE)
+setupDeployJob(JobType.RELEASE)
+setupPromoteJob(JobType.RELEASE)
+setupExamplesImagesDeployJob(JobType.RELEASE)
+setupExamplesImagesPromoteJob(JobType.RELEASE)
 
 /////////////////////////////////////////////////////////////////
 // Methods
 /////////////////////////////////////////////////////////////////
 
 void setupProfilingJob() {
-    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-profiling', Folder.NIGHTLY_SONARCLOUD, "${jenkins_path}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
-    KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+    def jobParams = JobParamsUtils.getBasicJobParamsWithEnv(this, 'kogito-operator-profiling', JobType.NIGHTLY, 'sonarcloud', "${jenkins_path}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
+    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     jobParams.triggers = [ cron : '@midnight' ]
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
@@ -63,8 +64,8 @@ void setupProfilingJob() {
 }
 
 void createSetupBranchJob() {
-    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator', Folder.SETUP_BRANCH, "${jenkins_path}/Jenkinsfile.setup-branch", 'Kogito Cloud Operator Init Branch')
-    KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+    def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-operator', JobType.SETUP_BRANCH, "${jenkins_path}/Jenkinsfile.setup-branch", 'Kogito Cloud Operator Init Branch')
+    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
@@ -101,10 +102,10 @@ void createSetupBranchJob() {
     }
 }
 
-void setupDeployJob(Folder jobFolder) {
-    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-deploy', jobFolder, "${jenkins_path}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
-    KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
-    if (jobFolder.isPullRequest()) {
+void setupDeployJob(JobType jobType, String envName = '') {
+    def jobParams = JobParamsUtils.getBasicJobParamsWithEnv(this, 'kogito-operator-deploy', jobType, envName, "${jenkins_path}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
+    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+    if (jobType == JobType.PULL_REQUEST) {
         jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
         jobParams.git.project_url = Utils.createProjectUrl("${GIT_AUTHOR_NAME}", jobParams.git.repository)
@@ -121,7 +122,7 @@ void setupDeployJob(Folder jobFolder) {
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
         PROPERTIES_FILE_NAME: 'deployment.properties',
     ])
-    if (jobFolder.isPullRequest()) {
+    if (jobType == JobType.PULL_REQUEST) {
         jobParams.env.putAll([
             MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_PR_CHECKS_REPOSITORY_URL}",
         ])
@@ -143,7 +144,7 @@ void setupDeployJob(Folder jobFolder) {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
             stringParam('BUILD_BRANCH_NAME', "${GIT_BRANCH}", 'Set the Git branch to checkout')
-            if (jobFolder.isPullRequest()) {
+            if (jobType == JobType.PULL_REQUEST) {
                 // author can be changed as param only for PR behavior, due to source branch/target, else it is considered as an env
                 stringParam('GIT_AUTHOR', "${GIT_AUTHOR_NAME}", 'Set the Git author to checkout')
             }
@@ -193,8 +194,8 @@ void setupDeployJob(Folder jobFolder) {
     }
 }
 
-void setupPromoteJob(Folder jobFolder) {
-    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-operator-promote', jobFolder, "${jenkins_path}/Jenkinsfile.promote", 'Kogito Cloud Operator Promote')
+void setupPromoteJob(JobType jobType) {
+    def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-operator-promote', jobType, "${jenkins_path}/Jenkinsfile.promote", 'Kogito Cloud Operator Promote')
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
@@ -248,11 +249,11 @@ void setupPromoteJob(Folder jobFolder) {
     }
 }
 
-void setupExamplesImagesDeployJob(Folder jobFolder, String jobName = 'kogito-examples-images-deploy', Map extraEnv = [:]) {
-    def jobParams = KogitoJobUtils.getBasicJobParams(this, jobName, jobFolder, "${jenkins_path}/Jenkinsfile.examples-images.deploy", 'Kogito Examples Images Deploy')
-    KogitoJobUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+void setupExamplesImagesDeployJob(JobType jobType, String jobName = 'kogito-examples-images-deploy', Map extraEnv = [:]) {
+    def jobParams = JobParamsUtils.getBasicJobParams(this, jobName, jobType, "${jenkins_path}/Jenkinsfile.examples-images.deploy", 'Kogito Examples Images Deploy')
+    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     jobParams.env.putAll(extraEnv)
-    if (jobFolder.isPullRequest()) {
+    if (jobType == JobType.PULL_REQUEST) {
         jobParams.git.branch = '${BUILD_BRANCH_NAME}'
         jobParams.git.author = '${GIT_AUTHOR}'
         jobParams.git.project_url = Utils.createProjectUrl("${GIT_AUTHOR_NAME}", jobParams.git.repository)
@@ -268,7 +269,7 @@ void setupExamplesImagesDeployJob(Folder jobFolder, String jobName = 'kogito-exa
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
         PROPERTIES_FILE_NAME: 'deployment.properties',
     ])
-    if (jobFolder.isPullRequest()) {
+    if (jobType == JobType.PULL_REQUEST) {
         jobParams.env.putAll([
             MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_PR_CHECKS_REPOSITORY_URL}",
         ])
@@ -285,7 +286,7 @@ void setupExamplesImagesDeployJob(Folder jobFolder, String jobName = 'kogito-exa
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
 
             stringParam('BUILD_BRANCH_NAME', "${GIT_BRANCH}", 'Set the Git branch to checkout')
-            if (jobFolder.isPullRequest()) {
+            if (jobType == JobType.PULL_REQUEST) {
                 // author can be changed as param only for PR behavior, due to source branch/target, else it is considered as an env
                 stringParam('GIT_AUTHOR', "${GIT_AUTHOR_NAME}", 'Set the Git author to checkout')
             }
@@ -321,8 +322,8 @@ void setupExamplesImagesDeployJob(Folder jobFolder, String jobName = 'kogito-exa
     }
 }
 
-void setupExamplesImagesPromoteJob(Folder jobFolder) {
-    def jobParams = KogitoJobUtils.getBasicJobParams(this, 'kogito-examples-images-promote', jobFolder, "${jenkins_path}/Jenkinsfile.examples-images.promote", 'Kogito Examples Images Promote')
+void setupExamplesImagesPromoteJob(JobType jobType) {
+    def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-examples-images-promote', jobType, "${jenkins_path}/Jenkinsfile.examples-images.promote", 'Kogito Examples Images Promote')
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
