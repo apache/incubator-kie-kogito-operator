@@ -2579,7 +2579,7 @@ spec:
           value: registry.redhat.io/ibm-bamoe
         - name: GROUP
           value: RHPAM
-        image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.1
+        image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.2
         livenessProbe:
           httpGet:
             path: /healthz
