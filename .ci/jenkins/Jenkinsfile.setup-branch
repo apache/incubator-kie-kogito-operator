@@ -141,7 +141,7 @@ String getOperatorVersion() {
 }
 
 boolean isMainBranch() {
-    return "${IS_MAIN_BRANCH}"?.toBoolean()
+    return env.IS_MAIN_BRANCH?.toBoolean()
 }
 
 String getCleanedReleaseNotes() {
