@@ -56,7 +56,7 @@ pipeline {
 
         stage('Build Kogito Operator') {
             steps {
-                sh "make profiling BUILDER=${env.CONTAINER_ENGINE}"
+                sh "source ~/virtenvs/cekit/bin/activate && make profiling BUILDER=${env.CONTAINER_ENGINE}"
             }
             post {
                 unsuccessful {
