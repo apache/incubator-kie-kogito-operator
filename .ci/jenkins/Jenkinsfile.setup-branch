@@ -50,7 +50,7 @@ pipeline {
 
         stage('Build Kogito Operator') {
             steps {
-                sh "make BUILDER=${env.CONTAINER_ENGINE}"
+                sh "source ~/virtenvs/cekit/bin/activate && make BUILDER=${env.CONTAINER_ENGINE}"
             }
             post {
                 unsuccessful {
