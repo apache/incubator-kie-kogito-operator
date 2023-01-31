@@ -69,13 +69,13 @@ func SetupCliTestWithKubeClient(cmd string, factory context.CommandFactory, kube
 	return &cliTestContext{CommandContext: ctx, client: kubeCli}
 }
 
-//ExecuteCli executes the CLI setup before executing the test
+// ExecuteCli executes the CLI setup before executing the test
 func (c *cliTestContext) ExecuteCli() (string, string, error) {
 	err := rootCommand.Execute()
 	return testOut.String(), testErr.String(), err
 }
 
-//ExecuteCliCmd executes the given command in the actual context
+// ExecuteCliCmd executes the given command in the actual context
 func (c *cliTestContext) ExecuteCliCmd(cmd string) (string, string, error) {
 	rootCommand.SetArgs(strings.Split(cmd, " "))
 	err := rootCommand.Execute()
