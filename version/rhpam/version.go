@@ -16,11 +16,11 @@ package rhpam
 
 var (
 	// PriorVersion product version
-	PriorVersion = "8.0.1"
+	PriorVersion = "8.0.2"
 	// CsvPriorVersion - prior csv release
-	CsvPriorVersion = PriorVersion + "-2"
+	CsvPriorVersion = PriorVersion + "-1"
 	// Version - current version
-	Version = "8.0.2"
+	Version = "8.0.3"
 	// CsvVersion - csv release
 	CsvVersion = Version + "-1"
 )
