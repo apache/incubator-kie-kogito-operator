@@ -57,7 +57,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.2
+    containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.3
     description: IBM BAMOE Kogito Operator for deployment and management of Kogito
       services.
     operators.operatorframework.io/builder: operator-sdk-v1.21.0
@@ -65,7 +65,7 @@ metadata:
     repository: https://github.com/kiegroup/kogito-operator
     support: https://www.ibm.com/mysupport
     tectonic-visibility: ocs
-  name: bamoe-kogito-operator.8.0.2-1
+  name: bamoe-kogito-operator.8.0.3-1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -903,7 +903,7 @@ spec:
                   value: registry.redhat.io/ibm-bamoe
                 - name: GROUP
                   value: RHPAM
-                image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.2
+                image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.3
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -987,7 +987,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: bamoe-kogito-operator
-    operated-by: bamoe-kogito-operator.8.0.2-1
+    operated-by: bamoe-kogito-operator.8.0.3-1
   links:
   - name: Product Page
     url: https://ibm.com
@@ -1001,5 +1001,5 @@ spec:
   maturity: beta
   provider:
     name: IBM
-  replaces: bamoe-kogito-operator.8.0.1-2
-  version: 8.0.2-1
+  replaces: bamoe-kogito-operator.8.0.2-1
+  version: 8.0.3-1
