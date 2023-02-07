@@ -207,4 +207,4 @@ cd ../
 git apply hack/image-osbs.patch
 git apply hack/image-osbs-bundle.patch
 git apply hack/image-osbs-prod.patch
-make make rhel-release
+make -f Makefile.rhpam
