@@ -204,7 +204,4 @@ fi
 
 cd ../
 
-git apply hack/image-osbs.patch
-git apply hack/image-osbs-bundle.patch
-git apply hack/image-osbs-prod.patch
 make -f Makefile.rhpam
