@@ -51,7 +51,7 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 
 
 container-build: ## Build the container image
-	echo "calling RHPAM container-build......................................"
+	echo "calling BAMOE container-build......................................"
 	cekit -v --descriptor rhpam-image.yaml build $(BUILDER)
 	$(BUILDER) tag rhpam-7/rhpam-kogito-operator ${IMG}
 
@@ -79,7 +79,7 @@ bundle: manifests generate kustomize install-operator-sdk olm-manifests ## Gener
 	./hack/rhpam/rhpam-update-bundle.sh ${IMG}
 
 generate-installer: generate manifests kustomize
-	echo "calling RHPAM generate-installer......................................"
+	echo "calling BAMOE generate-installer......................................"
 	cd config/manager/rhpam && $(KUSTOMIZE) edit set image controller=$(IMG)
 	sed -i "s/rhel8:.*/rhel8:${VERSION}/g" ./config/manager/rhpam/manager.yaml
 	$(KUSTOMIZE) build config/default/rhpam > rhpam-operator.yaml
@@ -94,4 +94,4 @@ olm-manifests:
 	./hack/rhpam/rhpam-create-olm-manifests.sh
 
 generate-profiling-installer:
-	echo "calling RHPAM generate-profiling-installer......................................"
+	echo "calling BAMOE generate-profiling-installer......................................"

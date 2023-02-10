@@ -24,7 +24,7 @@ function help()
 {
     echo "usage: build-osbs.sh [options]"
     echo
-    echo "Run a cekit osbs build of an rhpam ba operator image with bundle"
+    echo "Run a cekit osbs build of an bamoe kogito operator image with bundle"
     echo
     echo "For each of the options below, the names of the arguments are environment variables that may be set"
     echo "instead of using the particular option on the invocation"
