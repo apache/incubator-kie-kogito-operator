@@ -6,7 +6,7 @@ helper = null
 
 pipeline {
     agent {
-        label 'kogito-operator-node && !built-in'
+        label 'rhel8 && !built-in'
     }
 
     options {
