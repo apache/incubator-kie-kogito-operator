@@ -48,12 +48,15 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 	./hack/kogito-module-api.sh --enable
 
 ##@ Build
-
-
 container-build: ## Build the container image
 	echo "calling IBM BAMOE container-build......................................"
 	$(CEKIT_CMD) --descriptor bamoe-image.yaml build $(BUILDER)
 	$(BUILDER) tag ibm-bamoe/bamoe-kogito-rhel8-operator ${IMG}
+
+.PHONY: container-build-osbs
+container-build-osbs:
+	echo "calling RHPAM container-build-osbs......................................"
+	$(CEKIT_CMD) --descriptor bamoe-image.yaml build osbs
 
 container-push: ## Push the container image
 	$(BUILDER) push ${IMG}
