@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/kiegroup/kogito-operator
-  newTag: 1.34.0
+  newTag: 1.34.1-snapshot
