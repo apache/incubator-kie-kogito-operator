@@ -86,8 +86,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 print-%  : ; @echo $($*)
 
-COMMUNITY_OPERATORS_REPO ?= $(error Please set COMMUNITY_OPERATORS_REPO flag (i.e. https://github.com/YOUR_GIT_USERNAME/community-operators))
-COMMUNITY_OPERATORS_PROD_REPO ?= $(error Please set COMMUNITY_OPERATORS_PROD_REPO flag  (i.e. https://github.com/YOUR_GIT_USERNAME/community-operators-prod))
+GITHUB_AUTHOR ?= $(error Please set GITHUB_AUTHOR flag)
 
 all: generate manifests container-build
 	echo "calling APP all ##################################"
@@ -334,10 +333,10 @@ olm-manifests: bundle
 # 1. https://github.com/k8s-operatorhub/community-operators
 # 2. https://github.com/redhat-openshift-ecosystem/community-operators-prod
 # Usage example:
-# make create-operatorhub-prs COMMUNITY_OPERATORS_REPO=https://github.com/YOUR_GIT_USERNAME/community-operators COMMUNITY_OPERATORS_PROD_REPO=https://github.com/YOUR_GIT_USERNAME/community-operators-prod
+# make create-operatorhub-prs GITHUB_AUTHOR=your_github_username
 # NOTE: add DRY_RUN=false if you want to push the changes to your forks
 create-operatorhub-prs:
-	./hack/create-operatorhub-prs.sh v${VERSION} ${COMMUNITY_OPERATORS_REPO} ${COMMUNITY_OPERATORS_PROD_REPO} ${DRY_RUN}
+	./hack/create-operatorhub-prs.sh v${VERSION} ${GITHUB_AUTHOR} ${DRY_RUN}
 
 ######
 # Test proxy commands
