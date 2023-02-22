@@ -18,7 +18,7 @@ if [[ $1 == v* ]]; then TAG=$1; else TAG=v$1; fi
 GITHUB_AUTHOR=$2
 COMMUNITY_OPERATORS=community-operators
 COMMUNITY_OPERATORS_PROD=community-operators-prod
-if [[ $4 == false ]]; then DRY_RUN=false; else DRY_RUN=true; fi
+if [[ $3 == false ]]; then DRY_RUN=false; else DRY_RUN=true; fi
 
 git remote add upstream https://github.com/kiegroup/kogito-operator.git >/dev/null 2>&1
 git fetch upstream
@@ -29,6 +29,7 @@ git checkout -B kogito-$TAG $TAG
 cd ../
 
 create_operatorhub_pr() {
+  echo "### Starting changes on $1 repo ####"
   if [ -d "$1" ];
   then
       echo "$1 directory exists."
@@ -54,8 +55,19 @@ create_operatorhub_pr() {
   sed -i "s|bundle/app/tests|tests|g" Dockerfile
   git add .
   git commit --signoff -m "operator kogito-operator (${TAG})"
-  if [[ ${DRY_RUN} == false ]]; then git push -uf; fi
+  if [[ ${DRY_RUN} == false ]]; then
+    echo "We are running in non dry_run mode, going to push changes"
+    git push -uf
+    if ! command -v gh &> /dev/null
+    then
+        echo "gh could not be found, you have to manually open a PR"
+    else
+      echo "We have found gh, going to open a draft PR"
+      gh pr create --fill --draft --base main
+    fi
+  fi
   cd ../../../../
+  echo "### Changes on $1 repo finished ####"
 }
 
 create_operatorhub_pr $COMMUNITY_OPERATORS
