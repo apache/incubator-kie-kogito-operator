@@ -86,6 +86,9 @@ SHELL = /usr/bin/env bash -o pipefail
 
 print-%  : ; @echo $($*)
 
+COMMUNITY_OPERATORS_REPO ?= $(error Please set COMMUNITY_OPERATORS_REPO flag (i.e. https://github.com/YOUR_GIT_USERNAME/community-operators))
+COMMUNITY_OPERATORS_PROD_REPO ?= $(error Please set COMMUNITY_OPERATORS_PROD_REPO flag  (i.e. https://github.com/YOUR_GIT_USERNAME/community-operators-prod))
+
 all: generate manifests container-build
 	echo "calling APP all ##################################"
 
@@ -326,6 +329,15 @@ before-pr: vet test
 #Run this to create a bundle dir structure in which OLM accepts. The bundle will be available in `build/_output/olm/<current-version>`
 olm-manifests: bundle
 	./hack/create-olm-manifests.sh
+
+# Run this to create the PRs for the Operator hub on the repos:
+# 1. https://github.com/k8s-operatorhub/community-operators
+# 2. https://github.com/redhat-openshift-ecosystem/community-operators-prod
+# Usage example:
+# make create-operatorhub-prs COMMUNITY_OPERATORS_REPO=https://github.com/YOUR_GIT_USERNAME/community-operators COMMUNITY_OPERATORS_PROD_REPO=https://github.com/YOUR_GIT_USERNAME/community-operators-prod
+# NOTE: add DRY_RUN=false if you want to push the changes to your forks
+create-operatorhub-prs:
+	./hack/create-operatorhub-prs.sh v${VERSION} ${COMMUNITY_OPERATORS_REPO} ${COMMUNITY_OPERATORS_PROD_REPO} ${DRY_RUN}
 
 ######
 # Test proxy commands
