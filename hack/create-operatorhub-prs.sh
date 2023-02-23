@@ -20,14 +20,20 @@ COMMUNITY_OPERATORS=community-operators
 COMMUNITY_OPERATORS_PROD=community-operators-prod
 if [[ $3 == false ]]; then DRY_RUN=false; else DRY_RUN=true; fi
 if [ -z "$4" ]; then KOGITO_OPERATOR_DIR=$(pwd); else KOGITO_OPERATOR_DIR=$4; fi
+upstream_author=${UPSTREAM_AUTHOR:-kiegroup}
+
+if [ "$GITHUB_AUTHOR" = "$upstream_author" ]; then
+   echo "Upstream author and GitHub author are equal, no need to setup upstream${upstream_author}"
+else
+    echo "Upstream author and GitHub author are equal. Adding upstream repo"
+    git remote add upstream https://github.com/${upstream_author}/kogito-operator.git >/dev/null 2>&1
+fi
 
 echo "Kogito Operator directory is ${KOGITO_OPERATOR_DIR}"
 
-git remote add upstream https://github.com/kiegroup/kogito-operator.git >/dev/null 2>&1
-git fetch upstream
-git fetch upstream --tags
+git fetch --all --tags
 echo "Checking out Kogito $TAG"
-git checkout -B kogito-$TAG $TAG
+git checkout tags/$TAG
 
 cd /tmp
 
