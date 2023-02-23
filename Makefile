@@ -86,7 +86,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 print-%  : ; @echo $($*)
 
-GITHUB_AUTHOR ?= $(error Please set GITHUB_AUTHOR flag)
+GITHUB_AUTHOR ?= $(error Please set GITHUB_AUTHOR variable)
 
 all: generate manifests container-build
 	echo "calling APP all ##################################"
