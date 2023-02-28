@@ -1023,5 +1023,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: kogito-operator.v1.32.0
+  replaces: kogito-operator.v1.34.0
   version: 2.0.0-snapshot
