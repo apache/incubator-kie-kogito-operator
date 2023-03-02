@@ -35,33 +35,26 @@ git fetch --all --tags
 echo "Checking out Kogito $TAG"
 git checkout tags/$TAG
 
-cd /tmp
-
+TMP_WD=$(mktemp -d)
+echo "### Using the ${TMP_WD} tmp working dir ####"
 create_operatorhub_pr() {
+  cd $TMP_WD
+
   echo "### Starting changes on $1 repo ####"
-  if [ -d "$1" ];
-  then
-      echo "$1 directory exists."
-      cd $1
-      git fetch --all
-      git checkout main
-      git merge upstream/main
-  else
-    REPO_TO_CLONE="https://github.com/${GITHUB_AUTHOR}/$1"
-  	echo "$1 directory does not exist, going to clone ${REPO_TO_CLONE}"
-    git clone ${REPO_TO_CLONE}
-    cd $1
-  fi
+  REPO_TO_CLONE="https://github.com/${GITHUB_AUTHOR}/$1"
+  echo "$1 directory does not exist, going to clone ${REPO_TO_CLONE}"
+  git clone ${REPO_TO_CLONE}
+
+  cd $1
 
   git checkout -B kogito-$TAG
-  cd operators/kogito-operator
-  mkdir -p ${VERSION}
-  cd ${VERSION}
-  cp -rf ${KOGITO_OPERATOR_DIR}/bundle/app/* .
-  cp -f  ${KOGITO_OPERATOR_DIR}/bundle.Dockerfile Dockerfile
-  sed -i "s|bundle/app/manifests|manifests|g" Dockerfile
-  sed -i "s|bundle/app/metadata|metadata|g" Dockerfile
-  sed -i "s|bundle/app/tests|tests|g" Dockerfile
+  KOGITO_TAG_INNER_DIR=operators/kogito-operator/${VERSION}
+  mkdir -p ${KOGITO_TAG_INNER_DIR}
+  cp -rf ${KOGITO_OPERATOR_DIR}/bundle/app/* ${KOGITO_TAG_INNER_DIR}
+  cp -f  ${KOGITO_OPERATOR_DIR}/bundle.Dockerfile ${KOGITO_TAG_INNER_DIR}/Dockerfile
+  sed -i "s|bundle/app/manifests|manifests|g" ${KOGITO_TAG_INNER_DIR}/Dockerfile
+  sed -i "s|bundle/app/metadata|metadata|g" ${KOGITO_TAG_INNER_DIR}/Dockerfile
+  sed -i "s|bundle/app/tests|tests|g" ${KOGITO_TAG_INNER_DIR}/Dockerfile
   git add .
   git commit --signoff -m "operator kogito-operator (${TAG})"
   if [[ ${DRY_RUN} == false ]]; then
@@ -75,7 +68,6 @@ create_operatorhub_pr() {
       gh pr create --fill --draft --base main
     fi
   fi
-  cd /tmp
   echo "### Changes on $1 repo finished ####"
 }
 
