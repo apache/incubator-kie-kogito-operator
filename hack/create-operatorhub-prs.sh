@@ -17,13 +17,16 @@ VERSION=$1
 if [[ $1 == v* ]]; then TAG=$1; else TAG=v$1; fi
 GITHUB_AUTHOR=$2
 COMMUNITY_OPERATORS=community-operators
+COMMUNITY_OPERATORS_OWNER=k8s-operatorhub
 COMMUNITY_OPERATORS_PROD=community-operators-prod
+COMMUNITY_OPERATORS_PROD_OWNER=redhat-openshift-ecosystem
 if [[ $3 == false ]]; then DRY_RUN=false; else DRY_RUN=true; fi
 if [ -z "$4" ]; then KOGITO_OPERATOR_DIR=$(pwd); else KOGITO_OPERATOR_DIR=$4; fi
+
 upstream_author=${UPSTREAM_AUTHOR:-kiegroup}
 
-if [ "$GITHUB_AUTHOR" = "$upstream_author" ]; then
-   echo "Upstream author and GitHub author are equal, no need to setup upstream${upstream_author}"
+if [ "$GITHUB_AUTHOR" == "$upstream_author" ]; then
+   echo "Upstream author and GitHub author are equal, no need to setup upstream ${upstream_author}"
 else
     echo "Upstream author and GitHub author are equal. Adding upstream repo"
     git remote add upstream https://github.com/${upstream_author}/kogito-operator.git >/dev/null 2>&1
@@ -49,28 +52,39 @@ create_operatorhub_pr() {
 
   git checkout -B kogito-$TAG
   KOGITO_TAG_INNER_DIR=operators/kogito-operator/${VERSION}
+  echo "Creating inner dir ${KOGITO_TAG_INNER_DIR}"
   mkdir -p ${KOGITO_TAG_INNER_DIR}
   cp -rf ${KOGITO_OPERATOR_DIR}/bundle/app/* ${KOGITO_TAG_INNER_DIR}
   cp -f  ${KOGITO_OPERATOR_DIR}/bundle.Dockerfile ${KOGITO_TAG_INNER_DIR}/Dockerfile
   sed -i "s|bundle/app/manifests|manifests|g" ${KOGITO_TAG_INNER_DIR}/Dockerfile
   sed -i "s|bundle/app/metadata|metadata|g" ${KOGITO_TAG_INNER_DIR}/Dockerfile
   sed -i "s|bundle/app/tests|tests|g" ${KOGITO_TAG_INNER_DIR}/Dockerfile
-  git add .
+  git add --all
   git commit --signoff -m "operator kogito-operator (${TAG})"
   if [[ ${DRY_RUN} == false ]]; then
     echo "We are running in non dry_run mode, going to push changes"
-    git push -u
+    if [[ -z ${GITHUB_TOKEN}  ]]; then
+           echo "The GITHUB_TOKEN is not set, we will use SSH"
+           ORIGIN_SSH="git@github.com:${GITHUB_AUTHOR}/${1}.git"
+           git remote set-url origin ${ORIGIN_SSH}
+    else
+          echo "The GITHUB_TOKEN is set, we will use HTTPS"
+          ORIGIN_HTTPS="https://${GITHUB_TOKEN}@github.com/${GITHUB_AUTHOR}/${1}.git"
+          git remote set-url origin ${ORIGIN_HTTPS}
+    fi
+    git push --set-upstream origin kogito-$TAG
     if ! command -v gh &> /dev/null
     then
         echo "gh could not be found, you have to manually open a PR"
     else
       echo "We have found gh, going to open a draft PR"
-      gh pr create --fill --draft --base main
+      gh repo set-default $2/$1
+      gh pr create --fill --body-file docs/pull_request_template.md --draft --base main
     fi
   fi
   echo "### Changes on $1 repo finished ####"
 }
 
-create_operatorhub_pr $COMMUNITY_OPERATORS
-create_operatorhub_pr $COMMUNITY_OPERATORS_PROD
+create_operatorhub_pr $COMMUNITY_OPERATORS $COMMUNITY_OPERATORS_OWNER
+create_operatorhub_pr $COMMUNITY_OPERATORS_PROD $COMMUNITY_OPERATORS_PROD_OWNER
 

@@ -336,7 +336,7 @@ olm-manifests: bundle
 # make create-operatorhub-prs GITHUB_AUTHOR=your_github_username
 # NOTE: add DRY_RUN=false if you want to push the changes to your forks
 create-operatorhub-prs:
-	./hack/create-operatorhub-prs.sh v${VERSION} ${GITHUB_AUTHOR} ${DRY_RUN}
+	./hack/create-operatorhub-prs.sh ${VERSION} ${GITHUB_AUTHOR} ${DRY_RUN}
 
 ######
 # Test proxy commands
