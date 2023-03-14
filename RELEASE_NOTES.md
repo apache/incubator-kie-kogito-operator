@@ -17,5 +17,6 @@
 - [KOGITO-5740](https://issues.redhat.com/browse/KOGITO-5740) - Unnecessary reconciliations triggered for Service
 - [KOGITO-4791](https://issues.redhat.com/browse/KOGITO-4791) - Add metrics related files back in the operator bundle
 - [KOGITO-5977](https://issues.redhat.com/browse/KOGITO-5977) - Pod is never created when deploying source files
+- [RHPAM-4629] (https://issues.redhat.com/browse/RHPAM-4629)  - RHPAM Kogito Operator 7.x installation is failing with OOMKilled and CrashLoopBackOff
 
 ## Known Issues
