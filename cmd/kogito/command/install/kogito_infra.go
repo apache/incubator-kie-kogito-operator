@@ -88,10 +88,7 @@ func (i *infraCommand) RegisterHook() {
 			if err := flag.CheckPropertiesArgs(&i.flags.PropertiesFlag); err != nil {
 				return err
 			}
-			if err := flag.CheckEnvVarArgs(&i.flags.EnvVarFlags); err != nil {
-				return err
-			}
-			return nil
+			return flag.CheckEnvVarArgs(&i.flags.EnvVarFlags)
 		},
 	}
 }
@@ -105,7 +102,7 @@ func (i *infraCommand) InitHook() {
 	i.command.Flags().StringVarP(&i.flags.Project, "project", "p", "", "The project name where the service will be deployed")
 }
 
-func (i *infraCommand) Exec(cmd *cobra.Command, args []string) (err error) {
+func (i *infraCommand) Exec(_ *cobra.Command, args []string) (err error) {
 	log := context.GetDefaultLogger()
 	log.Debugf("Installing Kogito Infra : %s", i.flags.Name)
 

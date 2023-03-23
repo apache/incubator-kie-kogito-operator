@@ -37,10 +37,7 @@ func CheckConfigFlags(flags *ConfigFlags) error {
 	if err := util.CheckKeyPair(flags.Config); err != nil {
 		return fmt.Errorf("config are in the wrong format. Valid are key pairs like 'key=value', received %s", flags.Config)
 	}
-	if err := checkConfigFile(flags.ConfigFile); err != nil {
-		return err
-	}
-	return nil
+	return checkConfigFile(flags.ConfigFile)
 }
 
 func checkConfigFile(configFilePath string) error {

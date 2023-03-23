@@ -33,6 +33,6 @@ func AddArtifactFlags(command *cobra.Command, flags *ArtifactFlags) {
 }
 
 // CheckArtifactArgs validates the ArtifactFlags flags
-func CheckArtifactArgs(flags *ArtifactFlags) error {
+func CheckArtifactArgs(_ *ArtifactFlags) error {
 	return nil
 }

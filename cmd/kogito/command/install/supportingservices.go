@@ -158,10 +158,7 @@ func (i *installSupportingServiceCommand) RegisterHook() {
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := flag.CheckInstallArgs(&i.flags.InstallFlags); err != nil {
-				return err
-			}
-			return nil
+			return flag.CheckInstallArgs(&i.flags.InstallFlags)
 		},
 	}
 }
@@ -172,7 +169,7 @@ func (i *installSupportingServiceCommand) InitHook() {
 	flag.AddInstallFlags(i.command, &i.flags.InstallFlags)
 }
 
-func (i *installSupportingServiceCommand) Exec(cmd *cobra.Command, args []string) error {
+func (i *installSupportingServiceCommand) Exec(_ *cobra.Command, _ []string) error {
 	var err error
 	if i.flags.Project, err = shared.EnsureProject(i.Client, i.flags.Project); err != nil {
 		return err

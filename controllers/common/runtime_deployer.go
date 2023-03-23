@@ -51,7 +51,8 @@ func NewRuntimeDeployerHandler(context operator.Context, instance api.KogitoRunt
 	}
 }
 
-// onDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties to the deployment creation
+// OnDeploymentCreate hooks into the infrastructure package to add additional capabilities/properties
+// to the deployment creation
 func (d *runtimeDeployerHandler) OnDeploymentCreate(deployment *v1.Deployment) error {
 	// NAMESPACE service discovery
 	framework.SetEnvVar(envVarNamespace, d.instance.GetNamespace(), &deployment.Spec.Template.Spec.Containers[0])
@@ -75,9 +76,5 @@ func (d *runtimeDeployerHandler) OnDeploymentCreate(deployment *v1.Deployment) e
 		return err
 	}
 
-	if err := urlHandler.InjectTrustyEndpointOnDeployment(deployment); err != nil {
-		return err
-	}
-
-	return nil
+	return urlHandler.InjectTrustyEndpointOnDeployment(deployment)
 }

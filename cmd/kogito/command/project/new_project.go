@@ -71,7 +71,7 @@ func (i *newProjectCommand) InitHook() {
 	addProjectFlagsToCommand(i.command, &i.flags)
 }
 
-func (i *newProjectCommand) Exec(cmd *cobra.Command, args []string) error {
+func (i *newProjectCommand) Exec(_ *cobra.Command, _ []string) error {
 	log := context.GetDefaultLogger()
 	ns, err := kubernetes.NamespaceC(i.Client).Fetch(i.flags.project)
 	if err != nil {
