@@ -56,7 +56,7 @@ container-build: ## Build the container image
 .PHONY: container-build-osbs
 container-build-osbs:
 	echo "calling RHPAM container-build-osbs......................................"
-	$(CEKIT_CMD) --descriptor bamoe-image.yaml build osbs
+	$(CEKIT_CMD) --descriptor bamoe-image.yaml build osbs --assume-yes
 
 container-push: ## Push the container image
 	$(BUILDER) push ${IMG}
