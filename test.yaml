@@ -1,0 +1,62 @@
+- schema_version: 1
+  name: "operator-builder"
+  version: "7.13.0"
+  from: "registry.access.redhat.com/ubi8/go-toolset:1.17.7"
+  description: "Golang builder image for the RHPAM Kogito Operator"
+
+  modules:
+    repositories:
+      - path: modules
+    install:
+      - name: org.kie.kogito.rhpam.builder.prod
+
+  packages:
+    content_sets_file: content_sets.yaml
+
+  osbs:
+    configuration:
+      container:
+        image_build_method: imagebuilder
+        remote_source:
+          repo: https://github.com/kiegroup/kogito-operator
+          ref: 61df77fc46064cba90112743ed2c751b9f1e9b36
+          pkg_managers:
+            - gomod
+        platforms:
+          only:
+            - x86_64
+            - ppc64le
+
+- name: "rhpam-7/rhpam-kogito-operator"
+  version: "7.13.0"
+  from: "registry.access.redhat.com/ubi8/ubi-minimal:latest"
+  description: "Runtime Image for the RHPAM Kogito Operator"
+
+  labels:
+    - name: maintainer
+      value: bsig-cloud@redhat.com
+    - name: com.redhat.component
+      value: rhpam-7-kogito-rhel8-operator-container
+    - name: io.k8s.description
+      value: Operator for deploying RHPAM Kogito Application
+    - name: io.k8s.display-name
+      value: Red Hat PAM Kogito Operator
+    - name: io.openshift.tags
+      value: rhpam,kogito,operator
+
+  artifacts:
+    - path: /workspace/rhpam-kogito-operator-manager
+      image: operator-builder
+      dest: /usr/local/bin
+  
+  packages:
+    content_sets_file: content_sets.yaml
+
+  osbs:
+    extra_dir: osbs-extra
+    repository:
+      name: containers/rhpam-7-kogito-operator
+      branch: rhba-7-rhel-8
+
+  run:
+    user: "1001"
