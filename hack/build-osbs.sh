@@ -207,7 +207,7 @@ cd ../
 sed -i 's/rhba-7-rhel-8/rhba-7-rhel-8-nightly/g' rhpam-image-prod.yaml
 # hack to replace the git ref
 commit=$(git rev-parse HEAD)
-echo "Using commit commit=$(git rev-parse HEAD)"
+echo "Using commit ${commit}"
 git log -1 --pretty=%B
 sed  '/ref: /s/.*/          ref: '${commit}'/g' rhpam-image-prod.yaml
 
