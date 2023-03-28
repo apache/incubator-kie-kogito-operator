@@ -18,9 +18,9 @@ var (
 	// PriorVersion product version
 	PriorVersion = "7.13.2"
 	// CsvPriorVersion - prior csv release
-	CsvPriorVersion = PriorVersion + "-1"
+	CsvPriorVersion = PriorVersion + "-2"
 	// Version - current version
 	Version = "7.13.2"
 	// CsvVersion - csv release
-	CsvVersion = Version + "-2"
+	CsvVersion = Version + "-3"
 )
