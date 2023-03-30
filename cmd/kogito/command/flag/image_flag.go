@@ -33,10 +33,7 @@ func AddImageFlags(command *cobra.Command, flags *ImageFlags) {
 
 // CheckImageArgs validates the ImageFlags flags
 func CheckImageArgs(flags *ImageFlags) error {
-	if err := util.CheckImageTag(flags.Image); err != nil {
-		return err
-	}
-	return nil
+	return util.CheckImageTag(flags.Image)
 }
 
 // IsEmpty return true if image details are not provided else return false

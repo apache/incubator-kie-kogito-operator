@@ -125,11 +125,7 @@ func (i buildService) InstallBuildService(flags *flag.BuildFlags, resource strin
 	}
 
 	binaryBuildType := converter.FromArgsToBinaryBuildType(resourceType, runtime, native, legacy)
-	if err := i.createBuildIfRequires(flags.Name, flags.Project, resource, resourceType, binaryBuildType); err != nil {
-		return err
-	}
-
-	return nil
+	return i.createBuildIfRequires(flags.Name, flags.Project, resource, resourceType, binaryBuildType)
 }
 
 func (i buildService) validatePreRequisite(flags *flag.BuildFlags, log *zap.SugaredLogger) error {
@@ -203,10 +199,7 @@ func (i buildService) handleGitFileResourceBuild(name, namespace, resource strin
 	if err != nil {
 		return err
 	}
-	if err = i.triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
-		return err
-	}
-	return nil
+	return i.triggerBuild(name, namespace, fileReader, fileName, false)
 }
 
 func (i buildService) handleLocalDirectoryResourceBuild(name, namespace, resource string, binaryBuildType flag.BinaryBuildType) error {
@@ -219,11 +212,7 @@ func (i buildService) handleLocalDirectoryResourceBuild(name, namespace, resourc
 	if binaryBuildType == flag.SourceToImageBuild {
 		binaryBuild = false
 	}
-
-	if err = i.triggerBuild(name, namespace, fileReader, fileName, binaryBuild); err != nil {
-		return err
-	}
-	return nil
+	return i.triggerBuild(name, namespace, fileReader, fileName, binaryBuild)
 }
 
 func (i buildService) handleLocalFileResourceBuild(name, namespace, resource string) error {
@@ -231,10 +220,7 @@ func (i buildService) handleLocalFileResourceBuild(name, namespace, resource str
 	if err != nil {
 		return err
 	}
-	if err = i.triggerBuild(name, namespace, fileReader, fileName, false); err != nil {
-		return err
-	}
-	return nil
+	return i.triggerBuild(name, namespace, fileReader, fileName, false)
 }
 
 func (i buildService) handleBinaryResourceBuild(name, namespace string) {
