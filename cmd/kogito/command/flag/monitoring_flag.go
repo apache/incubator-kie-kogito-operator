@@ -33,6 +33,6 @@ func AddMonitoringFlags(command *cobra.Command, flags *MonitoringFlags) {
 }
 
 // CheckMonitoringArgs validates the MonitoringFlags flags
-func CheckMonitoringArgs(flags *MonitoringFlags) error {
+func CheckMonitoringArgs(_ *MonitoringFlags) error {
 	return nil
 }

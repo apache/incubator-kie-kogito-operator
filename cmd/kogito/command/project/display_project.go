@@ -64,7 +64,7 @@ func (i *displayProjectCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 }
 
-func (i *displayProjectCommand) Exec(cmd *cobra.Command, args []string) error {
+func (i *displayProjectCommand) Exec(_ *cobra.Command, _ []string) error {
 	log := context.GetDefaultLogger()
 	currentProject := shared.GetCurrentNamespaceFromKubeConfig()
 	if len(currentProject) > 0 {

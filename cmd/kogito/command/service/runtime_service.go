@@ -93,10 +93,7 @@ func (i runtimeService) InstallRuntimeService(cli *client.Client, flags *flag.Ru
 	if err != nil {
 		return err
 	}
-	if err = printMgmtConsoleInfo(cli, flags.Project); err != nil {
-		return err
-	}
-	return nil
+	return printMgmtConsoleInfo(cli, flags.Project)
 }
 
 func printMgmtConsoleInfo(client *client.Client, project string) error {

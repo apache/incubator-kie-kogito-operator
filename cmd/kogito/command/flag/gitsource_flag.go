@@ -15,7 +15,9 @@
 package flag
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
+	"net/url"
 )
 
 // GitSourceFlags is common properties used to configure Git
@@ -33,5 +35,15 @@ func AddGitSourceFlags(command *cobra.Command, flags *GitSourceFlags) {
 
 // CheckGitSourceArgs validates the GitSourceFlags flags
 func CheckGitSourceArgs(flags *GitSourceFlags) error {
+	if len(flags.Source) > 0 {
+		u, err := url.Parse(flags.Source)
+		if err != nil {
+			return err
+		}
+		if u.Scheme == "" || u.Host == "" || u.Path == "" {
+			return fmt.Errorf("provided Git Source is not valid: %s", flags.Source)
+		}
+	}
 	return nil
+
 }

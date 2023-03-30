@@ -31,6 +31,6 @@ func AddProbeFlags(command *cobra.Command, flags *ProbeFlags) {
 }
 
 // CheckProbeArgs validates the ProbeFlags flags
-func CheckProbeArgs(flags *ProbeFlags) error {
+func CheckProbeArgs(_ *ProbeFlags) error {
 	return nil
 }
