@@ -101,10 +101,7 @@ func (i *deployCommand) RegisterHook() {
 			if err := flag.CheckBuildArgs(&i.flags.BuildFlags); err != nil {
 				return err
 			}
-			if err := flag.CheckRuntimeArgs(&i.flags.RuntimeFlags); err != nil {
-				return err
-			}
-			return nil
+			return flag.CheckRuntimeArgs(&i.flags.RuntimeFlags)
 		},
 	}
 }
@@ -117,7 +114,7 @@ func (i *deployCommand) InitHook() {
 	flag.AddRuntimeTypeFlags(i.command, &i.flags.RuntimeTypeFlags)
 }
 
-func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
+func (i *deployCommand) Exec(_ *cobra.Command, args []string) (err error) {
 	name := args[0]
 	project, err := i.resourceCheckService.EnsureProject(i.Client, i.flags.RuntimeFlags.Project)
 	if err != nil {
@@ -126,13 +123,10 @@ func (i *deployCommand) Exec(cmd *cobra.Command, args []string) (err error) {
 	if err = i.installBuildService(i.Client, i.flags, name, project, args); err != nil {
 		return err
 	}
-	if err = i.installRuntimeService(i.Client, i.flags, name, project); err != nil {
-		return err
-	}
-	return nil
+	return i.installRuntimeService(i.Client, i.flags, name, project)
 }
 
-func (i *deployCommand) installBuildService(cli *client.Client, flags *deployFlags, name, project string, args []string) error {
+func (i *deployCommand) installBuildService(_ *client.Client, flags *deployFlags, name, project string, args []string) error {
 	log := context.GetDefaultLogger()
 
 	if !flags.ImageFlags.IsEmpty() {

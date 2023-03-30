@@ -92,7 +92,7 @@ func (i *deleteServiceCommand) InitHook() {
 	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project name from where the service needs to be deleted")
 }
 
-func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
+func (i *deleteServiceCommand) Exec(_ *cobra.Command, args []string) (err error) {
 	i.flags.name = args[0]
 	if i.flags.project, err = i.resourceCheckService.EnsureProject(i.Client, i.flags.project); err != nil {
 		return err
@@ -100,8 +100,5 @@ func (i *deleteServiceCommand) Exec(cmd *cobra.Command, args []string) (err erro
 	if err = i.runtimeService.DeleteRuntimeService(i.Client, i.flags.name, i.flags.project); err != nil {
 		return err
 	}
-	if err = i.buildService.DeleteBuildService(i.flags.name, i.flags.project); err != nil {
-		return err
-	}
-	return nil
+	return i.buildService.DeleteBuildService(i.flags.name, i.flags.project)
 }

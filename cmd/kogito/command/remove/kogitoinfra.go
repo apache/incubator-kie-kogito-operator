@@ -76,7 +76,7 @@ func (i *deleteKogitoInfraServiceCommand) InitHook() {
 	i.command.Flags().StringVarP(&i.flags.project, "project", "p", "", "The project context name from where the service needs to be deleted")
 }
 
-func (i *deleteKogitoInfraServiceCommand) Exec(cmd *cobra.Command, args []string) (err error) {
+func (i *deleteKogitoInfraServiceCommand) Exec(_ *cobra.Command, args []string) (err error) {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	if i.flags.project, err = i.resourceCheckService.EnsureProject(i.Client, i.flags.project); err != nil {

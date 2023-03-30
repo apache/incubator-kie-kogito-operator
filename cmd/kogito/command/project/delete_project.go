@@ -73,7 +73,7 @@ func (i *deleteProjectCommand) InitHook() {
 	i.Parent.AddCommand(i.command)
 }
 
-func (i *deleteProjectCommand) Exec(cmd *cobra.Command, args []string) error {
+func (i *deleteProjectCommand) Exec(_ *cobra.Command, args []string) error {
 	log := context.GetDefaultLogger()
 	i.flags.name = args[0]
 	var err error

@@ -115,7 +115,7 @@ func (r *removeSupportingServiceCommand) Command() *cobra.Command {
 	return r.command
 }
 
-func (r *removeSupportingServiceCommand) Exec(cmd *cobra.Command, args []string) error {
+func (r *removeSupportingServiceCommand) Exec(_ *cobra.Command, _ []string) error {
 	log := context.GetDefaultLogger()
 	var err error
 	if r.flags.namespace, err = shared.EnsureProject(r.Client, r.flags.namespace); err != nil {
