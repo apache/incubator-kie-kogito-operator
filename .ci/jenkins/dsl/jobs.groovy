@@ -68,13 +68,7 @@ void createSetupBranchJob() {
     JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
-
         REPO_NAME: 'kogito-operator',
-        OPERATOR_IMAGE_NAME: 'kogito-operator',
-        CONTAINER_ENGINE: 'docker',
-        CONTAINER_TLS_OPTIONS: '',
-        MAX_REGISTRY_RETRIES: 3,
-
         GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
         AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
         GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
@@ -88,14 +82,6 @@ void createSetupBranchJob() {
             stringParam('BUILD_BRANCH_NAME', "${GIT_BRANCH}", 'Set the Git branch to checkout')
 
             stringParam('PROJECT_VERSION', '', 'Version to set.')
-
-            // Deploy information
-            booleanParam('IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Set to true if image should be deployed in Openshift registry.In this case, IMAGE_REGISTRY_CREDENTIALS, IMAGE_REGISTRY and IMAGE_NAMESPACE parameters will be ignored')
-            stringParam('IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Image registry credentials to use to deploy images. Will be ignored if no IMAGE_REGISTRY is given')
-            stringParam('IMAGE_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Image registry to use to deploy images')
-            stringParam('IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Image namespace to use to deploy images')
-            stringParam('IMAGE_NAME_SUFFIX', '', 'Image name suffix to use to deploy images. In case you need to change the final image name, you can add a suffix to it.')
-            stringParam('IMAGE_TAG', '', 'Image tag to use to deploy images')
 
             booleanParam('SEND_NOTIFICATION', false, 'In case you want the pipeline to send a notification on CI channel for this run.')
         }
