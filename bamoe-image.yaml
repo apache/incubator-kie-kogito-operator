@@ -1,6 +1,6 @@
 - schema_version: 1
   name: "operator-builder"
-  version: "8.0.2"
+  version: "8.0.3"
   from: "registry.access.redhat.com/ubi8/go-toolset:1.17.7"
   description: "Golang builder image for the IBM BAMOE Kogito Operator"
 
@@ -24,7 +24,7 @@
             - ppc64le
 
 - name: "ibm-bamoe/bamoe-kogito-rhel8-operator"
-  version: "8.0.2"
+  version: "8.0.3"
   from: "registry.access.redhat.com/ubi8/ubi-minimal:latest"
   description: "Runtime Image for the IBM BAMOE Kogito Operator"
 
