@@ -1002,5 +1002,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: rhpam-kogito-operator.7.13.2-2
+  replaces: rhpam-kogito-operator.7.13.2-3
   version: 7.13.3-1
