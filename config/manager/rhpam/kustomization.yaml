@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator
-  newTag: 7.13.2
+  newTag: 7.13.3

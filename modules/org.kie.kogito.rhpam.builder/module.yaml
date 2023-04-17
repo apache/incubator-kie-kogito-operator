@@ -1,5 +1,5 @@
 name: org.kie.kogito.rhpam.builder
-version: "7.13.2"
+version: "7.13.3"
 description: Builds the operator binary
 
 envs:
