@@ -1,7 +1,7 @@
 schema_version: 1
 name: "ibm-bamoe/bamoe-kogito-rhel8-operator-bundle"
 description: "IBM BAMOE Kogito Operator Bundle"
-version: "8.0.2"
+version: "8.0.3"
 from: "scratch"
 
 labels:
