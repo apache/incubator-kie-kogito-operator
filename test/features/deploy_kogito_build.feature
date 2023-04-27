@@ -5,7 +5,6 @@ Feature: Deploy Kogito Build
     Given Namespace is created
     And Kogito Operator is deployed
 
-  @rhpam
   Scenario Outline: Build <runtime> remote S2I with native <native> using KogitoBuild
     When Build <runtime> example service "<example-service>" with configuration:
       | config | native | <native> |
@@ -25,12 +24,14 @@ Feature: Deploy Kogito Build
       }
       """
 
+    @rhpam
     @springboot
     Examples:
       | runtime    | example-service        | native   | minutes |
       | springboot | dmn-springboot-example | disabled | 10      |
 
     @smoke
+    @rhpam
     @quarkus
     Examples:
       | runtime    | example-service     | native   | minutes |
