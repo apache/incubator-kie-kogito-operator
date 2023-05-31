@@ -7,7 +7,7 @@ gitChanges = false
 
 pipeline {
     agent {
-        label 'kogito-operator-node && !built-in'
+        label 'kie-rhel8 && docker && kie-mem16g && !built-in'
     }
 
     // Needed for local build
