@@ -8,7 +8,7 @@ testsFailed = false
 
 pipeline {
     agent {
-        label 'kogito-operator-node && !master'
+        label 'kogito-jenkins-node && !master'
     }
     tools {
         go 'golang-1.17'
