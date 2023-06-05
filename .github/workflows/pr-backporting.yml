@@ -31,8 +31,11 @@ jobs:
       matrix: 
         target-branch: ${{ fromJSON(needs.compute-targets.outputs.target-branches) }}
       fail-fast: false
+    env:
+      REVIEWERS: ${{ toJSON(github.event.pull_request.requested_reviewers) }}
     steps:
       - name: Backporting
         uses: kiegroup/kie-ci/.ci/actions/backporting@main
         with:
           target-branch: ${{ matrix.target-branch }}
+          additional-reviewers: ${REVIEWERS}
