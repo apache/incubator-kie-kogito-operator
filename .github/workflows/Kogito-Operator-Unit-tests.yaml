@@ -12,6 +12,9 @@ env:
 jobs:
   unit_test_and_coverage:
     name: Unit test and Coverage
+    concurrency:
+      group: ${{ github.repository.name }}_unit_tests-${{ github.head_ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     env:
       ENVTEST_ASSETS_DIR: testbin

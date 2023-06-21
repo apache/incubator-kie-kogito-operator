@@ -12,6 +12,9 @@ env:
 jobs:
   golint:
     name: Lint
+    concurrency:
+      group: ${{ github.repository.name }}_lint-${{ github.head_ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -60,6 +63,9 @@ jobs:
         run: ./hack/go-lint.sh
 
   bats_test:
+    concurrency:
+      group: ${{ github.repository.name }}_bats_tests-${{ github.head_ref }}
+      cancel-in-progress: true
     name: Bats Test
     runs-on: ubuntu-latest
     steps:

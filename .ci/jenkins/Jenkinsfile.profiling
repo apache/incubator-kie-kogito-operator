@@ -4,7 +4,7 @@ helper = null
 
 pipeline {
     agent {
-        label 'kie-rhel8 && docker && kie-mem16g && !built-in'
+        label 'kie-rhel8 && podman && kie-mem16g && !built-in'
     }
 
     // Needed for local build
@@ -18,14 +18,11 @@ pipeline {
         timeout(time: 24, unit: 'HOURS') // Give the day to be executed (due to the lock)
     }
 
-    // parameters {
-    // For parameters, check into ./dsl/jobs.groovy file
-    // }
-
     environment {
-        // Static env is defined into ./dsl/jobs.groovy file
-
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
+
+        CONTAINER_ENGINE = 'podman'
+        CONTAINER_TLS_OPTIONS = '--tls-verify=false'
 
         CODECOV_TOKEN = credentials('KOGITO_OPERATOR_CODECOV_TOKEN')
 
