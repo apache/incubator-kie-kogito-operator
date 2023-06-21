@@ -11,14 +11,11 @@ pipeline {
         timeout(time: 120, unit: 'MINUTES')
     }
 
-    // parameters {
-    // For parameters, check into ./dsl/jobs.groovy file
-    // }
-
     environment {
-        // Static env is defined into ./dsl/jobs.groovy file
-
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
+
+        CONTAINER_ENGINE = 'podman'
+        CONTAINER_TLS_OPTIONS = '--tls-verify=false'
 
         BOT_BRANCH_HASH = "${util.generateHash(10)}"
         GITHUB_REPO = "${REPO_NAME}" // for github-release cli
