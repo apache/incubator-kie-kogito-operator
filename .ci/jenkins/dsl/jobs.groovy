@@ -47,8 +47,6 @@ void setupProfilingJob() {
 
         REPO_NAME: 'kogito-operator',
         OPERATOR_IMAGE_NAME: 'kogito-operator-profiling',
-        CONTAINER_ENGINE: 'docker',
-        CONTAINER_TLS_OPTIONS: '',
         MAX_REGISTRY_RETRIES: 3,
         OPENSHIFT_API_KEY: 'OPENSHIFT_API',
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
@@ -101,8 +99,6 @@ void setupDeployJob(JobType jobType, String envName = '') {
 
         REPO_NAME: 'kogito-operator',
         OPERATOR_IMAGE_NAME: 'kogito-operator',
-        CONTAINER_ENGINE: 'docker',
-        CONTAINER_TLS_OPTIONS: '',
         MAX_REGISTRY_RETRIES: 3,
         OPENSHIFT_API_KEY: 'OPENSHIFT_API',
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
@@ -186,8 +182,6 @@ void setupPromoteJob(JobType jobType) {
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
         REPO_NAME: 'kogito-operator',
-        CONTAINER_ENGINE: 'podman',
-        CONTAINER_TLS_OPTIONS: '--tls-verify=false',
         MAX_REGISTRY_RETRIES: 3,
         OPENSHIFT_API_KEY: 'OPENSHIFT_API',
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
@@ -248,8 +242,6 @@ void setupExamplesImagesDeployJob(JobType jobType, String jobName = 'kogito-exam
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
         REPO_NAME: 'kogito-operator',
-        CONTAINER_ENGINE: 'docker',
-        CONTAINER_TLS_OPTIONS: '',
         MAX_REGISTRY_RETRIES: 3,
         OPENSHIFT_API_KEY: 'OPENSHIFT_API',
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
@@ -314,8 +306,6 @@ void setupExamplesImagesPromoteJob(JobType jobType) {
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
         REPO_NAME: 'kogito-operator',
-        CONTAINER_ENGINE: 'podman',
-        CONTAINER_TLS_OPTIONS: '--tls-verify=false',
         MAX_REGISTRY_RETRIES: 3,
         OPENSHIFT_API_KEY: 'OPENSHIFT_API',
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
