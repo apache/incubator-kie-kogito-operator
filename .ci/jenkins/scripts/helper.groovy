@@ -71,33 +71,25 @@ void installGitHubReleaseCLI() {
 }
 
 void createRelease() {
-    if (isReleaseExist()) {
-        deleteRelease()
+    if(githubscm.isReleaseExist(getGitTag(), getGitAuthorCredsID())) {
+        githubscm.deleteReleaseAndTag(getGitTag(), getGitAuthorCredsID())
     }
-
-    if (githubscm.isTagExist('origin', getGitTag())) {
-        githubscm.removeLocalTag(getGitTag())
-        githubscm.removeRemoteTag('origin', getGitTag(), getGitAuthorCredsID())
-    }
+    githubscm.createReleaseWithGeneratedReleaseNotes(getGitTag(), getBuildBranch(), githubscm.getPreviousTag(getGitTag()), getGitAuthorCredsID())
+    githubscm.updateReleaseBody(getGitTag(), getGitAuthorCredsID())
 
     sh "make build-cli release=true version=${getProjectVersion()}"
-    def releaseName = "Kogito Operator and CLI Version ${getProjectVersion()}"
-    def description = 'Kogito Operator is a Kubernetes based operator for Kogito Runtimes\' deployment from the source. Additionally, to facilitate interactions with the operator, we also offer a CLI (Command Line Interface) to deploy Kogito applications.'
     def releasePath = 'build/_output/release/'
     def cliBaseName = "kogito-cli-${getProjectVersion()}"
     def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
     def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
     def windowsFileName = "${cliBaseName}-windows-amd64.zip"
     def yamlInstaller = 'kogito-operator.yaml'
-    withCredentials([string(credentialsId: env.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
+    withCredentials([usernamePassword(credentialsId: getGitAuthorCredsID(), usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
         sh """
-            export GITHUB_USER=${getGitAuthor()}
-            github-release release --tag ${getGitTag()} --target \"${getBuildBranch()}\" --name \"${releaseName}\" --description \"${description}\" --pre-release
-            sleep 10
-            github-release upload --tag ${getGitTag()} --name \"${darwinFileName}\" --file \"${releasePath}${darwinFileName}\"
-            github-release upload --tag ${getGitTag()} --name \"${linuxFileName}\" --file \"${releasePath}${linuxFileName}\"
-            github-release upload --tag ${getGitTag()} --name \"${windowsFileName}\" --file \"${releasePath}${windowsFileName}\"
-            github-release upload --tag ${getGitTag()} --name \"${yamlInstaller}\" --file \"${yamlInstaller}\"
+            gh release upload ${getGitTag()} "${releasePath}${darwinFileName}"
+            gh release upload ${getGitTag()} "${releasePath}${linuxFileName}"
+            gh release upload ${getGitTag()} "${releasePath}${windowsFileName}"
+            gh release upload ${getGitTag()} "${releasePath}${yamlInstaller}"
         """
     }
 }
