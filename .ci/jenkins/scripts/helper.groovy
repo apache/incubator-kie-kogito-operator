@@ -94,26 +94,6 @@ void createRelease() {
     }
 }
 
-boolean isReleaseExist() {
-    releaseExistStatus = -1
-    withCredentials([string(credentialsId: env.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
-        releaseExistStatus = sh(returnStatus: true, script: """
-            export GITHUB_USER=${getGitAuthor()}
-            github-release info --tag ${getGitTag()}
-        """)
-    }
-    return releaseExistStatus == 0
-}
-
-void deleteRelease() {
-    withCredentials([string(credentialsId: env.GITHUB_TOKEN_CREDS_ID, variable: 'GITHUB_TOKEN')]) {
-        sh """
-            export GITHUB_USER=${getGitAuthor()}
-            github-release delete --tag ${getGitTag()}
-        """
-    }
-}
-
 // Set images public on quay. Useful when new images are introduced.
 void makeQuayImagePublic(String repository, String paramsPrefix = defaultImageParamsPrefix) {
     String namespace = getImageNamespace(paramsPrefix)
