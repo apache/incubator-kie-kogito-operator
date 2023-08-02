@@ -17,7 +17,6 @@ pipeline {
         CONTAINER_ENGINE = 'podman'
         CONTAINER_TLS_OPTIONS = '--tls-verify=false'
 
-        BOT_BRANCH_HASH = "${util.generateHash(10)}"
         GITHUB_REPO = "${REPO_NAME}" // for github-release cli
     }
 
@@ -34,7 +33,7 @@ pipeline {
             steps {
                 script {
                     helper.cleanGoPath()
-                    
+
                     helper.updateDisplayName()
 
                     properties.readFromUrl(helper.getDeployPropertiesFileUrl())
