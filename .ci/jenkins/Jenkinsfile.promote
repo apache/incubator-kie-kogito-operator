@@ -19,7 +19,7 @@ pipeline {
         CONTAINER_ENGINE = 'podman'
         CONTAINER_TLS_OPTIONS = '--tls-verify=false'
 
-        BOT_BRANCH_HASH = "${util.generateHash(10)}"
+        PR_BRANCH_HASH = "${util.generateHash(10)}"
         GITHUB_REPO = "${REPO_NAME}" // for github-release cli
     }
 
@@ -125,10 +125,9 @@ pipeline {
                     String prLink = ''
                     String nextVersion = helper.getNextVersion()
                     String snapshotBranch = helper.getSnapshotBranch()
-                    dir('bot') {
+                    dir('pr') {
                         // Prepare PR
                         helper.checkoutRepo()
-                        githubscm.forkRepo(helper.getBotAuthorCredsID())
                         githubscm.createBranch(snapshotBranch)
 
                         // Update version to next snapshot
@@ -143,8 +142,8 @@ pipeline {
                                 git reset -- go.sum
                             '''
                         })
-                        githubscm.pushObject('origin', snapshotBranch, helper.getBotAuthorCredsID())
-                        prLink = githubscm.createPR(commitMsg, prBody, helper.getBuildBranch(), helper.getBotAuthorCredsID())
+                        githubscm.pushObject('origin', snapshotBranch, helper.getGitAuthorCredsID())
+                        prLink = githubscm.createPR(commitMsg, prBody, helper.getBuildBranch(), helper.getGitAuthorCredsID())
                     }
                     dir(helper.getRepoName()) {
                         if (prLink) {

@@ -114,8 +114,6 @@ void setupDeployJob(JobType jobType, String envName = '') {
 
             AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
             GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
-            GIT_AUTHOR_BOT: "${GIT_BOT_AUTHOR_NAME}",
-            BOT_CREDENTIALS_ID: "${GIT_BOT_AUTHOR_CREDENTIALS_ID}",
 
             DEFAULT_STAGING_REPOSITORY: "${MAVEN_NEXUS_STAGING_PROFILE_URL}",
             MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
@@ -191,8 +189,6 @@ void setupPromoteJob(JobType jobType) {
 
         AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
         GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
-        GIT_AUTHOR_BOT: "${GIT_BOT_AUTHOR_NAME}",
-        BOT_CREDENTIALS_ID: "${GIT_BOT_AUTHOR_CREDENTIALS_ID}",
     ])
     KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {

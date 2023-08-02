@@ -258,16 +258,8 @@ String getGitAuthorCredsID() {
     return env.AUTHOR_CREDS_ID
 }
 
-String getBotBranch() {
-    return "${getProjectVersion()}-${env.BOT_BRANCH_HASH}"
-}
-
-String getBotAuthor() {
-    return env.GIT_AUTHOR_BOT
-}
-
-String getBotAuthorCredsID() {
-    return env.BOT_CREDENTIALS_ID
+String getPRBranch() {
+    return "${getProjectVersion()}-${env.PR_BRANCH_HASH}"
 }
 
 String getProjectVersion() {
@@ -279,7 +271,7 @@ String getNextVersion() {
 }
 
 String getSnapshotBranch() {
-    return "${getNextVersion()}-${env.BOT_BRANCH_HASH}"
+    return "${getNextVersion()}-${env.PR_BRANCH_HASH}"
 }
 
 boolean shouldLaunchTests() {
