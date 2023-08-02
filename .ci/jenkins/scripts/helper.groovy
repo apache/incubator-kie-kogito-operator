@@ -8,15 +8,6 @@ promoteImageParamsPrefix = 'PROMOTE_IMAGE'
 
 void initPipeline() {
     properties = load '.ci/jenkins/scripts/properties.groovy'
-
-    openshift = load '.ci/jenkins/scripts/openshift.groovy'
-    openshift.openshiftApiKey = env.OPENSHIFT_API_KEY
-    openshift.openshiftApiCredsKey = env.OPENSHIFT_CREDS_KEY
-
-    container = load '.ci/jenkins/scripts/container.groovy'
-    container.containerEngine = env.CONTAINER_ENGINE
-    container.containerTlsOptions = env.CONTAINER_TLS_OPTIONS ?: ''
-    container.containerOpenshift = openshift
 }
 
 void updateDisplayName() {
@@ -34,7 +25,7 @@ String buildTempOpenshiftImageFullName(boolean internal=false) {
 }
 
 String getTempOpenshiftImageName(boolean internal=false) {
-    String registry = internal ? openshiftInternalRegistry : openshift.getOpenshiftRegistry()
+    String registry = internal ? openshiftInternalRegistry : cloud.getOpenShiftRegistryURL()
     return "${registry}/openshift/${env.OPERATOR_IMAGE_NAME}"
 }
 
@@ -59,39 +50,13 @@ void checkoutRepo(String repoName = '', String directory = '') {
 }
 
 void loginRegistry(String paramsPrefix = defaultImageParamsPrefix) {
-    if (isImageInOpenshiftRegistry(paramsPrefix)) {
-        container.loginOpenshiftRegistry()
-    } else if (getImageRegistryCredentials(paramsPrefix)) {
-        container.loginContainerRegistry(getImageRegistry(paramsPrefix), getImageRegistryCredentials(paramsPrefix))
+    if (getImageRegistryCredentials(paramsPrefix)) {
+        getContainerEngineService().loginContainerRegistry(getImageRegistry(paramsPrefix), getImageRegistryCredentials(paramsPrefix))
     }
 }
 
-void installGitHubReleaseCLI() {
-    sh 'go install github.com/github-release/github-release@latest'
-}
-
-void createRelease() {
-    if(githubscm.isReleaseExist(getGitTag(), getGitAuthorCredsID())) {
-        githubscm.deleteReleaseAndTag(getGitTag(), getGitAuthorCredsID())
-    }
-    githubscm.createReleaseWithGeneratedReleaseNotes(getGitTag(), getBuildBranch(), githubscm.getPreviousTag(getGitTag()), getGitAuthorCredsID())
-    githubscm.updateReleaseBody(getGitTag(), getGitAuthorCredsID())
-
-    sh "make build-cli release=true version=${getProjectVersion()}"
-    def releasePath = 'build/_output/release/'
-    def cliBaseName = "kogito-cli-${getProjectVersion()}"
-    def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
-    def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
-    def windowsFileName = "${cliBaseName}-windows-amd64.zip"
-    def yamlInstaller = 'kogito-operator.yaml'
-    withCredentials([usernamePassword(credentialsId: getGitAuthorCredsID(), usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-        sh """
-            gh release upload ${getGitTag()} "${releasePath}${darwinFileName}"
-            gh release upload ${getGitTag()} "${releasePath}${linuxFileName}"
-            gh release upload ${getGitTag()} "${releasePath}${windowsFileName}"
-            gh release upload ${getGitTag()} "${yamlInstaller}"
-        """
-    }
+ContainerEngineService getContainerEngineService() {
+    return new ContainerEngineService(this)
 }
 
 // Set images public on quay. Useful when new images are introduced.
@@ -103,6 +68,14 @@ void makeQuayImagePublic(String repository, String paramsPrefix = defaultImagePa
     } catch (err) {
         echo "[ERROR] Cannot set image quay.io/${namespace}/${repository} as visible"
     }
+}
+
+boolean isQuayRegistry(String paramsPrefix = defaultImageParamsPrefix) {
+    return getImageRegistry(paramsPrefix) == 'quay.io'
+}
+
+void promoteImage(String oldImageName, String newImageName) {
+    cloud.skopeoCopyRegistryImages(oldImageName, newImageName, Integer.parseInt(env.MAX_REGISTRY_RETRIES))
 }
 
 String getPropertiesImagePrefix() {
@@ -141,27 +114,19 @@ String contructImageProperty(String suffix) {
 // Image information
 ////////////////////////////////////////////////////////////////////////
 
-boolean isImageInOpenshiftRegistry(String paramsPrefix = defaultImageParamsPrefix) {
-    return params[constructKey(paramsPrefix, 'USE_OPENSHIFT_REGISTRY')]
-}
-
 String getImageRegistryCredentials(String paramsPrefix = defaultImageParamsPrefix) {
-    return isImageInOpenshiftRegistry(paramsPrefix) ? '' : params[constructKey(paramsPrefix, 'REGISTRY_CREDENTIALS')]
+    return params[constructKey(paramsPrefix, 'REGISTRY_CREDENTIALS')]
 }
 
 String getImageRegistry(String paramsPrefix = defaultImageParamsPrefix) {
-    if (isImageInOpenshiftRegistry(paramsPrefix)) {
-        return openshift.getOpenshiftRegistry()
-    } else if (paramsPrefix == baseImageParamsPrefix && properties.contains(getImageRegistryProperty())) {
+    if (paramsPrefix == baseImageParamsPrefix && properties.contains(getImageRegistryProperty())) {
         return properties.retrieve(getImageRegistryProperty())
     }
     return  params[constructKey(paramsPrefix, 'REGISTRY')]
 }
 
 String getImageNamespace(String paramsPrefix = defaultImageParamsPrefix) {
-    if (isImageInOpenshiftRegistry(paramsPrefix)) {
-        return 'openshift'
-    } else if (paramsPrefix == baseImageParamsPrefix && properties.contains(getImageNamespaceProperty())) {
+    if (paramsPrefix == baseImageParamsPrefix && properties.contains(getImageNamespaceProperty())) {
         return properties.retrieve(getImageNamespaceProperty())
     }
     return params[constructKey(paramsPrefix, 'NAMESPACE')]

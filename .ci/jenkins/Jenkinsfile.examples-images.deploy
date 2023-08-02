@@ -23,7 +23,7 @@ pipeline {
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
 
         CONTAINER_ENGINE = 'docker'
-        CONTAINER_TLS_OPTIONS = ''
+        CONTAINER_ENGINE_TLS_OPTIONS = ''
 
         JAVA_HOME = "${GRAALVM_HOME}"
     }
@@ -46,8 +46,7 @@ pipeline {
                     helper.checkoutRepo()
 
                     // Openshift login is needed for the examples generation
-                    openshift.loginOpenshift()
-
+                    cloud.loginOpenShiftFromAPICreds(env.OPENSHIFT_API_KEY, env.OPENSHIFT_CREDS_KEY)
                     helper.loginRegistry()
                 }
             }
@@ -118,19 +117,16 @@ pipeline {
                     images = readFile(file: 'test/examples/logs/built_project_image_names.log').split('\n')
 
                     for (String imageName : images) {
+                        String imageTag = helper.getImageFullTag(imageName)
                         if (helper.isDeployLatestTag()) {
-                            String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, 'latest')
-                            container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
-                            container.pushImage(finalFullImage)
+                            helper.promoteImage(imageTag, helper.getImageFullTag(imageName, defaultImageParamsPrefix, 'latest'))
                         }
                         String reducedTag = helper.getReducedTag()
                         if (reducedTag) {
-                            String finalFullImage = helper.getImageFullTag(imageName, defaultImageParamsPrefix, reducedTag)
-                            container.tagImage(helper.getImageFullTag(imageName), finalFullImage)
-                            container.pushImage(finalFullImage)
+                            helper.promoteImage(imageTag, helper.getImageFullTag(imageName, defaultImageParamsPrefix, reducedTag))
                         }
 
-                        if (helper.getImageRegistry() == 'quay.io') {
+                        if (helper.isQuayRegistry()) {
                             helper.makeQuayImagePublic(helper.getFullImageName(imageName))
                         }
                     }

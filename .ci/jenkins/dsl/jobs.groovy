@@ -142,7 +142,6 @@ void setupDeployJob(JobType jobType, String envName = '') {
             stringParam('NATIVE_BUILDER_IMAGE', '', 'Force the native builder image')
 
             // Deploy information
-            booleanParam('IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Set to true if image should be deployed in Openshift registry.In this case, IMAGE_REGISTRY_CREDENTIALS, IMAGE_REGISTRY and IMAGE_NAMESPACE parameters will be ignored')
             stringParam('IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Image registry credentials to use to deploy images. Will be ignored if no IMAGE_REGISTRY is given')
             stringParam('IMAGE_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Image registry to use to deploy images')
             stringParam('IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Image namespace to use to deploy images')
@@ -152,7 +151,6 @@ void setupDeployJob(JobType jobType, String envName = '') {
             booleanParam('SKIP_DEPLOY', false, 'In case you don\'t want to deploy the final image.')
 
             // Test config if needed specifics. Else test default config will apply.
-            booleanParam('KOGITO_IMAGES_USE_OPENSHIFT_REGISTRY', false, 'Set to true if kogito images for tests are in internal Openshift registry.In this case, KOGITO_IMAGES_REGISTRY and KOGITO_IMAGES_NAMESPACE parameters will be ignored')
             stringParam('KOGITO_IMAGES_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Test images registry')
             stringParam('KOGITO_IMAGES_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Test images namespace')
             stringParam('KOGITO_IMAGES_NAME_SUFFIX', '', 'Test images name suffix')
@@ -162,7 +160,6 @@ void setupDeployJob(JobType jobType, String envName = '') {
             stringParam('EXAMPLES_REF', '', 'Git reference (branch/tag) to the kogito-examples repository to use for tests.')
 
             stringParam('EXAMPLES_IMAGES_CACHE_MODE', 'never', 'Set the examples images\' cache mode for the BDD tests. Default it will always build the image.')
-            booleanParam('EXAMPLES_IMAGES_USE_OPENSHIFT_REGISTRY', false, 'Set to true if examples images for tests are in internal Openshift registry.In this case, EXAMPLES_IMAGES_REGISTRY and EXAMPLES_IMAGES_NAMESPACE parameters will be ignored')
             stringParam('EXAMPLES_IMAGES_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Examples images registry')
             stringParam('EXAMPLES_IMAGES_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Examples images namespace')
             stringParam('EXAMPLES_IMAGES_NAME_PREFIX', '', 'Examples images name prefix')
@@ -200,7 +197,6 @@ void setupPromoteJob(JobType jobType) {
             stringParam('DEPLOY_BUILD_URL', '', 'URL to jenkins deploy build to retrieve the `deployment.properties` file. If base parameters are defined, they will override the `deployment.properties` information')
 
             // Base information which can override `deployment.properties`
-            booleanParam('BASE_IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Override `deployment.properties`. Set to true if base image should be deployed in Openshift registry.In this case, BASE_IMAGE_REGISTRY_CREDENTIALS, BASE_IMAGE_REGISTRY and BASE_IMAGE_NAMESPACE parameters will be ignored')
             stringParam('BASE_IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Override `deployment.properties`. Base Image registry credentials to use to deploy images. Will be ignored if no BASE_IMAGE_REGISTRY is given')
             stringParam('BASE_IMAGE_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Override `deployment.properties`. Base image registry')
             stringParam('BASE_IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Override `deployment.properties`. Base image namespace')
@@ -208,7 +204,6 @@ void setupPromoteJob(JobType jobType) {
             stringParam('BASE_IMAGE_TAG', '', 'Override `deployment.properties`. Base image tag')
 
             // Promote information
-            booleanParam('PROMOTE_IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Set to true if base image should be deployed in Openshift registry.In this case, PROMOTE_IMAGE_REGISTRY_CREDENTIALS, PROMOTE_IMAGE_REGISTRY and PROMOTE_IMAGE_NAMESPACE parameters will be ignored')
             stringParam('PROMOTE_IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Promote Image registry credentials to use to deploy images. Will be ignored if no PROMOTE_IMAGE_REGISTRY is given')
             stringParam('PROMOTE_IMAGE_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Promote image registry')
             stringParam('PROMOTE_IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Promote image namespace')
@@ -275,7 +270,6 @@ void setupExamplesImagesDeployJob(JobType jobType, String jobName = 'kogito-exam
             stringParam('NATIVE_BUILDER_IMAGE', '', 'Force the native builder image')
 
             // Deploy information
-            booleanParam('IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Set to true if image should be deployed in Openshift registry.In this case, IMAGE_REGISTRY_CREDENTIALS, IMAGE_REGISTRY and IMAGE_NAMESPACE parameters will be ignored')
             stringParam('IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Image registry credentials to use to deploy images. Will be ignored if no IMAGE_REGISTRY is given')
             stringParam('IMAGE_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Image registry to use to deploy images')
             stringParam('IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Image namespace to use to deploy images')
@@ -285,7 +279,6 @@ void setupExamplesImagesDeployJob(JobType jobType, String jobName = 'kogito-exam
             booleanParam('DEPLOY_WITH_LATEST_TAG', false, 'Set to true if you want the deployed image to also be with the `latest` tag')
 
             // Test config if needed specifics. Else test default config will apply.
-            booleanParam('KOGITO_IMAGES_USE_OPENSHIFT_REGISTRY', false, 'Set to true if kogito images for tests are in internal Openshift registry.In this case, KOGITO_IMAGES_REGISTRY and KOGITO_IMAGES_NAMESPACE parameters will be ignored')
             stringParam('KOGITO_IMAGES_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Test images registry')
             stringParam('KOGITO_IMAGES_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Test images namespace')
             stringParam('KOGITO_IMAGES_NAME_SUFFIX', '', 'Test images name suffix')
@@ -319,7 +312,6 @@ void setupExamplesImagesPromoteJob(JobType jobType) {
             stringParam('DEPLOY_BUILD_URL', '', 'URL to jenkins deploy build to retrieve the `deployment.properties` file. If base parameters are defined, they will override the `deployment.properties` information')
 
             // Base information which can override `deployment.properties`
-            booleanParam('BASE_IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Override `deployment.properties`. Set to true if base image should be deployed in Openshift registry.In this case, BASE_IMAGE_REGISTRY_CREDENTIALS, BASE_IMAGE_REGISTRY and BASE_IMAGE_NAMESPACE parameters will be ignored')
             stringParam('BASE_IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Override `deployment.properties`. Base Image registry credentials to use to deploy images. Will be ignored if no BASE_IMAGE_REGISTRY is given')
             stringParam('BASE_IMAGE_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Override `deployment.properties`. Base image registry')
             stringParam('BASE_IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Override `deployment.properties`. Base image namespace')
@@ -329,7 +321,6 @@ void setupExamplesImagesPromoteJob(JobType jobType) {
             stringParam('BASE_IMAGE_TAG', '', 'Override `deployment.properties`. Base image tag')
 
             // Promote information
-            booleanParam('PROMOTE_IMAGE_USE_OPENSHIFT_REGISTRY', false, 'Set to true if base image should be deployed in Openshift registry.In this case, PROMOTE_IMAGE_REGISTRY_CREDENTIALS, PROMOTE_IMAGE_REGISTRY and PROMOTE_IMAGE_NAMESPACE parameters will be ignored')
             stringParam('PROMOTE_IMAGE_REGISTRY_CREDENTIALS', "${CLOUD_IMAGE_REGISTRY_CREDENTIALS_NIGHTLY}", 'Promote Image registry credentials to use to deploy images. Will be ignored if no PROMOTE_IMAGE_REGISTRY is given')
             stringParam('PROMOTE_IMAGE_REGISTRY', "${CLOUD_IMAGE_REGISTRY}", 'Promote image registry')
             stringParam('PROMOTE_IMAGE_NAMESPACE', "${CLOUD_IMAGE_NAMESPACE}", 'Promote image namespace')

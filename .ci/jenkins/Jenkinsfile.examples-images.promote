@@ -15,9 +15,7 @@ pipeline {
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
 
         CONTAINER_ENGINE = 'podman'
-        CONTAINER_TLS_OPTIONS = '--tls-verify=false'
-
-        GITHUB_REPO = "${REPO_NAME}" // for github-release cli
+        CONTAINER_ENGINE_TLS_OPTIONS = '--tls-verify=false'
     }
 
     stages {
@@ -38,60 +36,42 @@ pipeline {
 
                     properties.readFromUrl(helper.getDeployPropertiesFileUrl())
 
-                    if (helper.isRelease()) {
-                        // Verify version is set and if on right release branch
-                        assert helper.getProjectVersion()
+                    assert helper.getProjectVersion()
+                    assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
 
-                        assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
-                    }
+                    cloud.installSkopeo()
                 }
             }
         }
-        stage('Pull "old" images') {
+        stage('Promote images') {
             steps {
                 script {
                     helper.loginRegistry(baseImageParamsPrefix)
-
-                    for (String imageName : getImages()) {
-                        container.pullImage(helper.getImageFullTag(imageName, baseImageParamsPrefix))
-                    }
-                }
-            }
-        }
-        stage('Tag images') {
-            steps {
-                script {
-                    for (String imageName : getImages()) {
-                        container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix))
-                        if (helper.isDeployLatestTag()) {
-                            container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
-                        }
-                        String reducedTag = helper.getReducedTag(promoteImageParamsPrefix)
-                        if (reducedTag) {
-                            container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
-                        }
-                    }
-                }
-            }
-        }
-        stage('Pushing') {
-            steps {
-                script {
                     helper.loginRegistry(promoteImageParamsPrefix)
 
                     for (String imageName : getImages()) {
-                        container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix))
+                        String imageTag = helper.getImageFullTag(imageName, baseImageParamsPrefix)
+                        helper.promoteImage(imageTag, helper.getImageFullTag(imageName, promoteImageParamsPrefix))
                         if (helper.isDeployLatestTag()) {
-                            container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
+                            helper.promoteImage(imageTag, helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
                         }
-                        String reducedTag = helper.getReducedTag(promoteImageParamsPrefix)
+                        String reducedTag = getReducedTag()
                         if (reducedTag) {
-                            container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
+                            helper.promoteImage(imageTag, helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
                         }
+                    }
+                }
+            }
+        }
 
-                        if (helper.getImageRegistry(promoteImageParamsPrefix) == 'quay.io') {
-                            helper.makeQuayImagePublic(helper.getFullImageName(imageName, promoteImageParamsPrefix), promoteImageParamsPrefix)
-                        }
+        stage('Make Quay images public') {
+            when {
+                expression { helper.isQuayRegistry(promoteImageParamsPrefix) }
+            }
+            steps {
+                script {
+                    for (String imageName : getImages()) {
+                        helper.makeQuayImagePublic(helper.getFullImageName(imageName, promoteImageParamsPrefix), promoteImageParamsPrefix)
                     }
                 }
             }

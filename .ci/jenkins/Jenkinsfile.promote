@@ -17,7 +17,7 @@ pipeline {
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
 
         CONTAINER_ENGINE = 'podman'
-        CONTAINER_TLS_OPTIONS = '--tls-verify=false'
+        CONTAINER_ENGINE_TLS_OPTIONS = '--tls-verify=false'
 
         PR_BRANCH_HASH = "${util.generateHash(10)}"
         GITHUB_REPO = "${REPO_NAME}" // for github-release cli
@@ -41,62 +41,48 @@ pipeline {
 
                     properties.readFromUrl(helper.getDeployPropertiesFileUrl())
 
-                    if (helper.isRelease()) {
-                        // Verify version is set and if on right release branch
-                        assert helper.getProjectVersion()
+                    assert helper.getProjectVersion()
+                    assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
 
-                        assert helper.getBuildBranch() == util.getReleaseBranchFromVersion(helper.getProjectVersion())
-                    }
-
-                    helper.installGitHubReleaseCLI()
+                    cloud.installSkopeo()
                 }
             }
         }
-        stage('Pull "old" images') {
+        stage('Promote images') {
             steps {
                 script {
                     helper.loginRegistry(baseImageParamsPrefix)
-
-                    for (String imageName : IMAGES) {
-                        container.pullImage(helper.getImageFullTag(imageName, baseImageParamsPrefix))
-                    }
-                }
-            }
-        }
-        stage('Tag images') {
-            steps {
-                script {
-                    for (String imageName : IMAGES) {
-                        container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix))
-                        if (helper.isDeployLatestTag()) {
-                            container.tagImage(helper.getImageFullTag(imageName, baseImageParamsPrefix), helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
-                        }
-                    }
-                }
-            }
-        }
-        stage('Pushing') {
-            steps {
-                script {
                     helper.loginRegistry(promoteImageParamsPrefix)
 
-                    for (String imageName : IMAGES) {
-                        container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix))
+                    for (String imageName : getImages()) {
+                        String imageTag = helper.getImageFullTag(imageName, baseImageParamsPrefix)
+                        helper.promoteImage(imageTag, helper.getImageFullTag(imageName, promoteImageParamsPrefix))
                         if (helper.isDeployLatestTag()) {
-                            container.pushImage(helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
+                            helper.promoteImage(imageTag, helper.getImageFullTag(imageName, promoteImageParamsPrefix, 'latest'))
                         }
-
-                        if (helper.getImageRegistry() == 'quay.io') {
-                            helper.makeQuayImagePublic(helper.getFullImageName(imageName))
+                        String reducedTag = getReducedTag()
+                        if (reducedTag) {
+                            helper.promoteImage(imageTag, helper.getImageFullTag(imageName, promoteImageParamsPrefix, reducedTag))
                         }
                     }
                 }
             }
         }
-        stage('Merge PR, tag and release CLI') {
+
+        stage('Make Quay images public') {
             when {
-                expression { return helper.isRelease() }
+                expression { helper.isQuayRegistry(promoteImageParamsPrefix) }
             }
+            steps {
+                script {
+                    for (String imageName : getImages()) {
+                        helper.makeQuayImagePublic(helper.getFullImageName(imageName, promoteImageParamsPrefix), promoteImageParamsPrefix)
+                    }
+                }
+            }
+        }
+
+        stage('Merge PR, tag and release CLI') {
             steps {
                 script {
                     dir(helper.getRepoName()) {
@@ -108,48 +94,34 @@ pipeline {
                             githubscm.mergePR(prLink, helper.getGitAuthorCredsID())
                             githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorCredsID())
                         }
-
-                        if (helper.getGitTag()) {
-                            helper.createRelease()
-                        }
                     }
                 }
             }
         }
-        stage('Set next snapshot version') {
-            when {
-                expression { return helper.isRelease() }
-            }
+
+        stage('Create release') {
             steps {
                 script {
-                    String prLink = ''
-                    String nextVersion = helper.getNextVersion()
-                    String snapshotBranch = helper.getSnapshotBranch()
-                    dir('pr') {
-                        // Prepare PR
-                        helper.checkoutRepo()
-                        githubscm.createBranch(snapshotBranch)
-
-                        // Update version to next snapshot
-                        sh "make bump-version new_version=${nextVersion}"
-
-                        def commitMsg = "[${helper.getBuildBranch()}] Update snapshot version to ${nextVersion}"
-                        def prBody = "Generated by build ${BUILD_TAG}: ${BUILD_URL}"
-                        githubscm.commitChanges(commitMsg, {
-                            sh '''
-                                git add .
-                                git reset -- go.mod
-                                git reset -- go.sum
-                            '''
-                        })
-                        githubscm.pushObject('origin', snapshotBranch, helper.getGitAuthorCredsID())
-                        prLink = githubscm.createPR(commitMsg, prBody, helper.getBuildBranch(), helper.getGitAuthorCredsID())
+                    if (githubscm.isReleaseExist(getGitTag(), getGitAuthorCredsID())) {
+                        githubscm.deleteReleaseAndTag(getGitTag(), getGitAuthorCredsID())
                     }
-                    dir(helper.getRepoName()) {
-                        if (prLink) {
-                            githubscm.mergePR(prLink, helper.getGitAuthorCredsID())
-                            githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorCredsID())
-                        }
+                    githubscm.createReleaseWithGeneratedReleaseNotes(getGitTag(), getBuildBranch(), githubscm.getPreviousTag(getGitTag()), getGitAuthorCredsID())
+                    githubscm.updateReleaseBody(getGitTag(), getGitAuthorCredsID())
+
+                    sh "make build-cli release=true version=${getProjectVersion()}"
+                    def releasePath = 'build/_output/release/'
+                    def cliBaseName = "kogito-cli-${getProjectVersion()}"
+                    def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
+                    def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
+                    def windowsFileName = "${cliBaseName}-windows-amd64.zip"
+                    def yamlInstaller = 'kogito-operator.yaml'
+                    withCredentials([usernamePassword(credentialsId: getGitAuthorCredsID(), usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+                        sh """
+                            gh release upload ${getGitTag()} "${releasePath}${darwinFileName}"
+                            gh release upload ${getGitTag()} "${releasePath}${linuxFileName}"
+                            gh release upload ${getGitTag()} "${releasePath}${windowsFileName}"
+                            gh release upload ${getGitTag()} "${yamlInstaller}"
+                        """
                     }
                 }
             }
