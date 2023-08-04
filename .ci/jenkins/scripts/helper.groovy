@@ -259,7 +259,7 @@ String getGitAuthorCredsID() {
 }
 
 String getPRBranch() {
-    return "${getProjectVersion()}-${env.PR_BRANCH_HASH}"
+    return params.KOGITO_PR_BRANCH
 }
 
 String getProjectVersion() {
