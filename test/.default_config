@@ -7,4 +7,4 @@ tests.runtime_application_image_registry=quay.io/kiegroup
 tests.runtime_application_image_name_prefix=examples
 tests.runtime_application_image_name_suffix=nightly
 tests.runtime_application_image_version=1.42
-tests.examples_ref=nightly-1.42.x
+tests.examples_ref=1.42.x
