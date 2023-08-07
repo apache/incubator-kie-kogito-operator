@@ -89,7 +89,7 @@ void createRelease() {
             gh release upload ${getGitTag()} "${releasePath}${darwinFileName}"
             gh release upload ${getGitTag()} "${releasePath}${linuxFileName}"
             gh release upload ${getGitTag()} "${releasePath}${windowsFileName}"
-            gh release upload ${getGitTag()} "${releasePath}${yamlInstaller}"
+            gh release upload ${getGitTag()} "${yamlInstaller}"
         """
     }
 }
