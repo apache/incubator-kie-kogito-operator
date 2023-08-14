@@ -6,7 +6,7 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "false"
-    containerImage: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
+    containerImage: quay.io/kiegroup/kogito-operator:1.43.0-snapshot
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito services.
     repository: https://github.com/kiegroup/kogito-operator
@@ -535,7 +535,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: kogito-operator
-    operated-by: kogito-operator.2.0.0-snapshot
+    operated-by: kogito-operator.1.43.0-snapshot
   links:
   - name: Product Page
     url: https://kogito.kie.org/
@@ -549,5 +549,5 @@ spec:
   maturity: beta
   provider:
     name: Red Hat
-  replaces: kogito-operator.v1.40.0
-  version: 2.0.0-snapshot
+  replaces: kogito-operator.v1.42.0
+  version: 1.43.0-snapshot
