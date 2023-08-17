@@ -16,9 +16,6 @@ import org.kie.jenkins.jobdsl.Utils
 
 jenkins_path = '.ci/jenkins'
 
-// PR checks
-setupDeployJob(JobType.PULL_REQUEST, 'kogito-bdd')
-
 // Init branch
 setupExamplesImagesDeployJob(JobType.SETUP_BRANCH, 'kogito-examples-images', [ JOB_ID: 'Setup branch' ])
 createSetupBranchJob()
@@ -86,39 +83,26 @@ void createSetupBranchJob() {
     }
 }
 
-void setupDeployJob(JobType jobType, String envName = '') {
-    def jobParams = JobParamsUtils.getBasicJobParamsWithEnv(this, 'kogito-operator-deploy', jobType, envName, "${jenkins_path}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
+void setupDeployJob(JobType jobType) {
+    def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-operator-deploy', jobType, "${jenkins_path}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
     JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
-    if (jobType == JobType.PULL_REQUEST) {
-        jobParams.git.branch = '${BUILD_BRANCH_NAME}'
-        jobParams.git.author = '${GIT_AUTHOR}'
-        jobParams.git.project_url = Utils.createProjectUrl("${GIT_AUTHOR_NAME}", jobParams.git.repository)
-    }
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
-        REPO_NAME: 'kogito-operator',
         OPERATOR_IMAGE_NAME: 'kogito-operator',
         MAX_REGISTRY_RETRIES: 3,
         OPENSHIFT_API_KEY: 'OPENSHIFT_API',
         OPENSHIFT_CREDS_KEY: 'OPENSHIFT_CREDS',
         PROPERTIES_FILE_NAME: 'deployment.properties',
+
+        GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
+
+        AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
+        GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
+
+        DEFAULT_STAGING_REPOSITORY: "${MAVEN_NEXUS_STAGING_PROFILE_URL}",
+        MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
     ])
-    if (jobType == JobType.PULL_REQUEST) {
-        jobParams.env.putAll([
-            MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_PR_CHECKS_REPOSITORY_URL}",
-        ])
-    } else {
-        jobParams.env.putAll([
-            GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
-
-            AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
-            GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
-
-            DEFAULT_STAGING_REPOSITORY: "${MAVEN_NEXUS_STAGING_PROFILE_URL}",
-            MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
-        ])
-    }
     KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
             stringParam('DISPLAY_NAME', '', 'Setup a specific build display name')
