@@ -60,6 +60,7 @@ metadata:
     containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.3
     description: IBM BAMOE Kogito Operator for deployment and management of Kogito
       services.
+    operators.openshift.io/valid-subscription: '["IBM Business Automation Manager Open Edition"]'
     operators.operatorframework.io/builder: operator-sdk-v1.21.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/kiegroup/kogito-operator
