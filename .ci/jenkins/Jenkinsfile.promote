@@ -88,7 +88,7 @@ pipeline {
             }
         }
 
-        stage('Merge PR, tag and release CLI') {
+        stage('Merge PR and tag') {
             steps {
                 script {
                     dir(helper.getRepoName()) {
