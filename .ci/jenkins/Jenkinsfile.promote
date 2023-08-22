@@ -108,26 +108,28 @@ pipeline {
         stage('Create release') {
             steps {
                 script {
-                    if (githubscm.isReleaseExist(helper.getGitTag(), helper.getGitAuthorCredsID())) {
-                        githubscm.deleteReleaseAndTag(helper.getGitTag(), helper.getGitAuthorCredsID())
-                    }
-                    githubscm.createReleaseWithGeneratedReleaseNotes(helper.getGitTag(), helper.getBuildBranch(), githubscm.getPreviousTagFromVersion(helper.getGitTag(), 'v'), helper.getGitAuthorCredsID())
-                    githubscm.updateReleaseBody(helper.getGitTag(), helper.getGitAuthorCredsID())
-
-                    sh "make build-cli release=true version=${helper.getProjectVersion()}"
-                    def releasePath = 'build/_output/release/'
-                    def cliBaseName = "kogito-cli-${helper.getProjectVersion()}"
-                    def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
-                    def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
-                    def windowsFileName = "${cliBaseName}-windows-amd64.zip"
-                    def yamlInstaller = 'kogito-operator.yaml'
-                    withCredentials([usernamePassword(credentialsId: helper.getGitAuthorCredsID(), usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-                        sh """
-                            gh release upload ${helper.getGitTag()} "${releasePath}${darwinFileName}"
-                            gh release upload ${helper.getGitTag()} "${releasePath}${linuxFileName}"
-                            gh release upload ${helper.getGitTag()} "${releasePath}${windowsFileName}"
-                            gh release upload ${helper.getGitTag()} "${yamlInstaller}"
-                        """
+                    dir(helper.getRepoName()) {
+                        if (githubscm.isReleaseExist(helper.getGitTag(), helper.getGitAuthorCredsID())) {
+                            githubscm.deleteReleaseAndTag(helper.getGitTag(), helper.getGitAuthorCredsID())
+                        }
+                        githubscm.createReleaseWithGeneratedReleaseNotes(helper.getGitTag(), helper.getBuildBranch(), githubscm.getPreviousTagFromVersion(helper.getGitTag(), 'v'), helper.getGitAuthorCredsID())
+                        githubscm.updateReleaseBody(helper.getGitTag(), helper.getGitAuthorCredsID())
+    
+                        sh "make build-cli release=true version=${helper.getProjectVersion()}"
+                        def releasePath = 'build/_output/release/'
+                        def cliBaseName = "kogito-cli-${helper.getProjectVersion()}"
+                        def darwinFileName = "${cliBaseName}-darwin-amd64.tar.gz"
+                        def linuxFileName = "${cliBaseName}-linux-amd64.tar.gz"
+                        def windowsFileName = "${cliBaseName}-windows-amd64.zip"
+                        def yamlInstaller = 'kogito-operator.yaml'
+                        withCredentials([usernamePassword(credentialsId: helper.getGitAuthorCredsID(), usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+                            sh """
+                                gh release upload ${helper.getGitTag()} "${releasePath}${darwinFileName}"
+                                gh release upload ${helper.getGitTag()} "${releasePath}${linuxFileName}"
+                                gh release upload ${helper.getGitTag()} "${releasePath}${windowsFileName}"
+                                gh release upload ${helper.getGitTag()} "${yamlInstaller}"
+                            """
+                        }
                     }
                 }
             }
