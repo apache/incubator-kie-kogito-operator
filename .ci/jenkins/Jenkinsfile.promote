@@ -112,7 +112,7 @@ pipeline {
                         if (githubscm.isReleaseExist(helper.getGitTag(), helper.getGitAuthorCredsID())) {
                             githubscm.deleteReleaseAndTag(helper.getGitTag(), helper.getGitAuthorCredsID())
                         }
-                        githubscm.createReleaseWithGeneratedReleaseNotes(helper.getGitTag(), helper.getBuildBranch(), githubscm.getPreviousTagFromVersion(helper.getGitTag(), 'v'), helper.getGitAuthorCredsID())
+                        githubscm.createReleaseWithGeneratedReleaseNotes(helper.getGitTag(), helper.getBuildBranch(), githubscm.getPreviousTagFromVersion(helper.getProjectVersion(), 'v'), helper.getGitAuthorCredsID())
                         githubscm.updateReleaseBody(helper.getGitTag(), helper.getGitAuthorCredsID())
     
                         sh "make build-cli release=true version=${helper.getProjectVersion()}"
