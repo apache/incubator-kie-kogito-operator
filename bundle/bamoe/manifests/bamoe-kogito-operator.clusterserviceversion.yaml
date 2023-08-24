@@ -57,16 +57,17 @@ metadata:
     capabilities: Basic Install
     categories: Integration & Delivery
     certified: "true"
-    containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.3
+    containerImage: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.4
     description: IBM BAMOE Kogito Operator for deployment and management of Kogito
       services.
-    operators.openshift.io/valid-subscription: '["IBM Business Automation Manager Open Edition"]'
+    operators.openshift.io/valid-subscription: '["IBM Business Automation Manager
+      Open Edition"]'
     operators.operatorframework.io/builder: operator-sdk-v1.21.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/kiegroup/kogito-operator
     support: https://www.ibm.com/mysupport
     tectonic-visibility: ocs
-  name: bamoe-kogito-operator.8.0.3-2
+  name: bamoe-kogito-operator.8.0.4-1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -904,7 +905,7 @@ spec:
                   value: registry.redhat.io/ibm-bamoe
                 - name: GROUP
                   value: RHPAM
-                image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.3
+                image: registry.stage.redhat.io/ibm-bamoe/bamoe-kogito-rhel8-operator:8.0.4
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -988,7 +989,7 @@ spec:
   - automation
   labels:
     alm-owner-kogito: bamoe-kogito-operator
-    operated-by: bamoe-kogito-operator.8.0.3-2
+    operated-by: bamoe-kogito-operator.8.0.4-1
   links:
   - name: Product Page
     url: https://ibm.com
@@ -1003,4 +1004,4 @@ spec:
   provider:
     name: IBM
   replaces: bamoe-kogito-operator.8.0.3-1
-  version: 8.0.3-2
+  version: 8.0.4-1
