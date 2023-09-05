@@ -5,14 +5,10 @@ testsFailed = false
 
 pipeline {
     agent {
-        label 'kie-rhel8 && docker && kie-mem16g && !built-in'
-    }
-
-    // Needed for local build
-    tools {
-        maven env.BUILD_MAVEN_TOOL
-        jdk env.BUILD_JDK_TOOL
-        go 'golang-1.17'
+        docker { 
+            image env.AGENT_DOCKER_BUILDER_IMAGE
+            args env.AGENT_DOCKER_BUILDER_ARGS
+        }
     }
 
     options {
@@ -23,9 +19,7 @@ pipeline {
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
 
         CONTAINER_ENGINE = 'docker'
-        CONTAINER_TLS_OPTIONS = ''
-
-        JAVA_HOME = "${GRAALVM_HOME}"
+        CONTAINER_ENGINE_TLS_OPTIONS = ''
     }
 
     stages {
@@ -92,7 +86,6 @@ pipeline {
                 script {
                     try {
                         // Optaplanner taking a lot of resources, we should not build in parallel
-                        // There seems to be a problem with podman executed from the BDD tests ... Using docker instead for now ...
                         sh "make build-examples-images concurrent=1 ${getExamplesBuildParameters(true)}"
                     } catch (err) {
                         testsFailed = true

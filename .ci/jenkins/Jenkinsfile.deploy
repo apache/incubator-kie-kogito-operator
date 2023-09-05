@@ -7,14 +7,10 @@ gitChanges = false
 
 pipeline {
     agent {
-        label 'kie-rhel8 && podman && kie-mem16g && !built-in'
-    }
-
-    // Needed for local build
-    tools {
-        maven env.BUILD_MAVEN_TOOL
-        jdk env.BUILD_JDK_TOOL
-        go 'golang-1.17'
+        docker { 
+            image env.AGENT_DOCKER_BUILDER_IMAGE
+            args env.AGENT_DOCKER_BUILDER_ARGS
+        }
     }
 
     options {
@@ -22,21 +18,14 @@ pipeline {
     }
 
     environment {
-        // Static env is defined into ./dsl/jobs.groovy file
-
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
-
-        CONTAINER_ENGINE = 'podman'
-        CONTAINER_TLS_OPTIONS = '--tls-verify=false'
-
-        JAVA_HOME = "${GRAALVM_HOME}"
 
         PR_BRANCH_HASH = "${util.generateHash(10)}"
 
         // Environment required by OLM tests when run from process
         OP_TEST_CONTAINER_OPT = '-t'
         OP_TEST_DEBUG = 1
-        OP_TEST_CONTAINER_TOOL = 'podman'
+        OP_TEST_CONTAINER_TOOL = 'docker'
     }
 
     stages {
