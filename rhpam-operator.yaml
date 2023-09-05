@@ -3268,7 +3268,7 @@ spec:
           value: registry.redhat.io/rhpam-7
         - name: GROUP
           value: RHPAM
-        image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.3
+        image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.4
         livenessProbe:
           httpGet:
             path: /healthz
