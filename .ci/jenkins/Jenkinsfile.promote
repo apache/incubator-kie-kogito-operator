@@ -6,7 +6,7 @@ helper = null
 
 pipeline {
     agent {
-        label 'rhel8 && podman && !built-in'
+        label 'ubuntu'
     }
 
     options {

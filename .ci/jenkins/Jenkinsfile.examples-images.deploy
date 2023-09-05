@@ -5,7 +5,7 @@ testsFailed = false
 
 pipeline {
     agent {
-        label 'kie-rhel8 && docker && kie-mem16g && !built-in'
+        label 'ubuntu'
     }
 
     // Needed for local build
