@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    # Raise pull requests for version updates
+    target-branch: "1.13.x-blue-next"
+    # Labels on pull requests for version updates only
+    labels:
+      - "infosec"
