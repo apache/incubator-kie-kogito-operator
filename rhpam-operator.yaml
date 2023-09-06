@@ -3265,10 +3265,10 @@ spec:
         - name: RUNTIME_IMAGE
           value: rhpam-kogito-runtime-jvm-rhel8
         - name: IMAGE_REGISTRY
-          value: registry.redhat.io/rhpam-7
+          value: registry.stage.redhat.io/rhpam-7
         - name: GROUP
           value: RHPAM
-        image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.4
+        image: registry.stage.redhat.io/rhpam-7/rhpam-kogito-rhel8-operator:7.13.5
         livenessProbe:
           httpGet:
             path: /healthz
