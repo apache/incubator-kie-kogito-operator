@@ -1,5 +1,5 @@
 name: org.kie.kogito.rhpam.bundleinstall
-version: "7.13.3"
+version: "7.13.4"
 description: Copy the bund files to the target image
 
 artifacts:
