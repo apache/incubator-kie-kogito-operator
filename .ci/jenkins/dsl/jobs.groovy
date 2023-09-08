@@ -37,7 +37,7 @@ setupExamplesImagesPromoteJob(JobType.RELEASE)
 
 void setupProfilingJob() {
     def jobParams = JobParamsUtils.getBasicJobParamsWithEnv(this, 'kogito-operator-profiling', JobType.NIGHTLY, 'sonarcloud', "${jenkins_path}/Jenkinsfile.profiling", 'Kogito Cloud Operator Profiling')
-    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+    JobParamsUtils.setupJobParamsAgentDockerBuilderImageConfiguration(this, jobParams)
     jobParams.triggers = [ cron : '@midnight' ]
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
@@ -60,7 +60,7 @@ void setupProfilingJob() {
 
 void createSetupBranchJob() {
     def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-operator', JobType.SETUP_BRANCH, "${jenkins_path}/Jenkinsfile.setup-branch", 'Kogito Cloud Operator Init Branch')
-    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+    JobParamsUtils.setupJobParamsAgentDockerBuilderImageConfiguration(this, jobParams)
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
         REPO_NAME: 'kogito-operator',
@@ -85,7 +85,7 @@ void createSetupBranchJob() {
 
 void setupDeployJob(JobType jobType) {
     def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-operator-deploy', jobType, "${jenkins_path}/Jenkinsfile.deploy", 'Kogito Cloud Operator Deploy')
-    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+    JobParamsUtils.setupJobParamsAgentDockerBuilderImageConfiguration(this, jobParams)
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
@@ -161,6 +161,7 @@ void setupDeployJob(JobType jobType) {
 
 void setupPromoteJob(JobType jobType) {
     def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-operator-promote', jobType, "${jenkins_path}/Jenkinsfile.promote", 'Kogito Cloud Operator Promote')
+    JobParamsUtils.setupJobParamsAgentDockerBuilderImageConfiguration(this, jobParams)
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
@@ -212,7 +213,7 @@ void setupPromoteJob(JobType jobType) {
 
 void setupExamplesImagesDeployJob(JobType jobType, String jobName = 'kogito-examples-images-deploy', Map extraEnv = [:]) {
     def jobParams = JobParamsUtils.getBasicJobParams(this, jobName, jobType, "${jenkins_path}/Jenkinsfile.examples-images.deploy", 'Kogito Examples Images Deploy')
-    JobParamsUtils.setupJobParamsDefaultMavenConfiguration(this, jobParams)
+    JobParamsUtils.setupJobParamsAgentDockerBuilderImageConfiguration(this, jobParams)
     jobParams.env.putAll(extraEnv)
     if (jobType == JobType.PULL_REQUEST) {
         jobParams.git.branch = '${BUILD_BRANCH_NAME}'
@@ -283,6 +284,7 @@ void setupExamplesImagesDeployJob(JobType jobType, String jobName = 'kogito-exam
 
 void setupExamplesImagesPromoteJob(JobType jobType) {
     def jobParams = JobParamsUtils.getBasicJobParams(this, 'kogito-examples-images-promote', jobType, "${jenkins_path}/Jenkinsfile.examples-images.promote", 'Kogito Examples Images Promote')
+    JobParamsUtils.setupJobParamsAgentDockerBuilderImageConfiguration(this, jobParams)
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
 
