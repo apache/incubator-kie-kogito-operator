@@ -4,14 +4,10 @@ helper = null
 
 pipeline {
     agent {
-        label 'ubuntu'
-    }
-
-    // Needed for local build
-    tools {
-        maven env.BUILD_MAVEN_TOOL
-        jdk env.BUILD_JDK_TOOL
-        go 'golang-1.17'
+        docker { 
+            image env.AGENT_DOCKER_BUILDER_IMAGE
+            args env.AGENT_DOCKER_BUILDER_ARGS
+        }
     }
 
     options {
@@ -21,12 +17,10 @@ pipeline {
     environment {
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
 
-        CONTAINER_ENGINE = 'podman'
-        CONTAINER_TLS_OPTIONS = '--tls-verify=false'
+        CONTAINER_ENGINE = 'docker'
+        CONTAINER_ENGINE_TLS_OPTIONS = ''
 
         CODECOV_TOKEN = credentials('KOGITO_OPERATOR_CODECOV_TOKEN')
-
-        JAVA_HOME = "${GRAALVM_HOME}"
     }
 
     stages {

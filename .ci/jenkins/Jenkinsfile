@@ -8,7 +8,7 @@ testsFailed = false
 
 pipeline {
     agent {
-        label 'kogito-jenkins-node && !master' // Running on IBMCLoud jenkins
+        label 'kogito-jenkins-node && !master' // Running on IBMCLoud jenkins, no change to be done there
     }
     tools {
         go 'golang-1.17'
@@ -20,7 +20,7 @@ pipeline {
     environment {
         OPENSHIFT_INTERNAL_REGISTRY = 'image-registry.openshift-image-registry.svc:5000'
 
-        CONTAINER_ENGINE = 'podman'
+        CONTAINER_ENGINE = 'docker'
 
         CODECOV_TOKEN = credentials('KOGITO_OPERATOR_CODECOV_TOKEN')
     }
