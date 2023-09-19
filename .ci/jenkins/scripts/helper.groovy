@@ -15,7 +15,7 @@ void initPipeline() {
 
     container = load '.ci/jenkins/scripts/container.groovy'
     container.containerEngine = env.CONTAINER_ENGINE
-    container.containerTlsOptions = env.CONTAINER_TLS_OPTIONS ?: ''
+    container.containerTlsOptions = env.CONTAINER_ENGINE_TLS_OPTIONS ?: ''
     container.containerOpenshift = openshift
 }
 

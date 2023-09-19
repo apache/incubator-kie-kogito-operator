@@ -6,7 +6,10 @@ helper = null
 
 pipeline {
     agent {
-        label 'rhel8 && podman && !built-in'
+        docker { 
+            image env.AGENT_DOCKER_BUILDER_IMAGE
+            args env.AGENT_DOCKER_BUILDER_ARGS
+        }
     }
 
     options {
@@ -16,11 +19,7 @@ pipeline {
     environment {
         KOGITO_CI_EMAIL_TO = credentials("${JENKINS_EMAIL_CREDS_ID}")
 
-        CONTAINER_ENGINE = 'podman'
-        CONTAINER_TLS_OPTIONS = '--tls-verify=false'
-
         PR_BRANCH_HASH = "${util.generateHash(10)}"
-        GITHUB_REPO = "${REPO_NAME}" // for github-release cli
     }
 
     stages {
