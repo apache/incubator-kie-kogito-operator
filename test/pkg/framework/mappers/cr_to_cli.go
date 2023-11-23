@@ -1,16 +1,19 @@
-// Copyright 2020 Red Hat, Inc. and/or its affiliates
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 package mappers
 
@@ -23,7 +26,7 @@ import (
 	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
 )
 
-//GetServiceCLIFlags returns CLI flags based on Kogito service passed in parameter
+// GetServiceCLIFlags returns CLI flags based on Kogito service passed in parameter
 func GetServiceCLIFlags(serviceHolder *bddtypes.KogitoServiceHolder) []string {
 	var cmd []string
 
@@ -65,7 +68,7 @@ func GetServiceCLIFlags(serviceHolder *bddtypes.KogitoServiceHolder) []string {
 	return cmd
 }
 
-//GetBuildCLIFlags returns CLI flags based on KogitoBuild passed in parameter
+// GetBuildCLIFlags returns CLI flags based on KogitoBuild passed in parameter
 func GetBuildCLIFlags(kogitoBuild api.KogitoBuildInterface) []string {
 	var cmd []string
 
@@ -118,7 +121,7 @@ func GetBuildCLIFlags(kogitoBuild api.KogitoBuildInterface) []string {
 	return cmd
 }
 
-//GetInfraCLIFlags returns CLI flags based on KogitoInfra passed in parameter
+// GetInfraCLIFlags returns CLI flags based on KogitoInfra passed in parameter
 func GetInfraCLIFlags(infraResource api.KogitoInfraInterface) []string {
 	var cmd []string
 
