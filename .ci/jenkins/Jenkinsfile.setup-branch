@@ -72,7 +72,7 @@ pipeline {
                                 git add .
                             '''
                         })
-                        githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorCredsID())
+                        githubscm.pushObject('origin', helper.getBuildBranch(), helper.getGitAuthorPushCredsId())
                     } else {
                         println '[WARN] no changes to commit'
                     }

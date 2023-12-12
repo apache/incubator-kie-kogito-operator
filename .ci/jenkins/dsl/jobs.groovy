@@ -82,8 +82,8 @@ void createSetupBranchJob() {
     jobParams.env.putAll([
         JENKINS_EMAIL_CREDS_ID: "${JENKINS_EMAIL_CREDS_ID}",
         GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
-        AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
-        GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
+        GIT_AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
+        GIT_AUTHOR_PUSH_CREDS_ID: "${GIT_AUTHOR_PUSH_CREDENTIALS_ID}",
 
         IS_MAIN_BRANCH: "${Utils.isMainBranch(this)}"
     ])
@@ -114,8 +114,8 @@ void setupDeployJob(JobType jobType) {
 
         GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
 
-        AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
-        GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
+        GIT_AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
+        GIT_AUTHOR_PUSH_CREDS_ID: "${GIT_AUTHOR_PUSH_CREDENTIALS_ID}",
 
         DEFAULT_STAGING_REPOSITORY: "${MAVEN_NEXUS_STAGING_PROFILE_URL}",
         MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
@@ -189,8 +189,8 @@ void setupPromoteJob(JobType jobType) {
 
         GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
 
-        AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
-        GITHUB_TOKEN_CREDS_ID: "${GIT_AUTHOR_TOKEN_CREDENTIALS_ID}",
+        GIT_AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
+        GIT_AUTHOR_PUSH_CREDS_ID: "${GIT_AUTHOR_PUSH_CREDENTIALS_ID}",
     ])
     KogitoJobTemplate.createPipelineJob(this, jobParams)?.with {
         parameters {
@@ -251,6 +251,8 @@ void setupExamplesImagesDeployJob(JobType jobType, String jobName = 'kogito-exam
     } else {
         jobParams.env.putAll([
             GIT_AUTHOR: "${GIT_AUTHOR_NAME}",
+
+            GIT_AUTHOR_CREDS_ID: "${GIT_AUTHOR_CREDENTIALS_ID}",
 
             DEFAULT_STAGING_REPOSITORY: "${MAVEN_NEXUS_STAGING_PROFILE_URL}",
             MAVEN_ARTIFACT_REPOSITORY: "${MAVEN_ARTIFACTS_REPOSITORY}",
