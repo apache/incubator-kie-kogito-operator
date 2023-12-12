@@ -33,7 +33,7 @@ void initPipeline() {
     openshift.openshiftApiCredsKey = env.OPENSHIFT_CREDS_KEY
 
     container = load '.ci/jenkins/scripts/container.groovy'
-    container.containerEngine = env.CONTAINER_ENGINE
+    container.containerEngine = env.CONTAINER_ENGINE ?: 'docker'
     container.containerTlsOptions = env.CONTAINER_ENGINE_TLS_OPTIONS ?: ''
     container.containerOpenshift = openshift
 }
@@ -64,14 +64,16 @@ String getTempTag() {
 void checkoutRepo(String repoName = '', String directory = '') {
     repoName = repoName ?: getRepoName()
     closure = {
-        deleteDir()
         checkout(githubscm.resolveRepository(repoName, getGitAuthor(), getBuildBranch(), false, getGitAuthorCredsId()))
         // need to manually checkout branch since on a detached branch after checkout command
         sh "git checkout ${getBuildBranch()}"
     }
 
     if (directory) {
-        dir(directory, closure)
+        dir(directory) {
+            deleteDir()
+            closure()
+        }
     } else {
         closure()
     }
