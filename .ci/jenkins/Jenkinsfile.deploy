@@ -92,7 +92,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "make bump-version new_version=${helper.getProjectVersion()}"
+                    sh "#!/bin/bash make bump-version new_version=${helper.getProjectVersion()}"
 
                     githubscm.commitChanges("Update project version to ${helper.getProjectVersion()}", {
                         sh '''
@@ -114,7 +114,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'make test'
+                sh '#!/bin/bash make test'
             }
             post {
                 unsuccessful {
@@ -127,7 +127,7 @@ pipeline {
 
         stage('Build Kogito Operator') {
             steps {
-                sh "source ~/virtenvs/cekit/bin/activate && make BUILDER=${env.CONTAINER_ENGINE}"
+                sh "#!/bin/bash source ~/virtenvs/cekit/bin/activate && make BUILDER=${env.CONTAINER_ENGINE}"
             }
             post {
                 unsuccessful {
@@ -140,7 +140,7 @@ pipeline {
 
         stage('Build Kogito CLI') {
             steps {
-                sh 'make build-cli'
+                sh '#!/bin/bash make build-cli'
             }
             post {
                 success {
@@ -162,7 +162,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'make olm-tests'
+                sh '#!/bin/bash make olm-tests'
             }
             post {
                 unsuccessful {
@@ -201,7 +201,7 @@ pipeline {
                             // Catch and set unstable so the temp image is still pushed and we get the deployment properties,
                             // in case we decide to continue in the release
                             try {
-                                sh "make run-tests timeout=360 load_factor=2 concurrent=2 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
+                                sh "#!/bin/bash make run-tests timeout=360 load_factor=2 concurrent=2 smoke=${params.SMOKE_TESTS_ONLY} ${getBDDParameters()}"
                             } catch (err) {
                                 testsFailed = true
                                 util.archiveConsoleLog()
@@ -214,7 +214,7 @@ pipeline {
                             junit testResults: 'test/logs/**/junit.xml', allowEmptyResults: false
                         }
                         cleanup {
-                            sh 'cd test && go run scripts/prune_namespaces.go'
+                            sh '#!/bin/bash cd test && go run scripts/prune_namespaces.go'
                         }
                     }
                 }
@@ -312,7 +312,7 @@ void sendNotification() {
 }
 
 String getOperatorVersion() {
-    return sh(script: 'source ./hack/env.sh > /dev/null && echo $(getOperatorVersion)', returnStdout: true).trim()
+    return sh(script: '#!/bin/bash source ./hack/env.sh > /dev/null && echo $(getOperatorVersion)', returnStdout: true).trim()
 }
 
 // Special method to get the Openshift API in the lock because env is not accessible yet
