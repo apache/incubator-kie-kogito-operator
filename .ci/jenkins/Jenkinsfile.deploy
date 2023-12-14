@@ -93,7 +93,7 @@ pipeline {
             steps {
                 script {
                     sh "make bump-version new_version=${helper.getProjectVersion()}"
-
+                    githubscm.setUserConfigFromCreds(getGitAuthorPushCredsId())
                     githubscm.commitChanges("Update project version to ${helper.getProjectVersion()}", {
                         sh '''
                             git add .
