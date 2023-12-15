@@ -56,7 +56,7 @@ pipeline {
                     }
 
                     // Verify we have the connectivity to Openshift
-                    // Still don't have the credentials
+                    // TODO: Uncomment this line when we have the Openshift credentials
                     //openshift.loginOpenshift()
                 }
             }
