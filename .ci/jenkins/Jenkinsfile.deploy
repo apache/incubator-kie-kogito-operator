@@ -107,6 +107,22 @@ pipeline {
             }
         }
 
+
+        stage('Setup Minikube') {
+            steps {
+                script {
+                    setupMinikube()
+                }
+            }
+            post {
+                unsuccessful {
+                    script {
+                        util.archiveConsoleLog()
+                    }
+                }
+            }
+        }
+
         stage('Test Kogito Operator & CLI') {
             when {
                 expression {
@@ -114,10 +130,7 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    setupMinikube()
-                    sh 'make test'
-                }
+                sh 'make test'
             }
             post {
                 unsuccessful {
