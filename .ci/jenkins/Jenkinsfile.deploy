@@ -114,7 +114,10 @@ pipeline {
                 }
             }
             steps {
-                sh 'make test'
+                script {
+                    setupMinikube()
+                    sh 'make test'
+                }
             }
             post {
                 unsuccessful {
@@ -352,4 +355,14 @@ String getBDDParameters() {
                             .collect { entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
     echo "BDD parameters = ${testParams}"
     return testParams
+}
+
+
+void setupMinikube() {
+    // Start minikube
+    minikube.minikubeMemory = '12g'
+    minikube.start()
+
+    minikube.waitForMinikubeStarted()
+    minikube.waitForMinikubeRegistry()
 }

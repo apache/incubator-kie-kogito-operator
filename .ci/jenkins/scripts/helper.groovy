@@ -36,6 +36,8 @@ void initPipeline() {
     container.containerEngine = env.CONTAINER_ENGINE ?: 'docker'
     container.containerTlsOptions = env.CONTAINER_ENGINE_TLS_OPTIONS ?: ''
     container.containerOpenshift = openshift
+
+    minikube = load '.ci/jenkins/scripts/minikube.groovy'
 }
 
 void updateDisplayName() {
