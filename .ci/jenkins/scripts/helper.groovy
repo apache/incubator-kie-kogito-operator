@@ -20,6 +20,7 @@
 openshift = null
 container = null
 properties = null
+minikube = null
 
 defaultImageParamsPrefix = 'IMAGE'
 baseImageParamsPrefix = 'BASE_IMAGE'

@@ -370,7 +370,6 @@ String getBDDParameters() {
     return testParams
 }
 
-
 void setupMinikube() {
     // Start minikube
     minikube.minikubeMemory = '12g'
