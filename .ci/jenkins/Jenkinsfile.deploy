@@ -178,19 +178,19 @@ pipeline {
                 script {
                     helper.loginRegistry()
 
-                    container.tagImage(helper.buildTempOpenshiftImageFullName(), helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
-                    container.pushImage(helper.getImageFullTag(env.OPERATOR_IMAGE_NAME))
+                    image = "quay.io/kiegroup/${env.OPERATOR_IMAGE_NAME}:${getOperatorVersion()}"
+                    container.pushImage(image)
 
                     if (helper.isDeployLatestTag()) {
                         String finalFullImage = helper.getImageFullTag(env.OPERATOR_IMAGE_NAME, defaultImageParamsPrefix, 'latest')
-                        container.tagImage(helper.buildTempOpenshiftImageFullName(), finalFullImage)
+                        container.tagImage(image, finalFullImage)
                         container.pushImage(finalFullImage)
                     }
 
                     String reducedTag = helper.getReducedTag()
                     if (reducedTag) {
                         String finalFullImage = helper.getImageFullTag(env.OPERATOR_IMAGE_NAME, defaultImageParamsPrefix, reducedTag)
-                        container.tagImage(helper.buildTempOpenshiftImageFullName(), finalFullImage)
+                        container.tagImage(image, finalFullImage)
                         container.pushImage(finalFullImage)
                     }
 
@@ -245,6 +245,10 @@ pipeline {
             }
         }
     }
+}
+
+String getOperatorVersion() {
+    return sh(script: 'source ./hack/env.sh > /dev/null && echo $(getOperatorVersion)', returnStdout: true).trim()
 }
 
 void sendNotification() {
