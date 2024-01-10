@@ -101,21 +101,6 @@ pipeline {
             }
         }
 
-        stage('Setup Minikube') {
-            steps {
-                script {
-                    setupMinikube()
-                }
-            }
-            post {
-                unsuccessful {
-                    script {
-                        util.archiveConsoleLog()
-                    }
-                }
-            }
-        }
-
         stage('Test Kogito Operator & CLI') {
             when {
                 expression {
