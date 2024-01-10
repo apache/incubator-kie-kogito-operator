@@ -165,14 +165,6 @@ pipeline {
             }
         }
 
-        stage('Install Ansible') {
-            steps {
-                script {
-                    installAnsible()
-                }
-            }
-        }
-
         stage('Run OLM tests') {
             when {
                 expression {
@@ -274,17 +266,4 @@ void sendNotification() {
     } else {
         echo 'No notification sent per configuration'
     }
-}
-
-// TODO: move this to the kogito-ci-build image
-void installAnsible() {
-    sh '''
-    export TZ=America/New_York
-    sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
-    echo $TZ | sudo tee /etc/timezone
-    sudo apt install -y software-properties-common
-    sudo add-apt-repository --yes --update ppa:ansible/ansible
-    sudo apt update
-    sudo apt install -y ansible
-    '''
 }
