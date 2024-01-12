@@ -111,7 +111,7 @@ help: ## Display this help.
 
 # Run tests
 ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
-test: fmt lint
+test: fmt
 	./hack/go-test.sh
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.

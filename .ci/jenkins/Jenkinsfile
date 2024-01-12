@@ -8,10 +8,10 @@ testsFailed = false
 
 pipeline {
     agent {
-        label 'kogito-jenkins-node && !master' // Running on IBMCLoud jenkins, no change to be done there
-    }
-    tools {
-        go 'golang-1.17'
+        docker { 
+            image env.AGENT_DOCKER_BUILDER_IMAGE
+            args env.AGENT_DOCKER_BUILDER_ARGS
+        }
     }
     options {
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
@@ -30,9 +30,9 @@ pipeline {
                 script {
                     cleanGoPath()
 
-                    sh ' git config --global user.email "jenkins@kie.com" '
-                    sh ' git config --global user.name "kie user"'
-                    githubscm.checkoutIfExists('incubator-kie-kogito-operator', changeAuthor, changeBranch, 'apache', changeTarget, true, ['token' : 'GITHUB_TOKEN', 'usernamePassword' : 'user-kie-ci10'])
+                    sh ' git config --global user.email "jenkins@kie.apache.org" '
+                    sh ' git config --global user.name "Apache KIE user"'
+                    githubscm.checkoutIfExists('incubator-kie-kogito-operator', changeAuthor, changeBranch, 'apache', changeTarget, true, credentials = [token: getGitAuthorTokenCredentialsId(), usernamePassword: getGitAuthorCredentialsId()])
                     sh "set +x && oc login --token=\$(oc whoami -t) --server=${OPENSHIFT_API} --insecure-skip-tls-verify"
                 }
             }
@@ -157,4 +157,12 @@ String getBDDParameters() {
     String testParams = testParamsMap.collect { entry -> "${entry.getKey()}=\"${entry.getValue()}\"" }.join(' ')
     echo "BDD parameters = ${testParams}"
     return testParams
+}
+
+String getGitAuthorCredentialsId() {
+    return env.GIT_AUTHOR_CREDS_ID
+}
+
+String getGitAuthorTokenCredentialsId() {
+    return env.GIT_AUTHOR_TOKEN_CREDS_ID
 }
