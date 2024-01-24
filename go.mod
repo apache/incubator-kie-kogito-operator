@@ -1,12 +1,12 @@
-module github.com/kiegroup/kogito-operator
+module github.com/apache/incubator-kie-kogito-operator
 
-go 1.17
+go 1.21
 
 require (
 	github.com/RHsyseng/operator-utils v1.4.6-0.20210908015233-197f6b3e7a3d
+	github.com/apache/incubator-kie-kogito-operator/apis v0.0.0
 	github.com/go-logr/logr v1.2.0
 	github.com/google/uuid v1.3.0
-	github.com/kiegroup/kogito-operator/apis v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	github.com/openshift/api v0.0.0-20210105115604-44119421ec6b
@@ -108,4 +108,4 @@ require (
 )
 
 // local modules
-replace github.com/kiegroup/kogito-operator/apis => ./apis
+replace github.com/apache/incubator-kie-kogito-operator/apis => ./apis

@@ -20,18 +20,18 @@ package framework
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
 
 	olmapiv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmapiv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"

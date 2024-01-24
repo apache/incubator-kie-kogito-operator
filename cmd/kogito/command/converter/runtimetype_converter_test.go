@@ -21,9 +21,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,7 +49,7 @@ func Test_FromArgsToRuntime_NonBinaryBuild(t *testing.T) {
 		Runtime: "quarkus",
 	}
 
-	runtimeType, err := FromArgsToRuntimeType(flags, flag.GitRepositoryResource, "https://github.com/kiegroup/kogito-examples/blob/stable/process-scripts-quarkus/src/main/resources/org/acme/travels/scripts.bpmn")
+	runtimeType, err := FromArgsToRuntimeType(flags, flag.GitRepositoryResource, "https://github.com/apache/incubator-kie-kogito-examples/blob/stable/process-scripts-quarkus/src/main/resources/org/acme/travels/scripts.bpmn")
 	assert.Nil(t, err)
 	assert.Equal(t, api.QuarkusRuntimeType, runtimeType)
 }

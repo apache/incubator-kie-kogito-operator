@@ -54,11 +54,11 @@ gen_client() {
   go run k8s.io/code-generator/cmd/client-gen \
     --go-header-file=../hack/boilerplate.go.txt \
     --input=/app/"${kogito_api_version}" \
-    --input-base=github.com/kiegroup/kogito-operator/apis \
-    --input-dirs=github.com/kiegroup/kogito-operator/apis/app/${kogito_api_version} \
+    --input-base=github.com/apache/incubator-kie-kogito-operator/apis \
+    --input-dirs=github.com/apache/incubator-kie-kogito-operator/apis/app/${kogito_api_version} \
     --clientset-name "versioned" \
     --output-base=. \
-    --output-package=github.com/kiegroup/kogito-operator/client/clientset
+    --output-package=github.com/apache/incubator-kie-kogito-operator/client/clientset
   error_handler $? "Failed to generate clientset"
   move_gen_code
 }
@@ -67,9 +67,9 @@ gen_listers() {
   echo "----> Generating client code [listers]"
   go run k8s.io/code-generator/cmd/lister-gen \
     --go-header-file=../hack/boilerplate.go.txt \
-    --input-dirs=github.com/kiegroup/kogito-operator/apis/app/${kogito_api_version} \
+    --input-dirs=github.com/apache/incubator-kie-kogito-operator/apis/app/${kogito_api_version} \
     --output-base=. \
-    --output-package=github.com/kiegroup/kogito-operator/client/listers
+    --output-package=github.com/apache/incubator-kie-kogito-operator/client/listers
   error_handler $? "Failed to generate listers"
 }
 
@@ -77,17 +77,17 @@ gen_informers() {
   echo "----> Generating client code [informers]"
   go run k8s.io/code-generator/cmd/informer-gen \
     --go-header-file=../hack/boilerplate.go.txt \
-    --versioned-clientset-package=github.com/kiegroup/kogito-operator/client/clientset/versioned \
-    --internal-clientset-package=github.com/kiegroup/kogito-operator/client/clientset/versioned \
-    --listers-package=github.com/kiegroup/kogito-operator/client/listers \
-    --input-dirs=github.com/kiegroup/kogito-operator/apis/app/${kogito_api_version} \
+    --versioned-clientset-package=github.com/apache/incubator-kie-kogito-operator/client/clientset/versioned \
+    --internal-clientset-package=github.com/apache/incubator-kie-kogito-operator/client/clientset/versioned \
+    --listers-package=github.com/apache/incubator-kie-kogito-operator/client/listers \
+    --input-dirs=github.com/apache/incubator-kie-kogito-operator/apis/app/${kogito_api_version} \
     --output-base=. \
-    --output-package=github.com/kiegroup/kogito-operator/client/informers
+    --output-package=github.com/apache/incubator-kie-kogito-operator/client/informers
   error_handler $? "Failed to generate informers"
 }
 
 move_gen_code() {
-  mv github.com/kiegroup/kogito-operator/client/* .
+  mv github.com/apache/incubator-kie-kogito-operator/client/* .
 }
 
 set_up

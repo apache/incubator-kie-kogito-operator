@@ -20,9 +20,9 @@ package infrastructure
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure/kafka/v1beta2"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

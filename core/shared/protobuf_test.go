@@ -18,15 +18,15 @@
 package shared
 
 import (
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/manager"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	"github.com/google/uuid"
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/manager"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"

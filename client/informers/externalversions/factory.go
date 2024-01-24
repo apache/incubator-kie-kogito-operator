@@ -23,9 +23,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/kiegroup/kogito-operator/client/clientset/versioned"
-	app "github.com/kiegroup/kogito-operator/client/informers/externalversions/app"
-	internalinterfaces "github.com/kiegroup/kogito-operator/client/informers/externalversions/internalinterfaces"
+	versioned "github.com/apache/incubator-kie-kogito-operator/client/clientset/versioned"
+	app "github.com/apache/incubator-kie-kogito-operator/client/informers/externalversions/app"
+	internalinterfaces "github.com/apache/incubator-kie-kogito-operator/client/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

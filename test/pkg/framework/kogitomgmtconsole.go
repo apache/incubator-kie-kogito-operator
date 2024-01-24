@@ -18,11 +18,11 @@
 package framework
 
 import (
-	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitosupportingservice"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	bddtypes "github.com/apache/incubator-kie-kogito-operator/test/pkg/types"
 )
 
 // InstallKogitoManagementConsole install the Kogito Management Console component

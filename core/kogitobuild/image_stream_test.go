@@ -18,11 +18,11 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/version/app"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/version/app"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

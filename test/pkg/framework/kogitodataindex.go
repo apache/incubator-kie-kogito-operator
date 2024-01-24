@@ -18,12 +18,12 @@
 package framework
 
 import (
-	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	framework2 "github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	framework2 "github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitosupportingservice"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	bddtypes "github.com/apache/incubator-kie-kogito-operator/test/pkg/types"
 )
 
 // InstallKogitoDataIndexService install the Kogito Data Index service

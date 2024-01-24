@@ -18,10 +18,10 @@
 package shared
 
 import (
-	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	v1 "k8s.io/api/core/v1"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"

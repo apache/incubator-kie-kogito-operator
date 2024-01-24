@@ -19,11 +19,11 @@ package mappers
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
 	"strconv"
 
-	"github.com/kiegroup/kogito-operator/apis"
-	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	bddtypes "github.com/apache/incubator-kie-kogito-operator/test/pkg/types"
 )
 
 // GetServiceCLIFlags returns CLI flags based on Kogito service passed in parameter

@@ -18,14 +18,14 @@
 package meta
 
 import (
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
-	"github.com/kiegroup/kogito-operator/core/framework/util"
-	grafana "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
-	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
-	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
-	keycloakv1alpha1 "github.com/kiegroup/kogito-operator/core/infrastructure/keycloak/v1alpha1"
-	mongodb "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	v1 "github.com/apache/incubator-kie-kogito-operator/apis/rhpam/v1"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework/util"
+	grafana "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/grafana/v1alpha1"
+	infinispan "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/infinispan/v1"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure/kafka/v1beta2"
+	keycloakv1alpha1 "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/keycloak/v1alpha1"
+	mongodb "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/mongodb/v1"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"

@@ -18,11 +18,11 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/meta"
-	"github.com/kiegroup/kogito-operator/version/app"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/version/app"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

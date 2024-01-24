@@ -18,8 +18,8 @@
 package installers
 
 import (
-	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
+	grafanav1 "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/grafana/v1alpha1"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

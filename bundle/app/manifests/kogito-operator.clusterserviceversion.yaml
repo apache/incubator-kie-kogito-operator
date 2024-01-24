@@ -13,7 +13,7 @@ metadata:
           "spec": {
             "gitSource": {
               "contextDir": "process-quarkus-example",
-              "uri": "https://github.com/kiegroup/kogito-examples"
+              "uri": "https://github.com/apache/incubator-kie-kogito-examples"
             },
             "type": "RemoteSource"
           }
@@ -61,7 +61,7 @@ metadata:
     description: Kogito Operator for deployment and management of Kogito services.
     operators.operatorframework.io/builder: operator-sdk-v1.21.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-    repository: https://github.com/kiegroup/kogito-operator
+    repository: https://github.com/apache/incubator-kie-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
   labels:
@@ -1014,9 +1014,9 @@ spec:
   - name: Product Page
     url: https://kogito.kie.org/
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
+    url: https://github.com/apache/incubator-kie-kogito-operator/blob/main/README.md
   - name: Source
-    url: https://github.com/kiegroup/kogito-operator/
+    url: https://github.com/apache/incubator-kie-kogito-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat

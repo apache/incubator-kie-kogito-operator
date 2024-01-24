@@ -18,9 +18,10 @@
 package shared
 
 import (
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
 	"os"
 	"testing"
+
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/test"
 )
 
 func TestMain(t *testing.M) {

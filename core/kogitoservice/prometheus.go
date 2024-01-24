@@ -20,12 +20,12 @@ package kogitoservice
 import (
 	"net/http"
 
-	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

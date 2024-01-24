@@ -18,13 +18,13 @@
 package deployment
 
 import (
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/kogitoservice"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitoservice"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

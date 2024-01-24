@@ -18,10 +18,10 @@
 package steps
 
 import (
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/steps/mappers"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v16"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/steps/mappers"
 )
 
 /*

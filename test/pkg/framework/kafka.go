@@ -22,9 +22,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	infrastructure "github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	infrastructure "github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure/kafka/v1beta2"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

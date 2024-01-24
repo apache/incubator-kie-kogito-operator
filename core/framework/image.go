@@ -21,7 +21,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kiegroup/kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
 )
 
 const (

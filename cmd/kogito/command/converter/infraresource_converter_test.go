@@ -20,7 +20,7 @@ package converter
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -20,7 +20,7 @@ package framework
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
 )
 
 var verifications = []func() error{

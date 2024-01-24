@@ -19,14 +19,14 @@ package install
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
 
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/converter"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/converter"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/shared"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitosupportingservice"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -62,7 +62,7 @@ var installableSupportingServices = []installableSupportingService{
 
 The --infra parameter MUST be specified. It needs to point to Kafka KogitoInfra object and also either Infinispan or MongoDB KogitoInfra object.
 
-For more information on Kogito Data Index Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service`,
+For more information on Kogito Data Index Service see: https://github.com/apache/incubator-kie-kogito-runtimes/wiki/Data-Index-Service`,
 	},
 	{
 		cmdName:     "explainability",
@@ -80,7 +80,7 @@ The --infra parameter MUST be specified. It needs to point to Kafka KogitoInfra 
 		serviceType: api.JobsService,
 		description: `'install jobs-service' deploys the Jobs Service to enable scheduling jobs that aim to be fired at a given time for Kogito services.
 
-For more information on Kogito Jobs Service see: https://github.com/kiegroup/kogito-runtimes/wiki/Jobs-Service`,
+For more information on Kogito Jobs Service see: https://github.com/apache/incubator-kie-kogito-runtimes/wiki/Jobs-Service`,
 	},
 	{
 		cmdName:     "mgmt-console",
@@ -90,10 +90,10 @@ For more information on Kogito Jobs Service see: https://github.com/kiegroup/kog
 		serviceType: api.MgmtConsole,
 		description: `'install mgmt-console' deploys the Management Console to enable management for Kogito Services deployed within the same project.
 
-Please note that Management Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
+Please note that Management Console relies on Data Index (https://github.com/apache/incubator-kie-kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
 You won't be able to use the Management Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
 
-For more information on Management Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
+For more information on Management Console see: https://github.com/apache/incubator-kie-kogito-runtimes/wiki/Process-Instance-Management`,
 	},
 	{
 		cmdName:     "task-console",
@@ -102,10 +102,10 @@ For more information on Management Console see: https://github.com/kiegroup/kogi
 		serviceType: api.TaskConsole,
 		description: `'install task-console' deploys the Task Console to enable management for Kogito Services deployed within the same project.
 
-Please note that Task Console relies on Data Index (https://github.com/kiegroup/kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
+Please note that Task Console relies on Data Index (https://github.com/apache/incubator-kie-kogito-runtimes/wiki/Data-Index-Service) to retrieve the processes instances via its GraphQL API.
 You won't be able to use the Task Console if Data Index is not deployed in the same project either using Kogito CLI or the Kogito Operator.
 
-For more information on Task Console see: https://github.com/kiegroup/kogito-runtimes/wiki/Process-Instance-Management`,
+For more information on Task Console see: https://github.com/apache/incubator-kie-kogito-runtimes/wiki/Process-Instance-Management`,
 	},
 	{
 		cmdName:     "trusty",
@@ -116,7 +116,7 @@ For more information on Task Console see: https://github.com/kiegroup/kogito-run
 
 The --infra parameter MUST be specified. It needs to point to Kafka KogitoInfra object and to Infinispan KogitoInfra object.
 
-See https://github.com/kiegroup/kogito-apps/tree/main/trusty/README.md for more information about the trusty service.`,
+See https://github.com/apache/incubator-kie-kogito-apps/tree/main/trusty/README.md for more information about the trusty service.`,
 	},
 	{
 		cmdName:     "trusty-ui",
@@ -125,7 +125,7 @@ See https://github.com/kiegroup/kogito-apps/tree/main/trusty/README.md for more 
 		serviceType: api.TrustyUI,
 		description: `'install trusty-ui' deploys the Trusty UI to enable the audit UI for Kogito Services deployed within the same project.
 
-Please note that Trusty UI relies on Trusty (https://github.com/kiegroup/kogito-apps/tree/main/trusty) to retrieve the information to be displayed.
+Please note that Trusty UI relies on Trusty (https://github.com/apache/incubator-kie-kogito-apps/tree/main/trusty) to retrieve the information to be displayed.
 You won't be able to use the Trusty UI if Trusty is not deployed in the same project either using Kogito CLI or the Kogito Operator. 
 In addition to that, it is mandatory to set the environment variable KOGITO_TRUSTY_ENDPOINT in the trusty-ui service. The value of that variable should be the endpoint of the trusty service.`,
 	},

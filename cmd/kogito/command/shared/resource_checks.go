@@ -19,16 +19,17 @@ package shared
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/core/manager"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/meta"
+
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/message"
+	"github.com/apache/incubator-kie-kogito-operator/core/client"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/core/manager"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	"k8s.io/apimachinery/pkg/types"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

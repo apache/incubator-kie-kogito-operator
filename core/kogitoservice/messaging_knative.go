@@ -19,11 +19,11 @@ package kogitoservice
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/framework/util"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework/util"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
 	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"

@@ -19,13 +19,13 @@ package install
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/test"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

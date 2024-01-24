@@ -18,11 +18,11 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/meta"
-	"github.com/kiegroup/kogito-operator/version/app"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/version/app"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

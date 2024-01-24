@@ -25,9 +25,9 @@ import (
 
 	"github.com/cucumber/messages-go/v16"
 
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

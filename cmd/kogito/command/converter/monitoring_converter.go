@@ -18,8 +18,8 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
 )
 
 // FromMonitoringFlagToMonitoring converts given MonitoringFlags into Monitoring

@@ -18,10 +18,10 @@
 package shared
 
 import (
-	kogitoservice "github.com/kiegroup/kogito-operator/core/kogitoservice"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/meta"
+	kogitoservice "github.com/apache/incubator-kie-kogito-operator/core/kogitoservice"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

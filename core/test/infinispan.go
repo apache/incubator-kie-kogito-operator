@@ -18,7 +18,7 @@
 package test
 
 import (
-	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
+	infinispan "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/infinispan/v1"
 	"io/ioutil"
 	v13 "k8s.io/api/core/v1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"

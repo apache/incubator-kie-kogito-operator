@@ -26,13 +26,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
 
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	grafanav1 "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/grafana/v1alpha1"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -5,7 +5,7 @@ plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: kogito-operator
-repo: github.com/kiegroup/kogito-operator
+repo: github.com/apache/incubator-kie-kogito-operator
 resources:
 - api:
     crdVersion: v1
@@ -14,7 +14,7 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoRuntime
-  path: github.com/kiegroup/kogito-operator/apis/app
+  path: github.com/apache/incubator-kie-kogito-operator/apis/app
   version: v1beta1
 - api:
     crdVersion: v1
@@ -23,7 +23,7 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoSupportingService
-  path: github.com/kiegroup/kogito-operator/apis/app
+  path: github.com/apache/incubator-kie-kogito-operator/apis/app
   version: v1beta1
 - api:
     crdVersion: v1
@@ -32,7 +32,7 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoBuild
-  path: github.com/kiegroup/kogito-operator/apis/app
+  path: github.com/apache/incubator-kie-kogito-operator/apis/app
   version: v1beta1
 - api:
     crdVersion: v1
@@ -41,7 +41,7 @@ resources:
   domain: kiegroup.org
   group: app
   kind: KogitoInfra
-  path: github.com/kiegroup/kogito-operator/apis/app
+  path: github.com/apache/incubator-kie-kogito-operator/apis/app
   version: v1beta1
 - api:
     crdVersion: v1
@@ -50,7 +50,7 @@ resources:
   domain: kiegroup.org
   group: rhpam
   kind: KogitoRuntime
-  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  path: github.com/apache/incubator-kie-kogito-operator/apis/rhpam
   version: v1
 - api:
     crdVersion: v1
@@ -59,7 +59,7 @@ resources:
   domain: kiegroup.org
   group: rhpam
   kind: KogitoSupportingService
-  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  path: github.com/apache/incubator-kie-kogito-operator/apis/rhpam
   version: v1
 - api:
     crdVersion: v1
@@ -68,7 +68,7 @@ resources:
   domain: kiegroup.org
   group: rhpam
   kind: KogitoBuild
-  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  path: github.com/apache/incubator-kie-kogito-operator/apis/rhpam
   version: v1
 - api:
     crdVersion: v1
@@ -77,7 +77,7 @@ resources:
   domain: kiegroup.org
   group: rhpam
   kind: KogitoInfra
-  path: github.com/kiegroup/kogito-operator/apis/rhpam
+  path: github.com/apache/incubator-kie-kogito-operator/apis/rhpam
   version: v1
 version: "3"
 multigroup: true

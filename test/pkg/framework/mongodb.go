@@ -21,13 +21,13 @@ import (
 	"fmt"
 	v1 "k8s.io/api/apps/v1"
 
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	mongodb "github.com/kiegroup/kogito-operator/core/infrastructure/mongodb/v1"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	mongodb "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/mongodb/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

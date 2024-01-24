@@ -27,8 +27,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"
 )
 

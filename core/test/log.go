@@ -17,7 +17,7 @@
 
 package test
 
-import "github.com/kiegroup/kogito-operator/core/logger"
+import "github.com/apache/incubator-kie-kogito-operator/core/logger"
 
 // TestLogger ...
 var TestLogger = logger.GetLogger("test")

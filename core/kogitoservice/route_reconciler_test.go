@@ -20,10 +20,10 @@ package kogitoservice
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	v1 "github.com/openshift/api/route/v1"
 	"github.com/stretchr/testify/assert"
 	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"

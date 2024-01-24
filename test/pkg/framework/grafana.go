@@ -23,8 +23,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	grafanav1 "github.com/kiegroup/kogito-operator/core/infrastructure/grafana/v1alpha1"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	grafanav1 "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/grafana/v1alpha1"
 )
 
 const (

@@ -18,8 +18,8 @@
 package main
 
 import (
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/meta"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/meta"
 )
 
 func main() {

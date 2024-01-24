@@ -18,9 +18,9 @@
 package kogitobuild
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	buildv1 "github.com/openshift/api/build/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

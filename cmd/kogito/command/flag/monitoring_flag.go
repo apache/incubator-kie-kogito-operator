@@ -18,7 +18,7 @@
 package flag
 
 import (
-	api "github.com/kiegroup/kogito-operator/apis"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
 	"github.com/spf13/cobra"
 )
 

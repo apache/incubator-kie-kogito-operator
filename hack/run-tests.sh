@@ -128,7 +128,7 @@ function usage(){
   printf "\n--runtime_application_image_version {VERSION}\n\tSet the version for built runtime applications."
 
   # build
-  printf "\n--custom_maven_repo_url {URI}\n\tSet a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information."
+  printf "\n--custom_maven_repo_url {URI}\n\tSet a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/apache/incubator-kie-kogito-images/README.md for more information."
   printf "\n--custom_maven_repo_replace_default\n\tIf you specified the option 'custom_maven_repo' and you want that one to replace the main Apache repository (useful with snapshots)."
   printf "\n--maven_mirror_url {URI}\n\tMaven mirror url to be used when building app in the tests."
   printf "\n--quarkus_platform_maven_mirror_url {URI}\n\tMaven mirror url to be used when building app from source files with Quarkus, using the quarkus maven plugin."
@@ -139,7 +139,7 @@ function usage(){
   printf "\n--disable_maven_native_build_container\n\tBy default, Maven native builds are done in container (via container engine). Possibility to disable it."
 
   # examples repository
-  printf "\n--examples_uri {URI}\n\tSet the URI for the kogito-examples repository. Default is https://github.com/kiegroup/kogito-examples."
+  printf "\n--examples_uri {URI}\n\tSet the URI for the kogito-examples repository. Default is https://github.com/apache/incubator-kie-kogito-examples."
   printf "\n--examples_ref {REF}\n\tSet the branch for the kogito-examples repository. Default is none."
   printf "\n--examples_ignore_ssl\n\tTell Git to ignore SSL check when checking out examples repository."
 

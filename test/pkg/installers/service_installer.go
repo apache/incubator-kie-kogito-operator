@@ -23,7 +23,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 )
 
 var (

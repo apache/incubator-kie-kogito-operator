@@ -22,11 +22,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	framework1 "github.com/kiegroup/kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	framework1 "github.com/apache/incubator-kie-kogito-operator/core/framework"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	keycloak "github.com/kiegroup/kogito-operator/core/infrastructure/keycloak/v1alpha1"
+	keycloak "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/keycloak/v1alpha1"
 )
 
 const (

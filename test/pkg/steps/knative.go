@@ -18,9 +18,9 @@
 package steps
 
 import (
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/installers"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/installers"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

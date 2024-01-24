@@ -18,16 +18,19 @@
 package app
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/kogitobuild"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/meta"
-	"github.com/kiegroup/kogito-operator/version/app"
+	"sort"
+	"testing"
+	"time"
+
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitobuild"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/version/app"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/stretchr/testify/assert"
@@ -35,9 +38,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sort"
-	"testing"
-	"time"
 )
 
 func TestReconcileKogitoBuildSimple(t *testing.T) {
@@ -47,7 +47,7 @@ func TestReconcileKogitoBuildSimple(t *testing.T) {
 		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
 			GitSource: v1beta1.GitSource{
-				URI:        "https://github.com/kiegroup/kogito-examples/",
+				URI:        "https://github.com/apache/incubator-kie-kogito-examples/",
 				ContextDir: instanceName,
 			},
 			Resources: corev1.ResourceRequirements{
@@ -131,7 +131,7 @@ func TestReconcileKogitoBuildMultiple(t *testing.T) {
 		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
 			GitSource: v1beta1.GitSource{
-				URI:        "https://github.com/kiegroup/kogito-examples/",
+				URI:        "https://github.com/apache/incubator-kie-kogito-examples/",
 				ContextDir: kogitoServiceName,
 			},
 			Runtime: api.QuarkusRuntimeType,

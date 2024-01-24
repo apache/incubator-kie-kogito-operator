@@ -1,7 +1,7 @@
 # Create a copy of ../kogito-image.yaml file
 - name: operator-builder
   version: 1.0.0
-  from: golang:1.17
+  from: golang:1.21
   description: Builder Image for the profiling Operator
 
   modules:

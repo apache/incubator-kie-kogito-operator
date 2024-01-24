@@ -18,8 +18,8 @@
 package framework
 
 import (
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

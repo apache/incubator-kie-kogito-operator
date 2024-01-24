@@ -151,11 +151,12 @@ csv: install-operator-sdk
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	go build -trimpath -ldflags=-buildid= -a -o bin/manager main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
+.PHONY: container-build
 container-build: ## Build the docker image
 	echo "calling APP container-build ##################################"
 	cekit -v --descriptor kogito-image.yaml build $(BUILDER)

@@ -18,12 +18,12 @@
 package steps
 
 import (
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure/kafka/v1beta2"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/installers"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/installers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

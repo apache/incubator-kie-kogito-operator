@@ -18,12 +18,12 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/apps/v1"
 	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -18,8 +18,8 @@
 package installers
 
 import (
-	keycloak "github.com/kiegroup/kogito-operator/core/infrastructure/keycloak/v1alpha1"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
+	keycloak "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/keycloak/v1alpha1"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

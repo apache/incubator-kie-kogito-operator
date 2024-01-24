@@ -18,21 +18,22 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_FromGitSourceFlagsToGitSource(t *testing.T) {
 	flags := &flag.GitSourceFlags{
 		Reference:  "branch1",
 		ContextDir: "example-springboot",
-		Source:     "https://github.com/kiegroup/kogito-examples/",
+		Source:     "https://github.com/apache/incubator-kie-kogito-examples/",
 	}
 
 	gitSource := FromGitSourceFlagsToGitSource(flags)
 	assert.NotNil(t, gitSource)
 	assert.Equal(t, "branch1", gitSource.Reference)
 	assert.Equal(t, "example-springboot", gitSource.ContextDir)
-	assert.Equal(t, "https://github.com/kiegroup/kogito-examples/", gitSource.URI)
+	assert.Equal(t, "https://github.com/apache/incubator-kie-kogito-examples/", gitSource.URI)
 }

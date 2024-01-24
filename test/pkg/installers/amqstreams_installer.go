@@ -18,8 +18,8 @@
 package installers
 
 import (
-	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure/kafka/v1beta2"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

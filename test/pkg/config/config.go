@@ -107,7 +107,7 @@ const (
 	defaultOperatorProfilingDataAccessYamlURI = "../profiling/kogito-operator-profiling-data-access.yaml"
 	defaultOperatorProfilingOutputFileURI     = "./bdd-cover.out"
 
-	defaultKogitoExamplesURI = "https://github.com/kiegroup/kogito-examples"
+	defaultKogitoExamplesURI = "https://github.com/apache/incubator-kie-kogito-examples"
 
 	defaultLoadFactor      = 1
 	defaultHTTPRetryNumber = 3
@@ -167,7 +167,7 @@ func BindFlags(set *flag.FlagSet) {
 	set.StringVar(&env.runtimeApplicationImageVersion, prefix+"runtime_application_image_version", "", "Set the runtime application (built Kogito application image) image version")
 
 	// build
-	set.StringVar(&env.customMavenRepoURL, prefix+"custom_maven_repo_url", "", "Set a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information")
+	set.StringVar(&env.customMavenRepoURL, prefix+"custom_maven_repo_url", "", "Set a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/apache/incubator-kie-kogito-images/README.md for more information")
 	set.BoolVar(&env.customMavenRepoReplaceDefault, prefix+"custom_maven_repo_replace_default", false, "If you specified the option 'tests.custom_maven_repo_url' and you want that one to replace the main Apache repository (useful with snapshots).")
 	set.StringVar(&env.mavenMirrorURL, prefix+"maven_mirror_url", "", "Maven mirror url to be used when building app in the tests")
 	set.StringVar(&env.quarkusPlatformMavenMirrorURL, prefix+"quarkusPlatformMavenMirrorURL", "", "Maven mirror url to be used when building app from source files with Quarkus, using the quarkus maven plugin.")

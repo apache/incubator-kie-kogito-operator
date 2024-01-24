@@ -17,6 +17,6 @@
 
 package record
 
-import "github.com/kiegroup/kogito-operator/core/logger"
+import "github.com/apache/incubator-kie-kogito-operator/core/logger"
 
 var log = logger.GetLogger("record_kogitoOperator")

@@ -21,13 +21,13 @@ import (
 	"fmt"
 	"strings"
 
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 

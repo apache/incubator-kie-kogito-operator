@@ -19,7 +19,7 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
 )
 
 // reconciliationError type for KogitoInfra reconciliation cycle cases.

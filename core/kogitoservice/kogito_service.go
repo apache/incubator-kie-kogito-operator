@@ -19,8 +19,8 @@ package kogitoservice
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	"net/url"
 	"os"
 )

@@ -5,7 +5,7 @@ metadata:
 spec:
   type: RemoteSource
   gitSource:
-    uri: https://github.com/kiegroup/kogito-examples
+    uri: https://github.com/apache/incubator-kie-kogito-examples
     contextDir: process-quarkus-example
 ---
 apiVersion: rhpam.kiegroup.org/v1

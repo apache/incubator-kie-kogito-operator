@@ -19,11 +19,12 @@ package remove
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/shared"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
 )
 

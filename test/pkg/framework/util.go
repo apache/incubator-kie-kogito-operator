@@ -28,14 +28,14 @@ import (
 	"strings"
 	"time"
 
-	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/kogitobuild"
-	"github.com/kiegroup/kogito-operator/core/test"
-	"github.com/kiegroup/kogito-operator/version/app"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitobuild"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	"github.com/apache/incubator-kie-kogito-operator/version/app"
 
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
 )
 
 const (

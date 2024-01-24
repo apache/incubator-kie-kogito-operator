@@ -18,15 +18,15 @@
 package kogitoservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/framework/util"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework/util"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
 	appsv1 "k8s.io/api/apps/v1"
 )
 

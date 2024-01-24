@@ -19,20 +19,20 @@ package framework
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/core/kogitobuild"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/test/pkg/meta"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitobuild"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/meta"
 	"time"
 
-	api "github.com/kiegroup/kogito-operator/apis"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
 	ocapps "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imagev1 "github.com/openshift/api/image/v1"

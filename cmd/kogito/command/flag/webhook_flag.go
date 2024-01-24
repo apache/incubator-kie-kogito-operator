@@ -19,9 +19,10 @@ package flag
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
-	util2 "github.com/kiegroup/kogito-operator/cmd/kogito/command/util"
-	"github.com/kiegroup/kogito-operator/core/framework/util"
+
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	util2 "github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/util"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework/util"
 	"github.com/spf13/cobra"
 )
 

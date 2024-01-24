@@ -19,8 +19,8 @@ package infrastructure
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

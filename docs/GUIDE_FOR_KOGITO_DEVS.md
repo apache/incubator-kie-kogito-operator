@@ -59,7 +59,7 @@ You will also need to [install kubectl](https://kubernetes.io/docs/tasks/tools/i
 
 ## Operator
 The operator requires some dependencies in order to run. The 
-following dependencies are copied from the [operator's README](https://github.com/kiegroup/kogito-operator#requirements). 
+following dependencies are copied from the [operator's README](https://github.com/apache/incubator-kie-kogito-operator#requirements). 
 Please ensure that they are up-to-date and still match. Following 
 are the specific installation commands/links for Fedora:
 
@@ -85,9 +85,9 @@ using [`venv`](https://docs.python.org/3/tutorial/venv.html).
 ## Examples
 To test that your changes to the operator works, you will 
 usually want to deploy a Kogito application to Kubernetes. To 
-do so, you will need to compile [a Kogito example](https://github.com/kiegroup/kogito-examples), 
+do so, you will need to compile [a Kogito example](https://github.com/apache/incubator-kie-kogito-examples), 
 and there are some dependencies to do so. The 
-following dependencies are copied from the [process-quarkus-example's README](https://github.com/kiegroup/kogito-examples/tree/stable/process-quarkus-example#prerequisites).
+following dependencies are copied from the [process-quarkus-example's README](https://github.com/apache/incubator-kie-kogito-examples/tree/stable/process-quarkus-example#prerequisites).
 Please ensure that they are up-to-date and still match. Following 
 are the specific installation commands/links for Fedora:
 
@@ -141,7 +141,7 @@ can be run for a faster startup time.
 # Building Examples
 To test that your changes to the operator works, you will 
 usually want to deploy a Kogito application to Kubernetes. To 
-do so, you will need to first compile [a Kogito example](https://github.com/kiegroup/kogito-examples). 
+do so, you will need to first compile [a Kogito example](https://github.com/apache/incubator-kie-kogito-examples). 
 
 You can compile Quarkus Kogito applications into either a JAR file 
 or a native executable. The native executable packages all 
@@ -224,7 +224,7 @@ Examples:
 # deploying local folder
 kogito deploy-service process-quarkus-example kogito-examples/process-quarkus-example
 # deploying example from web
-kogito deploy-service process-quarkus-example https://github.com/kiegroup/kogito-examples --context-dir process-quarkus-example
+kogito deploy-service process-quarkus-example https://github.com/apache/incubator-kie-kogito-examples --context-dir process-quarkus-example
 ```
 
 **Deploying Single File**
@@ -236,7 +236,7 @@ Examples:
 # deploying local BPMN2 files
 kogito deploy-service process-quarkus-example kogito-examples/process-quarkus-example/src/main/resources/org/kie/kogito/examples
 # deploying BPMN2 file from web
-kogito deploy-service process-quarkus-example https://github.com/kiegroup/kogito-examples/process-quarkus-example/src/main/resources/org/kie/kogito/examples/orderItems.bpmn2
+kogito deploy-service process-quarkus-example https://github.com/apache/incubator-kie-kogito-examples/process-quarkus-example/src/main/resources/org/kie/kogito/examples/orderItems.bpmn2
 ```
 
 ## Image/YAML
@@ -246,8 +246,8 @@ deployment and the only available method if you are using minikube.
 ### Building/Pushing Image
 The first step to deploying this way is building the image 
 with Docker. The instructions to do this can be found in the 
-`examples/` folder of the operator in the [quarkus-jvm.Dockerfile](https://github.com/kiegroup/kogito-operator/blob/main/examples/quarkus-jvm.Dockerfile) 
-and [springboot.Dockerfile](https://github.com/kiegroup/kogito-operator/blob/main/examples/springboot.Dockerfile) 
+`examples/` folder of the operator in the [quarkus-jvm.Dockerfile](https://github.com/apache/incubator-kie-kogito-operator/blob/main/examples/quarkus-jvm.Dockerfile) 
+and [springboot.Dockerfile](https://github.com/apache/incubator-kie-kogito-operator/blob/main/examples/springboot.Dockerfile) 
 depending on the runtime of the application you're trying to 
 build. You will need to setup a [Quay](https://quay.io) 
 account (or any other image registry) and login to it on Docker using `docker login 
@@ -268,10 +268,10 @@ minikube.
 
 #### Simple
 In the simplest case, no `KogitoInfra` or `KogitoSupportingService` 
-are required. For example, [process-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/stable/process-quarkus-example) 
+are required. For example, [process-quarkus-example](https://github.com/apache/incubator-kie-kogito-examples/tree/stable/process-quarkus-example) 
 without persistence/events enabled. The YAML for this case 
 can be found in 
-[`examples/process-quarkus-example-runtime.yaml`](https://github.com/kiegroup/kogito-operator/blob/main/examples/process-quarkus-example-runtime.yaml) 
+[`examples/process-quarkus-example-runtime.yaml`](https://github.com/apache/incubator-kie-kogito-operator/blob/main/examples/process-quarkus-example-runtime.yaml) 
 in the operator:
 ```yaml
 apiVersion: app.kiegroup.org/v1beta1
@@ -285,10 +285,10 @@ spec:
 
 #### `KogitoInfra`
 An example of deploying with a `KogitoInfra` would deploying 
-the [process-quarkus-example](https://github.com/kiegroup/kogito-examples/tree/stable/process-quarkus-example) 
+the [process-quarkus-example](https://github.com/apache/incubator-kie-kogito-examples/tree/stable/process-quarkus-example) 
 with persistence enabled. The YAML for this case 
 can be found in 
-[`examples/process-quarkus-example-persistence-nobuild.yaml`](https://github.com/kiegroup/kogito-operator/blob/main/examples/process-quarkus-example-persistence-nobuild.yaml) 
+[`examples/process-quarkus-example-persistence-nobuild.yaml`](https://github.com/apache/incubator-kie-kogito-operator/blob/main/examples/process-quarkus-example-persistence-nobuild.yaml) 
 in the operator:
 ```yaml
 # Infinispan operator should be pre-installed in namespace
@@ -369,7 +369,7 @@ cluster.
 However for developers running the Kogito operator 
 locally, the operator will not be able to access the 
 internal URL's. Thus when running the operator locally, the 
-[`LOCAL_KOGITO_SERVICE_URL` environment variable](https://github.com/kiegroup/kogito-operator/blob/33e6b074674ee40d65f6db8b5b8f4e012bb0ddee/core/kogitoservice/kogito_service.go#L25) 
+[`LOCAL_KOGITO_SERVICE_URL` environment variable](https://github.com/apache/incubator-kie-kogito-operator/blob/33e6b074674ee40d65f6db8b5b8f4e012bb0ddee/core/kogitoservice/kogito_service.go#L25) 
 must be set after exposing the Kogito application. To do 
 this, you should stop the locally-running operator, run the 
 following command and then restart the operator:
@@ -445,7 +445,7 @@ Ensure that your `GOPATH` environment variable is set (see the section about [in
 Kogito CLI](#Installation)).
 
 You can find instructions for setting up Delve for the following IDE's:
-- [IntelliJ IDEA](https://github.com/kiegroup/kogito-operator#remote-debug-kogito-operator-using-intellij-idea)
+- [IntelliJ IDEA](https://github.com/apache/incubator-kie-kogito-operator#remote-debug-kogito-operator-using-intellij-idea)
 - [VSCode](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-using-vscode-130k)
 - [GoLand](https://dev.to/austincunningham/debug-kubernetes-operator-sdk-locally-in-goland-kl6)
 
@@ -466,7 +466,7 @@ about tasks on the [Kogito Zulip community chat](https://kie.zulipchat.com/#narr
 Once you have completed a Jira ticket and are ready to 
 submit it, make sure to run `make before-pr` to ensure your 
 code is ready to submit. You should also add an entry to the 
-[release notes](https://github.com/kiegroup/kogito-operator/blob/main/RELEASE_NOTES.md) 
-with your Jira description. Be sure to consult the [README](https://github.com/kiegroup/kogito-operator#kogito-operator-collaboration-and-pull-requests) 
-and [PR checklist](https://github.com/kiegroup/kogito-operator/blob/main/.github/pull_request_template.md) 
+[release notes](https://github.com/apache/incubator-kie-kogito-operator/blob/main/RELEASE_NOTES.md) 
+with your Jira description. Be sure to consult the [README](https://github.com/apache/incubator-kie-kogito-operator#kogito-operator-collaboration-and-pull-requests) 
+and [PR checklist](https://github.com/apache/incubator-kie-kogito-operator/blob/main/.github/pull_request_template.md) 
 for other PR requirements.

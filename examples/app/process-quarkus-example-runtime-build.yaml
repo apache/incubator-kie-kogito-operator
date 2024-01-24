@@ -8,7 +8,7 @@ spec:
   buildImage: quay.io/yournamespace/process-quarkus-example:0.10
   gitSource:
     contextDir: process-quarkus-example
-    uri: https://github.com/kiegroup/kogito-examples
+    uri: https://github.com/apache/incubator-kie-kogito-examples
   runtime: quarkus
   runtimeImage: quay.io/yournamespace/process-quarkus-example:0.10
   type: RemoteSource

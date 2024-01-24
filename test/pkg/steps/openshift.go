@@ -20,9 +20,9 @@ package steps
 import (
 	"fmt"
 
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/steps/mappers"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/steps/mappers"
 	v1 "k8s.io/api/core/v1"
 )
 

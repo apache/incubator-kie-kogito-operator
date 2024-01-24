@@ -23,12 +23,12 @@ import (
 
 	"github.com/cucumber/messages-go/v16"
 
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	v1 "github.com/apache/incubator-kie-kogito-operator/apis/rhpam/v1"
 
-	api "github.com/kiegroup/kogito-operator/apis"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
 
-	"github.com/kiegroup/kogito-operator/test/pkg/types"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/types"
 )
 
 // *** Whenever you add new parsing functionality here please add corresponding DataTable example to every file in steps which can use the functionality ***

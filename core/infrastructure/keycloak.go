@@ -18,8 +18,8 @@
 package infrastructure
 
 import (
-	"github.com/kiegroup/kogito-operator/core/infrastructure/keycloak/v1alpha1"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure/keycloak/v1alpha1"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 )
 
 const (

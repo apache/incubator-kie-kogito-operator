@@ -1,15 +1,15 @@
-module github.com/kiegroup/kogito-operator/test
+module github.com/apache/incubator-kie-kogito-operator/test
 
-go 1.17
+go 1.21
 
 require (
+	github.com/apache/incubator-kie-kogito-operator v0.0.0
+	github.com/apache/incubator-kie-kogito-operator/apis v0.0.0
 	github.com/cucumber/gherkin-go/v19 v19.0.3
 	github.com/cucumber/godog v0.12.5
 	github.com/cucumber/messages-go/v16 v16.0.1
 	github.com/go-logr/logr v1.2.0
 	github.com/go-logr/zapr v1.2.0
-	github.com/kiegroup/kogito-operator v0.0.0-00010101000000-000000000000
-	github.com/kiegroup/kogito-operator/apis v0.0.0-00010101000000-000000000000
 	github.com/machinebox/graphql v0.2.2
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/openshift/api v0.0.0-20210105115604-44119421ec6b
@@ -117,6 +117,6 @@ require (
 
 // local modules
 replace (
-	github.com/kiegroup/kogito-operator => ../
-	github.com/kiegroup/kogito-operator/apis => ../apis
+	github.com/apache/incubator-kie-kogito-operator v0.0.0 => ../
+	github.com/apache/incubator-kie-kogito-operator/apis v0.0.0 => ../apis
 )

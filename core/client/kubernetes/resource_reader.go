@@ -20,7 +20,7 @@ package kubernetes
 import (
 	"context"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

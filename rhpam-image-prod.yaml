@@ -18,7 +18,7 @@
       container:
         image_build_method: imagebuilder
         remote_source:
-          repo: https://github.com/kiegroup/kogito-operator
+          repo: https://github.com/apache/incubator-kie-kogito-operator
           ref: 61df77fc46064cba90112743ed2c751b9f1e9b36
           pkg_managers:
             - gomod

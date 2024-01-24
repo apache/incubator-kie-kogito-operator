@@ -19,7 +19,7 @@
 package fake
 
 import (
-	v1beta1 "github.com/kiegroup/kogito-operator/client/clientset/versioned/typed/app/v1beta1"
+	v1beta1 "github.com/apache/incubator-kie-kogito-operator/client/clientset/versioned/typed/app/v1beta1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

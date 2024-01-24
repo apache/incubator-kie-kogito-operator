@@ -23,7 +23,7 @@ spec:
   #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
   gitSource:
     contextDir: process-quarkus-example
-    uri: 'https://github.com/kiegroup/kogito-examples'
+    uri: 'https://github.com/apache/incubator-kie-kogito-examples'
   env:
     # enable persistence
     - name: MAVEN_ARGS_APPEND

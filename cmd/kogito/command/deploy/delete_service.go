@@ -19,13 +19,14 @@ package deploy
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/service"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/meta"
+
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/service"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/shared"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	"github.com/spf13/cobra"
 )
 
@@ -72,7 +73,7 @@ func (i *deleteServiceCommand) RegisterHook() {
 		Project context is the namespace (Kubernetes) or project (OpenShift) where the Service will be deployed.
 		To know what's your context, use "kogito project". To set a new Project in the context use "kogito use-project NAME".
 		Please note that this command requires the Kogito Operator installed in the cluster.
-		For more information about the Kogito Operator installation please refer to https://github.com/kiegroup/kogito-operator#kogito-operator-installation.`,
+		For more information about the Kogito Operator installation please refer to https://github.com/apache/incubator-kie-kogito-operator#kogito-operator-installation.`,
 		RunE:    i.Exec,
 		PreRun:  i.CommonPreRun,
 		PostRun: i.CommonPostRun,

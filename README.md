@@ -1,8 +1,8 @@
 # Kogito Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/apache/incubator-kie-kogito-operator)](https://goreportcard.com/report/github.com/apache/incubator-kie-kogito-operator)
 
-The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
+The Kogito Operator deploys [Kogito Runtimes](https://github.com/apache/incubator-kie-kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
 
 For information about the Kogito Operator architecture and instructions for using the operator and CLI to deploy Kogito services and infrastructures, see the official [Kogito Documentation](https://docs.jboss.org/kogito/release/latest/html_single/#chap-kogito-deploying-on-openshift) page.
 
@@ -40,10 +40,10 @@ You can quickly install the operator in your local cluster by executing the foll
 
 ```shell script
 VERSION=<current_operator_version>
-kubectl apply -f "https://github.com/kiegroup/kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
+kubectl apply -f "https://github.com/apache/incubator-kie-kogito-operator/releases/download/${VERSION}/kogito-operator.yaml"
 ```
 
-Replace the version above to match your context (example v1.8.0). The version information you can grab from the [releases page](https://github.com/kiegroup/kogito-operator/releases).
+Replace the version above to match your context (example v1.8.0). The version information you can grab from the [releases page](https://github.com/apache/incubator-kie-kogito-operator/releases).
 
 Alternatively, if you cloned this repo just do:
 
@@ -64,10 +64,10 @@ in your Golang project. For this to  work, you just have to import our `client` 
 
 ```shell script
 # client depends on the `api` module
-go install github.com/kiegroup/kogito-operator/client@{VERSION}
+go install github.com/apache/incubator-kie-kogito-operator/client@{VERSION}
 ```
 
-Replace `{VERSION}` with the [latest release](https://github.com/kiegroup/kogito-operator/releases).
+Replace `{VERSION}` with the [latest release](https://github.com/apache/incubator-kie-kogito-operator/releases).
 
 The `client` module will provide your project with the Kubernetes client 
 for Kogito custom resources such as `KogitoRuntime` and `KogitoBuild`.
@@ -105,7 +105,7 @@ In general, the unit tests that are provided with the Kogito Operator are based 
 
 ### Kogito Operator collaboration and pull requests
 
-Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/kiegroup/kogito-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.
+Before you start to work on a new proposed feature or on a fix for a bug, [open an issue](https://github.com/apache/incubator-kie-kogito-operator/issues) to discuss your idea or bug report with the maintainers. You can also work on a [JIRA issue](https://issues.jboss.org/issues/?jql=project+%3D+KOGITO+AND+component+%3D+Operator) that has been reported. A developer might already be assigned to address the issue, but you can leave a comment in the JIRA asking if they need some help.
 
 After you update the source with your new proposed feature or bug fix, open a [pull request (PR)](https://help.github.com/en/articles/about-pull-requests) that meets the following requirements:
 
@@ -119,7 +119,7 @@ After you update the source with your new proposed feature or bug fix, open a [p
 
 After you send your PR, a maintainer will review your code and might ask you to make changes and to [squash your commits](https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git) before we can merge.
 
-If you have any questions, contact a Kogito Operator maintainer in the [issues page](https://github.com/kiegroup/kogito-operator/issues).
+If you have any questions, contact a Kogito Operator maintainer in the [issues page](https://github.com/apache/incubator-kie-kogito-operator/issues).
 
 ## Kogito Operator development
 
@@ -138,7 +138,7 @@ For code contributions, review the following prerequisites:
 - [Docker](https://www.docker.com/)
 - [Operator Courier](https://github.com/operator-framework/operator-courier) is used to build, validate and push Operator Artifacts
 - [Operator SDK](https://github.com/operator-framework/operator-sdk) v1.21.0
-- [Go](https://golang.org/) v1.17 is installed.
+- [Go](https://golang.org/) v1.21 is installed.
 - [Golint dependency](https://pkg.go.dev/golang.org/x/lint/golint): go install golang.org/x/lint/golint@latest
 - [Golangci-lint](https://golangci-lint.run/usage/install/)
 - [Python 3.x](https://www.python.org/downloads/) v3.x is installed
@@ -298,7 +298,7 @@ You can set those optional keys:
 - `services_image_name_suffix` sets the global services image name suffix to append to usual image names.
 - `services_image_version` sets the global services image version.
 <!--- build -->
-- `custom_maven_repo_url` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/kiegroup/kogito-images/README.md for more information.
+- `custom_maven_repo_url` sets a custom Maven repository url for S2I builds, in case your artifacts are in a specific repository. See https://github.com/apache/incubator-kie-kogito-images/README.md for more information.
 - `maven_mirror_url` is the Maven mirror URL.  
   This is helpful when you need to speed up the build time by referring to a closer Maven repository.
 - `quarkus_platform_maven_mirror_url` is the Maven mirror url to be used when building app from source files with Quarkus, using the quarkus maven plugin.
@@ -308,7 +308,7 @@ You can set those optional keys:
 - `disable_maven_native_build_container` disables the default Maven native build done in container.
 <!--- examples repository -->
 - `examples_uri` sets the URI for the kogito-examples repository.  
-  *Default is https://github.com/kiegroup/kogito-examples*.
+  *Default is https://github.com/apache/incubator-kie-kogito-examples*.
 - `examples_ref` sets the branch for the kogito-examples repository.
 <!--- build runtime applications -->
 - `runtime_application_image_registry` sets the registry for built runtime applications.

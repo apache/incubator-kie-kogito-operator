@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
 	"github.com/machinebox/graphql"
 )
 

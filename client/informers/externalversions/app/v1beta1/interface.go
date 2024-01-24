@@ -19,7 +19,7 @@
 package v1beta1
 
 import (
-	internalinterfaces "github.com/kiegroup/kogito-operator/client/informers/externalversions/internalinterfaces"
+	internalinterfaces "github.com/apache/incubator-kie-kogito-operator/client/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to all the informers in this group version.

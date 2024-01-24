@@ -19,9 +19,9 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/infrastructure/kafka/v1beta2"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure/kafka/v1beta2"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sort"
 	"strings"

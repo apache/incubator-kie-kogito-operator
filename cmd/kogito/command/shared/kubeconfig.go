@@ -19,11 +19,12 @@ package shared
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-operator/core/client"
-	"k8s.io/client-go/tools/clientcmd"
 	"strings"
+
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/message"
+	"github.com/apache/incubator-kie-kogito-operator/core/client"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (

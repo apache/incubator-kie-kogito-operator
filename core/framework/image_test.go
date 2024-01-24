@@ -21,7 +21,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
 )
 
 func TestFromStringToImage(t *testing.T) {

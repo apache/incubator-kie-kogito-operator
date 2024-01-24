@@ -18,8 +18,8 @@
 package kogitosupportingservice
 
 import (
-	"github.com/kiegroup/kogito-operator/core/connector"
-	"github.com/kiegroup/kogito-operator/core/kogitoservice"
+	"github.com/apache/incubator-kie-kogito-operator/core/connector"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitoservice"
 	"k8s.io/apimachinery/pkg/types"
 	controller "sigs.k8s.io/controller-runtime/pkg/reconcile"
 )

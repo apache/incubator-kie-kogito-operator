@@ -20,9 +20,9 @@ package test
 import (
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/test/pkg/executor"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/meta"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/executor"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/meta"
 )
 
 func TestMain(m *testing.M) {

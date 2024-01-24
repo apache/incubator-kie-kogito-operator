@@ -18,7 +18,7 @@
 package rhpam
 
 import (
-	rhpam2 "github.com/kiegroup/kogito-operator/version/rhpam"
+	rhpam2 "github.com/apache/incubator-kie-kogito-operator/version/rhpam"
 )
 
 // getMeteringLabels returns metering labels

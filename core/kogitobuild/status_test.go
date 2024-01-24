@@ -19,20 +19,20 @@ package kogitobuild
 
 import (
 	"errors"
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/core/framework/util"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/core/test"
-	app2 "github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/meta"
+	"reflect"
+	"testing"
+	"time"
+
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework/util"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/test"
+	app2 "github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	buildv1 "github.com/openshift/api/build/v1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
-	"testing"
-	"time"
 )
 
 func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
@@ -42,7 +42,7 @@ func TestStatusChangeWhenConsecutiveErrorsOccur(t *testing.T) {
 		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
 			GitSource: v1beta1.GitSource{
-				URI: "https://github.com/kiegroup/kogito-examples/",
+				URI: "https://github.com/apache/incubator-kie-kogito-examples/",
 			},
 			Runtime: api.QuarkusRuntimeType,
 		},
@@ -84,7 +84,7 @@ func TestStatusChangeWhenBuildsAreRunning(t *testing.T) {
 		Spec: v1beta1.KogitoBuildSpec{
 			Type: api.RemoteSourceBuildType,
 			GitSource: v1beta1.GitSource{
-				URI: "https://github.com/kiegroup/kogito-examples/",
+				URI: "https://github.com/apache/incubator-kie-kogito-examples/",
 			},
 			Runtime: api.QuarkusRuntimeType,
 		},

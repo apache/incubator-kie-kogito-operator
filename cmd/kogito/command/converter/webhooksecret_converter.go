@@ -18,10 +18,10 @@
 package converter
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/util"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/util"
 )
 
 // FromWebHookFlagsToWebHookSecret converts given WebHookFlags into WebHookSecret

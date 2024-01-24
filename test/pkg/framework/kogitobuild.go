@@ -20,16 +20,16 @@ package framework
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	v1 "github.com/apache/incubator-kie-kogito-operator/apis/rhpam/v1"
 
-	api "github.com/kiegroup/kogito-operator/apis"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework/mappers"
-	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework/mappers"
+	bddtypes "github.com/apache/incubator-kie-kogito-operator/test/pkg/types"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

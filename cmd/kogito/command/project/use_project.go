@@ -19,11 +19,11 @@ package project
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/message"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/shared"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/message"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/shared"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
 	"github.com/spf13/cobra"
 )
 

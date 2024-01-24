@@ -19,8 +19,8 @@ package kogitobuild
 
 import (
 	"context"
-	"github.com/kiegroup/kogito-operator/core/manager"
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/manager"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	v1 "github.com/openshift/api/build/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

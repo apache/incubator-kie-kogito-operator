@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kiegroup/kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 

@@ -20,7 +20,7 @@ package kubernetes
 import (
 	"context"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

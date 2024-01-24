@@ -20,8 +20,8 @@ package steps
 import (
 	"fmt"
 
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 )
 
 func registerTaskSteps(ctx *godog.ScenarioContext, data *Data) {

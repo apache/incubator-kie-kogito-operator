@@ -23,13 +23,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/executor"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/gherkin"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/meta"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/steps"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/steps/mappers"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/executor"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/gherkin"
-	"github.com/kiegroup/kogito-operator/test/pkg/meta"
-	"github.com/kiegroup/kogito-operator/test/pkg/steps"
-	"github.com/kiegroup/kogito-operator/test/pkg/steps/mappers"
 )
 
 func TestMain(m *testing.M) {

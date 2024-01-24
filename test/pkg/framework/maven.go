@@ -22,7 +22,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
 )
 
 const (
@@ -127,7 +127,7 @@ func (mvnCmd *mavenCommandStruct) Execute(targets ...string) (string, error) {
 	}
 
 	// Maven download artifacts configuration
-	// Same configuration as in https://github.com/kiegroup/kogito-pipelines/blob/main/.ci/pull-request-config.yaml#L6
+	// Same configuration as in https://github.com/apache/incubator-kie-kogito-pipelines/blob/main/.ci/pull-request-config.yaml#L6
 	args = append(args, "-Dhttp.keepAlive=false", "-Dmaven.wagon.http.pool=false", "-Dmaven.wagon.httpconnectionManager.ttlSeconds=120", "-Dmaven.wagon.http.retryHandler.count=3")
 
 	cmd := CreateCommand(mavenCommandName, args...).InDirectory(mvnCmd.directory)

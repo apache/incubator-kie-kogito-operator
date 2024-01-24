@@ -22,7 +22,7 @@ import (
 	"sort"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
 	appsv1 "github.com/openshift/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	imgv1 "github.com/openshift/api/image/v1"

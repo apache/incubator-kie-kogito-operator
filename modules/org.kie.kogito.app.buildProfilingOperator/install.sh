@@ -19,4 +19,4 @@
 set -e
 cd /workspace
 
-go test -covermode=atomic -coverpkg=github.com/kiegroup/kogito-operator/... -c -tags testrunmain ./ -o manager
+go test -covermode=atomic -coverpkg=github.com/apache/incubator-kie-kogito-operator/... -c -tags testrunmain ./ -o manager

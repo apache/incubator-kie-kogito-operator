@@ -18,12 +18,12 @@
 package app
 
 import (
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/controllers/common"
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	app2 "github.com/kiegroup/kogito-operator/internal/app"
-	"github.com/kiegroup/kogito-operator/version/app"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/controllers/common"
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	app2 "github.com/apache/incubator-kie-kogito-operator/internal/app"
+	"github.com/apache/incubator-kie-kogito-operator/version/app"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 

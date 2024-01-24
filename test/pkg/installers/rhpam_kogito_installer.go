@@ -23,9 +23,9 @@ import (
 	"regexp"
 	"strings"
 
-	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
+	v1 "github.com/apache/incubator-kie-kogito-operator/apis/rhpam/v1"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

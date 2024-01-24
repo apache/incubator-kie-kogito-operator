@@ -18,8 +18,8 @@
 package test
 
 import (
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/meta"
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"

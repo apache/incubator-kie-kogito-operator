@@ -19,9 +19,10 @@ package util
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/core/framework"
 	"os"
 	"strings"
+
+	"github.com/apache/incubator-kie-kogito-operator/core/framework"
 )
 
 const (

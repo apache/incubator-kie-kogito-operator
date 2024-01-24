@@ -18,13 +18,13 @@
 package steps
 
 import (
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitosupportingservice"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/steps/mappers"
+	bddtypes "github.com/apache/incubator-kie-kogito-operator/test/pkg/types"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/steps/mappers"
-	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
 )
 
 /*

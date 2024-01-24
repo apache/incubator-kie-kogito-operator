@@ -22,8 +22,8 @@ import (
 
 	"github.com/cucumber/messages-go/v16"
 
-	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 )
 
 // *** Whenever you add new parsing functionality here please add corresponding DataTable example to every file in steps which can use the functionality ***

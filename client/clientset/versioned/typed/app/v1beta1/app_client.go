@@ -19,8 +19,8 @@
 package v1beta1
 
 import (
-	v1beta1 "github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	"github.com/kiegroup/kogito-operator/client/clientset/versioned/scheme"
+	v1beta1 "github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

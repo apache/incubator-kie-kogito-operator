@@ -20,19 +20,19 @@ package framework
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
-	rhpamv1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
+	rhpamv1 "github.com/apache/incubator-kie-kogito-operator/apis/rhpam/v1"
 
-	api "github.com/kiegroup/kogito-operator/apis"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
 	"k8s.io/apimachinery/pkg/api/meta"
 
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework/mappers"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework/mappers"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )

@@ -20,7 +20,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/kiegroup/kogito-operator/version/rhpam"
+	"github.com/apache/incubator-kie-kogito-operator/version/rhpam"
 )
 
 var (

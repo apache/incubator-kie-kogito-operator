@@ -5,7 +5,7 @@ metadata:
 spec:
   type: RemoteSource
   gitSource:
-    uri: https://github.com/kiegroup/kogito-examples
+    uri: https://github.com/apache/incubator-kie-kogito-examples
     contextDir: onboarding-example/onboarding
   # set your maven nexus repository to speed up the build time
   #mavenMirrorURL:
@@ -34,7 +34,7 @@ metadata:
 spec:
   type: RemoteSource
   gitSource:
-    uri: https://github.com/kiegroup/kogito-examples
+    uri: https://github.com/apache/incubator-kie-kogito-examples
     contextDir: onboarding-example/hr
   # set your maven nexus repository to speed up the build time
   #mavenMirrorURL:
@@ -56,7 +56,7 @@ metadata:
 spec:
   type: RemoteSource
   gitSource:
-    uri: https://github.com/kiegroup/kogito-examples
+    uri: https://github.com/apache/incubator-kie-kogito-examples
     contextDir: onboarding-example/payroll
   # set your maven nexus repository to speed up the build time
   #mavenMirrorURL:

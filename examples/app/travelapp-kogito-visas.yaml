@@ -34,7 +34,7 @@ metadata:
 spec:
   type: RemoteSource
   gitSource:
-    uri: "https://github.com/kiegroup/kogito-examples/"
+    uri: "https://github.com/apache/incubator-kie-kogito-examples/"
     contextDir: extended/kogito-travel-agency/visas
     reference: main
   # set your maven nexus repository

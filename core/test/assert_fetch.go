@@ -18,11 +18,11 @@
 package test
 
 import (
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

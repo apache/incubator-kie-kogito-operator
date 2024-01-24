@@ -18,7 +18,7 @@
 package install
 
 import (
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/test"
 	"os"
 	"testing"
 )

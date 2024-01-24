@@ -20,18 +20,18 @@ package framework
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
-	"github.com/kiegroup/kogito-operator/core/logger"
-	"github.com/kiegroup/kogito-operator/core/operator"
-	"github.com/kiegroup/kogito-operator/meta"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/core/operator"
+	"github.com/apache/incubator-kie-kogito-operator/meta"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	infinispan "github.com/kiegroup/kogito-operator/core/infrastructure/infinispan/v1"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	infinispan "github.com/apache/incubator-kie-kogito-operator/core/infrastructure/infinispan/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

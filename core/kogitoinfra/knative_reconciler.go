@@ -19,7 +19,7 @@ package kogitoinfra
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/core/infrastructure"
+	"github.com/apache/incubator-kie-kogito-operator/core/infrastructure"
 	"k8s.io/apimachinery/pkg/types"
 )
 

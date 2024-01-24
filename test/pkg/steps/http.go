@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 )
 
 func registerHTTPSteps(ctx *godog.ScenarioContext, data *Data) {

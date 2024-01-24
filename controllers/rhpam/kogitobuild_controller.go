@@ -18,11 +18,11 @@
 package rhpam
 
 import (
-	v1 "github.com/kiegroup/kogito-operator/apis/rhpam/v1"
-	"github.com/kiegroup/kogito-operator/controllers/common"
-	"github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/internal/rhpam"
-	rhpam2 "github.com/kiegroup/kogito-operator/version/rhpam"
+	v1 "github.com/apache/incubator-kie-kogito-operator/apis/rhpam/v1"
+	"github.com/apache/incubator-kie-kogito-operator/controllers/common"
+	"github.com/apache/incubator-kie-kogito-operator/core/client"
+	"github.com/apache/incubator-kie-kogito-operator/internal/rhpam"
+	rhpam2 "github.com/apache/incubator-kie-kogito-operator/version/rhpam"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 

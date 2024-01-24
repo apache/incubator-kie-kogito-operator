@@ -21,11 +21,11 @@ import (
 	"errors"
 	"fmt"
 
+	hyperfoilv1alpha2 "github.com/apache/incubator-kie-kogito-operator/test/pkg/api/hyperfoil/v1alpha2"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/installers"
 	"github.com/cucumber/godog"
-	hyperfoilv1alpha2 "github.com/kiegroup/kogito-operator/test/pkg/api/hyperfoil/v1alpha2"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/installers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

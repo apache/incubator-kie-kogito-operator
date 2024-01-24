@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"strings"
 
-	api "github.com/kiegroup/kogito-operator/apis"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
 	buildv1 "github.com/openshift/api/build/v1"
 )
 

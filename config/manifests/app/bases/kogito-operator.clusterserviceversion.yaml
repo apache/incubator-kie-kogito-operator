@@ -9,7 +9,7 @@ metadata:
     containerImage: quay.io/kiegroup/kogito-operator:2.0.0-snapshot
     createdAt: "2019-08-22T13:12:22Z"
     description: Kogito Operator for deployment and management of Kogito services.
-    repository: https://github.com/kiegroup/kogito-operator
+    repository: https://github.com/apache/incubator-kie-kogito-operator
     support: Red Hat
     tectonic-visibility: ocs
   labels:
@@ -540,9 +540,9 @@ spec:
   - name: Product Page
     url: https://kogito.kie.org/
   - name: Documentation
-    url: https://github.com/kiegroup/kogito-operator/blob/main/README.md
+    url: https://github.com/apache/incubator-kie-kogito-operator/blob/main/README.md
   - name: Source
-    url: https://github.com/kiegroup/kogito-operator/
+    url: https://github.com/apache/incubator-kie-kogito-operator/
   maintainers:
   - email: bsig-cloud@redhat.com
     name: Red Hat

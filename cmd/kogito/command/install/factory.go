@@ -18,7 +18,7 @@
 package install
 
 import (
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/context"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
 	"github.com/spf13/cobra"
 )
 

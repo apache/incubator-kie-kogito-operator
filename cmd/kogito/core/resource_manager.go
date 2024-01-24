@@ -18,13 +18,14 @@
 package core
 
 import (
-	kogitocli "github.com/kiegroup/kogito-operator/core/client"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
+	"sync"
+	"time"
+
+	kogitocli "github.com/apache/incubator-kie-kogito-operator/core/client"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sync"
-	"time"
 )
 
 const (

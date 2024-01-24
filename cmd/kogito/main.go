@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command"
 )
 
 // Main starts the Kogito CLI

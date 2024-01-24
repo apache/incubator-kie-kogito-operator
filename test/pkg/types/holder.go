@@ -18,7 +18,7 @@
 package types
 
 import (
-	"github.com/kiegroup/kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
 )
 
 // KogitoServiceHolder Helper structure holding informations which are not available in KogitoService

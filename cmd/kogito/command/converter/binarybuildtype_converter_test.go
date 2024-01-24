@@ -21,9 +21,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kiegroup/kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/apis"
 
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
 )
 
 func TestFromArgsToBinaryBuildType(t *testing.T) {

@@ -23,10 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitosupportingservice"
 
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
 )
 
 func registerGraphQLSteps(ctx *godog.ScenarioContext, data *Data) {

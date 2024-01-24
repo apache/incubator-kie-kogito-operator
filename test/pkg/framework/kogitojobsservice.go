@@ -20,13 +20,13 @@ package framework
 import (
 	"fmt"
 
-	"github.com/kiegroup/kogito-operator/apis/app/v1beta1"
+	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
 
-	api "github.com/kiegroup/kogito-operator/apis"
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/kogitosupportingservice"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	bddtypes "github.com/kiegroup/kogito-operator/test/pkg/types"
+	api "github.com/apache/incubator-kie-kogito-operator/apis"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/kogitosupportingservice"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	bddtypes "github.com/apache/incubator-kie-kogito-operator/test/pkg/types"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )

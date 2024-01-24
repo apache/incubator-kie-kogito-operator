@@ -10,7 +10,7 @@ spec:
   #  value: "my value"
   gitSource:
     contextDir: process-quarkus-example
-    uri: 'https://github.com/kiegroup/kogito-examples'
+    uri: 'https://github.com/apache/incubator-kie-kogito-examples'
   # set your maven nexus repository
   #mavenMirrorURL: http://nexus3-nexus.apps-crc.testing/repository/maven-public/
 ---

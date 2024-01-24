@@ -30,9 +30,9 @@ For installing the Minikube cluster please follow [this tutorial](https://kubern
 ## Build Artifacts
 
 Before proceeding, please read the README files on the following repositories to know the dependencies you might need to install to build and deploy the artifacts.
- * [kogito-runtimes](https://github.com/kiegroup/kogito-runtimes)
- * [kogito-apps](https://github.com/kiegroup/kogito-apps)
- * [kogito-examples](https://github.com/kiegroup/kogito-examples)
+ * [kogito-runtimes](https://github.com/apache/incubator-kie-kogito-runtimes)
+ * [kogito-apps](https://github.com/apache/incubator-kie-kogito-apps)
+ * [kogito-examples](https://github.com/apache/incubator-kie-kogito-examples)
  
 To generate the jar artifacts, you can just run the following command on each repository:
 
@@ -71,7 +71,7 @@ FROM quay.io/kiegroup/kogito-jobs-service-ephemeral
 COPY jobs-service-common-{VERSION}-runner.jar ${KOGITO_HOME}/bin/jobs-service-common-runner.jar
 ```
 **Note**: Usually, latest artifacts are with version  `8.0.0-SNAPSHOT`
-**Note**: You can check the location of the artifact in the image from the [kogito-images](https://github.com/kiegroup/kogito-images) repository.
+**Note**: You can check the location of the artifact in the image from the [kogito-images](https://github.com/apache/incubator-kie-kogito-images) repository.
 
 Now you are going to build the image. Inside the above created directory, run:
 
@@ -94,10 +94,10 @@ $ podman push quay.io/<your-namespace>/<image-name>
   * kogito-quarkus-jvm-ubi8
   * kogito-springboot-ubi8
 
-As an example for building the Image for your Kogito custom Service we’re going to build the example  `process-business-rules-quarkus` from [kogito-examples](https://github.com/kiegroup/kogito-examples) repository.
+As an example for building the Image for your Kogito custom Service we’re going to build the example  `process-business-rules-quarkus` from [kogito-examples](https://github.com/apache/incubator-kie-kogito-examples) repository.
 
 ```shell-script
-$ git clone https://github.com/kiegroup/kogito-examples
+$ git clone https://github.com/apache/incubator-kie-kogito-examples
 cd kogito-examples/process-business-rules-quarkus
 mvn clean package
 ```

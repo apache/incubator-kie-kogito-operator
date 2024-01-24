@@ -30,10 +30,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kiegroup/kogito-operator/core/logger"
+	"github.com/apache/incubator-kie-kogito-operator/core/logger"
 
-	"github.com/kiegroup/kogito-operator/core/client/kubernetes"
-	"github.com/kiegroup/kogito-operator/core/framework/util"
+	"github.com/apache/incubator-kie-kogito-operator/core/client/kubernetes"
+	"github.com/apache/incubator-kie-kogito-operator/core/framework/util"
 	"io/ioutil"
 	"k8s.io/api/events/v1beta1"
 )

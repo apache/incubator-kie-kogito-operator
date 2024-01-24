@@ -18,10 +18,10 @@
 package steps
 
 import (
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/config"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/framework"
+	"github.com/apache/incubator-kie-kogito-operator/test/pkg/installers"
 	"github.com/cucumber/godog"
-	"github.com/kiegroup/kogito-operator/test/pkg/config"
-	"github.com/kiegroup/kogito-operator/test/pkg/framework"
-	"github.com/kiegroup/kogito-operator/test/pkg/installers"
 )
 
 func registerOperatorSteps(ctx *godog.ScenarioContext, data *Data) {

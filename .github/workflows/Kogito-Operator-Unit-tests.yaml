@@ -8,7 +8,7 @@ on:
       - 'core/**.go'
       - 'cmd/**.go'
 env:
-  GO_VERSION: 1.17
+  GO_VERSION: 1.21
 jobs:
   unit_test_and_coverage:
     name: Unit test and Coverage

@@ -27,7 +27,8 @@ print_usage() {
 }
 
 disable() {
-  sed -i '/github.com\/kiegroup\/kogito-operator\/apis v/d' ./go.mod
+  sed -i '/github.com\/apache\/incubator-kie-kogito-operator\/apis v/d' ./go.mod
+  sed -i '/\.\/apis/d' ./go.work
   mv ./apis/go.mod apis/go.mod.bkp 2>/dev/null
   true
 }

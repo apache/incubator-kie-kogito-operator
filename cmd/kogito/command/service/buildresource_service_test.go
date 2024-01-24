@@ -19,12 +19,13 @@ package service
 
 import (
 	"fmt"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/flag"
-	"github.com/kiegroup/kogito-operator/cmd/kogito/command/test"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
+	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_getRawGitHubFileURL(t *testing.T) {
@@ -36,8 +37,8 @@ func Test_getRawGitHubFileURL(t *testing.T) {
 		args args
 		want string
 	}{
-		{"file in branch", args{"https://github.com/kiegroup/kogito-examples/blob/stable/licensesheader.txt"}, "https://raw.githubusercontent.com/kiegroup/kogito-examples/stable/licensesheader.txt"},
-		{"file in commit", args{"https://github.com/kiegroup/kogito-examples/blob/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"}, "https://raw.githubusercontent.com/kiegroup/kogito-examples/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"},
+		{"file in branch", args{"https://github.com/apache/incubator-kie-kogito-examples/blob/stable/licensesheader.txt"}, "https://raw.githubusercontent.com/kiegroup/kogito-examples/stable/licensesheader.txt"},
+		{"file in commit", args{"https://github.com/apache/incubator-kie-kogito-examples/blob/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"}, "https://raw.githubusercontent.com/kiegroup/kogito-examples/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -55,13 +56,13 @@ func Test_GetResourceType_BinaryResource(t *testing.T) {
 }
 
 func Test_GetResourceType_GitRepositoryResource(t *testing.T) {
-	resourceType, err := GetResourceType("https://github.com/kiegroup/kogito-examples")
+	resourceType, err := GetResourceType("https://github.com/apache/incubator-kie-kogito-examples")
 	assert.Nil(t, err)
 	assert.Equal(t, flag.GitRepositoryResource, resourceType)
 }
 
 func Test_GetResourceType_GitFileResource(t *testing.T) {
-	resourceType, err := GetResourceType("https://github.com/kiegroup/kogito-examples/blob/stable/process-scripts-quarkus/src/main/resources/org/acme/travels/scripts.bpmn")
+	resourceType, err := GetResourceType("https://github.com/apache/incubator-kie-kogito-examples/blob/stable/process-scripts-quarkus/src/main/resources/org/acme/travels/scripts.bpmn")
 	assert.Nil(t, err)
 	assert.Equal(t, flag.GitFileResource, resourceType)
 }
