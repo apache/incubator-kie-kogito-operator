@@ -37,8 +37,8 @@ func Test_getRawGitHubFileURL(t *testing.T) {
 		args args
 		want string
 	}{
-		{"file in branch", args{"https://github.com/apache/incubator-kie-kogito-examples/blob/stable/licensesheader.txt"}, "https://raw.githubusercontent.com/kiegroup/kogito-examples/stable/licensesheader.txt"},
-		{"file in commit", args{"https://github.com/apache/incubator-kie-kogito-examples/blob/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"}, "https://raw.githubusercontent.com/kiegroup/kogito-examples/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"},
+		{"file in branch", args{"https://github.com/apache/incubator-kie-kogito-examples/blob/stable/licensesheader.txt"}, "https://raw.githubusercontent.com/apache/incubator-kie-kogito-examples/stable/licensesheader.txt"},
+		{"file in commit", args{"https://github.com/apache/incubator-kie-kogito-examples/blob/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"}, "https://raw.githubusercontent.com/apache/incubator-kie-kogito-examples/8bde586ed5e536abec46b16b08f2d0b108391107/licensesheader.txt"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
