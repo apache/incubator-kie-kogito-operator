@@ -46,7 +46,7 @@ set_up() {
   go mod download k8s.io/code-generator
   error_handler $? "Failed to add k8s.io/code-generator to mod"
   go get k8s.io/code-generator/cmd/client-gen/generators@"${generator_version}"
-  error_handler $? "Failed to add k8s.io/code-generator to mod"
+  error_handler $? "Failed to get k8s.io/code-generator/cmd/client-gen/generators@${generator_version}"
 }
 
 gen_client() {
