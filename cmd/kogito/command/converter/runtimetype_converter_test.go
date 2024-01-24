@@ -21,6 +21,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/apache/incubator-kie-kogito-operator/apis"
+
 	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
 	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/test"
 	"github.com/stretchr/testify/assert"

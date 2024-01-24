@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/apache/incubator-kie-kogito-operator/apis"
 	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
 	"github.com/apache/incubator-kie-kogito-operator/core/framework/util"
 	"github.com/apache/incubator-kie-kogito-operator/core/operator"
