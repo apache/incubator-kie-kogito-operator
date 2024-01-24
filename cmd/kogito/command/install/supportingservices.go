@@ -22,6 +22,7 @@ import (
 
 	"github.com/apache/incubator-kie-kogito-operator/apis/app/v1beta1"
 
+	"github.com/apache/incubator-kie-kogito-operator/apis"
 	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/context"
 	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/converter"
 	"github.com/apache/incubator-kie-kogito-operator/cmd/kogito/command/flag"
