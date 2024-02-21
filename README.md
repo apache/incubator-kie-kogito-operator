@@ -1,5 +1,8 @@
 # Kogito Operator
 
+> [!WARNING]  
+> This project has been archived and won't be receiving any more updates from the Apache KIE Community. See [more info on this issue](https://github.com/apache/incubator-kie-kogito-operator/issues/1537). If you're looking to run [Serverless Workflows](https://serverlessworkflow.io/) on the cloud, you can try the [SonataFlow Operator](https://github.com/apache/incubator-kie-kogito-serverless-operator). 
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/kiegroup/kogito-operator)](https://goreportcard.com/report/github.com/kiegroup/kogito-operator)
 
 The Kogito Operator deploys [Kogito Runtimes](https://github.com/kiegroup/kogito-runtimes) services from source and all infrastructure requirements for the services, such as persistence with [Infinispan](https://infinispan.org/) and messaging with [Apache Kafka](https://kafka.apache.org/). Kogito provides a command-line interface (CLI) that enables you to interact with the Kogito Operator for deployment tasks.
